@@ -13,12 +13,13 @@ class LiveKitService {
 
   bool get isConnected => _room?.connectionState == ConnectionState.connected;
 
-  // 🔑 توليد Token
+  // 🔑 توليد Token باستخدام API Key و Secret مباشرة
   String _generateToken({
     required String roomName,
     required String participantName,
   }) {
     try {
+      // ✅ استخدام AccessToken من livekit_client
       final token = AccessToken(
         LiveKitConfig.apiKey,
         LiveKitConfig.apiSecret,
@@ -57,7 +58,7 @@ class LiveKitService {
       final options = RoomOptions(
         defaultVideoPublishOptions: VideoPublishOptions(
           simulcast: false,
-          videoCodec: VideoCodec.vp8,
+          // ✅ إزالة VideoCodec (غير مدعوم في هذا الإصدار)
         ),
         defaultAudioPublishOptions: const AudioPublishOptions(),
       );
