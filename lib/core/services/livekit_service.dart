@@ -13,28 +13,27 @@ class LiveKitService {
 
   bool get isConnected => _room?.connectionState == ConnectionState.connected;
 
-  // 🔑 توليد Token باستخدام API Key و Secret مباشرة
-  String _generateToken({
+  // 🔑 توليد Token باستخدام createToken
+  Future<String> _generateToken({
     required String roomName,
     required String participantName,
-  }) {
+  }) async {
     try {
-      // ✅ استخدام AccessToken من livekit_client
-      final token = AccessToken(
-        LiveKitConfig.apiKey,
-        LiveKitConfig.apiSecret,
-        identity: participantName,
-        ttl: const Duration(minutes: 10),
-      );
-      
-      token.addGrant(
-        roomJoin: true,
+      // ✅ استخدام createToken من livekit_client
+      final token = await createToken(
+        apiKey: LiveKitConfig.apiKey,
+        apiSecret: LiveKitConfig.apiSecret,
         room: roomName,
-        canPublish: true,
-        canSubscribe: true,
+        identity: participantName,
+        ttl: Duration(minutes: 10),
+        grants: {
+          'roomJoin': true,
+          'canPublish': true,
+          'canSubscribe': true,
+        },
       );
       
-      return token.toJwt();
+      return token;
     } catch (e) {
       print('❌ خطأ في توليد التوكن: $e');
       rethrow;
@@ -48,7 +47,7 @@ class LiveKitService {
     try {
       _room = Room();
 
-      final token = _generateToken(
+      final token = await _generateToken(
         roomName: roomName,
         participantName: participantName ?? 'مستخدم',
       );
@@ -56,9 +55,8 @@ class LiveKitService {
       print('✅ Token generated successfully');
 
       final options = RoomOptions(
-        defaultVideoPublishOptions: VideoPublishOptions(
+        defaultVideoPublishOptions: const VideoPublishOptions(
           simulcast: false,
-          // ✅ إزالة VideoCodec (غير مدعوم في هذا الإصدار)
         ),
         defaultAudioPublishOptions: const AudioPublishOptions(),
       );
@@ -78,7 +76,7 @@ class LiveKitService {
     }
   }
 
-  // ✅ تفعيل الكاميرا مع معالجة الأخطاء
+  // ✅ تفعيل الكاميرا
   Future<void> enableCamera() async {
     try {
       if (_room?.localParticipant != null) {
@@ -94,7 +92,7 @@ class LiveKitService {
     }
   }
 
-  // ✅ تفعيل الميكروفون مع معالجة الأخطاء
+  // ✅ تفعيل الميكروفون
   Future<void> enableMicrophone() async {
     try {
       if (_room?.localParticipant != null) {
@@ -110,23 +108,20 @@ class LiveKitService {
     }
   }
 
-  // ✅ بدء المكالمة مع تفعيل الكاميرا والميكروفون
+  // ✅ بدء المكالمة
   Future<void> startCall({
     required String roomName,
     required String callerName,
     bool isVideo = true,
   }) async {
     try {
-      // 1. الاتصال بالغرفة
       await connectRoom(
         roomName: roomName,
         participantName: callerName,
       );
       
-      // 2. تفعيل الميكروفون دائماً
       await enableMicrophone();
       
-      // 3. تفعيل الكاميرا إذا كانت مكالمة فيديو
       if (isVideo) {
         await enableCamera();
       }
@@ -151,7 +146,7 @@ class LiveKitService {
     }
   }
 
-  // ✅ إيقاف الميكروفون (كتم الصوت)
+  // ✅ إيقاف الميكروفون
   Future<void> disableMicrophone() async {
     try {
       if (_room?.localParticipant != null) {
@@ -164,7 +159,7 @@ class LiveKitService {
     }
   }
 
-  // ✅ تبديل حالة الكاميرا
+  // ✅ تبديل الكاميرا
   Future<bool> toggleCamera() async {
     if (_isCameraEnabled) {
       await disableCamera();
@@ -175,7 +170,7 @@ class LiveKitService {
     }
   }
 
-  // ✅ تبديل حالة الميكروفون
+  // ✅ تبديل الميكروفون
   Future<bool> toggleMicrophone() async {
     if (_isMicrophoneEnabled) {
       await disableMicrophone();
