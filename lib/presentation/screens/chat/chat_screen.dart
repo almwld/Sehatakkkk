@@ -100,29 +100,30 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
   }
 
-  // ✅ إصلاح دالة التسجيل الصوتي
+  // ✅ إصلاح دالة التسجيل الصوتي - استخدام المسار المؤقت
   void _startRecording() async {
     try {
       if (await _audioRecorder.hasPermission()) {
-        // ✅ استخدام try-catch للتعامل مع الأخطاء
-        final path = await _audioRecorder.start(
+        // ✅ إنشاء مسار مؤقت للتسجيل
+        final directory = await Directory.systemTemp;
+        final path = '${directory.path}/recording_${DateTime.now().millisecondsSinceEpoch}.m4a';
+        
+        // ✅ بدء التسجيل
+        await _audioRecorder.start(
           const RecordConfig(
             encoder: AudioEncoder.aacLc,
             bitRate: 128000,
             sampleRate: 48000,
           ),
-          path: '${DateTime.now().millisecondsSinceEpoch}.m4a',
+          path: path,
         );
-        // ✅ التحقق من أن path ليس null
-        if (path != null) {
-          setState(() {
-            _isRecording = true;
-            _recordingPath = path;
-          });
-        }
+        
+        setState(() {
+          _isRecording = true;
+          _recordingPath = path;
+        });
       }
     } catch (e) {
-      // ✅ معالجة الخطأ إذا فشل التسجيل
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('فشل بدء التسجيل: $e')),
       );
@@ -136,7 +137,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         _isRecording = false;
         _recordingPath = null;
       });
-      if (path != null) {
+      if (path != null && path.isNotEmpty) {
         setState(() => _isSending = true);
         try {
           final url = await _chatService.uploadAudio(widget.chatId, path);
