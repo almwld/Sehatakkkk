@@ -2,32 +2,45 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'core/services/firebase_service.dart';
+import 'firebase_options.dart';
 import 'core/themes/theme_manager.dart';
 import 'presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'presentation/bloc/theme_bloc/theme_bloc.dart';
 import 'presentation/screens/auth/splash_screen.dart';
 
+bool _firebaseInitialized = false;
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setPreferredOrientations([
+  await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-
-  await Firebase.initializeApp(
-    options: const FirebaseOptions(
-      apiKey: 'AIzaSyD_frsfhn0jde9cWVUW3hXjGcnMIQmY51k',
-      appId: '1:1053269106596:android:de2128024cd023a973ab31',
-      messagingSenderId: '1053269106596',
-      projectId: 'sehatak-platform',
-      storageBucket: 'sehatak-platform.firebasestorage.app',
-    ),
-  );
-
-  await FirebaseService().initialize();
-
   runApp(const MyApp());
+  _initFirebaseInBackground();
+}
+
+Future<void> _initFirebaseInBackground() async {
+  try {
+    if (!_firebaseInitialized) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      ).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          debugPrint('[Firebase] ⚠️ انتهى الوقت');
+          return Firebase.initializeApp(
+            options: DefaultFirebaseOptions.currentPlatform,
+          );
+        },
+      );
+      _firebaseInitialized = true;
+      debugPrint('[Firebase] ✅ تم التهيئة');
+    }
+  } catch (e) {
+    debugPrint('[Firebase] ❌ فشل: $e');
+    Future.delayed(const Duration(seconds: 30), _initFirebaseInBackground);
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -45,13 +58,15 @@ class MyApp extends StatelessWidget {
           return MaterialApp(
             title: 'صحتك',
             debugShowCheckedModeBanner: false,
-            builder: (context, child) => Directionality(
+            builder: (_, child) => Directionality(
               textDirection: TextDirection.rtl,
               child: child!,
             ),
             theme: ThemeManager.lightTheme,
             darkTheme: ThemeManager.darkTheme,
-            themeMode: state is ThemeLoadedState ? state.themeMode : ThemeMode.light,
+            themeMode: state is ThemeLoadedState
+                ? state.themeMode
+                : ThemeMode.light,
             home: const SplashScreen(),
           );
         },
@@ -59,4 +74,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-// 12MB version
