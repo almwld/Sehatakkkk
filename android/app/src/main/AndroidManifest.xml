@@ -2,39 +2,35 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.sehatak.app">
 
-    <!-- ✅ أذونات الإنترنت -->
+    <!-- أذونات الإنترنت -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-    <!-- ✅ أذونات الكاميرا -->
+    <!-- أذونات الكاميرا -->
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-feature
-        android:name="android.hardware.camera"
-        android:required="true" />
-    <uses-feature
-        android:name="android.hardware.camera.autofocus"
-        android:required="false" />
+    <uses-feature android:name="android.hardware.camera" android:required="true" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 
-    <!-- ✅ أذونات الميكروفون -->
+    <!-- أذونات الميكروفون -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 
-    <!-- ✅ أذونات التخزين -->
+    <!-- أذونات التخزين -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
-    <!-- ✅ أذونات الموقع -->
+    <!-- أذونات الموقع -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
-    <!-- ✅ أذونات الإشعارات -->
+    <!-- أذونات الإشعارات -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-    <!-- ✅ أذونات البصمة -->
+    <!-- أذونات البصمة -->
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
     <uses-permission android:name="android.permission.USE_FINGERPRINT" />
 
-    <!-- ✅ أذونات الاهتزاز -->
+    <!-- أذونات الاهتزاز -->
     <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
@@ -48,19 +44,6 @@
         android:hardwareAccelerated="true"
         android:supportsRtl="true"
         tools:targetApi="31">
-
-        <!-- ✅ Firebase Messaging -->
-        <meta-data
-            android:name="com.google.firebase.messaging.default_notification_channel_id"
-            android:value="sehatak_channel" />
-
-        <meta-data
-            android:name="com.google.firebase.messaging.default_notification_icon"
-
-        <!-- ✅ Google Maps API Key -->
-        <meta-data
-            android:name="com.google.android.geo.API_KEY"
-            android:value="YOUR_GOOGLE_MAPS_API_KEY" />
 
         <activity
             android:name=".MainActivity"
@@ -80,7 +63,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- ✅ Deep Linking -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -90,7 +72,6 @@
             </intent-filter>
         </activity>
 
-        <!-- ✅ Don't delete the meta-data below -->
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
