@@ -1,9 +1,7 @@
 import 'package:livekit_client/livekit_client.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import '../config/livekit_config.dart';
-
-// ✅ استيراد AccessToken من المكان الصحيح
-import 'package:livekit_client/src/core/access_token.dart';
 
 class LiveKitService {
   static final LiveKitService _instance = LiveKitService._internal();
@@ -16,28 +14,34 @@ class LiveKitService {
 
   bool get isConnected => _room?.connectionState == ConnectionState.connected;
 
-  // 🔑 توليد Token باستخدام AccessToken
+  // 🔑 توليد Token يدوياً باستخدام JWT
   String _generateToken({
     required String roomName,
     required String participantName,
   }) {
     try {
-      // ✅ استخدام AccessToken من livekit_client
-      final token = AccessToken(
-        LiveKitConfig.apiKey,
-        LiveKitConfig.apiSecret,
-        identity: participantName,
-        ttl: const Duration(minutes: 10),
+      // ✅ إنشاء JWT يدوياً
+      final jwt = JWT(
+        {
+          'sub': participantName,
+          'iss': LiveKitConfig.apiKey,
+          'name': participantName,
+          'video': {
+            'room': roomName,
+            'roomJoin': true,
+            'canPublish': true,
+            'canSubscribe': true,
+          },
+          'exp': DateTime.now().add(const Duration(minutes: 10)).millisecondsSinceEpoch ~/ 1000,
+          'nbf': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        },
       );
-      
-      token.addGrant(
-        roomJoin: true,
-        room: roomName,
-        canPublish: true,
-        canSubscribe: true,
-      );
-      
-      return token.toJwt();
+
+      // ✅ التوقيع باستخدام API Secret
+      final token = jwt.sign(SecretKey(LiveKitConfig.apiSecret));
+
+      print('✅ Token generated successfully');
+      return token;
     } catch (e) {
       print('❌ خطأ في توليد التوكن: $e');
       rethrow;
@@ -56,7 +60,7 @@ class LiveKitService {
         participantName: participantName ?? 'مستخدم',
       );
 
-      print('✅ Token generated successfully');
+      print('🔑 Token: $token');
 
       final options = RoomOptions(
         defaultVideoPublishOptions: const VideoPublishOptions(

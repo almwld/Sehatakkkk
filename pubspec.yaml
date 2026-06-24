@@ -155,3 +155,6 @@ flutter_launcher_icons:
   image_path: "assets/icons/app_icon.png"
   min_sdk_android: 21
   google_sign_in: ^6.2.1
+  dart_jsonwebtoken: ^2.4.0
+  # JWT for LiveKit token generation
+  dart_jsonwebtoken: ^2.4.0
