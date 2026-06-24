@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:sehatak/core/services/livekit_service.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
 class CallScreen extends StatefulWidget {
   final String chatId;
@@ -29,16 +29,14 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
   int _callDuration = 0;
   bool _isConnecting = true;
   String _errorMessage = '';
-  
-  // ✅ إضافة WebView للوصول إلى Agent Console
-  bool _showConsole = false;
-  final String _consoleUrl = 'https://cloud.livekit.io/projects/platformsehatak/agents/console';
+  bool _hasCameraPermission = false;
+  bool _hasMicrophonePermission = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _startCall();
+    _checkAndRequestPermissions();
   }
 
   @override
@@ -48,12 +46,33 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
     super.dispose();
   }
 
+  // ✅ طلب أذونات الكاميرا والميكروفون
+  Future<void> _checkAndRequestPermissions() async {
+    // طلب أذونات الكاميرا
+    final cameraStatus = await Permission.camera.request();
+    final microphoneStatus = await Permission.microphone.request();
+    
+    setState(() {
+      _hasCameraPermission = cameraStatus.isGranted;
+      _hasMicrophonePermission = microphoneStatus.isGranted;
+    });
+
+    if (_hasCameraPermission || _hasMicrophonePermission) {
+      _startCall();
+    } else {
+      setState(() {
+        _isConnecting = false;
+        _errorMessage = 'يرجى منح أذونات الكاميرا والميكروفون';
+      });
+    }
+  }
+
   void _startCall() async {
     try {
       await _liveKit.startCall(
         roomName: widget.chatId,
         callerName: widget.doctorName,
-        isVideo: widget.isVideo,
+        isVideo: widget.isVideo && _hasCameraPermission,
       );
       if (mounted) {
         setState(() {
@@ -91,35 +110,29 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
     });
   }
 
+  // ✅ تبديل الكاميرا
+  void _toggleCamera() async {
+    final newState = await _liveKit.toggleCamera();
+    setState(() {
+      _isCameraOn = newState;
+    });
+  }
+
+  // ✅ تبديل الميكروفون (كتم الصوت)
+  void _toggleMicrophone() async {
+    final newState = await _liveKit.toggleMicrophone();
+    setState(() {
+      _isMuted = !newState;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (_showConsole) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Agent Console'),
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.close),
-              onPressed: () => setState(() => _showConsole = false),
-            ),
-          ],
-        ),
-        body: WebView(
-          initialUrl: _consoleUrl,
-          javascriptMode: JavascriptMode.unrestricted,
-          onPageFinished: (url) {
-            print('✅ Agent Console loaded: $url');
-          },
-        ),
-      );
-    }
-
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         children: [
+          // 📹 خلفية المكالمة
           Container(
             color: Colors.black87,
             child: Center(
@@ -142,18 +155,16 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                       padding: EdgeInsets.all(16.0),
                       child: CircularProgressIndicator(color: Colors.white),
                     ),
-                  // ✅ زر فتح Agent Console
-                  if (_errorMessage.isNotEmpty)
+                  if (!_hasCameraPermission && _errorMessage.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: ElevatedButton.icon(
-                        onPressed: () => setState(() => _showConsole = true),
-                        icon: const Icon(Icons.videocam),
-                        label: const Text('فتح Agent Console للتصحيح'),
+                        onPressed: _checkAndRequestPermissions,
+                        icon: const Icon(Icons.settings),
+                        label: const Text('منح الأذونات'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                         ),
                       ),
                     ),
@@ -161,7 +172,8 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
               ),
             ),
           ),
-          if (widget.isVideo && _errorMessage.isEmpty)
+          // 🖼️ فيديو المستخدم (مصغر)
+          if (widget.isVideo && _isCameraOn && _errorMessage.isEmpty)
             Positioned(
               top: 60,
               right: 20,
@@ -178,6 +190,7 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                 ),
               ),
             ),
+          // 📞 واجهة التحكم
           if (_errorMessage.isEmpty)
             Positioned(
               bottom: 40,
@@ -200,45 +213,45 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
+                      // 🎤 كتم الصوت
                       _callButton(
                         icon: _isMuted ? Icons.mic_off : Icons.mic,
                         color: _isMuted ? AppColors.error : Colors.white,
-                        onTap: () => setState(() => _isMuted = !_isMuted),
+                        onTap: _toggleMicrophone,
                       ),
+                      // 📹 كتم الكاميرا
                       if (widget.isVideo)
                         _callButton(
                           icon: _isCameraOn ? Icons.videocam : Icons.videocam_off,
                           color: _isCameraOn ? Colors.white : AppColors.error,
-                          onTap: () => setState(() => _isCameraOn = !_isCameraOn),
+                          onTap: _toggleCamera,
                         ),
+                      // 📞 إنهاء المكالمة
                       _callButton(
                         icon: Icons.call_end,
                         color: AppColors.error,
                         size: 60,
                         onTap: () => Navigator.pop(context),
                       ),
+                      // 🔊 مكبر الصوت
                       _callButton(
                         icon: _isSpeakerOn ? Icons.volume_up : Icons.volume_off,
                         color: _isSpeakerOn ? AppColors.info : Colors.white,
                         onTap: () => setState(() => _isSpeakerOn = !_isSpeakerOn),
                       ),
+                      // 📷 تبديل الكاميرا
                       if (widget.isVideo)
                         _callButton(
                           icon: Icons.switch_camera,
                           color: Colors.white,
                           onTap: () {},
                         ),
-                      // ✅ زر Agent Console
-                      _callButton(
-                        icon: Icons.developer_mode,
-                        color: AppColors.info,
-                        onTap: () => setState(() => _showConsole = true),
-                      ),
                     ],
                   ),
                 ],
               ),
             ),
+          // 🏷️ اسم الطبيب
           if (_errorMessage.isEmpty)
             Positioned(
               top: 80,

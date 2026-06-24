@@ -6,44 +6,21 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+    <!-- ✅ أذونات الكاميرا (للمكالمات المرئية) -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="true" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+
     <!-- ✅ أذونات الميكروفون (للمكالمات الصوتية) -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
-
-    <!-- ✅ أذونات الكاميرا (للمكالمات المرئية) -->
-    <uses-permission android:name="android.permission.CAMERA" />
 
     <!-- ✅ أذونات التخزين -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
-    <!-- ✅ أذونات الموقع -->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-
-    <!-- ✅ أذونات الإشعارات -->
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-
-    <!-- ✅ أذونات البصمة -->
-    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
-    <uses-permission android:name="android.permission.USE_FINGERPRINT" />
-
     <!-- ✅ أذونات الاهتزاز -->
     <uses-permission android:name="android.permission.VIBRATE" />
-
-    <!-- ✅ أذونات الاتصال -->
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-
-    <!-- ✅ ميزات الهاتف -->
-    <uses-feature
-        android:name="android.hardware.camera"
-        android:required="false" />
-    <uses-feature
-        android:name="android.hardware.camera.autofocus"
-        android:required="false" />
-    <uses-feature
-        android:name="android.hardware.microphone"
-        android:required="false" />
 
     <application
         android:label="صحتك"
@@ -105,6 +82,3 @@
             android:value="2" />
     </application>
 </manifest>
-    <!-- ✅ أذونات الإنترنت -->
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
