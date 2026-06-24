@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/services/livekit_service.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 class CallScreen extends StatefulWidget {
   final String chatId;
@@ -28,6 +29,10 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
   int _callDuration = 0;
   bool _isConnecting = true;
   String _errorMessage = '';
+  
+  // ✅ إضافة WebView للوصول إلى Agent Console
+  bool _showConsole = false;
+  final String _consoleUrl = 'https://cloud.livekit.io/projects/platformsehatak/agents/console';
 
   @override
   void initState() {
@@ -88,6 +93,29 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    if (_showConsole) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Agent Console'),
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () => setState(() => _showConsole = false),
+            ),
+          ],
+        ),
+        body: WebView(
+          initialUrl: _consoleUrl,
+          javascriptMode: JavascriptMode.unrestricted,
+          onPageFinished: (url) {
+            print('✅ Agent Console loaded: $url');
+          },
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
@@ -113,6 +141,21 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                     const Padding(
                       padding: EdgeInsets.all(16.0),
                       child: CircularProgressIndicator(color: Colors.white),
+                    ),
+                  // ✅ زر فتح Agent Console
+                  if (_errorMessage.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: ElevatedButton.icon(
+                        onPressed: () => setState(() => _showConsole = true),
+                        icon: const Icon(Icons.videocam),
+                        label: const Text('فتح Agent Console للتصحيح'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        ),
+                      ),
                     ),
                 ],
               ),
@@ -185,6 +228,12 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                           color: Colors.white,
                           onTap: () {},
                         ),
+                      // ✅ زر Agent Console
+                      _callButton(
+                        icon: Icons.developer_mode,
+                        color: AppColors.info,
+                        onTap: () => setState(() => _showConsole = true),
+                      ),
                     ],
                   ),
                 ],
