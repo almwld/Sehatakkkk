@@ -60,55 +60,122 @@ jobs:
         }
         JSONEOF
     
+    - name: 🔑 Create Release Keystore & Get SHA-1
+      run: |
+        keytool -genkey -v \
+          -keystore android/app/release.keystore \
+          -alias sehatak \
+          -keyalg RSA \
+          -keysize 2048 \
+          -validity 10000 \
+          -storepass sehatak2026 \
+          -keypass sehatak2026 \
+          -dname "CN=Sehatak, OU=Health, O=Sehatak, L=Sanaa, ST=Yemen, C=YE"
+        
+        echo "=== 🔑 Release SHA-1 ==="
+        keytool -list -v -keystore android/app/release.keystore -storepass sehatak2026 | grep SHA1
+        echo ""
+        echo "⚠️ أضف SHA-1 ده في Firebase Console:"
+        echo "https://console.firebase.google.com/project/sehatak-platform/settings/general"
+    
+    - name: 🔧 Configure Android signing
+      run: |
+        cat >> android/app/build.gradle << 'GRADLE'
+        android {
+            signingConfigs {
+                release {
+                    storeFile file('release.keystore')
+                    storePassword 'sehatak2026'
+                    keyAlias 'sehatak'
+                    keyPassword 'sehatak2026'
+                }
+            }
+            buildTypes {
+                release {
+                    signingConfig signingConfigs.release
+                    minifyEnabled false
+                    shrinkResources false
+                }
+            }
+        }
+        GRADLE
+    
     - name: 📦 Install dependencies
       run: flutter pub get
     
-    - name: Add Camera & Audio permissions
+    - name: 📄 Setup Android Manifest
       run: |
         cat > android/app/src/main/AndroidManifest.xml << 'MAN'
-        <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-            <uses-permission android:name="android.permission.INTERNET"/>
-            <uses-permission android:name="android.permission.CAMERA"/>
-            <uses-permission android:name="android.permission.RECORD_AUDIO"/>
-            <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
-            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-            <uses-feature android:name="android.hardware.camera" android:required="true"/>
-            <uses-feature android:name="android.hardware.camera.autofocus"/>
-            <application android:label="صحتك" android:icon="@mipmap/ic_launcher">
-                <activity android:name=".MainActivity" android:exported="true" android:launchMode="singleTop" android:theme="@style/LaunchTheme" android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode" android:hardwareAccelerated="true" android:windowSoftInputMode="adjustResize">
-                    <meta-data android:name="io.flutter.embedding.android.NormalTheme" android:resource="@style/NormalTheme"/>
-                    <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
+        <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:tools="http://schemas.android.com/tools"
+            package="com.sehatak.app">
+        
+            <uses-permission android:name="android.permission.INTERNET" />
+            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+            <uses-permission android:name="android.permission.CAMERA" />
+            <uses-feature android:name="android.hardware.camera" android:required="true" />
+            <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+            <uses-permission android:name="android.permission.RECORD_AUDIO" />
+            <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+            <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+            <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+            <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+            <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+            <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+            <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+            <uses-permission android:name="android.permission.USE_FINGERPRINT" />
+            <uses-permission android:name="android.permission.VIBRATE" />
+        
+            <application
+                android:label="صحتك"
+                android:name="${applicationName}"
+                android:icon="@mipmap/ic_launcher"
+                android:usesCleartextTraffic="true"
+                android:requestLegacyExternalStorage="true"
+                android:allowBackup="true"
+                android:theme="@style/LaunchTheme"
+                android:hardwareAccelerated="true"
+                android:supportsRtl="true"
+                tools:targetApi="31">
+        
+                <meta-data
+                    android:name="com.google.firebase.messaging.default_notification_channel_id"
+                    android:value="sehatak_channel" />
+        
+                <meta-data
+                    android:name="com.google.android.geo.API_KEY"
+                    android:value="YOUR_GOOGLE_MAPS_API_KEY" />
+        
+                <activity
+                    android:name=".MainActivity"
+                    android:exported="true"
+                    android:launchMode="singleTop"
+                    android:theme="@style/LaunchTheme"
+                    android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+                    android:hardwareAccelerated="true"
+                    android:windowSoftInputMode="adjustResize">
+        
+                    <meta-data
+                        android:name="io.flutter.embedding.android.NormalTheme"
+                        android:resource="@style/NormalTheme" />
+        
+                    <intent-filter>
+                        <action android:name="android.intent.action.MAIN" />
+                        <category android:name="android.intent.category.LAUNCHER" />
+                    </intent-filter>
+        
+                    <intent-filter>
+                        <action android:name="android.intent.action.VIEW" />
+                        <category android:name="android.intent.category.DEFAULT" />
+                        <category android:name="android.intent.category.BROWSABLE" />
+                        <data android:scheme="sehatak" />
+                        <data android:host="app" />
+                    </intent-filter>
                 </activity>
-                <meta-data android:name="flutterEmbedding" android:value="2"/>
-            </application>
-        </manifest>
-        MAN
-    
-    - name: Add all permissions
-      run: |
-        cat > android/app/src/main/AndroidManifest.xml << 'MAN'
-        <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-            <uses-permission android:name="android.permission.INTERNET"/>
-            <uses-permission android:name="android.permission.CAMERA"/>
-            <uses-permission android:name="android.permission.RECORD_AUDIO"/>
-            <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
-            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-            <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-            <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-            <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
-            <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
-            <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
-            <uses-permission android:name="android.permission.BLUETOOTH"/>
-            <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
-            <uses-feature android:name="android.hardware.camera" android:required="false"/>
-            <uses-feature android:name="android.hardware.camera.autofocus" android:required="false"/>
-            <uses-feature android:name="android.hardware.microphone" android:required="false"/>
-            <application android:label="صحتك" android:icon="@mipmap/ic_launcher">
-                <activity android:name=".MainActivity" android:exported="true" android:launchMode="singleTop" android:theme="@style/LaunchTheme" android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode" android:hardwareAccelerated="true" android:windowSoftInputMode="adjustResize">
-                    <meta-data android:name="io.flutter.embedding.android.NormalTheme" android:resource="@style/NormalTheme"/>
-                    <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
-                </activity>
-                <meta-data android:name="flutterEmbedding" android:value="2"/>
+        
+                <meta-data
+                    android:name="flutterEmbedding"
+                    android:value="2" />
             </application>
         </manifest>
         MAN
@@ -128,4 +195,11 @@ jobs:
       with:
         name: app-armeabi-v7a
         path: build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+        retention-days: 30
+    
+    - name: 📤 Upload x86_64
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-x86_64
+        path: build/app/outputs/flutter-apk/app-x86_64-release.apk
         retention-days: 30
