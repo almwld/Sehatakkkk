@@ -74,14 +74,14 @@ class _HomeTab extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.white, foregroundColor: AppColors.primary, elevation: 0,
         leading: Padding(padding: const EdgeInsets.all(8), child: GestureDetector(
-          onTap: () => logged ? _go(c, const PatientProfile()) : _go(c, BlocProvider(create: (_) => AuthBloc(), child: const LoginScreen())),
+          onTap: () => logged ? _go(c, const PatientProfile()) : _go(context, BlocProvider(create: (_) => AuthBloc(), child: const LoginScreen())),
           child: ClipRRect(borderRadius: BorderRadius.circular(14), child: CachedNetworkImage(imageUrl: user?.photoURL ?? 'https://ui-avatars.com/api/?name=${Uri.encodeComponent(name)}&background=00796B&color=fff', width: 40, height: 40, fit: BoxFit.cover, errorWidget: (_, __, ___) => Container(width: 40, height: 40, decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(14)), child: const Icon(Icons.person, color: AppColors.primary, size: 22)))),
         )),
         title: Text(logged ? 'مرحباً، $name' : 'منصة صحتك', style: const TextStyle(color: AppColors.primary, fontSize: 16, fontWeight: FontWeight.w600)),
         actions: [
           IconButton(icon: const Icon(Icons.notifications_outlined, color: AppColors.primary), onPressed: () {}),
           IconButton(icon: const Icon(Icons.shopping_cart_outlined, color: AppColors.primary), onPressed: () => _go(c, const CartScreen())),
-          if (!logged) TextButton(onPressed: () => _go(c, BlocProvider(create: (_) => AuthBloc(), child: const LoginScreen())), child: const Text('تسجيل', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold))),
+          if (!logged) TextButton(onPressed: () => _go(context, BlocProvider(create: (_) => AuthBloc(), child: const LoginScreen())), child: const Text('تسجيل', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold))),
         ],
       ),
 
@@ -269,6 +269,6 @@ class _HomeTab extends StatelessWidget {
     const SizedBox(height: 4),
     const Text('شارك تجربتك الصحية واستفد من تجارب الآخرين', style: TextStyle(color: Colors.white70, fontSize: 12)),
     const SizedBox(height: 14),
-    SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () => _go(c, BlocProvider(create: (_) => AuthBloc(), child: const LoginScreen())), style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: AppColors.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), padding: const EdgeInsets.symmetric(vertical: 12)), child: const Text('انضم الآن', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)))),
+    SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () => _go(context, BlocProvider(create: (_) => AuthBloc(), child: const LoginScreen())), style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: AppColors.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), padding: const EdgeInsets.symmetric(vertical: 12)), child: const Text('انضم الآن', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)))),
   ]));
 }
