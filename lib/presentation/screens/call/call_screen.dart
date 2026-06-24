@@ -26,6 +26,8 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
   bool _isCameraOn = true;
   bool _isSpeakerOn = false;
   int _callDuration = 0;
+  bool _isConnecting = true;
+  String _errorMessage = '';
 
   @override
   void initState() {
@@ -43,39 +45,45 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
 
   void _startCall() async {
     try {
-      // 🔥 استخدم LiveKit Server الخاص بك
-      const url = 'wss://your-livekit-server.com';
-      const token = 'your-token-here';
-      
       await _liveKit.startCall(
-        url: url,
-        token: token,
+        roomName: widget.chatId,
         callerName: widget.doctorName,
         isVideo: widget.isVideo,
       );
-      setState(() {});
-      
-      // محاكاة مدة المكالمة
-      Future.delayed(const Duration(seconds: 1), () {
-        if (mounted) {
-          setState(() => _callDuration++);
-          if (_callDuration < 60) {
-            Future.delayed(const Duration(seconds: 1), () {
-              if (mounted) {
-                setState(() => _callDuration++);
-              }
-            });
-          }
-        }
-      });
+      if (mounted) {
+        setState(() {
+          _isConnecting = false;
+        });
+        _startTimer();
+      }
     } catch (e) {
       if (mounted) {
+        setState(() {
+          _isConnecting = false;
+          _errorMessage = 'فشل الاتصال: $e';
+        });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('فشل بدء المكالمة: $e')),
+          SnackBar(
+            content: Text('❌ ${_errorMessage}'),
+            backgroundColor: AppColors.error,
+          ),
         );
-        Navigator.pop(context);
+        Future.delayed(const Duration(seconds: 3), () {
+          if (mounted) Navigator.pop(context);
+        });
       }
     }
+  }
+
+  void _startTimer() {
+    Future.delayed(const Duration(seconds: 1), () {
+      if (mounted) {
+        setState(() => _callDuration++);
+        if (_callDuration < 60) {
+          Future.delayed(const Duration(seconds: 1), _startTimer);
+        }
+      }
+    });
   }
 
   @override
@@ -84,25 +92,35 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // 📹 فيديو الطرف الآخر
+          // 📹 خلفية المكالمة
           Container(
             color: Colors.black87,
-            child: const Center(
+            child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.person, color: Colors.white54, size: 80),
-                  SizedBox(height: 16),
+                  if (_errorMessage.isNotEmpty)
+                    Icon(Icons.error_outline, color: AppColors.error, size: 60),
+                  const SizedBox(height: 16),
                   Text(
-                    'جاري الاتصال...',
-                    style: TextStyle(color: Colors.white, fontSize: 18),
+                    _errorMessage.isNotEmpty ? _errorMessage : 'جاري الاتصال...',
+                    style: TextStyle(
+                      color: _errorMessage.isNotEmpty ? AppColors.error : Colors.white,
+                      fontSize: 18,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
+                  if (_isConnecting)
+                    const Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: CircularProgressIndicator(color: Colors.white),
+                    ),
                 ],
               ),
             ),
           ),
           // 🖼️ فيديو المستخدم (مصغر)
-          if (widget.isVideo)
+          if (widget.isVideo && _errorMessage.isEmpty)
             Positioned(
               top: 60,
               right: 20,
@@ -115,111 +133,90 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                   border: Border.all(color: Colors.white, width: 2),
                 ),
                 child: const Center(
-                  child: Icon(
-                    Icons.person,
-                    color: Colors.white54,
-                    size: 40,
-                  ),
+                  child: Icon(Icons.person, color: Colors.white54, size: 40),
                 ),
               ),
             ),
           // 📞 واجهة التحكم
-          Positioned(
-            bottom: 40,
-            left: 0,
-            right: 0,
-            child: Column(
-              children: [
-                // ⏱️ مدة المكالمة
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.black26,
-                    borderRadius: BorderRadius.circular(20),
+          if (_errorMessage.isEmpty)
+            Positioned(
+              bottom: 40,
+              left: 0,
+              right: 0,
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.black26,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      _formatDuration(_callDuration),
+                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                    ),
                   ),
-                  child: Text(
-                    _formatDuration(_callDuration),
-                    style: const TextStyle(color: Colors.white, fontSize: 16),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _callButton(
+                        icon: _isMuted ? Icons.mic_off : Icons.mic,
+                        color: _isMuted ? AppColors.error : Colors.white,
+                        onTap: () => setState(() => _isMuted = !_isMuted),
+                      ),
+                      if (widget.isVideo)
+                        _callButton(
+                          icon: _isCameraOn ? Icons.videocam : Icons.videocam_off,
+                          color: _isCameraOn ? Colors.white : AppColors.error,
+                          onTap: () => setState(() => _isCameraOn = !_isCameraOn),
+                        ),
+                      _callButton(
+                        icon: Icons.call_end,
+                        color: AppColors.error,
+                        size: 60,
+                        onTap: () => Navigator.pop(context),
+                      ),
+                      _callButton(
+                        icon: _isSpeakerOn ? Icons.volume_up : Icons.volume_off,
+                        color: _isSpeakerOn ? AppColors.info : Colors.white,
+                        onTap: () => setState(() => _isSpeakerOn = !_isSpeakerOn),
+                      ),
+                      if (widget.isVideo)
+                        _callButton(
+                          icon: Icons.switch_camera,
+                          color: Colors.white,
+                          onTap: () {},
+                        ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 20),
-                // 🎛️ أزرار التحكم
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    // 🎤 كتم الصوت
-                    _callButton(
-                      icon: _isMuted ? Icons.mic_off : Icons.mic,
-                      color: _isMuted ? AppColors.error : Colors.white,
-                      onTap: () => setState(() {
-                        _isMuted = !_isMuted;
-                        if (_isMuted) {
-                          _liveKit.enableMicrophone();
-                        }
-                      }),
-                    ),
-                    // 📹 كتم الكاميرا
-                    if (widget.isVideo)
-                      _callButton(
-                        icon: _isCameraOn ? Icons.videocam : Icons.videocam_off,
-                        color: _isCameraOn ? Colors.white : AppColors.error,
-                        onTap: () => setState(() {
-                          _isCameraOn = !_isCameraOn;
-                          if (_isCameraOn) {
-                            _liveKit.enableCamera();
-                          }
-                        }),
-                      ),
-                    // 📞 إنهاء المكالمة
-                    _callButton(
-                      icon: Icons.call_end,
-                      color: AppColors.error,
-                      size: 60,
-                      onTap: () => Navigator.pop(context),
-                    ),
-                    // 🔊 مكبر الصوت
-                    _callButton(
-                      icon: _isSpeakerOn ? Icons.volume_up : Icons.volume_off,
-                      color: _isSpeakerOn ? AppColors.info : Colors.white,
-                      onTap: () => setState(() {
-                        _isSpeakerOn = !_isSpeakerOn;
-                      }),
-                    ),
-                    // 📷 تبديل الكاميرا
-                    if (widget.isVideo)
-                      _callButton(
-                        icon: Icons.switch_camera,
-                        color: Colors.white,
-                        onTap: () {},
-                      ),
-                  ],
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
           // 🏷️ اسم الطبيب
-          Positioned(
-            top: 80,
-            left: 0,
-            right: 0,
-            child: Column(
-              children: [
-                Text(
-                  widget.doctorName,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
+          if (_errorMessage.isEmpty)
+            Positioned(
+              top: 80,
+              left: 0,
+              right: 0,
+              child: Column(
+                children: [
+                  Text(
+                    widget.doctorName,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'جاري الاتصال...',
-                  style: TextStyle(color: Colors.white54, fontSize: 14),
-                ),
-              ],
+                  const SizedBox(height: 4),
+                  const Text(
+                    'جاري الاتصال...',
+                    style: TextStyle(color: Colors.white54, fontSize: 14),
+                  ),
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );
