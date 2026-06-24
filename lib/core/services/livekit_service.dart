@@ -2,6 +2,9 @@ import 'package:livekit_client/livekit_client.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import '../config/livekit_config.dart';
 
+// ✅ استيراد AccessToken من المكان الصحيح
+import 'package:livekit_client/src/core/access_token.dart';
+
 class LiveKitService {
   static final LiveKitService _instance = LiveKitService._internal();
   factory LiveKitService() => _instance;
@@ -13,27 +16,28 @@ class LiveKitService {
 
   bool get isConnected => _room?.connectionState == ConnectionState.connected;
 
-  // 🔑 توليد Token باستخدام createToken
-  Future<String> _generateToken({
+  // 🔑 توليد Token باستخدام AccessToken
+  String _generateToken({
     required String roomName,
     required String participantName,
-  }) async {
+  }) {
     try {
-      // ✅ استخدام createToken من livekit_client
-      final token = await createToken(
-        apiKey: LiveKitConfig.apiKey,
-        apiSecret: LiveKitConfig.apiSecret,
-        room: roomName,
+      // ✅ استخدام AccessToken من livekit_client
+      final token = AccessToken(
+        LiveKitConfig.apiKey,
+        LiveKitConfig.apiSecret,
         identity: participantName,
-        ttl: Duration(minutes: 10),
-        grants: {
-          'roomJoin': true,
-          'canPublish': true,
-          'canSubscribe': true,
-        },
+        ttl: const Duration(minutes: 10),
       );
       
-      return token;
+      token.addGrant(
+        roomJoin: true,
+        room: roomName,
+        canPublish: true,
+        canSubscribe: true,
+      );
+      
+      return token.toJwt();
     } catch (e) {
       print('❌ خطأ في توليد التوكن: $e');
       rethrow;
@@ -47,7 +51,7 @@ class LiveKitService {
     try {
       _room = Room();
 
-      final token = await _generateToken(
+      final token = _generateToken(
         roomName: roomName,
         participantName: participantName ?? 'مستخدم',
       );
