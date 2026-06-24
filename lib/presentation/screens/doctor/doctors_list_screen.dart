@@ -1,13 +1,10 @@
-import 'package:sehatak/presentation/screens/shared/chat_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
-import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
+import 'package:sehatak/presentation/screens/shared/chat_navigation.dart';
 import 'package:sehatak/presentation/bloc/doctor_bloc/doctor_bloc.dart';
-import 'package:sehatak/presentation/bloc/auth_bloc/auth_bloc.dart';
-import 'package:sehatak/presentation/screens/auth/login_screen.dart';
 
 class DoctorsListScreen extends StatefulWidget {
   const DoctorsListScreen({super.key});
@@ -22,6 +19,15 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
   String _sortBy = 'التقييم';
   bool _showAvailableOnly = false;
 
+  // ✅ بيانات وهمية للأطباء
+  final List<Map<String, dynamic>> _dummyDoctors = [
+    {'id': '1', 'name': 'د. علي المولد', 'specialty': 'عام', 'subspecialty': 'باطنية عامة', 'experience': '12+ سنة', 'rating': 4.9, 'reviews': 128, 'fee': '500', 'available': true, 'online': true, 'patients': '5,000+'},
+    {'id': '2', 'name': 'د. حسن رضا', 'specialty': 'عام', 'subspecialty': 'طب الأسرة', 'experience': '8+ سنة', 'rating': 4.8, 'reviews': 235, 'fee': '300', 'available': true, 'online': true, 'patients': '3,200+'},
+    {'id': '3', 'name': 'د. فاطمة صديقي', 'specialty': 'أطفال', 'subspecialty': 'حديثي الولادة', 'experience': '7+ سنة', 'rating': 4.9, 'reviews': 167, 'fee': '600', 'available': true, 'online': true, 'patients': '7,000+'},
+    {'id': '4', 'name': 'د. عائشة ملك', 'specialty': 'جلدية', 'subspecialty': 'جلدية تجميلية', 'experience': '6+ سنة', 'rating': 4.9, 'reviews': 189, 'fee': '800', 'available': false, 'online': false, 'patients': '4,500+'},
+    {'id': '5', 'name': 'د. عمر فاروق', 'specialty': 'عيون', 'subspecialty': 'شبكية', 'experience': '13+ سنة', 'rating': 4.7, 'reviews': 145, 'fee': '1000', 'available': true, 'online': true, 'patients': '9,000+'},
+  ];
+
   final List<Map<String, String>> _specialties = const [
     {'icon': '🫀', 'name': 'الكل'},
     {'icon': '👨‍⚕️', 'name': 'عام'},
@@ -32,17 +38,27 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
     {'icon': '👶', 'name': 'أطفال'},
     {'icon': '👩‍🦰', 'name': 'جلدية'},
     {'icon': '👁️', 'name': 'عيون'},
-    {'icon': '🦷', 'name': 'أسنان'},
-    {'icon': '🧘', 'name': 'نفسية'},
-    {'icon': '🤰', 'name': 'نسائية'},
-    {'icon': '👃🏻', 'name': 'أنف وأذن'},
-    {'icon': '💀', 'name': 'أشعة'},
   ];
 
-  @override
-  void initState() {
-    super.initState();
-    context.read<DoctorBloc>().add(LoadDoctors());
+  List<Map<String, dynamic>> get _filteredDoctors {
+    var list = _dummyDoctors;
+    if (_selectedSpecialty != 'الكل') {
+      list = list.where((d) => d['specialty'] == _selectedSpecialty).toList();
+    }
+    if (_showAvailableOnly) {
+      list = list.where((d) => d['available'] == true).toList();
+    }
+    if (_searchCtrl.text.isNotEmpty) {
+      final q = _searchCtrl.text.toLowerCase();
+      list = list.where((d) => d['name'].toLowerCase().contains(q) || d['specialty'].toLowerCase().contains(q)).toList();
+    }
+    if (_sortBy == 'التقييم') {
+      list.sort((a, b) => (b['rating'] as double).compareTo(a['rating']));
+    }
+    if (_sortBy == 'السعر') {
+      list.sort((a, b) => int.parse(a['fee']).compareTo(int.parse(b['fee'])));
+    }
+    return list;
   }
 
   @override
@@ -54,11 +70,14 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bool logged = true; // Replace with actual auth check
+    final doctors = _filteredDoctors;
 
     return Scaffold(
+      backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
       appBar: AppBar(
         title: const Text('الأطباء', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.sort),
@@ -67,53 +86,25 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
           IconButton(
             icon: Icon(
               _showAvailableOnly ? Icons.filter_alt : Icons.filter_alt_outlined,
-              color: _showAvailableOnly ? AppColors.primary : null,
+              color: _showAvailableOnly ? AppColors.primary : Colors.white,
             ),
             onPressed: () => setState(() => _showAvailableOnly = !_showAvailableOnly),
           ),
         ],
       ),
-      body: BlocBuilder<DoctorBloc, DoctorState>(
-        builder: (context, state) {
-          if (state is DoctorLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (state is DoctorErrorState) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, color: AppColors.error, size: 60),
-                  const SizedBox(height: 16),
-                  Text(state.message),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => context.read<DoctorBloc>().add(LoadDoctors()),
-                    child: const Text('إعادة المحاولة'),
-                  ),
-                ],
-              ),
-            );
-          }
-          if (state is DoctorLoadedState) {
-            final doctors = _filterDoctors(state.doctors);
-            return Column(
-              children: [
-                _buildSearchBar(isDark),
-                _buildSpecialties(isDark),
-                _buildStats(doctors.length),
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    itemCount: doctors.length,
-                    itemBuilder: (_, i) => _buildDoctorCard(doctors[i], isDark, logged, context),
-                  ),
-                ),
-              ],
-            );
-          }
-          return const SizedBox();
-        },
+      body: Column(
+        children: [
+          _buildSearchBar(isDark),
+          _buildSpecialties(isDark),
+          _buildStats(doctors.length),
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              itemCount: doctors.length,
+              itemBuilder: (_, i) => _buildDoctorCard(doctors[i], isDark, context),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -123,7 +114,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
       padding: const EdgeInsets.all(12),
       child: Container(
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1A2540) : AppColors.surfaceContainerLow,
+          color: isDark ? const Color(0xFF1A2540) : Colors.white,
           borderRadius: BorderRadius.circular(14),
           boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)],
         ),
@@ -174,9 +165,9 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
               duration: const Duration(milliseconds: 200),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
-                color: sel ? AppColors.primary : (isDark ? const Color(0xFF1A2540) : AppColors.surfaceContainerLow),
+                color: sel ? AppColors.primary : (isDark ? const Color(0xFF1A2540) : Colors.white),
                 borderRadius: BorderRadius.circular(12),
-                border: sel ? Border.all(color: AppColors.primary) : null,
+                border: sel ? Border.all(color: AppColors.primary) : Border.all(color: Colors.grey.shade200),
                 boxShadow: sel ? [BoxShadow(color: AppColors.primary.withOpacity(0.2), blurRadius: 8)] : null,
               ),
               child: Row(
@@ -223,28 +214,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
     );
   }
 
-  List<Map<String, dynamic>> _filterDoctors(List<Map<String, dynamic>> doctors) {
-    var list = doctors;
-    if (_selectedSpecialty != 'الكل') {
-      list = list.where((d) => d['specialty'] == _selectedSpecialty).toList();
-    }
-    if (_showAvailableOnly) {
-      list = list.where((d) => d['available'] == true).toList();
-    }
-    if (_searchCtrl.text.isNotEmpty) {
-      final q = _searchCtrl.text.toLowerCase();
-      list = list.where((d) => d['name'].toLowerCase().contains(q) || d['specialty'].toLowerCase().contains(q)).toList();
-    }
-    if (_sortBy == 'التقييم') {
-      list.sort((a, b) => (b['rating'] as double).compareTo(a['rating']));
-    }
-    if (_sortBy == 'السعر') {
-      list.sort((a, b) => int.parse(a['fee']).compareTo(int.parse(b['fee'])));
-    }
-    return list;
-  }
-
-  Widget _buildDoctorCard(Map<String, dynamic> d, bool isDark, bool logged, BuildContext context) {
+  Widget _buildDoctorCard(Map<String, dynamic> d, bool isDark, BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
@@ -266,19 +236,13 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Center(
-                  child: CachedNetworkImage(
-                    imageUrl: d['photoUrl'] ?? 'https://ui-avatars.com/api/?name=${Uri.encodeComponent(d['name'])}&background=00796B&color=fff',
-                    width: 60,
-                    height: 60,
-                    fit: BoxFit.cover,
-                    errorWidget: (_, __, ___) => Text(
-                      d['name'][0] + d['name'][d['name'].length - 2],
-                      style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
+                  child: Text(
+                    d['name'][0] + d['name'][d['name'].length - 2],
+                    style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
-              if (d['online'])
+              if (d['online'] == true)
                 Positioned(
                   bottom: 2,
                   right: 2,
@@ -302,7 +266,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                 Row(
                   children: [
                     Expanded(child: Text(d['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15))),
-                    if (d['available'])
+                    if (d['available'] == true)
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
@@ -336,13 +300,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
           Column(
             children: [
               GestureDetector(
-                onTap: () {
-                  if (logged) {
-                    ChatNavigation.openChat(context, doctorName: d['name'], doctorId: d['id']);
-                  } else {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => BlocProvider(create: (_) => AuthBloc(), child: const LoginScreen())));
-                  }
-                },
+                onTap: () => ChatNavigation.openChat(context, doctorName: d['name'], doctorId: d['id']),
                 child: Container(
                   width: 38,
                   height: 38,

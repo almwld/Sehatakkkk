@@ -7,6 +7,8 @@ import 'core/services/firebase_service.dart';
 import 'core/themes/theme_manager.dart';
 import 'presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'presentation/bloc/theme_bloc/theme_bloc.dart';
+import 'presentation/bloc/chat_bloc/chat_bloc.dart';
+import 'presentation/bloc/doctor_bloc/doctor_bloc.dart';  // ✅ إضافة DoctorBloc
 import 'presentation/screens/auth/splash_screen.dart';
 
 bool _firebaseInitialized = false;
@@ -19,10 +21,7 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  // ✅ تشغيل التطبيق فوراً
   runApp(const MyApp());
-
-  // 🔥 تهيئة Firebase في الخلفية
   _initFirebaseInBackground();
 }
 
@@ -61,6 +60,8 @@ class MyApp extends StatelessWidget {
           create: (_) => AuthBloc()..add(AppStarted()),
         ),
         BlocProvider<ThemeBloc>(create: (_) => ThemeBloc()),
+        BlocProvider<ChatBloc>(create: (_) => ChatBloc()),
+        BlocProvider<DoctorBloc>(create: (_) => DoctorBloc()..add(LoadDoctors())),  // ✅ تسجيل DoctorBloc
       ],
       child: BlocBuilder<ThemeBloc, ThemeState>(
         builder: (context, state) {
