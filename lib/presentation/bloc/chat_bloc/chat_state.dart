@@ -6,20 +6,20 @@ abstract class ChatState extends Equatable {
   List<Object?> get props => [];
 }
 
-class ChatInitial extends ChatState {}
+class ChatInitialState extends ChatState {}
 
-class ChatLoading extends ChatState {}
+class ChatLoadingState extends ChatState {}
 
-class ChatLoaded extends ChatState {
+class ChatLoadedState extends ChatState {
   final List<Map<String, dynamic>> messages;
-  const ChatLoaded(this.messages);
+  const ChatLoadedState(this.messages);
   @override
   List<Object?> get props => [messages];
 }
 
-class ChatError extends ChatState {
+class ChatErrorState extends ChatState {
   final String message;
-  const ChatError(this.message);
+  const ChatErrorState(this.message);
   @override
   List<Object?> get props => [message];
 }

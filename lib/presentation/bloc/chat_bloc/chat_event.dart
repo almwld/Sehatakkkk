@@ -6,19 +6,19 @@ abstract class ChatEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class LoadMessages extends ChatEvent {
+class LoadChatMessages extends ChatEvent {
   final String chatId;
-  const LoadMessages(this.chatId);
+  const LoadChatMessages(this.chatId);
   @override
   List<Object?> get props => [chatId];
 }
 
-class SendMessage extends ChatEvent {
+class SendChatMessage extends ChatEvent {
   final String chatId;
   final String text;
   final String? imageUrl;
   final String? audioUrl;
-  const SendMessage({
+  const SendChatMessage({
     required this.chatId,
     required this.text,
     this.imageUrl,
@@ -28,18 +28,18 @@ class SendMessage extends ChatEvent {
   List<Object?> get props => [chatId, text, imageUrl, audioUrl];
 }
 
-class MarkAsRead extends ChatEvent {
+class MarkMessageAsRead extends ChatEvent {
   final String chatId;
   final String messageId;
-  const MarkAsRead(this.chatId, this.messageId);
+  const MarkMessageAsRead(this.chatId, this.messageId);
   @override
   List<Object?> get props => [chatId, messageId];
 }
 
-class DeleteMessage extends ChatEvent {
+class DeleteChatMessage extends ChatEvent {
   final String chatId;
   final String messageId;
-  const DeleteMessage(this.chatId, this.messageId);
+  const DeleteChatMessage(this.chatId, this.messageId);
   @override
   List<Object?> get props => [chatId, messageId];
 }

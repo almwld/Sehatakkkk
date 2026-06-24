@@ -12,16 +12,16 @@ import 'package:image_picker/image_picker.dart';
 import 'package:record/record.dart';
 
 class ChatScreen extends StatefulWidget {
-  final String chatId;
-  final String doctorName;
-  final String doctorId;
+  final String? chatId;
+  final String? doctorName;
+  final String? doctorId;
   final bool isVideo;
 
   const ChatScreen({
     super.key,
-    required this.chatId,
-    required this.doctorName,
-    required this.doctorId,
+    this.chatId,
+    this.doctorName,
+    this.doctorId,
     this.isVideo = false,
   });
 
@@ -40,14 +40,18 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   String? _recordingPath;
   bool _isTyping = false;
   bool _isSending = false;
-
-  // 🔴 حالة المكالمة
   bool _isInCall = false;
+
+  // قيم افتراضية إذا لم يتم تمريرها
+  String get _chatId => widget.chatId ?? 'default_chat';
+  String get _doctorName => widget.doctorName ?? 'د. علي المولد';
+  String get _doctorId => widget.doctorId ?? '1';
 
   @override
   void initState() {
     super.initState();
-    context.read<ChatBloc>().add(LoadMessages(widget.chatId));
+    // استخدام الحدث الصحيح من ChatBloc
+    context.read<ChatBloc>().add(LoadChatMessages(_chatId));
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -60,22 +64,20 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  // 📞 بدء مكالمة
   void _startCall() {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => CallScreen(
-          chatId: widget.chatId,
-          doctorName: widget.doctorName,
-          doctorId: widget.doctorId,
+          chatId: _chatId,
+          doctorName: _doctorName,
+          doctorId: _doctorId,
           isVideo: widget.isVideo,
         ),
       ),
     );
   }
 
-  // 📤 إرسال رسالة
   void _sendMessage() async {
     final text = _messageController.text.trim();
     if (text.isEmpty || _isSending) return;
@@ -83,7 +85,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     setState(() => _isSending = true);
     try {
       await _chatService.sendMessage(
-        chatId: widget.chatId,
+        chatId: _chatId,
         text: text,
       );
       _messageController.clear();
@@ -97,16 +99,15 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
   }
 
-  // 🖼️ اختيار صورة
   void _pickImage() async {
     final picker = ImagePicker();
     final image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
       setState(() => _isSending = true);
       try {
-        final url = await _chatService.uploadImage(widget.chatId, image.path);
+        final url = await _chatService.uploadImage(_chatId, image.path);
         await _chatService.sendMessage(
-          chatId: widget.chatId,
+          chatId: _chatId,
           text: '📷 صورة',
           imageUrl: url,
         );
@@ -121,7 +122,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
   }
 
-  // 🎵 تسجيل صوتي
   void _startRecording() async {
     if (await _audioRecorder.hasPermission()) {
       final path = await _audioRecorder.start(
@@ -130,6 +130,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           bitRate: 128000,
           sampleRate: 48000,
         ),
+        path: '${DateTime.now().millisecondsSinceEpoch}.m4a',
       );
       setState(() {
         _isRecording = true;
@@ -147,9 +148,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (path != null) {
       setState(() => _isSending = true);
       try {
-        final url = await _chatService.uploadAudio(widget.chatId, path);
+        final url = await _chatService.uploadAudio(_chatId, path);
         await _chatService.sendMessage(
-          chatId: widget.chatId,
+          chatId: _chatId,
           text: '🎵 رسالة صوتية',
           audioUrl: url,
         );
@@ -200,7 +201,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               ),
               child: Center(
                 child: Text(
-                  widget.doctorName[0],
+                  _doctorName[0],
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -215,7 +216,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.doctorName,
+                    _doctorName,
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
@@ -234,7 +235,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           ],
         ),
         actions: [
-          // 📞 مكالمة صوتية
           IconButton(
             icon: Container(
               padding: const EdgeInsets.all(6),
@@ -249,16 +249,15 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 context,
                 MaterialPageRoute(
                   builder: (_) => CallScreen(
-                    chatId: widget.chatId,
-                    doctorName: widget.doctorName,
-                    doctorId: widget.doctorId,
+                    chatId: _chatId,
+                    doctorName: _doctorName,
+                    doctorId: _doctorId,
                     isVideo: false,
                   ),
                 ),
               );
             },
           ),
-          // 📹 مكالمة فيديو
           IconButton(
             icon: Container(
               padding: const EdgeInsets.all(6),
@@ -273,9 +272,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 context,
                 MaterialPageRoute(
                   builder: (_) => CallScreen(
-                    chatId: widget.chatId,
-                    doctorName: widget.doctorName,
-                    doctorId: widget.doctorId,
+                    chatId: _chatId,
+                    doctorName: _doctorName,
+                    doctorId: _doctorId,
                     isVideo: true,
                   ),
                 ),
@@ -286,20 +285,20 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       ),
       body: BlocConsumer<ChatBloc, ChatState>(
         listener: (context, state) {
-          if (state is ChatError) {
+          if (state is ChatErrorState) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message)),
             );
           }
-          if (state is ChatLoaded) {
+          if (state is ChatLoadedState) {
             _scrollToBottom();
           }
         },
         builder: (context, state) {
-          if (state is ChatLoading) {
+          if (state is ChatLoadingState) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (state is ChatError) {
+          if (state is ChatErrorState) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -310,7 +309,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () {
-                      context.read<ChatBloc>().add(LoadMessages(widget.chatId));
+                      context.read<ChatBloc>().add(LoadChatMessages(_chatId));
                     },
                     child: const Text('إعادة المحاولة'),
                   ),
@@ -318,10 +317,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               ),
             );
           }
-          if (state is ChatLoaded) {
+          if (state is ChatLoadedState) {
             return Column(
               children: [
-                // 📋 قائمة الرسائل
                 Expanded(
                   child: ListView.builder(
                     controller: _scrollController,
@@ -333,14 +331,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                       return MessageBubble(
                         message: message,
                         isMe: isMe,
-                        onTap: () {
-                          // عرض تفاصيل الرسالة
-                        },
+                        onTap: () {},
                       );
                     },
                   ),
                 ),
-                // 📝 حقل الإدخال
                 _buildInputBar(isDark),
               ],
             );
@@ -367,7 +362,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       child: SafeArea(
         child: Row(
           children: [
-            // 🎙️ زر التسجيل الصوتي
             IconButton(
               icon: Icon(
                 _isRecording ? Icons.stop : Icons.mic,
@@ -375,12 +369,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               ),
               onPressed: _isRecording ? _stopRecording : _startRecording,
             ),
-            // 🖼️ زر الصورة
             IconButton(
               icon: const Icon(Icons.image, color: AppColors.grey),
               onPressed: _pickImage,
             ),
-            // 📝 حقل النص
             Expanded(
               child: TextField(
                 controller: _messageController,
@@ -408,7 +400,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 onSubmitted: (_) => _sendMessage(),
               ),
             ),
-            // 📤 زر الإرسال
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(

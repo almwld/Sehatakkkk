@@ -77,7 +77,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
           if (state is DoctorLoading) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (state is DoctorError) {
+          if (state is DoctorErrorState) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -94,7 +94,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
               ),
             );
           }
-          if (state is DoctorLoaded) {
+          if (state is DoctorLoadedState) {
             final doctors = _filterDoctors(state.doctors);
             return Column(
               children: [

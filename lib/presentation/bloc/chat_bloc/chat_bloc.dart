@@ -6,15 +6,15 @@ import 'chat_state.dart';
 class ChatBloc extends Bloc<ChatEvent, ChatState> {
   final ChatService _chatService = ChatService();
 
-  ChatBloc() : super(ChatInitial()) {
-    on<LoadMessages>(_onLoadMessages);
-    on<SendMessage>(_onSendMessage);
-    on<MarkAsRead>(_onMarkAsRead);
-    on<DeleteMessage>(_onDeleteMessage);
+  ChatBloc() : super(ChatInitialState()) {
+    on<LoadChatMessages>(_onLoadMessages);
+    on<SendChatMessage>(_onSendMessage);
+    on<MarkMessageAsRead>(_onMarkAsRead);
+    on<DeleteChatMessage>(_onDeleteMessage);
   }
 
-  Future<void> _onLoadMessages(LoadMessages event, Emitter<ChatState> emit) async {
-    emit(ChatLoading());
+  Future<void> _onLoadMessages(LoadChatMessages event, Emitter<ChatState> emit) async {
+    emit(ChatLoadingState());
     try {
       final messages = <Map<String, dynamic>>[];
       await for (final snapshot in _chatService.getMessages(event.chatId)) {
@@ -25,15 +25,15 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
             ...data,
           });
         }
-        emit(ChatLoaded(messages));
-        break; // أول مرة فقط
+        emit(ChatLoadedState(messages));
+        break;
       }
     } catch (e) {
-      emit(ChatError('فشل تحميل الرسائل: $e'));
+      emit(ChatErrorState('فشل تحميل الرسائل: $e'));
     }
   }
 
-  Future<void> _onSendMessage(SendMessage event, Emitter<ChatState> emit) async {
+  Future<void> _onSendMessage(SendChatMessage event, Emitter<ChatState> emit) async {
     try {
       await _chatService.sendMessage(
         chatId: event.chatId,
@@ -41,14 +41,13 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         imageUrl: event.imageUrl,
         audioUrl: event.audioUrl,
       );
-      // تحديث القائمة
-      add(LoadMessages(event.chatId));
+      add(LoadChatMessages(event.chatId));
     } catch (e) {
-      emit(ChatError('فشل إرسال الرسالة: $e'));
+      emit(ChatErrorState('فشل إرسال الرسالة: $e'));
     }
   }
 
-  Future<void> _onMarkAsRead(MarkAsRead event, Emitter<ChatState> emit) async {
+  Future<void> _onMarkAsRead(MarkMessageAsRead event, Emitter<ChatState> emit) async {
     try {
       await _chatService.markAsRead(event.chatId, event.messageId);
     } catch (e) {
@@ -56,12 +55,12 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     }
   }
 
-  Future<void> _onDeleteMessage(DeleteMessage event, Emitter<ChatState> emit) async {
+  Future<void> _onDeleteMessage(DeleteChatMessage event, Emitter<ChatState> emit) async {
     try {
       await _chatService.deleteMessage(event.chatId, event.messageId);
-      add(LoadMessages(event.chatId));
+      add(LoadChatMessages(event.chatId));
     } catch (e) {
-      emit(ChatError('فشل حذف الرسالة: $e'));
+      emit(ChatErrorState('فشل حذف الرسالة: $e'));
     }
   }
 }
