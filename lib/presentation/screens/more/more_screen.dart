@@ -44,20 +44,20 @@ class MoreScreen extends StatelessWidget {
             const SizedBox(height: 22),
             _sectionTitle('الرعاية الصحية'),
             const SizedBox(height: 10),
-            _menuItem(Icons.calendar_month_rounded, 'مواعيدي', 'عرض وإدارة المواعيد', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PatientAppointments()))),
-            _menuItem(Icons.receipt_long, 'الوصفات الطبية', 'عرض الوصفات', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PatientPrescriptions()))),
-            _menuItem(Icons.folder_shared, 'السجل الطبي', 'سجل صحي كامل', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PatientMedicalHistory()))),
-            _menuItem(Icons.chat_bubble_rounded, 'استشارات', 'تحدث مع طبيب', () => ChatNavigation.openChat(context, doctorName: 'الطبيب', doctorId: '1')),
+            _menuItem(context, Icons.calendar_month_rounded, 'مواعيدي', 'عرض وإدارة المواعيد', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PatientAppointments()))),
+            _menuItem(context, Icons.receipt_long, 'الوصفات الطبية', 'عرض الوصفات', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PatientPrescriptions()))),
+            _menuItem(context, Icons.folder_shared, 'السجل الطبي', 'سجل صحي كامل', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PatientMedicalHistory()))),
+            _menuItem(context, Icons.chat_bubble_rounded, 'استشارات', 'تحدث مع طبيب', () => ChatNavigation.openChat(context, doctorName: 'الطبيب', doctorId: '1')),
             const SizedBox(height: 22),
             _sectionTitle('أدوات صحية'),
             const SizedBox(height: 10),
-            _menuItem(Icons.tips_and_updates, 'نصائح صحية', 'نصائح يومية مفيدة', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HealthTipsScreen()))),
-            _menuItem(Icons.alarm, 'تذكير الأدوية', 'لا تنس جرعاتك', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MedicationReminderScreen()))),
+            _menuItem(context, Icons.tips_and_updates, 'نصائح صحية', 'نصائح يومية مفيدة', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HealthTipsScreen()))),
+            _menuItem(context, Icons.alarm, 'تذكير الأدوية', 'لا تنس جرعاتك', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MedicationReminderScreen()))),
             const SizedBox(height: 22),
             _sectionTitle('عام'),
             const SizedBox(height: 10),
-            _menuItem(Icons.settings_rounded, 'الإعدادات', 'تفضيلات التطبيق', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()))),
-            _menuItem(Icons.info_outline, 'عن التطبيق', 'معلومات عن صحتك', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen()))),
+            _menuItem(context, Icons.settings_rounded, 'الإعدادات', 'تفضيلات التطبيق', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()))),
+            _menuItem(context, Icons.info_outline, 'عن التطبيق', 'معلومات عن صحتك', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen()))),
             const SizedBox(height: 30),
           ],
         ),
@@ -96,7 +96,7 @@ class MoreScreen extends StatelessWidget {
     );
   }
 
-  Widget _menuItem(IconData icon, String title, String subtitle, VoidCallback onTap) {
+  Widget _menuItem(BuildContext context, IconData icon, String title, String subtitle, VoidCallback onTap) {
     return Card(
       margin: const EdgeInsets.only(bottom: 5),
       elevation: 0,
