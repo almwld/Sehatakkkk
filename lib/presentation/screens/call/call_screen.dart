@@ -30,13 +30,12 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
   bool _isConnecting = true;
   String _errorMessage = '';
   bool _hasCameraPermission = false;
-  bool _hasMicrophonePermission = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _checkAndRequestPermissions();
+    _checkPermissions();
   }
 
   @override
@@ -46,25 +45,24 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  // ✅ طلب أذونات الكاميرا والميكروفون
-  Future<void> _checkAndRequestPermissions() async {
-    // طلب أذونات الكاميرا
-    final cameraStatus = await Permission.camera.request();
-    final microphoneStatus = await Permission.microphone.request();
-    
-    setState(() {
-      _hasCameraPermission = cameraStatus.isGranted;
-      _hasMicrophonePermission = microphoneStatus.isGranted;
-    });
-
-    if (_hasCameraPermission || _hasMicrophonePermission) {
-      _startCall();
-    } else {
+  // ✅ التحقق من أذونات الكاميرا
+  Future<void> _checkPermissions() async {
+    if (widget.isVideo) {
+      final status = await Permission.camera.request();
       setState(() {
-        _isConnecting = false;
-        _errorMessage = 'يرجى منح أذونات الكاميرا والميكروفون';
+        _hasCameraPermission = status.isGranted;
       });
+      if (!_hasCameraPermission) {
+        setState(() {
+          _isConnecting = false;
+          _errorMessage = 'يرجى منح إذن الكاميرا للمكالمات المرئية';
+        });
+        return;
+      }
     }
+    // ✅ طلب إذن الميكروفون دائماً
+    await Permission.microphone.request();
+    _startCall();
   }
 
   void _startCall() async {
@@ -118,14 +116,6 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
     });
   }
 
-  // ✅ تبديل الميكروفون (كتم الصوت)
-  void _toggleMicrophone() async {
-    final newState = await _liveKit.toggleMicrophone();
-    setState(() {
-      _isMuted = !newState;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -155,13 +145,13 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                       padding: EdgeInsets.all(16.0),
                       child: CircularProgressIndicator(color: Colors.white),
                     ),
-                  if (!_hasCameraPermission && _errorMessage.isNotEmpty)
+                  if (!_hasCameraPermission && widget.isVideo && _errorMessage.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: ElevatedButton.icon(
-                        onPressed: _checkAndRequestPermissions,
+                        onPressed: _checkPermissions,
                         icon: const Icon(Icons.settings),
-                        label: const Text('منح الأذونات'),
+                        label: const Text('منح إذن الكاميرا'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
@@ -172,8 +162,8 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
               ),
             ),
           ),
-          // 🖼️ فيديو المستخدم (مصغر)
-          if (widget.isVideo && _isCameraOn && _errorMessage.isEmpty)
+          // 🖼️ فيديو المستخدم (مصغر) - مع معاينة الكاميرا
+          if (widget.isVideo && _hasCameraPermission && _errorMessage.isEmpty)
             Positioned(
               top: 60,
               right: 20,
@@ -186,7 +176,7 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                   border: Border.all(color: Colors.white, width: 2),
                 ),
                 child: const Center(
-                  child: Icon(Icons.person, color: Colors.white54, size: 40),
+                  child: Icon(Icons.videocam, color: Colors.white54, size: 40),
                 ),
               ),
             ),
@@ -217,10 +207,10 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                       _callButton(
                         icon: _isMuted ? Icons.mic_off : Icons.mic,
                         color: _isMuted ? AppColors.error : Colors.white,
-                        onTap: _toggleMicrophone,
+                        onTap: () => setState(() => _isMuted = !_isMuted),
                       ),
                       // 📹 كتم الكاميرا
-                      if (widget.isVideo)
+                      if (widget.isVideo && _hasCameraPermission)
                         _callButton(
                           icon: _isCameraOn ? Icons.videocam : Icons.videocam_off,
                           color: _isCameraOn ? Colors.white : AppColors.error,
@@ -240,7 +230,7 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                         onTap: () => setState(() => _isSpeakerOn = !_isSpeakerOn),
                       ),
                       // 📷 تبديل الكاميرا
-                      if (widget.isVideo)
+                      if (widget.isVideo && _hasCameraPermission)
                         _callButton(
                           icon: Icons.switch_camera,
                           color: Colors.white,

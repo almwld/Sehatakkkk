@@ -1,6 +1,5 @@
 import 'package:livekit_client/livekit_client.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import '../config/livekit_config.dart';
 
 class LiveKitService {
@@ -14,34 +13,27 @@ class LiveKitService {
 
   bool get isConnected => _room?.connectionState == ConnectionState.connected;
 
-  // 🔑 توليد Token يدوياً باستخدام JWT
+  // 🔑 توليد Token
   String _generateToken({
     required String roomName,
     required String participantName,
   }) {
     try {
-      // ✅ إنشاء JWT يدوياً
-      final jwt = JWT(
-        {
-          'sub': participantName,
-          'iss': LiveKitConfig.apiKey,
-          'name': participantName,
-          'video': {
-            'room': roomName,
-            'roomJoin': true,
-            'canPublish': true,
-            'canSubscribe': true,
-          },
-          'exp': DateTime.now().add(const Duration(minutes: 10)).millisecondsSinceEpoch ~/ 1000,
-          'nbf': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-        },
+      final token = AccessToken(
+        LiveKitConfig.apiKey,
+        LiveKitConfig.apiSecret,
+        identity: participantName,
+        ttl: const Duration(minutes: 10),
       );
-
-      // ✅ التوقيع باستخدام API Secret
-      final token = jwt.sign(SecretKey(LiveKitConfig.apiSecret));
-
-      print('✅ Token generated successfully');
-      return token;
+      
+      token.addGrant(
+        roomJoin: true,
+        room: roomName,
+        canPublish: true,
+        canSubscribe: true,
+      );
+      
+      return token.toJwt();
     } catch (e) {
       print('❌ خطأ في توليد التوكن: $e');
       rethrow;
@@ -60,7 +52,7 @@ class LiveKitService {
         participantName: participantName ?? 'مستخدم',
       );
 
-      print('🔑 Token: $token');
+      print('✅ Token generated successfully');
 
       final options = RoomOptions(
         defaultVideoPublishOptions: const VideoPublishOptions(
@@ -84,7 +76,7 @@ class LiveKitService {
     }
   }
 
-  // ✅ تفعيل الكاميرا
+  // ✅ تفعيل الكاميرا مع محاولة إعادة المحاولة
   Future<void> enableCamera() async {
     try {
       if (_room?.localParticipant != null) {
@@ -96,7 +88,18 @@ class LiveKitService {
       }
     } catch (e) {
       print('❌ Failed to enable camera: $e');
-      rethrow;
+      // ✅ محاولة إعادة المحاولة بعد ثانية
+      await Future.delayed(const Duration(seconds: 1));
+      try {
+        if (_room?.localParticipant != null) {
+          await _room!.localParticipant!.setCameraEnabled(true);
+          _isCameraEnabled = true;
+          print('✅ Camera enabled on retry');
+        }
+      } catch (e2) {
+        print('❌ Camera retry failed: $e2');
+        rethrow;
+      }
     }
   }
 
@@ -116,7 +119,7 @@ class LiveKitService {
     }
   }
 
-  // ✅ بدء المكالمة
+  // ✅ بدء المكالمة مع تفعيل الكاميرا والميكروفون
   Future<void> startCall({
     required String roomName,
     required String callerName,
@@ -128,8 +131,10 @@ class LiveKitService {
         participantName: callerName,
       );
       
+      // ✅ تفعيل الميكروفون
       await enableMicrophone();
       
+      // ✅ تفعيل الكاميرا (مع محاولة إعادة المحاولة)
       if (isVideo) {
         await enableCamera();
       }
@@ -154,19 +159,6 @@ class LiveKitService {
     }
   }
 
-  // ✅ إيقاف الميكروفون
-  Future<void> disableMicrophone() async {
-    try {
-      if (_room?.localParticipant != null) {
-        await _room!.localParticipant!.setMicrophoneEnabled(false);
-        _isMicrophoneEnabled = false;
-        print('✅ Microphone disabled');
-      }
-    } catch (e) {
-      print('❌ Failed to disable microphone: $e');
-    }
-  }
-
   // ✅ تبديل الكاميرا
   Future<bool> toggleCamera() async {
     if (_isCameraEnabled) {
@@ -174,17 +166,6 @@ class LiveKitService {
       return false;
     } else {
       await enableCamera();
-      return true;
-    }
-  }
-
-  // ✅ تبديل الميكروفون
-  Future<bool> toggleMicrophone() async {
-    if (_isMicrophoneEnabled) {
-      await disableMicrophone();
-      return false;
-    } else {
-      await enableMicrophone();
       return true;
     }
   }
