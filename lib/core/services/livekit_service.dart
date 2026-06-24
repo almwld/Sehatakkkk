@@ -1,7 +1,6 @@
 import 'package:livekit_client/livekit_client.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import '../config/livekit_config.dart';
-import 'package:livekit_client/sandbox_token_source.dart';
 
 class LiveKitService {
   static final LiveKitService _instance = LiveKitService._internal();
@@ -12,50 +11,72 @@ class LiveKitService {
 
   bool get isConnected => _room?.connectionState == ConnectionState.connected;
 
-  // 🔑 توليد Token باستخدام API Key و Secret
-  Future<String> _generateToken({
+  // 🔑 توليد Token باستخدام API Key و Secret مباشرة
+  String _generateToken({
     required String roomName,
     required String participantName,
-    String? participantIdentity,
-  }) async {
-    // ✅ استخدام Sandbox Token Source (للاختبار)
-    final tokenSource = SandboxTokenSource(
-      sandboxId: LiveKitConfig.sandboxId,
-      roomName: roomName,
-      participantName: participantName,
-      participantIdentity: participantIdentity ?? 'user_${DateTime.now().millisecondsSinceEpoch}',
-    );
-    return await tokenSource.getToken();
+  }) {
+    try {
+      // ✅ AccessToken من livekit_client
+      final token = AccessToken(
+        LiveKitConfig.apiKey,
+        LiveKitConfig.apiSecret,
+        identity: participantName,
+        ttl: const Duration(minutes: 10),
+      );
+      
+      token.addGrant(
+        roomJoin: true,
+        room: roomName,
+        canPublish: true,
+        canSubscribe: true,
+      );
+      
+      return token.toJwt();
+    } catch (e) {
+      print('❌ خطأ في توليد التوكن: $e');
+      rethrow;
+    }
   }
 
   Future<Room> connectRoom({
     required String roomName,
     String? participantName,
   }) async {
-    _room = Room();
+    try {
+      _room = Room();
 
-    final token = await _generateToken(
-      roomName: roomName,
-      participantName: participantName ?? 'مستخدم',
-    );
+      final token = _generateToken(
+        roomName: roomName,
+        participantName: participantName ?? 'مستخدم',
+      );
 
-    final options = RoomOptions(
-      defaultVideoPublishOptions: VideoPublishOptions(
-        simulcast: false,
-      ),
-      defaultAudioPublishOptions: const AudioPublishOptions(),
-    );
+      print('✅ Token generated successfully');
 
-    await _room!.connect(
-      LiveKitConfig.serverUrl,
-      token,
-      roomOptions: options,
-    );
+      final options = RoomOptions(
+        defaultVideoPublishOptions: VideoPublishOptions(
+          simulcast: false,
+          videoCodec: VideoCodec.vp8,
+        ),
+        defaultAudioPublishOptions: const AudioPublishOptions(),
+      );
 
-    // ✅ تشغيل الصوت
-    await _room?.localParticipant?.setMicrophoneEnabled(true);
+      await _room!.connect(
+        LiveKitConfig.serverUrl,
+        token,
+        roomOptions: options,
+      );
 
-    return _room!;
+      print('✅ Connected to room: $roomName');
+      
+      // ✅ تمكين الصوت
+      await _room?.localParticipant?.setMicrophoneEnabled(true);
+
+      return _room!;
+    } catch (e) {
+      print('❌ فشل الاتصال: $e');
+      rethrow;
+    }
   }
 
   Future<void> enableCamera() async {

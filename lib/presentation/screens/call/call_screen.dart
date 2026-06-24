@@ -92,7 +92,6 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // 📹 خلفية المكالمة
           Container(
             color: Colors.black87,
             child: Center(
@@ -119,7 +118,6 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
               ),
             ),
           ),
-          // 🖼️ فيديو المستخدم (مصغر)
           if (widget.isVideo && _errorMessage.isEmpty)
             Positioned(
               top: 60,
@@ -137,7 +135,6 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                 ),
               ),
             ),
-          // 📞 واجهة التحكم
           if (_errorMessage.isEmpty)
             Positioned(
               bottom: 40,
@@ -193,7 +190,6 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                 ],
               ),
             ),
-          // 🏷️ اسم الطبيب
           if (_errorMessage.isEmpty)
             Positioned(
               top: 80,
