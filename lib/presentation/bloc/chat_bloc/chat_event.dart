@@ -27,19 +27,3 @@ class SendChatMessage extends ChatEvent {
   @override
   List<Object?> get props => [chatId, text, imageUrl, audioUrl];
 }
-
-class MarkMessageAsRead extends ChatEvent {
-  final String chatId;
-  final String messageId;
-  const MarkMessageAsRead(this.chatId, this.messageId);
-  @override
-  List<Object?> get props => [chatId, messageId];
-}
-
-class DeleteChatMessage extends ChatEvent {
-  final String chatId;
-  final String messageId;
-  const DeleteChatMessage(this.chatId, this.messageId);
-  @override
-  List<Object?> get props => [chatId, messageId];
-}

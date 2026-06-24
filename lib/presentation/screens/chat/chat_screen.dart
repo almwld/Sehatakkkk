@@ -12,16 +12,16 @@ import 'package:image_picker/image_picker.dart';
 import 'package:record/record.dart';
 
 class ChatScreen extends StatefulWidget {
-  final String? chatId;
-  final String? doctorName;
-  final String? doctorId;
+  final String chatId;
+  final String doctorName;
+  final String doctorId;
   final bool isVideo;
 
   const ChatScreen({
     super.key,
-    this.chatId,
-    this.doctorName,
-    this.doctorId,
+    required this.chatId,
+    required this.doctorName,
+    required this.doctorId,
     this.isVideo = false,
   });
 
@@ -42,15 +42,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   bool _isSending = false;
   bool _isInCall = false;
 
-  String get _chatId => widget.chatId ?? 'default_chat';
-  String get _doctorName => widget.doctorName ?? 'د. علي المولد';
-  String get _doctorId => widget.doctorId ?? '1';
-
   @override
   void initState() {
     super.initState();
-    // استخدام الحدث الصحيح
-    context.read<ChatBloc>().add(LoadChatMessages(_chatId));
+    context.read<ChatBloc>().add(LoadChatMessages(widget.chatId));
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -68,9 +63,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       context,
       MaterialPageRoute(
         builder: (_) => CallScreen(
-          chatId: _chatId,
-          doctorName: _doctorName,
-          doctorId: _doctorId,
+          chatId: widget.chatId,
+          doctorName: widget.doctorName,
+          doctorId: widget.doctorId,
           isVideo: widget.isVideo,
         ),
       ),
@@ -84,7 +79,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     setState(() => _isSending = true);
     try {
       await _chatService.sendMessage(
-        chatId: _chatId,
+        chatId: widget.chatId,
         text: text,
       );
       _messageController.clear();
@@ -104,9 +99,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (image != null) {
       setState(() => _isSending = true);
       try {
-        final url = await _chatService.uploadImage(_chatId, image.path);
+        final url = await _chatService.uploadImage(widget.chatId, image.path);
         await _chatService.sendMessage(
-          chatId: _chatId,
+          chatId: widget.chatId,
           text: '📷 صورة',
           imageUrl: url,
         );
@@ -147,9 +142,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (path != null) {
       setState(() => _isSending = true);
       try {
-        final url = await _chatService.uploadAudio(_chatId, path);
+        final url = await _chatService.uploadAudio(widget.chatId, path);
         await _chatService.sendMessage(
-          chatId: _chatId,
+          chatId: widget.chatId,
           text: '🎵 رسالة صوتية',
           audioUrl: url,
         );
@@ -200,7 +195,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               ),
               child: Center(
                 child: Text(
-                  _doctorName[0],
+                  widget.doctorName[0],
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -215,7 +210,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _doctorName,
+                    widget.doctorName,
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
@@ -248,9 +243,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 context,
                 MaterialPageRoute(
                   builder: (_) => CallScreen(
-                    chatId: _chatId,
-                    doctorName: _doctorName,
-                    doctorId: _doctorId,
+                    chatId: widget.chatId,
+                    doctorName: widget.doctorName,
+                    doctorId: widget.doctorId,
                     isVideo: false,
                   ),
                 ),
@@ -271,9 +266,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 context,
                 MaterialPageRoute(
                   builder: (_) => CallScreen(
-                    chatId: _chatId,
-                    doctorName: _doctorName,
-                    doctorId: _doctorId,
+                    chatId: widget.chatId,
+                    doctorName: widget.doctorName,
+                    doctorId: widget.doctorId,
                     isVideo: true,
                   ),
                 ),
@@ -308,7 +303,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () {
-                      context.read<ChatBloc>().add(LoadChatMessages(_chatId));
+                      context.read<ChatBloc>().add(LoadChatMessages(widget.chatId));
                     },
                     child: const Text('إعادة المحاولة'),
                   ),

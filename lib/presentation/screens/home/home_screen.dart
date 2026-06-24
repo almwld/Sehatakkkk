@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/screens/shared/chat_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -38,7 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _HomeTab(),
     DoctorsListScreen(),
     PharmacyScreen(),
-    ChatScreen(),
+    ChatNavigation.openChat(context, doctorName: 'الطبيب', doctorId: '1'),
     PatientAppointments(),
     PatientDashboard(),
     MoreScreen(),
@@ -424,7 +425,7 @@ class _HomeTab extends StatelessWidget {
             'تحدث مع طبيب الآن',
             Icons.videocam,
             AppColors.primary,
-            () => _go(context, const ChatScreen()),
+            () => _go(context, const ChatNavigation.openChat(context, doctorName: 'الطبيب', doctorId: '1')),
           ),
           _carCard(
             'توصيل دواء',

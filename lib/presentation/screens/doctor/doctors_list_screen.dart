@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/screens/shared/chat_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -337,7 +338,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
               GestureDetector(
                 onTap: () {
                   if (logged) {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => ChatScreen(doctorName: d['name'])));
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => ChatNavigation.openChat(context, doctorName: d['name'], doctorId: d['id'])));
                   } else {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => BlocProvider(create: (_) => AuthBloc(), child: const LoginScreen())));
                   }

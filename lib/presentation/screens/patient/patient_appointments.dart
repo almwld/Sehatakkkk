@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/screens/shared/chat_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
@@ -44,7 +45,7 @@ class _PatientAppointmentsState extends State<PatientAppointments> {
                         const SizedBox(width: 8),
                         Expanded(child: OutlinedButton(onPressed: () {}, child: const Text('تعديل'))),
                         const SizedBox(width: 8),
-                        Expanded(child: ElevatedButton.icon(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatScreen())), icon: const Icon(Icons.message, size: 14), label: const Text('محادثة'), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary))),
+                        Expanded(child: ElevatedButton.icon(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ChatNavigation.openChat(context, doctorName: 'الطبيب', doctorId: '1'))), icon: const Icon(Icons.message, size: 14), label: const Text('محادثة'), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary))),
                       ]),
                     ]),
                   );
