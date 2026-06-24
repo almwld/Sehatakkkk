@@ -425,7 +425,7 @@ class _HomeTab extends StatelessWidget {
             'تحدث مع طبيب الآن',
             Icons.videocam,
             AppColors.primary,
-            () => _go(context, ChatNavigation.openChat(context, doctorName: 'الطبيب', doctorId: '1')),
+            () => _go(context, () => ChatNavigation.openChat(context, doctorName: 'الطبيب', doctorId: '1')),
           ),
           _carCard(
             'توصيل دواء',

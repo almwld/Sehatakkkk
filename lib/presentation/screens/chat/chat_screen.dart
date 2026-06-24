@@ -129,7 +129,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       );
       setState(() {
         _isRecording = true;
-        _recordingPath = path;
+        _recordingPath = path as String?;
       });
     }
   }
