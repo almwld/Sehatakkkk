@@ -100,46 +100,68 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
   }
 
+  // ✅ إصلاح دالة التسجيل الصوتي
   void _startRecording() async {
-    if (await _audioRecorder.hasPermission()) {
-      final path = await _audioRecorder.start(
-        const RecordConfig(
-          encoder: AudioEncoder.aacLc,
-          bitRate: 128000,
-          sampleRate: 48000,
-        ),
-        path: '${DateTime.now().millisecondsSinceEpoch}.m4a',
+    try {
+      if (await _audioRecorder.hasPermission()) {
+        // ✅ استخدام try-catch للتعامل مع الأخطاء
+        final path = await _audioRecorder.start(
+          const RecordConfig(
+            encoder: AudioEncoder.aacLc,
+            bitRate: 128000,
+            sampleRate: 48000,
+          ),
+          path: '${DateTime.now().millisecondsSinceEpoch}.m4a',
+        );
+        // ✅ التحقق من أن path ليس null
+        if (path != null) {
+          setState(() {
+            _isRecording = true;
+            _recordingPath = path;
+          });
+        }
+      }
+    } catch (e) {
+      // ✅ معالجة الخطأ إذا فشل التسجيل
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('فشل بدء التسجيل: $e')),
       );
-      setState(() {
-        _isRecording = true;
-        _recordingPath = path;
-      });
     }
   }
 
   void _stopRecording() async {
-    final path = await _audioRecorder.stop();
-    setState(() {
-      _isRecording = false;
-      _recordingPath = null;
-    });
-    if (path != null) {
-      setState(() => _isSending = true);
-      try {
-        final url = await _chatService.uploadAudio(widget.chatId, path);
-        await _chatService.sendMessage(
-          chatId: widget.chatId,
-          text: '🎵 رسالة صوتية',
-          audioUrl: url,
-        );
-        _scrollToBottom();
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('فشل رفع الصوت: $e')),
-        );
-      } finally {
-        setState(() => _isSending = false);
+    try {
+      final path = await _audioRecorder.stop();
+      setState(() {
+        _isRecording = false;
+        _recordingPath = null;
+      });
+      if (path != null) {
+        setState(() => _isSending = true);
+        try {
+          final url = await _chatService.uploadAudio(widget.chatId, path);
+          await _chatService.sendMessage(
+            chatId: widget.chatId,
+            text: '🎵 رسالة صوتية',
+            audioUrl: url,
+          );
+          _scrollToBottom();
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('فشل رفع الصوت: $e')),
+          );
+        } finally {
+          setState(() => _isSending = false);
+        }
       }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('فشل إيقاف التسجيل: $e')),
+      );
+      setState(() {
+        _isRecording = false;
+        _recordingPath = null;
+      });
     }
   }
 
