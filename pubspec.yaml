@@ -7,74 +7,104 @@ environment:
   sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
-  google_sign_in: ^6.2.1
   flutter:
     sdk: flutter
+
+  # UI & Core
   cupertino_icons: ^1.0.6
   flutter_bloc: ^8.1.3
   bloc: ^8.1.2
   equatable: ^2.0.5
+  iconsax: ^0.0.8
+  intl: ^0.18.1
   
-  # Firebase (جديد)
+  # Firebase
   firebase_core: ^2.25.4
   firebase_auth: ^4.17.4
-  cloud_firestore: ^4.14.0
+  cloud_firestore: ^4.15.0
   firebase_storage: ^11.6.0
   firebase_messaging: ^14.7.15
   firebase_analytics: ^10.8.0
   
+  # ✅ LiveKit - مكالمات صوت وفيديو
+  livekit_client: ^1.5.0
+  livekit_web: ^1.5.0
+  flutter_webrtc: ^0.10.0
+  
+  # Networking
   dio: ^5.4.0
   retrofit: ^4.0.3
   json_annotation: ^4.8.1
+  http: ^1.2.0
+  socket_io_client: ^2.0.3
+  
+  # Storage
   shared_preferences: ^2.2.2
   sqflite: ^2.3.0
   path: ^1.8.3
   path_provider: ^2.1.1
+  
+  # UI Components
   flutter_svg: ^2.0.9
-  iconsax: ^0.0.8
-  table_calendar: ^3.0.9
-  intl: ^0.18.1
-  fl_chart: ^0.66.0
-  image_picker: ^1.0.7
-  url_launcher: ^6.2.3
-  share_plus: ^7.2.1
-  local_auth: ^2.1.8
-  flutter_local_notifications: ^16.3.0
-  google_maps_flutter: ^2.5.0
   shimmer: ^3.0.0
   cached_network_image: ^3.3.1
-  connectivity_plus: ^5.0.2
-  permission_handler: ^11.1.0
+  lottie: ^2.7.0
+  confetti: ^0.7.0
   flutter_staggered_grid_view: ^0.7.0
   pull_to_refresh: ^2.0.0
   flutter_slidable: ^3.0.1
-  confetti: ^0.7.0
-  lottie: ^2.7.0
+  flutter_animate: ^4.5.0
+  
+  # Calendar & Charts
+  table_calendar: ^3.0.9
+  fl_chart: ^0.66.0
+  
+  # Media
+  image_picker: ^1.0.7
+  record: ^5.0.0  # ✅ للتسجيل الصوتي
+  
+  # Permissions & Device
+  permission_handler: ^11.1.0
   device_info_plus: ^9.1.1
   package_info_plus: ^5.0.1
+  local_auth: ^2.1.8
+  url_launcher: ^6.2.3
+  share_plus: ^7.2.1
+  
+  # Notifications
+  flutter_local_notifications: ^16.3.0
+  
+  # Connectivity
+  connectivity_plus: ^5.0.2
+  
+  # Maps & Location
+  google_maps_flutter: ^2.5.0
   flutter_map: ^6.1.0
   latlong2: ^0.9.1
   geolocator: ^10.1.0
   geocoding: ^3.0.0
-  http: ^1.2.0
-  socket_io_client: ^2.0.3
+  
+  # WebView (مؤقت)
   webview_flutter: ^4.4.0
 
 dev_dependencies:
-  google_sign_in: ^6.2.1
-  flutter_launcher_icons: ^0.13.1
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.1
   build_runner: ^2.4.7
   retrofit_generator: ^8.0.6
   json_serializable: ^6.7.1
+  flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true
+
   assets:
     - assets/icons/app_icon.png
+    - assets/icons/payment/
+    - assets/images/
     - assets/fonts/
+
   fonts:
     - family: Cairo
       fonts:
@@ -87,6 +117,7 @@ flutter:
           weight: 500
         - asset: assets/fonts/Cairo-Light.ttf
           weight: 300
+
     - family: Tajawal
       fonts:
         - asset: assets/fonts/Tajawal-Regular.ttf
@@ -94,6 +125,7 @@ flutter:
           weight: 700
         - asset: assets/fonts/Tajawal-Medium.ttf
           weight: 500
+
     - family: NotoSansArabic
       fonts:
         - asset: assets/fonts/NotoSansArabic-Regular.ttf
@@ -101,6 +133,7 @@ flutter:
           weight: 700
         - asset: assets/fonts/NotoSansArabic-Medium.ttf
           weight: 500
+
     - family: Rubik
       fonts:
         - asset: assets/fonts/Rubik-Regular.ttf

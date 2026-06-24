@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/services/livekit_service.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class CallScreen extends StatefulWidget {
-  final String channelName;
-  final String callerName;
+  final String chatId;
+  final String doctorName;
+  final String doctorId;
   final bool isVideo;
-  
+
   const CallScreen({
     super.key,
-    required this.channelName,
-    required this.callerName,
+    required this.chatId,
+    required this.doctorName,
+    required this.doctorId,
     this.isVideo = true,
   });
 
@@ -17,220 +20,212 @@ class CallScreen extends StatefulWidget {
   State<CallScreen> createState() => _CallScreenState();
 }
 
-class _CallScreenState extends State<CallScreen> {
+class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
+  final LiveKitService _liveKit = LiveKitService();
   bool _isMuted = false;
-  bool _isSpeakerOn = true;
-  bool _isVideoOn = true;
-  bool _isCallConnected = true;
-  Duration _callDuration = Duration.zero;
-  
+  bool _isCameraOn = true;
+  bool _isSpeakerOn = false;
+  int _callDuration = 0;
+
   @override
   void initState() {
     super.initState();
-    _startCallTimer();
+    WidgetsBinding.instance.addObserver(this);
+    _startCall();
   }
-  
-  void _startCallTimer() {
-    Future.delayed(const Duration(seconds: 1), () {
-      if (_isCallConnected && mounted) {
-        setState(() => _callDuration += const Duration(seconds: 1));
-        _startCallTimer();
+
+  @override
+  void dispose() {
+    _liveKit.endCall();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  void _startCall() async {
+    try {
+      await _liveKit.startCall(
+        roomName: widget.chatId,
+        token: 'your-token-here', // سيتم توليده من السيرفر
+        callerName: widget.doctorName,
+        isVideo: widget.isVideo,
+      );
+      setState(() {});
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('فشل بدء المكالمة: $e')),
+        );
+        Navigator.pop(context);
       }
-    });
-  }
-  
-  String _formatDuration(Duration d) {
-    final mm = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final ss = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return '$mm:$ss';
-  }
-  
-  void _endCall() {
-    setState(() => _isCallConnected = false);
-    Navigator.of(context).pop();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A2E),
-      body: SafeArea(
-        child: Stack(
-          children: [
-            // خلفية المكالمة
-            Positioned.fill(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          // 📹 فيديو الطرف الآخر
+          Container(
+            color: Colors.black87,
+            child: const Center(
+              child: Text(
+                'جاري الاتصال...',
+                style: TextStyle(color: Colors.white, fontSize: 18),
+              ),
+            ),
+          ),
+          // 🖼️ فيديو المستخدم (مصغر)
+          if (widget.isVideo)
+            Positioned(
+              top: 60,
+              right: 20,
               child: Container(
+                width: 100,
+                height: 150,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      const Color(0xFF1A1A2E),
-                      const Color(0xFF16213E).withOpacity(0.9),
-                    ],
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.person,
+                    color: Colors.white54,
+                    size: 40,
                   ),
                 ),
               ),
             ),
-            
-            // صورة مصغرة لنفسك
-            if (widget.isVideo && _isVideoOn)
-              Positioned(
-                top: 12,
-                right: 12,
-                child: Container(
-                  width: 120,
-                  height: 160,
+          // 📞 واجهة التحكم
+          Positioned(
+            bottom: 40,
+            left: 0,
+            right: 0,
+            child: Column(
+              children: [
+                // ⏱️ مدة المكالمة
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white, width: 2),
-                    color: const Color(0xFF0F3460),
+                    color: Colors.black26,
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Center(
-                    child: Icon(Icons.videocam, color: Colors.white70, size: 40),
+                  child: Text(
+                    _formatDuration(_callDuration),
+                    style: const TextStyle(color: Colors.white, fontSize: 16),
                   ),
                 ),
-              ),
-            
-            // معلومات المتصل
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                child: Column(
+                const SizedBox(height: 20),
+                // 🎛️ أزرار التحكم
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [AppColors.primary, AppColors.primaryDark],
-                        ),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withOpacity(0.4),
-                            blurRadius: 20,
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: Text(
-                          widget.callerName[0],
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
+                    // 🎤 كتم الصوت
+                    _callButton(
+                      icon: _isMuted ? Icons.mic_off : Icons.mic,
+                      color: _isMuted ? AppColors.error : Colors.white,
+                      onTap: () => setState(() {
+                        _isMuted = !_isMuted;
+                        _liveKit.enableMicrophone();
+                      }),
                     ),
-                    const SizedBox(height: 12),
-                    Text(
-                      widget.callerName,
-                      style: const TextStyle(
+                    // 📹 كتم الكاميرا
+                    if (widget.isVideo)
+                      _callButton(
+                        icon: _isCameraOn ? Icons.videocam : Icons.videocam_off,
+                        color: _isCameraOn ? Colors.white : AppColors.error,
+                        onTap: () => setState(() {
+                          _isCameraOn = !_isCameraOn;
+                          _liveKit.enableCamera();
+                        }),
+                      ),
+                    // 📞 إنهاء المكالمة
+                    _callButton(
+                      icon: Icons.call_end,
+                      color: AppColors.error,
+                      size: 60,
+                      onTap: () => Navigator.pop(context),
+                    ),
+                    // 🔊 مكبر الصوت
+                    _callButton(
+                      icon: _isSpeakerOn ? Icons.volume_up : Icons.volume_off,
+                      color: _isSpeakerOn ? AppColors.info : Colors.white,
+                      onTap: () => setState(() {
+                        _isSpeakerOn = !_isSpeakerOn;
+                      }),
+                    ),
+                    // 📷 تبديل الكاميرا
+                    if (widget.isVideo)
+                      _callButton(
+                        icon: Icons.switch_camera,
                         color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _isCallConnected ? _formatDuration(_callDuration) : 'انتهت المكالمة',
-                      style: const TextStyle(color: Colors.white70, fontSize: 14),
-                    ),
-                    if (_isCallConnected)
-                      Container(
-                        margin: const EdgeInsets.only(top: 4),
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: AppColors.success.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.fiber_manual_record, color: AppColors.success, size: 8),
-                            SizedBox(width: 4),
-                            Text('متصل', style: TextStyle(color: AppColors.success, fontSize: 10)),
-                          ],
-                        ),
+                        onTap: () {
+                          // تبديل الكاميرا الأمامية/الخلفية
+                        },
                       ),
                   ],
                 ),
-              ),
+              ],
             ),
-            
-            // أزرار التحكم
-            Positioned(
-              bottom: 40,
-              left: 0,
-              right: 0,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _controlBtn(Icons.mic, _isMuted ? AppColors.error : Colors.white70, 'الميك', () {
-                    setState(() => _isMuted = !_isMuted);
-                  }),
-                  _controlBtn(_isSpeakerOn ? Icons.volume_up : Icons.volume_off, Colors.white70, 'الصوت', () {
-                    setState(() => _isSpeakerOn = !_isSpeakerOn);
-                  }),
-                  if (widget.isVideo)
-                    _controlBtn(_isVideoOn ? Icons.videocam : Icons.videocam_off, _isVideoOn ? Colors.white70 : AppColors.error, 'الفيديو', () {
-                      setState(() => _isVideoOn = !_isVideoOn);
-                    }),
-                  // زر إنهاء المكالمة
-                  GestureDetector(
-                    onTap: _endCall,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 60,
-                          height: 60,
-                          decoration: const BoxDecoration(
-                            color: AppColors.error,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.call_end, color: Colors.white, size: 28),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text('إنهاء', style: TextStyle(color: Colors.white70, fontSize: 10)),
-                      ],
-                    ),
+          ),
+          // 🏷️ اسم الطبيب
+          Positioned(
+            top: 80,
+            left: 0,
+            right: 0,
+            child: Column(
+              children: [
+                Text(
+                  widget.doctorName,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
                   ),
-                  if (widget.isVideo)
-                    _controlBtn(Icons.cameraswitch, Colors.white70, 'تبديل', () {}),
-                ],
-              ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'جاري الاتصال...',
+                  style: TextStyle(color: Colors.white54, fontSize: 14),
+                ),
+              ],
             ),
-          ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _callButton({
+    required IconData icon,
+    required Color color,
+    double size = 50,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.2),
+          shape: BoxShape.circle,
+          border: Border.all(color: color, width: 2),
+        ),
+        child: Icon(
+          icon,
+          color: color,
+          size: size * 0.5,
         ),
       ),
     );
   }
-  
-  Widget _controlBtn(IconData icon, Color color, String label, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color, size: 24),
-          ),
-          const SizedBox(height: 4),
-          Text(label, style: const TextStyle(color: Colors.white70, fontSize: 10)),
-        ],
-      ),
-    );
+
+  String _formatDuration(int seconds) {
+    final minutes = seconds ~/ 60;
+    final remainingSeconds = seconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
   }
 }

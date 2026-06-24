@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'core/services/firebase_service.dart';
 import 'core/themes/theme_manager.dart';
 import 'presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'presentation/bloc/theme_bloc/theme_bloc.dart';
@@ -12,11 +13,16 @@ bool _firebaseInitialized = false;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+
+  // ✅ تشغيل التطبيق فوراً
   runApp(const MyApp());
+
+  // 🔥 تهيئة Firebase في الخلفية
   _initFirebaseInBackground();
 }
 
@@ -28,17 +34,18 @@ Future<void> _initFirebaseInBackground() async {
       ).timeout(
         const Duration(seconds: 10),
         onTimeout: () {
-          debugPrint('[Firebase] ⚠️ انتهى الوقت');
+          debugPrint('[Firebase] ⚠️ انتهى الوقت - إعادة المحاولة');
           return Firebase.initializeApp(
             options: DefaultFirebaseOptions.currentPlatform,
           );
         },
       );
+      await FirebaseService().initialize();
       _firebaseInitialized = true;
-      debugPrint('[Firebase] ✅ تم التهيئة');
+      debugPrint('[Firebase] ✅ تم التهيئة بنجاح');
     }
   } catch (e) {
-    debugPrint('[Firebase] ❌ فشل: $e');
+    debugPrint('[Firebase] ❌ فشل التهيئة: $e');
     Future.delayed(const Duration(seconds: 30), _initFirebaseInBackground);
   }
 }
@@ -50,7 +57,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider<AuthBloc>(create: (_) => AuthBloc()..add(AppStarted())),
+        BlocProvider<AuthBloc>(
+          create: (_) => AuthBloc()..add(AppStarted()),
+        ),
         BlocProvider<ThemeBloc>(create: (_) => ThemeBloc()),
       ],
       child: BlocBuilder<ThemeBloc, ThemeState>(
