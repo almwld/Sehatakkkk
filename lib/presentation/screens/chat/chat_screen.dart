@@ -42,7 +42,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   bool _isSending = false;
   bool _isInCall = false;
 
-  // قيم افتراضية إذا لم يتم تمريرها
   String get _chatId => widget.chatId ?? 'default_chat';
   String get _doctorName => widget.doctorName ?? 'د. علي المولد';
   String get _doctorId => widget.doctorId ?? '1';
@@ -50,7 +49,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    // استخدام الحدث الصحيح من ChatBloc
+    // استخدام الحدث الصحيح
     context.read<ChatBloc>().add(LoadChatMessages(_chatId));
     WidgetsBinding.instance.addObserver(this);
   }

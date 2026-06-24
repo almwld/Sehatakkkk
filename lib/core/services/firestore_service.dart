@@ -24,7 +24,11 @@ class FirestoreService {
 
   Future<Map<String, dynamic>?> getUser(String uid) async {
     final doc = await users.doc(uid).get();
-    return doc.exists ? doc.data() : null;
+    if (doc.exists) {
+      final data = doc.data() as Map<String, dynamic>?;
+      return data;
+    }
+    return null;
   }
 
   Future<void> updateUser(String uid, Map<String, dynamic> data) async {
@@ -35,14 +39,25 @@ class FirestoreService {
   Stream<List<Map<String, dynamic>>> getDoctors() {
     return doctors.snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
-        return {'id': doc.id, ...doc.data()};
+        final data = doc.data() as Map<String, dynamic>;
+        return {
+          'id': doc.id,
+          ...data,
+        };
       }).toList();
     });
   }
 
   Future<Map<String, dynamic>?> getDoctor(String doctorId) async {
     final doc = await doctors.doc(doctorId).get();
-    return doc.exists ? {'id': doc.id, ...doc.data()} : null;
+    if (doc.exists) {
+      final data = doc.data() as Map<String, dynamic>;
+      return {
+        'id': doc.id,
+        ...data,
+      };
+    }
+    return null;
   }
 
   // ========== 📅 المواعيد ==========
@@ -57,7 +72,11 @@ class FirestoreService {
         .snapshots()
         .map((snapshot) {
           return snapshot.docs.map((doc) {
-            return {'id': doc.id, ...doc.data()};
+            final data = doc.data() as Map<String, dynamic>;
+            return {
+              'id': doc.id,
+              ...data,
+            };
           }).toList();
         });
   }
@@ -83,7 +102,11 @@ class FirestoreService {
   Stream<List<Map<String, dynamic>>> getPharmacies() {
     return pharmacies.snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
-        return {'id': doc.id, ...doc.data()};
+        final data = doc.data() as Map<String, dynamic>;
+        return {
+          'id': doc.id,
+          ...data,
+        };
       }).toList();
     });
   }
