@@ -1,15 +1,14 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/services/chat_service.dart';
-import 'package:sehatak/core/services/livekit_service.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/bloc/chat_bloc/chat_bloc.dart';
 import 'package:sehatak/presentation/bloc/chat_bloc/chat_event.dart';
 import 'package:sehatak/presentation/bloc/chat_bloc/chat_state.dart';
 import 'package:sehatak/presentation/screens/call/call_screen.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/message_bubble.dart';
-import 'package:sehatak/presentation/screens/chat/widgets/typing_indicator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:record/record.dart';
 
@@ -35,7 +34,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final ChatService _chatService = ChatService();
-  final LiveKitService _liveKit = LiveKitService();
   final AudioRecorder _audioRecorder = AudioRecorder();
   
   bool _isRecording = false;
@@ -54,23 +52,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   void dispose() {
     _messageController.dispose();
     _scrollController.dispose();
-    _liveKit.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
-  }
-
-  void _startCall() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => CallScreen(
-          chatId: widget.chatId,
-          doctorName: widget.doctorName,
-          doctorId: widget.doctorId,
-          isVideo: widget.isVideo,
-        ),
-      ),
-    );
   }
 
   void _sendMessage() async {
@@ -129,7 +112,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       );
       setState(() {
         _isRecording = true;
-        _recordingPath = path as String?;
+        _recordingPath = path;
       });
     }
   }
@@ -177,6 +160,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
       appBar: AppBar(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
@@ -196,7 +180,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               ),
               child: Center(
                 child: Text(
-                  widget.doctorName[0],
+                  widget.doctorName.isNotEmpty ? widget.doctorName[0] : 'ط',
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -211,7 +195,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.doctorName,
+                    widget.doctorName.isNotEmpty ? widget.doctorName : 'الطبيب',
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
@@ -322,7 +306,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     itemCount: state.messages.length,
                     itemBuilder: (context, index) {
                       final message = state.messages[index];
-                      final isMe = message['senderId'] == 'me';
+                      final isMe = message['senderId'] == FirebaseAuth.instance.currentUser?.uid;
                       return MessageBubble(
                         message: message,
                         isMe: isMe,

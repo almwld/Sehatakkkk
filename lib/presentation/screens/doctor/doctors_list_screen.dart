@@ -19,15 +19,6 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
   String _sortBy = 'التقييم';
   bool _showAvailableOnly = false;
 
-  // ✅ بيانات وهمية للأطباء
-  final List<Map<String, dynamic>> _dummyDoctors = [
-    {'id': '1', 'name': 'د. علي المولد', 'specialty': 'عام', 'subspecialty': 'باطنية عامة', 'experience': '12+ سنة', 'rating': 4.9, 'reviews': 128, 'fee': '500', 'available': true, 'online': true, 'patients': '5,000+'},
-    {'id': '2', 'name': 'د. حسن رضا', 'specialty': 'عام', 'subspecialty': 'طب الأسرة', 'experience': '8+ سنة', 'rating': 4.8, 'reviews': 235, 'fee': '300', 'available': true, 'online': true, 'patients': '3,200+'},
-    {'id': '3', 'name': 'د. فاطمة صديقي', 'specialty': 'أطفال', 'subspecialty': 'حديثي الولادة', 'experience': '7+ سنة', 'rating': 4.9, 'reviews': 167, 'fee': '600', 'available': true, 'online': true, 'patients': '7,000+'},
-    {'id': '4', 'name': 'د. عائشة ملك', 'specialty': 'جلدية', 'subspecialty': 'جلدية تجميلية', 'experience': '6+ سنة', 'rating': 4.9, 'reviews': 189, 'fee': '800', 'available': false, 'online': false, 'patients': '4,500+'},
-    {'id': '5', 'name': 'د. عمر فاروق', 'specialty': 'عيون', 'subspecialty': 'شبكية', 'experience': '13+ سنة', 'rating': 4.7, 'reviews': 145, 'fee': '1000', 'available': true, 'online': true, 'patients': '9,000+'},
-  ];
-
   final List<Map<String, String>> _specialties = const [
     {'icon': '🫀', 'name': 'الكل'},
     {'icon': '👨‍⚕️', 'name': 'عام'},
@@ -37,28 +28,12 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
     {'icon': '🦴', 'name': 'عظام'},
     {'icon': '👶', 'name': 'أطفال'},
     {'icon': '👩‍🦰', 'name': 'جلدية'},
-    {'icon': '👁️', 'name': 'عيون'},
   ];
 
-  List<Map<String, dynamic>> get _filteredDoctors {
-    var list = _dummyDoctors;
-    if (_selectedSpecialty != 'الكل') {
-      list = list.where((d) => d['specialty'] == _selectedSpecialty).toList();
-    }
-    if (_showAvailableOnly) {
-      list = list.where((d) => d['available'] == true).toList();
-    }
-    if (_searchCtrl.text.isNotEmpty) {
-      final q = _searchCtrl.text.toLowerCase();
-      list = list.where((d) => d['name'].toLowerCase().contains(q) || d['specialty'].toLowerCase().contains(q)).toList();
-    }
-    if (_sortBy == 'التقييم') {
-      list.sort((a, b) => (b['rating'] as double).compareTo(a['rating']));
-    }
-    if (_sortBy == 'السعر') {
-      list.sort((a, b) => int.parse(a['fee']).compareTo(int.parse(b['fee'])));
-    }
-    return list;
+  @override
+  void initState() {
+    super.initState();
+    context.read<DoctorBloc>().add(LoadDoctors());
   }
 
   @override
@@ -70,7 +45,6 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final doctors = _filteredDoctors;
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
@@ -92,21 +66,70 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          _buildSearchBar(isDark),
-          _buildSpecialties(isDark),
-          _buildStats(doctors.length),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              itemCount: doctors.length,
-              itemBuilder: (_, i) => _buildDoctorCard(doctors[i], isDark, context),
-            ),
-          ),
-        ],
+      body: BlocBuilder<DoctorBloc, DoctorState>(
+        builder: (context, state) {
+          if (state is DoctorLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (state is DoctorErrorState) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 60, color: AppColors.error),
+                  const SizedBox(height: 16),
+                  Text(state.message),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => context.read<DoctorBloc>().add(LoadDoctors()),
+                    child: const Text('إعادة المحاولة'),
+                  ),
+                ],
+              ),
+            );
+          }
+          if (state is DoctorLoadedState) {
+            final doctors = _filterDoctors(state.doctors);
+            return Column(
+              children: [
+                _buildSearchBar(isDark),
+                _buildSpecialties(isDark),
+                _buildStats(doctors.length),
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    itemCount: doctors.length,
+                    itemBuilder: (_, i) => _buildDoctorCard(doctors[i], isDark, context),
+                  ),
+                ),
+              ],
+            );
+          }
+          return const SizedBox();
+        },
       ),
     );
+  }
+
+  List<Map<String, dynamic>> _filterDoctors(List<Map<String, dynamic>> doctors) {
+    var list = doctors;
+    if (_selectedSpecialty != 'الكل') {
+      list = list.where((d) => d['specialty'] == _selectedSpecialty).toList();
+    }
+    if (_showAvailableOnly) {
+      list = list.where((d) => d['available'] == true).toList();
+    }
+    if (_searchCtrl.text.isNotEmpty) {
+      final q = _searchCtrl.text.toLowerCase();
+      list = list.where((d) => d['name'].toLowerCase().contains(q) || d['specialty'].toLowerCase().contains(q)).toList();
+    }
+    if (_sortBy == 'التقييم') {
+      list.sort((a, b) => (b['rating'] as double).compareTo(a['rating']));
+    }
+    if (_sortBy == 'السعر') {
+      list.sort((a, b) => int.parse(a['fee'].toString()).compareTo(int.parse(b['fee'].toString())));
+    }
+    return list;
   }
 
   Widget _buildSearchBar(bool isDark) {
@@ -228,17 +251,26 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
         children: [
           Stack(
             children: [
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: [AppColors.primary.withOpacity(0.8), AppColors.primaryDark.withOpacity(0.9)]),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Center(
-                  child: Text(
-                    d['name'][0] + d['name'][d['name'].length - 2],
-                    style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: CachedNetworkImage(
+                  imageUrl: d['photoUrl'] ?? 'https://ui-avatars.com/api/?name=${Uri.encodeComponent(d['name'])}&background=00796B&color=fff',
+                  width: 60,
+                  height: 60,
+                  fit: BoxFit.cover,
+                  errorWidget: (_, __, ___) => Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(colors: [AppColors.primary.withOpacity(0.8), AppColors.primaryDark.withOpacity(0.9)]),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Center(
+                      child: Text(
+                        d['name'][0] + d['name'][d['name'].length - 2],
+                        style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -278,19 +310,19 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                   ],
                 ),
                 const SizedBox(height: 3),
-                Text('${d['subspecialty']} • ${d['experience']}', style: const TextStyle(fontSize: 11, color: AppColors.grey)),
+                Text('${d['subspecialty'] ?? d['specialty']} • ${d['experience'] ?? '0'}+ سنة', style: const TextStyle(fontSize: 11, color: AppColors.grey)),
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    _starRow(d['rating']),
+                    _starRow((d['rating'] ?? 0).toDouble()),
                     const SizedBox(width: 4),
-                    Text('${d['reviews']} تقييم', style: const TextStyle(fontSize: 10, color: AppColors.darkGrey)),
+                    Text('${d['reviews'] ?? 0} تقييم', style: const TextStyle(fontSize: 10, color: AppColors.darkGrey)),
                     const SizedBox(width: 10),
                     const Icon(Icons.people, size: 12, color: AppColors.grey),
                     const SizedBox(width: 2),
-                    Text(d['patients'], style: const TextStyle(fontSize: 10, color: AppColors.grey)),
+                    Text(d['patients'] ?? '0', style: const TextStyle(fontSize: 10, color: AppColors.grey)),
                     const Spacer(),
-                    Text('${d['fee']} ر.ي', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 15)),
+                    Text('${d['fee'] ?? 0} ر.ي', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 15)),
                   ],
                 ),
               ],

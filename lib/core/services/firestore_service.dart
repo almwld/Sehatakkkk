@@ -7,35 +7,16 @@ class FirestoreService {
   FirestoreService._internal();
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // ========== 📁 Collections ==========
   CollectionReference get users => _firestore.collection('users');
   CollectionReference get doctors => _firestore.collection('doctors');
   CollectionReference get appointments => _firestore.collection('appointments');
   CollectionReference get pharmacies => _firestore.collection('pharmacies');
-  CollectionReference get messages => _firestore.collection('messages');
-  CollectionReference get orders => _firestore.collection('orders');
-  CollectionReference get payments => _firestore.collection('payments');
+  CollectionReference get chats => _firestore.collection('chats');
 
-  // ========== 👤 المستخدم ==========
-  Future<void> saveUser(String uid, Map<String, dynamic> data) async {
-    await users.doc(uid).set(data, SetOptions(merge: true));
-  }
-
-  Future<Map<String, dynamic>?> getUser(String uid) async {
-    final doc = await users.doc(uid).get();
-    if (doc.exists) {
-      final data = doc.data() as Map<String, dynamic>?;
-      return data;
-    }
-    return null;
-  }
-
-  Future<void> updateUser(String uid, Map<String, dynamic> data) async {
-    await users.doc(uid).update(data);
-  }
-
-  // ========== 👨‍⚕️ الأطباء ==========
+  // ========== 👨‍⚕️ الأطباء - بيانات حقيقية ==========
   Stream<List<Map<String, dynamic>>> getDoctors() {
     return doctors.snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
@@ -60,63 +41,72 @@ class FirestoreService {
     return null;
   }
 
-  // ========== 📅 المواعيد ==========
-  Future<void> bookAppointment(Map<String, dynamic> data) async {
-    await appointments.add(data);
-  }
-
-  Stream<List<Map<String, dynamic>>> getPatientAppointments(String patientId) {
-    return appointments
-        .where('patientId', isEqualTo: patientId)
-        .orderBy('date', descending: false)
-        .snapshots()
-        .map((snapshot) {
-          return snapshot.docs.map((doc) {
-            final data = doc.data() as Map<String, dynamic>;
-            return {
-              'id': doc.id,
-              ...data,
-            };
-          }).toList();
-        });
-  }
-
-  // ========== 💬 الدردشة ==========
-  Future<void> sendMessage(String chatId, Map<String, dynamic> message) async {
-    await messages.doc(chatId).collection('messages').add(message);
-    await messages.doc(chatId).update({
-      'lastMessage': message['text'],
+  // ========== 💬 الدردشة - بيانات حقيقية ==========
+  Future<String> createChat({
+    required String doctorId,
+    required String doctorName,
+    required String patientId,
+    required String patientName,
+  }) async {
+    final chatId = chats.doc().id;
+    await chats.doc(chatId).set({
+      'id': chatId,
+      'doctorId': doctorId,
+      'doctorName': doctorName,
+      'patientId': patientId,
+      'patientName': patientName,
+      'lastMessage': '',
       'lastMessageTime': FieldValue.serverTimestamp(),
+      'createdAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+    return chatId;
+  }
+
+  Future<void> sendMessage({
+    required String chatId,
+    required String text,
+    String? imageUrl,
+    String? audioUrl,
+  }) async {
+    final message = {
+      'senderId': _auth.currentUser?.uid ?? 'unknown',
+      'senderName': _auth.currentUser?.displayName ?? 'مستخدم',
+      'text': text,
+      'imageUrl': imageUrl,
+      'audioUrl': audioUrl,
+      'timestamp': FieldValue.serverTimestamp(),
+      'read': false,
+    };
+
+    await chats.doc(chatId).collection('messages').add(message);
+
+    await chats.doc(chatId).update({
+      'lastMessage': text,
+      'lastMessageTime': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
     });
   }
 
   Stream<QuerySnapshot> getMessages(String chatId) {
-    return messages
+    return chats
         .doc(chatId)
         .collection('messages')
         .orderBy('timestamp', descending: false)
         .snapshots();
   }
 
-  // ========== 🏥 الصيدلية ==========
-  Stream<List<Map<String, dynamic>>> getPharmacies() {
-    return pharmacies.snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        return {
-          'id': doc.id,
-          ...data,
-        };
-      }).toList();
-    });
+  Stream<QuerySnapshot> getUserChats(String userId) {
+    return chats
+        .where('patientId', isEqualTo: userId)
+        .orderBy('updatedAt', descending: true)
+        .snapshots();
   }
 
-  // ========== 📦 الطلبات ==========
-  Future<void> createOrder(Map<String, dynamic> order) async {
-    await orders.add(order);
-  }
-
-  Stream<QuerySnapshot> getUserOrders(String userId) {
-    return orders.where('userId', isEqualTo: userId).snapshots();
+  Stream<QuerySnapshot> getDoctorChats(String doctorId) {
+    return chats
+        .where('doctorId', isEqualTo: doctorId)
+        .orderBy('updatedAt', descending: true)
+        .snapshots();
   }
 }

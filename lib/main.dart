@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 import 'core/services/firebase_service.dart';
 import 'core/themes/theme_manager.dart';
 import 'presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'presentation/bloc/theme_bloc/theme_bloc.dart';
 import 'presentation/bloc/chat_bloc/chat_bloc.dart';
-import 'presentation/bloc/doctor_bloc/doctor_bloc.dart';  // ✅ إضافة DoctorBloc
+import 'presentation/bloc/doctor_bloc/doctor_bloc.dart';
 import 'presentation/screens/auth/splash_screen.dart';
 
 bool _firebaseInitialized = false;
@@ -30,21 +31,13 @@ Future<void> _initFirebaseInBackground() async {
     if (!_firebaseInitialized) {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          debugPrint('[Firebase] ⚠️ انتهى الوقت - إعادة المحاولة');
-          return Firebase.initializeApp(
-            options: DefaultFirebaseOptions.currentPlatform,
-          );
-        },
       );
       await FirebaseService().initialize();
       _firebaseInitialized = true;
-      debugPrint('[Firebase] ✅ تم التهيئة بنجاح');
+      debugPrint('✅ Firebase initialized successfully');
     }
   } catch (e) {
-    debugPrint('[Firebase] ❌ فشل التهيئة: $e');
+    debugPrint('❌ Firebase initialization failed: $e');
     Future.delayed(const Duration(seconds: 30), _initFirebaseInBackground);
   }
 }
@@ -61,7 +54,7 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider<ThemeBloc>(create: (_) => ThemeBloc()),
         BlocProvider<ChatBloc>(create: (_) => ChatBloc()),
-        BlocProvider<DoctorBloc>(create: (_) => DoctorBloc()..add(LoadDoctors())),  // ✅ تسجيل DoctorBloc
+        BlocProvider<DoctorBloc>(create: (_) => DoctorBloc()..add(LoadDoctors())),
       ],
       child: BlocBuilder<ThemeBloc, ThemeState>(
         builder: (context, state) {

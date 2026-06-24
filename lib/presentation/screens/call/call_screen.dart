@@ -31,6 +31,7 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _startCall();
   }
 
   @override
@@ -40,21 +41,67 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
     super.dispose();
   }
 
+  void _startCall() async {
+    try {
+      // 🔥 استخدم LiveKit Server الخاص بك
+      const url = 'wss://your-livekit-server.com';
+      const token = 'your-token-here';
+      
+      await _liveKit.startCall(
+        url: url,
+        token: token,
+        callerName: widget.doctorName,
+        isVideo: widget.isVideo,
+      );
+      setState(() {});
+      
+      // محاكاة مدة المكالمة
+      Future.delayed(const Duration(seconds: 1), () {
+        if (mounted) {
+          setState(() => _callDuration++);
+          if (_callDuration < 60) {
+            Future.delayed(const Duration(seconds: 1), () {
+              if (mounted) {
+                setState(() => _callDuration++);
+              }
+            });
+          }
+        }
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('فشل بدء المكالمة: $e')),
+        );
+        Navigator.pop(context);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         children: [
+          // 📹 فيديو الطرف الآخر
           Container(
             color: Colors.black87,
             child: const Center(
-              child: Text(
-                'جاري الاتصال...',
-                style: TextStyle(color: Colors.white, fontSize: 18),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.person, color: Colors.white54, size: 80),
+                  SizedBox(height: 16),
+                  Text(
+                    'جاري الاتصال...',
+                    style: TextStyle(color: Colors.white, fontSize: 18),
+                  ),
+                ],
               ),
             ),
           ),
+          // 🖼️ فيديو المستخدم (مصغر)
           if (widget.isVideo)
             Positioned(
               top: 60,
@@ -76,12 +123,14 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                 ),
               ),
             ),
+          // 📞 واجهة التحكم
           Positioned(
             bottom: 40,
             left: 0,
             right: 0,
             child: Column(
               children: [
+                // ⏱️ مدة المكالمة
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
@@ -94,30 +143,41 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                   ),
                 ),
                 const SizedBox(height: 20),
+                // 🎛️ أزرار التحكم
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
+                    // 🎤 كتم الصوت
                     _callButton(
                       icon: _isMuted ? Icons.mic_off : Icons.mic,
                       color: _isMuted ? AppColors.error : Colors.white,
                       onTap: () => setState(() {
                         _isMuted = !_isMuted;
+                        if (_isMuted) {
+                          _liveKit.enableMicrophone();
+                        }
                       }),
                     ),
+                    // 📹 كتم الكاميرا
                     if (widget.isVideo)
                       _callButton(
                         icon: _isCameraOn ? Icons.videocam : Icons.videocam_off,
                         color: _isCameraOn ? Colors.white : AppColors.error,
                         onTap: () => setState(() {
                           _isCameraOn = !_isCameraOn;
+                          if (_isCameraOn) {
+                            _liveKit.enableCamera();
+                          }
                         }),
                       ),
+                    // 📞 إنهاء المكالمة
                     _callButton(
                       icon: Icons.call_end,
                       color: AppColors.error,
                       size: 60,
                       onTap: () => Navigator.pop(context),
                     ),
+                    // 🔊 مكبر الصوت
                     _callButton(
                       icon: _isSpeakerOn ? Icons.volume_up : Icons.volume_off,
                       color: _isSpeakerOn ? AppColors.info : Colors.white,
@@ -125,6 +185,7 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                         _isSpeakerOn = !_isSpeakerOn;
                       }),
                     ),
+                    // 📷 تبديل الكاميرا
                     if (widget.isVideo)
                       _callButton(
                         icon: Icons.switch_camera,
@@ -136,6 +197,7 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
               ],
             ),
           ),
+          // 🏷️ اسم الطبيب
           Positioned(
             top: 80,
             left: 0,
