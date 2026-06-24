@@ -9,8 +9,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   ChatBloc() : super(ChatInitialState()) {
     on<LoadChatMessages>(_onLoadMessages);
     on<SendChatMessage>(_onSendMessage);
-    on<MarkMessageAsRead>(_onMarkAsRead);
-    on<DeleteChatMessage>(_onDeleteMessage);
+    // تم إزالة MarkMessageAsRead و DeleteChatMessage
   }
 
   Future<void> _onLoadMessages(LoadChatMessages event, Emitter<ChatState> emit) async {
@@ -44,23 +43,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       add(LoadChatMessages(event.chatId));
     } catch (e) {
       emit(ChatErrorState('فشل إرسال الرسالة: $e'));
-    }
-  }
-
-  Future<void> _onMarkAsRead(MarkMessageAsRead event, Emitter<ChatState> emit) async {
-    try {
-      await _chatService.markAsRead(event.chatId, event.messageId);
-    } catch (e) {
-      // تجاهل الأخطاء
-    }
-  }
-
-  Future<void> _onDeleteMessage(DeleteChatMessage event, Emitter<ChatState> emit) async {
-    try {
-      await _chatService.deleteMessage(event.chatId, event.messageId);
-      add(LoadChatMessages(event.chatId));
-    } catch (e) {
-      emit(ChatErrorState('فشل حذف الرسالة: $e'));
     }
   }
 }
