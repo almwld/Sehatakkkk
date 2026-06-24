@@ -64,34 +64,37 @@ class MessageBubble extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 🖼️ صورة
-                    if (imageUrl != null)
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: CachedNetworkImage(
-                          imageUrl: imageUrl,
-                          width: 200,
-                          fit: BoxFit.cover,
-                          placeholder: (_, __) => Container(
-                            height: 150,
-                            color: Colors.grey.shade300,
-                            child: const Center(
-                              child: CircularProgressIndicator(),
+                    // ✅ عرض الصورة مع معاينة
+                    if (imageUrl != null && imageUrl.isNotEmpty)
+                      GestureDetector(
+                        onTap: onTap,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: CachedNetworkImage(
+                            imageUrl: imageUrl,
+                            width: 200,
+                            fit: BoxFit.cover,
+                            placeholder: (_, __) => Container(
+                              height: 150,
+                              color: Colors.grey.shade300,
+                              child: const Center(
+                                child: CircularProgressIndicator(),
+                              ),
                             ),
-                          ),
-                          errorWidget: (_, __, ___) => Container(
-                            height: 150,
-                            color: Colors.grey.shade200,
-                            child: const Icon(
-                              Icons.broken_image,
-                              size: 40,
-                              color: AppColors.grey,
+                            errorWidget: (_, __, ___) => Container(
+                              height: 150,
+                              color: Colors.grey.shade200,
+                              child: const Icon(
+                                Icons.broken_image,
+                                size: 40,
+                                color: AppColors.grey,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    // 🎵 صوت
-                    if (audioUrl != null)
+                    // ✅ عرض الصوت مع مشغل
+                    if (audioUrl != null && audioUrl.isNotEmpty)
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
@@ -129,13 +132,16 @@ class MessageBubble extends StatelessWidget {
                           ],
                         ),
                       ),
-                    // 📝 نص
+                    // ✅ عرض النص
                     if (text.isNotEmpty)
-                      Text(
-                        text,
-                        style: TextStyle(
-                          color: isMe ? Colors.white : null,
-                          fontSize: 13,
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          text,
+                          style: TextStyle(
+                            color: isMe ? Colors.white : null,
+                            fontSize: 13,
+                          ),
                         ),
                       ),
                     const SizedBox(height: 4),
@@ -158,7 +164,9 @@ class MessageBubble extends StatelessWidget {
 
   String _formatTime(dynamic timestamp) {
     if (timestamp == null) return '';
-    // تنسيق الوقت حسب الحاجة
-    return '10:30 ص';
+    if (timestamp is DateTime) {
+      return '${timestamp.hour}:${timestamp.minute.toString().padLeft(2, '0')}';
+    }
+    return '';
   }
 }
