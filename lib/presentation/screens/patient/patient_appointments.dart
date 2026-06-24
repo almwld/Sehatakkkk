@@ -45,7 +45,7 @@ class _PatientAppointmentsState extends State<PatientAppointments> {
                         const SizedBox(width: 8),
                         Expanded(child: OutlinedButton(onPressed: () {}, child: const Text('تعديل'))),
                         const SizedBox(width: 8),
-                        Expanded(child: ElevatedButton.icon(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ChatNavigation.openChat(context, doctorName: 'الطبيب', doctorId: '1'))), icon: const Icon(Icons.message, size: 14), label: const Text('محادثة'), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary))),
+                        Expanded(child: ElevatedButton.icon(onPressed: () => ChatNavigation.openChat(context, doctorName: 'الطبيب', doctorId: '1'))), icon: const Icon(Icons.message, size: 14), label: const Text('محادثة'), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary))),
                       ]),
                     ]),
                   );

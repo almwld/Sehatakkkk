@@ -338,7 +338,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
               GestureDetector(
                 onTap: () {
                   if (logged) {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => ChatNavigation.openChat(context, doctorName: d['name'], doctorId: d['id'])));
+                    ChatNavigation.openChat(context, doctorName: d['name'], doctorId: d['id']);
                   } else {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => BlocProvider(create: (_) => AuthBloc(), child: const LoginScreen())));
                   }

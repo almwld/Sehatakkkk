@@ -126,7 +126,7 @@ class MoreScreen extends StatelessWidget {
           _menuItem(context, Icons.calendar_month_rounded, 'مواعيدي', 'عرض وإدارة المواعيد', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PatientAppointments()))),
           _menuItem(context, Icons.receipt_long, 'الوصفات الطبية', 'عرض الوصفات', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PatientPrescriptions()))),
           _menuItem(context, Icons.folder_shared, 'السجل الطبي', 'سجل صحي كامل', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PatientMedicalHistory()))),
-          _menuItem(context, Icons.chat_bubble_rounded, 'استشارات', 'تحدث مع طبيب', () => Navigator.push(context, MaterialPageRoute(builder: (_) => ChatNavigation.openChat(context, doctorName: 'الطبيب', doctorId: '1')))),
+          _menuItem(context, Icons.chat_bubble_rounded, 'استشارات', 'تحدث مع طبيب', () => ChatNavigation.openChat(context, doctorName: 'الطبيب', doctorId: '1')))),
           _menuItem(context, Icons.videocam, 'استشارة فيديو', 'مكالمة مباشرة', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VideoConsultScreen()))),
           _menuItem(context, Icons.history, 'سجل الزيارات', 'تاريخ زياراتك', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VisitHistoryScreen()))),
           const SizedBox(height: 22),

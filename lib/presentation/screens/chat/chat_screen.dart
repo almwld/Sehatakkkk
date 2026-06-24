@@ -5,6 +5,8 @@ import 'package:sehatak/core/services/chat_service.dart';
 import 'package:sehatak/core/services/livekit_service.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/bloc/chat_bloc/chat_bloc.dart';
+import 'package:sehatak/presentation/bloc/chat_bloc/chat_event.dart';
+import 'package:sehatak/presentation/bloc/chat_bloc/chat_state.dart';
 import 'package:sehatak/presentation/screens/call/call_screen.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/message_bubble.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/typing_indicator.dart';
@@ -40,7 +42,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   String? _recordingPath;
   bool _isTyping = false;
   bool _isSending = false;
-  bool _isInCall = false;
 
   @override
   void initState() {
