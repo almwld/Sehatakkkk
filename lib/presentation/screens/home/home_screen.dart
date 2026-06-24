@@ -83,7 +83,6 @@ class _HomeTab extends StatelessWidget {
       body: SingleChildScrollView(padding: const EdgeInsets.all(14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         
         // 1. شريط تسجيل
-        if (!logged) _loginBanner(context),
         const SizedBox(height: 14),
 
         // 2. بحث
@@ -160,27 +159,6 @@ class _HomeTab extends StatelessWidget {
   // ========== ويدجتس ==========
   Widget _sectionTitle(String t) => Text(t, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold));
 
-  Widget _loginBanner(BuildContext c) => Container(padding: const EdgeInsets.all(14), decoration: BoxDecoration(gradient: const LinearGradient(colors: [AppColors.primary, AppColors.primaryDark]), borderRadius: BorderRadius.circular(14)), child: Row(children: [const Icon(Icons.person, color: Colors.white, size: 22), const SizedBox(width: 10), const Expanded(child: Text('سجل دخولك للاستفادة من جميع الخدمات', style: TextStyle(color: Colors.white, fontSize: 13))), ElevatedButton(onPressed: () => _go(c, BlocProvider(create: (_) => AuthBloc(), child: const LoginScreen())), style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: AppColors.primary), child: const Text('تسجيل'))]));
-
-  Widget _searchBar() => Container(padding: const EdgeInsets.symmetric(horizontal: 16), decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(25)), child: const Row(children: [Icon(Icons.search, color: Colors.grey), SizedBox(width: 10), Expanded(child: TextField(decoration: InputDecoration(border: InputBorder.none, hintText: 'بحث عن أطباء، أدوية، خدمات...')))]));
-
-  Widget _heroBanner(BuildContext c) => Container(padding: const EdgeInsets.all(22), decoration: BoxDecoration(gradient: const LinearGradient(colors: [Color(0xFF00796B), Color(0xFF004D40)]), borderRadius: BorderRadius.circular(18)), child: Row(children: [Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('منصة صحتك، أولويتنا', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)), const SizedBox(height: 6), const Text('رعاية موثوقة في أي وقت وأي مكان', style: TextStyle(color: Colors.white70, fontSize: 13)), const SizedBox(height: 12), GestureDetector(onTap: () => _go(c, const DoctorsListScreen()), child: Container(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)), child: const Text('احصل على استشارة', style: TextStyle(color: Color(0xFF00796B), fontWeight: FontWeight.bold)))),])), const SizedBox(width: 10), Container(width: 80, height: 80, decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(40)), child: const Icon(Icons.health_and_safety, color: Colors.white, size: 45))]));
-
-  Widget _servicesCarousel(BuildContext c) => SizedBox(height: 120, child: ListView(scrollDirection: Axis.horizontal, children: [
-    _carouselCard('استشارة فورية', 'تحدث مع طبيب الآن', Icons.videocam, AppColors.primary, () => _go(c, const ChatScreen())),
-    _carouselCard('توصيل دواء', 'يصل خلال ساعة', Icons.delivery_dining, AppColors.success, () => _go(c, const PharmacyScreen())),
-    _carouselCard('تحليل منزلي', 'خدمة زيارة منزلية', Icons.home_repair_service, AppColors.orange, () => _go(c, const LabsListScreen())),
-    _carouselCard('تأمين صحي', 'خطط تأمين متنوعة', Icons.shield, AppColors.purple, () => _go(c, const InsuranceCompanies())),
-  ]));
-
-  Widget _carouselCard(String t, String s, IconData i, Color c, VoidCallback onTap) => GestureDetector(onTap: onTap, child: Container(width: 160, margin: const EdgeInsets.only(right: 10), padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: c.withOpacity(0.1), borderRadius: BorderRadius.circular(16), border: Border.all(color: c.withOpacity(0.3))), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Icon(i, color: c, size: 30), const SizedBox(height: 8), Text(t, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)), Text(s, style: TextStyle(color: AppColors.grey, fontSize: 11))])));
-
-  Widget _quickServicesRow1(BuildContext c) => Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-    _qs('صيدلية', Icons.local_pharmacy, AppColors.success, () => _go(c, const PharmacyScreen())),
-    _qs('طوارئ', Icons.emergency, AppColors.error, () => _go(c, const EmergencyNumbers())),
-    _qs('قريب منك', Icons.near_me, AppColors.teal, () => _go(c, const NearbyClinicsScreen())),
-    _qs('تحاليل', Icons.science, AppColors.purple, () => _go(c, const LabsListScreen())),
-  ]);
 
   Widget _quickServicesRow2(BuildContext c) => Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
     _qs('تأمين', Icons.shield_moon, AppColors.indigo, () => _go(c, const InsuranceCompanies())),

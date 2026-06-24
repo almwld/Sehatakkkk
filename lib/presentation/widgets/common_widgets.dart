@@ -103,26 +103,3 @@ class QuickServiceCard extends StatelessWidget {
   }
 }
 
-// ========== LoginPromptBar ==========
-class LoginPromptBar extends StatelessWidget {
-  final VoidCallback onTap;
-  const LoginPromptBar({super.key, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(colors: [AppColors.primary, AppColors.primaryDark]),
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.25), blurRadius: 10)],
-      ),
-      child: Row(children: [
-        Container(width: 42, height: 42, decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(10)), child: const Icon(Icons.person, color: Colors.white, size: 22)),
-        const SizedBox(width: 12),
-        const Expanded(child: Text('مرحباً بك في منصة صحتك\nسجل دخولك للاستفادة من جميع الخدمات', textDirection: TextDirection.rtl, style: TextStyle(color: Colors.white, fontSize: 13))),
-        ElevatedButton(onPressed: onTap, style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: AppColors.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10), elevation: 0), child: const Text('تسجيل', style: TextStyle(fontWeight: FontWeight.bold))),
-      ]),
-    );
-  }
-}
