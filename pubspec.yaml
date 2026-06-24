@@ -28,7 +28,9 @@ dependencies:
   
   # ✅ LiveKit - مكالمات صوت وفيديو
   livekit_client: ^1.5.0
-  livekit_web: ^1.5.0
+  # ❌ تم إزالة livekit_web (غير موجودة)
+  
+  # ✅ WebRTC
   flutter_webrtc: ^0.10.0
   
   # Networking
@@ -61,7 +63,7 @@ dependencies:
   
   # Media
   image_picker: ^1.0.7
-  record: ^5.0.0  # ✅ للتسجيل الصوتي
+  record: ^5.0.0
   
   # Permissions & Device
   permission_handler: ^11.1.0
