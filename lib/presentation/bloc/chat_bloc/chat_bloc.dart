@@ -9,13 +9,15 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   ChatBloc() : super(ChatInitialState()) {
     on<LoadChatMessages>(_onLoadMessages);
     on<SendChatMessage>(_onSendMessage);
-    // تم إزالة MarkMessageAsRead و DeleteChatMessage
   }
 
+  // ✅ تحميل الرسائل
   Future<void> _onLoadMessages(LoadChatMessages event, Emitter<ChatState> emit) async {
     emit(ChatLoadingState());
     try {
       final messages = <Map<String, dynamic>>[];
+      
+      // ✅ استخدام Stream من ChatService
       await for (final snapshot in _chatService.getMessages(event.chatId)) {
         for (final doc in snapshot.docs) {
           final data = doc.data() as Map<String, dynamic>;
@@ -25,13 +27,14 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
           });
         }
         emit(ChatLoadedState(messages));
-        break;
+        break; // ✅ أول مرة فقط
       }
     } catch (e) {
       emit(ChatErrorState('فشل تحميل الرسائل: $e'));
     }
   }
 
+  // ✅ إرسال رسالة
   Future<void> _onSendMessage(SendChatMessage event, Emitter<ChatState> emit) async {
     try {
       await _chatService.sendMessage(
@@ -40,6 +43,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         imageUrl: event.imageUrl,
         audioUrl: event.audioUrl,
       );
+      // ✅ إعادة تحميل الرسائل بعد الإرسال
       add(LoadChatMessages(event.chatId));
     } catch (e) {
       emit(ChatErrorState('فشل إرسال الرسالة: $e'));
