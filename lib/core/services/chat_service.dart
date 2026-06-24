@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:path_provider/path_provider.dart';
 
 class ChatService {
   static final ChatService _instance = ChatService._internal();
@@ -40,15 +41,13 @@ class ChatService {
     required String text,
     String? imageUrl,
     String? audioUrl,
-    String? fileUrl,
   }) async {
     final message = {
-      'senderId': _auth.currentUser!.uid,
-      'senderName': _auth.currentUser!.displayName ?? 'مستخدم',
+      'senderId': _auth.currentUser?.uid ?? 'unknown',
+      'senderName': _auth.currentUser?.displayName ?? 'مستخدم',
       'text': text,
       'imageUrl': imageUrl,
       'audioUrl': audioUrl,
-      'fileUrl': fileUrl,
       'timestamp': FieldValue.serverTimestamp(),
       'read': false,
       'delivered': false,
@@ -60,7 +59,6 @@ class ChatService {
         .collection('messages')
         .add(message);
 
-    // تحديث آخر رسالة
     await _firestore.collection('chats').doc(chatId).update({
       'lastMessage': text,
       'lastMessageTime': FieldValue.serverTimestamp(),
@@ -95,28 +93,84 @@ class ChatService {
     }
   }
 
-  // ========== 🖼️ رفع صورة ==========
+  // ✅ رفع صورة - مع التخزين المحلي كبديل
   Future<String> uploadImage(String chatId, String filePath) async {
-    final file = File(filePath);
-    final ref = _storage
-        .ref()
-        .child('chats')
-        .child(chatId)
-        .child('images/${DateTime.now().millisecondsSinceEpoch}.jpg');
-    await ref.putFile(file);
-    return await ref.getDownloadURL();
+    try {
+      // ✅ محاولة رفع إلى Firebase Storage أولاً
+      final file = File(filePath);
+      final ref = _storage
+          .ref()
+          .child('chats')
+          .child(chatId)
+          .child('images/${DateTime.now().millisecondsSinceEpoch}.jpg');
+      await ref.putFile(file);
+      return await ref.getDownloadURL();
+    } catch (e) {
+      print('⚠️ Firebase Storage غير متاح، استخدام التخزين المحلي');
+      // ✅ حفظ محلياً كبديل
+      return await saveLocalFile(File(filePath));
+    }
   }
 
-  // ========== 🎵 رفع صوت ==========
+  // ✅ رفع صوت - مع التخزين المحلي كبديل
   Future<String> uploadAudio(String chatId, String filePath) async {
-    final file = File(filePath);
-    final ref = _storage
-        .ref()
-        .child('chats')
-        .child(chatId)
-        .child('audio/${DateTime.now().millisecondsSinceEpoch}.m4a');
-    await ref.putFile(file);
-    return await ref.getDownloadURL();
+    try {
+      // ✅ محاولة رفع إلى Firebase Storage أولاً
+      final file = File(filePath);
+      final ref = _storage
+          .ref()
+          .child('chats')
+          .child(chatId)
+          .child('audio/${DateTime.now().millisecondsSinceEpoch}.m4a');
+      await ref.putFile(file);
+      return await ref.getDownloadURL();
+    } catch (e) {
+      print('⚠️ Firebase Storage غير متاح، استخدام التخزين المحلي');
+      // ✅ حفظ محلياً كبديل
+      return await saveLocalFile(File(filePath));
+    }
+  }
+
+  // ✅ حفظ الملف محلياً
+  Future<String> saveLocalFile(File file) async {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final fileName = file.uri.pathSegments.last;
+      final path = '${dir.path}/$fileName';
+      await file.copy(path);
+      print('✅ تم حفظ الملف محلياً: $path');
+      return path;
+    } catch (e) {
+      print('❌ فشل حفظ الملف محلياً: $e');
+      rethrow;
+    }
+  }
+
+  // ✅ قراءة ملف محلي
+  Future<File?> getLocalFile(String path) async {
+    try {
+      final file = File(path);
+      if (await file.exists()) {
+        return file;
+      }
+      return null;
+    } catch (e) {
+      print('❌ فشل قراءة الملف: $e');
+      return null;
+    }
+  }
+
+  // ✅ حذف ملف محلي
+  Future<void> deleteLocalFile(String path) async {
+    try {
+      final file = File(path);
+      if (await file.exists()) {
+        await file.delete();
+        print('✅ تم حذف الملف: $path');
+      }
+    } catch (e) {
+      print('❌ فشل حذف الملف: $e');
+    }
   }
 
   // ========== ✅ تحديث حالة القراءة ==========
