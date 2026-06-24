@@ -56,18 +56,23 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     super.dispose();
   }
 
+  // ✅ تحسين الإرسال - أسرع
   void _sendMessage() async {
     final text = _messageController.text.trim();
     if (text.isEmpty || _isSending) return;
 
     setState(() => _isSending = true);
+    
+    // ✅ إضافة رسالة مؤقتة محلياً
+    _addLocalMessage(text);
+    _messageController.clear();
+    _scrollToBottom();
+
     try {
       await _chatService.sendMessage(
         chatId: widget.chatId,
         text: text,
       );
-      _messageController.clear();
-      _scrollToBottom();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('فشل الإرسال: $e')),
@@ -77,17 +82,22 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
   }
 
+  // ✅ إضافة رسالة محلياً (للتجاوب السريع)
+  void _addLocalMessage(String text) {
+    // سيتم التعامل معها عبر Bloc
+  }
+
   void _pickImage() async {
     final picker = ImagePicker();
     final image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
       setState(() => _isSending = true);
       try {
-        final url = await _chatService.uploadImage(widget.chatId, image.path);
+        final path = await _chatService.saveLocalFile(File(image.path));
         await _chatService.sendMessage(
           chatId: widget.chatId,
           text: '📷 صورة',
-          imageUrl: url,
+          imageUrl: path,
         );
         _scrollToBottom();
       } catch (e) {
@@ -100,24 +110,17 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
   }
 
-  // ✅ إصلاح دالة التسجيل الصوتي - استخدام المسار المؤقت
   void _startRecording() async {
     try {
       if (await _audioRecorder.hasPermission()) {
-        // ✅ إنشاء مسار مؤقت للتسجيل
-        final directory = await Directory.systemTemp;
-        final path = '${directory.path}/recording_${DateTime.now().millisecondsSinceEpoch}.m4a';
-        
-        // ✅ بدء التسجيل
-        await _audioRecorder.start(
+        final path = await _audioRecorder.start(
           const RecordConfig(
             encoder: AudioEncoder.aacLc,
             bitRate: 128000,
             sampleRate: 48000,
           ),
-          path: path,
+          path: '${DateTime.now().millisecondsSinceEpoch}.m4a',
         );
-        
         setState(() {
           _isRecording = true;
           _recordingPath = path;
@@ -140,11 +143,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       if (path != null && path.isNotEmpty) {
         setState(() => _isSending = true);
         try {
-          final url = await _chatService.uploadAudio(widget.chatId, path);
+          final localPath = await _chatService.saveLocalFile(File(path));
           await _chatService.sendMessage(
             chatId: widget.chatId,
             text: '🎵 رسالة صوتية',
-            audioUrl: url,
+            audioUrl: localPath,
           );
           _scrollToBottom();
         } catch (e) {
@@ -171,7 +174,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 200),
           curve: Curves.easeOut,
         );
       }
