@@ -7,35 +7,36 @@ class LiveKitService {
   LiveKitService._internal();
 
   Room? _room;
-  bool get isConnected => _room?.state == RoomState.connected;
+  
+  // ✅ استخدام ConnectionState بدلاً من RoomState
+  bool get isConnected => _room?.connectionState == ConnectionState.connected;
 
-  // 🔗 الاتصال بالغرفة
+  // 🔗 الاتصال بالغرفة (API الجديد)
   Future<Room> connectRoom({
-    required String roomName,
+    required String url,
     required String token,
     String? participantName,
   }) async {
     _room = Room();
-    
-    // إعدادات الصوت والفيديو
+
+    // ✅ إعدادات الصوت والفيديو (API الجديد)
     final options = RoomOptions(
       defaultVideoPublishOptions: VideoPublishOptions(
         simulcast: false,
-        videoCodec: VideoCodec.vp8,
+        // ✅ تم إزالة VideoCodec.vp8 (يستخدم VP8 افتراضياً)
       ),
-      defaultAudioPublishOptions: AudioPublishOptions(
-        bitrate: AudioBitrate.bitrate32,
-      ),
+      defaultAudioPublishOptions: const AudioPublishOptions(),
     );
 
+    // ✅ connect() يتطلب url و token فقط
     await _room!.connect(
-      url: 'wss://your-livekit-server.com',
-      token: token,
+      url,
+      token,
       roomOptions: options,
     );
 
-    // إعدادات الصوت
-    await _room!.localParticipant?.setMicrophoneEnabled(true);
+    // ✅ تشغيل الصوت
+    await _room?.localParticipant?.setMicrophoneEnabled(true);
     
     return _room!;
   }
@@ -55,15 +56,15 @@ class LiveKitService {
     await _room?.localParticipant?.setScreenShareEnabled(true);
   }
 
-  // 📞 بدء مكالمة
+  // 📞 بدء مكالمة (API مبسط)
   Future<void> startCall({
-    required String roomName,
+    required String url,
     required String token,
     required String callerName,
     bool isVideo = true,
   }) async {
     await connectRoom(
-      roomName: roomName,
+      url: url,
       token: token,
       participantName: callerName,
     );

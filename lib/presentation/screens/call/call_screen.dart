@@ -43,9 +43,13 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
 
   void _startCall() async {
     try {
+      // ⚠️ يجب استبدال url و token من الخادم الخاص بك
+      const url = 'wss://your-livekit-server.com';
+      const token = 'your-token-here';
+      
       await _liveKit.startCall(
-        roomName: widget.chatId,
-        token: 'your-token-here', // سيتم توليده من السيرفر
+        url: url,
+        token: token,
         callerName: widget.doctorName,
         isVideo: widget.isVideo,
       );
@@ -128,7 +132,9 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                       color: _isMuted ? AppColors.error : Colors.white,
                       onTap: () => setState(() {
                         _isMuted = !_isMuted;
-                        _liveKit.enableMicrophone();
+                        if (_isMuted) {
+                          _liveKit.enableMicrophone();
+                        }
                       }),
                     ),
                     // 📹 كتم الكاميرا
@@ -138,7 +144,9 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                         color: _isCameraOn ? Colors.white : AppColors.error,
                         onTap: () => setState(() {
                           _isCameraOn = !_isCameraOn;
-                          _liveKit.enableCamera();
+                          if (_isCameraOn) {
+                            _liveKit.enableCamera();
+                          }
                         }),
                       ),
                     // 📞 إنهاء المكالمة

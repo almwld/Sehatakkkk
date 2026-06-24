@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -42,7 +43,6 @@ class ChatService {
     String? fileUrl,
   }) async {
     final message = {
-      'id': _firestore.collection('chats').doc(chatId).collection('messages').doc().id,
       'senderId': _auth.currentUser!.uid,
       'senderName': _auth.currentUser!.displayName ?? 'مستخدم',
       'text': text,
@@ -97,23 +97,25 @@ class ChatService {
 
   // ========== 🖼️ رفع صورة ==========
   Future<String> uploadImage(String chatId, String filePath) async {
+    final file = File(filePath);
     final ref = _storage
         .ref()
         .child('chats')
         .child(chatId)
         .child('images/${DateTime.now().millisecondsSinceEpoch}.jpg');
-    await ref.putFile(await _storage.ref().child(filePath));
+    await ref.putFile(file);
     return await ref.getDownloadURL();
   }
 
   // ========== 🎵 رفع صوت ==========
   Future<String> uploadAudio(String chatId, String filePath) async {
+    final file = File(filePath);
     final ref = _storage
         .ref()
         .child('chats')
         .child(chatId)
         .child('audio/${DateTime.now().millisecondsSinceEpoch}.m4a');
-    await ref.putFile(await _storage.ref().child(filePath));
+    await ref.putFile(file);
     return await ref.getDownloadURL();
   }
 
