@@ -26,20 +26,22 @@ dependencies:
   firebase_messaging: ^14.7.15
   firebase_analytics: ^10.8.0
   
-  # ✅ LiveKit - مكالمات صوت وفيديو (متوافق)
+  # ✅ LiveKit - مكالمات صوت وفيديو
   livekit_client: ^1.5.0
   
-  # ✅ WebRTC - الإصدار المتوافق مع LiveKit
+  # ✅ WebRTC - متوافق مع LiveKit
   flutter_webrtc: 0.9.47
   
-  # ✅ Connectivity - الإصدار المتوافق مع LiveKit
-  connectivity_plus: ^4.0.0
+  # ✅ Connectivity - متوافق مع LiveKit
+  connectivity_plus: ^5.0.0
+  
+  # ✅ HTTP - متوافق مع LiveKit
+  http: ^0.13.6
   
   # Networking
   dio: ^5.4.0
   retrofit: ^4.0.3
   json_annotation: ^4.8.1
-  http: ^1.2.0
   socket_io_client: ^2.0.3
   
   # Storage
