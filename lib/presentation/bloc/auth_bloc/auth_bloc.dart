@@ -1,131 +1,146 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../../data/models/user_models/user_model.dart';
-
-abstract class AuthEvent extends Equatable { const AuthEvent(); }
-class AppStarted extends AuthEvent { @override List<Object?> get props => []; }
-class LoginWithEmail extends AuthEvent {
-  final String email, password;
-  const LoginWithEmail({required this.email, required this.password});
-  @override List<Object?> get props => [email, password];
-}
-class LoginWithGoogle extends AuthEvent { @override List<Object?> get props => []; }
-class LoginWithBiometric extends AuthEvent { @override List<Object?> get props => []; }
-class RegisterWithEmail extends AuthEvent {
-  final String name, email, phone, password;
-  const RegisterWithEmail({required this.name, required this.email, required this.phone, required this.password});
-  @override List<Object?> get props => [name, email, phone, password];
-}
-class Logout extends AuthEvent { @override List<Object?> get props => []; }
-
-abstract class AuthState extends Equatable { const AuthState(); }
-class AuthInitial extends AuthState { @override List<Object?> get props => []; }
-class AuthLoading extends AuthState { @override List<Object?> get props => []; }
-class Authenticated extends AuthState { final UserModel user; const Authenticated(this.user); @override List<Object?> get props => [user]; }
-class Unauthenticated extends AuthState { @override List<Object?> get props => []; }
-class AuthError extends AuthState { final String message; const AuthError(this.message); @override List<Object?> get props => [message]; }
+import 'package:sehatak/core/services/firebase_auth_service.dart';
+import 'auth_event.dart';
+import 'auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final FirebaseAuthService _authService = FirebaseAuthService();
 
   AuthBloc() : super(AuthInitial()) {
     on<AppStarted>(_onAppStarted);
-    on<LoginWithEmail>(_onLogin);
-    on<LoginWithGoogle>(_onGoogleLogin);
-    on<LoginWithBiometric>(_onBiometricLogin);
-    on<RegisterWithEmail>(_onRegister);
+    on<LoginWithEmail>(_onLoginWithEmail);
+    on<LoginWithPhone>(_onLoginWithPhone);
+    on<LoginWithGoogle>(_onLoginWithGoogle);
+    on<RegisterWithEmail>(_onRegisterWithEmail);
+    on<RegisterDoctor>(_onRegisterDoctor);
+    on<SendOTP>(_onSendOTP);
+    on<VerifyOTP>(_onVerifyOTP);
     on<Logout>(_onLogout);
   }
 
-  void _onAppStarted(AppStarted e, Emitter<AuthState> emit) async {
-    final user = _auth.currentUser;
+  void _onAppStarted(AppStarted event, Emitter<AuthState> emit) {
+    final user = _authService.currentUser;
     if (user != null) {
-      emit(Authenticated(UserModel(id: user.uid, email: user.email, fullName: user.displayName)));
+      emit(Authenticated(user));
     } else {
       emit(Unauthenticated());
     }
   }
 
-  Future<void> _onLogin(LoginWithEmail e, Emitter<AuthState> emit) async {
+  Future<void> _onLoginWithEmail(LoginWithEmail event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
-      await _auth.signInWithEmailAndPassword(email: e.email.trim(), password: e.password);
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('saved_email', e.email.trim());
-      await prefs.setString('saved_password', e.password);
-      final u = _auth.currentUser!;
-      emit(Authenticated(UserModel(id: u.uid, email: u.email)));
-    } on FirebaseAuthException catch (ex) { emit(AuthError(_msg(ex.code))); }
-  }
-
-  Future<void> _onGoogleLogin(LoginWithGoogle e, Emitter<AuthState> emit) async {
-    emit(AuthLoading());
-    try {
-      final googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) { emit(Unauthenticated()); return; }
-      final googleAuth = await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(accessToken: googleAuth.accessToken, idToken: googleAuth.idToken);
-      final userCred = await _auth.signInWithCredential(credential);
-      if (userCred.additionalUserInfo?.isNewUser ?? false) {
-        await _firestore.collection('users').doc(userCred.user!.uid).set({
-          'id': userCred.user!.uid, 'email': userCred.user!.email,
-          'fullName': userCred.user!.displayName ?? '', 'role': 'patient',
-          'createdAt': FieldValue.serverTimestamp(),
-        });
+      final user = await _authService.loginWithEmail(event.email, event.password);
+      if (user != null) {
+        emit(Authenticated(user));
+      } else {
+        emit(AuthError('فشل تسجيل الدخول'));
       }
-      final u = userCred.user!;
-      emit(Authenticated(UserModel(id: u.uid, email: u.email, fullName: u.displayName, avatar: u.photoURL)));
-    } catch (ex) {
-      emit(AuthError('فشل تسجيل Google. تأكد من اتصال الإنترنت'));
+    } catch (e) {
+      emit(AuthError(e.toString()));
     }
   }
 
-  Future<void> _onBiometricLogin(LoginWithBiometric e, Emitter<AuthState> emit) async {
-    final prefs = await SharedPreferences.getInstance();
-    final email = prefs.getString('saved_email');
-    final password = prefs.getString('saved_password');
-    if (email != null && password != null) {
-      add(LoginWithEmail(email: email, password: password));
-    } else {
-      emit(AuthError('لا توجد بيانات محفوظة. سجل دخول أولاً'));
-    }
-  }
-
-  Future<void> _onRegister(RegisterWithEmail e, Emitter<AuthState> emit) async {
+  Future<void> _onLoginWithPhone(LoginWithPhone event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
-      final cred = await _auth.createUserWithEmailAndPassword(email: e.email.trim(), password: e.password);
-      await _firestore.collection('users').doc(cred.user!.uid).set({
-        'id': cred.user!.uid, 'email': e.email, 'phone': e.phone,
-        'fullName': e.name, 'role': 'patient', 'createdAt': FieldValue.serverTimestamp(),
-      });
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('saved_email', e.email.trim());
-      await prefs.setString('saved_password', e.password);
-      emit(Authenticated(UserModel(id: cred.user!.uid, email: e.email, fullName: e.name, phone: e.phone)));
-    } on FirebaseAuthException catch (ex) { emit(AuthError(_msg(ex.code))); }
+      final user = await _authService.loginWithPhone(event.phone, event.password);
+      if (user != null) {
+        emit(Authenticated(user));
+      } else {
+        emit(AuthError('فشل تسجيل الدخول بالهاتف'));
+      }
+    } catch (e) {
+      emit(AuthError(e.toString()));
+    }
   }
 
-  Future<void> _onLogout(Logout e, Emitter<AuthState> emit) async {
-    await _googleSignIn.signOut();
-    await _auth.signOut();
-    emit(Unauthenticated());
+  Future<void> _onLoginWithGoogle(LoginWithGoogle event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    try {
+      final user = await _authService.loginWithGoogle();
+      if (user != null) {
+        emit(Authenticated(user));
+      } else {
+        emit(AuthError('فشل تسجيل الدخول بـ Google'));
+      }
+    } catch (e) {
+      emit(AuthError(e.toString()));
+    }
   }
 
-  String _msg(String code) {
-    switch (code) {
-      case 'user-not-found': return 'المستخدم غير موجود - أنشئ حساباً أولاً';
-      case 'wrong-password': return 'كلمة المرور غير صحيحة';
-      case 'email-already-in-use': return 'البريد الإلكتروني مسجل مسبقاً';
-      case 'weak-password': return 'كلمة المرور ضعيفة (6 أحرف على الأقل)';
-      case 'invalid-email': return 'بريد إلكتروني غير صالح';
-      default: return code;
+  Future<void> _onRegisterWithEmail(RegisterWithEmail event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    try {
+      final user = await _authService.registerWithEmail(
+        name: event.name,
+        email: event.email,
+        phone: event.phone,
+        password: event.password,
+      );
+      if (user != null) {
+        emit(Authenticated(user));
+      } else {
+        emit(AuthError('فشل إنشاء الحساب'));
+      }
+    } catch (e) {
+      emit(AuthError(e.toString()));
+    }
+  }
+
+  Future<void> _onRegisterDoctor(RegisterDoctor event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    try {
+      final user = await _authService.registerDoctor(
+        name: event.name,
+        email: event.email,
+        phone: event.phone,
+        password: event.password,
+        license: event.license,
+        specialty: event.specialty,
+      );
+      if (user != null) {
+        emit(Authenticated(user));
+      } else {
+        emit(AuthError('فشل إنشاء حساب الطبيب'));
+      }
+    } catch (e) {
+      emit(AuthError(e.toString()));
+    }
+  }
+
+  Future<void> _onSendOTP(SendOTP event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    try {
+      await _authService.sendOTP(event.phone);
+      emit(OtpSent(event.phone));
+    } catch (e) {
+      emit(AuthError(e.toString()));
+    }
+  }
+
+  Future<void> _onVerifyOTP(VerifyOTP event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    try {
+      final user = await _authService.verifyOTP(event.verificationId, event.code);
+      if (user != null) {
+        emit(Authenticated(user));
+      } else {
+        emit(AuthError('رمز التحقق غير صحيح'));
+      }
+    } catch (e) {
+      emit(AuthError(e.toString()));
+    }
+  }
+
+  Future<void> _onLogout(Logout event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    try {
+      await _authService.logout();
+      emit(Unauthenticated());
+    } catch (e) {
+      emit(AuthError(e.toString()));
     }
   }
 }
