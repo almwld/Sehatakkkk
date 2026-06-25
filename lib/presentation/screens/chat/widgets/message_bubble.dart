@@ -20,6 +20,8 @@ class MessageBubble extends StatelessWidget {
     final imageUrl = message['imageUrl'];
     final audioUrl = message['audioUrl'];
     final timestamp = message['timestamp'];
+    final isSending = message['isSending'] == true;
+    final error = message['error'];
 
     return GestureDetector(
       onTap: onTap,
@@ -27,6 +29,7 @@ class MessageBubble extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 8),
         child: Row(
           mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             if (!isMe)
               Container(
@@ -53,18 +56,22 @@ class MessageBubble extends StatelessWidget {
                   vertical: 10,
                 ),
                 decoration: BoxDecoration(
-                  color: isMe ? AppColors.primary : AppColors.surfaceContainerLow,
+                  color: isMe 
+                      ? (error != null ? Colors.red.shade100 : AppColors.primary)
+                      : AppColors.surfaceContainerLow,
                   borderRadius: BorderRadius.only(
                     topLeft: const Radius.circular(18),
                     topRight: const Radius.circular(18),
                     bottomLeft: isMe ? const Radius.circular(18) : Radius.zero,
                     bottomRight: isMe ? Radius.zero : const Radius.circular(18),
                   ),
+                  border: error != null 
+                      ? Border.all(color: Colors.red, width: 1)
+                      : null,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ✅ عرض الصورة مع معاينة
                     if (imageUrl != null && imageUrl.isNotEmpty)
                       GestureDetector(
                         onTap: onTap,
@@ -93,7 +100,6 @@ class MessageBubble extends StatelessWidget {
                           ),
                         ),
                       ),
-                    // ✅ عرض الصوت مع مشغل
                     if (audioUrl != null && audioUrl.isNotEmpty)
                       Container(
                         padding: const EdgeInsets.all(8),
@@ -132,7 +138,6 @@ class MessageBubble extends StatelessWidget {
                           ],
                         ),
                       ),
-                    // ✅ عرض النص
                     if (text.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: 4),
@@ -145,12 +150,36 @@ class MessageBubble extends StatelessWidget {
                         ),
                       ),
                     const SizedBox(height: 4),
-                    Text(
-                      _formatTime(timestamp),
-                      style: TextStyle(
-                        color: isMe ? Colors.white70 : AppColors.grey,
-                        fontSize: 9,
-                      ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _formatTime(timestamp),
+                          style: TextStyle(
+                            color: isMe ? Colors.white70 : AppColors.grey,
+                            fontSize: 9,
+                          ),
+                        ),
+                        if (isSending) ...[
+                          const SizedBox(width: 6),
+                          const SizedBox(
+                            width: 12,
+                            height: 12,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ],
+                        if (error != null) ...[
+                          const SizedBox(width: 6),
+                          Icon(
+                            Icons.error_outline,
+                            color: Colors.white70,
+                            size: 14,
+                          ),
+                        ],
+                      ],
                     ),
                   ],
                 ),
@@ -165,7 +194,12 @@ class MessageBubble extends StatelessWidget {
   String _formatTime(dynamic timestamp) {
     if (timestamp == null) return '';
     if (timestamp is DateTime) {
-      return '${timestamp.hour}:${timestamp.minute.toString().padLeft(2, '0')}';
+      final now = DateTime.now();
+      final diff = now.difference(timestamp);
+      if (diff.inMinutes < 1) return 'الآن';
+      if (diff.inHours < 1) return '${diff.inMinutes} د';
+      if (diff.inDays < 1) return '${diff.inHours} س';
+      return '${diff.inDays} ي';
     }
     return '';
   }

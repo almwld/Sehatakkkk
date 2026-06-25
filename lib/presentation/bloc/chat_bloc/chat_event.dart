@@ -27,3 +27,11 @@ class SendChatMessage extends ChatEvent {
   @override
   List<Object?> get props => [chatId, text, imageUrl, audioUrl];
 }
+
+// ✅ حدث لإضافة رسالة محلياً (Optimistic UI)
+class AddLocalMessage extends ChatEvent {
+  final Map<String, dynamic> message;
+  const AddLocalMessage(this.message);
+  @override
+  List<Object?> get props => [message];
+}

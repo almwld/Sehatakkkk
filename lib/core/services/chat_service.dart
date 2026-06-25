@@ -11,6 +11,14 @@ class ChatService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  // ✅ تفعيل التخزين المؤقت المحلي
+  void enableOffline() {
+    _firestore.settings = const Settings(
+      persistenceEnabled: true,
+      cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+    );
+  }
+
   // ========== 💬 إنشاء محادثة ==========
   Future<String> createChat({
     required String doctorId,
@@ -19,7 +27,6 @@ class ChatService {
     required String patientName,
   }) async {
     try {
-      // ✅ التحقق من وجود محادثة سابقة
       final existing = await _firestore
           .collection('chats')
           .where('doctorId', isEqualTo: doctorId)
@@ -27,12 +34,9 @@ class ChatService {
           .get();
 
       if (existing.docs.isNotEmpty) {
-        final chatId = existing.docs.first.id;
-        print('✅ Chat already exists: $chatId');
-        return chatId;
+        return existing.docs.first.id;
       }
 
-      // ✅ إنشاء محادثة جديدة
       final chatId = _firestore.collection('chats').doc().id;
       await _firestore.collection('chats').doc(chatId).set({
         'id': chatId,
@@ -45,12 +49,54 @@ class ChatService {
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       });
-      print('✅ Chat created: $chatId');
       return chatId;
     } catch (e) {
       print('❌ Failed to create chat: $e');
       rethrow;
     }
+  }
+
+  // ✅ Pagination: تحميل 20 رسالة فقط
+  Future<List<Map<String, dynamic>>> getMessagesPaginated(
+    String chatId, {
+    int limit = 20,
+    DocumentSnapshot? startAfter,
+  }) async {
+    try {
+      var query = _firestore
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .orderBy('timestamp', descending: false)
+          .limit(limit);
+
+      if (startAfter != null) {
+        query = query.startAfterDocument(startAfter);
+      }
+
+      final snapshot = await query.get();
+      return snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        return {
+          'id': doc.id,
+          ...data,
+        };
+      }).toList();
+    } catch (e) {
+      print('❌ Failed to get messages: $e');
+      return [];
+    }
+  }
+
+  // ✅ Stream مع Pagination للرسائل الجديدة
+  Stream<QuerySnapshot> getMessages(String chatId) {
+    return _firestore
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .orderBy('timestamp', descending: false)
+        .limit(50)
+        .snapshots();
   }
 
   // ========== 📤 إرسال رسالة ==========
@@ -62,9 +108,7 @@ class ChatService {
   }) async {
     try {
       final currentUser = _auth.currentUser;
-      if (currentUser == null) {
-        throw Exception('يجب تسجيل الدخول أولاً');
-      }
+      if (currentUser == null) throw Exception('يجب تسجيل الدخول');
 
       final batch = _firestore.batch();
       
@@ -93,44 +137,11 @@ class ChatService {
       });
 
       await batch.commit();
-      print('✅ Message sent successfully');
+      print('✅ Message sent');
     } catch (e) {
-      print('❌ Failed to send message: $e');
+      print('❌ Failed to send: $e');
       rethrow;
     }
-  }
-
-  // ========== 📥 جلب الرسائل ==========
-  Stream<QuerySnapshot> getMessages(String chatId) {
-    return _firestore
-        .collection('chats')
-        .doc(chatId)
-        .collection('messages')
-        .orderBy('timestamp', descending: false)
-        .limit(100)
-        .snapshots()
-        .map((snapshot) {
-          print('📩 Messages loaded: ${snapshot.docs.length}');
-          return snapshot;
-        });
-  }
-
-  // ========== 📋 قائمة المحادثات للمستخدم ==========
-  Stream<QuerySnapshot> getUserChats(String userId) {
-    return _firestore
-        .collection('chats')
-        .where('patientId', isEqualTo: userId)
-        .orderBy('updatedAt', descending: true)
-        .snapshots();
-  }
-
-  // ========== 📋 قائمة المحادثات للطبيب ==========
-  Stream<QuerySnapshot> getDoctorChats(String doctorId) {
-    return _firestore
-        .collection('chats')
-        .where('doctorId', isEqualTo: doctorId)
-        .orderBy('updatedAt', descending: true)
-        .snapshots();
   }
 
   // ✅ رفع الوسائط
@@ -140,7 +151,6 @@ class ChatService {
       final fileName = file.uri.pathSegments.last;
       final path = '${dir.path}/$fileName';
       await file.copy(path);
-      print('✅ Media saved locally: $path');
       return path;
     } catch (e) {
       print('❌ Failed to save media: $e');

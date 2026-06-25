@@ -35,6 +35,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final ScrollController _scrollController = ScrollController();
   final ChatService _chatService = ChatService();
   final AudioRecorder _audioRecorder = AudioRecorder();
+  final FocusNode _focusNode = FocusNode();
   
   bool _isRecording = false;
   String? _recordingPath;
@@ -50,8 +51,19 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    _chatService.enableOffline(); // ✅ تفعيل التخزين المؤقت
     WidgetsBinding.instance.addObserver(this);
     _initializeChat();
+    _focusNode.requestFocus(); // ✅ تركيز تلقائي
+  }
+
+  @override
+  void dispose() {
+    _messageController.dispose();
+    _scrollController.dispose();
+    _focusNode.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   Future<void> _initializeChat() async {
@@ -62,7 +74,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
 
     try {
-      // ✅ إذا كان chatId موجوداً، استخدمه
       if (widget.chatId != null && widget.chatId!.isNotEmpty) {
         setState(() {
           _chatId = widget.chatId;
@@ -72,7 +83,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         return;
       }
 
-      // ✅ إنشاء محادثة جديدة بين الطبيب والمريض
       final chatId = await _chatService.createChat(
         doctorId: widget.doctorId,
         doctorName: widget.doctorName,
@@ -91,6 +101,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
   }
 
+  // ✅ Optimistic UI: إرسال فوري مع مؤقت
   void _sendMessage() async {
     final text = _messageController.text.trim();
     if ((text.isEmpty && _selectedImage == null && _selectedAudio == null) || _isSending) return;
@@ -101,6 +112,27 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
     setState(() => _isSending = true);
     
+    // ✅ إضافة الرسالة محلياً فوراً (Optimistic)
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final tempMessage = {
+      'senderId': currentUser?.uid ?? 'me',
+      'senderName': currentUser?.displayName ?? 'أنت',
+      'text': text.isNotEmpty ? text : (_selectedImage != null ? '📷 صورة' : '🎵 رسالة صوتية'),
+      'imageUrl': null,
+      'audioUrl': null,
+      'timestamp': DateTime.now(),
+      'isSending': true,
+    };
+    
+    context.read<ChatBloc>().add(AddLocalMessage(tempMessage));
+    _messageController.clear();
+    setState(() {
+      _selectedImage = null;
+      _selectedAudio = null;
+      _showMediaPreview = false;
+    });
+    _scrollToBottom();
+
     try {
       String? imageUrl;
       String? audioUrl;
@@ -113,20 +145,15 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         audioUrl = await _chatService.uploadMedia(_selectedAudio!, 'audio');
       }
 
-      await _chatService.sendMessage(
-        chatId: _chatId!,
-        text: text.isNotEmpty ? text : (imageUrl != null ? '📷 صورة' : '🎵 رسالة صوتية'),
-        imageUrl: imageUrl,
-        audioUrl: audioUrl,
+      // ✅ إرسال الرسالة فعلياً
+      context.read<ChatBloc>().add(
+        SendChatMessage(
+          chatId: _chatId!,
+          text: text.isNotEmpty ? text : (imageUrl != null ? '📷 صورة' : '🎵 رسالة صوتية'),
+          imageUrl: imageUrl,
+          audioUrl: audioUrl,
+        ),
       );
-
-      setState(() {
-        _selectedImage = null;
-        _selectedAudio = null;
-        _showMediaPreview = false;
-        _messageController.clear();
-      });
-      _scrollToBottom();
     } catch (e) {
       _showMsg('فشل الإرسال: $e', true);
     } finally {
@@ -237,6 +264,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
@@ -247,20 +275,23 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         ),
         title: Row(
           children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.white24,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Center(
-                child: Text(
-                  widget.doctorName.isNotEmpty ? widget.doctorName[0] : 'ط',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
+            Hero(
+              tag: 'doctor_${widget.doctorId}',
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: Text(
+                    widget.doctorName.isNotEmpty ? widget.doctorName[0] : 'ط',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
                   ),
                 ),
               ),
@@ -347,15 +378,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           if (_showMediaPreview && (_selectedImage != null || _selectedAudio != null))
             _buildMediaPreview(),
           Expanded(
-            child: BlocConsumer<ChatBloc, ChatState>(
-              listener: (context, state) {
-                if (state is ChatErrorState) {
-                  _showMsg(state.message, true);
-                }
-                if (state is ChatLoadedState) {
-                  _scrollToBottom();
-                }
-              },
+            child: BlocBuilder<ChatBloc, ChatState>(
               builder: (context, state) {
                 if (!_isInitialized) {
                   return const Center(
@@ -397,7 +420,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     itemBuilder: (context, index) {
                       final message = state.messages[index];
                       final currentUser = FirebaseAuth.instance.currentUser;
-                      final isMe = message['senderId'] == currentUser?.uid;
+                      final isMe = message['senderId'] == currentUser?.uid ||
+                                  message['senderId'] == 'me';
                       return MessageBubble(
                         message: message,
                         isMe: isMe,
@@ -517,6 +541,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       ),
       child: SafeArea(
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             PopupMenuButton<String>(
               icon: const Icon(Icons.attach_file, color: AppColors.grey),
@@ -560,6 +585,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             Expanded(
               child: TextField(
                 controller: _messageController,
+                focusNode: _focusNode,
                 decoration: InputDecoration(
                   hintText: 'اكتب رسالتك...',
                   hintStyle: const TextStyle(fontSize: 13),
