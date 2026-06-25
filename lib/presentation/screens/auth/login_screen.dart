@@ -15,8 +15,8 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabCtrl;
+class _LoginScreenState extends State<LoginScreen> {
+  bool _isLogin = true; // ✅ متغير للتحكم في التبويب
   
   final _email = TextEditingController();
   final _phone = TextEditingController();
@@ -35,7 +35,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   @override
   void initState() {
     super.initState();
-    _tabCtrl = TabController(length: 2, vsync: this);
     _checkBiometric();
     _email.addListener(_validateEmail);
     _phone.addListener(_validatePhone);
@@ -177,7 +176,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
   @override
   void dispose() {
-    _tabCtrl.dispose();
     _email.dispose();
     _phone.dispose();
     _pass.dispose();
@@ -260,263 +258,81 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          // ✅ تبويب متوازن باستخدام Row + Expanded
                           Container(
                             margin: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
                               color: d ? const Color(0xFF0B1121) : Colors.grey[100],
                               borderRadius: BorderRadius.circular(14),
                             ),
-                            child: TabBar(
-                              controller: _tabCtrl,
-                              onTap: (index) => setState(() {}),
-                              indicator: BoxDecoration(
-                                color: AppColors.primary,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              labelColor: Colors.white,
-                              unselectedLabelColor: Colors.grey,
-                              padding: const EdgeInsets.all(4),
-                              tabs: const [
-                                Tab(text: 'تسجيل الدخول'),
-                                Tab(text: 'إنشاء حساب'),
+                            child: Row(
+                              children: [
+                                // ✅ زر تسجيل الدخول
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        _isLogin = true;
+                                      });
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      decoration: BoxDecoration(
+                                        color: _isLogin ? AppColors.primary : Colors.transparent,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          'تسجيل الدخول',
+                                          style: TextStyle(
+                                            color: _isLogin ? Colors.white : AppColors.grey,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                // ✅ زر إنشاء حساب
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        _isLogin = false;
+                                      });
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      decoration: BoxDecoration(
+                                        color: !_isLogin ? AppColors.primary : Colors.transparent,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          'إنشاء حساب',
+                                          style: TextStyle(
+                                            color: !_isLogin ? Colors.white : AppColors.grey,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ],
                             ),
                           ),
                           
+                          // ✅ المحتوى حسب التبويب المختار
                           AnimatedContainer(
                             duration: const Duration(milliseconds: 300),
                             curve: Curves.easeInOut,
-                            height: _tabCtrl.index == 0 ? 460 : 300,
-                            child: TabBarView(
-                              controller: _tabCtrl,
-                              physics: const NeverScrollableScrollPhysics(),
-                              children: [
-                                // ✅ تبويب تسجيل الدخول
-                                SingleChildScrollView(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: GestureDetector(
-                                              onTap: () => setState(() => _usePhoneLogin = false),
-                                              child: Container(
-                                                padding: const EdgeInsets.symmetric(vertical: 8),
-                                                decoration: BoxDecoration(
-                                                  color: !_usePhoneLogin ? AppColors.primary : Colors.transparent,
-                                                  borderRadius: BorderRadius.circular(8),
-                                                ),
-                                                child: Text(
-                                                  'البريد الإلكتروني',
-                                                  textAlign: TextAlign.center,
-                                                  style: TextStyle(
-                                                    color: !_usePhoneLogin ? Colors.white : AppColors.grey,
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            child: GestureDetector(
-                                              onTap: () => setState(() => _usePhoneLogin = true),
-                                              child: Container(
-                                                padding: const EdgeInsets.symmetric(vertical: 8),
-                                                decoration: BoxDecoration(
-                                                  color: _usePhoneLogin ? AppColors.primary : Colors.transparent,
-                                                  borderRadius: BorderRadius.circular(8),
-                                                ),
-                                                child: Text(
-                                                  'رقم الهاتف',
-                                                  textAlign: TextAlign.center,
-                                                  style: TextStyle(
-                                                    color: _usePhoneLogin ? Colors.white : AppColors.grey,
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 16),
-                                      
-                                      if (!_usePhoneLogin)
-                                        Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            TextField(
-                                              controller: _email,
-                                              textAlign: TextAlign.right,
-                                              keyboardType: TextInputType.emailAddress,
-                                              textInputAction: TextInputAction.next,
-                                              decoration: InputDecoration(
-                                                labelText: 'البريد الإلكتروني',
-                                                prefixIcon: const Icon(Icons.email_outlined, size: 20),
-                                                errorText: _isEmailValid ? null : 'بريد إلكتروني غير صحيح',
-                                                border: OutlineInputBorder(
-                                                  borderRadius: BorderRadius.circular(12),
-                                                ),
-                                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                                              ),
-                                            ),
-                                          ],
-                                        )
-                                      else
-                                        Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            TextField(
-                                              controller: _phone,
-                                              textAlign: TextAlign.right,
-                                              keyboardType: TextInputType.phone,
-                                              textInputAction: TextInputAction.next,
-                                              decoration: InputDecoration(
-                                                labelText: 'رقم الهاتف',
-                                                prefixIcon: const Icon(Icons.phone_android, size: 20),
-                                                errorText: _isPhoneValid ? null : 'رقم هاتف غير صحيح',
-                                                border: OutlineInputBorder(
-                                                  borderRadius: BorderRadius.circular(12),
-                                                ),
-                                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      const SizedBox(height: 10),
-                                      
-                                      TextField(
-                                        controller: _pass,
-                                        obscureText: _obscure,
-                                        textAlign: TextAlign.right,
-                                        textInputAction: TextInputAction.done,
-                                        onSubmitted: (_) => _login(),
-                                        decoration: InputDecoration(
-                                          labelText: 'كلمة المرور',
-                                          prefixIcon: const Icon(Icons.lock_outline, size: 20),
-                                          suffixIcon: IconButton(
-                                            icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility),
-                                            onPressed: () => setState(() => _obscure = !_obscure),
-                                          ),
-                                          border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(12),
-                                          ),
-                                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                                        ),
-                                      ),
-                                      
-                                      Row(
-                                        children: [
-                                          Checkbox(
-                                            value: _rememberMe,
-                                            activeColor: AppColors.primary,
-                                            onChanged: (v) => setState(() => _rememberMe = v!),
-                                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                          ),
-                                          const Text(
-                                            'تذكرني',
-                                            style: TextStyle(fontSize: 13),
-                                          ),
-                                          const Spacer(),
-                                          TextButton(
-                                            onPressed: _showForgotPasswordSheet,
-                                            child: const Text(
-                                              'نسيت كلمة المرور؟',
-                                              style: TextStyle(fontSize: 12, color: AppColors.primary),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      
-                                      const SizedBox(height: 8),
-                                      SizedBox(
-                                        width: double.infinity,
-                                        height: 46,
-                                        child: ElevatedButton(
-                                          onPressed: s is AuthLoading ? null : _login,
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: AppColors.primary,
-                                            foregroundColor: Colors.white,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(12),
-                                            ),
-                                          ),
-                                          child: s is AuthLoading
-                                              ? const CircularProgressIndicator(color: Colors.white)
-                                              : const Text('تسجيل الدخول', style: TextStyle(fontSize: 15)),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                
-                                // ✅ تبويب إنشاء حساب
-                                SingleChildScrollView(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    children: [
-                                      const SizedBox(height: 20),
-                                      const Text(
-                                        'ليس لديك حساب؟',
-                                        style: TextStyle(fontSize: 16),
-                                      ),
-                                      const SizedBox(height: 16),
-                                      SizedBox(
-                                        width: double.infinity,
-                                        height: 46,
-                                        child: ElevatedButton(
-                                          onPressed: () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (_) => const RegisterScreen(),
-                                              ),
-                                            );
-                                          },
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.white,
-                                            foregroundColor: AppColors.primary,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(12),
-                                            ),
-                                          ),
-                                          child: const Text(
-                                            'إنشاء حساب جديد',
-                                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 20),
-                                      const Text(
-                                        'أو',
-                                        style: TextStyle(color: AppColors.grey),
-                                      ),
-                                      const SizedBox(height: 16),
-                                      SizedBox(
-                                        width: double.infinity,
-                                        height: 46,
-                                        child: OutlinedButton(
-                                          onPressed: _guest,
-                                          style: OutlinedButton.styleFrom(
-                                            side: const BorderSide(color: Colors.white30),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(12),
-                                            ),
-                                            backgroundColor: Colors.white.withOpacity(0.1),
-                                          ),
-                                          child: const Text(
-                                            'تصفح كضيف',
-                                            style: TextStyle(color: Colors.white),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
+                            height: _isLogin ? 460 : 300,
+                            child: _isLogin
+                                ? _buildLoginForm(s)
+                                : _buildRegisterForm(),
                           ),
                         ],
                       ),
@@ -616,6 +432,235 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  // ✅ نموذج تسجيل الدخول
+  Widget _buildLoginForm(AuthState s) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => _usePhoneLogin = false),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      color: !_usePhoneLogin ? AppColors.primary : Colors.transparent,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      'البريد الإلكتروني',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: !_usePhoneLogin ? Colors.white : AppColors.grey,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => _usePhoneLogin = true),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      color: _usePhoneLogin ? AppColors.primary : Colors.transparent,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      'رقم الهاتف',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: _usePhoneLogin ? Colors.white : AppColors.grey,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          
+          if (!_usePhoneLogin)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: _email,
+                  textAlign: TextAlign.right,
+                  keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.next,
+                  decoration: InputDecoration(
+                    labelText: 'البريد الإلكتروني',
+                    prefixIcon: const Icon(Icons.email_outlined, size: 20),
+                    errorText: _isEmailValid ? null : 'بريد إلكتروني غير صحيح',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  ),
+                ),
+              ],
+            )
+          else
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: _phone,
+                  textAlign: TextAlign.right,
+                  keyboardType: TextInputType.phone,
+                  textInputAction: TextInputAction.next,
+                  decoration: InputDecoration(
+                    labelText: 'رقم الهاتف',
+                    prefixIcon: const Icon(Icons.phone_android, size: 20),
+                    errorText: _isPhoneValid ? null : 'رقم هاتف غير صحيح',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  ),
+                ),
+              ],
+            ),
+          const SizedBox(height: 10),
+          
+          TextField(
+            controller: _pass,
+            obscureText: _obscure,
+            textAlign: TextAlign.right,
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => _login(),
+            decoration: InputDecoration(
+              labelText: 'كلمة المرور',
+              prefixIcon: const Icon(Icons.lock_outline, size: 20),
+              suffixIcon: IconButton(
+                icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility),
+                onPressed: () => setState(() => _obscure = !_obscure),
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            ),
+          ),
+          
+          Row(
+            children: [
+              Checkbox(
+                value: _rememberMe,
+                activeColor: AppColors.primary,
+                onChanged: (v) => setState(() => _rememberMe = v!),
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              const Text(
+                'تذكرني',
+                style: TextStyle(fontSize: 13),
+              ),
+              const Spacer(),
+              TextButton(
+                onPressed: _showForgotPasswordSheet,
+                child: const Text(
+                  'نسيت كلمة المرور؟',
+                  style: TextStyle(fontSize: 12, color: AppColors.primary),
+                ),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            height: 46,
+            child: ElevatedButton(
+              onPressed: s is AuthLoading ? null : _login,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: s is AuthLoading
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : const Text('تسجيل الدخول', style: TextStyle(fontSize: 15)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ✅ نموذج إنشاء حساب (اختصار)
+  Widget _buildRegisterForm() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          const SizedBox(height: 20),
+          const Text(
+            'ليس لديك حساب؟',
+            style: TextStyle(fontSize: 16),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            height: 46,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const RegisterScreen(),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                'إنشاء حساب جديد',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          const Text(
+            'أو',
+            style: TextStyle(color: AppColors.grey),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            height: 46,
+            child: OutlinedButton(
+              onPressed: _guest,
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Colors.white30),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                backgroundColor: Colors.white.withOpacity(0.1),
+              ),
+              child: const Text(
+                'تصفح كضيف',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
