@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/bloc/auth_bloc/auth_bloc.dart';
-import 'package:sehatak/presentation/screens/auth/terms_screen.dart';  // ✅ استيراد الشروط الموجودة
+import 'package:sehatak/presentation/screens/terms/terms_screen.dart';  // ✅ المسار الصحيح
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -251,7 +251,6 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                   ),
                   GestureDetector(
                     onTap: () {
-                      // ✅ فتح صفحة الشروط الموجودة
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const TermsScreen()),
@@ -264,7 +263,6 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                   ),
                   GestureDetector(
                     onTap: () {
-                      // ✅ فتح صفحة الشروط الموجودة
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const TermsScreen()),
