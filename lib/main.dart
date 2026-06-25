@@ -49,7 +49,7 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<AuthBloc>(
-          create: (_) => AuthBloc()..add(const AppStarted()),
+          create: (_) => AuthBloc()..add(AppStarted()),  // ✅ إزالة const
         ),
         BlocProvider<ThemeBloc>(create: (_) => ThemeBloc()),
         BlocProvider<ChatBloc>(create: (_) => ChatBloc()),

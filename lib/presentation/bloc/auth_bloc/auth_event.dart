@@ -6,18 +6,12 @@ abstract class AuthEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class AppStarted extends AuthEvent {}
-
-// ✅ تسجيل الدخول
-class LoginWithEmail extends AuthEvent {
-  final String email;
-  final String password;
-  const LoginWithEmail({required this.email, required this.password});
+class AppStarted extends AuthEvent {
+  const AppStarted();
   @override
-  List<Object?> get props => [email, password];
+  List<Object?> get props => [];
 }
 
-// ✅ تسجيل الدخول برقم الهاتف
 class LoginWithPhone extends AuthEvent {
   final String phone;
   final String password;
@@ -26,10 +20,20 @@ class LoginWithPhone extends AuthEvent {
   List<Object?> get props => [phone, password];
 }
 
-// ✅ تسجيل الدخول بـ Google
-class LoginWithGoogle extends AuthEvent {}
+class LoginWithEmail extends AuthEvent {
+  final String email;
+  final String password;
+  const LoginWithEmail({required this.email, required this.password});
+  @override
+  List<Object?> get props => [email, password];
+}
 
-// ✅ تسجيل مستخدم جديد
+class LoginWithGoogle extends AuthEvent {
+  const LoginWithGoogle();
+  @override
+  List<Object?> get props => [];
+}
+
 class RegisterWithEmail extends AuthEvent {
   final String name;
   final String email;
@@ -45,7 +49,6 @@ class RegisterWithEmail extends AuthEvent {
   List<Object?> get props => [name, email, phone, password];
 }
 
-// ✅ تسجيل طبيب جديد
 class RegisterDoctor extends AuthEvent {
   final String name;
   final String email;
@@ -65,7 +68,6 @@ class RegisterDoctor extends AuthEvent {
   List<Object?> get props => [name, email, phone, password, license, specialty];
 }
 
-// ✅ OTP
 class SendOTP extends AuthEvent {
   final String phone;
   const SendOTP(this.phone);
@@ -81,5 +83,8 @@ class VerifyOTP extends AuthEvent {
   List<Object?> get props => [verificationId, code];
 }
 
-// ✅ خروج
-class Logout extends AuthEvent {}
+class Logout extends AuthEvent {
+  const Logout();
+  @override
+  List<Object?> get props => [];
+}

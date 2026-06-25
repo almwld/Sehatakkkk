@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'package:sehatak/presentation/bloc/auth_bloc/auth_state.dart';
 import 'package:sehatak/presentation/screens/auth/onboarding_screen.dart';
@@ -21,17 +22,19 @@ class _SplashScreenState extends State<SplashScreen> {
 
   void _navigate() {
     Future.delayed(const Duration(seconds: 2), () {
-      final state = context.read<AuthBloc>().state;
-      if (state is Authenticated) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-        );
-      } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const OnboardingScreen()),
-        );
+      if (mounted) {
+        final state = context.read<AuthBloc>().state;
+        if (state is Authenticated) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+          );
+        }
       }
     });
   }
