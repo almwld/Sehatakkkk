@@ -19,6 +19,8 @@ import 'package:sehatak/presentation/screens/insurance/insurance_companies.dart'
 import 'package:sehatak/presentation/screens/health/health_dashboard.dart';
 import 'package:sehatak/presentation/screens/payment/wallet_screen.dart';
 import 'package:sehatak/presentation/screens/consultation/consultation_screen.dart';
+import 'package:sehatak/presentation/screens/shared/notifications_screen.dart';
+import 'package:sehatak/presentation/screens/smart_clinic/smart_clinic_screen.dart';
 import 'package:sehatak/presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'package:sehatak/presentation/screens/shared/chat_navigation.dart';
 
@@ -140,7 +142,7 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 // ============================================
-// 🏠 _HomeTab - الصفحة الرئيسية (مبسطة)
+// 🏠 _HomeTab - الصفحة الرئيسية
 // ============================================
 class _HomeTab extends StatelessWidget {
   const _HomeTab();
@@ -206,12 +208,107 @@ class _HomeTab extends StatelessWidget {
           ),
         ),
         actions: [
+          // ✅ زر المساعد الذكي - ربط بـ SmartClinicScreen
           IconButton(
-            icon: const Icon(Icons.notifications_outlined, color: AppColors.primary),
-            onPressed: () {},
+            icon: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: AppColors.purple.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.auto_awesome, color: AppColors.purple, size: 20),
+            ),
+            onPressed: () {
+              if (logged) {
+                _go(context, const SmartClinicScreen());
+              } else {
+                _go(
+                  context,
+                  BlocProvider(
+                    create: (_) => AuthBloc(),
+                    child: const LoginScreen(),
+                  ),
+                );
+              }
+            },
+            tooltip: 'المساعد الذكي',
           ),
+          // ✅ زر المحفظة
           IconButton(
-            icon: const Icon(Icons.shopping_cart_outlined, color: AppColors.primary),
+            icon: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: AppColors.success.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.account_balance_wallet, color: AppColors.success, size: 20),
+            ),
+            onPressed: () {
+              if (logged) {
+                _go(context, const WalletScreen());
+              } else {
+                _go(
+                  context,
+                  BlocProvider(
+                    create: (_) => AuthBloc(),
+                    child: const LoginScreen(),
+                  ),
+                );
+              }
+            },
+            tooltip: 'المحفظة',
+          ),
+          // ✅ زر الإشعارات
+          IconButton(
+            icon: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: AppColors.warning.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Stack(
+                children: [
+                  const Icon(Icons.notifications_outlined, color: AppColors.warning, size: 20),
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Container(
+                      width: 10,
+                      height: 10,
+                      decoration: const BoxDecoration(
+                        color: AppColors.error,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            onPressed: () {
+              if (logged) {
+                _go(context, const NotificationsScreen());
+              } else {
+                _go(
+                  context,
+                  BlocProvider(
+                    create: (_) => AuthBloc(),
+                    child: const LoginScreen(),
+                  ),
+                );
+              }
+            },
+            tooltip: 'الإشعارات',
+          ),
+          // ✅ زر السلة
+          IconButton(
+            icon: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.shopping_cart_outlined, color: AppColors.primary, size: 20),
+            ),
             onPressed: () => _go(context, const CartScreen()),
           ),
           if (!logged)
@@ -240,7 +337,8 @@ class _HomeTab extends StatelessWidget {
           children: [
             _searchBar(),
             const SizedBox(height: 16),
-            _heroBanner(context),
+            // ✅ بنر متحرك من 5 سلايدرات
+            _heroCarousel(),
             const SizedBox(height: 16),
             _sectionTitle('خدمات سريعة'),
             const SizedBox(height: 10),
@@ -296,66 +394,99 @@ class _HomeTab extends StatelessWidget {
     );
   }
 
-  Widget _heroBanner(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF00796B), Color(0xFF004D40)],
-        ),
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'منصة صحتك، أولويتنا',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'رعاية موثوقة في أي وقت وأي مكان',
-                  style: TextStyle(color: Colors.white70, fontSize: 13),
-                ),
-                const SizedBox(height: 12),
-                GestureDetector(
-                  onTap: () => _go(context, const DoctorsListScreen()),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Text(
-                      'احصل على استشارة',
-                      style: TextStyle(
-                        color: Color(0xFF00796B),
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 10),
-          Container(
-            width: 80,
-            height: 80,
+  // ✅ بنر متحرك من 5 سلايدرات مع صور Unsplash
+  Widget _heroCarousel() {
+    final List<Map<String, dynamic>> slides = [
+      {
+        'title': 'صحتك تهمنا',
+        'subtitle': 'رعاية صحية متكاملة في مكان واحد',
+        'image': 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=600',
+        'color': Colors.teal,
+      },
+      {
+        'title': 'استشارات طبية',
+        'subtitle': 'تواصل مع أفضل الأطباء عن بُعد',
+        'image': 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=600',
+        'color': Colors.blue,
+      },
+      {
+        'title': 'صيدلية رقمية',
+        'subtitle': 'اطلب أدويتك أونلاين ووصلها لبابك',
+        'image': 'https://images.unsplash.com/photo-1585435557343-3b092031a831?w=600',
+        'color': Colors.green,
+      },
+      {
+        'title': 'تحاليل منزلية',
+        'subtitle': 'خدمة تحاليل طبية في منزلك',
+        'image': 'https://images.unsplash.com/photo-1581595220892-b0739db3ba8c?w=600',
+        'color': Colors.purple,
+      },
+      {
+        'title': 'تأمين صحي',
+        'subtitle': 'خطط تأمين تناسب احتياجاتك',
+        'image': 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=600',
+        'color': Colors.orange,
+      },
+    ];
+
+    return SizedBox(
+      height: 180,
+      child: PageView.builder(
+        itemCount: slides.length,
+        pageSnapping: true,
+        itemBuilder: (context, index) {
+          final slide = slides[index];
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: 4),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(40),
+              borderRadius: BorderRadius.circular(16),
+              image: DecorationImage(
+                image: NetworkImage(slide['image']),
+                fit: BoxFit.cover,
+                colorFilter: ColorFilter.mode(
+                  Colors.black.withOpacity(0.4),
+                  BlendMode.darken,
+                ),
+              ),
             ),
-            child: const Icon(Icons.health_and_safety, color: Colors.white, size: 45),
-          ),
-        ],
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [
+                    Colors.black.withOpacity(0.7),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    slide['title'],
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    slide['subtitle'],
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
