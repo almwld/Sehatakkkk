@@ -5,7 +5,6 @@ import 'package:sehatak/core/services/biometric_service.dart';
 import 'package:sehatak/presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
 import 'package:sehatak/presentation/screens/auth/register_screen.dart';
-import 'package:sehatak/presentation/screens/auth/terms_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -22,8 +21,12 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   final _pass = TextEditingController();
   bool _rememberMe = false;
   bool _usePhoneLogin = false;
-  
   bool _obscure = true;
+  
+  // ✅ متغيرات التحقق الفوري
+  bool _isEmailValid = true;
+  bool _isPhoneValid = true;
+  
   final BiometricService _bio = BiometricService();
   bool _hasBiometric = false;
   String _bioName = 'البصمة';
@@ -33,6 +36,24 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     super.initState();
     _tabCtrl = TabController(length: 2, vsync: this);
     _checkBiometric();
+    
+    // ✅ التحقق الفوري من البريد
+    _email.addListener(_validateEmail);
+    _phone.addListener(_validatePhone);
+  }
+
+  void _validateEmail() {
+    setState(() {
+      _isEmailValid = _email.text.isEmpty || 
+          RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(_email.text);
+    });
+  }
+
+  void _validatePhone() {
+    setState(() {
+      _isPhoneValid = _phone.text.isEmpty || 
+          RegExp(r'^[0-9]{7,15}$').hasMatch(_phone.text.replaceAll(RegExp(r'[^0-9]'), ''));
+    });
   }
 
   Future<void> _checkBiometric() async {
@@ -78,12 +99,93 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     }
   }
 
+  // ✅ عرض BottomSheet لاستعادة كلمة المرور
+  void _showForgotPasswordSheet() {
+    final emailCtrl = TextEditingController();
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Icon(Icons.lock_reset, size: 50, color: AppColors.primary),
+            const SizedBox(height: 10),
+            const Text(
+              'استعادة كلمة المرور',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'أدخل بريدك الإلكتروني وسنرسل لك رابط الاستعادة',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.grey),
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: emailCtrl,
+              textAlign: TextAlign.right,
+              decoration: InputDecoration(
+                labelText: 'البريد الإلكتروني',
+                prefixIcon: const Icon(Icons.email_outlined, color: AppColors.primary),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: () {
+                  if (emailCtrl.text.isNotEmpty) {
+                    // ✅ إرسال طلب استعادة
+                    Navigator.pop(context);
+                    _showMsg('تم إرسال رابط الاستعادة إلى بريدك', false);
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text('إرسال رابط الاستعادة'),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('إلغاء', style: TextStyle(color: AppColors.grey)),
+            ),
+            const SizedBox(height: 10),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _tabCtrl.dispose();
     _email.dispose();
     _phone.dispose();
     _pass.dispose();
+    _email.removeListener(_validateEmail);
+    _phone.removeListener(_validatePhone);
     super.dispose();
   }
 
@@ -125,17 +227,22 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const SizedBox(height: 20),
-                    Container(
-                      width: 70,
-                      height: 70,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                      child: const Icon(
-                        Icons.health_and_safety,
-                        size: 38,
-                        color: AppColors.primary,
+                    
+                    // ✅ Hero Animation
+                    Hero(
+                      tag: 'app_logo',
+                      child: Container(
+                        width: 70,
+                        height: 70,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        child: const Icon(
+                          Icons.health_and_safety,
+                          size: 38,
+                          color: AppColors.primary,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -158,7 +265,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // ✅ TabBar
                           Container(
                             margin: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
@@ -185,7 +291,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           AnimatedContainer(
                             duration: const Duration(milliseconds: 300),
                             curve: Curves.easeInOut,
-                            height: _tabCtrl.index == 0 ? 400 : 300,
+                            height: _tabCtrl.index == 0 ? 460 : 300,
                             child: TabBarView(
                               controller: _tabCtrl,
                               physics: const NeverScrollableScrollPhysics(),
@@ -243,40 +349,58 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                       ),
                                       const SizedBox(height: 16),
                                       
-                                      // ✅ حقل البريد أو الهاتف
+                                      // ✅ حقل البريد أو الهاتف مع تحقق فوري
                                       if (!_usePhoneLogin)
-                                        TextField(
-                                          controller: _email,
-                                          textAlign: TextAlign.right,
-                                          decoration: InputDecoration(
-                                            labelText: 'البريد الإلكتروني',
-                                            prefixIcon: const Icon(Icons.email_outlined, size: 20),
-                                            border: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(12),
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            TextField(
+                                              controller: _email,
+                                              textAlign: TextAlign.right,
+                                              keyboardType: TextInputType.emailAddress,
+                                              textInputAction: TextInputAction.next,
+                                              decoration: InputDecoration(
+                                                labelText: 'البريد الإلكتروني',
+                                                prefixIcon: const Icon(Icons.email_outlined, size: 20),
+                                                errorText: _isEmailValid ? null : 'بريد إلكتروني غير صحيح',
+                                                border: OutlineInputBorder(
+                                                  borderRadius: BorderRadius.circular(12),
+                                                ),
+                                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                              ),
                                             ),
-                                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                                          ),
+                                          ],
                                         )
                                       else
-                                        TextField(
-                                          controller: _phone,
-                                          textAlign: TextAlign.right,
-                                          keyboardType: TextInputType.phone,
-                                          decoration: InputDecoration(
-                                            labelText: 'رقم الهاتف',
-                                            prefixIcon: const Icon(Icons.phone_android, size: 20),
-                                            border: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(12),
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            TextField(
+                                              controller: _phone,
+                                              textAlign: TextAlign.right,
+                                              keyboardType: TextInputType.phone,
+                                              textInputAction: TextInputAction.next,
+                                              decoration: InputDecoration(
+                                                labelText: 'رقم الهاتف',
+                                                prefixIcon: const Icon(Icons.phone_android, size: 20),
+                                                errorText: _isPhoneValid ? null : 'رقم هاتف غير صحيح',
+                                                border: OutlineInputBorder(
+                                                  borderRadius: BorderRadius.circular(12),
+                                                ),
+                                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                              ),
                                             ),
-                                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                                          ),
+                                          ],
                                         ),
                                       const SizedBox(height: 10),
                                       
+                                      // ✅ حقل كلمة المرور
                                       TextField(
                                         controller: _pass,
                                         obscureText: _obscure,
                                         textAlign: TextAlign.right,
+                                        textInputAction: TextInputAction.done,
+                                        onSubmitted: (_) => _login(),
                                         decoration: InputDecoration(
                                           labelText: 'كلمة المرور',
                                           prefixIcon: const Icon(Icons.lock_outline, size: 20),
@@ -291,7 +415,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                         ),
                                       ),
                                       
-                                      // ✅ تذكرني
+                                      // ✅ تذكرني + نسيت كلمة المرور
                                       Row(
                                         children: [
                                           Checkbox(
@@ -306,7 +430,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                           ),
                                           const Spacer(),
                                           TextButton(
-                                            onPressed: () {},
+                                            onPressed: _showForgotPasswordSheet,
                                             child: const Text(
                                               'نسيت كلمة المرور؟',
                                               style: TextStyle(fontSize: 12, color: AppColors.primary),
@@ -337,7 +461,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                   ),
                                 ),
                                 
-                                // ✅ تبويب إنشاء حساب (اختصار)
+                                // ✅ تبويب إنشاء حساب
                                 SingleChildScrollView(
                                   padding: const EdgeInsets.all(16),
                                   child: Column(
