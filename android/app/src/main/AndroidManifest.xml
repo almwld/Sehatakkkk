@@ -19,6 +19,20 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
+    <!-- ✅ أذونات الموقع -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <!-- ✅ أذونات الإشعارات -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- ✅ أذونات البصمة -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <uses-permission android:name="android.permission.USE_FINGERPRINT" />
+
+    <!-- ✅ أذونات الاهتزاز -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
     <application
         android:label="صحتك"
         android:name="${applicationName}"
@@ -30,6 +44,16 @@
         android:hardwareAccelerated="true"
         android:supportsRtl="true"
         tools:targetApi="31">
+
+        <!-- ✅ القناة الافتراضية للإشعارات -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="sehatak_channel" />
+
+        <!-- ✅ Google Maps API Key -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="YOUR_GOOGLE_MAPS_API_KEY" />
 
         <activity
             android:name=".MainActivity"
@@ -48,6 +72,15 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- ✅ Deep Linking -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="sehatak" />
+                <data android:host="app" />
+            </intent-filter>
         </activity>
 
         <meta-data
@@ -55,15 +88,3 @@
             android:value="2" />
     </application>
 </manifest>
-    <!-- ✅ إضافة خدمة الإشعارات في الخلفية -->
-    <service
-        android:name=".MyFirebaseMessagingService"
-        android:exported="false">
-        <intent-filter>
-            <action android:name="com.google.firebase.MESSAGING_EVENT" />
-        </intent-filter>
-    </service>
-        <!-- ✅ القناة الافتراضية للإشعارات -->
-        <meta-data
-            android:name="com.google.firebase.messaging.default_notification_channel_id"
-            android:value="sehatak_channel" />
