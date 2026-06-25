@@ -13,14 +13,14 @@ import 'package:image_picker/image_picker.dart';
 import 'package:record/record.dart';
 
 class ChatScreen extends StatefulWidget {
-  final String chatId;
+  final String? chatId;
   final String doctorName;
   final String doctorId;
   final bool isVideo;
 
   const ChatScreen({
     super.key,
-    required this.chatId,
+    this.chatId,
     required this.doctorName,
     required this.doctorId,
     this.isVideo = false,
@@ -40,8 +40,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   String? _recordingPath;
   bool _isTyping = false;
   bool _isSending = false;
+  String? _chatId;
   
-  // ✅ متغيرات للوسائط المرفقة
   File? _selectedImage;
   File? _selectedAudio;
   bool _showMediaPreview = false;
@@ -49,8 +49,39 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    context.read<ChatBloc>().add(LoadChatMessages(widget.chatId));
     WidgetsBinding.instance.addObserver(this);
+    _initializeChat();
+  }
+
+  // ✅ إنشاء محادثة إذا لم تكن موجودة
+  Future<void> _initializeChat() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    if (widget.chatId != null && widget.chatId!.isNotEmpty) {
+      _chatId = widget.chatId;
+      context.read<ChatBloc>().add(LoadChatMessages(_chatId!));
+      return;
+    }
+
+    try {
+      // ✅ إنشاء محادثة جديدة
+      final chatId = await _chatService.createChat(
+        doctorId: widget.doctorId,
+        doctorName: widget.doctorName,
+        patientId: user.uid,
+        patientName: user.displayName ?? 'مريض',
+      );
+      setState(() {
+        _chatId = chatId;
+      });
+      context.read<ChatBloc>().add(LoadChatMessages(chatId));
+    } catch (e) {
+      print('❌ فشل إنشاء المحادثة: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('فشل إنشاء المحادثة: $e')),
+      );
+    }
   }
 
   @override
@@ -64,6 +95,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   void _sendMessage() async {
     final text = _messageController.text.trim();
     if ((text.isEmpty && _selectedImage == null && _selectedAudio == null) || _isSending) return;
+    if (_chatId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('جاري إنشاء المحادثة...')),
+      );
+      return;
+    }
 
     setState(() => _isSending = true);
     
@@ -71,25 +108,21 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       String? imageUrl;
       String? audioUrl;
 
-      // ✅ رفع الصورة إذا كانت موجودة
       if (_selectedImage != null) {
         imageUrl = await _chatService.uploadMedia(_selectedImage!, 'image');
       }
 
-      // ✅ رفع الصوت إذا كان موجوداً
       if (_selectedAudio != null) {
         audioUrl = await _chatService.uploadMedia(_selectedAudio!, 'audio');
       }
 
-      // ✅ إرسال الرسالة
       await _chatService.sendMessage(
-        chatId: widget.chatId,
+        chatId: _chatId!,
         text: text.isNotEmpty ? text : (imageUrl != null ? '📷 صورة' : '🎵 رسالة صوتية'),
         imageUrl: imageUrl,
         audioUrl: audioUrl,
       );
 
-      // ✅ تنظيف بعد الإرسال
       setState(() {
         _selectedImage = null;
         _selectedAudio = null;
@@ -106,7 +139,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
   }
 
-  // ✅ اختيار صورة من المعرض
   void _pickImage() async {
     final picker = ImagePicker();
     final image = await picker.pickImage(source: ImageSource.gallery);
@@ -118,7 +150,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
   }
 
-  // ✅ التقاط صورة من الكاميرا
   void _takePhoto() async {
     final picker = ImagePicker();
     final image = await picker.pickImage(source: ImageSource.camera);
@@ -130,7 +161,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
   }
 
-  // ✅ بدء التسجيل الصوتي
   void _startRecording() async {
     try {
       if (await _audioRecorder.hasPermission()) {
@@ -155,7 +185,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
   }
 
-  // ✅ إيقاف التسجيل الصوتي
   void _stopRecording() async {
     try {
       final path = await _audioRecorder.stop();
@@ -180,7 +209,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
   }
 
-  // ✅ إلغاء الوسائط المرفقة
   void _clearMedia() {
     setState(() {
       _selectedImage = null;
@@ -274,7 +302,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 context,
                 MaterialPageRoute(
                   builder: (_) => CallScreen(
-                    chatId: widget.chatId,
+                    chatId: _chatId ?? 'chat_${DateTime.now().millisecondsSinceEpoch}',
                     doctorName: widget.doctorName,
                     doctorId: widget.doctorId,
                     isVideo: false,
@@ -297,7 +325,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 context,
                 MaterialPageRoute(
                   builder: (_) => CallScreen(
-                    chatId: widget.chatId,
+                    chatId: _chatId ?? 'chat_${DateTime.now().millisecondsSinceEpoch}',
                     doctorName: widget.doctorName,
                     doctorId: widget.doctorId,
                     isVideo: true,
@@ -310,7 +338,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       ),
       body: Column(
         children: [
-          // ✅ معاينة الوسائط المرفقة
           if (_showMediaPreview && (_selectedImage != null || _selectedAudio != null))
             _buildMediaPreview(),
           Expanded(
@@ -339,9 +366,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         Text(state.message),
                         const SizedBox(height: 16),
                         ElevatedButton(
-                          onPressed: () {
-                            context.read<ChatBloc>().add(LoadChatMessages(widget.chatId));
-                          },
+                          onPressed: _initializeChat,
                           child: const Text('إعادة المحاولة'),
                         ),
                       ],
@@ -360,7 +385,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         message: message,
                         isMe: isMe,
                         onTap: () {
-                          // ✅ عرض معاينة كبيرة للصورة عند الضغط
                           if (message['imageUrl'] != null) {
                             _showImagePreview(message['imageUrl']);
                           }
@@ -379,7 +403,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     );
   }
 
-  // ✅ معاينة الوسائط المرفقة قبل الإرسال
   Widget _buildMediaPreview() {
     return Container(
       padding: const EdgeInsets.all(8),
@@ -441,7 +464,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     );
   }
 
-  // ✅ عرض معاينة كبيرة للصورة
   void _showImagePreview(String imageUrl) {
     showDialog(
       context: context,
@@ -479,7 +501,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       child: SafeArea(
         child: Row(
           children: [
-            // ✅ زر الصور (معرض + كاميرا)
             PopupMenuButton<String>(
               icon: const Icon(Icons.attach_file, color: AppColors.grey),
               onSelected: (value) {
@@ -512,7 +533,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 ),
               ],
             ),
-            // ✅ زر التسجيل الصوتي
             IconButton(
               icon: Icon(
                 _isRecording ? Icons.stop : Icons.mic,
@@ -547,7 +567,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 onSubmitted: (_) => _sendMessage(),
               ),
             ),
-            // ✅ زر الإرسال
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
