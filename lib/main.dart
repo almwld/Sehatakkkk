@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 import 'core/services/firebase_service.dart';
 import 'core/themes/theme_manager.dart';
@@ -50,7 +49,7 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<AuthBloc>(
-          create: (_) => AuthBloc()..add(AppStarted()),
+          create: (_) => AuthBloc()..add(const AppStarted()),
         ),
         BlocProvider<ThemeBloc>(create: (_) => ThemeBloc()),
         BlocProvider<ChatBloc>(create: (_) => ChatBloc()),

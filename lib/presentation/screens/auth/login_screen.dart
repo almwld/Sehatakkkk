@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/biometric_service.dart';
 import 'package:sehatak/presentation/bloc/auth_bloc/auth_bloc.dart';
+import 'package:sehatak/presentation/bloc/auth_bloc/auth_event.dart';
+import 'package:sehatak/presentation/bloc/auth_bloc/auth_state.dart';
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
 import 'package:sehatak/presentation/screens/auth/register_screen.dart';
 
@@ -23,7 +25,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   bool _usePhoneLogin = false;
   bool _obscure = true;
   
-  // ✅ متغيرات التحقق الفوري
   bool _isEmailValid = true;
   bool _isPhoneValid = true;
   
@@ -36,8 +37,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     super.initState();
     _tabCtrl = TabController(length: 2, vsync: this);
     _checkBiometric();
-    
-    // ✅ التحقق الفوري من البريد
     _email.addListener(_validateEmail);
     _phone.addListener(_validatePhone);
   }
@@ -99,7 +98,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     }
   }
 
-  // ✅ عرض BottomSheet لاستعادة كلمة المرور
   void _showForgotPasswordSheet() {
     final emailCtrl = TextEditingController();
     showModalBottomSheet(
@@ -152,7 +150,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
               child: ElevatedButton(
                 onPressed: () {
                   if (emailCtrl.text.isNotEmpty) {
-                    // ✅ إرسال طلب استعادة
                     Navigator.pop(context);
                     _showMsg('تم إرسال رابط الاستعادة إلى بريدك', false);
                   }
@@ -227,8 +224,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const SizedBox(height: 20),
-                    
-                    // ✅ Hero Animation
                     Hero(
                       tag: 'app_logo',
                       child: Container(
@@ -301,7 +296,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                   padding: const EdgeInsets.all(16),
                                   child: Column(
                                     children: [
-                                      // ✅ تبديل بين الإيميل والهاتف
                                       Row(
                                         children: [
                                           Expanded(
@@ -349,7 +343,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                       ),
                                       const SizedBox(height: 16),
                                       
-                                      // ✅ حقل البريد أو الهاتف مع تحقق فوري
                                       if (!_usePhoneLogin)
                                         Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -394,7 +387,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                         ),
                                       const SizedBox(height: 10),
                                       
-                                      // ✅ حقل كلمة المرور
                                       TextField(
                                         controller: _pass,
                                         obscureText: _obscure,
@@ -415,7 +407,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                         ),
                                       ),
                                       
-                                      // ✅ تذكرني + نسيت كلمة المرور
                                       Row(
                                         children: [
                                           Checkbox(
@@ -533,7 +524,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
                     const SizedBox(height: 16),
 
-                    // ✅ أزرار Google و Apple
                     Row(
                       children: [
                         Expanded(

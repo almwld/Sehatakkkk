@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/bloc/auth_bloc/auth_bloc.dart';
-import 'package:sehatak/presentation/screens/terms/terms_screen.dart';  // ✅ المسار الصحيح
+import 'package:sehatak/presentation/bloc/auth_bloc/auth_event.dart';
+import 'package:sehatak/presentation/bloc/auth_bloc/auth_state.dart';
+import 'package:sehatak/presentation/screens/terms/terms_screen.dart';
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -15,14 +17,12 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProviderStateMixin {
   late TabController _tabCtrl;
   
-  // ✅ حقول المستخدم
   final _userNameCtrl = TextEditingController();
   final _userPhoneCtrl = TextEditingController();
   final _userEmailCtrl = TextEditingController();
   final _userPassCtrl = TextEditingController();
   final _userConfirmCtrl = TextEditingController();
   
-  // ✅ حقول الطبيب
   final _docNameCtrl = TextEditingController();
   final _docPhoneCtrl = TextEditingController();
   final _docEmailCtrl = TextEditingController();
@@ -152,7 +152,10 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 10),
-              const Icon(Icons.person_add, size: 60, color: AppColors.primary),
+              Hero(
+                tag: 'app_logo',
+                child: const Icon(Icons.person_add, size: 60, color: AppColors.primary),
+              ),
               const SizedBox(height: 8),
               const Text(
                 'انضم إلى منصة صحتك',
@@ -166,7 +169,6 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
               ),
               const SizedBox(height: 20),
 
-              // ✅ بنر أخضر للتبويبات
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 4),
                 decoration: BoxDecoration(
@@ -191,7 +193,6 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
               ),
               const SizedBox(height: 16),
 
-              // ✅ محتوى التبويبات
               AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
                 height: _tabCtrl.index == 0 ? 520 : 600,
@@ -199,7 +200,6 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                   controller: _tabCtrl,
                   physics: const NeverScrollableScrollPhysics(),
                   children: [
-                    // ✅ نموذج المستخدم
                     SingleChildScrollView(
                       child: Column(
                         children: [
@@ -215,7 +215,6 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                         ],
                       ),
                     ),
-                    // ✅ نموذج الطبيب
                     SingleChildScrollView(
                       child: Column(
                         children: [
@@ -239,7 +238,6 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                 ),
               ),
 
-              // ✅ أوافق على الشروط - رابط لصفحة الشروط الموجودة
               const SizedBox(height: 12),
               Row(
                 children: [
