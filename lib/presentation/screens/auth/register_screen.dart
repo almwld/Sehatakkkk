@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/bloc/auth_bloc/auth_bloc.dart';
-import 'package:sehatak/presentation/screens/auth/terms_screen.dart';
+import 'package:sehatak/presentation/screens/auth/terms_screen.dart';  // ✅ استيراد الشروط الموجودة
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -166,7 +166,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
               ),
               const SizedBox(height: 20),
 
-              // ✅ بنر أخضر للتبويبات (بدون أيقونات)
+              // ✅ بنر أخضر للتبويبات
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 4),
                 decoration: BoxDecoration(
@@ -239,7 +239,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                 ),
               ),
 
-              // ✅ أوافق على الشروط
+              // ✅ أوافق على الشروط - رابط لصفحة الشروط الموجودة
               const SizedBox(height: 12),
               Row(
                 children: [
@@ -251,6 +251,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                   ),
                   GestureDetector(
                     onTap: () {
+                      // ✅ فتح صفحة الشروط الموجودة
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const TermsScreen()),
@@ -263,6 +264,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                   ),
                   GestureDetector(
                     onTap: () {
+                      // ✅ فتح صفحة الشروط الموجودة
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const TermsScreen()),
