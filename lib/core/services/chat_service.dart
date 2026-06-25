@@ -18,19 +18,39 @@ class ChatService {
     required String patientId,
     required String patientName,
   }) async {
-    final chatId = _firestore.collection('chats').doc().id;
-    await _firestore.collection('chats').doc(chatId).set({
-      'id': chatId,
-      'doctorId': doctorId,
-      'doctorName': doctorName,
-      'patientId': patientId,
-      'patientName': patientName,
-      'lastMessage': '',
-      'lastMessageTime': FieldValue.serverTimestamp(),
-      'createdAt': FieldValue.serverTimestamp(),
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
-    return chatId;
+    try {
+      // ✅ التحقق من وجود محادثة سابقة
+      final existing = await _firestore
+          .collection('chats')
+          .where('doctorId', isEqualTo: doctorId)
+          .where('patientId', isEqualTo: patientId)
+          .get();
+
+      if (existing.docs.isNotEmpty) {
+        final chatId = existing.docs.first.id;
+        print('✅ Chat already exists: $chatId');
+        return chatId;
+      }
+
+      // ✅ إنشاء محادثة جديدة
+      final chatId = _firestore.collection('chats').doc().id;
+      await _firestore.collection('chats').doc(chatId).set({
+        'id': chatId,
+        'doctorId': doctorId,
+        'doctorName': doctorName,
+        'patientId': patientId,
+        'patientName': patientName,
+        'lastMessage': '',
+        'lastMessageTime': FieldValue.serverTimestamp(),
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+      print('✅ Chat created: $chatId');
+      return chatId;
+    } catch (e) {
+      print('❌ Failed to create chat: $e');
+      rethrow;
+    }
   }
 
   // ========== 📤 إرسال رسالة ==========
@@ -41,6 +61,11 @@ class ChatService {
     String? audioUrl,
   }) async {
     try {
+      final currentUser = _auth.currentUser;
+      if (currentUser == null) {
+        throw Exception('يجب تسجيل الدخول أولاً');
+      }
+
       final batch = _firestore.batch();
       
       final messageRef = _firestore
@@ -50,8 +75,8 @@ class ChatService {
           .doc();
       
       batch.set(messageRef, {
-        'senderId': _auth.currentUser?.uid ?? 'unknown',
-        'senderName': _auth.currentUser?.displayName ?? 'مستخدم',
+        'senderId': currentUser.uid,
+        'senderName': currentUser.displayName ?? 'مستخدم',
         'text': text,
         'imageUrl': imageUrl,
         'audioUrl': audioUrl,
@@ -90,24 +115,25 @@ class ChatService {
         });
   }
 
-  // ========== 📋 قائمة المحادثات ==========
-  Stream<QuerySnapshot> getChats(String userId, String role) {
-    if (role == 'patient') {
-      return _firestore
-          .collection('chats')
-          .where('patientId', isEqualTo: userId)
-          .orderBy('updatedAt', descending: true)
-          .snapshots();
-    } else {
-      return _firestore
-          .collection('chats')
-          .where('doctorId', isEqualTo: userId)
-          .orderBy('updatedAt', descending: true)
-          .snapshots();
-    }
+  // ========== 📋 قائمة المحادثات للمستخدم ==========
+  Stream<QuerySnapshot> getUserChats(String userId) {
+    return _firestore
+        .collection('chats')
+        .where('patientId', isEqualTo: userId)
+        .orderBy('updatedAt', descending: true)
+        .snapshots();
   }
 
-  // ✅ رفع الوسائط (صورة أو صوت)
+  // ========== 📋 قائمة المحادثات للطبيب ==========
+  Stream<QuerySnapshot> getDoctorChats(String doctorId) {
+    return _firestore
+        .collection('chats')
+        .where('doctorId', isEqualTo: doctorId)
+        .orderBy('updatedAt', descending: true)
+        .snapshots();
+  }
+
+  // ✅ رفع الوسائط
   Future<String> uploadMedia(File file, String type) async {
     try {
       final dir = await getApplicationDocumentsDirectory();
@@ -120,76 +146,5 @@ class ChatService {
       print('❌ Failed to save media: $e');
       rethrow;
     }
-  }
-
-  // ✅ حفظ الملف محلياً
-  Future<String> saveLocalFile(File file) async {
-    try {
-      final dir = await getApplicationDocumentsDirectory();
-      final fileName = file.uri.pathSegments.last;
-      final path = '${dir.path}/$fileName';
-      await file.copy(path);
-      return path;
-    } catch (e) {
-      print('❌ Failed to save file: $e');
-      rethrow;
-    }
-  }
-
-  // ✅ قراءة ملف محلي
-  Future<File?> getLocalFile(String path) async {
-    try {
-      final file = File(path);
-      if (await file.exists()) {
-        return file;
-      }
-      return null;
-    } catch (e) {
-      print('❌ Failed to read file: $e');
-      return null;
-    }
-  }
-
-  // ✅ حذف ملف محلي
-  Future<void> deleteLocalFile(String path) async {
-    try {
-      final file = File(path);
-      if (await file.exists()) {
-        await file.delete();
-        print('✅ File deleted: $path');
-      }
-    } catch (e) {
-      print('❌ Failed to delete file: $e');
-    }
-  }
-
-  // ========== ✅ تحديث حالة القراءة ==========
-  Future<void> markAsRead(String chatId, String messageId) async {
-    await _firestore
-        .collection('chats')
-        .doc(chatId)
-        .collection('messages')
-        .doc(messageId)
-        .update({'read': true});
-  }
-
-  // ========== 🗑️ حذف رسالة ==========
-  Future<void> deleteMessage(String chatId, String messageId) async {
-    await _firestore
-        .collection('chats')
-        .doc(chatId)
-        .collection('messages')
-        .doc(messageId)
-        .delete();
-  }
-
-  // ========== 🖼️ رفع صورة (قديم للتوافق) ==========
-  Future<String> uploadImage(String chatId, String filePath) async {
-    return await uploadMedia(File(filePath), 'image');
-  }
-
-  // ========== 🎵 رفع صوت (قديم للتوافق) ==========
-  Future<String> uploadAudio(String chatId, String filePath) async {
-    return await uploadMedia(File(filePath), 'audio');
   }
 }

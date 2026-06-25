@@ -41,7 +41,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   bool _isTyping = false;
   bool _isSending = false;
   String? _chatId;
-  
+  bool _isInitialized = false;
+
   File? _selectedImage;
   File? _selectedAudio;
   bool _showMediaPreview = false;
@@ -53,52 +54,48 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     _initializeChat();
   }
 
-  // ✅ إنشاء محادثة إذا لم تكن موجودة
   Future<void> _initializeChat() async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
-    if (widget.chatId != null && widget.chatId!.isNotEmpty) {
-      _chatId = widget.chatId;
-      context.read<ChatBloc>().add(LoadChatMessages(_chatId!));
+    if (user == null) {
+      _showMsg('يجب تسجيل الدخول أولاً', true);
       return;
     }
 
     try {
-      // ✅ إنشاء محادثة جديدة
+      // ✅ إذا كان chatId موجوداً، استخدمه
+      if (widget.chatId != null && widget.chatId!.isNotEmpty) {
+        setState(() {
+          _chatId = widget.chatId;
+          _isInitialized = true;
+        });
+        context.read<ChatBloc>().add(LoadChatMessages(_chatId!));
+        return;
+      }
+
+      // ✅ إنشاء محادثة جديدة بين الطبيب والمريض
       final chatId = await _chatService.createChat(
         doctorId: widget.doctorId,
         doctorName: widget.doctorName,
         patientId: user.uid,
         patientName: user.displayName ?? 'مريض',
       );
+      
       setState(() {
         _chatId = chatId;
+        _isInitialized = true;
       });
       context.read<ChatBloc>().add(LoadChatMessages(chatId));
+      
     } catch (e) {
-      print('❌ فشل إنشاء المحادثة: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('فشل إنشاء المحادثة: $e')),
-      );
+      _showMsg('فشل إنشاء المحادثة: $e', true);
     }
-  }
-
-  @override
-  void dispose() {
-    _messageController.dispose();
-    _scrollController.dispose();
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
   }
 
   void _sendMessage() async {
     final text = _messageController.text.trim();
     if ((text.isEmpty && _selectedImage == null && _selectedAudio == null) || _isSending) return;
-    if (_chatId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('جاري إنشاء المحادثة...')),
-      );
+    if (_chatId == null || !_isInitialized) {
+      _showMsg('جاري إنشاء المحادثة...', false);
       return;
     }
 
@@ -131,12 +128,21 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       });
       _scrollToBottom();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('فشل الإرسال: $e')),
-      );
+      _showMsg('فشل الإرسال: $e', true);
     } finally {
       setState(() => _isSending = false);
     }
+  }
+
+  void _showMsg(String msg, bool isError) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg),
+        backgroundColor: isError ? Colors.red : Colors.green,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+      ),
+    );
   }
 
   void _pickImage() async {
@@ -179,9 +185,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('فشل بدء التسجيل: $e')),
-      );
+      _showMsg('فشل بدء التسجيل: $e', true);
     }
   }
 
@@ -199,9 +203,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('فشل إيقاف التسجيل: $e')),
-      );
+      _showMsg('فشل إيقاف التسجيل: $e', true);
       setState(() {
         _isRecording = false;
         _recordingPath = null;
@@ -298,17 +300,19 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               child: const Icon(Icons.call, color: AppColors.success, size: 20),
             ),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => CallScreen(
-                    chatId: _chatId ?? 'chat_${DateTime.now().millisecondsSinceEpoch}',
-                    doctorName: widget.doctorName,
-                    doctorId: widget.doctorId,
-                    isVideo: false,
+              if (_chatId != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => CallScreen(
+                      chatId: _chatId!,
+                      doctorName: widget.doctorName,
+                      doctorId: widget.doctorId,
+                      isVideo: false,
+                    ),
                   ),
-                ),
-              );
+                );
+              }
             },
           ),
           IconButton(
@@ -321,17 +325,19 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               child: const Icon(Icons.videocam, color: AppColors.info, size: 20),
             ),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => CallScreen(
-                    chatId: _chatId ?? 'chat_${DateTime.now().millisecondsSinceEpoch}',
-                    doctorName: widget.doctorName,
-                    doctorId: widget.doctorId,
-                    isVideo: true,
+              if (_chatId != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => CallScreen(
+                      chatId: _chatId!,
+                      doctorName: widget.doctorName,
+                      doctorId: widget.doctorId,
+                      isVideo: true,
+                    ),
                   ),
-                ),
-              );
+                );
+              }
             },
           ),
         ],
@@ -344,15 +350,25 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             child: BlocConsumer<ChatBloc, ChatState>(
               listener: (context, state) {
                 if (state is ChatErrorState) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(state.message)),
-                  );
+                  _showMsg(state.message, true);
                 }
                 if (state is ChatLoadedState) {
                   _scrollToBottom();
                 }
               },
               builder: (context, state) {
+                if (!_isInitialized) {
+                  return const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(height: 16),
+                        Text('جاري إنشاء المحادثة...'),
+                      ],
+                    ),
+                  );
+                }
                 if (state is ChatLoadingState) {
                   return const Center(child: CircularProgressIndicator());
                 }
@@ -380,7 +396,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     itemCount: state.messages.length,
                     itemBuilder: (context, index) {
                       final message = state.messages[index];
-                      final isMe = message['senderId'] == FirebaseAuth.instance.currentUser?.uid;
+                      final currentUser = FirebaseAuth.instance.currentUser;
+                      final isMe = message['senderId'] == currentUser?.uid;
                       return MessageBubble(
                         message: message,
                         isMe: isMe,
