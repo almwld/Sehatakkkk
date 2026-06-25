@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'package:sehatak/presentation/screens/auth/terms_screen.dart';
+import 'package:sehatak/presentation/screens/home/home_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -99,7 +100,6 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
       _showMsg('يجب إدخال رقم الترخيص', true);
       return;
     }
-    // ✅ تسجيل الطبيب
     context.read<AuthBloc>().add(
       RegisterDoctor(
         name: _docNameCtrl.text.trim(),
@@ -166,8 +166,9 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
               ),
               const SizedBox(height: 20),
 
-              // ✅ تبويبات مستخدم / طبيب
+              // ✅ بنر أخضر للتبويبات (بدون أيقونات)
               Container(
+                margin: const EdgeInsets.symmetric(horizontal: 4),
                 decoration: BoxDecoration(
                   color: isDark ? const Color(0xFF1A2540) : Colors.grey[100],
                   borderRadius: BorderRadius.circular(14),
@@ -183,8 +184,8 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                   unselectedLabelColor: Colors.grey,
                   padding: const EdgeInsets.all(4),
                   tabs: const [
-                    Tab(text: '👤 مستخدم'),
-                    Tab(text: '👨‍⚕️ طبيب'),
+                    Tab(text: 'مستخدم'),
+                    Tab(text: 'طبيب'),
                   ],
                 ),
               ),
