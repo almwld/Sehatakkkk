@@ -20,7 +20,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
     _tab = TabController(length: 4, vsync: this);
   }
 
-  // ✅ إزالة planPrice من الاستدعاء
+  // ✅ استدعاء بدون planPrice
   void _openPayment(String planName, String planIcon) {
     Navigator.push(
       context,
