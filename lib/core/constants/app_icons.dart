@@ -11,12 +11,10 @@ class AppIcons {
   // ════════════════════════════════════════════════════════
   // 💬 أيقونات الخدمات (Services)
   // ════════════════════════════════════════════════════════
-  static const String chat = 'assets/icons/services/chat.svg';
-  static const String audioCall = 'assets/icons/services/audio_call.svg';
-  static const String videoCall = 'assets/icons/services/video_call.svg';
-  static const String emergency = 'assets/icons/services/emergency.svg';
-  static const String homeVisit = 'assets/icons/services/home_visit.svg';
-  static const String checkup = 'assets/icons/services/checkup.svg';
+  static const String chat = 'assets/icons/navigation/chat.svg';
+  static const String videoCall = 'assets/icons/navigation/video_call.svg';
+  static const String blood = 'assets/icons/navigation/blood.svg';
+  static const String emergency = 'assets/icons/navigation/emergency.svg';
 
   // ════════════════════════════════════════════════════════
   // 🏥 أيقونات التخصصات الطبية (Specialties)
@@ -25,22 +23,24 @@ class AppIcons {
   static const String orthopedic = 'assets/icons/specialties/orthopedic.svg';
   static const String neurology = 'assets/icons/specialties/neurology.svg';
   static const String pulmonology = 'assets/icons/specialties/pulmonology.svg';
-
-  // ════════════════════════════════════════════════════════
-  // 🔬 أيقونات المختبرات (Lab & Analysis)
-  // ════════════════════════════════════════════════════════
-  static const String blood = 'assets/icons/lab/blood.svg';
-  static const String xray = 'assets/icons/lab/xray.svg';
-  static const String testTube = 'assets/icons/lab/test_tube.svg';
-  static const String virus = 'assets/icons/lab/virus.svg';
-  static const String dna = 'assets/icons/lab/dna.svg';
+  static const String cardiology = 'assets/icons/specialties/cardiology.svg';
+  static const String dentistry = 'assets/icons/specialties/dentistry.svg';
+  static const String dermatology = 'assets/icons/specialties/dermatology.svg';
+  static const String gastroenterology = 'assets/icons/specialties/gastroenterology.svg';
+  static const String nutrition = 'assets/icons/specialties/nutrition.svg';
+  static const String oncology = 'assets/icons/specialties/oncology.svg';
+  static const String ophthalmology = 'assets/icons/specialties/ophthalmology.svg';
+  static const String psychiatry = 'assets/icons/specialties/psychiatry.svg';
+  static const String radiology = 'assets/icons/specialties/radiology.svg';
+  static const String urology = 'assets/icons/specialties/urology.svg';
 
   // ════════════════════════════════════════════════════════
   // 🌐 أيقونات التواصل الاجتماعي (Social Media)
   // ════════════════════════════════════════════════════════
-  static const String diamond = 'assets/icons/social/diamond.svg';
-  static const String family = 'assets/icons/social/family.svg';
   static const String facebook = 'assets/icons/social/facebook.svg';
   static const String whatsapp = 'assets/icons/social/whatsapp.svg';
   static const String instagram = 'assets/icons/social/instagram.svg';
+  static const String twitter = 'assets/icons/social/twitter.svg';
+  static const String linkedin = 'assets/icons/social/linkedin.svg';
+  static const String discord = 'assets/icons/social/discord.svg';
 }
