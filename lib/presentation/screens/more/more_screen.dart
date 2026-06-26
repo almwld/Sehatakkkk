@@ -23,6 +23,7 @@ import 'package:sehatak/presentation/screens/first_aid/first_aid_screen.dart';
 import 'package:sehatak/presentation/screens/diet/diet_plan_screen.dart';
 import 'package:sehatak/presentation/screens/exercise/exercise_plan_screen.dart';
 import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
+import 'package:sehatak/presentation/screens/consultation/video_consult_screen.dart';
 
 class MoreScreen extends StatelessWidget {
   const MoreScreen({super.key});
