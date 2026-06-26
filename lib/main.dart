@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:sehatak/core/services/firebase_service.dart';
+import 'package:sehatak/core/themes/theme_manager.dart';
+import 'package:sehatak/presentation/bloc/auth_bloc/auth_bloc.dart';
+import 'package:sehatak/presentation/bloc/auth_bloc/auth_event.dart';
+import 'package:sehatak/presentation/bloc/theme_bloc/theme_bloc.dart';
+import 'package:sehatak/presentation/bloc/chat_bloc/chat_bloc.dart';
+import 'package:sehatak/presentation/bloc/doctor_bloc/doctor_bloc.dart';
+import 'package:sehatak/presentation/screens/onboarding/onboarding_screen.dart';
 import 'firebase_options.dart';
-import 'core/services/firebase_service.dart';
-import 'core/themes/theme_manager.dart';
-import 'presentation/bloc/auth_bloc/auth_bloc.dart';
-import 'presentation/bloc/auth_bloc/auth_event.dart';
-import 'presentation/bloc/theme_bloc/theme_bloc.dart';
-import 'presentation/bloc/chat_bloc/chat_bloc.dart';
-import 'presentation/bloc/doctor_bloc/doctor_bloc.dart';
-import 'presentation/screens/auth/splash_screen.dart';
 
 bool _firebaseInitialized = false;
 
@@ -58,6 +58,10 @@ class MyApp extends StatelessWidget {
       ],
       child: BlocBuilder<ThemeBloc, ThemeState>(
         builder: (context, state) {
+          final isDark = state is ThemeLoadedState
+              ? state.themeMode == ThemeMode.dark
+              : false;
+
           return MaterialApp(
             title: 'صحتك',
             debugShowCheckedModeBanner: false,
@@ -70,7 +74,7 @@ class MyApp extends StatelessWidget {
             themeMode: state is ThemeLoadedState
                 ? state.themeMode
                 : ThemeMode.light,
-            home: const SplashScreen(),
+            home: const OnboardingScreen(),
           );
         },
       ),
