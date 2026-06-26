@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -399,10 +400,8 @@ class _HomeTabState extends State<_HomeTab> {
           children: [
             _searchBar(),
             const SizedBox(height: 16),
-            // ✅ سلايدر متحرك تلقائياً
             _heroCarousel(),
             const SizedBox(height: 12),
-            // ✅ مؤشرات الصفحات
             _buildDotIndicator(),
             const SizedBox(height: 16),
             _sectionTitle('خدمات سريعة'),
@@ -459,7 +458,6 @@ class _HomeTabState extends State<_HomeTab> {
     );
   }
 
-  // ✅ سلايدر متحرك تلقائياً
   Widget _heroCarousel() {
     return SizedBox(
       height: 180,
@@ -558,7 +556,6 @@ class _HomeTabState extends State<_HomeTab> {
     );
   }
 
-  // ✅ مؤشرات الصفحات
   Widget _buildDotIndicator() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
