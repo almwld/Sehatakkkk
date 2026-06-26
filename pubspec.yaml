@@ -163,3 +163,6 @@ flutter_launcher_icons:
   image_path: "assets/icons/app_icon.png"
   min_sdk_android: 21
   flutter_dotenv: ^5.1.0
+    - assets/icons/plans/
+    - assets/icons/consultations/
+    - assets/icons/offers/
