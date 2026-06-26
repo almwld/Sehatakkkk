@@ -186,3 +186,12 @@ class MoreScreen extends StatelessWidget {
     );
   }
 }
+import 'package:sehatak/presentation/screens/appointments/appointments_screen.dart';
+import 'package:sehatak/presentation/screens/reports/medical_reports_screen.dart';
+import 'package:sehatak/presentation/screens/lab/lab_tests_screen.dart';
+import 'package:sehatak/presentation/screens/vaccination/vaccination_screen.dart';
+import 'package:sehatak/presentation/screens/medication/medications_screen.dart';
+import 'package:sehatak/presentation/screens/mental_health/mental_health_screen.dart';
+import 'package:sehatak/presentation/screens/first_aid/first_aid_screen.dart';
+import 'package:sehatak/presentation/screens/diet/diet_plan_screen.dart';
+import 'package:sehatak/presentation/screens/exercise/exercise_plan_screen.dart';

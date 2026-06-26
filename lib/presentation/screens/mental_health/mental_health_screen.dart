@@ -1,41 +1,108 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/presentation/screens/shared/chat_navigation.dart';
-import 'package:sehatak/presentation/screens/health_tools/stress_meter_screen.dart';
 
-class MentalHealthScreen extends StatelessWidget {
+class MentalHealthScreen extends StatefulWidget {
   const MentalHealthScreen({super.key});
 
-  final List<Map<String, dynamic>> _services = const [
+  @override
+  State<MentalHealthScreen> createState() => _MentalHealthScreenState();
+}
+
+class _MentalHealthScreenState extends State<MentalHealthScreen> {
+  int _stressLevel = 0;
+  String _mood = '😊';
+
+  final List<Map<String, dynamic>> _services = [
     {'icon': '🧠', 'name': 'استشارة نفسية', 'desc': 'تحدث مع معالج نفسي', 'color': AppColors.purple},
     {'icon': '📊', 'name': 'مقياس الاكتئاب', 'desc': 'تقييم حالتك النفسية', 'color': AppColors.info},
     {'icon': '🧘', 'name': 'تمارين التنفس', 'desc': 'تمارين للاسترخاء', 'color': AppColors.success},
     {'icon': '📝', 'name': 'تتبع المزاج', 'desc': 'سجل مزاجك اليومي', 'color': AppColors.warning},
   ];
 
-  final List<Map<String, dynamic>> _doctors = const [
-    {'name': 'د. سارة أحمد', 'specialty': 'استشارية نفسية', 'price': 300, 'rating': 4.9, 'id': '1'},
-    {'name': 'د. خالد محمود', 'specialty': 'معالج سلوكي', 'price': 250, 'rating': 4.7, 'id': '2'},
+  final List<Map<String, dynamic>> _tips = [
+    {'title': 'خذ نفساً عميقاً', 'desc': 'تنفس بعمق 5 مرات لتخفيف التوتر', 'icon': Icons.air, 'color': AppColors.info},
+    {'title': 'تحدث مع شخص تثق به', 'desc': 'مشاركة مشاعرك تخفف العبء', 'icon': Icons.people, 'color': AppColors.success},
+    {'title': 'مارس نشاطاً تحبه', 'desc': 'القيام بنشاط ممتع يحسن المزاج', 'icon': Icons.favorite, 'color': AppColors.error},
+    {'title': 'نام جيداً', 'desc': 'النوم الكافي يحسن الصحة النفسية', 'icon': Icons.bedtime, 'color': AppColors.purple},
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('الصحة النفسية'),
+        title: const Text('الصحة النفسية', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.purple,
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'خدمات الصحة النفسية',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            // ✅ حالة المزاج
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.purple.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.purple.withOpacity(0.2)),
+              ),
+              child: Row(
+                children: [
+                  Text(_mood, style: const TextStyle(fontSize: 40)),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('كيف تشعر اليوم؟', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            _moodButton('😊', 'جيد'),
+                            _moodButton('😐', 'متوسط'),
+                            _moodButton('😔', 'سيئ'),
+                            _moodButton('😡', 'غاضب'),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text('مستوى التوتر', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8)],
+              ),
+              child: Slider(
+                value: _stressLevel.toDouble(),
+                min: 0,
+                max: 10,
+                divisions: 10,
+                activeColor: _stressLevel > 7 ? AppColors.error : _stressLevel > 4 ? AppColors.warning : AppColors.success,
+                label: _stressLevel.toString(),
+                onChanged: (value) => setState(() => _stressLevel = value.toInt()),
+              ),
             ),
             const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('مرتاح', style: TextStyle(fontSize: 11, color: AppColors.grey)),
+                Text('${_stressLevel}/10', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: _stressLevel > 7 ? AppColors.error : _stressLevel > 4 ? AppColors.warning : AppColors.success)),
+                Text('متوتر', style: TextStyle(fontSize: 11, color: AppColors.grey)),
+              ],
+            ),
+            const SizedBox(height: 20),
+            const Text('الخدمات النفسية', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
             GridView.count(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -46,18 +113,9 @@ class MentalHealthScreen extends StatelessWidget {
                 final color = s['color'] as Color;
                 return GestureDetector(
                   onTap: () {
-                    if (s['name'] == 'استشارة نفسية') {
-                      ChatNavigation.openChat(
-                        context,
-                        doctorName: 'المعالج النفسي',
-                        doctorId: '1',
-                      );
-                    } else if (s['name'] == 'مقياس الاكتئاب') {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const StressMeterScreen()),
-                      );
-                    }
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('جاري تحميل ${s['name']}...'), backgroundColor: color),
+                    );
                   },
                   child: Container(
                     padding: const EdgeInsets.all(16),
@@ -69,125 +127,75 @@ class MentalHealthScreen extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(s['icon'], style: const TextStyle(fontSize: 28)),
+                        Text(s['icon'], style: const TextStyle(fontSize: 32)),
                         const SizedBox(height: 8),
-                        Text(
-                          s['name'],
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                            color: color,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
+                        Text(s['name'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: color), textAlign: TextAlign.center),
                         const SizedBox(height: 4),
-                        Text(
-                          s['desc'],
-                          style: const TextStyle(
-                            color: AppColors.grey,
-                            fontSize: 10,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
+                        Text(s['desc'], style: TextStyle(color: AppColors.grey, fontSize: 10), textAlign: TextAlign.center),
                       ],
                     ),
                   ),
                 );
               }).toList(),
             ),
-            const SizedBox(height: 24),
-            const Text(
-              'أطباء الصحة النفسية',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            ..._doctors.map((d) => Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(14),
+            const SizedBox(height: 20),
+            const Text('نصائح يومية', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
+            ..._tips.map((tip) => Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 8,
-                  ),
-                ],
+                color: tip['color'].withOpacity(0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: tip['color'].withOpacity(0.2)),
               ),
               child: Row(
                 children: [
                   Container(
-                    width: 50,
-                    height: 50,
+                    width: 40,
+                    height: 40,
                     decoration: BoxDecoration(
-                      color: AppColors.purple.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      color: tip['color'].withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Center(
-                      child: Text(
-                        d['name'][0],
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.purple,
-                        ),
-                      ),
-                    ),
+                    child: Icon(tip['icon'], color: tip['color'], size: 22),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          d['name'],
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                        Text(
-                          d['specialty'],
-                          style: const TextStyle(
-                            color: AppColors.grey,
-                            fontSize: 11,
-                          ),
-                        ),
+                        Text(tip['title'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                        Text(tip['desc'], style: TextStyle(fontSize: 11, color: AppColors.grey)),
                       ],
                     ),
-                  ),
-                  Column(
-                    children: [
-                      Text(
-                        '${d['price']} ر.ي',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                          fontSize: 13,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      ElevatedButton(
-                        onPressed: () => ChatNavigation.openChat(
-                          context,
-                          doctorName: d['name'],
-                          doctorId: d['id'],
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.purple,
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                          minimumSize: Size.zero,
-                        ),
-                        child: const Text(
-                          'استشر',
-                          style: TextStyle(fontSize: 10),
-                        ),
-                      ),
-                    ],
                   ),
                 ],
               ),
             )),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _moodButton(String emoji, String label) {
+    final selected = _mood == emoji;
+    return GestureDetector(
+      onTap: () => setState(() => _mood = emoji),
+      child: Container(
+        margin: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.purple.withOpacity(0.1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: selected ? AppColors.purple : Colors.transparent),
+        ),
+        child: Row(
+          children: [
+            Text(emoji, style: const TextStyle(fontSize: 20)),
+            const SizedBox(width: 4),
+            Text(label, style: TextStyle(fontSize: 10, color: selected ? AppColors.purple : AppColors.grey)),
           ],
         ),
       ),

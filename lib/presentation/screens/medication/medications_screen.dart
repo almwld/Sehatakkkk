@@ -4,30 +4,29 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
-class VaccinationScreen extends StatefulWidget {
-  const VaccinationScreen({super.key});
+class MedicationsScreen extends StatefulWidget {
+  const MedicationsScreen({super.key});
 
   @override
-  State<VaccinationScreen> createState() => _VaccinationScreenState();
+  State<MedicationsScreen> createState() => _MedicationsScreenState();
 }
 
-class _VaccinationScreenState extends State<VaccinationScreen> {
+class _MedicationsScreenState extends State<MedicationsScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  final List<Map<String, dynamic>> _vaccines = [
-    {'name': 'كوفيد-19', 'doses': 3, 'nextDose': '2026-07-01', 'status': 'مكتمل', 'color': AppColors.success},
-    {'name': 'الإنفلونزا', 'doses': 1, 'nextDose': '2026-12-01', 'status': 'قادم', 'color': AppColors.warning},
-    {'name': 'التيفوئيد', 'doses': 2, 'nextDose': '2026-09-15', 'status': 'مكتمل', 'color': AppColors.success},
-    {'name': 'الكبد الوبائي B', 'doses': 3, 'nextDose': '2026-11-01', 'status': 'قيد التنفيذ', 'color': AppColors.info},
-    {'name': 'الحصبة', 'doses': 2, 'nextDose': '2026-08-01', 'status': 'مكتمل', 'color': AppColors.success},
+  final List<Map<String, dynamic>> _medications = [
+    {'name': 'باراسيتامول 500mg', 'dose': 'قرص واحد', 'frequency': 'كل 6 ساعات', 'duration': '5 أيام', 'status': 'نشط', 'color': AppColors.info},
+    {'name': 'أموكسيسيلين 500mg', 'dose': 'قرصين', 'frequency': 'كل 8 ساعات', 'duration': '7 أيام', 'status': 'نشط', 'color': AppColors.primary},
+    {'name': 'فيتامين د 1000IU', 'dose': 'قرص واحد', 'frequency': 'يومياً', 'duration': '30 يوماً', 'status': 'نشط', 'color': AppColors.success},
+    {'name': 'أملوديبين 5mg', 'dose': 'نصف قرص', 'frequency': 'يومياً', 'duration': '90 يوماً', 'status': 'منتهي', 'color': AppColors.grey},
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('التطعيمات', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('الأدوية', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         actions: [
@@ -35,7 +34,7 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
             icon: const Icon(Icons.add),
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('سيتم إضافة تطعيم جديد قريباً'), backgroundColor: AppColors.info),
+                const SnackBar(content: Text('سيتم إضافة دواء جديد قريباً'), backgroundColor: AppColors.info),
               );
             },
           ),
@@ -46,7 +45,6 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ✅ ملخص التطعيمات
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -56,16 +54,16 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _statItem('${_vaccines.length}', 'إجمالي'),
-                  _statItem('${_vaccines.where((v) => v['status'] == 'مكتمل').length}', 'مكتمل'),
-                  _statItem('${_vaccines.where((v) => v['status'] == 'قادم').length}', 'قادم'),
+                  _statItem('${_medications.length}', 'إجمالي'),
+                  _statItem('${_medications.where((m) => m['status'] == 'نشط').length}', 'نشط'),
+                  _statItem('${_medications.where((m) => m['status'] == 'منتهي').length}', 'منتهي'),
                 ],
               ),
             ),
             const SizedBox(height: 20),
-            const Text('سجل التطعيمات', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text('قائمة الأدوية', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
-            ..._vaccines.map((vaccine) => _buildVaccineCard(vaccine)),
+            ..._medications.map((med) => _buildMedicationCard(med)),
           ],
         ),
       ),
@@ -81,8 +79,10 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
     );
   }
 
-  Widget _buildVaccineCard(Map<String, dynamic> vaccine) {
-    final color = vaccine['color'] as Color;
+  Widget _buildMedicationCard(Map<String, dynamic> med) {
+    final color = med['color'] as Color;
+    final isActive = med['status'] == 'نشط';
+
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
@@ -90,7 +90,7 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8)],
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: isActive ? color.withOpacity(0.2) : Colors.grey[200]!),
       ),
       child: Row(
         children: [
@@ -98,32 +98,32 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: isActive ? color.withOpacity(0.1) : Colors.grey[200],
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(Icons.vaccines, color: color, size: 28),
+            child: Icon(Icons.medication, color: isActive ? color : Colors.grey, size: 28),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(vaccine['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                Text(med['name'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isActive ? null : Colors.grey)),
                 const SizedBox(height: 2),
-                Text('${vaccine['doses']} جرعات', style: const TextStyle(fontSize: 11, color: AppColors.grey)),
-                Text('الجرعة القادمة: ${vaccine['nextDose']}', style: const TextStyle(fontSize: 10, color: AppColors.grey)),
+                Text('${med['dose']} • ${med['frequency']}', style: TextStyle(fontSize: 11, color: isActive ? AppColors.grey : Colors.grey[400])),
+                Text('المدة: ${med['duration']}', style: TextStyle(fontSize: 10, color: isActive ? AppColors.grey : Colors.grey[400])),
               ],
             ),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: isActive ? color.withOpacity(0.1) : Colors.grey[200],
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
-              vaccine['status'],
-              style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w500),
+              med['status'],
+              style: TextStyle(fontSize: 10, color: isActive ? color : Colors.grey, fontWeight: FontWeight.w500),
             ),
           ),
         ],
