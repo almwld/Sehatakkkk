@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:sehatak/core/services/livekit_service.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -23,19 +24,25 @@ class CallScreen extends StatefulWidget {
 
 class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
   final LiveKitService _liveKit = LiveKitService();
+  final Connectivity _connectivity = Connectivity();
+  
   bool _isMuted = false;
   bool _isCameraOn = true;
   bool _isSpeakerOn = false;
   int _callDuration = 0;
   bool _isConnecting = true;
-  String _errorMessage = '';
   bool _hasCameraPermission = false;
+  bool _hasMicrophonePermission = false;
+  String _errorMessage = '';
+  
+  // ✅ حالة الاتصال
+  CallState _callState = CallState.connecting;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _checkPermissions();
+    _checkPermissionsAndStart();
   }
 
   @override
@@ -45,36 +52,71 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  // ✅ التحقق من أذونات الكاميرا
-  Future<void> _checkPermissions() async {
-    if (widget.isVideo) {
-      final status = await Permission.camera.request();
+  // ✅ 1️⃣ التحقق من الأذونات والإنترنت
+  Future<void> _checkPermissionsAndStart() async {
+    // ✅ التحقق من الإنترنت
+    final connectivityResult = await _connectivity.checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
       setState(() {
-        _hasCameraPermission = status.isGranted;
+        _isConnecting = false;
+        _errorMessage = '⚠️ يرجى التأكد من اتصال الإنترنت';
+        _callState = CallState.error;
+      });
+      return;
+    }
+
+    // ✅ طلب أذونات الكاميرا
+    if (widget.isVideo) {
+      final cameraStatus = await Permission.camera.request();
+      setState(() {
+        _hasCameraPermission = cameraStatus.isGranted;
       });
       if (!_hasCameraPermission) {
         setState(() {
           _isConnecting = false;
-          _errorMessage = 'يرجى منح إذن الكاميرا للمكالمات المرئية';
+          _errorMessage = '📷 يرجى منح إذن الكاميرا للمكالمات المرئية';
+          _callState = CallState.error;
         });
         return;
       }
     }
-    // ✅ طلب إذن الميكروفون دائماً
-    await Permission.microphone.request();
+
+    // ✅ طلب إذن الميكروفون
+    final microphoneStatus = await Permission.microphone.request();
+    setState(() {
+      _hasMicrophonePermission = microphoneStatus.isGranted;
+    });
+    if (!_hasMicrophonePermission) {
+      setState(() {
+        _isConnecting = false;
+        _errorMessage = '🎤 يرجى منح إذن الميكروفون';
+        _callState = CallState.error;
+      });
+      return;
+    }
+
+    // ✅ بدء المكالمة
     _startCall();
   }
 
+  // ✅ 2️⃣ بدء المكالمة مع معالجة الأخطاء
   void _startCall() async {
     try {
+      setState(() {
+        _callState = CallState.connecting;
+        _isConnecting = true;
+      });
+
       await _liveKit.startCall(
         roomName: widget.chatId,
         callerName: widget.doctorName,
         isVideo: widget.isVideo && _hasCameraPermission,
       );
+      
       if (mounted) {
         setState(() {
           _isConnecting = false;
+          _callState = CallState.connected;
         });
         _startTimer();
       }
@@ -82,7 +124,8 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
       if (mounted) {
         setState(() {
           _isConnecting = false;
-          _errorMessage = 'فشل الاتصال: $e';
+          _errorMessage = '❌ فشل الاتصال: $e';
+          _callState = CallState.error;
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -99,7 +142,7 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
 
   void _startTimer() {
     Future.delayed(const Duration(seconds: 1), () {
-      if (mounted) {
+      if (mounted && _callState == CallState.connected) {
         setState(() => _callDuration++);
         if (_callDuration < 60) {
           Future.delayed(const Duration(seconds: 1), _startTimer);
@@ -113,6 +156,14 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
     final newState = await _liveKit.toggleCamera();
     setState(() {
       _isCameraOn = newState;
+    });
+  }
+
+  // ✅ تبديل الميكروفون
+  void _toggleMicrophone() async {
+    final newState = await _liveKit.toggleMicrophone();
+    setState(() {
+      _isMuted = !newState;
     });
   }
 
@@ -133,25 +184,26 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                     Icon(Icons.error_outline, color: AppColors.error, size: 60),
                   const SizedBox(height: 16),
                   Text(
-                    _errorMessage.isNotEmpty ? _errorMessage : 'جاري الاتصال...',
+                    _errorMessage.isNotEmpty ? _errorMessage : 
+                    (_callState == CallState.connecting ? 'جاري الاتصال...' : ''),
                     style: TextStyle(
                       color: _errorMessage.isNotEmpty ? AppColors.error : Colors.white,
                       fontSize: 18,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  if (_isConnecting)
+                  if (_callState == CallState.connecting)
                     const Padding(
                       padding: EdgeInsets.all(16.0),
                       child: CircularProgressIndicator(color: Colors.white),
                     ),
-                  if (!_hasCameraPermission && widget.isVideo && _errorMessage.isNotEmpty)
+                  if (_errorMessage.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: ElevatedButton.icon(
-                        onPressed: _checkPermissions,
-                        icon: const Icon(Icons.settings),
-                        label: const Text('منح إذن الكاميرا'),
+                        onPressed: _checkPermissionsAndStart,
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('إعادة المحاولة'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
@@ -162,8 +214,25 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
               ),
             ),
           ),
-          // 🖼️ فيديو المستخدم (مصغر) - مع معاينة الكاميرا
-          if (widget.isVideo && _hasCameraPermission && _errorMessage.isEmpty)
+          
+          // ✅ 3️⃣ عرض صورة المتصل (Remote Participant)
+          // هنا سيتم عرض فيديو الطرف الآخر
+          if (_callState == CallState.connected && widget.isVideo)
+            Positioned.fill(
+              child: Container(
+                color: Colors.black,
+                child: const Center(
+                  child: Icon(
+                    Icons.person,
+                    color: Colors.white54,
+                    size: 80,
+                  ),
+                ),
+              ),
+            ),
+          
+          // 🖼️ فيديو المستخدم (مصغر)
+          if (_callState == CallState.connected && widget.isVideo && _isCameraOn)
             Positioned(
               top: 60,
               right: 20,
@@ -176,12 +245,13 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                   border: Border.all(color: Colors.white, width: 2),
                 ),
                 child: const Center(
-                  child: Icon(Icons.videocam, color: Colors.white54, size: 40),
+                  child: Icon(Icons.person, color: Colors.white54, size: 40),
                 ),
               ),
             ),
+          
           // 📞 واجهة التحكم
-          if (_errorMessage.isEmpty)
+          if (_callState == CallState.connected)
             Positioned(
               bottom: 40,
               left: 0,
@@ -207,10 +277,10 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                       _callButton(
                         icon: _isMuted ? Icons.mic_off : Icons.mic,
                         color: _isMuted ? AppColors.error : Colors.white,
-                        onTap: () => setState(() => _isMuted = !_isMuted),
+                        onTap: _toggleMicrophone,
                       ),
                       // 📹 كتم الكاميرا
-                      if (widget.isVideo && _hasCameraPermission)
+                      if (widget.isVideo)
                         _callButton(
                           icon: _isCameraOn ? Icons.videocam : Icons.videocam_off,
                           color: _isCameraOn ? Colors.white : AppColors.error,
@@ -230,7 +300,7 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                         onTap: () => setState(() => _isSpeakerOn = !_isSpeakerOn),
                       ),
                       // 📷 تبديل الكاميرا
-                      if (widget.isVideo && _hasCameraPermission)
+                      if (widget.isVideo)
                         _callButton(
                           icon: Icons.switch_camera,
                           color: Colors.white,
@@ -241,8 +311,9 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                 ],
               ),
             ),
+          
           // 🏷️ اسم الطبيب
-          if (_errorMessage.isEmpty)
+          if (_callState == CallState.connected)
             Positioned(
               top: 80,
               left: 0,
@@ -300,4 +371,12 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
     final remainingSeconds = seconds % 60;
     return '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
   }
+}
+
+// ✅ حالة المكالمة
+enum CallState {
+  connecting,
+  connected,
+  disconnected,
+  error,
 }

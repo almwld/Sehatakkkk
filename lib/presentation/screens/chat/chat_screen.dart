@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/services/chat_service.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/bloc/chat_bloc/chat_bloc.dart';
@@ -51,10 +52,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    _chatService.enableOffline(); // ✅ تفعيل التخزين المؤقت
+    _chatService.enableOffline();
     WidgetsBinding.instance.addObserver(this);
     _initializeChat();
-    _focusNode.requestFocus(); // ✅ تركيز تلقائي
+    _focusNode.requestFocus();
   }
 
   @override
@@ -79,7 +80,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           _chatId = widget.chatId;
           _isInitialized = true;
         });
-        context.read<ChatBloc>().add(LoadChatMessages(_chatId!));
         return;
       }
 
@@ -94,14 +94,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         _chatId = chatId;
         _isInitialized = true;
       });
-      context.read<ChatBloc>().add(LoadChatMessages(chatId));
       
     } catch (e) {
       _showMsg('فشل إنشاء المحادثة: $e', true);
     }
   }
 
-  // ✅ Optimistic UI: إرسال فوري مع مؤقت
   void _sendMessage() async {
     final text = _messageController.text.trim();
     if ((text.isEmpty && _selectedImage == null && _selectedAudio == null) || _isSending) return;
@@ -112,27 +110,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
     setState(() => _isSending = true);
     
-    // ✅ إضافة الرسالة محلياً فوراً (Optimistic)
-    final currentUser = FirebaseAuth.instance.currentUser;
-    final tempMessage = {
-      'senderId': currentUser?.uid ?? 'me',
-      'senderName': currentUser?.displayName ?? 'أنت',
-      'text': text.isNotEmpty ? text : (_selectedImage != null ? '📷 صورة' : '🎵 رسالة صوتية'),
-      'imageUrl': null,
-      'audioUrl': null,
-      'timestamp': DateTime.now(),
-      'isSending': true,
-    };
-    
-    context.read<ChatBloc>().add(AddLocalMessage(tempMessage));
-    _messageController.clear();
-    setState(() {
-      _selectedImage = null;
-      _selectedAudio = null;
-      _showMediaPreview = false;
-    });
-    _scrollToBottom();
-
     try {
       String? imageUrl;
       String? audioUrl;
@@ -145,15 +122,20 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         audioUrl = await _chatService.uploadMedia(_selectedAudio!, 'audio');
       }
 
-      // ✅ إرسال الرسالة فعلياً
-      context.read<ChatBloc>().add(
-        SendChatMessage(
-          chatId: _chatId!,
-          text: text.isNotEmpty ? text : (imageUrl != null ? '📷 صورة' : '🎵 رسالة صوتية'),
-          imageUrl: imageUrl,
-          audioUrl: audioUrl,
-        ),
+      await _chatService.sendMessage(
+        chatId: _chatId!,
+        text: text.isNotEmpty ? text : (imageUrl != null ? '📷 صورة' : '🎵 رسالة صوتية'),
+        imageUrl: imageUrl,
+        audioUrl: audioUrl,
       );
+
+      setState(() {
+        _selectedImage = null;
+        _selectedAudio = null;
+        _showMediaPreview = false;
+        _messageController.clear();
+      });
+      _scrollToBottom();
     } catch (e) {
       _showMsg('فشل الإرسال: $e', true);
     } finally {
@@ -378,10 +360,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           if (_showMediaPreview && (_selectedImage != null || _selectedAudio != null))
             _buildMediaPreview(),
           Expanded(
-            child: BlocBuilder<ChatBloc, ChatState>(
-              builder: (context, state) {
-                if (!_isInitialized) {
-                  return const Center(
+            child: _isInitialized && _chatId != null
+                ? _buildMessagesStream()
+                : const Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -390,57 +371,91 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         Text('جاري إنشاء المحادثة...'),
                       ],
                     ),
-                  );
-                }
-                if (state is ChatLoadingState) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (state is ChatErrorState) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.error_outline, size: 60, color: AppColors.error),
-                        const SizedBox(height: 16),
-                        Text(state.message),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: _initializeChat,
-                          child: const Text('إعادة المحاولة'),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-                if (state is ChatLoadedState) {
-                  return ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.all(12),
-                    itemCount: state.messages.length,
-                    itemBuilder: (context, index) {
-                      final message = state.messages[index];
-                      final currentUser = FirebaseAuth.instance.currentUser;
-                      final isMe = message['senderId'] == currentUser?.uid ||
-                                  message['senderId'] == 'me';
-                      return MessageBubble(
-                        message: message,
-                        isMe: isMe,
-                        onTap: () {
-                          if (message['imageUrl'] != null) {
-                            _showImagePreview(message['imageUrl']);
-                          }
-                        },
-                      );
-                    },
-                  );
-                }
-                return const SizedBox();
-              },
-            ),
+                  ),
           ),
           _buildInputBar(isDark),
         ],
       ),
+    );
+  }
+
+  // ✅ استخدام StreamBuilder للرسائل الفورية
+  Widget _buildMessagesStream() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('chats')
+          .doc(_chatId)
+          .collection('messages')
+          .orderBy('timestamp', descending: false)
+          .limit(100)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 60, color: AppColors.error),
+                const SizedBox(height: 16),
+                Text('حدث خطأ: ${snapshot.error}'),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () {},
+                  child: const Text('إعادة المحاولة'),
+                ),
+              ],
+            ),
+          );
+        }
+
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.chat_bubble_outline, size: 60, color: AppColors.grey),
+                SizedBox(height: 16),
+                Text(
+                  'لا توجد رسائل بعد',
+                  style: TextStyle(color: AppColors.grey),
+                ),
+                Text(
+                  'ابدأ المحادثة الآن',
+                  style: TextStyle(color: AppColors.grey, fontSize: 12),
+                ),
+              ],
+            ),
+          );
+        }
+
+        final messages = snapshot.data!.docs;
+        return ListView.builder(
+          controller: _scrollController,
+          padding: const EdgeInsets.all(12),
+          itemCount: messages.length,
+          itemBuilder: (context, index) {
+            final data = messages[index].data() as Map<String, dynamic>;
+            final currentUser = FirebaseAuth.instance.currentUser;
+            final isMe = data['senderId'] == currentUser?.uid;
+            return MessageBubble(
+              message: {
+                'id': messages[index].id,
+                ...data,
+              },
+              isMe: isMe,
+              onTap: () {
+                if (data['imageUrl'] != null) {
+                  _showImagePreview(data['imageUrl']);
+                }
+              },
+            );
+          },
+        );
+      },
     );
   }
 
