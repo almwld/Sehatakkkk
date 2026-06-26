@@ -157,3 +157,9 @@ flutter_launcher_icons:
   min_sdk_android: 21
   google_sign_in: ^6.2.1
   # JWT for LiveKit token generation
+  # ✅ أيقونات التطبيق
+  - assets/icons/navigation/
+  - assets/icons/services/
+  - assets/icons/specialties/
+  - assets/icons/lab/
+  - assets/icons/social/
