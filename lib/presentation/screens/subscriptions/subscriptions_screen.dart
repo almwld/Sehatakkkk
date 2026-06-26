@@ -20,34 +20,8 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
     _tab = TabController(length: 4, vsync: this);
   }
 
-  void _openPayment(String planName, String planPrice, String planIcon) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => SubscriptionPaymentScreen(
-          planName: planName,
-          planPrice: planPrice,
-          planEmoji: planIcon,
-        ),
-      ),
-    ).then((paid) {
-      if (paid == true) {
-        if (planName.contains('مجانية')) _selectedPlan = 0;
-        if (planName.contains('فضية')) _selectedPlan = 1;
-        if (planName.contains('ذهبية')) _selectedPlan = 2;
-        if (planName.contains('عائلة')) _selectedPlan = 3;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('🎉 تم الاشتراك في $planName بنجاح!'),
-            backgroundColor: AppColors.success,
-          ),
-        );
-      }
-    });
-  }
-
   // ✅ إزالة planPrice من الاستدعاء
-  void _openPaymentSimplified(String planName, String planIcon) {
+  void _openPayment(String planName, String planIcon) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -194,7 +168,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
           width: double.infinity,
           height: 46,
           child: ElevatedButton(
-            onPressed: selected ? null : () => _openPayment(title, price, iconPath),
+            onPressed: selected ? null : () => _openPayment(title, iconPath),
             style: ElevatedButton.styleFrom(
               backgroundColor: selected ? color : AppColors.primary,
               foregroundColor: Colors.white,
@@ -256,7 +230,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
           Text('$price ر.ي', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color)),
           const SizedBox(height: 4),
           ElevatedButton(
-            onPressed: () => _openPayment(title, price, iconPath),
+            onPressed: () => _openPayment(title, iconPath),
             style: ElevatedButton.styleFrom(
               backgroundColor: color,
               foregroundColor: Colors.white,
@@ -326,7 +300,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
           Text(newPrice, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color)),
           const Spacer(),
           ElevatedButton(
-            onPressed: () => _openPayment(title, newPrice, iconPath),
+            onPressed: () => _openPayment(title, iconPath),
             style: ElevatedButton.styleFrom(
               backgroundColor: color,
               foregroundColor: Colors.white,
