@@ -22,8 +22,8 @@ class LiveKitService {
     try {
       final jwt = JWT(
         {
-          'iss': LiveKitConfig.apiKey,
           'sub': participantName,
+          'iss': LiveKitConfig.apiKey,
           'name': participantName,
           'video': {
             'room': roomName,
@@ -57,6 +57,8 @@ class LiveKitService {
         participantName: participantName ?? 'مستخدم',
       );
 
+      print('🔑 Token: $token');
+
       final options = RoomOptions(
         defaultVideoPublishOptions: const VideoPublishOptions(
           simulcast: false,
@@ -71,6 +73,7 @@ class LiveKitService {
       );
 
       print('✅ Connected to room: $roomName');
+      
       return _room!;
     } catch (e) {
       print('❌ فشل الاتصال: $e');
@@ -84,7 +87,9 @@ class LiveKitService {
       if (_room?.localParticipant != null) {
         await _room!.localParticipant!.setCameraEnabled(true);
         _isCameraEnabled = true;
-        print('✅ Camera enabled');
+        print('✅ Camera enabled successfully');
+      } else {
+        print('⚠️ No local participant found');
       }
     } catch (e) {
       print('❌ Failed to enable camera: $e');
@@ -98,11 +103,61 @@ class LiveKitService {
       if (_room?.localParticipant != null) {
         await _room!.localParticipant!.setMicrophoneEnabled(true);
         _isMicrophoneEnabled = true;
-        print('✅ Microphone enabled');
+        print('✅ Microphone enabled successfully');
+      } else {
+        print('⚠️ No local participant found');
       }
     } catch (e) {
       print('❌ Failed to enable microphone: $e');
       rethrow;
+    }
+  }
+
+  // ✅ إيقاف الكاميرا
+  Future<void> disableCamera() async {
+    try {
+      if (_room?.localParticipant != null) {
+        await _room!.localParticipant!.setCameraEnabled(false);
+        _isCameraEnabled = false;
+        print('✅ Camera disabled');
+      }
+    } catch (e) {
+      print('❌ Failed to disable camera: $e');
+    }
+  }
+
+  // ✅ إيقاف الميكروفون
+  Future<void> disableMicrophone() async {
+    try {
+      if (_room?.localParticipant != null) {
+        await _room!.localParticipant!.setMicrophoneEnabled(false);
+        _isMicrophoneEnabled = false;
+        print('✅ Microphone disabled');
+      }
+    } catch (e) {
+      print('❌ Failed to disable microphone: $e');
+    }
+  }
+
+  // ✅ تبديل الكاميرا
+  Future<bool> toggleCamera() async {
+    if (_isCameraEnabled) {
+      await disableCamera();
+      return false;
+    } else {
+      await enableCamera();
+      return true;
+    }
+  }
+
+  // ✅ تبديل الميكروفون
+  Future<bool> toggleMicrophone() async {
+    if (_isMicrophoneEnabled) {
+      await disableMicrophone();
+      return false;
+    } else {
+      await enableMicrophone();
+      return true;
     }
   }
 
@@ -117,10 +172,13 @@ class LiveKitService {
         roomName: roomName,
         participantName: callerName,
       );
+      
       await enableMicrophone();
+      
       if (isVideo) {
         await enableCamera();
       }
+      
       print('✅ Call started successfully');
     } catch (e) {
       print('❌ Failed to start call: $e');
@@ -128,39 +186,22 @@ class LiveKitService {
     }
   }
 
-  // ✅ تبديل الكاميرا
-  Future<bool> toggleCamera() async {
-    if (_isCameraEnabled) {
-      await _room?.localParticipant?.setCameraEnabled(false);
-      _isCameraEnabled = false;
-      return false;
-    } else {
-      await _room?.localParticipant?.setCameraEnabled(true);
-      _isCameraEnabled = true;
-      return true;
-    }
-  }
-
   Future<void> endCall() async {
-    await _room?.disconnect();
-    _room = null;
-    _isCameraEnabled = false;
-    _isMicrophoneEnabled = false;
+    try {
+      await _room?.disconnect();
+      _room = null;
+      _isCameraEnabled = false;
+      _isMicrophoneEnabled = false;
+      print('✅ Call ended');
+    } catch (e) {
+      print('❌ Failed to end call: $e');
+    }
   }
 
   void dispose() {
     _room?.disconnect();
     _room = null;
+    _isCameraEnabled = false;
+    _isMicrophoneEnabled = false;
   }
 }
-
-  // ✅ تبديل الميكروفون
-  Future<bool> toggleMicrophone() async {
-    if (_isMicrophoneEnabled) {
-      await disableMicrophone();
-      return false;
-    } else {
-      await enableMicrophone();
-      return true;
-    }
-  }

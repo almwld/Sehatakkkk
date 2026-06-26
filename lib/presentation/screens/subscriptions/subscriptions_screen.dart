@@ -46,6 +46,20 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
     });
   }
 
+  // ✅ إزالة planPrice من الاستدعاء
+  void _openPaymentSimplified(String planName, String planIcon) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SubscriptionPaymentScreen(
+          planName: planName,
+          planPrice: '0',
+          planEmoji: planIcon,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
