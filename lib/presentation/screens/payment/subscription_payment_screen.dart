@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/app_colors.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/presentation/widgets/app_icon.dart';
 
 class SubscriptionPaymentScreen extends StatefulWidget {
   final String planName;
-  final String planPrice;
-  final String planEmoji;
-  
+  final double price;
+
   const SubscriptionPaymentScreen({
     super.key,
     required this.planName,
-    required this.planPrice,
-    required this.planEmoji,
+    required this.price,
   });
 
   @override
@@ -18,260 +18,455 @@ class SubscriptionPaymentScreen extends StatefulWidget {
 }
 
 class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
-  int _selectedWallet = 0;
-  bool _processing = false;
-  bool _success = false;
+  String _selectedWallet = 'floosak';
+  bool _isLoading = false;
 
   final List<Map<String, dynamic>> _wallets = [
-    {'name': 'فلوسك', 'code': 'FLOSWK', 'emoji': '💳', 'color': const Color(0xFF1A73E8), 'number': '**** 4582', 'balance': '12,500 ر.ي'},
-    {'name': 'محفظة كاش', 'code': 'CASH', 'emoji': '💰', 'color': const Color(0xFF00A86B), 'number': '**** 7891', 'balance': '8,200 ر.ي'},
-    {'name': 'محفظة جوالي', 'code': 'JAWALI', 'emoji': '📱', 'color': const Color(0xFFFF6B00), 'number': '**** 3456', 'balance': '4,300 ر.ي'},
-    {'name': 'محفظة جيب', 'code': 'JEEB', 'emoji': '👛', 'color': const Color(0xFFE91E63), 'number': '**** 9012', 'balance': '0 ر.ي'},
-    {'name': 'محفظة إيزي', 'code': 'EASY', 'emoji': '🏧', 'color': const Color(0xFF0277BD), 'number': '**** 5678', 'balance': '0 ر.ي'},
+    {
+      'id': 'floosak',
+      'name': 'فلوسك',
+      'icon': 'assets/icons/payment/floosak_icon.png',
+      'number': '4582 ****',
+      'balance': '12,500',
+      'color': AppColors.primary,
+    },
+    {
+      'id': 'cash',
+      'name': 'كاش',
+      'icon': 'assets/icons/payment/كاش_icon.png',
+      'number': '7891 ****',
+      'balance': '8,200',
+      'color': AppColors.success,
+    },
+    {
+      'id': 'jawali',
+      'name': 'جوالي',
+      'icon': 'assets/icons/payment/Jawali_icon.png',
+      'number': '3456 ****',
+      'balance': '4,300',
+      'color': AppColors.info,
+    },
+    {
+      'id': 'jeeb',
+      'name': 'جيب',
+      'icon': 'assets/icons/payment/جيب_icon.png',
+      'number': '9012 ****',
+      'balance': '0',
+      'color': AppColors.warning,
+    },
+    {
+      'id': 'easy',
+      'name': 'إيزي',
+      'icon': 'assets/icons/payment/ايزي_icon.png',
+      'number': '5678 ****',
+      'balance': '0',
+      'color': AppColors.purple,
+    },
+    {
+      'id': 'yemen_wallet',
+      'name': 'يمن وولت',
+      'icon': 'assets/icons/payment/Yemen Wallet_icon.png',
+      'number': '1234 ****',
+      'balance': '15,000',
+      'color': AppColors.teal,
+    },
+    {
+      'id': 'mobile_money',
+      'name': 'موبايل موني',
+      'icon': 'assets/icons/payment/موبايل موني انترنت_icon.png',
+      'number': '6789 ****',
+      'balance': '3,200',
+      'color': AppColors.orange,
+    },
+    {
+      'id': 'cash_one',
+      'name': 'كاش ONE',
+      'icon': 'assets/icons/payment/كاش ONE_icon.png',
+      'number': '2345 ****',
+      'balance': '6,700',
+      'color': AppColors.indigo,
+    },
+    {
+      'id': 'alkarimi',
+      'name': 'الكريمي',
+      'icon': 'assets/icons/payment/الكريمي جوال_icon.png',
+      'number': '8901 ****',
+      'balance': '9,100',
+      'color': AppColors.pink,
+    },
   ];
 
-  void _confirmPayment() {
-    setState(() => _processing = true);
+  void _processPayment() {
+    setState(() => _isLoading = true);
     Future.delayed(const Duration(seconds: 2), () {
-      setState(() {
-        _processing = false;
-        _success = true;
-      });
+      setState(() => _isLoading = false);
+      _showSuccessDialog();
     });
   }
 
-  void _goBack() {
-    Navigator.pop(context, true); // يرجع true للإشارة أن الدفع تم
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_success) {
-      return _buildSuccessScreen();
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('تأكيد الدفع', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          // بطاقة الخطة
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(colors: [AppColors.primary, AppColors.primaryDark]),
-              borderRadius: BorderRadius.circular(16),
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.check_circle,
+              color: AppColors.success,
+              size: 80,
             ),
-            child: Column(children: [
-              Text(widget.planEmoji, style: const TextStyle(fontSize: 48)),
-              const SizedBox(height: 8),
-              Text(widget.planName, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 4),
-              const Text('اشتراك شهري', style: TextStyle(color: Colors.white70, fontSize: 13)),
-              const SizedBox(height: 12),
-              Text('${widget.planPrice} ر.ي', style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)),
-              const Text('شهرياً', style: TextStyle(color: Colors.white70, fontSize: 14)),
-            ]),
-          ),
-
-          const SizedBox(height: 24),
-
-          // اختيار المحفظة
-          const Text('اختر طريقة الدفع', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 4),
-          const Text('المحافظ الإلكترونية اليمنية المدعومة', style: TextStyle(fontSize: 12, color: AppColors.grey)),
-          const SizedBox(height: 12),
-
-          ...List.generate(_wallets.length, (i) {
-            final w = _wallets[i];
-            final sel = _selectedWallet == i;
-            return GestureDetector(
-              onTap: () => setState(() => _selectedWallet = i),
-              child: Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: sel ? w['color'].withOpacity(0.05) : Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: sel ? w['color'] : AppColors.outlineVariant, width: sel ? 2 : 1),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4)],
-                ),
-                child: Row(children: [
-                  Container(
-                    width: 50, height: 50,
-                    decoration: BoxDecoration(color: w['color'].withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-                    child: Center(child: Text(w['emoji'], style: const TextStyle(fontSize: 24))),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Row(children: [
-                        Text(w['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                        const SizedBox(width: 6),
-                        Container(padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1), decoration: BoxDecoration(color: w['color'].withOpacity(0.1), borderRadius: BorderRadius.circular(4)), child: Text(w['code'], style: TextStyle(fontSize: 8, color: w['color']))),
-                      ]),
-                      Text(w['number'], style: const TextStyle(fontSize: 10, color: AppColors.grey)),
-                      Text('الرصيد: ${w['balance']}', style: TextStyle(fontWeight: FontWeight.bold, color: w['color'], fontSize: 12)),
-                    ]),
-                  ),
-                  if (sel) Icon(Icons.check_circle, color: w['color'], size: 28),
-                ]),
+            const SizedBox(height: 16),
+            const Text(
+              '✅ تم الدفع بنجاح!',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
               ),
-            );
-          }),
-
-          const SizedBox(height: 8),
-
-          // إضافة محفظة جديدة
-          TextButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.add_circle, color: AppColors.primary),
-            label: const Text('ربط محفظة جديدة', style: TextStyle(color: AppColors.primary)),
-          ),
-
-          const SizedBox(height: 20),
-
-          // ملخص الدفع
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceContainerLow,
-              borderRadius: BorderRadius.circular(14),
             ),
-            child: Column(children: [
-              _summaryRow('الباقة', widget.planName),
-              _summaryRow('المدة', 'شهري'),
-              _summaryRow('السعر', '${widget.planPrice} ر.ي'),
-              const Divider(),
-              _summaryRow('الإجمالي', '${widget.planPrice} ر.ي', bold: true, color: AppColors.primary),
-            ]),
-          ),
-
-          const SizedBox(height: 20),
-
-          // زر الدفع
-          SizedBox(
-            width: double.infinity, height: 54,
-            child: ElevatedButton(
-              onPressed: _processing ? null : _confirmPayment,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.success,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                elevation: 3,
+            const SizedBox(height: 8),
+            Text(
+              'تم تفعيل الباقة ${widget.planName} بنجاح',
+              style: const TextStyle(
+                color: AppColors.grey,
+                fontSize: 14,
               ),
-              child: _processing
-                  ? const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
-                      SizedBox(width: 10),
-                      Text('جاري الدفع...', style: TextStyle(fontSize: 17)),
-                    ])
-                  : Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      Text('💳', style: TextStyle(fontSize: 22)),
-                      const SizedBox(width: 8),
-                      Text('ادفع ${widget.planPrice} ر.ي عبر ${_wallets[_selectedWallet]['name']}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
-                    ]),
+              textAlign: TextAlign.center,
             ),
-          ),
-          const SizedBox(height: 30),
-        ]),
-      ),
-    );
-  }
-
-  // ========== شاشة النجاح ==========
-  Widget _buildSuccessScreen() {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(30),
-            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              // أيقونة النجاح
-              Container(
-                width: 120, height: 120,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(colors: [AppColors.success, AppColors.teal]),
-                  shape: BoxShape.circle,
-                  boxShadow: [BoxShadow(color: AppColors.success.withOpacity(0.4), blurRadius: 30)],
-                ),
-                child: const Icon(Icons.check, color: Colors.white, size: 60),
-              ),
-              const SizedBox(height: 30),
-              const Text('تم الدفع بنجاح! 🎉', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              Text('أنت الآن مشترك في ${widget.planName}', style: const TextStyle(fontSize: 16, color: AppColors.grey)),
-              const SizedBox(height: 20),
-
-              // تفاصيل الاشتراك
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: AppColors.success.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.success.withOpacity(0.2)),
-                ),
-                child: Column(children: [
-                  _detailRow('الباقة', widget.planName),
-                  _detailRow('المبلغ', '${widget.planPrice} ر.ي'),
-                  _detailRow('طريقة الدفع', _wallets[_selectedWallet]['name']),
-                  _detailRow('تاريخ التجديد', '${DateTime.now().add(const Duration(days: 30)).day} ${_monthName(DateTime.now().add(const Duration(days: 30)).month)} ${DateTime.now().add(const Duration(days: 30)).year}'),
-                ]),
-              ),
-              const SizedBox(height: 30),
-
-              // أزرار
-              SizedBox(
-                width: double.infinity, height: 54,
-                child: ElevatedButton(
-                  onPressed: _goBack,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Text('ابدأ الاستخدام الآن', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
+                child: const Text('تم'),
               ),
-              const SizedBox(height: 12),
-              TextButton(
-                onPressed: _goBack,
-                child: const Text('العودة للرئيسية', style: TextStyle(color: AppColors.grey)),
-              ),
-            ]),
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _summaryRow(String label, String value, {bool bold = false, Color? color}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Text(label, style: const TextStyle(fontSize: 13, color: AppColors.grey)),
-        Text(value, style: TextStyle(fontSize: 13, fontWeight: bold ? FontWeight.bold : FontWeight.normal, color: color ?? AppColors.darkGrey)),
-      ]),
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('تأكيد الدفع'),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ✅ تفاصيل الباقة
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.planName,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'اشتراك شهري',
+                    style: TextStyle(
+                      color: AppColors.grey,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Text(
+                        '${widget.price} ريال شهرياً',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.success.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'شامل الضريبة',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: AppColors.success,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // ✅ طرق الدفع
+            const Text(
+              'اختر طريقة الدفع',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'المحافظ الإلكترونية اليمنية المدعومة',
+              style: TextStyle(
+                color: AppColors.grey,
+                fontSize: 13,
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // ✅ قائمة المحافظ
+            ..._wallets.map((wallet) => _buildWalletTile(wallet, isDark)),
+
+            const SizedBox(height: 12),
+
+            // ✅ ربط محفظة جديدة
+            Center(
+              child: TextButton.icon(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('سيتم إضافة ربط محفظة جديدة قريباً'),
+                      backgroundColor: AppColors.info,
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.add_circle_outline, color: AppColors.primary),
+                label: const Text(
+                  'ربط محفظة جديدة',
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // ✅ زر الدفع
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _processPayment,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  elevation: 0,
+                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : Text(
+                        'تأكيد الدفع (${widget.price} ريال)',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // ✅ نص إضافي
+            Center(
+              child: Text(
+                'سيتم خصم المبلغ من محفظتك الإلكترونية',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.grey,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _detailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Text(label, style: const TextStyle(fontSize: 14, color: AppColors.grey)),
-        Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-      ]),
-    );
-  }
+  Widget _buildWalletTile(Map<String, dynamic> wallet, bool isDark) {
+    final isSelected = _selectedWallet == wallet['id'];
+    final color = wallet['color'] as Color;
 
-  String _monthName(int month) {
-    const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-    return months[month - 1];
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedWallet = wallet['id'];
+        });
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? color.withOpacity(0.08)
+              : isDark
+                  ? const Color(0xFF1A2540)
+                  : Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isSelected
+                ? color
+                : isDark
+                    ? const Color(0xFF2D3A54)
+                    : Colors.grey.shade200,
+            width: isSelected ? 2 : 1,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: color.withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          children: [
+            // ✅ أيقونة المحفظة (SVG)
+            Container(
+              width: 48,
+              height: 48,
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Image.asset(
+                wallet['icon'],
+                width: 32,
+                height: 32,
+                color: color,
+                errorBuilder: (context, error, stackTrace) {
+                  // ✅ إذا تعذر تحميل الصورة، عرض أيقونة افتراضية
+                  return Icon(
+                    Icons.account_balance_wallet,
+                    color: color,
+                    size: 28,
+                  );
+                },
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    wallet['name'],
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: isSelected ? color : null,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    wallet['number'],
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '${wallet['balance']} ر.ي',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                if (isSelected)
+                  Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.check,
+                      color: Colors.white,
+                      size: 14,
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
