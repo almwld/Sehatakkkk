@@ -81,7 +81,6 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
     );
   }
 
-  // ✅ تبويب الباقات - مع أيقونات SVG
   Widget _buildPlansTab() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(14),
@@ -148,7 +147,6 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
             child: const Text('🌟 الأكثر شيوعاً', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
           ),
         Row(children: [
-          // ✅ SVG Icon بدلاً من الإيموجي
           Container(
             width: 40,
             height: 40,
@@ -195,7 +193,6 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
     );
   }
 
-  // ✅ تبويب الاستشارات - مع أيقونات SVG
   Widget _buildConsultationsTab() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(14),
@@ -223,7 +220,6 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6)],
       ),
       child: Row(children: [
-        // ✅ SVG Icon بدلاً من الإيموجي
         Container(
           width: 50,
           height: 50,
@@ -261,7 +257,6 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
     );
   }
 
-  // ✅ تبويب العروض - مع أيقونات SVG
   Widget _buildOffersTab() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(14),
@@ -287,7 +282,6 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          // ✅ SVG Icon بدلاً من الإيموجي
           Container(
             width: 36,
             height: 36,
@@ -332,7 +326,6 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
     );
   }
 
-  // ✅ تبويب حسابي
   Widget _buildMyAccountTab() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(14),

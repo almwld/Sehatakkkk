@@ -153,3 +153,14 @@ class LiveKitService {
     _room = null;
   }
 }
+
+  // ✅ تبديل الميكروفون
+  Future<bool> toggleMicrophone() async {
+    if (_isMicrophoneEnabled) {
+      await disableMicrophone();
+      return false;
+    } else {
+      await enableMicrophone();
+      return true;
+    }
+  }
