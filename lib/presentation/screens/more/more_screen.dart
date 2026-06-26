@@ -13,6 +13,16 @@ import 'package:sehatak/presentation/screens/health_tips/health_tips_screen.dart
 import 'package:sehatak/presentation/screens/medication/medication_reminder_screen.dart';
 import 'package:sehatak/presentation/screens/favorites/favorite_doctors_screen.dart';
 import 'package:sehatak/presentation/screens/subscriptions/subscriptions_screen.dart';
+import 'package:sehatak/presentation/screens/appointments/appointments_screen.dart';
+import 'package:sehatak/presentation/screens/reports/medical_reports_screen.dart';
+import 'package:sehatak/presentation/screens/lab/lab_tests_screen.dart';
+import 'package:sehatak/presentation/screens/vaccination/vaccination_screen.dart';
+import 'package:sehatak/presentation/screens/medication/medications_screen.dart';
+import 'package:sehatak/presentation/screens/mental_health/mental_health_screen.dart';
+import 'package:sehatak/presentation/screens/first_aid/first_aid_screen.dart';
+import 'package:sehatak/presentation/screens/diet/diet_plan_screen.dart';
+import 'package:sehatak/presentation/screens/exercise/exercise_plan_screen.dart';
+import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
 
 class MoreScreen extends StatelessWidget {
   const MoreScreen({super.key});
@@ -30,6 +40,61 @@ class MoreScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ✅ الخريطة التفاعلية
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [AppColors.primary, AppColors.primaryDark],
+                ),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.map, color: Colors.white, size: 32),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'الخريطة التفاعلية',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Text(
+                          '240 موقع صحي في صنعاء',
+                          style: TextStyle(color: Colors.white70, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const InteractiveMapScreen(type: 'hospitals'),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text('استعراض'),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
             // ✅ الباقات والاشتراكات
             Container(
               padding: const EdgeInsets.all(14),
@@ -107,15 +172,29 @@ class MoreScreen extends StatelessWidget {
             // ✅ الرعاية الصحية
             _sectionTitle('الرعاية الصحية'),
             const SizedBox(height: 10),
-            _menuItem(context, Icons.calendar_month_rounded, 'مواعيدي', 'عرض وإدارة المواعيد', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PatientAppointments()))),
+            _menuItem(context, Icons.calendar_month_rounded, 'مواعيدي', 'عرض وإدارة المواعيد', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AppointmentsScreen()))),
             _menuItem(context, Icons.receipt_long, 'الوصفات الطبية', 'عرض الوصفات', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PatientPrescriptions()))),
             _menuItem(context, Icons.folder_shared, 'السجل الطبي', 'سجل صحي كامل', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PatientMedicalHistory()))),
             _menuItem(context, Icons.chat_bubble_rounded, 'استشارات', 'تحدث مع طبيب', () => ChatNavigation.openChat(context, doctorName: 'الطبيب', doctorId: '1')),
+            _menuItem(context, Icons.videocam, 'استشارة فيديو', 'مكالمة مباشرة', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VideoConsultScreen()))),
+            const SizedBox(height: 22),
+
+            // ✅ الخدمات الطبية
+            _sectionTitle('الخدمات الطبية'),
+            const SizedBox(height: 10),
+            _menuItem(context, Icons.medical_information, 'التقارير الطبية', 'عرض التقارير', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MedicalReportsScreen()))),
+            _menuItem(context, Icons.science, 'التحاليل', 'قائمة التحاليل', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LabTestsScreen()))),
+            _menuItem(context, Icons.vaccines, 'التطعيمات', 'سجل التطعيمات', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VaccinationScreen()))),
+            _menuItem(context, Icons.medication, 'الأدوية', 'قائمة الأدوية', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MedicationsScreen()))),
             const SizedBox(height: 22),
 
             // ✅ أدوات صحية
             _sectionTitle('أدوات صحية'),
             const SizedBox(height: 10),
+            _menuItem(context, Icons.psychology, 'الصحة النفسية', 'دعم نفسي', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MentalHealthScreen()))),
+            _menuItem(context, Icons.medical_services, 'إسعافات أولية', 'دليل الطوارئ', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FirstAidScreen()))),
+            _menuItem(context, Icons.restaurant_menu, 'نظام غذائي', 'خطة غذائية', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DietPlanScreen()))),
+            _menuItem(context, Icons.fitness_center, 'تمارين رياضية', 'خطة تمارين', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ExercisePlanScreen()))),
             _menuItem(context, Icons.tips_and_updates, 'نصائح صحية', 'نصائح يومية مفيدة', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HealthTipsScreen()))),
             _menuItem(context, Icons.alarm, 'تذكير الأدوية', 'لا تنس جرعاتك', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MedicationReminderScreen()))),
             const SizedBox(height: 22),
@@ -186,12 +265,3 @@ class MoreScreen extends StatelessWidget {
     );
   }
 }
-import 'package:sehatak/presentation/screens/appointments/appointments_screen.dart';
-import 'package:sehatak/presentation/screens/reports/medical_reports_screen.dart';
-import 'package:sehatak/presentation/screens/lab/lab_tests_screen.dart';
-import 'package:sehatak/presentation/screens/vaccination/vaccination_screen.dart';
-import 'package:sehatak/presentation/screens/medication/medications_screen.dart';
-import 'package:sehatak/presentation/screens/mental_health/mental_health_screen.dart';
-import 'package:sehatak/presentation/screens/first_aid/first_aid_screen.dart';
-import 'package:sehatak/presentation/screens/diet/diet_plan_screen.dart';
-import 'package:sehatak/presentation/screens/exercise/exercise_plan_screen.dart';

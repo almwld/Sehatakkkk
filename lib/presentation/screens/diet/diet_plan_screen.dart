@@ -146,7 +146,14 @@ class _DietPlanScreenState extends State<DietPlanScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(meal['time'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: color)),
+                Text(
+                  meal['time'],
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: color,
+                  ),
+                ),
                 const SizedBox(height: 2),
                 Text(meal['food'], style: const TextStyle(fontSize: 13)),
               ],
@@ -154,7 +161,14 @@ class _DietPlanScreenState extends State<DietPlanScreen> {
           ),
           Column(
             children: [
-              Text('${meal['calories']}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: color)),
+              Text(
+                '${meal['calories']}',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: color,
+                ),
+              ),
               const Text('سعرة', style: TextStyle(fontSize: 9, color: AppColors.grey)),
             ],
           ),

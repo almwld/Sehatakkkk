@@ -17,7 +17,7 @@ class _ExercisePlanScreenState extends State<ExercisePlanScreen> {
     {'name': 'تمارين الكارديو', 'time': '20 دقيقة', 'calories': 150, 'icon': Icons.run_circle, 'color': AppColors.primary},
     {'name': 'تمارين القوة', 'time': '15 دقيقة', 'calories': 120, 'icon': Icons.fitness_center, 'color': AppColors.success},
     {'name': 'تمارين الإطالة', 'time': '10 دقائق', 'calories': 40, 'icon': Icons.accessibility_new, 'color': AppColors.purple},
-    {'name': 'تمارين البطن', 'time': '10 دقائق', 'calories': 80, 'icon': Icons.cycle, 'color': AppColors.warning},
+    {'name': 'تمارين البطن', 'time': '10 دقائق', 'calories': 80, 'icon': Icons.fitness_center, 'color': AppColors.warning},
   ];
 
   @override
@@ -148,8 +148,15 @@ class _ExercisePlanScreenState extends State<ExercisePlanScreen> {
           ),
           Column(
             children: [
-              Text('${exercise['calories']}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: color)),
-              const Text('سعرة', style: const TextStyle(fontSize: 9, color: AppColors.grey)),
+              Text(
+                '${exercise['calories']}',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: color,
+                ),
+              ),
+              const Text('سعرة', style: TextStyle(fontSize: 9, color: AppColors.grey)),
             ],
           ),
         ],
