@@ -14,22 +14,92 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
   late TabController _tab;
   int _selectedPlan = 2;
 
+  final List<Map<String, dynamic>> _plans = [
+    {
+      'id': 'plan_basic',
+      'name': 'الباقة المجانية',
+      'icon': 'assets/icons/plans/free.svg',
+      'price': 0,
+      'period': 'للأبد',
+      'color': AppColors.grey,
+      'features': [
+        '✅ 3 استشارات مجانية شهرياً',
+        '✅ سجل صحي إلكتروني',
+        '✅ تذكير بالمواعيد',
+        '✅ تصفح الأدوية والأسعار',
+      ],
+      'isPopular': false,
+    },
+    {
+      'id': 'plan_silver',
+      'name': 'الباقة الفضية',
+      'icon': 'assets/icons/plans/silver.svg',
+      'price': 3000,
+      'period': 'شهرياً',
+      'color': AppColors.info,
+      'features': [
+        '✅ 10 استشارات شهرياً',
+        '✅ خصم 20% على الأدوية',
+        '✅ تحليل منزلي مجاني شهرياً',
+        '✅ متابعة دورية مع طبيب',
+        '✅ تقارير صحية شهرية',
+        '✅ سجل صحي متقدم',
+      ],
+      'isPopular': false,
+    },
+    {
+      'id': 'plan_gold',
+      'name': 'الباقة الذهبية',
+      'icon': 'assets/icons/plans/gold.svg',
+      'price': 4900,
+      'period': 'شهرياً',
+      'color': AppColors.amber,
+      'features': [
+        '✅ استشارات غير محدودة 24/7',
+        '✅ خصم 35% على جميع الأدوية',
+        '✅ تحاليل منزلية مجانية',
+        '✅ أولوية في الحجز',
+        '✅ طبيب شخصي مخصص',
+        '✅ تقارير صحية أسبوعية',
+        '✅ فيديوهات تثقيفية حصرية',
+        '✅ دعم فني VIP',
+      ],
+      'isPopular': true,
+      'discount': 'وفر 40% سنوياً - 35,000 ر.ي فقط',
+    },
+    {
+      'id': 'plan_family',
+      'name': 'باقة العائلة',
+      'icon': 'assets/icons/plans/family.svg',
+      'price': 7500,
+      'period': 'شهرياً',
+      'color': AppColors.purple,
+      'features': [
+        '✅ كل مميزات الذهبية',
+        '✅ حتى 5 أفراد من العائلة',
+        '✅ استشارات أطفال مجانية',
+        '✅ متابعة حمل وولادة',
+        '✅ تطعيمات مجانية للأطفال',
+        '✅ طبيب عائلة مخصص',
+        '✅ خصم 50% على الأدوية',
+        '✅ تقارير عائلية شاملة',
+      ],
+      'isPopular': false,
+    },
+  ];
+
   @override
   void initState() {
     super.initState();
     _tab = TabController(length: 4, vsync: this);
   }
 
-  // ✅ استدعاء بدون planPrice
-  void _openPayment(String planName, String planIcon) {
+  // ✅ تمرير planId فقط
+  void _openPayment(String planId) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => SubscriptionPaymentScreen(
-          planName: planName,
-          planPrice: '0',
-          planEmoji: planIcon,
-        ),
+        builder: (_) => SubscriptionPaymentScreen(planId: planId),
       ),
     );
   }
@@ -76,58 +146,28 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
         const Text('اختر الباقة المناسبة لك', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
         const Text('وفر أكثر مع الباقات السنوية - خصم يصل إلى 40%', style: TextStyle(color: AppColors.grey, fontSize: 12)),
         const SizedBox(height: 16),
-        _planCard('الباقة المجانية', 'assets/icons/plans/free.svg', '0', 'للأبد', AppColors.grey, [
-          '✅ 3 استشارات مجانية شهرياً',
-          '✅ سجل صحي إلكتروني',
-          '✅ تذكير بالمواعيد',
-          '✅ تصفح الأدوية والأسعار',
-        ], _selectedPlan == 0),
-        const SizedBox(height: 12),
-        _planCard('الباقة الفضية', 'assets/icons/plans/silver.svg', '3,000', 'شهرياً', AppColors.info, [
-          '✅ 10 استشارات شهرياً',
-          '✅ خصم 20% على الأدوية',
-          '✅ تحليل منزلي مجاني شهرياً',
-          '✅ متابعة دورية مع طبيب',
-          '✅ تقارير صحية شهرية',
-          '✅ سجل صحي متقدم',
-        ], _selectedPlan == 1),
-        const SizedBox(height: 12),
-        _planCard('الباقة الذهبية', 'assets/icons/plans/gold.svg', '4,900', 'شهرياً', AppColors.amber, [
-          '✅ استشارات غير محدودة 24/7',
-          '✅ خصم 35% على جميع الأدوية',
-          '✅ تحاليل منزلية مجانية',
-          '✅ أولوية في الحجز',
-          '✅ طبيب شخصي مخصص',
-          '✅ تقارير صحية أسبوعية',
-          '✅ فيديوهات تثقيفية حصرية',
-          '✅ دعم فني VIP',
-        ], _selectedPlan == 2, isPopular: true, discount: 'وفر 40% سنوياً - 35,000 ر.ي فقط'),
-        const SizedBox(height: 12),
-        _planCard('باقة العائلة', 'assets/icons/plans/family.svg', '7,500', 'شهرياً', AppColors.purple, [
-          '✅ كل مميزات الذهبية',
-          '✅ حتى 5 أفراد من العائلة',
-          '✅ استشارات أطفال مجانية',
-          '✅ متابعة حمل وولادة',
-          '✅ تطعيمات مجانية للأطفال',
-          '✅ طبيب عائلة مخصص',
-          '✅ خصم 50% على الأدوية',
-          '✅ تقارير عائلية شاملة',
-        ], _selectedPlan == 3),
+        ..._plans.map((plan) => _planCard(plan)),
       ]),
     );
   }
 
-  Widget _planCard(String title, String iconPath, String price, String period, Color color, List<String> features, bool selected, {bool isPopular = false, String? discount}) {
+  Widget _planCard(Map<String, dynamic> plan) {
+    final isSelected = _selectedPlan == _plans.indexOf(plan);
+    final color = plan['color'] as Color;
+    final price = plan['price'] as int;
+    final isFree = price == 0;
+
     return Container(
+      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: selected ? color.withOpacity(0.05) : Colors.white,
+        color: isSelected ? color.withOpacity(0.05) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: selected ? color : Colors.transparent, width: selected ? 2 : 0),
+        border: Border.all(color: isSelected ? color : Colors.transparent, width: isSelected ? 2 : 0),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8)],
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        if (isPopular)
+        if (plan['isPopular'] == true)
           Container(
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -139,42 +179,36 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
             width: 40,
             height: 40,
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: SvgPicture.asset(
-              iconPath,
-              colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-            ),
+            decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+            child: SvgPicture.asset(plan['icon'], colorFilter: ColorFilter.mode(color, BlendMode.srcIn)),
           ),
           const SizedBox(width: 10),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color)),
-            if (discount != null) Text(discount, style: const TextStyle(fontSize: 10, color: AppColors.success)),
+            Text(plan['name'], style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color)),
+            if (plan['discount'] != null) Text(plan['discount'], style: const TextStyle(fontSize: 10, color: AppColors.success)),
           ])),
           Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-            Text('$price ر.ي', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: color)),
-            Text('/$period', style: const TextStyle(fontSize: 10, color: AppColors.grey)),
+            Text(isFree ? 'مجاني' : '${price.toStringAsFixed(0)} ر.ي', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: color)),
+            Text(plan['period'], style: const TextStyle(fontSize: 10, color: AppColors.grey)),
           ]),
         ]),
         const Divider(height: 20),
-        ...features.map((f) => Padding(
+        ...plan['features'].map<Widget>((f) => Padding(
           padding: const EdgeInsets.only(bottom: 6),
-          child: Text(f, style: TextStyle(fontSize: 12, color: f.startsWith('✅') ? AppColors.success : f.startsWith('❌') ? AppColors.grey : AppColors.darkGrey)),
+          child: Text(f, style: TextStyle(fontSize: 12, color: f.startsWith('✅') ? AppColors.success : AppColors.grey)),
         )),
         const SizedBox(height: 12),
         SizedBox(
           width: double.infinity,
           height: 46,
           child: ElevatedButton(
-            onPressed: selected ? null : () => _openPayment(title, iconPath),
+            onPressed: isSelected ? null : () => _openPayment(plan['id']),
             style: ElevatedButton.styleFrom(
-              backgroundColor: selected ? color : AppColors.primary,
+              backgroundColor: isSelected ? color : AppColors.primary,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            child: Text(selected ? 'باقتك الحالية' : 'اشترك الآن', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+            child: Text(isSelected ? 'باقتك الحالية' : 'اشترك الآن', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
           ),
         ),
       ]),
@@ -212,14 +246,8 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
           width: 50,
           height: 50,
           padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: SvgPicture.asset(
-            iconPath,
-            colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-          ),
+          decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+          child: SvgPicture.asset(iconPath, colorFilter: ColorFilter.mode(color, BlendMode.srcIn)),
         ),
         const SizedBox(width: 12),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -230,7 +258,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
           Text('$price ر.ي', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color)),
           const SizedBox(height: 4),
           ElevatedButton(
-            onPressed: () => _openPayment(title, iconPath),
+            onPressed: () => _openPayment('consult_${title.replaceAll(' ', '_')}'),
             style: ElevatedButton.styleFrom(
               backgroundColor: color,
               foregroundColor: Colors.white,
@@ -274,14 +302,8 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
             width: 36,
             height: 36,
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: SvgPicture.asset(
-              iconPath,
-              colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-            ),
+            decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+            child: SvgPicture.asset(iconPath, colorFilter: ColorFilter.mode(color, BlendMode.srcIn)),
           ),
           const SizedBox(width: 10),
           Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15))),
@@ -300,7 +322,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
           Text(newPrice, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color)),
           const Spacer(),
           ElevatedButton(
-            onPressed: () => _openPayment(title, iconPath),
+            onPressed: () => _openPayment('offer_${title.replaceAll(' ', '_')}'),
             style: ElevatedButton.styleFrom(
               backgroundColor: color,
               foregroundColor: Colors.white,
@@ -327,12 +349,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
             borderRadius: BorderRadius.circular(16),
           ),
           child: Column(children: [
-            SvgPicture.asset(
-              'assets/icons/plans/gold.svg',
-              width: 50,
-              height: 50,
-              colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
-            ),
+            SvgPicture.asset('assets/icons/plans/gold.svg', width: 50, height: 50, colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn)),
             const SizedBox(height: 8),
             const Text('الباقة الذهبية', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
             const Text('سارية حتى 6 يونيو 2026', style: TextStyle(color: Colors.white70, fontSize: 13)),
