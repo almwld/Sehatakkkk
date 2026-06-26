@@ -144,8 +144,74 @@ class _HomeScreenState extends State<HomeScreen> {
 // ============================================
 // 🏠 _HomeTab - الصفحة الرئيسية
 // ============================================
-class _HomeTab extends StatelessWidget {
+class _HomeTab extends StatefulWidget {
   const _HomeTab();
+
+  @override
+  State<_HomeTab> createState() => _HomeTabState();
+}
+
+class _HomeTabState extends State<_HomeTab> {
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+  Timer? _timer;
+
+  final List<Map<String, dynamic>> slides = [
+    {
+      'title': 'صحتك تهمنا',
+      'subtitle': 'رعاية صحية متكاملة في مكان واحد',
+      'image': 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&q=80',
+    },
+    {
+      'title': 'استشارات طبية',
+      'subtitle': 'تواصل مع أفضل الأطباء عن بُعد',
+      'image': 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&q=80',
+    },
+    {
+      'title': 'صيدلية رقمية',
+      'subtitle': 'اطلب أدويتك أونلاين ووصلها لبابك',
+      'image': 'https://images.unsplash.com/photo-1585435557343-3b092031a831?w=800&q=80',
+    },
+    {
+      'title': 'تحاليل منزلية',
+      'subtitle': 'خدمة تحاليل طبية في منزلك',
+      'image': 'https://images.unsplash.com/photo-1581595220892-b0739db3ba8c?w=800&q=80',
+    },
+    {
+      'title': 'تأمين صحي',
+      'subtitle': 'خطط تأمين تناسب احتياجاتك',
+      'image': 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&q=80',
+    },
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _startAutoPlay();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _startAutoPlay() {
+    _timer = Timer.periodic(const Duration(seconds: 4), (timer) {
+      if (_pageController.hasClients) {
+        final nextPage = (_currentPage + 1) % slides.length;
+        _pageController.animateToPage(
+          nextPage,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOut,
+        );
+        setState(() {
+          _currentPage = nextPage;
+        });
+      }
+    });
+  }
 
   void _go(BuildContext context, Widget page) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => page));
@@ -333,8 +399,11 @@ class _HomeTab extends StatelessWidget {
           children: [
             _searchBar(),
             const SizedBox(height: 16),
-            // ✅ السلايدر مع Shimmer Effect
+            // ✅ سلايدر متحرك تلقائياً
             _heroCarousel(),
+            const SizedBox(height: 12),
+            // ✅ مؤشرات الصفحات
+            _buildDotIndicator(),
             const SizedBox(height: 16),
             _sectionTitle('خدمات سريعة'),
             const SizedBox(height: 10),
@@ -390,46 +459,18 @@ class _HomeTab extends StatelessWidget {
     );
   }
 
-  // ✅ السلايدر المتحرك مع Shimmer Effect ودقة عالية
+  // ✅ سلايدر متحرك تلقائياً
   Widget _heroCarousel() {
-    final List<Map<String, dynamic>> slides = [
-      {
-        'title': 'صحتك تهمنا',
-        'subtitle': 'رعاية صحية متكاملة في مكان واحد',
-        'image': 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&q=80',
-        'color': Colors.teal,
-      },
-      {
-        'title': 'استشارات طبية',
-        'subtitle': 'تواصل مع أفضل الأطباء عن بُعد',
-        'image': 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&q=80',
-        'color': Colors.blue,
-      },
-      {
-        'title': 'صيدلية رقمية',
-        'subtitle': 'اطلب أدويتك أونلاين ووصلها لبابك',
-        'image': 'https://images.unsplash.com/photo-1585435557343-3b092031a831?w=800&q=80',
-        'color': Colors.green,
-      },
-      {
-        'title': 'تحاليل منزلية',
-        'subtitle': 'خدمة تحاليل طبية في منزلك',
-        'image': 'https://images.unsplash.com/photo-1581595220892-b0739db3ba8c?w=800&q=80',
-        'color': Colors.purple,
-      },
-      {
-        'title': 'تأمين صحي',
-        'subtitle': 'خطط تأمين تناسب احتياجاتك',
-        'image': 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&q=80',
-        'color': Colors.orange,
-      },
-    ];
-
     return SizedBox(
-      height: 200,
+      height: 180,
       child: PageView.builder(
+        controller: _pageController,
+        onPageChanged: (index) {
+          setState(() {
+            _currentPage = index;
+          });
+        },
         itemCount: slides.length,
-        pageSnapping: true,
         itemBuilder: (context, index) {
           final slide = slides[index];
           return Container(
@@ -448,39 +489,22 @@ class _HomeTab extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
               child: Stack(
                 children: [
-                  // ✅ صورة عالية الجودة مع Shimmer Effect
                   CachedNetworkImage(
                     imageUrl: slide['image'],
                     width: double.infinity,
                     height: double.infinity,
                     fit: BoxFit.cover,
                     placeholder: (context, url) => Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Colors.grey.shade300,
-                            Colors.grey.shade100,
-                            Colors.grey.shade300,
-                          ],
-                          stops: const [0.0, 0.5, 1.0],
-                        ),
-                      ),
-                      child: _buildShimmerEffect(),
+                      color: Colors.grey[300],
+                      child: const Center(child: CircularProgressIndicator()),
                     ),
                     errorWidget: (context, url, error) => Container(
-                      color: slide['color'].withOpacity(0.3),
-                      child: Center(
-                        child: Icon(
-                          Icons.image_not_supported,
-                          color: slide['color'],
-                          size: 50,
-                        ),
+                      color: AppColors.primary.withOpacity(0.3),
+                      child: const Center(
+                        child: Icon(Icons.image_not_supported, size: 50, color: Colors.white54),
                       ),
                     ),
                   ),
-                  // ✅ تدرج لوني للنص
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -493,7 +517,6 @@ class _HomeTab extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // ✅ النص
                   Positioned(
                     bottom: 20,
                     left: 20,
@@ -505,14 +528,10 @@ class _HomeTab extends StatelessWidget {
                           slide['title'],
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 22,
+                            fontSize: 20,
                             fontWeight: FontWeight.bold,
                             shadows: [
-                              Shadow(
-                                color: Colors.black26,
-                                blurRadius: 4,
-                                offset: Offset(0, 2),
-                              ),
+                              Shadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),
                             ],
                           ),
                         ),
@@ -521,36 +540,13 @@ class _HomeTab extends StatelessWidget {
                           slide['subtitle'],
                           style: const TextStyle(
                             color: Colors.white70,
-                            fontSize: 14,
+                            fontSize: 13,
                             shadows: [
-                              Shadow(
-                                color: Colors.black26,
-                                blurRadius: 4,
-                                offset: Offset(0, 2),
-                              ),
+                              Shadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),
                             ],
                           ),
                         ),
                       ],
-                    ),
-                  ),
-                  // ✅ مؤشرات الصفحات
-                  Positioned(
-                    bottom: 10,
-                    right: 20,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.4),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '${index + 1}/${slides.length}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                        ),
-                      ),
                     ),
                   ),
                 ],
@@ -562,27 +558,21 @@ class _HomeTab extends StatelessWidget {
     );
   }
 
-  // ✅ Shimmer Effect متحرك
-  Widget _buildShimmerEffect() {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.grey.shade300,
-            Colors.grey.shade100,
-            Colors.grey.shade200,
-            Colors.grey.shade100,
-            Colors.grey.shade300,
-          ],
-          stops: const [0.0, 0.2, 0.4, 0.6, 1.0],
-        ),
-      ),
-      child: const Center(
-        child: CircularProgressIndicator(
-          strokeWidth: 2,
-          color: AppColors.primary,
+  // ✅ مؤشرات الصفحات
+  Widget _buildDotIndicator() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(
+        slides.length,
+        (index) => AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          width: _currentPage == index ? 20 : 8,
+          height: 8,
+          decoration: BoxDecoration(
+            color: _currentPage == index ? AppColors.primary : Colors.grey[300],
+            borderRadius: BorderRadius.circular(4),
+          ),
         ),
       ),
     );

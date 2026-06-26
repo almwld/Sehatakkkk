@@ -166,3 +166,14 @@ flutter_launcher_icons:
     - assets/icons/plans/
     - assets/icons/consultations/
     - assets/icons/offers/
+
+  # ✅ أيقونات SVG
+  - assets/icons/navigation/
+  - assets/icons/services/
+  - assets/icons/specialties/
+  - assets/icons/lab/
+  - assets/icons/social/
+  - assets/icons/plans/
+  - assets/icons/consultations/
+  - assets/icons/offers/
+  - assets/icons/payment/

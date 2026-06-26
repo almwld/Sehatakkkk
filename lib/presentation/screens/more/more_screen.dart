@@ -12,6 +12,7 @@ import 'package:sehatak/presentation/screens/about/about_screen.dart';
 import 'package:sehatak/presentation/screens/health_tips/health_tips_screen.dart';
 import 'package:sehatak/presentation/screens/medication/medication_reminder_screen.dart';
 import 'package:sehatak/presentation/screens/favorites/favorite_doctors_screen.dart';
+import 'package:sehatak/presentation/screens/subscriptions/subscriptions_screen.dart';
 
 class MoreScreen extends StatelessWidget {
   const MoreScreen({super.key});
@@ -19,12 +20,72 @@ class MoreScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('المزيد')),
+      appBar: AppBar(
+        title: const Text('المزيد'),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ✅ الباقات والاشتراكات
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [AppColors.primary, AppColors.primaryDark],
+                ),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.workspace_premium, color: Colors.white, size: 32),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'الباقات والاشتراكات',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Text(
+                          'خطط اشتراك تناسب احتياجاتك',
+                          style: TextStyle(color: Colors.white70, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const SubscriptionsScreen(),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text('استعراض'),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 22),
+
+            // ✅ خدمات سريعة
             _sectionTitle('خدمات سريعة'),
             const SizedBox(height: 10),
             GridView.count(
@@ -42,22 +103,28 @@ class MoreScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 22),
+
+            // ✅ الرعاية الصحية
             _sectionTitle('الرعاية الصحية'),
             const SizedBox(height: 10),
-            _menuItem(context, Icons.calendar_month_rounded, 'مواعيدي', 'عرض وإدارة المواعيد', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PatientAppointments()))),
-            _menuItem(context, Icons.receipt_long, 'الوصفات الطبية', 'عرض الوصفات', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PatientPrescriptions()))),
-            _menuItem(context, Icons.folder_shared, 'السجل الطبي', 'سجل صحي كامل', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PatientMedicalHistory()))),
-            _menuItem(context, Icons.chat_bubble_rounded, 'استشارات', 'تحدث مع طبيب', () => ChatNavigation.openChat(context, doctorName: 'الطبيب', doctorId: '1')),
+            _menuItem(Icons.calendar_month_rounded, 'مواعيدي', 'عرض وإدارة المواعيد', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PatientAppointments()))),
+            _menuItem(Icons.receipt_long, 'الوصفات الطبية', 'عرض الوصفات', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PatientPrescriptions()))),
+            _menuItem(Icons.folder_shared, 'السجل الطبي', 'سجل صحي كامل', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PatientMedicalHistory()))),
+            _menuItem(Icons.chat_bubble_rounded, 'استشارات', 'تحدث مع طبيب', () => ChatNavigation.openChat(context, doctorName: 'الطبيب', doctorId: '1')),
             const SizedBox(height: 22),
+
+            // ✅ أدوات صحية
             _sectionTitle('أدوات صحية'),
             const SizedBox(height: 10),
-            _menuItem(context, Icons.tips_and_updates, 'نصائح صحية', 'نصائح يومية مفيدة', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HealthTipsScreen()))),
-            _menuItem(context, Icons.alarm, 'تذكير الأدوية', 'لا تنس جرعاتك', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MedicationReminderScreen()))),
+            _menuItem(Icons.tips_and_updates, 'نصائح صحية', 'نصائح يومية مفيدة', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HealthTipsScreen()))),
+            _menuItem(Icons.alarm, 'تذكير الأدوية', 'لا تنس جرعاتك', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MedicationReminderScreen()))),
             const SizedBox(height: 22),
+
+            // ✅ عام
             _sectionTitle('عام'),
             const SizedBox(height: 10),
-            _menuItem(context, Icons.settings_rounded, 'الإعدادات', 'تفضيلات التطبيق', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()))),
-            _menuItem(context, Icons.info_outline, 'عن التطبيق', 'معلومات عن صحتك', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen()))),
+            _menuItem(Icons.settings_rounded, 'الإعدادات', 'تفضيلات التطبيق', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()))),
+            _menuItem(Icons.info_outline, 'عن التطبيق', 'معلومات عن صحتك', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen()))),
             const SizedBox(height: 30),
           ],
         ),
@@ -96,7 +163,7 @@ class MoreScreen extends StatelessWidget {
     );
   }
 
-  Widget _menuItem(BuildContext context, IconData icon, String title, String subtitle, VoidCallback onTap) {
+  Widget _menuItem(IconData icon, String title, String subtitle, VoidCallback onTap) {
     return Card(
       margin: const EdgeInsets.only(bottom: 5),
       elevation: 0,
