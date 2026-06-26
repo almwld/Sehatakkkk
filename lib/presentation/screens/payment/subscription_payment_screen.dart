@@ -177,27 +177,52 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ✅ تفاصيل الباقة
+            // ✅ بنر أخضر كبير ومتوسّط (مشابه لبنر الباقات)
             Container(
-              padding: const EdgeInsets.all(16),
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1A2540) : Colors.white,
-                borderRadius: BorderRadius.circular(16),
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    AppColors.primary,
+                    AppColors.primaryDark,
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(18),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+                    color: AppColors.primary.withOpacity(0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
                   ),
                 ],
               ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // ✅ أيقونة الباقة
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.star_rounded,
+                        color: Colors.white,
+                        size: 32,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                   Text(
                     widget.planName,
                     style: const TextStyle(
-                      fontSize: 20,
+                      color: Colors.white,
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -205,34 +230,68 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
                   const Text(
                     'اشتراك شهري',
                     style: TextStyle(
-                      color: AppColors.grey,
+                      color: Colors.white70,
                       fontSize: 14,
                     ),
                   ),
                   const SizedBox(height: 12),
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        '${widget.price} ريال شهرياً',
-                        style: TextStyle(
-                          fontSize: 24,
+                        '${widget.price} ريال',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 28,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
                         ),
                       ),
-                      const Spacer(),
+                      const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: AppColors.success.withOpacity(0.1),
+                          color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Text(
-                          'شامل الضريبة',
+                          'شهرياً',
                           style: TextStyle(
-                            fontSize: 10,
-                            color: AppColors.success,
+                            color: Colors.white70,
+                            fontSize: 12,
                           ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.check_circle,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 4),
+                      const Text(
+                        'شامل الضريبة',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      const Icon(
+                        Icons.check_circle,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 4),
+                      const Text(
+                        'توصيل مجاني',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
                         ),
                       ),
                     ],
@@ -396,7 +455,6 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
                 height: 32,
                 color: color,
                 errorBuilder: (context, error, stackTrace) {
-                  // ✅ إذا تعذر تحميل الصورة، عرض أيقونة افتراضية
                   return Icon(
                     Icons.account_balance_wallet,
                     color: color,
