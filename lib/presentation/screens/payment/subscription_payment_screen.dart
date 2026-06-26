@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/widgets/app_icon.dart';
 
@@ -20,14 +22,20 @@ class SubscriptionPaymentScreen extends StatefulWidget {
 class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
   String _selectedWallet = 'floosak';
   bool _isLoading = false;
+  String _errorMessage = '';
 
+  // ✅ بيانات المحافظ من Firestore
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  // ✅ قائمة المحافظ المدعومة
   final List<Map<String, dynamic>> _wallets = [
     {
       'id': 'floosak',
       'name': 'فلوسك',
       'icon': 'assets/icons/payment/floosak_icon.png',
       'number': '4582 ****',
-      'balance': '12,500',
+      'balance': 12500,
       'color': AppColors.primary,
     },
     {
@@ -35,7 +43,7 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
       'name': 'كاش',
       'icon': 'assets/icons/payment/كاش_icon.png',
       'number': '7891 ****',
-      'balance': '8,200',
+      'balance': 8200,
       'color': AppColors.success,
     },
     {
@@ -43,7 +51,7 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
       'name': 'جوالي',
       'icon': 'assets/icons/payment/Jawali_icon.png',
       'number': '3456 ****',
-      'balance': '4,300',
+      'balance': 4300,
       'color': AppColors.info,
     },
     {
@@ -51,7 +59,7 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
       'name': 'جيب',
       'icon': 'assets/icons/payment/جيب_icon.png',
       'number': '9012 ****',
-      'balance': '0',
+      'balance': 0,
       'color': AppColors.warning,
     },
     {
@@ -59,7 +67,7 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
       'name': 'إيزي',
       'icon': 'assets/icons/payment/ايزي_icon.png',
       'number': '5678 ****',
-      'balance': '0',
+      'balance': 0,
       'color': AppColors.purple,
     },
     {
@@ -67,7 +75,7 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
       'name': 'يمن وولت',
       'icon': 'assets/icons/payment/Yemen Wallet_icon.png',
       'number': '1234 ****',
-      'balance': '15,000',
+      'balance': 15000,
       'color': AppColors.teal,
     },
     {
@@ -75,7 +83,7 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
       'name': 'موبايل موني',
       'icon': 'assets/icons/payment/موبايل موني انترنت_icon.png',
       'number': '6789 ****',
-      'balance': '3,200',
+      'balance': 3200,
       'color': AppColors.orange,
     },
     {
@@ -83,7 +91,7 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
       'name': 'كاش ONE',
       'icon': 'assets/icons/payment/كاش ONE_icon.png',
       'number': '2345 ****',
-      'balance': '6,700',
+      'balance': 6700,
       'color': AppColors.indigo,
     },
     {
@@ -91,19 +99,162 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
       'name': 'الكريمي',
       'icon': 'assets/icons/payment/الكريمي جوال_icon.png',
       'number': '8901 ****',
-      'balance': '9,100',
+      'balance': 9100,
       'color': AppColors.pink,
     },
   ];
 
-  void _processPayment() {
-    setState(() => _isLoading = true);
-    Future.delayed(const Duration(seconds: 2), () {
-      setState(() => _isLoading = false);
-      _showSuccessDialog();
-    });
+  // ✅ الحصول على رصيد المحفظة من Firestore
+  Future<double> _getWalletBalance(String walletId) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return 0;
+
+      final doc = await _firestore
+          .collection('wallets')
+          .doc(user.uid)
+          .collection('wallets')
+          .doc(walletId)
+          .get();
+
+      if (doc.exists) {
+        return (doc.data()?['balance'] ?? 0).toDouble();
+      }
+      return 0;
+    } catch (e) {
+      print('❌ فشل جلب الرصيد: $e');
+      return 0;
+    }
   }
 
+  // ✅ تحديث رصيد المحفظة في Firestore
+  Future<bool> _updateWalletBalance(String walletId, double newBalance) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return false;
+
+      await _firestore
+          .collection('wallets')
+          .doc(user.uid)
+          .collection('wallets')
+          .doc(walletId)
+          .set({
+        'balance': newBalance,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      return true;
+    } catch (e) {
+      print('❌ فشل تحديث الرصيد: $e');
+      return false;
+    }
+  }
+
+  // ✅ تسجيل المعاملة (Transaction)
+  Future<void> _recordTransaction(String walletId, double amount, String type) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return;
+
+      await _firestore
+          .collection('wallets')
+          .doc(user.uid)
+          .collection('transactions')
+          .add({
+        'walletId': walletId,
+        'amount': amount,
+        'type': type, // 'payment' or 'refund'
+        'planName': widget.planName,
+        'status': 'completed',
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print('❌ فشل تسجيل المعاملة: $e');
+    }
+  }
+
+  // ✅ معالجة الدفع الحقيقي
+  Future<void> _processPayment() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';
+    });
+
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        setState(() {
+          _errorMessage = 'يرجى تسجيل الدخول أولاً';
+          _isLoading = false;
+        });
+        return;
+      }
+
+      // ✅ التحقق من الرصيد
+      final currentBalance = await _getWalletBalance(_selectedWallet);
+      final selectedWallet = _wallets.firstWhere((w) => w['id'] == _selectedWallet);
+      final price = widget.price;
+
+      if (currentBalance < price) {
+        setState(() {
+          _errorMessage = 'الرصيد غير كافي. الرصيد الحالي: ${currentBalance.toStringAsFixed(0)} ريال';
+          _isLoading = false;
+        });
+        _showErrorDialog(_errorMessage);
+        return;
+      }
+
+      // ✅ خصم المبلغ من المحفظة
+      final newBalance = currentBalance - price;
+      final success = await _updateWalletBalance(_selectedWallet, newBalance);
+
+      if (!success) {
+        setState(() {
+          _errorMessage = 'فشل تحديث الرصيد، يرجى المحاولة مرة أخرى';
+          _isLoading = false;
+        });
+        _showErrorDialog(_errorMessage);
+        return;
+      }
+
+      // ✅ تسجيل المعاملة
+      await _recordTransaction(_selectedWallet, price, 'payment');
+
+      // ✅ تحديث حالة الاشتراك
+      await _updateSubscriptionStatus(user.uid, widget.planName);
+
+      setState(() => _isLoading = false);
+      _showSuccessDialog();
+
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'حدث خطأ: $e';
+        _isLoading = false;
+      });
+      _showErrorDialog(_errorMessage);
+    }
+  }
+
+  // ✅ تحديث حالة الاشتراك
+  Future<void> _updateSubscriptionStatus(String userId, String planName) async {
+    try {
+      await _firestore.collection('users').doc(userId).set({
+        'subscription': {
+          'plan': planName,
+          'status': 'active',
+          'startDate': FieldValue.serverTimestamp(),
+          'expiryDate': Timestamp.fromDate(
+            DateTime.now().add(const Duration(days: 30)),
+          ),
+        },
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      print('❌ فشل تحديث الاشتراك: $e');
+    }
+  }
+
+  // ✅ عرض رسالة نجاح
   void _showSuccessDialog() {
     showDialog(
       context: context,
@@ -137,6 +288,32 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
               ),
               textAlign: TextAlign.center,
             ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.account_balance_wallet,
+                    color: AppColors.primary,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'تم خصم ${widget.price} ريال من محفظتك',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
@@ -162,6 +339,31 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
     );
   }
 
+  // ✅ عرض رسالة خطأ
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: const Text(
+          '❌ فشل الدفع',
+          style: TextStyle(
+            color: AppColors.error,
+          ),
+        ),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('حسناً'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -177,7 +379,7 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ✅ بنر أخضر كبير ومتوسّط (مشابه لبنر الباقات)
+            // ✅ بنر أخضر كبير ومتوسّط
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(24),
@@ -201,7 +403,6 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
               ),
               child: Column(
                 children: [
-                  // ✅ أيقونة الباقة
                   Container(
                     width: 60,
                     height: 60,
@@ -320,8 +521,14 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
             ),
             const SizedBox(height: 16),
 
-            // ✅ قائمة المحافظ
-            ..._wallets.map((wallet) => _buildWalletTile(wallet, isDark)),
+            // ✅ قائمة المحافظ مع الرصيد الفعلي
+            ..._wallets.map((wallet) => FutureBuilder<double>(
+              future: _getWalletBalance(wallet['id']),
+              builder: (context, snapshot) {
+                final balance = snapshot.data ?? wallet['balance'].toDouble();
+                return _buildWalletTile(wallet, isDark, balance);
+              },
+            )),
 
             const SizedBox(height: 12),
 
@@ -400,7 +607,7 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
     );
   }
 
-  Widget _buildWalletTile(Map<String, dynamic> wallet, bool isDark) {
+  Widget _buildWalletTile(Map<String, dynamic> wallet, bool isDark, double balance) {
     final isSelected = _selectedWallet == wallet['id'];
     final color = wallet['color'] as Color;
 
@@ -440,7 +647,7 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
         ),
         child: Row(
           children: [
-            // ✅ أيقونة المحفظة (SVG)
+            // ✅ أيقونة المحفظة
             Container(
               width: 48,
               height: 48,
@@ -497,7 +704,7 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    '${wallet['balance']} ر.ي',
+                    '${balance.toStringAsFixed(0)} ر.ي',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
