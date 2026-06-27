@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -21,6 +22,7 @@ import 'package:sehatak/presentation/screens/payment/wallet_screen.dart';
 import 'package:sehatak/presentation/screens/consultation/consultation_screen.dart';
 import 'package:sehatak/presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'package:sehatak/presentation/screens/shared/chat_navigation.dart';
+import 'package:shimmer/shimmer.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -140,10 +142,85 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 // ============================================
-// 🏠 _HomeTab - الصفحة الرئيسية
+// 🏠 _HomeTab - الصفحة الرئيسية مع Shimmer
 // ============================================
-class _HomeTab extends StatelessWidget {
+class _HomeTab extends StatefulWidget {
   const _HomeTab();
+
+  @override
+  State<_HomeTab> createState() => _HomeTabState();
+}
+
+class _HomeTabState extends State<_HomeTab> {
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+  Timer? _timer;
+  bool _isLoading = true;
+
+  final List<Map<String, dynamic>> slides = [
+    {
+      'title': 'صحتك تهمنا',
+      'subtitle': 'رعاية صحية متكاملة في مكان واحد',
+      'image': 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&q=80',
+    },
+    {
+      'title': 'استشارات طبية',
+      'subtitle': 'تواصل مع أفضل الأطباء عن بُعد',
+      'image': 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&q=80',
+    },
+    {
+      'title': 'صيدلية رقمية',
+      'subtitle': 'اطلب أدويتك أونلاين ووصلها لبابك',
+      'image': 'https://images.unsplash.com/photo-1585435557343-3b092031a831?w=800&q=80',
+    },
+    {
+      'title': 'تحاليل منزلية',
+      'subtitle': 'خدمة تحاليل طبية في منزلك',
+      'image': 'https://images.unsplash.com/photo-1581595220892-b0739db3ba8c?w=800&q=80',
+    },
+    {
+      'title': 'تأمين صحي',
+      'subtitle': 'خطط تأمين تناسب احتياجاتك',
+      'image': 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&q=80',
+    },
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _simulateLoading();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _simulateLoading() {
+    setState(() => _isLoading = true);
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        _startAutoPlay();
+      }
+    });
+  }
+
+  void _startAutoPlay() {
+    _timer = Timer.periodic(const Duration(seconds: 4), (timer) {
+      if (_pageController.hasClients) {
+        final nextPage = (_currentPage + 1) % slides.length;
+        _pageController.animateToPage(
+          nextPage,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOut,
+        );
+        setState(() => _currentPage = nextPage);
+      }
+    });
+  }
 
   void _go(BuildContext context, Widget page) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => page));
@@ -154,6 +231,7 @@ class _HomeTab extends StatelessWidget {
     final logged = FirebaseAuth.instance.currentUser != null;
     final user = FirebaseAuth.instance.currentUser;
     final name = user?.displayName ?? user?.email?.split('@')[0] ?? 'مستخدم';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
@@ -280,17 +358,12 @@ class _HomeTab extends StatelessWidget {
               ),
             ),
             onPressed: () {
-              if (logged) {
-                _go(context, const NotificationsScreen());
-              } else {
-                _go(
-                  context,
-                  BlocProvider(
-                    create: (_) => AuthBloc(),
-                    child: const LoginScreen(),
-                  ),
-                );
-              }
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('🔔 سيتم فتح الإشعارات قريباً'),
+                  backgroundColor: AppColors.info,
+                ),
+              );
             },
             tooltip: 'الإشعارات',
           ),
@@ -331,6 +404,12 @@ class _HomeTab extends StatelessWidget {
           children: [
             _searchBar(),
             const SizedBox(height: 16),
+            // ✅ سلايدر مع Shimmer
+            _isLoading ? _buildShimmerSlider() : _heroCarousel(),
+            const SizedBox(height: 12),
+            // ✅ مؤشرات الصفحات (تظهر بعد التحميل)
+            if (!_isLoading) _buildDotIndicator(),
+            const SizedBox(height: 16),
             _sectionTitle('خدمات سريعة'),
             const SizedBox(height: 10),
             _quickServices(context),
@@ -352,6 +431,24 @@ class _HomeTab extends StatelessWidget {
             _tip('المشي اليومي', '30 دقيقة تقلل من أمراض القلب', Icons.directions_walk, AppColors.success),
             const SizedBox(height: 50),
           ],
+        ),
+      ),
+    );
+  }
+
+  // ✅ Shimmer للسلايدر مثل إنستغرام
+  Widget _buildShimmerSlider() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Shimmer.fromColors(
+      baseColor: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+      highlightColor: isDark ? Colors.grey[700]! : Colors.grey[100]!,
+      enabled: true,
+      child: Container(
+        height: 180,
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
         ),
       ),
     );
@@ -381,6 +478,123 @@ class _HomeTab extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // ✅ سلايدر متحرك
+  Widget _heroCarousel() {
+    return SizedBox(
+      height: 180,
+      child: PageView.builder(
+        controller: _pageController,
+        onPageChanged: (index) {
+          setState(() => _currentPage = index);
+        },
+        itemCount: slides.length,
+        itemBuilder: (context, index) {
+          final slide = slides[index];
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: 4),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Stack(
+                children: [
+                  CachedNetworkImage(
+                    imageUrl: slide['image'],
+                    width: double.infinity,
+                    height: double.infinity,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(
+                      color: Colors.grey[300],
+                      child: const Center(child: CircularProgressIndicator()),
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      color: AppColors.primary.withOpacity(0.3),
+                      child: const Center(
+                        child: Icon(Icons.image_not_supported, size: 50, color: Colors.white54),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                        colors: [
+                          Colors.black.withOpacity(0.7),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 20,
+                    left: 20,
+                    right: 20,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          slide['title'],
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            shadows: [
+                              Shadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          slide['subtitle'],
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 13,
+                            shadows: [
+                              Shadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  // ✅ مؤشرات الصفحات
+  Widget _buildDotIndicator() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(
+        slides.length,
+        (index) => AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          width: _currentPage == index ? 20 : 8,
+          height: 8,
+          decoration: BoxDecoration(
+            color: _currentPage == index ? AppColors.primary : Colors.grey[300],
+            borderRadius: BorderRadius.circular(4),
+          ),
+        ),
       ),
     );
   }
