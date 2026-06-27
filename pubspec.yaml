@@ -159,3 +159,7 @@ flutter_launcher_icons:
   ios: false
   image_path: "assets/icons/app_icon.png"
   min_sdk_android: 21
+  # ✅ الإشعارات
+  firebase_messaging: ^14.7.15
+  flutter_local_notifications: ^16.3.0
+  flutter_app_badger: ^1.5.0

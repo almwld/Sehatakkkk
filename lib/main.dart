@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:sehatak/core/services/firebase_service.dart';
+import 'package:sehatak/core/services/notification_service.dart';
 import 'package:sehatak/core/themes/theme_manager.dart';
 import 'package:sehatak/presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'package:sehatak/presentation/bloc/auth_bloc/auth_event.dart';
@@ -12,7 +13,7 @@ import 'package:sehatak/presentation/bloc/doctor_bloc/doctor_bloc.dart';
 import 'package:sehatak/presentation/screens/onboarding/onboarding_screen.dart';
 import 'firebase_options.dart';
 
-bool _firebaseInitialized = false;
+final NotificationService notificationService = NotificationService();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,24 +23,16 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  runApp(const MyApp());
-  _initFirebaseInBackground();
-}
+  // ✅ تهيئة Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  await FirebaseService().initialize();
 
-Future<void> _initFirebaseInBackground() async {
-  try {
-    if (!_firebaseInitialized) {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-      await FirebaseService().initialize();
-      _firebaseInitialized = true;
-      debugPrint('✅ Firebase initialized successfully');
-    }
-  } catch (e) {
-    debugPrint('❌ Firebase initialization failed: $e');
-    Future.delayed(const Duration(seconds: 30), _initFirebaseInBackground);
-  }
+  // ✅ تهيئة الإشعارات
+  await notificationService.initialize();
+
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -58,10 +51,6 @@ class MyApp extends StatelessWidget {
       ],
       child: BlocBuilder<ThemeBloc, ThemeState>(
         builder: (context, state) {
-          final isDark = state is ThemeLoadedState
-              ? state.themeMode == ThemeMode.dark
-              : false;
-
           return MaterialApp(
             title: 'صحتك',
             debugShowCheckedModeBanner: false,
