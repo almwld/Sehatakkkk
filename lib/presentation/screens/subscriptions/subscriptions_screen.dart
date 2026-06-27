@@ -94,15 +94,15 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
     _tab = TabController(length: 4, vsync: this);
   }
 
-  // ✅ تمرير بيانات الباقة كاملة بدلاً من planId فقط
-  void _openPayment(Map<String, dynamic> plan) {
+  // ✅ تمرير البيانات المطلوبة فقط (بدون planId)
+  void _openPayment(String planName, String planPrice, String planIcon) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => SubscriptionPaymentScreen(
-          planName: plan['name'],
-          planPrice: plan['price'].toString(),
-          planEmoji: plan['icon'],
+          planName: planName,
+          planPrice: planPrice,
+          planEmoji: planIcon,
         ),
       ),
     );
@@ -206,7 +206,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
           width: double.infinity,
           height: 46,
           child: ElevatedButton(
-            onPressed: isSelected ? null : () => _openPayment(plan),
+            onPressed: isSelected ? null : () => _openPayment(plan['name'], price.toString(), plan['icon']),
             style: ElevatedButton.styleFrom(
               backgroundColor: isSelected ? color : AppColors.primary,
               foregroundColor: Colors.white,
@@ -262,11 +262,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
           Text('$price ر.ي', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color)),
           const SizedBox(height: 4),
           ElevatedButton(
-            onPressed: () => _openPayment({
-              'name': title,
-              'price': int.parse(price.replaceAll(',', '')),
-              'icon': iconPath,
-            }),
+            onPressed: () => _openPayment(title, price, iconPath),
             style: ElevatedButton.styleFrom(
               backgroundColor: color,
               foregroundColor: Colors.white,
@@ -330,11 +326,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
           Text(newPrice, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color)),
           const Spacer(),
           ElevatedButton(
-            onPressed: () => _openPayment({
-              'name': title,
-              'price': int.parse(newPrice.replaceAll(',', '')),
-              'icon': iconPath,
-            }),
+            onPressed: () => _openPayment(title, newPrice, iconPath),
             style: ElevatedButton.styleFrom(
               backgroundColor: color,
               foregroundColor: Colors.white,
