@@ -100,3 +100,11 @@
             <action android:name="com.google.firebase.MESSAGING_EVENT" />
         </intent-filter>
     </service>
+    <!-- ✅ أذونات الكاميرا -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="true" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+    
+    <!-- ✅ أذونات الميكروفون -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />

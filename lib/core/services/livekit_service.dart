@@ -1,6 +1,5 @@
 import 'package:livekit_client/livekit_client.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import '../config/livekit_config.dart';
 
 class LiveKitService {
@@ -14,37 +13,35 @@ class LiveKitService {
 
   bool get isConnected => _room?.connectionState == ConnectionState.connected;
 
-  // 🔑 توليد Token باستخدام JWT
+  // ✅ توليد Token مع صلاحيات الكاميرا والميكروفون
   String _generateToken({
     required String roomName,
     required String participantName,
   }) {
     try {
-      final jwt = JWT(
-        {
-          'sub': participantName,
-          'iss': LiveKitConfig.apiKey,
-          'name': participantName,
-          'video': {
-            'room': roomName,
-            'roomJoin': true,
-            'canPublish': true,
-            'canSubscribe': true,
-          },
-          'exp': DateTime.now().add(const Duration(minutes: 10)).millisecondsSinceEpoch ~/ 1000,
-          'nbf': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-        },
+      final token = AccessToken(
+        LiveKitConfig.apiKey,
+        LiveKitConfig.apiSecret,
+        identity: participantName,
+        ttl: const Duration(minutes: 10),
       );
-
-      final token = jwt.sign(SecretKey(LiveKitConfig.apiSecret));
-      print('✅ Token generated successfully');
-      return token;
+      
+      token.addGrant(
+        roomJoin: true,
+        room: roomName,
+        canPublish: true,
+        canSubscribe: true,
+        canPublishData: true,
+      );
+      
+      return token.toJwt();
     } catch (e) {
       print('❌ خطأ في توليد التوكن: $e');
       rethrow;
     }
   }
 
+  // ✅ الاتصال بالغرفة مع دعم الفيديو
   Future<Room> connectRoom({
     required String roomName,
     String? participantName,
@@ -57,13 +54,16 @@ class LiveKitService {
         participantName: participantName ?? 'مستخدم',
       );
 
-      print('🔑 Token: $token');
+      print('✅ Token generated successfully');
 
       final options = RoomOptions(
         defaultVideoPublishOptions: const VideoPublishOptions(
           simulcast: false,
+          videoCodec: VideoCodec.vp8,
         ),
-        defaultAudioPublishOptions: const AudioPublishOptions(),
+        defaultAudioPublishOptions: const AudioPublishOptions(
+          bitrate: AudioBitrate.bitrate32,
+        ),
       );
 
       await _room!.connect(
@@ -81,15 +81,13 @@ class LiveKitService {
     }
   }
 
-  // ✅ تفعيل الكاميرا
+  // ✅ تفعيل الكاميرا مع معالجة الأخطاء
   Future<void> enableCamera() async {
     try {
       if (_room?.localParticipant != null) {
         await _room!.localParticipant!.setCameraEnabled(true);
         _isCameraEnabled = true;
-        print('✅ Camera enabled successfully');
-      } else {
-        print('⚠️ No local participant found');
+        print('✅ Camera enabled');
       }
     } catch (e) {
       print('❌ Failed to enable camera: $e');
@@ -103,61 +101,11 @@ class LiveKitService {
       if (_room?.localParticipant != null) {
         await _room!.localParticipant!.setMicrophoneEnabled(true);
         _isMicrophoneEnabled = true;
-        print('✅ Microphone enabled successfully');
-      } else {
-        print('⚠️ No local participant found');
+        print('✅ Microphone enabled');
       }
     } catch (e) {
       print('❌ Failed to enable microphone: $e');
       rethrow;
-    }
-  }
-
-  // ✅ إيقاف الكاميرا
-  Future<void> disableCamera() async {
-    try {
-      if (_room?.localParticipant != null) {
-        await _room!.localParticipant!.setCameraEnabled(false);
-        _isCameraEnabled = false;
-        print('✅ Camera disabled');
-      }
-    } catch (e) {
-      print('❌ Failed to disable camera: $e');
-    }
-  }
-
-  // ✅ إيقاف الميكروفون
-  Future<void> disableMicrophone() async {
-    try {
-      if (_room?.localParticipant != null) {
-        await _room!.localParticipant!.setMicrophoneEnabled(false);
-        _isMicrophoneEnabled = false;
-        print('✅ Microphone disabled');
-      }
-    } catch (e) {
-      print('❌ Failed to disable microphone: $e');
-    }
-  }
-
-  // ✅ تبديل الكاميرا
-  Future<bool> toggleCamera() async {
-    if (_isCameraEnabled) {
-      await disableCamera();
-      return false;
-    } else {
-      await enableCamera();
-      return true;
-    }
-  }
-
-  // ✅ تبديل الميكروفون
-  Future<bool> toggleMicrophone() async {
-    if (_isMicrophoneEnabled) {
-      await disableMicrophone();
-      return false;
-    } else {
-      await enableMicrophone();
-      return true;
     }
   }
 
@@ -186,6 +134,30 @@ class LiveKitService {
     }
   }
 
+  // ✅ إيقاف الكاميرا
+  Future<void> disableCamera() async {
+    try {
+      if (_room?.localParticipant != null) {
+        await _room!.localParticipant!.setCameraEnabled(false);
+        _isCameraEnabled = false;
+        print('✅ Camera disabled');
+      }
+    } catch (e) {
+      print('❌ Failed to disable camera: $e');
+    }
+  }
+
+  // ✅ تبديل الكاميرا
+  Future<bool> toggleCamera() async {
+    if (_isCameraEnabled) {
+      await disableCamera();
+      return false;
+    } else {
+      await enableCamera();
+      return true;
+    }
+  }
+
   Future<void> endCall() async {
     try {
       await _room?.disconnect();
@@ -201,7 +173,5 @@ class LiveKitService {
   void dispose() {
     _room?.disconnect();
     _room = null;
-    _isCameraEnabled = false;
-    _isMicrophoneEnabled = false;
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:sehatak/core/services/livekit_service.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class CallScreen extends StatefulWidget {
@@ -21,28 +22,70 @@ class CallScreen extends StatefulWidget {
 }
 
 class _CallScreenState extends State<CallScreen> {
+  final LiveKitService _liveKit = LiveKitService();
   bool _isMuted = false;
-  bool _isCameraOff = false;
+  bool _isCameraOn = true;
   bool _isSpeakerOn = true;
   int _callDuration = 0;
   bool _isConnecting = true;
+  bool _hasCameraPermission = false;
 
   @override
   void initState() {
     super.initState();
-    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    _checkPermissions();
+  }
+
+  Future<void> _checkPermissions() async {
+    // ✅ طلب إذن الكاميرا
+    if (widget.isVideo) {
+      final cameraStatus = await Permission.camera.request();
+      setState(() {
+        _hasCameraPermission = cameraStatus.isGranted;
+      });
+      if (!_hasCameraPermission) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('يرجى منح إذن الكاميرا للمكالمات المرئية'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+
+    // ✅ طلب إذن الميكروفون
+    await Permission.microphone.request();
+    
     _startCall();
   }
 
-  void _startCall() {
-    Future.delayed(const Duration(seconds: 2), () {
+  void _startCall() async {
+    try {
+      await _liveKit.startCall(
+        roomName: widget.roomName,
+        callerName: widget.callerName,
+        isVideo: widget.isVideo && _hasCameraPermission,
+      );
       if (mounted) {
         setState(() {
           _isConnecting = false;
         });
         _startTimer();
       }
-    });
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isConnecting = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ فشل الاتصال: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted) Navigator.pop(context);
+        });
+      }
+    }
   }
 
   void _startTimer() {
@@ -56,8 +99,9 @@ class _CallScreenState extends State<CallScreen> {
     });
   }
 
-  void _endCall() {
-    Navigator.pop(context);
+  void _toggleCamera() async {
+    final newState = await _liveKit.toggleCamera();
+    setState(() => _isCameraOn = newState);
   }
 
   @override
@@ -66,109 +110,75 @@ class _CallScreenState extends State<CallScreen> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Background
+          // ✅ خلفية المكالمة
           Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  AppColors.primary.withOpacity(0.6),
-                  Colors.black,
+            color: Colors.black87,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.person, color: Colors.white54, size: 80),
+                  const SizedBox(height: 16),
+                  Text(
+                    widget.callerName,
+                    style: const TextStyle(color: Colors.white, fontSize: 22),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _isConnecting ? 'جاري الاتصال...' : _formatDuration(_callDuration),
+                    style: const TextStyle(color: Colors.white70, fontSize: 16),
+                  ),
                 ],
               ),
             ),
           ),
-
-          // Main content
-          SafeArea(
+          // ✅ واجهة التحكم
+          Positioned(
+            bottom: 40,
+            left: 0,
+            right: 0,
             child: Column(
               children: [
-                const Spacer(flex: 2),
-
-                // Avatar
-                Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.grey.shade800,
-                    border: Border.all(color: Colors.green, width: 3),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.green.withOpacity(0.3),
-                        blurRadius: 20,
-                        spreadRadius: 5,
-                      ),
-                    ],
-                  ),
-                  child: widget.callerPhoto != null
-                      ? ClipOval(
-                          child: Image.network(
-                            widget.callerPhoto!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const Icon(Icons.person, size: 60, color: Colors.white54),
-                          ),
-                        )
-                      : const Icon(Icons.person, size: 60, color: Colors.white54),
-                ),
-
-                const SizedBox(height: 24),
-                Text(
-                  widget.callerName,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  _isConnecting ? 'جاري الاتصال...' : _formatDuration(_callDuration),
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.7),
-                    fontSize: 16,
-                  ),
-                ),
-
-                const Spacer(flex: 3),
-
-                // Controls
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _controlButton(
+                    // 🎤 كتم الصوت
+                    _callButton(
                       icon: _isMuted ? Icons.mic_off : Icons.mic,
-                      color: _isMuted ? Colors.orange : Colors.white,
-                      label: _isMuted ? 'صامت' : 'ميكروفون',
+                      color: _isMuted ? AppColors.error : Colors.white,
                       onTap: () => setState(() => _isMuted = !_isMuted),
                     ),
-                    const SizedBox(width: 32),
-                    _controlButton(
-                      icon: Icons.call_end,
-                      color: Colors.red,
-                      label: 'إنهاء',
-                      size: 64,
-                      onTap: _endCall,
-                    ),
-                    const SizedBox(width: 32),
+                    // 📹 كتم الكاميرا
                     if (widget.isVideo)
-                      _controlButton(
-                        icon: _isCameraOff ? Icons.videocam_off : Icons.videocam,
-                        color: _isCameraOff ? Colors.orange : Colors.white,
-                        label: _isCameraOff ? 'كاميرا مغلقة' : 'كاميرا',
-                        onTap: () => setState(() => _isCameraOff = !_isCameraOff),
+                      _callButton(
+                        icon: _isCameraOn ? Icons.videocam : Icons.videocam_off,
+                        color: _isCameraOn ? Colors.white : AppColors.error,
+                        onTap: _toggleCamera,
                       ),
-                    _controlButton(
+                    // 📞 إنهاء المكالمة
+                    _callButton(
+                      icon: Icons.call_end,
+                      color: AppColors.error,
+                      size: 60,
+                      onTap: () {
+                        _liveKit.endCall();
+                        Navigator.pop(context);
+                      },
+                    ),
+                    // 🔊 مكبر الصوت
+                    _callButton(
                       icon: _isSpeakerOn ? Icons.volume_up : Icons.volume_off,
-                      color: _isSpeakerOn ? Colors.white : Colors.orange,
-                      label: 'مكبر الصوت',
+                      color: _isSpeakerOn ? AppColors.info : Colors.white,
                       onTap: () => setState(() => _isSpeakerOn = !_isSpeakerOn),
                     ),
+                    if (widget.isVideo)
+                      _callButton(
+                        icon: Icons.switch_camera,
+                        color: Colors.white,
+                        onTap: () {},
+                      ),
                   ],
                 ),
-
-                const SizedBox(height: 32),
               ],
             ),
           ),
@@ -177,37 +187,24 @@ class _CallScreenState extends State<CallScreen> {
     );
   }
 
-  Widget _controlButton({
+  Widget _callButton({
     required IconData icon,
     required Color color,
-    required String label,
     double size = 50,
     required VoidCallback onTap,
   }) {
-    return Column(
-      children: [
-        GestureDetector(
-          onTap: onTap,
-          child: Container(
-            width: size,
-            height: size,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: color.withOpacity(0.2),
-              border: Border.all(color: color.withOpacity(0.5), width: 2),
-            ),
-            child: Icon(icon, color: color, size: size * 0.4),
-          ),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.2),
+          shape: BoxShape.circle,
+          border: Border.all(color: color, width: 2),
         ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.7),
-            fontSize: 10,
-          ),
-        ),
-      ],
+        child: Icon(icon, color: color, size: size * 0.4),
+      ),
     );
   }
 
@@ -219,7 +216,7 @@ class _CallScreenState extends State<CallScreen> {
 
   @override
   void dispose() {
-    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+    _liveKit.endCall();
     super.dispose();
   }
 }
