@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class SubscriptionPaymentScreen extends StatefulWidget {
-  final String planId;  // ✅ فقط الـ ID
+  final String planName;
+  final String planPrice;
+  final String planEmoji;
 
   const SubscriptionPaymentScreen({
     super.key,
-    required this.planId,
+    required this.planName,
+    required this.planPrice,
+    required this.planEmoji,
   });
 
   @override
@@ -17,14 +20,14 @@ class SubscriptionPaymentScreen extends StatefulWidget {
 }
 
 class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
-  late Future<DocumentSnapshot> _planData;
   String _selectedWallet = 'floosak';
   bool _isLoading = false;
   String _errorMessage = '';
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  // ✅ قائمة المحافظ اليمنية المدعومة
   final List<Map<String, dynamic>> _wallets = [
     {
       'id': 'floosak',
@@ -66,47 +69,9 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
       'balance': 0,
       'color': AppColors.purple,
     },
-    {
-      'id': 'yemen_wallet',
-      'name': 'يمن وولت',
-      'icon': 'assets/icons/payment/Yemen Wallet_icon.png',
-      'number': '1234 ****',
-      'balance': 15000,
-      'color': AppColors.teal,
-    },
-    {
-      'id': 'mobile_money',
-      'name': 'موبايل موني',
-      'icon': 'assets/icons/payment/موبايل موني انترنت_icon.png',
-      'number': '6789 ****',
-      'balance': 3200,
-      'color': AppColors.orange,
-    },
-    {
-      'id': 'cash_one',
-      'name': 'كاش ONE',
-      'icon': 'assets/icons/payment/كاش ONE_icon.png',
-      'number': '2345 ****',
-      'balance': 6700,
-      'color': AppColors.indigo,
-    },
-    {
-      'id': 'alkarimi',
-      'name': 'الكريمي',
-      'icon': 'assets/icons/payment/الكريمي جوال_icon.png',
-      'number': '8901 ****',
-      'balance': 9100,
-      'color': AppColors.pink,
-    },
   ];
 
-  @override
-  void initState() {
-    super.initState();
-    _planData = _firestore.collection('plans').doc(widget.planId).get();
-  }
-
-  // ✅ جلب الرصيد من Firestore
+  // ✅ جلب رصيد المحفظة
   Future<double> _getWalletBalance(String walletId) async {
     try {
       final user = _auth.currentUser;
@@ -153,7 +118,7 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
   }
 
   // ✅ تسجيل المعاملة
-  Future<void> _recordTransaction(String walletId, double amount, String planName) async {
+  Future<void> _recordTransaction(String walletId, double amount, String type) async {
     try {
       final user = _auth.currentUser;
       if (user == null) return;
@@ -165,8 +130,8 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
           .add({
         'walletId': walletId,
         'amount': amount,
-        'type': 'payment',
-        'planName': planName,
+        'type': type,
+        'planName': widget.planName,
         'status': 'completed',
         'timestamp': FieldValue.serverTimestamp(),
       });
@@ -175,12 +140,75 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
     }
   }
 
-  // ✅ تحديث حالة الاشتراك
-  Future<void> _updateSubscriptionStatus(String userId, String planName) async {
+  // ✅ معالجة الدفع
+  Future<void> _processPayment() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      setState(() {
+        _errorMessage = 'يرجى تسجيل الدخول أولاً';
+        _isLoading = false;
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';
+    });
+
+    try {
+      final price = double.tryParse(widget.planPrice) ?? 0;
+      if (price == 0) {
+        // ✅ باقة مجانية
+        await _updateSubscription(user.uid);
+        setState(() => _isLoading = false);
+        _showSuccessDialog('✅ تم تفعيل الباقة المجانية بنجاح!');
+        return;
+      }
+
+      final currentBalance = await _getWalletBalance(_selectedWallet);
+      if (currentBalance < price) {
+        setState(() {
+          _errorMessage = 'الرصيد غير كافي. الرصيد الحالي: ${currentBalance.toStringAsFixed(0)} ريال';
+          _isLoading = false;
+        });
+        _showErrorDialog(_errorMessage);
+        return;
+      }
+
+      final newBalance = currentBalance - price;
+      final success = await _updateWalletBalance(_selectedWallet, newBalance);
+
+      if (!success) {
+        setState(() {
+          _errorMessage = 'فشل تحديث الرصيد، يرجى المحاولة مرة أخرى';
+          _isLoading = false;
+        });
+        _showErrorDialog(_errorMessage);
+        return;
+      }
+
+      await _recordTransaction(_selectedWallet, price, 'payment');
+      await _updateSubscription(user.uid);
+
+      setState(() => _isLoading = false);
+      _showSuccessDialog('✅ تم الدفع بنجاح! تم تفعيل ${widget.planName}');
+
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'حدث خطأ: $e';
+        _isLoading = false;
+      });
+      _showErrorDialog(_errorMessage);
+    }
+  }
+
+  // ✅ تحديث الاشتراك
+  Future<void> _updateSubscription(String userId) async {
     try {
       await _firestore.collection('users').doc(userId).set({
         'subscription': {
-          'plan': planName,
+          'plan': widget.planName,
           'status': 'active',
           'startDate': FieldValue.serverTimestamp(),
           'expiryDate': Timestamp.fromDate(
@@ -194,69 +222,7 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
     }
   }
 
-  // ✅ معالجة الدفع
-  Future<void> _processPayment(String planName, double price) async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = '';
-    });
-
-    try {
-      final user = _auth.currentUser;
-      if (user == null) {
-        setState(() {
-          _errorMessage = 'يرجى تسجيل الدخول أولاً';
-          _isLoading = false;
-        });
-        return;
-      }
-
-      if (price == 0) {
-        // ✅ باقة مجانية
-        await _updateSubscriptionStatus(user.uid, planName);
-        setState(() => _isLoading = false);
-        _showSuccessDialog(planName, price);
-        return;
-      }
-
-      final currentBalance = await _getWalletBalance(_selectedWallet);
-      if (currentBalance < price) {
-        setState(() {
-          _errorMessage = 'الرصيد غير كافي';
-          _isLoading = false;
-        });
-        _showErrorDialog(_errorMessage);
-        return;
-      }
-
-      final newBalance = currentBalance - price;
-      final success = await _updateWalletBalance(_selectedWallet, newBalance);
-
-      if (!success) {
-        setState(() {
-          _errorMessage = 'فشل تحديث الرصيد';
-          _isLoading = false;
-        });
-        _showErrorDialog(_errorMessage);
-        return;
-      }
-
-      await _recordTransaction(_selectedWallet, price, planName);
-      await _updateSubscriptionStatus(user.uid, planName);
-
-      setState(() => _isLoading = false);
-      _showSuccessDialog(planName, price);
-
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'حدث خطأ: $e';
-        _isLoading = false;
-      });
-      _showErrorDialog(_errorMessage);
-    }
-  }
-
-  void _showSuccessDialog(String planName, double price) {
+  void _showSuccessDialog(String message) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -267,24 +233,17 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
           children: [
             const Icon(Icons.check_circle, color: AppColors.success, size: 80),
             const SizedBox(height: 16),
-            const Text('✅ تم الدفع بنجاح!', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            const Text('✅ نجاح!', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Text('تم تفعيل الباقة $planName بنجاح', style: const TextStyle(color: AppColors.grey, fontSize: 14), textAlign: TextAlign.center),
-            if (price > 0)
-              Container(
-                padding: const EdgeInsets.all(12),
-                margin: const EdgeInsets.only(top: 8),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text('تم خصم ${price.toStringAsFixed(0)} ريال من محفظتك', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
-              ),
+            Text(message, style: const TextStyle(fontSize: 14), textAlign: TextAlign.center),
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () { Navigator.pop(context); Navigator.pop(context); },
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pop(context, true);
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
@@ -308,7 +267,10 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
         title: const Text('❌ فشل الدفع', style: TextStyle(color: AppColors.error)),
         content: Text(message),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('حسناً')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('حسناً'),
+          ),
         ],
       ),
     );
@@ -324,231 +286,140 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
-      body: FutureBuilder<DocumentSnapshot>(
-        future: _planData,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (snapshot.hasError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 60, color: AppColors.error),
-                  const SizedBox(height: 16),
-                  Text('حدث خطأ: ${snapshot.error}'),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        _planData = _firestore.collection('plans').doc(widget.planId).get();
-                      });
-                    },
-                    child: const Text('إعادة المحاولة'),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ✅ بنر الباقة
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [AppColors.primary, AppColors.primaryDark],
+                ),
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withOpacity(0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
                   ),
                 ],
               ),
-            );
-          }
-
-          if (!snapshot.hasData || !snapshot.data!.exists) {
-            return const Center(child: Text('الباقة غير موجودة'));
-          }
-
-          final data = snapshot.data!.data() as Map<String, dynamic>;
-          final planName = data['name'] ?? 'باقة';
-          final price = (data['price'] ?? 0).toDouble();
-          final period = data['period'] ?? 'شهرياً';
-          final features = List<String>.from(data['features'] ?? []);
-          final isFree = price == 0;
-
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ✅ بنر الباقة
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [AppColors.primary, AppColors.primaryDark],
-                    ),
-                    borderRadius: BorderRadius.circular(18),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withOpacity(0.3),
-                        blurRadius: 12,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
+              child: Column(
+                children: [
+                  Text(
+                    widget.planEmoji,
+                    style: const TextStyle(fontSize: 40),
                   ),
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: const Center(
-                          child: Icon(Icons.star_rounded, color: Colors.white, size: 32),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        planName,
-                        style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'اشتراك $period',
-                        style: const TextStyle(color: Colors.white70, fontSize: 14),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            isFree ? 'مجاني' : '${price.toStringAsFixed(0)} ريال',
-                            style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
-                          ),
-                          if (!isFree) ...[
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                '/$period',
-                                style: const TextStyle(color: Colors.white70, fontSize: 12),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 4,
-                        children: [
-                          _buildBadge('شامل الضريبة', Icons.check_circle),
-                          _buildBadge('توصيل مجاني', Icons.local_shipping),
-                          if (isFree) _buildBadge('مجاني', Icons.favorite),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // ✅ المميزات
-                if (features.isNotEmpty) ...[
-                  const Text('مميزات الباقة', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  ...features.map((f) => Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
-                    child: Row(
-                      children: [
-                        Icon(Icons.check_circle, color: AppColors.primary, size: 16),
-                        const SizedBox(width: 8),
-                        Text(f, style: const TextStyle(fontSize: 13)),
-                      ],
-                    ),
-                  )),
-                  const SizedBox(height: 24),
-                ],
-
-                // ✅ طرق الدفع (للباقات المدفوعة فقط)
-                if (!isFree) ...[
-                  const Text('اختر طريقة الدفع', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 4),
-                  const Text('المحافظ الإلكترونية اليمنية المدعومة', style: TextStyle(color: AppColors.grey, fontSize: 13)),
-                  const SizedBox(height: 16),
-                  ..._wallets.map((wallet) => FutureBuilder<double>(
-                    future: _getWalletBalance(wallet['id']),
-                    builder: (context, snapshot) {
-                      final balance = snapshot.data ?? wallet['balance'].toDouble();
-                      return _buildWalletTile(wallet, isDark, balance);
-                    },
-                  )),
                   const SizedBox(height: 12),
-                  Center(
-                    child: TextButton.icon(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('سيتم إضافة ربط محفظة جديدة قريباً'),
-                            backgroundColor: AppColors.info,
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.add_circle_outline, color: AppColors.primary),
-                      label: const Text('ربط محفظة جديدة', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w500)),
+                  Text(
+                    widget.planName,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 4),
+                  Text(
+                    'اشتراك شهري',
+                    style: const TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        widget.planPrice == '0' ? 'مجاني' : '${widget.planPrice} ريال',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (widget.planPrice != '0') ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text(
+                            'شهرياً',
+                            style: TextStyle(color: Colors.white70, fontSize: 12),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ],
-
-                // ✅ زر الدفع
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : () => _processPayment(planName, price),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: isFree ? AppColors.success : AppColors.primary,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      elevation: 0,
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                        : Text(
-                            isFree ? 'تفعيل مجاناً' : 'تأكيد الدفع (${price.toStringAsFixed(0)} ريال)',
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-                Center(
-                  child: Text(
-                    isFree ? 'سيتم تفعيل الباقة فوراً' : 'سيتم خصم المبلغ من محفظتك الإلكترونية',
-                    style: TextStyle(fontSize: 12, color: AppColors.grey),
-                  ),
-                ),
-              ],
+              ),
             ),
-          );
-        },
-      ),
-    );
-  }
 
-  Widget _buildBadge(String text, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: Colors.white, size: 12),
-          const SizedBox(width: 4),
-          Text(text, style: const TextStyle(color: Colors.white70, fontSize: 10)),
-        ],
+            const SizedBox(height: 24),
+
+            // ✅ طرق الدفع (للباقات المدفوعة فقط)
+            if (widget.planPrice != '0') ...[
+              const Text(
+                'اختر طريقة الدفع',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'المحافظ الإلكترونية اليمنية المدعومة',
+                style: TextStyle(color: AppColors.grey, fontSize: 13),
+              ),
+              const SizedBox(height: 16),
+              ..._wallets.map((wallet) => FutureBuilder<double>(
+                future: _getWalletBalance(wallet['id']),
+                builder: (context, snapshot) {
+                  final balance = snapshot.data ?? wallet['balance'].toDouble();
+                  return _buildWalletTile(wallet, isDark, balance);
+                },
+              )),
+              const SizedBox(height: 16),
+            ],
+
+            // ✅ زر الدفع
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _processPayment,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: widget.planPrice == '0' ? AppColors.success : AppColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  elevation: 0,
+                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : Text(
+                        widget.planPrice == '0' ? 'تفعيل مجاناً' : 'تأكيد الدفع (${widget.planPrice} ريال)',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -563,13 +434,17 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.08) : (isDark ? const Color(0xFF1A2540) : Colors.white),
+          color: isSelected
+              ? color.withOpacity(0.08)
+              : isDark ? const Color(0xFF1A2540) : Colors.white,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isSelected ? color : (isDark ? const Color(0xFF2D3A54) : Colors.grey.shade200),
             width: isSelected ? 2 : 1,
           ),
-          boxShadow: isSelected ? [BoxShadow(color: color.withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 2))] : null,
+          boxShadow: isSelected
+              ? [BoxShadow(color: color.withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 2))]
+              : null,
         ),
         child: Row(
           children: [
@@ -577,13 +452,20 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
               width: 48,
               height: 48,
               padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: Image.asset(
                 wallet['icon'],
                 width: 32,
                 height: 32,
                 color: color,
-                errorBuilder: (_, __, ___) => Icon(Icons.account_balance_wallet, color: color, size: 28),
+                errorBuilder: (_, __, ___) => Icon(
+                  Icons.account_balance_wallet,
+                  color: color,
+                  size: 28,
+                ),
               ),
             ),
             const SizedBox(width: 12),
@@ -591,9 +473,19 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(wallet['name'], style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: isSelected ? color : null)),
+                  Text(
+                    wallet['name'],
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: isSelected ? color : null,
+                    ),
+                  ),
                   const SizedBox(height: 2),
-                  Text(wallet['number'], style: const TextStyle(fontSize: 12, color: AppColors.grey)),
+                  Text(
+                    wallet['number'],
+                    style: const TextStyle(fontSize: 12, color: AppColors.grey),
+                  ),
                 ],
               ),
             ),
@@ -602,17 +494,27 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                   child: Text(
                     '${balance.toStringAsFixed(0)} ر.ي',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: color),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                    ),
                   ),
                 ),
                 if (isSelected)
                   Container(
                     width: 20,
                     height: 20,
-                    decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
+                    ),
                     child: const Icon(Icons.check, color: Colors.white, size: 14),
                   ),
               ],
