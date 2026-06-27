@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/constants/app_strings.dart';
 
 class PatientProfile extends StatefulWidget {
   const PatientProfile({super.key});
@@ -36,7 +35,7 @@ class _PatientProfileState extends State<PatientProfile> {
         if (doc.exists) {
           _userData = doc.data() as Map<String, dynamic>;
         } else {
-          // ✅ إذا لم تكن هناك بيانات في Firestore، استخدم من Auth
+          // ✅ إذا لم تكن هناك بيانات، استخدم من Auth
           _userData = {
             'name': user.displayName ?? 'مستخدم',
             'email': user.email ?? '',
@@ -49,6 +48,18 @@ class _PatientProfileState extends State<PatientProfile> {
           };
         }
         _patientId = _userData['patientId'] ?? 'SH-${DateTime.now().year}-${user.uid.substring(0, 4).toUpperCase()}';
+      } else {
+        // ✅ إذا لم يكن هناك مستخدم، استخدم بيانات افتراضية
+        _userData = {
+          'name': 'زائر',
+          'email': '',
+          'phone': '',
+          'age': 0,
+          'height': 0,
+          'weight': 0,
+          'bloodType': 'غير محدد',
+          'patientId': 'GUEST-${DateTime.now().year}',
+        };
       }
     } catch (e) {
       print('❌ فشل تحميل بيانات المستخدم: $e');
@@ -245,50 +256,6 @@ class _PatientProfileState extends State<PatientProfile> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
-
-            // ✅ وصول سريع
-            const Text(
-              'وصول سريع',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 4,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
-              children: [
-                _quickItem(Icons.calendar_month, 'المواعيد'),
-                _quickItem(Icons.receipt_long, 'الوصفات'),
-                _quickItem(Icons.science, 'التحاليل'),
-                _quickItem(Icons.description, 'التقارير'),
-                _quickItem(Icons.vaccines, 'التطعيمات'),
-                _quickItem(Icons.favorite, 'المؤشرات'),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // ✅ المؤشرات الحيوية
-            const Text(
-              'المؤشرات الحيوية',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                _vitalCard('السكر', '127', 'mg/dL', Colors.orange),
-                _vitalCard('الضغط', '128/82', 'mmHg', Colors.blue),
-                _vitalCard('BMI', '23.7', 'kg/m²', Colors.green),
-              ],
-            ),
           ],
         ),
       ),
@@ -308,72 +275,6 @@ class _PatientProfileState extends State<PatientProfile> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _quickItem(IconData icon, String label) {
-    return GestureDetector(
-      onTap: () {},
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: AppColors.primary.withOpacity(0.05),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: AppColors.primary, size: 24),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: const TextStyle(fontSize: 10),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _vitalCard(String label, String value, String unit, Color color) {
-    return Expanded(
-      child: Container(
-        margin: const EdgeInsets.only(right: 8),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.05),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.2)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 11,
-                color: AppColors.grey,
-              ),
-            ),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
-            ),
-            Text(
-              unit,
-              style: const TextStyle(
-                fontSize: 9,
-                color: AppColors.grey,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
