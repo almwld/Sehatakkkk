@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
+// ✅ شاشة الإشعارات - تم إعادة إنشاؤها لحل مشكلة البناء
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
 
