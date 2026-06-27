@@ -38,7 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _HomeTab(),
     DoctorsListScreen(),
     PharmacyScreen(),
-    ChatScreen(chatId: 'default_chat', doctorName: 'الطبيب', doctorId: '1'),
+    ChatScreen(receiverId: .1., receiverName: .الطبيب.),
     PatientAppointments(),
     PatientDashboard(),
     MoreScreen(),

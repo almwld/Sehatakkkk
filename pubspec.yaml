@@ -161,3 +161,4 @@ flutter_launcher_icons:
   flutter_native_splash: ^2.3.0
 
 flutter_native_splash: true
+  firebase_crashlytics: ^3.4.9

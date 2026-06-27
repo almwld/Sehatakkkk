@@ -9,8 +9,6 @@ import 'package:record/record.dart';
 import 'package:path/path.dart' as path;
 import 'package:intl/intl.dart';
 import 'package:sehatak/core/services/chat_service.dart';
-import 'package:sehatak/core/services/analytics_service.dart';
-import 'package:sehatak/core/services/crashlytics_service.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/call/call_screen.dart';
 
@@ -35,18 +33,12 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
-  // ========== CONTROLLERS ==========
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
-
-  // ========== SERVICES ==========
   final ChatService _chatService = ChatService();
   final AudioRecorder _audioRecorder = AudioRecorder();
-  final AnalyticsService _analytics = AnalyticsService();
-  final CrashlyticsService _crashlytics = CrashlyticsService();
 
-  // ========== STATE ==========
   String? _conversationId;
   String? _receiverId;
   String? _receiverName;
@@ -58,19 +50,15 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   bool _isTyping = false;
   Timer? _typingTimer;
 
-  // ========== FILE SELECTION ==========
   File? _selectedImage;
   File? _selectedFile;
   bool _showMediaPreview = false;
 
-  // ========== LIFECYCLE ==========
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _initializeChat();
-    _setupTypingListener();
-    _analytics.logScreenView(screenName: 'ChatScreen');
     _focusNode.requestFocus();
   }
 
@@ -84,7 +72,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  // ========== INITIALIZATION ==========
   Future<void> _initializeChat() async {
     try {
       setState(() => _isLoading = true);
@@ -114,20 +101,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
       setState(() => _isLoading = false);
     } catch (e) {
-      _crashlytics.recordError(e, StackTrace.current, reason: 'Chat initialization');
       _showSnackBar('فشل تحميل المحادثة: $e', isError: true);
       setState(() => _isLoading = false);
     }
   }
 
-  void _setupTypingListener() {
-    if (_conversationId == null) return;
-    _chatService.getTypingStream(_conversationId!).listen((isTyping) {
-      if (mounted) setState(() => _isTyping = isTyping);
-    });
-  }
-
-  // ========== TYPING INDICATOR ==========
   void _handleTyping(String text) {
     if (_conversationId == null || _receiverId == null) return;
 
@@ -143,7 +121,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
   }
 
-  // ========== SEND MESSAGE ==========
   Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
     if ((text.isEmpty && _selectedImage == null && _selectedFile == null) || _isSending) return;
@@ -155,7 +132,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     setState(() => _isSending = true);
 
     try {
-      // ✅ إرسال صورة
       if (_selectedImage != null) {
         await _chatService.sendImageMessage(
           conversationId: _conversationId!,
@@ -170,7 +146,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         return;
       }
 
-      // ✅ إرسال ملف
       if (_selectedFile != null) {
         await _chatService.sendFileMessage(
           conversationId: _conversationId!,
@@ -185,7 +160,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         return;
       }
 
-      // ✅ إرسال نص
       await _chatService.sendMessage(
         conversationId: _conversationId!,
         content: text,
@@ -193,17 +167,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
       _messageController.clear();
       _scrollToBottom();
-      _analytics.logEvent(name: 'send_message', parameters: {'conversation_id': _conversationId});
-
     } catch (e) {
-      _crashlytics.recordError(e, StackTrace.current, reason: 'Send message');
       _showSnackBar('فشل إرسال الرسالة: $e', isError: true);
     } finally {
       setState(() => _isSending = false);
     }
   }
 
-  // ========== AUDIO RECORDING ==========
   Future<void> _startRecording() async {
     try {
       if (await _audioRecorder.hasPermission()) {
@@ -220,7 +190,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           _isRecording = true;
           _recordingPath = path;
         });
-        HapticFeedback.lightImpact();
       } else {
         _showSnackBar('يرجى منح إذن الميكروفون', isError: true);
       }
@@ -239,15 +208,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
       if (path != null && _conversationId != null) {
         final file = File(path);
-        final duration = await _getAudioDuration(file);
-
         await _chatService.sendAudioMessage(
           conversationId: _conversationId!,
           audioFile: file,
-          durationSeconds: duration,
         );
         _scrollToBottom();
-        _analytics.logEvent(name: 'send_audio_message');
       }
     } catch (e) {
       _showSnackBar('فشل إيقاف التسجيل: $e', isError: true);
@@ -258,12 +223,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
   }
 
-  Future<int> _getAudioDuration(File file) async {
-    // يمكن استخدام مكتبة مثل audio_waveforms للحصول على المدة الفعلية
-    return 0;
-  }
-
-  // ========== MEDIA PICKING ==========
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final image = await picker.pickImage(source: ImageSource.gallery);
@@ -273,7 +232,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         _showMediaPreview = true;
         _selectedFile = null;
       });
-      HapticFeedback.mediumImpact();
     }
   }
 
@@ -286,19 +244,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         _showMediaPreview = true;
         _selectedFile = null;
       });
-      HapticFeedback.mediumImpact();
-    }
-  }
-
-  Future<void> _pickFile() async {
-    final picker = ImagePicker();
-    final file = await picker.pickImage(source: ImageSource.gallery);
-    if (file != null) {
-      setState(() {
-        _selectedFile = File(file.path);
-        _showMediaPreview = true;
-        _selectedImage = null;
-      });
     }
   }
 
@@ -310,7 +255,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     });
   }
 
-  // ========== SCROLL ==========
   void _scrollToBottom() {
     Future.delayed(const Duration(milliseconds: 100), () {
       if (_scrollController.hasClients) {
@@ -323,7 +267,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     });
   }
 
-  // ========== UI HELPERS ==========
   void _showSnackBar(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -347,7 +290,21 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     return DateFormat('dd/MM').format(time);
   }
 
-  // ========== BUILD ==========
+  void _navigateToCall({bool isVideo = true}) {
+    if (_conversationId == null || _receiverId == null || _receiverName == null) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CallScreen(
+          roomName: _conversationId!,
+          callerName: _receiverName!,
+          callerPhoto: _receiverPhoto,
+          isVideo: isVideo,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -373,7 +330,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     );
   }
 
-  // ========== APP BAR ==========
   PreferredSizeWidget _buildAppBar(bool isDark) {
     return AppBar(
       backgroundColor: isDark ? const Color(0xFF1A2540) : Colors.white,
@@ -387,35 +343,31 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       ),
       title: Row(
         children: [
-          // ✅ صورة المستخدم
-          Hero(
-            tag: 'user_${_receiverId ?? 'unknown'}',
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                image: _receiverPhoto != null
-                    ? DecorationImage(
-                        image: NetworkImage(_receiverPhoto!),
-                        fit: BoxFit.cover,
-                      )
-                    : null,
-                color: AppColors.primary.withOpacity(0.1),
-              ),
-              child: _receiverPhoto == null
-                  ? Center(
-                      child: Text(
-                        _receiverName?.isNotEmpty == true ? _receiverName![0] : 'م',
-                        style: TextStyle(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                        ),
-                      ),
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              image: _receiverPhoto != null
+                  ? DecorationImage(
+                      image: NetworkImage(_receiverPhoto!),
+                      fit: BoxFit.cover,
                     )
                   : null,
+              color: AppColors.primary.withOpacity(0.1),
             ),
+            child: _receiverPhoto == null
+                ? Center(
+                    child: Text(
+                      _receiverName?.isNotEmpty == true ? _receiverName![0] : 'م',
+                      style: TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                  )
+                : null,
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -445,7 +397,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         ],
       ),
       actions: [
-        // ✅ مكالمة صوتية
         IconButton(
           icon: Container(
             padding: const EdgeInsets.all(6),
@@ -459,7 +410,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           tooltip: 'مكالمة صوتية',
         ),
         const SizedBox(width: 4),
-        // ✅ مكالمة فيديو
         IconButton(
           icon: Container(
             padding: const EdgeInsets.all(6),
@@ -477,24 +427,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     );
   }
 
-  void _navigateToCall({bool isVideo = true}) {
-    if (_conversationId == null || _receiverId == null || _receiverName == null) return;
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => CallScreen(
-          callId: _conversationId!,
-          receiverId: _receiverId,
-          receiverName: _receiverName,
-          receiverPhoto: _receiverPhoto,
-          isVideoCall: isVideo,
-          isIncoming: false,
-        ),
-      ),
-    );
-  }
-
-  // ========== TYPING INDICATOR ==========
   Widget _buildTypingIndicator() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -523,7 +455,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     );
   }
 
-  // ========== MESSAGES STREAM ==========
   Widget _buildMessagesStream() {
     return StreamBuilder<List<ChatMessage>>(
       stream: _chatService.getMessages(_conversationId!),
@@ -570,7 +501,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     );
   }
 
-  // ========== MESSAGE BUBBLE ==========
   Widget _buildMessageBubble(ChatMessage message, bool isMe) {
     final isDeleted = message.isDeleted;
     final isImage = message.type == MessageType.image;
@@ -635,7 +565,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ✅ صورة
                   if (isImage && message.fileUrl != null)
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
@@ -643,15 +572,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         message.fileUrl!,
                         width: 200,
                         fit: BoxFit.cover,
-                        loadingBuilder: (context, child, progress) {
-                          if (progress == null) return child;
-                          return Container(
-                            height: 150,
-                            width: 200,
-                            color: Colors.grey[300],
-                            child: const Center(child: CircularProgressIndicator()),
-                          );
-                        },
                         errorBuilder: (_, __, ___) => Container(
                           height: 150,
                           width: 200,
@@ -660,13 +580,63 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         ),
                       ),
                     ),
-                  // ✅ صوت
                   if (isAudio && message.fileUrl != null)
-                    _buildAudioPlayer(message),
-                  // ✅ ملف
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.play_arrow, color: AppColors.primary),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Container(
+                              height: 4,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Text('0:30', style: TextStyle(fontSize: 10, color: AppColors.grey)),
+                        ],
+                      ),
+                    ),
                   if (isFile && message.fileUrl != null)
-                    _buildFileTile(message),
-                  // ✅ نص
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.insert_drive_file, color: AppColors.info),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  message.fileName ?? 'ملف',
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                if (message.fileSize != null)
+                                  Text(
+                                    '${(message.fileSize! / 1024).toStringAsFixed(1)} KB',
+                                    style: const TextStyle(fontSize: 9, color: AppColors.grey),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   if (isText && !isDeleted)
                     Padding(
                       padding: const EdgeInsets.only(top: 2),
@@ -679,7 +649,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         ),
                       ),
                     ),
-                  // ✅ محذوف
                   if (isDeleted)
                     Text(
                       '🗑️ تم حذف هذه الرسالة',
@@ -689,7 +658,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         fontSize: 12,
                       ),
                     ),
-                  // ✅ الوقت
                   const SizedBox(height: 4),
                   Row(
                     mainAxisSize: MainAxisSize.min,
@@ -715,15 +683,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                               : Colors.white54,
                         ),
                       ],
-                      if (message.status == MessageStatus.sending && isMe)
-                        const SizedBox(
-                          width: 14,
-                          height: 14,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white54,
-                          ),
-                        ),
                     ],
                   ),
                 ],
@@ -735,89 +694,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     );
   }
 
-  // ========== AUDIO PLAYER ==========
-  Widget _buildAudioPlayer(ChatMessage message) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.play_arrow, color: AppColors.primary),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Container(
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
-              ),
-              child: Container(
-                width: 30,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            message.metadata?['duration'] != null
-                ? '${message.metadata!['duration']}s'
-                : '0:30',
-            style: const TextStyle(fontSize: 10, color: AppColors.grey),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ========== FILE TILE ==========
-  Widget _buildFileTile(ChatMessage message) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.insert_drive_file, color: AppColors.info),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  message.fileName ?? 'ملف',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (message.fileSize != null)
-                  Text(
-                    '${(message.fileSize! / 1024).toStringAsFixed(1)} KB',
-                    style: const TextStyle(fontSize: 9, color: AppColors.grey),
-                  ),
-              ],
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.download, size: 18, color: AppColors.primary),
-            onPressed: () {},
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ========== EMPTY STATE ==========
   Widget _buildEmptyState() {
     return Center(
       child: Column(
@@ -853,7 +729,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     );
   }
 
-  // ========== MEDIA PREVIEW ==========
   Widget _buildMediaPreview() {
     return Container(
       padding: const EdgeInsets.all(8),
@@ -899,18 +774,16 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 ],
               ),
             ),
-          if (_selectedImage != null || _selectedFile != null)
-            IconButton(
-              icon: const Icon(Icons.close, color: Colors.white),
-              onPressed: _clearMedia,
-              splashRadius: 20,
-            ),
+          IconButton(
+            icon: const Icon(Icons.close, color: Colors.white),
+            onPressed: _clearMedia,
+            splashRadius: 20,
+          ),
         ],
       ),
     );
   }
 
-  // ========== INPUT BAR ==========
   Widget _buildInputBar(bool isDark) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
@@ -928,7 +801,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            // ✅ زر المرفقات
             PopupMenuButton<String>(
               icon: Icon(
                 Icons.attach_file_rounded,
@@ -942,9 +814,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     break;
                   case 'camera':
                     _takePhoto();
-                    break;
-                  case 'file':
-                    _pickFile();
                     break;
                 }
               },
@@ -969,19 +838,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     ],
                   ),
                 ),
-                const PopupMenuItem(
-                  value: 'file',
-                  child: Row(
-                    children: [
-                      Icon(Icons.insert_drive_file, color: AppColors.primary),
-                      SizedBox(width: 8),
-                      Text('ملف'),
-                    ],
-                  ),
-                ),
               ],
             ),
-            // ✅ زر التسجيل الصوتي
             IconButton(
               icon: Icon(
                 _isRecording ? Icons.stop_rounded : Icons.mic_rounded,
@@ -991,7 +849,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               onPressed: _isRecording ? _stopRecording : _startRecording,
               splashRadius: 20,
             ),
-            // ✅ حقل النص
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
@@ -1020,7 +877,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 ),
               ),
             ),
-            // ✅ زر الإرسال
             Container(
               margin: const EdgeInsets.only(left: 4),
               decoration: BoxDecoration(
@@ -1058,97 +914,3 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     );
   }
 }
-
-  // ✅ الرد على رسالة
-  void _replyToMessage(ChatMessage message) {
-    // فتح حقل الرد
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('الرد على: ${message.content}'),
-            const SizedBox(height: 12),
-            TextField(
-              autofocus: true,
-              decoration: const InputDecoration(
-                hintText: 'اكتب ردك...',
-                border: OutlineInputBorder(),
-              ),
-              onSubmitted: (text) {
-                Navigator.pop(context);
-                // إرسال الرد
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ✅ إضافة تفاعل (Reaction)
-  void _addReaction(ChatMessage message, String emoji) {
-    // إضافة تفاعل للرسالة
-  }
-
-  // ✅ بحث في المحادثة
-  void _searchInChat() {
-    showSearch(
-      context: context,
-      delegate: ChatSearchDelegate(_conversationId!),
-    );
-  }
-
-  // ✅ تصدير المحادثة
-  void _exportChat() async {
-    // تصدير المحادثة كـ PDF أو TXT
-  }
-
-  // ✅ الرد على رسالة
-  void _replyToMessage(ChatMessage message) {
-    // فتح حقل الرد
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('الرد على: ${message.content}'),
-            const SizedBox(height: 12),
-            TextField(
-              autofocus: true,
-              decoration: const InputDecoration(
-                hintText: 'اكتب ردك...',
-                border: OutlineInputBorder(),
-              ),
-              onSubmitted: (text) {
-                Navigator.pop(context);
-                // إرسال الرد
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ✅ إضافة تفاعل (Reaction)
-  void _addReaction(ChatMessage message, String emoji) {
-    // إضافة تفاعل للرسالة
-  }
-
-  // ✅ بحث في المحادثة
-  void _searchInChat() {
-    showSearch(
-      context: context,
-      delegate: ChatSearchDelegate(_conversationId!),
-    );
-  }
-
-  // ✅ تصدير المحادثة
-  void _exportChat() async {
-    // تصدير المحادثة كـ PDF أو TXT
-  }
