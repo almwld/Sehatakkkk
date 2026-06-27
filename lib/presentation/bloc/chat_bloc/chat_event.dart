@@ -7,31 +7,23 @@ abstract class ChatEvent extends Equatable {
 }
 
 class LoadChatMessages extends ChatEvent {
-  final String chatId;
-  const LoadChatMessages(this.chatId);
+  final String conversationId;
+  const LoadChatMessages(this.conversationId);
   @override
-  List<Object?> get props => [chatId];
+  List<Object?> get props => [conversationId];
 }
 
 class SendChatMessage extends ChatEvent {
-  final String chatId;
+  final String conversationId;
   final String text;
   final String? imageUrl;
   final String? audioUrl;
   const SendChatMessage({
-    required this.chatId,
+    required this.conversationId,
     required this.text,
     this.imageUrl,
     this.audioUrl,
   });
   @override
-  List<Object?> get props => [chatId, text, imageUrl, audioUrl];
-}
-
-// ✅ حدث لإضافة رسالة محلياً (Optimistic UI)
-class AddLocalMessage extends ChatEvent {
-  final Map<String, dynamic> message;
-  const AddLocalMessage(this.message);
-  @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [conversationId, text, imageUrl, audioUrl];
 }
