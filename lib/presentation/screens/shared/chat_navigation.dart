@@ -3,7 +3,6 @@ import '../chat/chat_screen.dart';
 import '../call/call_screen.dart';
 
 class ChatNavigation {
-  // ✅ فتح شاشة الدردشة
   static void openChat(
     BuildContext context, {
     required String doctorName,
@@ -15,16 +14,15 @@ class ChatNavigation {
       context,
       MaterialPageRoute(
         builder: (_) => ChatScreen(
-          chatId: chatId ?? 'chat_${DateTime.now().millisecondsSinceEpoch}',
-          doctorName: doctorName,
-          doctorId: doctorId ?? '1',
-          isVideo: isVideo,
+          receiverId: doctorId ?? '1',
+          receiverName: doctorName,
+          receiverPhoto: null,
+          isVideoCall: isVideo,
         ),
       ),
     );
   }
 
-  // ✅ فتح شاشة المكالمة
   static void openCall(
     BuildContext context, {
     required String doctorName,
@@ -36,9 +34,9 @@ class ChatNavigation {
       context,
       MaterialPageRoute(
         builder: (_) => CallScreen(
-          chatId: chatId,
-          doctorName: doctorName,
-          doctorId: doctorId,
+          roomName: chatId,
+          callerName: doctorName,
+          callerPhoto: null,
           isVideo: isVideo,
         ),
       ),
