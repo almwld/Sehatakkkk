@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
-/// ✅ شيمر زجاجي أسود متحرك مثل إنستغرام
 class GlassShimmer extends StatelessWidget {
   final Widget child;
   final bool isLoading;
@@ -34,7 +33,6 @@ class GlassShimmer extends StatelessWidget {
   }
 }
 
-/// ✅ شيمر البوستات مثل إنستغرام
 class InstagramPostShimmer extends StatelessWidget {
   final int itemCount;
 
@@ -66,13 +64,12 @@ class InstagramPostShimmer extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ✅ Header (صورة + اسم)
           Row(
             children: [
               Container(
                 width: 40,
                 height: 40,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: Colors.grey[700],
                   shape: BoxShape.circle,
                 ),
@@ -99,7 +96,7 @@ class InstagramPostShimmer extends StatelessWidget {
               Container(
                 width: 24,
                 height: 24,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: Colors.grey[700],
                   shape: BoxShape.circle,
                 ),
@@ -107,7 +104,6 @@ class InstagramPostShimmer extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          // ✅ الصورة
           Container(
             height: 200,
             width: double.infinity,
@@ -117,7 +113,6 @@ class InstagramPostShimmer extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          // ✅ الأزرار
           Row(
             children: List.generate(
               4,
@@ -125,7 +120,7 @@ class InstagramPostShimmer extends StatelessWidget {
                 width: 24,
                 height: 24,
                 margin: const EdgeInsets.only(right: 12),
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: Colors.grey[700],
                   shape: BoxShape.circle,
                 ),
@@ -133,7 +128,6 @@ class InstagramPostShimmer extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          // ✅ النص
           Container(
             width: 150,
             height: 12,
@@ -151,7 +145,6 @@ class InstagramPostShimmer extends StatelessWidget {
   }
 }
 
-/// ✅ شيمر القائمة (List)
 class ListShimmer extends StatelessWidget {
   final int itemCount;
 
@@ -185,7 +178,7 @@ class ListShimmer extends StatelessWidget {
           Container(
             width: 50,
             height: 50,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: Colors.grey[700],
               shape: BoxShape.circle,
             ),
@@ -221,7 +214,6 @@ class ListShimmer extends StatelessWidget {
   }
 }
 
-/// ✅ شيمر الشبكة (Grid) مثل Pinterest
 class GridShimmer extends StatelessWidget {
   final int crossAxisCount;
 
@@ -254,8 +246,9 @@ class GridShimmer extends StatelessWidget {
   }
 }
 
-/// ✅ شيمر الدردشة (Chat) مثل واتساب
 class ChatShimmer extends StatelessWidget {
+  const ChatShimmer({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Shimmer.fromColors(
@@ -277,7 +270,7 @@ class ChatShimmer extends StatelessWidget {
                   Container(
                     width: 32,
                     height: 32,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: Colors.grey[700],
                       shape: BoxShape.circle,
                     ),
