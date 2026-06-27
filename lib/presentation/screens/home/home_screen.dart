@@ -802,3 +802,25 @@ class _HomeTabState extends State<_HomeTab> {
     );
   }
 }
+import 'package:sehatak/presentation/widgets/shimmer/glass_shimmer.dart';
+
+// ✅ في دالة _heroCarousel، استخدم الشيمر الجديد
+Widget _heroCarousel() {
+  return GlassShimmer(
+    isLoading: _isLoading,
+    child: Container(
+      height: 180,
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      decoration: BoxDecoration(
+        color: Colors.grey[850],
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: const Center(
+        child: Text(
+          'جاري التحميل...',
+          style: TextStyle(color: Colors.grey),
+        ),
+      ),
+    ),
+  );
+}
