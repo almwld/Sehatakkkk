@@ -45,7 +45,7 @@
         android:supportsRtl="true"
         tools:targetApi="31">
 
-        <!-- ✅ القناة الافتراضية للإشعارات -->
+        <!-- ✅ Firebase Messaging -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="sehatak_channel" />
@@ -88,23 +88,3 @@
             android:value="2" />
     </application>
 </manifest>
-    <!-- ✅ الإشعارات -->
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.VIBRATE" />
-    
-    <!-- ✅ خدمة الإشعارات في الخلفية -->
-    <service
-        android:name=".MyFirebaseMessagingService"
-        android:exported="false">
-        <intent-filter>
-            <action android:name="com.google.firebase.MESSAGING_EVENT" />
-        </intent-filter>
-    </service>
-    <!-- ✅ أذونات الكاميرا -->
-    <uses-permission android:name="android.permission.CAMERA" />
-    <uses-feature android:name="android.hardware.camera" android:required="true" />
-    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
-    
-    <!-- ✅ أذونات الميكروفون -->
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
