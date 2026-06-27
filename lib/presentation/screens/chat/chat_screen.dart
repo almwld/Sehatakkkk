@@ -1058,3 +1058,97 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     );
   }
 }
+
+  // ✅ الرد على رسالة
+  void _replyToMessage(ChatMessage message) {
+    // فتح حقل الرد
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('الرد على: ${message.content}'),
+            const SizedBox(height: 12),
+            TextField(
+              autofocus: true,
+              decoration: const InputDecoration(
+                hintText: 'اكتب ردك...',
+                border: OutlineInputBorder(),
+              ),
+              onSubmitted: (text) {
+                Navigator.pop(context);
+                // إرسال الرد
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ✅ إضافة تفاعل (Reaction)
+  void _addReaction(ChatMessage message, String emoji) {
+    // إضافة تفاعل للرسالة
+  }
+
+  // ✅ بحث في المحادثة
+  void _searchInChat() {
+    showSearch(
+      context: context,
+      delegate: ChatSearchDelegate(_conversationId!),
+    );
+  }
+
+  // ✅ تصدير المحادثة
+  void _exportChat() async {
+    // تصدير المحادثة كـ PDF أو TXT
+  }
+
+  // ✅ الرد على رسالة
+  void _replyToMessage(ChatMessage message) {
+    // فتح حقل الرد
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('الرد على: ${message.content}'),
+            const SizedBox(height: 12),
+            TextField(
+              autofocus: true,
+              decoration: const InputDecoration(
+                hintText: 'اكتب ردك...',
+                border: OutlineInputBorder(),
+              ),
+              onSubmitted: (text) {
+                Navigator.pop(context);
+                // إرسال الرد
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ✅ إضافة تفاعل (Reaction)
+  void _addReaction(ChatMessage message, String emoji) {
+    // إضافة تفاعل للرسالة
+  }
+
+  // ✅ بحث في المحادثة
+  void _searchInChat() {
+    showSearch(
+      context: context,
+      delegate: ChatSearchDelegate(_conversationId!),
+    );
+  }
+
+  // ✅ تصدير المحادثة
+  void _exportChat() async {
+    // تصدير المحادثة كـ PDF أو TXT
+  }

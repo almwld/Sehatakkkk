@@ -1,64 +1,158 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/services/advanced_notification_service.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
+
   @override
   State<NotificationsScreen> createState() => _NotificationsScreenState();
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
-  final List<Map<String, dynamic>> _notifications = [
-    {'title': 'تذكير موعد', 'message': 'لديك موعد مع د. علي المولد غداً الساعة 10:30 صباحاً', 'time': 'منذ 5 دقائق', 'icon': Icons.calendar_today, 'color': AppColors.primary, 'read': false},
-    {'title': 'نتائج تحليل جاهزة', 'message': 'نتائج تحليل CBC جاهزة للاطلاع. اضغط للعرض.', 'time': 'منذ ساعة', 'icon': Icons.science, 'color': AppColors.info, 'read': false},
-    {'title': 'تم تجديد الوصفة', 'message': 'د. حسن رضا قام بتجديد وصفتك الطبية لارتفاع ضغط الدم', 'time': 'منذ 3 ساعات', 'icon': Icons.receipt, 'color': AppColors.success, 'read': false},
-    {'title': 'نصيحة اليوم', 'message': 'اشرب 8 أكواب من الماء يومياً للحفاظ على صحتك! 💧', 'time': 'منذ 6 ساعات', 'icon': Icons.tips_and_updates, 'color': AppColors.amber, 'read': true},
-    {'title': 'عرض خاص', 'message': 'خصم 30% على جميع التحاليل في مختبر الثقة. العرض سارٍ حتى نهاية الأسبوع!', 'time': 'أمس', 'icon': Icons.local_offer, 'color': AppColors.purple, 'read': true},
-    {'title': 'تذكير فيديو', 'message': 'استشارة الفيديو مع د. عثمان خان تبدأ بعد 30 دقيقة', 'time': 'أمس', 'icon': Icons.videocam, 'color': AppColors.teal, 'read': true},
-    {'title': 'تأكيد حجز', 'message': 'تم تأكيد حجزك في مستشفى الثورة - غرفة 204', 'time': 'منذ يومين', 'icon': Icons.check_circle, 'color': AppColors.success, 'read': true},
-    {'title': 'موعد تطعيم', 'message': 'تذكير: موعد تطعيم الكزاز القادم في يونيو 2028', 'time': 'منذ 3 أيام', 'icon': Icons.vaccines, 'color': AppColors.info, 'read': true},
-  ];
+  final AdvancedNotificationService _notificationService = AdvancedNotificationService();
+  bool _isLoading = true;
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('الإشعارات', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
         actions: [
-          TextButton(onPressed: () => setState(() { for (var n in _notifications) n['read'] = true; }), child: const Text('تحديد الكل مقروء')),
+          IconButton(
+            icon: const Icon(Icons.done_all),
+            onPressed: _notificationService.markAllAsRead,
+            tooltip: 'تحديد الكل كمقروء',
+          ),
         ],
       ),
-      body: ListView.separated(
-        padding: const EdgeInsets.all(12),
-        itemCount: _notifications.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 4),
-        itemBuilder: (context, index) {
-          final n = _notifications[index];
-          return Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: n['read'] ? Colors.transparent : (n['color'] as Color).withOpacity(0.03),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: n['read'] ? AppColors.outlineVariant.withOpacity(0.2) : (n['color'] as Color).withOpacity(0.15)),
-            ),
-            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Container(padding: const EdgeInsets.all(9), decoration: BoxDecoration(color: (n['color'] as Color).withOpacity(0.08), shape: BoxShape.circle), child: Icon(n['icon'], color: n['color'], size: 18)),
-              const SizedBox(width: 12),
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Row(children: [
-                  if (!n['read']) Container(width: 8, height: 8, decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle)),
-                  if (!n['read']) const SizedBox(width: 6),
-                  Expanded(child: Text(n['title'], style: TextStyle(fontWeight: n['read'] ? FontWeight.normal : FontWeight.bold, fontSize: 14))),
-                  Text(n['time'], style: const TextStyle(fontSize: 9, color: AppColors.grey)),
-                ]),
-                const SizedBox(height: 4),
-                Text(n['message'], style: const TextStyle(fontSize: 12, color: AppColors.darkGrey, height: 1.3)),
-              ])),
-              PopupMenuButton(icon: const Icon(Icons.more_vert, size: 16, color: AppColors.grey), itemBuilder: (_) => [const PopupMenuItem(value: 'mark', child: Text('تحديد كمقروء')), const PopupMenuItem(value: 'delete', child: Text('حذف', style: TextStyle(color: AppColors.error)))], onSelected: (v) { if (v == 'mark') setState(() => n['read'] = true); if (v == 'delete') setState(() => _notifications.removeAt(index)); }),
-            ]),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: _notificationService.getNotifications(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('حدث خطأ: ${snapshot.error}'));
+          }
+
+          final notifications = snapshot.data?.docs ?? [];
+          if (notifications.isEmpty) {
+            return const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.notifications_off, size: 60, color: AppColors.grey),
+                  SizedBox(height: 16),
+                  Text('لا توجد إشعارات', style: TextStyle(color: AppColors.grey)),
+                ],
+              ),
+            );
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(12),
+            itemCount: notifications.length,
+            itemBuilder: (context, index) {
+              final data = notifications[index].data() as Map<String, dynamic>;
+              final isRead = data['read'] == true;
+              final type = data['type'] ?? 'general';
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isRead
+                      ? (isDark ? const Color(0xFF1A2540) : Colors.white)
+                      : AppColors.primary.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isRead ? Colors.grey.withOpacity(0.2) : AppColors.primary.withOpacity(0.3),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: _getTypeColor(type).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(_getTypeIcon(type), color: _getTypeColor(type)),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            data['title'] ?? 'إشعار جديد',
+                            style: TextStyle(
+                              fontWeight: isRead ? FontWeight.normal : FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            data['body'] ?? '',
+                            style: const TextStyle(fontSize: 12, color: AppColors.grey),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (!isRead)
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: AppColors.primary,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            },
           );
         },
       ),
     );
+  }
+
+  Color _getTypeColor(String type) {
+    switch (type) {
+      case 'newMessage':
+        return AppColors.info;
+      case 'missedCall':
+        return AppColors.error;
+      case 'appointment':
+        return AppColors.success;
+      case 'medication':
+        return AppColors.warning;
+      default:
+        return AppColors.primary;
+    }
+  }
+
+  IconData _getTypeIcon(String type) {
+    switch (type) {
+      case 'newMessage':
+        return Icons.chat;
+      case 'missedCall':
+        return Icons.call_missed;
+      case 'appointment':
+        return Icons.calendar_today;
+      case 'medication':
+        return Icons.medication;
+      default:
+        return Icons.notifications;
+    }
   }
 }
