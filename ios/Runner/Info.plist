@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>$(DEVELOPMENT_LANGUAGE)</string>
+    <key>CFBundleDisplayName</key>
+    <string>صحتك</string>
+    <key>CFBundleExecutable</key>
+    <string>$(EXECUTABLE_NAME)</string>
+    <key>CFBundleIdentifier</key>
+    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>sehatak</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>$(FLUTTER_BUILD_NAME)</string>
+    <key>CFBundleSignature</key>
+    <string>????</string>
+    <key>CFBundleVersion</key>
+    <string>$(FLUTTER_BUILD_NUMBER)</string>
+    <key>LSRequiresIPhoneOS</key>
+    <true/>
+
+    <!-- ✅ أذونات الكاميرا -->
+    <key>NSCameraUsageDescription</key>
+    <string>يحتاج التطبيق إلى الكاميرا للمكالمات المرئية مع الأطباء</string>
+
+    <!-- ✅ أذونات الميكروفون -->
+    <key>NSMicrophoneUsageDescription</key>
+    <string>يحتاج التطبيق إلى الميكروفون للمكالمات الصوتية</string>
+
+    <!-- ✅ أذونات الصور -->
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>يحتاج التطبيق إلى الوصول للصور لإرفاقها في الدردشة</string>
+
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>يحتاج التطبيق إلى حفظ الصور في المعرض</string>
+
+    <!-- ✅ أذونات الموقع -->
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>يحتاج التطبيق إلى موقعك للعثور على أقرب المرافق الصحية</string>
+
+    <!-- ✅ أذونات الإشعارات -->
+    <key>NSUserNotificationUsageDescription</key>
+    <string>يحتاج التطبيق إلى إرسال إشعارات لتذكيرك بالمواعيد والأدوية</string>
+
+    <!-- ✅ دعم اللغة العربية -->
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>ar</string>
+        <string>en</string>
+    </array>
+
+    <!-- ✅ دعم الخلفية -->
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>audio</string>
+        <string>fetch</string>
+        <string>remote-notification</string>
+    </array>
+
+    <key>UILaunchStoryboardName</key>
+    <string>LaunchScreen</string>
+    <key>UIMainStoryboardFile</key>
+    <string>Main</string>
+    <key>UISupportedInterfaceOrientations</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+        <string>UIInterfaceOrientationLandscapeLeft</string>
+        <string>UIInterfaceOrientationLandscapeRight</string>
+    </array>
+    <key>CADisableMinimumFrameDurationOnPhone</key>
+    <true/>
+    <key>UIApplicationSupportsMultipleScenes</key>
+    <false/>
+</dict>
+</plist>
