@@ -475,9 +475,37 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       child: SafeArea(
         child: Row(
           children: [
-            PopupMenuWidget(
-              onGalleryPressed: _pickImage,
-              onCameraPressed: _takePhoto,
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.attach_file, color: AppColors.grey),
+              onSelected: (value) {
+                if (value == 'gallery') {
+                  _pickImage();
+                } else if (value == 'camera') {
+                  _takePhoto();
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'gallery',
+                  child: Row(
+                    children: [
+                      Icon(Icons.photo_library),
+                      SizedBox(width: 8),
+                      Text('المعرض'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'camera',
+                  child: Row(
+                    children: [
+                      Icon(Icons.camera_alt),
+                      SizedBox(width: 8),
+                      Text('الكاميرا'),
+                    ],
+                  ),
+                ),
+              ],
             ),
             IconButton(
               icon: Icon(
@@ -541,56 +569,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           ],
         ),
       ),
-    );
-  }
-}
-
-// ============================================
-// ✅ PopupMenuWidget - اختيار الصور
-// ============================================
-class PopupMenuWidget extends StatelessWidget {
-  final VoidCallback onGalleryPressed;
-  final VoidCallback onCameraPressed;
-
-  const PopupMenuWidget({
-    super.key,
-    required this.onGalleryPressed,
-    required this.onCameraPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return PopupMenuButton<String>(
-      icon: const Icon(Icons.attach_file, color: AppColors.grey),
-      onSelected: (value) {
-        if (value == 'gallery') {
-          onGalleryPressed();
-        } else if (value == 'camera') {
-          onCameraPressed();
-        }
-      },
-      itemBuilder: (context) => [
-        const PopupMenuItem(
-          value: 'gallery',
-          child: Row(
-            children: [
-              Icon(Icons.photo_library),
-              SizedBox(width: 8),
-              Text('المعرض'),
-            ],
-          ),
-        ),
-        const PopupMenuItem(
-          value: 'camera',
-          child: Row(
-            children: [
-              Icon(Icons.camera_alt),
-              SizedBox(width: 8),
-              Text('الكاميرا'),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }

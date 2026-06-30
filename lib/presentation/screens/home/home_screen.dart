@@ -182,7 +182,7 @@ class _HomeTab extends StatelessWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(14),
               child: CachedNetworkImage(
-                imageUrl: user?.photoUrl ?? '',
+                imageUrl: user?.photoURL ?? '',
                 width: 40,
                 height: 40,
                 fit: BoxFit.cover,
