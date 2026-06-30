@@ -40,10 +40,11 @@ class ConsultationScreen extends StatelessWidget {
               'استشارة فيديو',
               'مكالمة فيديو مباشرة',
               'من 200 ر.ي',
-              () => ChatNavigation.openChat(
+              () => ChatNavigation.openCall(
                 context,
                 doctorName: 'الطبيب',
                 doctorId: '1',
+                chatId: 'consult_${DateTime.now().millisecondsSinceEpoch}',
                 isVideo: true,
               ),
             ),
@@ -53,10 +54,11 @@ class ConsultationScreen extends StatelessWidget {
               'مكالمة صوتية',
               'مكالمة صوتية سريعة',
               'من 150 ر.ي',
-              () => ChatNavigation.openChat(
+              () => ChatNavigation.openCall(
                 context,
                 doctorName: 'الطبيب',
                 doctorId: '1',
+                chatId: 'consult_${DateTime.now().millisecondsSinceEpoch}',
                 isVideo: false,
               ),
             ),

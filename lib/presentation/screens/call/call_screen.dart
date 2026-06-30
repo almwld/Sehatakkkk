@@ -4,16 +4,16 @@ import 'package:sehatak/core/services/livekit_service.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class CallScreen extends StatefulWidget {
-  final String roomName;
-  final String callerName;
-  final String? callerPhoto;
+  final String chatId;
+  final String doctorName;
+  final String doctorId;
   final bool isVideo;
 
   const CallScreen({
     super.key,
-    required this.roomName,
-    required this.callerName,
-    this.callerPhoto,
+    required this.chatId,
+    required this.doctorName,
+    required this.doctorId,
     this.isVideo = true,
   });
 
@@ -21,49 +21,53 @@ class CallScreen extends StatefulWidget {
   State<CallScreen> createState() => _CallScreenState();
 }
 
-class _CallScreenState extends State<CallScreen> {
+class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
   final LiveKitService _liveKit = LiveKitService();
   bool _isMuted = false;
   bool _isCameraOn = true;
-  bool _isSpeakerOn = true;
+  bool _isSpeakerOn = false;
   int _callDuration = 0;
   bool _isConnecting = true;
+  String _errorMessage = '';
   bool _hasCameraPermission = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _checkPermissions();
   }
 
+  @override
+  void dispose() {
+    _liveKit.endCall();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
   Future<void> _checkPermissions() async {
-    // ✅ طلب إذن الكاميرا
     if (widget.isVideo) {
-      final cameraStatus = await Permission.camera.request();
+      final status = await Permission.camera.request();
       setState(() {
-        _hasCameraPermission = cameraStatus.isGranted;
+        _hasCameraPermission = status.isGranted;
       });
       if (!_hasCameraPermission) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('يرجى منح إذن الكاميرا للمكالمات المرئية'),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        setState(() {
+          _isConnecting = false;
+          _errorMessage = 'يرجى منح إذن الكاميرا';
+        });
+        return;
       }
     }
-
-    // ✅ طلب إذن الميكروفون
     await Permission.microphone.request();
-    
     _startCall();
   }
 
   void _startCall() async {
     try {
       await _liveKit.startCall(
-        roomName: widget.roomName,
-        callerName: widget.callerName,
+        roomName: widget.chatId,
+        callerName: widget.doctorName,
         isVideo: widget.isVideo && _hasCameraPermission,
       );
       if (mounted) {
@@ -74,14 +78,17 @@ class _CallScreenState extends State<CallScreen> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isConnecting = false);
+        setState(() {
+          _isConnecting = false;
+          _errorMessage = 'فشل الاتصال: $e';
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('❌ فشل الاتصال: $e'),
+            content: Text('❌ ${_errorMessage}'),
             backgroundColor: AppColors.error,
           ),
         );
-        Future.delayed(const Duration(seconds: 2), () {
+        Future.delayed(const Duration(seconds: 3), () {
           if (mounted) Navigator.pop(context);
         });
       }
@@ -93,7 +100,7 @@ class _CallScreenState extends State<CallScreen> {
       if (mounted) {
         setState(() => _callDuration++);
         if (_callDuration < 60) {
-          _startTimer();
+          Future.delayed(const Duration(seconds: 1), _startTimer);
         }
       }
     });
@@ -101,7 +108,9 @@ class _CallScreenState extends State<CallScreen> {
 
   void _toggleCamera() async {
     final newState = await _liveKit.toggleCamera();
-    setState(() => _isCameraOn = newState);
+    setState(() {
+      _isCameraOn = newState;
+    });
   }
 
   @override
@@ -110,78 +119,140 @@ class _CallScreenState extends State<CallScreen> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // ✅ خلفية المكالمة
           Container(
             color: Colors.black87,
             child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.person, color: Colors.white54, size: 80),
+                  if (_errorMessage.isNotEmpty)
+                    Icon(Icons.error_outline, color: AppColors.error, size: 60),
                   const SizedBox(height: 16),
                   Text(
-                    widget.callerName,
-                    style: const TextStyle(color: Colors.white, fontSize: 22),
+                    _errorMessage.isNotEmpty ? _errorMessage : 'جاري الاتصال...',
+                    style: TextStyle(
+                      color: _errorMessage.isNotEmpty ? AppColors.error : Colors.white,
+                      fontSize: 18,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _isConnecting ? 'جاري الاتصال...' : _formatDuration(_callDuration),
-                    style: const TextStyle(color: Colors.white70, fontSize: 16),
-                  ),
+                  if (_isConnecting)
+                    const Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: CircularProgressIndicator(color: Colors.white),
+                    ),
+                  if (!_hasCameraPermission && widget.isVideo && _errorMessage.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: ElevatedButton.icon(
+                        onPressed: _checkPermissions,
+                        icon: const Icon(Icons.settings),
+                        label: const Text('منح إذن الكاميرا'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
           ),
-          // ✅ واجهة التحكم
-          Positioned(
-            bottom: 40,
-            left: 0,
-            right: 0,
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    // 🎤 كتم الصوت
-                    _callButton(
-                      icon: _isMuted ? Icons.mic_off : Icons.mic,
-                      color: _isMuted ? AppColors.error : Colors.white,
-                      onTap: () => setState(() => _isMuted = !_isMuted),
-                    ),
-                    // 📹 كتم الكاميرا
-                    if (widget.isVideo)
-                      _callButton(
-                        icon: _isCameraOn ? Icons.videocam : Icons.videocam_off,
-                        color: _isCameraOn ? Colors.white : AppColors.error,
-                        onTap: _toggleCamera,
-                      ),
-                    // 📞 إنهاء المكالمة
-                    _callButton(
-                      icon: Icons.call_end,
-                      color: AppColors.error,
-                      size: 60,
-                      onTap: () {
-                        _liveKit.endCall();
-                        Navigator.pop(context);
-                      },
-                    ),
-                    // 🔊 مكبر الصوت
-                    _callButton(
-                      icon: _isSpeakerOn ? Icons.volume_up : Icons.volume_off,
-                      color: _isSpeakerOn ? AppColors.info : Colors.white,
-                      onTap: () => setState(() => _isSpeakerOn = !_isSpeakerOn),
-                    ),
-                    if (widget.isVideo)
-                      _callButton(
-                        icon: Icons.switch_camera,
-                        color: Colors.white,
-                        onTap: () {},
-                      ),
-                  ],
+          if (widget.isVideo && _hasCameraPermission && _errorMessage.isEmpty)
+            Positioned(
+              top: 60,
+              right: 20,
+              child: Container(
+                width: 100,
+                height: 150,
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white, width: 2),
                 ),
-              ],
+                child: const Center(
+                  child: Icon(Icons.videocam, color: Colors.white54, size: 40),
+                ),
+              ),
             ),
-          ),
+          if (_errorMessage.isEmpty)
+            Positioned(
+              bottom: 40,
+              left: 0,
+              right: 0,
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.black26,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      _formatDuration(_callDuration),
+                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _callButton(
+                        icon: _isMuted ? Icons.mic_off : Icons.mic,
+                        color: _isMuted ? AppColors.error : Colors.white,
+                        onTap: () => setState(() => _isMuted = !_isMuted),
+                      ),
+                      if (widget.isVideo && _hasCameraPermission)
+                        _callButton(
+                          icon: _isCameraOn ? Icons.videocam : Icons.videocam_off,
+                          color: _isCameraOn ? Colors.white : AppColors.error,
+                          onTap: _toggleCamera,
+                        ),
+                      _callButton(
+                        icon: Icons.call_end,
+                        color: AppColors.error,
+                        size: 60,
+                        onTap: () => Navigator.pop(context),
+                      ),
+                      _callButton(
+                        icon: _isSpeakerOn ? Icons.volume_up : Icons.volume_off,
+                        color: _isSpeakerOn ? AppColors.info : Colors.white,
+                        onTap: () => setState(() => _isSpeakerOn = !_isSpeakerOn),
+                      ),
+                      if (widget.isVideo && _hasCameraPermission)
+                        _callButton(
+                          icon: Icons.switch_camera,
+                          color: Colors.white,
+                          onTap: () {},
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          if (_errorMessage.isEmpty)
+            Positioned(
+              top: 80,
+              left: 0,
+              right: 0,
+              child: Column(
+                children: [
+                  Text(
+                    widget.doctorName,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'جاري الاتصال...',
+                    style: TextStyle(color: Colors.white54, fontSize: 14),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );
@@ -203,20 +274,18 @@ class _CallScreenState extends State<CallScreen> {
           shape: BoxShape.circle,
           border: Border.all(color: color, width: 2),
         ),
-        child: Icon(icon, color: color, size: size * 0.4),
+        child: Icon(
+          icon,
+          color: color,
+          size: size * 0.5,
+        ),
       ),
     );
   }
 
   String _formatDuration(int seconds) {
-    final mins = seconds ~/ 60;
-    final secs = seconds % 60;
-    return '${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
-  }
-
-  @override
-  void dispose() {
-    _liveKit.endCall();
-    super.dispose();
+    final minutes = seconds ~/ 60;
+    final remainingSeconds = seconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
   }
 }

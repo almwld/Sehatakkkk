@@ -533,3 +533,18 @@ class ChatService {
     });
   }
 }
+
+  // ✅ رفع الوسائط (صورة أو صوت)
+  Future<String> uploadMedia(File file, String type) async {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final fileName = file.uri.pathSegments.last;
+      final path = '${dir.path}/$fileName';
+      await file.copy(path);
+      print('✅ Media saved locally: $path');
+      return path;
+    } catch (e) {
+      print('❌ Failed to save media: $e');
+      rethrow;
+    }
+  }
