@@ -13,11 +13,7 @@ class ChatNavigation {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ChatScreen(
-          chatId: chatId ?? 'chat_${DateTime.now().millisecondsSinceEpoch}',
-          doctorName: doctorName,
-          doctorId: doctorId ?? '1',
-        ),
+        builder: (_) => ChatScreen(),
       ),
     );
   }

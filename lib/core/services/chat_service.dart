@@ -48,6 +48,17 @@ class ChatService {
     }
   }
 
+  // ✅ الحصول على محادثة محددة
+  Future<DocumentSnapshot?> getChat(String chatId) async {
+    try {
+      final doc = await _firestore.collection('chats').doc(chatId).get();
+      return doc;
+    } catch (e) {
+      print('❌ Failed to get chat: $e');
+      return null;
+    }
+  }
+
   // ========== 📤 إرسال رسالة ==========
   Future<void> sendMessage({
     required String chatId,
@@ -117,7 +128,7 @@ class ChatService {
     }
   }
 
-  // ========== ✅ رفع الوسائط (صورة أو صوت) ==========
+  // ========== ✅ رفع الوسائط ==========
   Future<String> uploadMedia(File file, String type) async {
     try {
       final dir = await getApplicationDocumentsDirectory();
@@ -166,14 +177,3 @@ class ChatService {
         .delete();
   }
 }
-
-  // ✅ الحصول على محادثة محددة
-  Future<DocumentSnapshot?> getChat(String chatId) async {
-    try {
-      final doc = await _firestore.collection('chats').doc(chatId).get();
-      return doc;
-    } catch (e) {
-      print('❌ Failed to get chat: $e');
-      return null;
-    }
-  }
