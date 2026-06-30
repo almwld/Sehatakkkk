@@ -8,7 +8,7 @@ class ChatNavigation {
     required String doctorName,
     String? doctorId,
     String? chatId,
-    bool isVideo = false,
+    bool isVideo = false,  // ✅ إضافة isVideo
   }) {
     Navigator.push(
       context,
@@ -17,7 +17,7 @@ class ChatNavigation {
           receiverId: doctorId ?? '1',
           receiverName: doctorName,
           receiverPhoto: null,
-          isVideoCall: isVideo,
+          isVideo: isVideo,  // ✅ تمرير isVideo
         ),
       ),
     );
