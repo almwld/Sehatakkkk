@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/services/chat_service.dart';
 import 'chat_event.dart';
 import 'chat_state.dart';
@@ -11,20 +12,19 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<SendChatMessage>(_onSendMessage);
   }
 
+  // ✅ تحميل الرسائل
   Future<void> _onLoadMessages(LoadChatMessages event, Emitter<ChatState> emit) async {
     emit(ChatLoadingState());
     try {
       final messages = <Map<String, dynamic>>[];
-      // ✅ استخدام getMessages من ChatService
-      await for (final snapshot in _chatService.getMessages(event.conversationId)) {
-        for (final message in snapshot) {
+      
+      // ✅ استخدام snapshot.docs للتكرار
+      await for (final snapshot in _chatService.getMessages(event.chatId)) {
+        for (final doc in snapshot.docs) {
+          final data = doc.data() as Map<String, dynamic>;
           messages.add({
-            'id': message.id,
-            'senderId': message.senderId,
-            'senderName': message.senderName,
-            'text': message.content,
-            'timestamp': message.timestamp,
-            'status': message.status.name,
+            'id': doc.id,
+            ...data,
           });
         }
         emit(ChatLoadedState(messages));
@@ -35,13 +35,16 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     }
   }
 
+  // ✅ إرسال رسالة (بدون conversationId)
   Future<void> _onSendMessage(SendChatMessage event, Emitter<ChatState> emit) async {
     try {
       await _chatService.sendMessage(
-        conversationId: event.conversationId,
-        content: event.text,
+        chatId: event.chatId,
+        text: event.text,
+        imageUrl: event.imageUrl,
+        audioUrl: event.audioUrl,
       );
-      add(LoadChatMessages(event.conversationId));
+      add(LoadChatMessages(event.chatId));
     } catch (e) {
       emit(ChatErrorState('فشل إرسال الرسالة: $e'));
     }
