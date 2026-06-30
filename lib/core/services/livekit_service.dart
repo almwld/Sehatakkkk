@@ -13,6 +13,7 @@ class LiveKitService {
   bool _isMicrophoneEnabled = false;
 
   bool get isConnected => _room?.connectionState == ConnectionState.connected;
+  Room? get room => _room;
 
   String _generateToken({
     required String roomName,
@@ -55,7 +56,9 @@ class LiveKitService {
         defaultVideoPublishOptions: const VideoPublishOptions(
           simulcast: false,
         ),
-        defaultAudioPublishOptions: const AudioPublishOptions(),
+        defaultAudioPublishOptions: const AudioPublishOptions(
+          bitrate: AudioBitrate.bitrate32,
+        ),
       );
       await _room!.connect(
         LiveKitConfig.serverUrl,
@@ -63,6 +66,10 @@ class LiveKitService {
         roomOptions: options,
       );
       print('✅ Connected to room: $roomName');
+      
+      // ✅ تفعيل الصوت تلقائياً
+      await _room!.localParticipant?.setMicrophoneEnabled(true);
+      
       return _room!;
     } catch (e) {
       print('❌ فشل الاتصال: $e');
@@ -70,17 +77,25 @@ class LiveKitService {
     }
   }
 
-  // ✅ تفعيل الكاميرا مع محاولة إعادة المحاولة
+  // ✅ تفعيل الكاميرا مع معاينة الفيديو
   Future<void> enableCamera() async {
     try {
       if (_room?.localParticipant != null) {
         await _room!.localParticipant!.setCameraEnabled(true);
         _isCameraEnabled = true;
         print('✅ Camera enabled');
+        
+        // ✅ التأكد من وجود VideoTrack
+        final tracks = _room!.localParticipant!.videoTrackPublications.values;
+        if (tracks.isNotEmpty) {
+          final track = tracks.first.track;
+          if (track is VideoTrack) {
+            print('✅ VideoTrack available: ${track.trackId}');
+          }
+        }
       }
     } catch (e) {
       print('❌ Camera error: $e');
-      // ✅ محاولة إعادة المحاولة
       await Future.delayed(const Duration(milliseconds: 500));
       try {
         await _room!.localParticipant!.setCameraEnabled(true);
