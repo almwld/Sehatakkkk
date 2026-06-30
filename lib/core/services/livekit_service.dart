@@ -12,8 +12,9 @@ class LiveKitService {
   bool _isCameraEnabled = false;
   bool _isMicrophoneEnabled = false;
 
-  bool get isConnected => _room?.connectionState == ConnectionState.connected;
+  // ✅ Getter عام للوصول إلى الغرفة
   Room? get room => _room;
+  bool get isConnected => _room?.connectionState == ConnectionState.connected;
 
   String _generateToken({
     required String roomName,
@@ -56,9 +57,7 @@ class LiveKitService {
         defaultVideoPublishOptions: const VideoPublishOptions(
           simulcast: false,
         ),
-        defaultAudioPublishOptions: const AudioPublishOptions(
-          bitrate: AudioBitrate.bitrate32,
-        ),
+        defaultAudioPublishOptions: const AudioPublishOptions(),
       );
       await _room!.connect(
         LiveKitConfig.serverUrl,
@@ -67,7 +66,6 @@ class LiveKitService {
       );
       print('✅ Connected to room: $roomName');
       
-      // ✅ تفعيل الصوت تلقائياً
       await _room!.localParticipant?.setMicrophoneEnabled(true);
       
       return _room!;
@@ -85,13 +83,11 @@ class LiveKitService {
         _isCameraEnabled = true;
         print('✅ Camera enabled');
         
-        // ✅ التأكد من وجود VideoTrack
-        final tracks = _room!.localParticipant!.videoTrackPublications.values;
+        // ✅ استخدام videoTracks بدلاً من videoTrackPublications
+        final tracks = _room!.localParticipant!.videoTracks;
         if (tracks.isNotEmpty) {
-          final track = tracks.first.track;
-          if (track is VideoTrack) {
-            print('✅ VideoTrack available: ${track.trackId}');
-          }
+          final track = tracks.first;
+          print('✅ VideoTrack available: ${track.id}');
         }
       }
     } catch (e) {

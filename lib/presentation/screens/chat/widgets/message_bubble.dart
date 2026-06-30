@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -62,7 +63,6 @@ class MessageBubble extends StatelessWidget {
                     bottomLeft: isMe ? const Radius.circular(18) : Radius.zero,
                     bottomRight: isMe ? Radius.zero : const Radius.circular(18),
                   ),
-                  // ✅ تمييز الرسائل المؤقتة
                   border: isTemp ? Border.all(color: AppColors.warning, width: 1) : null,
                 ),
                 child: Column(
