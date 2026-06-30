@@ -28,6 +28,12 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
     {'icon': '🦴', 'name': 'عظام'},
     {'icon': '👶', 'name': 'أطفال'},
     {'icon': '👩‍🦰', 'name': 'جلدية'},
+    {'icon': '👁️', 'name': 'عيون'},
+    {'icon': '🦷', 'name': 'أسنان'},
+    {'icon': '🧘', 'name': 'نفسية'},
+    {'icon': '🤰', 'name': 'نسائية'},
+    {'icon': '🩺', 'name': 'أنف وأذن'},
+    {'icon': '📊', 'name': 'أشعة'},
   ];
 
   @override
@@ -49,17 +55,21 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
       appBar: AppBar(
-        title: const Text('الأطباء', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'الأطباء',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
+        elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.sort),
+            icon: const Icon(Icons.sort_rounded),
             onPressed: () => _showSortSheet(context),
           ),
           IconButton(
             icon: Icon(
-              _showAvailableOnly ? Icons.filter_alt : Icons.filter_alt_outlined,
+              _showAvailableOnly ? Icons.filter_alt_rounded : Icons.filter_alt_outlined,
               color: _showAvailableOnly ? AppColors.primary : Colors.white,
             ),
             onPressed: () => setState(() => _showAvailableOnly = !_showAvailableOnly),
@@ -76,7 +86,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.error_outline, size: 60, color: AppColors.error),
+                  const Icon(Icons.error_outline_rounded, size: 60, color: AppColors.error),
                   const SizedBox(height: 16),
                   Text(state.message),
                   const SizedBox(height: 16),
@@ -148,10 +158,10 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
           decoration: InputDecoration(
             hintText: 'ابحث عن طبيب...',
             hintStyle: const TextStyle(fontSize: 13, color: AppColors.grey),
-            prefixIcon: const Icon(Icons.search, color: AppColors.primary),
+            prefixIcon: const Icon(Icons.search_rounded, color: AppColors.primary),
             suffixIcon: _searchCtrl.text.isNotEmpty
                 ? IconButton(
-                    icon: const Icon(Icons.close, size: 18),
+                    icon: const Icon(Icons.close_rounded, size: 18),
                     onPressed: () {
                       _searchCtrl.clear();
                       setState(() {});
@@ -228,7 +238,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
               children: [
                 Text('ترتيب: $_sortBy', style: const TextStyle(fontSize: 11, color: AppColors.grey)),
                 const SizedBox(width: 4),
-                const Icon(Icons.swap_vert, size: 16, color: AppColors.grey),
+                const Icon(Icons.swap_vert_rounded, size: 16, color: AppColors.grey),
               ],
             ),
           ),
@@ -318,7 +328,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                     const SizedBox(width: 4),
                     Text('${d['reviews'] ?? 0} تقييم', style: const TextStyle(fontSize: 10, color: AppColors.darkGrey)),
                     const SizedBox(width: 10),
-                    const Icon(Icons.people, size: 12, color: AppColors.grey),
+                    const Icon(Icons.people_rounded, size: 12, color: AppColors.grey),
                     const SizedBox(width: 2),
                     Text(d['patients'] ?? '0', style: const TextStyle(fontSize: 10, color: AppColors.grey)),
                     const Spacer(),
@@ -340,7 +350,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                     color: AppColors.info.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.chat, color: AppColors.info, size: 18),
+                  child: const Icon(Icons.chat_rounded, color: AppColors.info, size: 18),
                 ),
               ),
               const SizedBox(height: 6),
@@ -353,7 +363,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                     color: AppColors.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.calendar_today, color: AppColors.primary, size: 16),
+                  child: const Icon(Icons.calendar_today_rounded, color: AppColors.primary, size: 16),
                 ),
               ),
             ],
@@ -367,7 +377,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: List.generate(5, (i) => Icon(
-        i < rating.floor() ? Icons.star : (rating - i > 0 ? Icons.star_half : Icons.star_border),
+        i < rating.floor() ? Icons.star_rounded : (rating - i > 0 ? Icons.star_half_rounded : Icons.star_border_rounded),
         color: AppColors.amber,
         size: 14,
       )),
@@ -389,8 +399,8 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
             const SizedBox(height: 12),
             ListTile(
               title: const Text('التقييم (الأعلى)'),
-              leading: const Icon(Icons.star, color: AppColors.amber),
-              trailing: _sortBy == 'التقييم' ? const Icon(Icons.check, color: AppColors.primary) : null,
+              leading: const Icon(Icons.star_rounded, color: AppColors.amber),
+              trailing: _sortBy == 'التقييم' ? const Icon(Icons.check_rounded, color: AppColors.primary) : null,
               onTap: () {
                 setState(() => _sortBy = 'التقييم');
                 Navigator.pop(context);
@@ -398,8 +408,8 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
             ),
             ListTile(
               title: const Text('السعر (الأقل)'),
-              leading: const Icon(Icons.attach_money, color: AppColors.success),
-              trailing: _sortBy == 'السعر' ? const Icon(Icons.check, color: AppColors.primary) : null,
+              leading: const Icon(Icons.attach_money_rounded, color: AppColors.success),
+              trailing: _sortBy == 'السعر' ? const Icon(Icons.check_rounded, color: AppColors.primary) : null,
               onTap: () {
                 setState(() => _sortBy = 'السعر');
                 Navigator.pop(context);
