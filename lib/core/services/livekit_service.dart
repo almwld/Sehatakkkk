@@ -12,7 +12,6 @@ class LiveKitService {
   bool _isCameraEnabled = false;
   bool _isMicrophoneEnabled = false;
 
-  // ✅ Getter عام للوصول إلى الغرفة
   Room? get room => _room;
   bool get isConnected => _room?.connectionState == ConnectionState.connected;
 
@@ -75,7 +74,6 @@ class LiveKitService {
     }
   }
 
-  // ✅ تفعيل الكاميرا مع معاينة الفيديو
   Future<void> enableCamera() async {
     try {
       if (_room?.localParticipant != null) {
@@ -86,8 +84,11 @@ class LiveKitService {
         // ✅ استخدام videoTracks بدلاً من videoTrackPublications
         final tracks = _room!.localParticipant!.videoTracks;
         if (tracks.isNotEmpty) {
-          final track = tracks.first;
-          print('✅ VideoTrack available: ${track.id}');
+          final track = tracks.first.track;
+          if (track != null && track is VideoTrack) {
+            // ✅ استخدام sid بدلاً من id
+            print('✅ VideoTrack available: ${track.sid}');
+          }
         }
       }
     } catch (e) {

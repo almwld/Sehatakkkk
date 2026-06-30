@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:livekit_client/livekit_client.dart';
@@ -32,7 +31,6 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
   bool _isConnecting = true;
   String _errorMessage = '';
   bool _hasCameraPermission = false;
-  bool _hasMicrophonePermission = false;
   
   VideoTrack? _remoteVideoTrack;
   VideoTrack? _localVideoTrack;
@@ -53,30 +51,18 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _checkPermissions() async {
-    final cameraStatus = await Permission.camera.request();
-    final microphoneStatus = await Permission.microphone.request();
-    
-    setState(() {
-      _hasCameraPermission = cameraStatus.isGranted;
-      _hasMicrophonePermission = microphoneStatus.isGranted;
-    });
-
-    if (!_hasCameraPermission && widget.isVideo) {
-      setState(() {
-        _isConnecting = false;
-        _errorMessage = 'يرجى منح إذن الكاميرا';
-      });
-      return;
+    if (widget.isVideo) {
+      final status = await Permission.camera.request();
+      setState(() => _hasCameraPermission = status.isGranted);
+      if (!_hasCameraPermission) {
+        setState(() {
+          _isConnecting = false;
+          _errorMessage = 'يرجى منح إذن الكاميرا';
+        });
+        return;
+      }
     }
-
-    if (!_hasMicrophonePermission) {
-      setState(() {
-        _isConnecting = false;
-        _errorMessage = 'يرجى منح إذن الميكروفون';
-      });
-      return;
-    }
-
+    await Permission.microphone.request();
     _startCall();
   }
 
@@ -91,21 +77,23 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
       final room = _liveKit.room;
       if (room != null) {
         // ✅ معالجة المشارك المحلي
-        if (room.localParticipant != null) {
-          _handleParticipant(room.localParticipant!);
+        final localParticipant = room.localParticipant;
+        if (localParticipant != null) {
+          _handleParticipant(localParticipant);
         }
         
-        // ✅ استخدام participants بدلاً من remoteParticipants
+        // ✅ معالجة المشاركين البعيدين
         for (final participant in room.participants.values) {
-          if (!participant.isLocal) {
+          if (participant is! LocalParticipant) {
             _handleParticipant(participant);
           }
         }
         
-        // ✅ الاستماع للمشاركين الجدد
-        room.onParticipantConnected = (participant) {
-          _handleParticipant(participant);
-        };
+        // ✅ الاستماع للمشاركين الجدد (الطريقة الجديدة في 1.5.6)
+        room.events.on<ParticipantConnectedEvent>((event) {
+          _handleParticipant(event.participant);
+          print('✅ Participant connected: ${event.participant.identity}');
+        });
       }
 
       if (mounted) {
@@ -133,21 +121,27 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
     }
   }
 
+  // ✅ معالجة المشارك - متوافق مع 1.5.6
   void _handleParticipant(Participant participant) {
-    // ✅ البحث عن VideoTrack
-    for (final publication in participant.videoTrackPublications.values) {
-      final track = publication.track;
-      if (track is VideoTrack) {
-        setState(() {
-          if (participant.isLocal) {
-            _localVideoTrack = track;
-          } else {
-            _remoteVideoTrack = track;
-            _isRemoteVideoReady = true;
-          }
-        });
-        print('✅ Video track found for: ${participant.identity}');
+    // ✅ استخدام videoTracks بدلاً من videoTrackPublications
+    try {
+      for (final track in participant.videoTracks) {
+        if (track.track != null && track.track is VideoTrack) {
+          final videoTrack = track.track as VideoTrack;
+          setState(() {
+            if (participant is LocalParticipant) {
+              _localVideoTrack = videoTrack;
+              print('✅ Local video track found: ${videoTrack.sid}');
+            } else {
+              _remoteVideoTrack = videoTrack;
+              _isRemoteVideoReady = true;
+              print('✅ Remote video track found: ${videoTrack.sid}');
+            }
+          });
+        }
       }
+    } catch (e) {
+      print('❌ Error handling video tracks: $e');
     }
   }
 
@@ -164,9 +158,7 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
 
   void _toggleCamera() async {
     final newState = await _liveKit.toggleCamera();
-    setState(() {
-      _isCameraOn = newState;
-    });
+    setState(() => _isCameraOn = newState);
   }
 
   void _toggleMute() {
@@ -182,6 +174,7 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
+          // 📹 فيديو الطرف الآخر
           Container(
             color: Colors.black87,
             child: _isRemoteVideoReady && _remoteVideoTrack != null
@@ -210,6 +203,7 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                     ),
                   ),
           ),
+          // 🖼️ فيديو المستخدم (Picture-in-Picture)
           if (widget.isVideo && _hasCameraPermission && _localVideoTrack != null && _errorMessage.isEmpty)
             Positioned(
               top: 60,
@@ -228,6 +222,25 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                 ),
               ),
             ),
+          // ✅ إذا كانت الكاميرا مفعلة لكن لا يوجد فيديو محلي
+          if (widget.isVideo && _hasCameraPermission && _localVideoTrack == null && _errorMessage.isEmpty)
+            Positioned(
+              top: 60,
+              right: 20,
+              child: Container(
+                width: 120,
+                height: 180,
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+                child: const Center(
+                  child: Icon(Icons.videocam_off, color: Colors.white54, size: 40),
+                ),
+              ),
+            ),
+          // 📞 واجهة التحكم
           if (_errorMessage.isEmpty)
             Positioned(
               bottom: 40,
@@ -250,28 +263,33 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
+                      // 🎤 كتم الصوت
                       _callButton(
                         icon: _isMuted ? Icons.mic_off : Icons.mic,
                         color: _isMuted ? AppColors.error : Colors.white,
                         onTap: _toggleMute,
                       ),
+                      // 📹 كتم الكاميرا
                       if (widget.isVideo && _hasCameraPermission)
                         _callButton(
                           icon: _isCameraOn ? Icons.videocam : Icons.videocam_off,
                           color: _isCameraOn ? Colors.white : AppColors.error,
                           onTap: _toggleCamera,
                         ),
+                      // 📞 إنهاء المكالمة
                       _callButton(
                         icon: Icons.call_end,
                         color: AppColors.error,
                         size: 60,
                         onTap: () => Navigator.pop(context),
                       ),
+                      // 🔊 مكبر الصوت
                       _callButton(
                         icon: _isSpeakerOn ? Icons.volume_up : Icons.volume_off,
                         color: _isSpeakerOn ? AppColors.info : Colors.white,
                         onTap: () => setState(() => _isSpeakerOn = !_isSpeakerOn),
                       ),
+                      // 📷 تبديل الكاميرا
                       if (widget.isVideo && _hasCameraPermission)
                         _callButton(
                           icon: Icons.switch_camera,
@@ -283,6 +301,7 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                 ],
               ),
             ),
+          // 🏷️ اسم الطبيب
           if (_errorMessage.isEmpty)
             Positioned(
               top: 80,
