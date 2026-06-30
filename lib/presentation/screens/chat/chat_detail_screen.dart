@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/chat_service.dart';
@@ -43,7 +44,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   bool _showMediaPreview = false;
   String? _currentChatId;
 
-  // ✅ قائمة الرسائل المحلية (Offline First)
   List<Map<String, dynamic>> _messages = [];
 
   @override
@@ -55,9 +55,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
   Future<void> _initializeChat() async {
     try {
-      // ✅ التحقق من وجود المحادثة
       final chatDoc = await _chatService.getChat(_currentChatId!);
-      if (chatDoc == null) {
+      if (chatDoc == null || !chatDoc.exists) {
         final userId = FirebaseAuth.instance.currentUser?.uid ?? 'unknown';
         final userName = FirebaseAuth.instance.currentUser?.displayName ?? 'مستخدم';
         
@@ -114,7 +113,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     );
   }
 
-  // ✅ إرسال رسالة (Offline First)
   void _sendMessage() async {
     final text = _messageController.text.trim();
     if ((text.isEmpty && _selectedImage == null) || _isSending) return;
@@ -125,7 +123,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       return;
     }
 
-    // ✅ 1. إضافة الرسالة محلياً فوراً (Offline)
     final messageId = 'local_${DateTime.now().millisecondsSinceEpoch}';
     final newMessage = {
       'id': messageId,
@@ -135,7 +132,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       'imageUrl': _selectedImage?.path,
       'audioUrl': _recordingPath,
       'timestamp': DateTime.now(),
-      'status': 'sending', // ✅ حالة الإرسال
+      'status': 'sending',
       'isLocal': true,
       'isTemp': true,
     };
@@ -148,12 +145,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       _recordingPath = null;
     });
     _scrollToBottom();
-
-    // ✅ 2. محاكاة زمن المزامنة 1.5 ثانية
     setState(() => _isSending = true);
 
     try {
-      // ✅ 3. رفع الملفات (إن وجدت)
       String? imageUrl;
       String? audioUrl;
 
@@ -165,7 +159,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         audioUrl = await _chatService.uploadMedia(File(_recordingPath!), 'audio');
       }
 
-      // ✅ 4. إرسال الرسالة إلى Firestore
       await _chatService.sendMessage(
         chatId: _currentChatId!,
         text: text.isNotEmpty ? text : (imageUrl != null ? 'صورة' : ''),
@@ -173,7 +166,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         audioUrl: audioUrl,
       );
 
-      // ✅ 5. تحديث حالة الرسالة إلى "تم الإرسال"
       setState(() {
         final index = _messages.indexWhere((msg) => msg['id'] == messageId);
         if (index != -1) {
@@ -182,17 +174,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           _messages[index]['imageUrl'] = imageUrl ?? _messages[index]['imageUrl'];
           _messages[index]['audioUrl'] = audioUrl ?? _messages[index]['audioUrl'];
         }
-        _selectedImage = null;
-        _recordingPath = null;
-        _showMediaPreview = false;
-        _messageController.clear();
       });
 
-      // ✅ 6. تحديث القائمة من Firestore
       context.read<ChatBloc>().add(LoadChatMessages(_currentChatId!));
-      
     } catch (e) {
-      // ✅ 7. في حالة الفشل، تغيير الحالة إلى "فشل"
       setState(() {
         final index = _messages.indexWhere((msg) => msg['id'] == messageId);
         if (index != -1) {
@@ -264,7 +249,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           _recordingPath = path;
           _showMediaPreview = true;
         });
-        // ✅ إرسال الرسالة الصوتية تلقائياً
         _sendMessage();
       }
     } catch (e) {
@@ -309,7 +293,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     }
   }
 
-  // ✅ حالة الرسالة
   Widget _buildStatusIcon(String status) {
     switch (status) {
       case 'sending':
@@ -355,11 +338,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             child: BlocConsumer<ChatBloc, ChatState>(
               listener: (context, state) {
                 if (state is ChatErrorState) {
-                  // ✅ لا نعرض خطأ للمستخدم، نترك الرسالة تظهر محلياً
                   print('⚠️ Chat error: ${state.message}');
                 }
                 if (state is ChatLoadedState) {
-                  // ✅ دمج الرسائل من Firestore مع الرسائل المحلية
                   _mergeMessages(state.messages);
                   _scrollToBottom();
                 }
@@ -386,7 +367,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                   );
                 }
 
-                // ✅ عرض الرسائل المحلية + من Firestore
                 final allMessages = [..._messages];
                 allMessages.sort((a, b) {
                   final aTime = a['timestamp'] is DateTime
@@ -432,9 +412,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     );
   }
 
-  // ✅ دمج الرسائل من Firestore مع المحلية
   void _mergeMessages(List<Map<String, dynamic>> firestoreMessages) {
-    // ✅ إزالة الرسائل المحلية التي تم إرسالها بنجاح
     _messages.removeWhere((msg) => 
       msg['isLocal'] == true && 
       msg['status'] == 'sent' &&
@@ -445,7 +423,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       )
     );
 
-    // ✅ إضافة الرسائل من Firestore إذا لم تكن موجودة محلياً
     for (final msg in firestoreMessages) {
       final exists = _messages.any((m) => 
         m['id'] == msg['id'] || 
@@ -815,7 +792,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                   ),
                 ),
                 const SizedBox(width: 4),
-                // ✅ عرض حالة الإرسال
                 if (isMe) _buildStatusIcon(status),
               ],
             ),
