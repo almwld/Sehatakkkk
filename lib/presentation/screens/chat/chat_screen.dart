@@ -1,623 +1,441 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:sehatak/core/services/chat_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/presentation/bloc/chat_bloc/chat_bloc.dart';
-import 'package:sehatak/presentation/bloc/chat_bloc/chat_event.dart';
-import 'package:sehatak/presentation/bloc/chat_bloc/chat_state.dart';
-import 'package:sehatak/presentation/screens/call/call_screen.dart';
-import 'package:sehatak/presentation/screens/chat/widgets/message_bubble.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:record/record.dart';
+import 'package:sehatak/core/services/chat_service.dart';
+import 'chat_detail_screen.dart';
 
 class ChatScreen extends StatefulWidget {
-  final String chatId;
-  final String doctorName;
-  final String doctorId;
-
-  const ChatScreen({
-    super.key,
-    required this.chatId,
-    required this.doctorName,
-    required this.doctorId,
-  });
+  const ChatScreen({super.key});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
-  final TextEditingController _messageController = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
+class _ChatScreenState extends State<ChatScreen> {
   final ChatService _chatService = ChatService();
-  final AudioRecorder _audioRecorder = AudioRecorder();
-  
-  bool _isRecording = false;
-  String? _recordingPath;
-  bool _isTyping = false;
-  bool _isSending = false;
-  String? _chatId;
-  
-  File? _selectedImage;
-  File? _selectedAudio;
-  bool _showMediaPreview = false;
-
-  // ✅ قائمة الرسائل المحلية (Optimistic UI)
-  List<Map<String, dynamic>> _localMessages = [];
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _chatId = widget.chatId;
-    if (_chatId != null && _chatId!.isNotEmpty) {
-      context.read<ChatBloc>().add(LoadChatMessages(_chatId!));
-    }
-  }
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void dispose() {
-    _messageController.dispose();
-    _scrollController.dispose();
-    WidgetsBinding.instance.removeObserver(this);
+    _searchController.dispose();
     super.dispose();
-  }
-
-  // ✅ إرسال رسالة (Optimistic UI)
-  void _sendMessage() async {
-    final text = _messageController.text.trim();
-    if ((text.isEmpty && _selectedImage == null && _selectedAudio == null) || _isSending) return;
-    if (_chatId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('جاري إنشاء المحادثة...')),
-      );
-      return;
-    }
-
-    setState(() => _isSending = true);
-    
-    // ✅ إضافة الرسالة محلياً فوراً (Optimistic)
-    final tempMessage = {
-      'id': 'temp_${DateTime.now().millisecondsSinceEpoch}',
-      'senderId': FirebaseAuth.instance.currentUser?.uid ?? 'me',
-      'senderName': 'أنا',
-      'text': text.isNotEmpty ? text : (_selectedImage != null ? '📷 صورة' : '🎵 رسالة صوتية'),
-      'imageUrl': _selectedImage?.path,
-      'audioUrl': _selectedAudio?.path,
-      'timestamp': DateTime.now(),
-      'isTemp': true,
-    };
-    
-    setState(() {
-      _localMessages.add(tempMessage);
-      _selectedImage = null;
-      _selectedAudio = null;
-      _showMediaPreview = false;
-      _messageController.clear();
-    });
-    _scrollToBottom();
-
-    try {
-      String? imageUrl;
-      String? audioUrl;
-
-      if (_selectedImage != null) {
-        imageUrl = await _chatService.uploadMedia(_selectedImage!, 'image');
-      }
-
-      if (_selectedAudio != null) {
-        audioUrl = await _chatService.uploadMedia(_selectedAudio!, 'audio');
-      }
-
-      await _chatService.sendMessage(
-        chatId: _chatId!,
-        text: text.isNotEmpty ? text : (imageUrl != null ? '📷 صورة' : '🎵 رسالة صوتية'),
-        imageUrl: imageUrl,
-        audioUrl: audioUrl,
-      );
-
-      // ✅ إزالة الرسالة المؤقتة وإعادة تحميل
-      setState(() {
-        _localMessages.removeWhere((msg) => msg['id'] == tempMessage['id']);
-        _selectedImage = null;
-        _selectedAudio = null;
-        _showMediaPreview = false;
-        _messageController.clear();
-      });
-      
-      context.read<ChatBloc>().add(LoadChatMessages(_chatId!));
-    } catch (e) {
-      // ✅ في حالة الفشل، إظهار خطأ مع إبقاء الرسالة
-      setState(() {
-        _localMessages.removeWhere((msg) => msg['id'] == tempMessage['id']);
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('فشل الإرسال: $e')),
-      );
-    } finally {
-      setState(() => _isSending = false);
-    }
-  }
-
-  void _pickImage() async {
-    final picker = ImagePicker();
-    final image = await picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      setState(() {
-        _selectedImage = File(image.path);
-        _showMediaPreview = true;
-      });
-    }
-  }
-
-  void _takePhoto() async {
-    final picker = ImagePicker();
-    final image = await picker.pickImage(source: ImageSource.camera);
-    if (image != null) {
-      setState(() {
-        _selectedImage = File(image.path);
-        _showMediaPreview = true;
-      });
-    }
-  }
-
-  void _startRecording() async {
-    try {
-      if (await _audioRecorder.hasPermission()) {
-        final path = '${DateTime.now().millisecondsSinceEpoch}.m4a';
-        await _audioRecorder.start(
-          const RecordConfig(
-            encoder: AudioEncoder.aacLc,
-            bitRate: 128000,
-            sampleRate: 48000,
-          ),
-          path: path,
-        );
-        setState(() {
-          _isRecording = true;
-          _recordingPath = path;
-        });
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('فشل بدء التسجيل: $e')),
-      );
-    }
-  }
-
-  void _stopRecording() async {
-    try {
-      final path = await _audioRecorder.stop();
-      setState(() {
-        _isRecording = false;
-        _recordingPath = null;
-      });
-      if (path != null && path.isNotEmpty) {
-        setState(() {
-          _selectedAudio = File(path);
-          _showMediaPreview = true;
-        });
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('فشل إيقاف التسجيل: $e')),
-      );
-      setState(() {
-        _isRecording = false;
-        _recordingPath = null;
-      });
-    }
-  }
-
-  void _clearMedia() {
-    setState(() {
-      _selectedImage = null;
-      _selectedAudio = null;
-      _showMediaPreview = false;
-    });
-  }
-
-  void _scrollToBottom() {
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
-        );
-      }
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final userId = _auth.currentUser?.uid;
+    final isDoctor = _auth.currentUser?.displayName?.contains('د.') ?? false;
+    final role = isDoctor ? 'doctor' : 'patient';
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
+      backgroundColor: AppColors.surfaceContainerLow,
       appBar: AppBar(
+        title: const Text(
+          'المحادثات',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
-        titleSpacing: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search_rounded),
+            onPressed: () {
+              // ✅ التركيز على حقل البحث
+            },
+          ),
+        ],
+      ),
+      body: userId == null
+          ? _buildNotLoggedIn()
+          : Column(
+              children: [
+                _buildSearchBar(),
+                Expanded(
+                  child: StreamBuilder<QuerySnapshot>(
+                    stream: _chatService.getChats(userId, role),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (snapshot.hasError) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.error_outline_rounded, size: 60, color: AppColors.error),
+                              const SizedBox(height: 16),
+                              Text('خطأ: ${snapshot.error}'),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () => setState(() {}),
+                                child: const Text('إعادة المحاولة'),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                        return _buildEmptyState();
+                      }
+
+                      final chats = snapshot.data!.docs;
+                      final filteredChats = _searchQuery.isEmpty
+                          ? chats
+                          : chats.where((doc) {
+                              final data = doc.data() as Map<String, dynamic>;
+                              final name = data['doctorName'] ?? data['patientName'] ?? '';
+                              final lastMessage = data['lastMessage'] ?? '';
+                              return name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                                  lastMessage.toLowerCase().contains(_searchQuery.toLowerCase());
+                            }).toList();
+
+                      if (filteredChats.isEmpty) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.search_off_rounded, size: 60, color: AppColors.grey),
+                              const SizedBox(height: 16),
+                              Text(
+                                'لا توجد نتائج للبحث عن "$_searchQuery"',
+                                style: const TextStyle(color: AppColors.grey),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      return RefreshIndicator(
+                        onRefresh: () async {
+                          setState(() {});
+                        },
+                        child: ListView.builder(
+                          padding: const EdgeInsets.all(12),
+                          itemCount: filteredChats.length,
+                          itemBuilder: (context, index) {
+                            final doc = filteredChats[index];
+                            final data = doc.data() as Map<String, dynamic>;
+                            final chatId = doc.id;
+                            final name = isDoctor
+                                ? data['patientName'] ?? 'مريض'
+                                : data['doctorName'] ?? 'طبيب';
+                            final lastMessage = data['lastMessage'] ?? 'ابدأ المحادثة';
+                            final lastMessageTime = data['lastMessageTime'] as Timestamp?;
+                            final time = lastMessageTime != null
+                                ? _formatTime(lastMessageTime.toDate())
+                                : '';
+                            final unread = 0;
+
+                            return _buildChatItem(
+                              context,
+                              chatId: chatId,
+                              name: name,
+                              lastMessage: lastMessage,
+                              time: time,
+                              unread: unread,
+                            );
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 8,
+            ),
+          ],
         ),
-        title: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.white24,
+        child: TextField(
+          controller: _searchController,
+          onChanged: (value) => setState(() => _searchQuery = value),
+          decoration: InputDecoration(
+            hintText: 'ابحث عن محادثة...',
+            hintStyle: const TextStyle(fontSize: 13, color: AppColors.grey),
+            prefixIcon: const Icon(Icons.search_rounded, color: AppColors.grey),
+            suffixIcon: _searchQuery.isNotEmpty
+                ? IconButton(
+                    icon: const Icon(Icons.close_rounded, size: 18),
+                    onPressed: () {
+                      setState(() {
+                        _searchController.clear();
+                        _searchQuery = '';
+                      });
+                    },
+                  )
+                : null,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide.none,
+            ),
+            filled: true,
+            fillColor: Colors.transparent,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNotLoggedIn() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.lock_outline_rounded,
+              size: 60,
+              color: AppColors.primary,
+            ),
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'يجب تسجيل الدخول',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'قم بتسجيل الدخول لعرض محادثاتك',
+            style: TextStyle(
+              fontSize: 14,
+              color: AppColors.grey,
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () => Navigator.pushNamed(context, '/login'),
+            icon: const Icon(Icons.login_rounded),
+            label: const Text('تسجيل الدخول'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.chat_bubble_outline_rounded,
+              size: 60,
+              color: AppColors.primary,
+            ),
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'لا توجد محادثات',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'ابدأ محادثة مع الأطباء',
+            style: TextStyle(
+              fontSize: 14,
+              color: AppColors.grey,
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () => Navigator.pushNamed(context, '/doctors'),
+            icon: const Icon(Icons.medical_services_rounded),
+            label: const Text('ابحث عن طبيب'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChatItem(
+    BuildContext context, {
+    required String chatId,
+    required String name,
+    required String lastMessage,
+    required String time,
+    required int unread,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ChatDetailScreen(
+              chatId: chatId,
+              userName: name,
+              userId: chatId,
+              isDoctor: false,
+            ),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // ✅ صورة المستخدم (أيقونة Flutter)
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [AppColors.primary, AppColors.primaryDark],
+                ),
+                borderRadius: BorderRadius.circular(14),
               ),
               child: Center(
                 child: Text(
-                  widget.doctorName.isNotEmpty ? widget.doctorName[0] : 'ط',
+                  name.isNotEmpty ? name[0] : 'ط',
                   style: const TextStyle(
                     color: Colors.white,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    fontSize: 18,
                   ),
                 ),
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 12),
+            // ✅ معلومات المحادثة
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.doctorName.isNotEmpty ? widget.doctorName : 'الطبيب',
+                    name,
                     style: const TextStyle(
-                      fontSize: 15,
                       fontWeight: FontWeight.bold,
+                      fontSize: 14,
                     ),
                   ),
-                  Text(
-                    _isTyping ? 'يكتب...' : 'متصل 🟢',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: _isTyping ? AppColors.warning : AppColors.success,
-                    ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          lastMessage,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: unread > 0 ? AppColors.darkGrey : AppColors.grey,
+                            fontWeight: unread > 0 ? FontWeight.w600 : FontWeight.normal,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: AppColors.success.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(Icons.call, color: AppColors.success, size: 20),
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => CallScreen(
-                    chatId: _chatId ?? widget.chatId,
-                    doctorName: widget.doctorName,
-                    doctorId: widget.doctorId,
-                    isVideo: false,
+            // ✅ الوقت والرسائل غير المقروءة
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  time,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: AppColors.grey,
                   ),
                 ),
-              );
-            },
-          ),
-          IconButton(
-            icon: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: AppColors.info.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(Icons.videocam, color: AppColors.info, size: 20),
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => CallScreen(
-                    chatId: _chatId ?? widget.chatId,
-                    doctorName: widget.doctorName,
-                    doctorId: widget.doctorId,
-                    isVideo: true,
-                  ),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          if (_showMediaPreview && (_selectedImage != null || _selectedAudio != null))
-            _buildMediaPreview(),
-          Expanded(
-            child: BlocConsumer<ChatBloc, ChatState>(
-              listener: (context, state) {
-                if (state is ChatErrorState) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(state.message)),
-                  );
-                }
-                if (state is ChatLoadedState) {
-                  _scrollToBottom();
-                }
-              },
-              builder: (context, state) {
-                if (state is ChatLoadingState) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (state is ChatErrorState) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.error_outline, size: 60, color: AppColors.error),
-                        const SizedBox(height: 16),
-                        Text(state.message),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () {
-                            if (_chatId != null) {
-                              context.read<ChatBloc>().add(LoadChatMessages(_chatId!));
-                            }
-                          },
-                          child: const Text('إعادة المحاولة'),
-                        ),
-                      ],
+                const SizedBox(height: 4),
+                if (unread > 0)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
                     ),
-                  );
-                }
-                
-                // ✅ عرض الرسائل المحلية + الرسائل من Firestore
-                List<Map<String, dynamic>> allMessages = [];
-                if (state is ChatLoadedState) {
-                  allMessages = [...state.messages];
-                }
-                allMessages.addAll(_localMessages);
-                allMessages.sort((a, b) {
-                  final aTime = a['timestamp'] is DateTime 
-                      ? (a['timestamp'] as DateTime).millisecondsSinceEpoch 
-                      : 0;
-                  final bTime = b['timestamp'] is DateTime 
-                      ? (b['timestamp'] as DateTime).millisecondsSinceEpoch 
-                      : 0;
-                  return aTime.compareTo(bTime);
-                });
-
-                return ListView.builder(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.all(12),
-                  itemCount: allMessages.length,
-                  itemBuilder: (context, index) {
-                    final message = allMessages[index];
-                    final isMe = message['senderId'] == FirebaseAuth.instance.currentUser?.uid ||
-                                 message['senderId'] == 'me';
-                    final isTemp = message['isTemp'] == true;
-                    return MessageBubble(
-                      message: message,
-                      isMe: isMe,
-                      isTemp: isTemp,
-                      onTap: () {
-                        if (message['imageUrl'] != null) {
-                          _showImagePreview(message['imageUrl']);
-                        }
-                      },
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-          _buildInputBar(isDark),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMediaPreview() {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.black87,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          if (_selectedImage != null)
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.file(
-                  _selectedImage!,
-                  height: 80,
-                  width: 80,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-          if (_selectedAudio != null)
-            Expanded(
-              child: Row(
-                children: [
-                  const Icon(Icons.audio_file, color: Colors.white, size: 30),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Container(
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[800],
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                      child: Container(
-                        width: 30,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      '$unread',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    '🎵 رسالة صوتية',
-                    style: TextStyle(color: Colors.white, fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-          IconButton(
-            icon: const Icon(Icons.close, color: Colors.white),
-            onPressed: _clearMedia,
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showImagePreview(String imageUrl) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: GestureDetector(
-          onTap: () => Navigator.pop(context),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              image: DecorationImage(
-                image: NetworkImage(imageUrl),
-                fit: BoxFit.contain,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInputBar(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2540) : Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 6,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        child: Row(
-          children: [
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.attach_file, color: AppColors.grey),
-              onSelected: (value) {
-                if (value == 'gallery') {
-                  _pickImage();
-                } else if (value == 'camera') {
-                  _takePhoto();
-                }
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'gallery',
-                  child: Row(
-                    children: [
-                      Icon(Icons.photo_library),
-                      SizedBox(width: 8),
-                      Text('المعرض'),
-                    ],
-                  ),
-                ),
-                const PopupMenuItem(
-                  value: 'camera',
-                  child: Row(
-                    children: [
-                      Icon(Icons.camera_alt),
-                      SizedBox(width: 8),
-                      Text('الكاميرا'),
-                    ],
-                  ),
-                ),
               ],
             ),
-            IconButton(
-              icon: Icon(
-                _isRecording ? Icons.stop : Icons.mic,
-                color: _isRecording ? AppColors.error : AppColors.grey,
-              ),
-              onPressed: _isRecording ? _stopRecording : _startRecording,
-            ),
-            Expanded(
-              child: TextField(
-                controller: _messageController,
-                decoration: InputDecoration(
-                  hintText: 'اكتب رسالتك...',
-                  hintStyle: const TextStyle(fontSize: 13),
-                  filled: true,
-                  fillColor: isDark
-                      ? const Color(0xFF0B1121)
-                      : AppColors.surfaceContainerLow,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(24),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
-                  ),
-                ),
-                onChanged: (text) {
-                  setState(() {
-                    _isTyping = text.isNotEmpty;
-                  });
-                },
-                onSubmitted: (_) => _sendMessage(),
-              ),
-            ),
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: (_selectedImage != null || 
-                           _selectedAudio != null || 
-                           _messageController.text.trim().isNotEmpty)
-                      ? [AppColors.primary, AppColors.primaryDark]
-                      : [AppColors.grey, AppColors.grey],
-                ),
-                shape: BoxShape.circle,
-              ),
-              child: IconButton(
-                icon: _isSending
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Icon(Icons.send_rounded, color: Colors.white, size: 20),
-                onPressed: _sendMessage,
-              ),
-            ),
           ],
         ),
       ),
     );
+  }
+
+  String _formatTime(DateTime time) {
+    final now = DateTime.now();
+    if (time.day == now.day && time.month == now.month) {
+      return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+    } else if (time.day == now.day - 1) {
+      return 'أمس';
+    } else {
+      return '${time.day}/${time.month}';
+    }
   }
 }

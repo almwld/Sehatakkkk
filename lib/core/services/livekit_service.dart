@@ -37,7 +37,7 @@ class LiveKitService {
       );
       return jwt.sign(SecretKey(LiveKitConfig.apiSecret));
     } catch (e) {
-      print('❌ خطأ في توليد التوكن: $e');
+      print('❌ Token generation error: $e');
       rethrow;
     }
   }
@@ -69,11 +69,12 @@ class LiveKitService {
       
       return _room!;
     } catch (e) {
-      print('❌ فشل الاتصال: $e');
+      print('❌ Connection failed: $e');
       rethrow;
     }
   }
 
+  // ✅ الدالة المحدثة - خالية من الأخطاء
   Future<void> enableCamera() async {
     try {
       if (_room?.localParticipant != null) {
@@ -81,12 +82,13 @@ class LiveKitService {
         _isCameraEnabled = true;
         print('✅ Camera enabled');
         
-        // ✅ استخدام videoTracks بدلاً من videoTrackPublications
+        // ✅ الطريقة الصحيحة للوصول إلى Tracks في الإصدار 1.5.6
         final tracks = _room!.localParticipant!.videoTracks;
         if (tracks.isNotEmpty) {
-          final track = tracks.first.track;
+          final publication = tracks.first;
+          final track = publication.track;
           if (track != null && track is VideoTrack) {
-            // ✅ استخدام sid بدلاً من id
+            // ✅ استخدام .sid بدلاً من .id
             print('✅ VideoTrack available: ${track.sid}');
           }
         }
@@ -124,9 +126,9 @@ class LiveKitService {
       if (isVideo) {
         await enableCamera();
       }
-      print('✅ Call started');
+      print('✅ Call started successfully');
     } catch (e) {
-      print('❌ Failed to start call: $e');
+      print('❌ Call start failed: $e');
       rethrow;
     }
   }
@@ -148,6 +150,7 @@ class LiveKitService {
     _room = null;
     _isCameraEnabled = false;
     _isMicrophoneEnabled = false;
+    print('✅ Call ended');
   }
 
   void dispose() {

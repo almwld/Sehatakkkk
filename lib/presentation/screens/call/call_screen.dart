@@ -76,20 +76,17 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
 
       final room = _liveKit.room;
       if (room != null) {
-        // ✅ معالجة المشارك المحلي
         final localParticipant = room.localParticipant;
         if (localParticipant != null) {
           _handleParticipant(localParticipant);
         }
         
-        // ✅ معالجة المشاركين البعيدين
         for (final participant in room.participants.values) {
           if (participant is! LocalParticipant) {
             _handleParticipant(participant);
           }
         }
         
-        // ✅ الاستماع للمشاركين الجدد (الطريقة الجديدة في 1.5.6)
         room.events.on<ParticipantConnectedEvent>((event) {
           _handleParticipant(event.participant);
           print('✅ Participant connected: ${event.participant.identity}');
@@ -121,9 +118,7 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
     }
   }
 
-  // ✅ معالجة المشارك - متوافق مع 1.5.6
   void _handleParticipant(Participant participant) {
-    // ✅ استخدام videoTracks بدلاً من videoTrackPublications
     try {
       for (final track in participant.videoTracks) {
         if (track.track != null && track.track is VideoTrack) {
@@ -131,11 +126,11 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
           setState(() {
             if (participant is LocalParticipant) {
               _localVideoTrack = videoTrack;
-              print('✅ Local video track found: ${videoTrack.sid}');
+              print('✅ Local video track found');
             } else {
               _remoteVideoTrack = videoTrack;
               _isRemoteVideoReady = true;
-              print('✅ Remote video track found: ${videoTrack.sid}');
+              print('✅ Remote video track found');
             }
           });
         }
@@ -184,7 +179,7 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         if (_errorMessage.isNotEmpty)
-                          Icon(Icons.error_outline, color: AppColors.error, size: 60),
+                          const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 60),
                         const SizedBox(height: 16),
                         Text(
                           _errorMessage.isNotEmpty ? _errorMessage : 'جاري الاتصال...',
@@ -222,7 +217,6 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                 ),
               ),
             ),
-          // ✅ إذا كانت الكاميرا مفعلة لكن لا يوجد فيديو محلي
           if (widget.isVideo && _hasCameraPermission && _localVideoTrack == null && _errorMessage.isEmpty)
             Positioned(
               top: 60,
@@ -236,7 +230,7 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                   border: Border.all(color: Colors.white, width: 2),
                 ),
                 child: const Center(
-                  child: Icon(Icons.videocam_off, color: Colors.white54, size: 40),
+                  child: Icon(Icons.videocam_off_rounded, color: Colors.white54, size: 40),
                 ),
               ),
             ),
@@ -265,34 +259,34 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                     children: [
                       // 🎤 كتم الصوت
                       _callButton(
-                        icon: _isMuted ? Icons.mic_off : Icons.mic,
+                        icon: _isMuted ? Icons.mic_off_rounded : Icons.mic_rounded,
                         color: _isMuted ? AppColors.error : Colors.white,
                         onTap: _toggleMute,
                       ),
                       // 📹 كتم الكاميرا
                       if (widget.isVideo && _hasCameraPermission)
                         _callButton(
-                          icon: _isCameraOn ? Icons.videocam : Icons.videocam_off,
+                          icon: _isCameraOn ? Icons.videocam_rounded : Icons.videocam_off_rounded,
                           color: _isCameraOn ? Colors.white : AppColors.error,
                           onTap: _toggleCamera,
                         ),
                       // 📞 إنهاء المكالمة
                       _callButton(
-                        icon: Icons.call_end,
+                        icon: Icons.call_end_rounded,
                         color: AppColors.error,
                         size: 60,
                         onTap: () => Navigator.pop(context),
                       ),
                       // 🔊 مكبر الصوت
                       _callButton(
-                        icon: _isSpeakerOn ? Icons.volume_up : Icons.volume_off,
+                        icon: _isSpeakerOn ? Icons.volume_up_rounded : Icons.volume_off_rounded,
                         color: _isSpeakerOn ? AppColors.info : Colors.white,
                         onTap: () => setState(() => _isSpeakerOn = !_isSpeakerOn),
                       ),
                       // 📷 تبديل الكاميرا
                       if (widget.isVideo && _hasCameraPermission)
                         _callButton(
-                          icon: Icons.switch_camera,
+                          icon: Icons.switch_camera_rounded,
                           color: Colors.white,
                           onTap: () {},
                         ),
