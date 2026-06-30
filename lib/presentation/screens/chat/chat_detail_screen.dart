@@ -41,13 +41,42 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   bool _isSending = false;
   File? _selectedImage;
   bool _showMediaPreview = false;
+  String? _currentChatId;
 
-  List<Map<String, dynamic>> _localMessages = [];
+  // ✅ قائمة الرسائل المحلية (Offline First)
+  List<Map<String, dynamic>> _messages = [];
 
   @override
   void initState() {
     super.initState();
-    context.read<ChatBloc>().add(LoadChatMessages(widget.chatId));
+    _currentChatId = widget.chatId;
+    _initializeChat();
+  }
+
+  Future<void> _initializeChat() async {
+    try {
+      // ✅ التحقق من وجود المحادثة
+      final chatDoc = await _chatService.getChat(_currentChatId!);
+      if (chatDoc == null) {
+        final userId = FirebaseAuth.instance.currentUser?.uid ?? 'unknown';
+        final userName = FirebaseAuth.instance.currentUser?.displayName ?? 'مستخدم';
+        
+        final newChatId = await _chatService.createChat(
+          doctorId: widget.isDoctor ? userId : widget.userId,
+          doctorName: widget.isDoctor ? userName : widget.userName,
+          patientId: widget.isDoctor ? widget.userId : userId,
+          patientName: widget.isDoctor ? widget.userName : userName,
+        );
+        
+        setState(() {
+          _currentChatId = newChatId;
+        });
+      }
+      
+      context.read<ChatBloc>().add(LoadChatMessages(_currentChatId!));
+    } catch (e) {
+      print('❌ Error initializing chat: $e');
+    }
   }
 
   @override
@@ -62,7 +91,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       context,
       MaterialPageRoute(
         builder: (_) => CallScreen(
-          chatId: widget.chatId,
+          chatId: _currentChatId ?? widget.chatId,
           doctorName: widget.userName,
           doctorId: widget.userId,
           isVideo: false,
@@ -76,7 +105,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       context,
       MaterialPageRoute(
         builder: (_) => CallScreen(
-          chatId: widget.chatId,
+          chatId: _currentChatId ?? widget.chatId,
           doctorName: widget.userName,
           doctorId: widget.userId,
           isVideo: true,
@@ -85,54 +114,90 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     );
   }
 
+  // ✅ إرسال رسالة (Offline First)
   void _sendMessage() async {
     final text = _messageController.text.trim();
     if ((text.isEmpty && _selectedImage == null) || _isSending) return;
+    if (_currentChatId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('جاري إنشاء المحادثة...')),
+      );
+      return;
+    }
 
-    setState(() => _isSending = true);
-
-    final tempMessage = {
-      'id': 'temp_${DateTime.now().millisecondsSinceEpoch}',
+    // ✅ 1. إضافة الرسالة محلياً فوراً (Offline)
+    final messageId = 'local_${DateTime.now().millisecondsSinceEpoch}';
+    final newMessage = {
+      'id': messageId,
       'senderId': FirebaseAuth.instance.currentUser?.uid ?? 'me',
       'senderName': 'أنا',
       'text': text.isNotEmpty ? text : (_selectedImage != null ? 'صورة' : ''),
       'imageUrl': _selectedImage?.path,
+      'audioUrl': _recordingPath,
       'timestamp': DateTime.now(),
+      'status': 'sending', // ✅ حالة الإرسال
+      'isLocal': true,
       'isTemp': true,
     };
 
     setState(() {
-      _localMessages.add(tempMessage);
+      _messages.add(newMessage);
       _selectedImage = null;
       _showMediaPreview = false;
       _messageController.clear();
+      _recordingPath = null;
     });
     _scrollToBottom();
 
+    // ✅ 2. محاكاة زمن المزامنة 1.5 ثانية
+    setState(() => _isSending = true);
+
     try {
+      // ✅ 3. رفع الملفات (إن وجدت)
       String? imageUrl;
+      String? audioUrl;
 
       if (_selectedImage != null) {
         imageUrl = await _chatService.uploadMedia(_selectedImage!, 'image');
       }
 
+      if (_recordingPath != null && _recordingPath!.isNotEmpty) {
+        audioUrl = await _chatService.uploadMedia(File(_recordingPath!), 'audio');
+      }
+
+      // ✅ 4. إرسال الرسالة إلى Firestore
       await _chatService.sendMessage(
-        chatId: widget.chatId,
+        chatId: _currentChatId!,
         text: text.isNotEmpty ? text : (imageUrl != null ? 'صورة' : ''),
         imageUrl: imageUrl,
+        audioUrl: audioUrl,
       );
 
+      // ✅ 5. تحديث حالة الرسالة إلى "تم الإرسال"
       setState(() {
-        _localMessages.removeWhere((msg) => msg['id'] == tempMessage['id']);
+        final index = _messages.indexWhere((msg) => msg['id'] == messageId);
+        if (index != -1) {
+          _messages[index]['status'] = 'sent';
+          _messages[index]['isTemp'] = false;
+          _messages[index]['imageUrl'] = imageUrl ?? _messages[index]['imageUrl'];
+          _messages[index]['audioUrl'] = audioUrl ?? _messages[index]['audioUrl'];
+        }
         _selectedImage = null;
+        _recordingPath = null;
         _showMediaPreview = false;
         _messageController.clear();
       });
 
-      context.read<ChatBloc>().add(LoadChatMessages(widget.chatId));
+      // ✅ 6. تحديث القائمة من Firestore
+      context.read<ChatBloc>().add(LoadChatMessages(_currentChatId!));
+      
     } catch (e) {
+      // ✅ 7. في حالة الفشل، تغيير الحالة إلى "فشل"
       setState(() {
-        _localMessages.removeWhere((msg) => msg['id'] == tempMessage['id']);
+        final index = _messages.indexWhere((msg) => msg['id'] == messageId);
+        if (index != -1) {
+          _messages[index]['status'] = 'failed';
+        }
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('فشل الإرسال: $e')),
@@ -193,25 +258,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       final path = await _audioRecorder.stop();
       setState(() {
         _isRecording = false;
-        _recordingPath = null;
       });
       if (path != null && path.isNotEmpty) {
-        setState(() => _isSending = true);
-        try {
-          final audioUrl = await _chatService.uploadMedia(File(path), 'audio');
-          await _chatService.sendMessage(
-            chatId: widget.chatId,
-            text: 'رسالة صوتية',
-            audioUrl: audioUrl,
-          );
-          _scrollToBottom();
-        } catch (e) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('فشل رفع الصوت: $e')),
-          );
-        } finally {
-          setState(() => _isSending = false);
-        }
+        setState(() {
+          _recordingPath = path;
+          _showMediaPreview = true;
+        });
+        // ✅ إرسال الرسالة الصوتية تلقائياً
+        _sendMessage();
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -227,6 +281,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   void _clearMedia() {
     setState(() {
       _selectedImage = null;
+      _recordingPath = null;
       _showMediaPreview = false;
     });
   }
@@ -254,6 +309,39 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     }
   }
 
+  // ✅ حالة الرسالة
+  Widget _buildStatusIcon(String status) {
+    switch (status) {
+      case 'sending':
+        return const SizedBox(
+          width: 14,
+          height: 14,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: Colors.white70,
+          ),
+        );
+      case 'sent':
+        return const Icon(
+          Icons.done_all_rounded,
+          size: 14,
+          color: Colors.white70,
+        );
+      case 'failed':
+        return const Icon(
+          Icons.error_outline_rounded,
+          size: 14,
+          color: Colors.red,
+        );
+      default:
+        return const Icon(
+          Icons.done_rounded,
+          size: 14,
+          color: Colors.white70,
+        );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -261,24 +349,26 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       appBar: _buildAppBar(),
       body: Column(
         children: [
-          if (_showMediaPreview && _selectedImage != null) _buildMediaPreview(),
+          if (_showMediaPreview && (_selectedImage != null || _recordingPath != null))
+            _buildMediaPreview(),
           Expanded(
             child: BlocConsumer<ChatBloc, ChatState>(
               listener: (context, state) {
                 if (state is ChatErrorState) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(state.message)),
-                  );
+                  // ✅ لا نعرض خطأ للمستخدم، نترك الرسالة تظهر محلياً
+                  print('⚠️ Chat error: ${state.message}');
                 }
                 if (state is ChatLoadedState) {
+                  // ✅ دمج الرسائل من Firestore مع الرسائل المحلية
+                  _mergeMessages(state.messages);
                   _scrollToBottom();
                 }
               },
               builder: (context, state) {
-                if (state is ChatLoadingState) {
+                if (state is ChatLoadingState && _messages.isEmpty) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                if (state is ChatErrorState) {
+                if (state is ChatErrorState && _messages.isEmpty) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -288,9 +378,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                         Text(state.message),
                         const SizedBox(height: 16),
                         ElevatedButton(
-                          onPressed: () {
-                            context.read<ChatBloc>().add(LoadChatMessages(widget.chatId));
-                          },
+                          onPressed: _initializeChat,
                           child: const Text('إعادة المحاولة'),
                         ),
                       ],
@@ -298,11 +386,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                   );
                 }
 
-                List<Map<String, dynamic>> allMessages = [];
-                if (state is ChatLoadedState) {
-                  allMessages = [...state.messages];
-                }
-                allMessages.addAll(_localMessages);
+                // ✅ عرض الرسائل المحلية + من Firestore
+                final allMessages = [..._messages];
                 allMessages.sort((a, b) {
                   final aTime = a['timestamp'] is DateTime
                       ? (a['timestamp'] as DateTime).millisecondsSinceEpoch
@@ -323,6 +408,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                     final isMe = message['senderId'] == FirebaseAuth.instance.currentUser?.uid ||
                         message['senderId'] == 'me';
                     final isTemp = message['isTemp'] == true;
+                    final status = message['status'] ?? 'sent';
 
                     return _buildMessageBubble(
                       text: message['text'] ?? '',
@@ -333,6 +419,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       imageUrl: message['imageUrl'],
                       audioUrl: message['audioUrl'],
                       isTemp: isTemp,
+                      status: status,
                     );
                   },
                 );
@@ -343,6 +430,37 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         ],
       ),
     );
+  }
+
+  // ✅ دمج الرسائل من Firestore مع المحلية
+  void _mergeMessages(List<Map<String, dynamic>> firestoreMessages) {
+    // ✅ إزالة الرسائل المحلية التي تم إرسالها بنجاح
+    _messages.removeWhere((msg) => 
+      msg['isLocal'] == true && 
+      msg['status'] == 'sent' &&
+      firestoreMessages.any((fm) => 
+        fm['text'] == msg['text'] && 
+        fm['timestamp'] is Timestamp &&
+        fm['timestamp'].toDate().difference(msg['timestamp']).inSeconds.abs() < 5
+      )
+    );
+
+    // ✅ إضافة الرسائل من Firestore إذا لم تكن موجودة محلياً
+    for (final msg in firestoreMessages) {
+      final exists = _messages.any((m) => 
+        m['id'] == msg['id'] || 
+        (m['text'] == msg['text'] && 
+         m['isLocal'] == true && 
+         m['status'] == 'sending')
+      );
+      if (!exists) {
+        _messages.add({
+          ...msg,
+          'status': 'sent',
+          'isLocal': false,
+        });
+      }
+    }
   }
 
   PreferredSizeWidget _buildAppBar() {
@@ -393,33 +511,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                     color: Colors.white70,
                   ),
                 ),
-                Row(
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: AppColors.success,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Text(
-                      '🟢',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: AppColors.success,
-                      ),
-                    ),
-                  ],
-                ),
               ],
             ),
           ),
         ],
       ),
       actions: [
-        // ✅ زر المكالمة الصوتية
         IconButton(
           icon: Container(
             padding: const EdgeInsets.all(6),
@@ -432,7 +529,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           onPressed: _startAudioCall,
           tooltip: 'مكالمة صوتية',
         ),
-        // ✅ زر مكالمة الفيديو
         IconButton(
           icon: Container(
             padding: const EdgeInsets.all(6),
@@ -458,17 +554,31 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       ),
       child: Row(
         children: [
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.file(
-                _selectedImage!,
-                height: 80,
-                width: 80,
-                fit: BoxFit.cover,
+          if (_selectedImage != null)
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.file(
+                  _selectedImage!,
+                  height: 80,
+                  width: 80,
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
-          ),
+          if (_recordingPath != null && _selectedImage == null)
+            const Expanded(
+              child: Row(
+                children: [
+                  Icon(Icons.audio_file_rounded, color: Colors.white, size: 30),
+                  SizedBox(width: 8),
+                  Text(
+                    '🎵 رسالة صوتية',
+                    style: TextStyle(color: Colors.white, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
           IconButton(
             icon: const Icon(Icons.close_rounded, color: Colors.white),
             onPressed: _clearMedia,
@@ -493,7 +603,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       ),
       child: Row(
         children: [
-          // ✅ زر المرفقات
           PopupMenuButton<String>(
             icon: const Icon(Icons.attach_file_rounded, color: AppColors.grey),
             onSelected: (value) {
@@ -526,7 +635,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               ),
             ],
           ),
-          // ✅ زر التسجيل الصوتي
           IconButton(
             icon: Icon(
               _isRecording ? Icons.stop_rounded : Icons.mic_rounded,
@@ -534,7 +642,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             ),
             onPressed: _isRecording ? _stopRecording : _startRecording,
           ),
-          // ✅ حقل النص
           Expanded(
             child: TextField(
               controller: _messageController,
@@ -561,11 +668,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             ),
           ),
           const SizedBox(width: 8),
-          // ✅ زر الإرسال
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: (_selectedImage != null || _messageController.text.trim().isNotEmpty)
+                colors: (_selectedImage != null || 
+                         _recordingPath != null || 
+                         _messageController.text.trim().isNotEmpty)
                     ? [AppColors.primary, AppColors.primaryDark]
                     : [AppColors.grey, AppColors.grey],
               ),
@@ -597,6 +705,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     String? imageUrl,
     String? audioUrl,
     bool isTemp = false,
+    String status = 'sent',
   }) {
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
@@ -619,7 +728,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            // ✅ عرض الصورة
             if (imageUrl != null && imageUrl.isNotEmpty)
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
@@ -645,7 +753,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                         ),
                       ),
               ),
-            // ✅ عرض الصوت
             if (audioUrl != null && audioUrl.isNotEmpty)
               Container(
                 padding: const EdgeInsets.all(8),
@@ -684,7 +791,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                   ],
                 ),
               ),
-            // ✅ عرض النص
             if (text.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 4),
@@ -708,22 +814,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                     color: isMe ? Colors.white70 : AppColors.grey,
                   ),
                 ),
-                if (isTemp) ...[
-                  const SizedBox(width: 4),
-                  const Icon(
-                    Icons.timer_rounded,
-                    size: 10,
-                    color: AppColors.warning,
-                  ),
-                ],
-                if (isMe && !isTemp) ...[
-                  const SizedBox(width: 4),
-                  const Icon(
-                    Icons.done_all_rounded,
-                    size: 14,
-                    color: AppColors.success,
-                  ),
-                ],
+                const SizedBox(width: 4),
+                // ✅ عرض حالة الإرسال
+                if (isMe) _buildStatusIcon(status),
               ],
             ),
           ],

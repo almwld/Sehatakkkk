@@ -166,3 +166,14 @@ class ChatService {
         .delete();
   }
 }
+
+  // ✅ الحصول على محادثة محددة
+  Future<DocumentSnapshot?> getChat(String chatId) async {
+    try {
+      final doc = await _firestore.collection('chats').doc(chatId).get();
+      return doc;
+    } catch (e) {
+      print('❌ Failed to get chat: $e');
+      return null;
+    }
+  }
