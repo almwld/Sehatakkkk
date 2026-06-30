@@ -88,7 +88,6 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
         isVideo: widget.isVideo && _hasCameraPermission,
       );
 
-      // ✅ معالجة المشاركين
       final room = _liveKit.room;
       if (room != null) {
         // ✅ معالجة المشارك المحلي
@@ -96,17 +95,15 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
           _handleParticipant(room.localParticipant!);
         }
         
-        // ✅ معالجة المشاركين الآخرين
-        for (final participant in room.remoteParticipants.values) {
-          _handleParticipant(participant);
+        // ✅ استخدام participants بدلاً من remoteParticipants
+        for (final participant in room.participants.values) {
+          if (!participant.isLocal) {
+            _handleParticipant(participant);
+          }
         }
         
         // ✅ الاستماع للمشاركين الجدد
         room.onParticipantConnected = (participant) {
-          _handleParticipant(participant);
-        };
-        
-        room.onParticipantUpdated = (participant) {
           _handleParticipant(participant);
         };
       }
@@ -138,9 +135,8 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
 
   void _handleParticipant(Participant participant) {
     // ✅ البحث عن VideoTrack
-    final tracks = participant.videoTracks;
-    if (tracks.isNotEmpty) {
-      final track = tracks.first;
+    for (final publication in participant.videoTrackPublications.values) {
+      final track = publication.track;
       if (track is VideoTrack) {
         setState(() {
           if (participant.isLocal) {
