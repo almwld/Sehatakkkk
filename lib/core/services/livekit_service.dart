@@ -14,7 +14,6 @@ class LiveKitService {
 
   bool get isConnected => _room?.connectionState == ConnectionState.connected;
 
-  // 🔑 توليد Token باستخدام JWT
   String _generateToken({
     required String roomName,
     required String participantName,
@@ -30,16 +29,12 @@ class LiveKitService {
             'roomJoin': true,
             'canPublish': true,
             'canSubscribe': true,
-            'canPublishData': true,
           },
           'exp': DateTime.now().add(const Duration(minutes: 10)).millisecondsSinceEpoch ~/ 1000,
           'nbf': DateTime.now().millisecondsSinceEpoch ~/ 1000,
         },
       );
-
-      final token = jwt.sign(SecretKey(LiveKitConfig.apiSecret));
-      print('✅ Token generated successfully');
-      return token;
+      return jwt.sign(SecretKey(LiveKitConfig.apiSecret));
     } catch (e) {
       print('❌ خطأ في توليد التوكن: $e');
       rethrow;
@@ -52,25 +47,21 @@ class LiveKitService {
   }) async {
     try {
       _room = Room();
-
       final token = _generateToken(
         roomName: roomName,
         participantName: participantName ?? 'مستخدم',
       );
-
       final options = RoomOptions(
         defaultVideoPublishOptions: const VideoPublishOptions(
           simulcast: false,
         ),
         defaultAudioPublishOptions: const AudioPublishOptions(),
       );
-
       await _room!.connect(
         LiveKitConfig.serverUrl,
         token,
         roomOptions: options,
       );
-
       print('✅ Connected to room: $roomName');
       return _room!;
     } catch (e) {
@@ -79,6 +70,7 @@ class LiveKitService {
     }
   }
 
+  // ✅ تفعيل الكاميرا مع محاولة إعادة المحاولة
   Future<void> enableCamera() async {
     try {
       if (_room?.localParticipant != null) {
@@ -87,8 +79,13 @@ class LiveKitService {
         print('✅ Camera enabled');
       }
     } catch (e) {
-      print('❌ Failed to enable camera: $e');
-      rethrow;
+      print('❌ Camera error: $e');
+      // ✅ محاولة إعادة المحاولة
+      await Future.delayed(const Duration(milliseconds: 500));
+      try {
+        await _room!.localParticipant!.setCameraEnabled(true);
+        _isCameraEnabled = true;
+      } catch (_) {}
     }
   }
 
@@ -100,8 +97,7 @@ class LiveKitService {
         print('✅ Microphone enabled');
       }
     } catch (e) {
-      print('❌ Failed to enable microphone: $e');
-      rethrow;
+      print('❌ Microphone error: $e');
     }
   }
 
@@ -111,53 +107,35 @@ class LiveKitService {
     bool isVideo = true,
   }) async {
     try {
-      await connectRoom(
-        roomName: roomName,
-        participantName: callerName,
-      );
+      await connectRoom(roomName: roomName, participantName: callerName);
       await enableMicrophone();
       if (isVideo) {
         await enableCamera();
       }
-      print('✅ Call started successfully');
+      print('✅ Call started');
     } catch (e) {
       print('❌ Failed to start call: $e');
       rethrow;
     }
   }
 
-  Future<void> disableCamera() async {
-    try {
-      if (_room?.localParticipant != null) {
-        await _room!.localParticipant!.setCameraEnabled(false);
-        _isCameraEnabled = false;
-        print('✅ Camera disabled');
-      }
-    } catch (e) {
-      print('❌ Failed to disable camera: $e');
-    }
-  }
-
   Future<bool> toggleCamera() async {
     if (_isCameraEnabled) {
-      await disableCamera();
+      await _room?.localParticipant?.setCameraEnabled(false);
+      _isCameraEnabled = false;
       return false;
     } else {
-      await enableCamera();
+      await _room?.localParticipant?.setCameraEnabled(true);
+      _isCameraEnabled = true;
       return true;
     }
   }
 
   Future<void> endCall() async {
-    try {
-      await _room?.disconnect();
-      _room = null;
-      _isCameraEnabled = false;
-      _isMicrophoneEnabled = false;
-      print('✅ Call ended');
-    } catch (e) {
-      print('❌ Failed to end call: $e');
-    }
+    await _room?.disconnect();
+    _room = null;
+    _isCameraEnabled = false;
+    _isMicrophoneEnabled = false;
   }
 
   void dispose() {

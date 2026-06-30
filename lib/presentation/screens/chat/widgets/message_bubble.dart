@@ -5,12 +5,14 @@ import 'package:sehatak/core/constants/app_colors.dart';
 class MessageBubble extends StatelessWidget {
   final Map<String, dynamic> message;
   final bool isMe;
+  final bool isTemp;
   final VoidCallback? onTap;
 
   const MessageBubble({
     super.key,
     required this.message,
     required this.isMe,
+    this.isTemp = false,
     this.onTap,
   });
 
@@ -20,8 +22,6 @@ class MessageBubble extends StatelessWidget {
     final imageUrl = message['imageUrl'];
     final audioUrl = message['audioUrl'];
     final timestamp = message['timestamp'];
-    final isSending = message['isSending'] == true;
-    final error = message['error'];
 
     return GestureDetector(
       onTap: onTap,
@@ -29,7 +29,6 @@ class MessageBubble extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 8),
         child: Row(
           mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             if (!isMe)
               Container(
@@ -56,18 +55,15 @@ class MessageBubble extends StatelessWidget {
                   vertical: 10,
                 ),
                 decoration: BoxDecoration(
-                  color: isMe 
-                      ? (error != null ? Colors.red.shade100 : AppColors.primary)
-                      : AppColors.surfaceContainerLow,
+                  color: isMe ? AppColors.primary : AppColors.surfaceContainerLow,
                   borderRadius: BorderRadius.only(
                     topLeft: const Radius.circular(18),
                     topRight: const Radius.circular(18),
                     bottomLeft: isMe ? const Radius.circular(18) : Radius.zero,
                     bottomRight: isMe ? Radius.zero : const Radius.circular(18),
                   ),
-                  border: error != null 
-                      ? Border.all(color: Colors.red, width: 1)
-                      : null,
+                  // ✅ تمييز الرسائل المؤقتة
+                  border: isTemp ? Border.all(color: AppColors.warning, width: 1) : null,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -77,27 +73,42 @@ class MessageBubble extends StatelessWidget {
                         onTap: onTap,
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: CachedNetworkImage(
-                            imageUrl: imageUrl,
-                            width: 200,
-                            fit: BoxFit.cover,
-                            placeholder: (_, __) => Container(
-                              height: 150,
-                              color: Colors.grey.shade300,
-                              child: const Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                            ),
-                            errorWidget: (_, __, ___) => Container(
-                              height: 150,
-                              color: Colors.grey.shade200,
-                              child: const Icon(
-                                Icons.broken_image,
-                                size: 40,
-                                color: AppColors.grey,
-                              ),
-                            ),
-                          ),
+                          child: imageUrl.startsWith('http')
+                              ? CachedNetworkImage(
+                                  imageUrl: imageUrl,
+                                  width: 200,
+                                  fit: BoxFit.cover,
+                                  placeholder: (_, __) => Container(
+                                    height: 150,
+                                    color: Colors.grey.shade300,
+                                    child: const Center(
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  ),
+                                  errorWidget: (_, __, ___) => Container(
+                                    height: 150,
+                                    color: Colors.grey.shade200,
+                                    child: const Icon(
+                                      Icons.broken_image,
+                                      size: 40,
+                                      color: AppColors.grey,
+                                    ),
+                                  ),
+                                )
+                              : Image.file(
+                                  File(imageUrl),
+                                  width: 200,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Container(
+                                    height: 150,
+                                    color: Colors.grey.shade200,
+                                    child: const Icon(
+                                      Icons.broken_image,
+                                      size: 40,
+                                      color: AppColors.grey,
+                                    ),
+                                  ),
+                                ),
                         ),
                       ),
                     if (audioUrl != null && audioUrl.isNotEmpty)
@@ -160,23 +171,12 @@ class MessageBubble extends StatelessWidget {
                             fontSize: 9,
                           ),
                         ),
-                        if (isSending) ...[
-                          const SizedBox(width: 6),
-                          const SizedBox(
-                            width: 12,
-                            height: 12,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white70,
-                            ),
-                          ),
-                        ],
-                        if (error != null) ...[
-                          const SizedBox(width: 6),
-                          Icon(
-                            Icons.error_outline,
-                            color: Colors.white70,
-                            size: 14,
+                        if (isTemp) ...[
+                          const SizedBox(width: 4),
+                          const Icon(
+                            Icons.timer,
+                            size: 10,
+                            color: AppColors.warning,
                           ),
                         ],
                       ],
@@ -194,12 +194,7 @@ class MessageBubble extends StatelessWidget {
   String _formatTime(dynamic timestamp) {
     if (timestamp == null) return '';
     if (timestamp is DateTime) {
-      final now = DateTime.now();
-      final diff = now.difference(timestamp);
-      if (diff.inMinutes < 1) return 'الآن';
-      if (diff.inHours < 1) return '${diff.inMinutes} د';
-      if (diff.inDays < 1) return '${diff.inHours} س';
-      return '${diff.inDays} ي';
+      return '${timestamp.hour}:${timestamp.minute.toString().padLeft(2, '0')}';
     }
     return '';
   }

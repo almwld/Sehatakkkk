@@ -102,6 +102,8 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/icons/payment/
+    - assets/icons/plans/
     - assets/icons/app_icon.png
     - assets/icons/payment/
     - assets/images/
@@ -165,6 +167,8 @@ flutter_launcher_icons:
   flutter_app_badger: ^1.5.0
 
   assets:
+    - assets/icons/payment/
+    - assets/icons/plans/
     - assets/icons/app_icon.png
     - assets/icons/payment/
     - assets/images/

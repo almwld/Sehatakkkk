@@ -44,6 +44,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   File? _selectedAudio;
   bool _showMediaPreview = false;
 
+  // ✅ قائمة الرسائل المحلية (Optimistic UI)
+  List<Map<String, dynamic>> _localMessages = [];
+
   @override
   void initState() {
     super.initState();
@@ -62,6 +65,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     super.dispose();
   }
 
+  // ✅ إرسال رسالة (Optimistic UI)
   void _sendMessage() async {
     final text = _messageController.text.trim();
     if ((text.isEmpty && _selectedImage == null && _selectedAudio == null) || _isSending) return;
@@ -74,6 +78,27 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
     setState(() => _isSending = true);
     
+    // ✅ إضافة الرسالة محلياً فوراً (Optimistic)
+    final tempMessage = {
+      'id': 'temp_${DateTime.now().millisecondsSinceEpoch}',
+      'senderId': FirebaseAuth.instance.currentUser?.uid ?? 'me',
+      'senderName': 'أنا',
+      'text': text.isNotEmpty ? text : (_selectedImage != null ? '📷 صورة' : '🎵 رسالة صوتية'),
+      'imageUrl': _selectedImage?.path,
+      'audioUrl': _selectedAudio?.path,
+      'timestamp': DateTime.now(),
+      'isTemp': true,
+    };
+    
+    setState(() {
+      _localMessages.add(tempMessage);
+      _selectedImage = null;
+      _selectedAudio = null;
+      _showMediaPreview = false;
+      _messageController.clear();
+    });
+    _scrollToBottom();
+
     try {
       String? imageUrl;
       String? audioUrl;
@@ -93,14 +118,21 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         audioUrl: audioUrl,
       );
 
+      // ✅ إزالة الرسالة المؤقتة وإعادة تحميل
       setState(() {
+        _localMessages.removeWhere((msg) => msg['id'] == tempMessage['id']);
         _selectedImage = null;
         _selectedAudio = null;
         _showMediaPreview = false;
         _messageController.clear();
       });
-      _scrollToBottom();
+      
+      context.read<ChatBloc>().add(LoadChatMessages(_chatId!));
     } catch (e) {
+      // ✅ في حالة الفشل، إظهار خطأ مع إبقاء الرسالة
+      setState(() {
+        _localMessages.removeWhere((msg) => msg['id'] == tempMessage['id']);
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('فشل الإرسال: $e')),
       );
@@ -347,27 +379,44 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     ),
                   );
                 }
+                
+                // ✅ عرض الرسائل المحلية + الرسائل من Firestore
+                List<Map<String, dynamic>> allMessages = [];
                 if (state is ChatLoadedState) {
-                  return ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.all(12),
-                    itemCount: state.messages.length,
-                    itemBuilder: (context, index) {
-                      final message = state.messages[index];
-                      final isMe = message['senderId'] == FirebaseAuth.instance.currentUser?.uid;
-                      return MessageBubble(
-                        message: message,
-                        isMe: isMe,
-                        onTap: () {
-                          if (message['imageUrl'] != null) {
-                            _showImagePreview(message['imageUrl']);
-                          }
-                        },
-                      );
-                    },
-                  );
+                  allMessages = [...state.messages];
                 }
-                return const SizedBox();
+                allMessages.addAll(_localMessages);
+                allMessages.sort((a, b) {
+                  final aTime = a['timestamp'] is DateTime 
+                      ? (a['timestamp'] as DateTime).millisecondsSinceEpoch 
+                      : 0;
+                  final bTime = b['timestamp'] is DateTime 
+                      ? (b['timestamp'] as DateTime).millisecondsSinceEpoch 
+                      : 0;
+                  return aTime.compareTo(bTime);
+                });
+
+                return ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.all(12),
+                  itemCount: allMessages.length,
+                  itemBuilder: (context, index) {
+                    final message = allMessages[index];
+                    final isMe = message['senderId'] == FirebaseAuth.instance.currentUser?.uid ||
+                                 message['senderId'] == 'me';
+                    final isTemp = message['isTemp'] == true;
+                    return MessageBubble(
+                      message: message,
+                      isMe: isMe,
+                      isTemp: isTemp,
+                      onTap: () {
+                        if (message['imageUrl'] != null) {
+                          _showImagePreview(message['imageUrl']);
+                        }
+                      },
+                    );
+                  },
+                );
               },
             ),
           ),
