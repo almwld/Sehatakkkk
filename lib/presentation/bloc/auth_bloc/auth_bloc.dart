@@ -1,13 +1,77 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/services/firebase_auth_service.dart';
-import 'auth_event.dart';
-import 'auth_state.dart';
 
+// ========== EVENTS ==========
+abstract class AuthEvent {}
+class AppStarted extends AuthEvent {}
+class LoginWithEmail extends AuthEvent {
+  final String email;
+  final String password;
+  LoginWithEmail({required this.email, required this.password});
+}
+class LoginWithPhone extends AuthEvent {
+  final String phone;
+  final String password;
+  LoginWithPhone({required this.phone, required this.password});
+}
+class LoginWithGoogle extends AuthEvent {}
+class RegisterWithEmail extends AuthEvent {
+  final String name;
+  final String email;
+  final String phone;
+  final String password;
+  RegisterWithEmail({
+    required this.name,
+    required this.email,
+    required this.phone,
+    required this.password,
+  });
+}
+class RegisterDoctor extends AuthEvent {
+  final String name;
+  final String email;
+  final String phone;
+  final String password;
+  final String specialty;
+  final String license;
+  RegisterDoctor({
+    required this.name,
+    required this.email,
+    required this.phone,
+    required this.password,
+    required this.specialty,
+    required this.license,
+  });
+}
+class SendOTP extends AuthEvent {
+  final String phone;
+  SendOTP(this.phone);
+}
+class VerifyOTP extends AuthEvent {
+  final String verificationId;
+  final String code;
+  VerifyOTP({required this.verificationId, required this.code});
+}
+class Logout extends AuthEvent {}
+
+// ========== STATES ==========
+abstract class AuthState {}
+class AuthInitial extends AuthState {}
+class AuthLoading extends AuthState {}
+class Authenticated extends AuthState {
+  final User user;
+  Authenticated(this.user);
+}
+class Unauthenticated extends AuthState {}
+class AuthError extends AuthState {
+  final String message;
+  AuthError(this.message);
+}
+
+// ========== BLOC ==========
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final FirebaseAuthService _authService = FirebaseAuthService();
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   AuthBloc() : super(AuthInitial()) {
     on<AppStarted>(_onAppStarted);
@@ -21,7 +85,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<Logout>(_onLogout);
   }
 
-  void _onAppStarted(AppStarted event, Emitter<AuthState> emit) {
+  Future<void> _onAppStarted(AppStarted event, Emitter<AuthState> emit) async {
     final user = _authService.currentUser;
     if (user != null) {
       emit(Authenticated(user));
@@ -35,8 +99,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final user = await _authService.loginWithEmail(event.email, event.password);
       if (user != null) {
-        // ✅ تحديث آخر تسجيل دخول
-        await _updateUserLastLogin(user.uid);
         emit(Authenticated(user));
       } else {
         emit(AuthError('فشل تسجيل الدخول'));
@@ -51,10 +113,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final user = await _authService.loginWithPhone(event.phone, event.password);
       if (user != null) {
-        await _updateUserLastLogin(user.uid);
         emit(Authenticated(user));
       } else {
-        emit(AuthError('فشل تسجيل الدخول بالهاتف'));
+        emit(AuthError('فشل تسجيل الدخول'));
       }
     } catch (e) {
       emit(AuthError(e.toString()));
@@ -66,12 +127,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final user = await _authService.loginWithGoogle();
       if (user != null) {
-        // ✅ حفظ بيانات المستخدم إذا كانت جديدة
-        await _saveUserIfNotExists(user);
-        await _updateUserLastLogin(user.uid);
         emit(Authenticated(user));
       } else {
-        emit(AuthError('فشل تسجيل الدخول بـ Google'));
+        emit(AuthError('فشل تسجيل الدخول بجوجل'));
       }
     } catch (e) {
       emit(AuthError(e.toString()));
@@ -82,14 +140,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     try {
       final user = await _authService.registerWithEmail(
-        name: event.name,
-        email: event.email,
-        phone: event.phone,
-        password: event.password,
+        event.name,
+        event.email,
+        event.password,
+        event.phone,
       );
       if (user != null) {
-        // ✅ حفظ بيانات المستخدم في Firestore
-        await _saveUserToFirestore(user, event.name, event.phone);
         emit(Authenticated(user));
       } else {
         emit(AuthError('فشل إنشاء الحساب'));
@@ -103,19 +159,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     try {
       final user = await _authService.registerDoctor(
-        name: event.name,
-        email: event.email,
-        phone: event.phone,
-        password: event.password,
-        license: event.license,
-        specialty: event.specialty,
+        event.name,
+        event.email,
+        event.password,
+        event.phone,
+        event.specialty,
+        event.license,
       );
       if (user != null) {
-        // ✅ حفظ بيانات الطبيب في Firestore
-        await _saveDoctorToFirestore(user, event);
         emit(Authenticated(user));
       } else {
-        emit(AuthError('فشل إنشاء حساب الطبيب'));
+        emit(AuthError('فشل تسجيل الطبيب'));
       }
     } catch (e) {
       emit(AuthError(e.toString()));
@@ -126,7 +180,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     try {
       await _authService.sendOTP(event.phone);
-      emit(OtpSent(event.phone));
+      emit(AuthInitial());
     } catch (e) {
       emit(AuthError(e.toString()));
     }
@@ -137,10 +191,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final user = await _authService.verifyOTP(event.verificationId, event.code);
       if (user != null) {
-        await _updateUserLastLogin(user.uid);
         emit(Authenticated(user));
       } else {
-        emit(AuthError('رمز التحقق غير صحيح'));
+        emit(AuthError('فشل التحقق'));
       }
     } catch (e) {
       emit(AuthError(e.toString()));
@@ -154,84 +207,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(Unauthenticated());
     } catch (e) {
       emit(AuthError(e.toString()));
-    }
-  }
-
-  // ✅ حفظ بيانات المستخدم في Firestore
-  Future<void> _saveUserToFirestore(User user, String name, String phone) async {
-    try {
-      final patientId = 'SH-${DateTime.now().year}-${user.uid.substring(0, 4).toUpperCase()}';
-      await _firestore.collection('users').doc(user.uid).set({
-        'uid': user.uid,
-        'name': name,
-        'email': user.email ?? '',
-        'phone': phone,
-        'photoUrl': user.photoURL ?? '',
-        'patientId': patientId,
-        'createdAt': FieldValue.serverTimestamp(),
-        'lastLogin': FieldValue.serverTimestamp(),
-        'role': 'patient',
-      });
-    } catch (e) {
-      print('❌ فشل حفظ بيانات المستخدم: $e');
-    }
-  }
-
-  // ✅ حفظ بيانات الطبيب في Firestore
-  Future<void> _saveDoctorToFirestore(User user, RegisterDoctor event) async {
-    try {
-      await _firestore.collection('doctors').doc(user.uid).set({
-        'uid': user.uid,
-        'name': event.name,
-        'email': user.email ?? '',
-        'phone': event.phone,
-        'license': event.license,
-        'specialty': event.specialty,
-        'photoUrl': user.photoURL ?? '',
-        'createdAt': FieldValue.serverTimestamp(),
-        'lastLogin': FieldValue.serverTimestamp(),
-        'role': 'doctor',
-        'available': true,
-        'online': true,
-        'rating': 0,
-        'reviews': 0,
-      });
-    } catch (e) {
-      print('❌ فشل حفظ بيانات الطبيب: $e');
-    }
-  }
-
-  // ✅ حفظ بيانات مستخدم Google
-  Future<void> _saveUserIfNotExists(User user) async {
-    try {
-      final doc = await _firestore.collection('users').doc(user.uid).get();
-      if (!doc.exists) {
-        final patientId = 'SH-${DateTime.now().year}-${user.uid.substring(0, 4).toUpperCase()}';
-        await _firestore.collection('users').doc(user.uid).set({
-          'uid': user.uid,
-          'name': user.displayName ?? 'مستخدم',
-          'email': user.email ?? '',
-          'phone': user.phoneNumber ?? '',
-          'photoUrl': user.photoURL ?? '',
-          'patientId': patientId,
-          'createdAt': FieldValue.serverTimestamp(),
-          'lastLogin': FieldValue.serverTimestamp(),
-          'role': 'patient',
-        });
-      }
-    } catch (e) {
-      print('❌ فشل حفظ بيانات المستخدم: $e');
-    }
-  }
-
-  // ✅ تحديث وقت آخر تسجيل دخول
-  Future<void> _updateUserLastLogin(String uid) async {
-    try {
-      await _firestore.collection('users').doc(uid).update({
-        'lastLogin': FieldValue.serverTimestamp(),
-      });
-    } catch (e) {
-      print('❌ فشل تحديث وقت آخر تسجيل دخول: $e');
     }
   }
 }
