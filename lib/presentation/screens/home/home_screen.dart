@@ -19,6 +19,7 @@ import 'package:sehatak/presentation/screens/insurance/insurance_companies.dart'
 import 'package:sehatak/presentation/screens/health/health_dashboard.dart';
 import 'package:sehatak/presentation/screens/payment/wallet_screen.dart';
 import 'package:sehatak/presentation/screens/consultation/consultation_screen.dart';
+import 'package:sehatak/presentation/screens/services/services_screen.dart';
 import 'package:sehatak/presentation/bloc/auth_bloc/auth_bloc.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -34,7 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _HomeTab(),
     DoctorsListScreen(),
     PharmacyScreen(),
-    ChatScreen(), // ✅ بدون معاملات
+    ChatScreen(),
     PatientAppointments(),
     PatientDashboard(),
     MoreScreen(),
@@ -236,24 +237,59 @@ class _HomeTab extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ✅ شريط البحث
             _searchBar(),
             const SizedBox(height: 16),
+            
+            // ✅ بانر الترحيب
             _heroBanner(context),
             const SizedBox(height: 16),
+            
+            // ✅ خدمات سريعة (8 خدمات)
             _sectionTitle('خدمات سريعة'),
             const SizedBox(height: 10),
             _quickServices(context),
             const SizedBox(height: 22),
-            _sectionTitle('أفضل الأطباء'),
+            
+            // ✅ جميع الخدمات (11 خدمة)
+            _sectionTitle('جميع الخدمات'),
+            const SizedBox(height: 10),
+            _allServices(context),
+            const SizedBox(height: 22),
+            
+            // ✅ أفضل الأطباء
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _sectionTitle('أفضل الأطباء'),
+                TextButton(
+                  onPressed: () => _go(context, const DoctorsListScreen()),
+                  child: const Text('عرض الكل ›'),
+                ),
+              ],
+            ),
             const SizedBox(height: 10),
             _docCard('د. علي المولد', 'استشاري باطنية', '4.9', '1', context),
             const SizedBox(height: 8),
             _docCard('د. فاطمة صديقي', 'طبيبة أطفال', '4.8', '3', context),
             const SizedBox(height: 22),
-            _sectionTitle('منتجات صيدلية'),
+            
+            // ✅ منتجات صيدلية
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _sectionTitle('منتجات صيدلية'),
+                TextButton(
+                  onPressed: () => _go(context, const PharmacyScreen()),
+                  child: const Text('عرض الكل ›'),
+                ),
+              ],
+            ),
             const SizedBox(height: 10),
             _pharmacyRow(context),
             const SizedBox(height: 22),
+            
+            // ✅ نصائح يومية
             _sectionTitle('نصائح يومية'),
             const SizedBox(height: 10),
             _tip('شرب الماء', '8 أكواب يومياً للحفاظ على صحة الجسم', Icons.water_drop, AppColors.info),
@@ -266,6 +302,8 @@ class _HomeTab extends StatelessWidget {
     );
   }
 
+  // ========== WIDGETS ==========
+  
   Widget _sectionTitle(String t) {
     return Text(t, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold));
   }
@@ -358,19 +396,20 @@ class _HomeTab extends StatelessWidget {
     );
   }
 
+  // ✅ خدمات سريعة (8 خدمات)
   Widget _quickServices(BuildContext context) {
     return Wrap(
       spacing: 12,
       runSpacing: 12,
       children: [
+        _qs('أطباء', Icons.medical_services, AppColors.primary, () => _go(context, const DoctorsListScreen())),
         _qs('صيدلية', Icons.local_pharmacy, AppColors.success, () => _go(context, const PharmacyScreen())),
+        _qs('مختبرات', Icons.science, AppColors.purple, () => _go(context, const LabsListScreen())),
         _qs('طوارئ', Icons.emergency, AppColors.error, () => _go(context, const EmergencyNumbers())),
-        _qs('تحاليل', Icons.science, AppColors.purple, () => _go(context, const LabsListScreen())),
-        _qs('تأمين', Icons.shield_moon, AppColors.indigo, () => _go(context, const InsuranceCompanies())),
+        _qs('خريطة', Icons.map, AppColors.info, () => _go(context, const ServicesScreen())),
         _qs('صحة', Icons.favorite, AppColors.pink, () => _go(context, const HealthDashboard())),
         _qs('محفظة', Icons.account_balance_wallet, AppColors.amber, () => _go(context, const WalletScreen())),
-        _qs('سلة', Icons.shopping_cart, AppColors.orange, () => _go(context, const CartScreen())),
-        _qs('استشارة', Icons.chat, AppColors.primary, () => _go(context, const ConsultationScreen())),
+        _qs('استشارة', Icons.chat, AppColors.teal, () => _go(context, const ConsultationScreen())),
       ],
     );
   }
@@ -400,6 +439,67 @@ class _HomeTab extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  // ✅ جميع الخدمات (11 خدمة)
+  Widget _allServices(BuildContext context) {
+    final List<Map<String, dynamic>> services = [
+      {'icon': Icons.medical_services, 'label': 'الأطباء', 'color': AppColors.primary, 'screen': const DoctorsListScreen()},
+      {'icon': Icons.local_pharmacy, 'label': 'الصيدلية', 'color': AppColors.success, 'screen': const PharmacyScreen()},
+      {'icon': Icons.science, 'label': 'المختبرات', 'color': AppColors.purple, 'screen': const LabsListScreen()},
+      {'icon': Icons.map, 'label': 'المرافق الصحية', 'color': AppColors.info, 'screen': const ServicesScreen()},
+      {'icon': Icons.emergency, 'label': 'الطوارئ', 'color': AppColors.error, 'screen': const EmergencyNumbers()},
+      {'icon': Icons.favorite, 'label': 'الصحة', 'color': AppColors.pink, 'screen': const HealthDashboard()},
+      {'icon': Icons.wallet, 'label': 'المحفظة', 'color': AppColors.amber, 'screen': const WalletScreen()},
+      {'icon': Icons.chat, 'label': 'استشارات', 'color': AppColors.teal, 'screen': const ConsultationScreen()},
+      {'icon': Icons.subscriptions, 'label': 'الباقات', 'color': AppColors.orange, 'screen': const SubscriptionsScreen()},
+      {'icon': Icons.folder, 'label': 'الملف الصحي', 'color': AppColors.indigo, 'screen': const PatientMedicalHistory()},
+      {'icon': Icons.calendar_month, 'label': 'المواعيد', 'color': AppColors.primaryDark, 'screen': const PatientAppointments()},
+    ];
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        childAspectRatio: 0.8,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+      ),
+      itemCount: services.length,
+      itemBuilder: (context, index) {
+        final service = services[index];
+        return GestureDetector(
+          onTap: () => _go(context, service['screen'] as Widget),
+          child: Container(
+            decoration: BoxDecoration(
+              color: (service['color'] as Color).withOpacity(0.08),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  service['icon'] as IconData,
+                  color: service['color'] as Color,
+                  size: 28,
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  service['label'] as String,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                    color: service['color'] as Color,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
