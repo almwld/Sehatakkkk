@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/sound_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:livekit_client/livekit_client.dart';
@@ -67,6 +68,7 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
   }
 
   void _startCall() async {
+    SoundManager().playCallRingtone();
     try {
       await _liveKit.startCall(
         roomName: widget.chatId,
@@ -276,6 +278,7 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                         color: AppColors.error,
                         size: 60,
                         onTap: () => Navigator.pop(context),
+              SoundManager().playCallEnd();
                       ),
                       // 🔊 مكبر الصوت
                       _callButton(
