@@ -27,7 +27,21 @@ class FirebaseAuthService {
     }
   }
 
-  // 📝 إنشاء حساب
+  // 📱 تسجيل الدخول بالهاتف
+  Future<User?> loginWithPhone(String phone, String password) async {
+    try {
+      // محاكاة تسجيل الدخول بالهاتف
+      final result = await _auth.signInWithEmailAndPassword(
+        email: '$phone@sehatak.com',
+        password: password.trim(),
+      );
+      return result.user;
+    } on FirebaseAuthException catch (e) {
+      throw _handleAuthError(e);
+    }
+  }
+
+  // 📝 إنشاء حساب مستخدم
   Future<User?> registerWithEmail(String name, String email, String password, String phone) async {
     try {
       final result = await _auth.createUserWithEmailAndPassword(
@@ -35,6 +49,29 @@ class FirebaseAuthService {
         password: password.trim(),
       );
       await result.user!.updateDisplayName(name);
+      await result.user!.updatePhotoURL('https://ui-avatars.com/api/?name=${Uri.encodeComponent(name)}&background=00796B&color=fff');
+      await result.user!.reload();
+      return result.user;
+    } on FirebaseAuthException catch (e) {
+      throw _handleAuthError(e);
+    }
+  }
+
+  // 👨‍⚕️ تسجيل طبيب
+  Future<User?> registerDoctor(
+    String name,
+    String email,
+    String password,
+    String phone,
+    String specialty,
+    String license,
+  ) async {
+    try {
+      final result = await _auth.createUserWithEmailAndPassword(
+        email: email.trim(),
+        password: password.trim(),
+      );
+      await result.user!.updateDisplayName('د. $name');
       await result.user!.updatePhotoURL('https://ui-avatars.com/api/?name=${Uri.encodeComponent(name)}&background=00796B&color=fff');
       await result.user!.reload();
       return result.user;
@@ -60,6 +97,41 @@ class FirebaseAuthService {
     }
   }
 
+  // 📱 إرسال OTP
+  Future<void> sendOTP(String phone) async {
+    try {
+      await _auth.verifyPhoneNumber(
+        phoneNumber: phone,
+        verificationCompleted: (cred) async {
+          await _auth.signInWithCredential(cred);
+        },
+        verificationFailed: (e) {
+          throw _handleAuthError(e);
+        },
+        codeSent: (verificationId, forceResendingToken) {
+          // حفظ verificationId للاستخدام
+        },
+        codeAutoRetrievalTimeout: (verificationId) {},
+      );
+    } on FirebaseAuthException catch (e) {
+      throw _handleAuthError(e);
+    }
+  }
+
+  // 🔑 التحقق من OTP
+  Future<User?> verifyOTP(String verificationId, String code) async {
+    try {
+      final credential = PhoneAuthProvider.credential(
+        verificationId: verificationId,
+        smsCode: code,
+      );
+      final result = await _auth.signInWithCredential(credential);
+      return result.user;
+    } on FirebaseAuthException catch (e) {
+      throw _handleAuthError(e);
+    }
+  }
+
   // 👤 تسجيل خروج
   Future<void> logout() async {
     await _googleSignIn.signOut();
@@ -75,6 +147,7 @@ class FirebaseAuthService {
       case 'invalid-email': return 'بريد إلكتروني غير صحيح';
       case 'weak-password': return 'كلمة المرور ضعيفة';
       case 'network-request-failed': return 'لا يوجد اتصال بالإنترنت';
+      case 'too-many-requests': return 'محاولات كثيرة، حاول لاحقاً';
       default: return 'حدث خطأ: ${e.message}';
     }
   }

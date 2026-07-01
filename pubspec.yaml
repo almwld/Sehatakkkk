@@ -162,3 +162,4 @@ flutter_launcher_icons:
   image_path: "assets/icons/app_icon.png"
   min_sdk_android: 21
   google_sign_in: ^6.2.1
+  audioplayers: ^6.0.0
