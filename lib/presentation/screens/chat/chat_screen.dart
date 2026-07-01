@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/chat_service.dart';
+import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
 import 'chat_detail_screen.dart';
 
 class ChatScreen extends StatelessWidget {
@@ -28,6 +29,20 @@ class ChatScreen extends StatelessWidget {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.medical_services_rounded),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const DoctorsListScreen(),
+                ),
+              );
+            },
+            tooltip: 'ابحث عن طبيب',
+          ),
+        ],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: ChatService().getChats(userId, role),
@@ -43,6 +58,11 @@ class ChatScreen extends StatelessWidget {
                   const Icon(Icons.error_outline_rounded, size: 60, color: AppColors.error),
                   const SizedBox(height: 16),
                   Text('خطأ: ${snapshot.error}'),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {},
+                    child: const Text('إعادة المحاولة'),
+                  ),
                 ],
               ),
             );
@@ -84,6 +104,11 @@ class ChatScreen extends StatelessWidget {
 
   Widget _buildNotLoggedIn(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('المحادثات'),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -156,13 +181,31 @@ class ChatScreen extends StatelessWidget {
             style: TextStyle(fontSize: 14, color: AppColors.grey),
           ),
           const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () => Navigator.pushNamed(context, '/doctors'),
-            icon: const Icon(Icons.medical_services_rounded),
-            label: const Text('ابحث عن طبيب'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
+          // ✅ زر ابحث عن طبيب - يعمل الآن
+          SizedBox(
+            width: 200,
+            height: 50,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const DoctorsListScreen(),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.medical_services_rounded),
+              label: const Text(
+                'ابحث عن طبيب',
+                style: TextStyle(fontSize: 16),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
             ),
           ),
         ],
