@@ -453,8 +453,6 @@ class _HomeTab extends StatelessWidget {
       {'icon': Icons.favorite, 'label': 'الصحة', 'color': AppColors.pink, 'screen': const HealthDashboard()},
       {'icon': Icons.wallet, 'label': 'المحفظة', 'color': AppColors.amber, 'screen': const WalletScreen()},
       {'icon': Icons.chat, 'label': 'استشارات', 'color': AppColors.teal, 'screen': const ConsultationScreen()},
-      {'icon': Icons.subscriptions, 'label': 'الباقات', 'color': AppColors.orange, 'screen': const SubscriptionsScreen()},
-      {'icon': Icons.folder, 'label': 'الملف الصحي', 'color': AppColors.indigo, 'screen': const PatientMedicalHistory()},
       {'icon': Icons.calendar_month, 'label': 'المواعيد', 'color': AppColors.primaryDark, 'screen': const PatientAppointments()},
     ];
 
