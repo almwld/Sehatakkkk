@@ -1,13 +1,12 @@
 name: sehatak
 description: A comprehensive healthcare platform for Yemen
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.1.0+2
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
-  google_sign_in: ^6.2.1
   flutter:
     sdk: flutter
 
@@ -18,7 +17,7 @@ dependencies:
   equatable: ^2.0.5
   iconsax: ^0.0.8
   intl: ^0.18.1
-  
+
   # Firebase
   firebase_core: ^2.25.4
   firebase_auth: ^4.17.4
@@ -27,25 +26,25 @@ dependencies:
   firebase_messaging: ^14.7.15
   firebase_analytics: ^10.8.0
   firebase_crashlytics: ^3.4.9
-  
-  # LiveKit
+
+  # LiveKit - مكالمات صوت وفيديو
   livekit_client: ^1.5.0
   flutter_webrtc: 0.9.47
   connectivity_plus: ^5.0.0
   http: ^1.2.0
-  
+
   # Networking
   dio: ^5.4.0
   retrofit: ^4.0.3
   json_annotation: ^4.8.1
   socket_io_client: ^2.0.3
-  
+
   # Storage
   shared_preferences: ^2.2.2
   sqflite: ^2.3.0
   path: ^1.8.3
   path_provider: ^2.1.1
-  
+
   # UI Components
   flutter_svg: ^2.0.9
   shimmer: ^3.0.0
@@ -56,15 +55,15 @@ dependencies:
   pull_to_refresh: ^2.0.0
   flutter_slidable: ^3.0.1
   flutter_animate: ^4.5.0
-  
+
   # Calendar & Charts
   table_calendar: ^3.0.9
   fl_chart: ^0.66.0
-  
+
   # Media
   image_picker: ^1.0.7
   record: ^5.0.0
-  
+
   # Permissions & Device
   permission_handler: ^11.1.0
   device_info_plus: ^9.1.1
@@ -72,22 +71,25 @@ dependencies:
   local_auth: ^2.1.8
   url_launcher: ^6.2.3
   share_plus: ^7.2.1
-  
+
   # Notifications
   flutter_local_notifications: ^16.3.0
-  
-  # Maps & Location
-  google_maps_flutter: ^2.5.0
+  flutter_app_badger: ^1.5.0
+
+  # Maps & Location (بدون google_maps_flutter)
   flutter_map: ^6.1.0
   latlong2: ^0.9.1
   geolocator: ^10.1.0
   geocoding: ^3.0.0
-  
+
   # WebView
   webview_flutter: ^4.4.0
-  
+
   # JWT
   dart_jsonwebtoken: ^2.4.0
+
+  # Badge
+  flutter_app_badger: ^1.5.0
 
 dev_dependencies:
   flutter_test:
@@ -105,7 +107,6 @@ flutter:
     - assets/icons/payment/
     - assets/icons/plans/
     - assets/icons/app_icon.png
-    - assets/icons/payment/
     - assets/images/
     - assets/fonts/
     - assets/icons/navigation/
@@ -113,9 +114,9 @@ flutter:
     - assets/icons/specialties/
     - assets/icons/lab/
     - assets/icons/social/
-    - assets/icons/plans/
     - assets/icons/consultations/
     - assets/icons/offers/
+    - assets/icons/svg/
 
   fonts:
     - family: Cairo
@@ -161,24 +162,3 @@ flutter_launcher_icons:
   ios: false
   image_path: "assets/icons/app_icon.png"
   min_sdk_android: 21
-  # ✅ الإشعارات
-  firebase_messaging: ^14.7.15
-  flutter_local_notifications: ^16.3.0
-  flutter_app_badger: ^1.5.0
-
-  assets:
-    - assets/icons/payment/
-    - assets/icons/plans/
-    - assets/icons/app_icon.png
-    - assets/icons/payment/
-    - assets/images/
-    - assets/fonts/
-    - assets/icons/navigation/
-    - assets/icons/services/
-    - assets/icons/specialties/
-    - assets/icons/lab/
-    - assets/icons/social/
-    - assets/icons/plans/
-    - assets/icons/consultations/
-    - assets/icons/offers/
-    - assets/icons/svg/
