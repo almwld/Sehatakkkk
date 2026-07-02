@@ -10,42 +10,12 @@ class ShareAppScreen extends StatelessWidget {
   final String _shareMessage = 'مرحباً! أدعوك لتجربة تطبيق "صحتك" - منصة الرعاية الصحية الشاملة في اليمن. احجز مواعيدك، استشر الأطباء، واطلب أدويتك بكل سهولة. حمل التطبيق الآن من الرابط التالي:\n';
 
   final List<Map<String, dynamic>> _shareMethods = const [
-    {
-      'icon': Icons.whatsapp,
-      'name': 'واتساب',
-      'color': Color(0xFF25D366),
-      'url': 'https://wa.me/?text=',
-    },
-    {
-      'icon': Icons.telegram,
-      'name': 'تيليجرام',
-      'color': Color(0xFF0088CC),
-      'url': 'https://t.me/share/url?url=',
-    },
-    {
-      'icon': Icons.facebook,
-      'name': 'فيسبوك',
-      'color': Color(0xFF1877F2),
-      'url': 'https://www.facebook.com/sharer/sharer.php?u=',
-    },
-    {
-      'icon': Icons.twitter,
-      'name': 'تويتر',
-      'color': Color(0xFF1DA1F2),
-      'url': 'https://twitter.com/intent/tweet?url=',
-    },
-    {
-      'icon': Icons.email,
-      'name': 'بريد إلكتروني',
-      'color': Color(0xFFEA4335),
-      'url': 'mailto:?subject=تطبيق صحتك&body=',
-    },
-    {
-      'icon': Icons.link,
-      'name': 'نسخ الرابط',
-      'color': AppColors.primary,
-      'url': '',
-    },
+    {'icon': Icons.chat, 'name': 'واتساب', 'color': Color(0xFF25D366), 'url': 'https://wa.me/?text='},
+    {'icon': Icons.telegram, 'name': 'تيليجرام', 'color': Color(0xFF0088CC), 'url': 'https://t.me/share/url?url='},
+    {'icon': Icons.facebook, 'name': 'فيسبوك', 'color': Color(0xFF1877F2), 'url': 'https://www.facebook.com/sharer/sharer.php?u='},
+    {'icon': Icons.timeline, 'name': 'تويتر', 'color': Color(0xFF1DA1F2), 'url': 'https://twitter.com/intent/tweet?url='},
+    {'icon': Icons.email, 'name': 'بريد إلكتروني', 'color': Color(0xFFEA4335), 'url': 'mailto:?subject=تطبيق صحتك&body='},
+    {'icon': Icons.link, 'name': 'نسخ الرابط', 'color': AppColors.primary, 'url': ''},
   ];
 
   @override
@@ -67,17 +37,13 @@ class ShareAppScreen extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            // ✅ أيقونة المشاركة
             _buildShareIcon(),
             const SizedBox(height: 24),
-            // ✅ نص المشاركة
             _buildShareText(),
             const SizedBox(height: 32),
-            // ✅ طرق المشاركة
             _buildShareMethods(context, isDark),
             const SizedBox(height: 24),
-            // ✅ زر المشاركة العامة
-            _buildGeneralShareButton(),
+            _buildGeneralShareButton(context),
           ],
         ),
       ),
@@ -231,12 +197,12 @@ class ShareAppScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildGeneralShareButton() {
+  Widget _buildGeneralShareButton(BuildContext context) {
     return SizedBox(
       width: double.infinity,
       height: 52,
       child: ElevatedButton.icon(
-        onPressed: _generalShare,
+        onPressed: () => _generalShare(context),
         icon: const Icon(Icons.share_rounded),
         label: const Text(
           'مشاركة عبر...',
@@ -263,12 +229,10 @@ class ShareAppScreen extends StatelessWidget {
     }
 
     final fullUrl = '$url$_appLink';
-    _launchUrl(fullUrl);
+    _launchUrl(context, fullUrl);
   }
 
   void _copyLink(BuildContext context) {
-    // نسخ الرابط إلى الحافظة
-    // يمكن استخدام Clipboard
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('📋 تم نسخ رابط التطبيق'),
@@ -277,7 +241,7 @@ class ShareAppScreen extends StatelessWidget {
     );
   }
 
-  void _generalShare() async {
+  void _generalShare(BuildContext context) async {
     try {
       await Share.share(
         '$_shareMessage\n$_appLink',
@@ -292,7 +256,7 @@ class ShareAppScreen extends StatelessWidget {
     }
   }
 
-  Future<void> _launchUrl(String url) async {
+  Future<void> _launchUrl(BuildContext context, String url) async {
     try {
       final uri = Uri.parse(url);
       if (await canLaunchUrl(uri)) {

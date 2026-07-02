@@ -173,7 +173,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
           ),
 
           _buildSwitchTile(
-            icon: Icons.popup_rounded,
+            icon: Icons.popup,
             title: 'نوافذ منبثقة',
             subtitle: 'عرض الإشعارات كنوافذ منبثقة',
             value: _popup,

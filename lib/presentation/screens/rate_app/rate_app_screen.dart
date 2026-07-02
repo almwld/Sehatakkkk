@@ -100,7 +100,7 @@ class _RateAppScreenState extends State<RateAppScreen> {
                 : _rating >= 3
                     ? Icons.emoji_events_rounded
                     : _rating > 0
-                        ? Icons.emoji_neutral_rounded
+                        ? Icons.emoji_emotions
                         : Icons.star_rounded,
             size: 50,
             color: Colors.white,
