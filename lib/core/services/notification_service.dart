@@ -2,9 +2,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:sehatak/core/services/sound_manager.dart';
 
-// ✅ استيراد Color من dart:ui
-import 'dart:ui';
-
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
@@ -16,7 +13,6 @@ class NotificationService {
 
   bool _isInitialized = false;
 
-  // ✅ تهيئة الإشعارات
   Future<void> initialize() async {
     if (_isInitialized) return;
 
@@ -92,14 +88,12 @@ class NotificationService {
     print('📩 Local notification tapped: ${response.payload}');
   }
 
+  // ✅ الحل النهائي: استخدام const مباشرة مع اللون
   Future<void> _showLocalNotification({
     required String title,
     required String body,
     String? payload,
   }) async {
-    // ✅ استخدام Color.fromARGB بدلاً من Color مباشرة
-    final color = const Color.fromARGB(255, 0, 121, 107); // #00796B
-
     const androidDetails = AndroidNotificationDetails(
       'sehatak_channel',
       'صحتك',
@@ -110,7 +104,7 @@ class NotificationService {
       playSound: true,
       sound: RawResourceAndroidNotificationSound('notification'),
       icon: '@drawable/ic_notification',
-      color: color,
+      color: Color(0xFF00796B), // ✅ استخدام const مباشرة
     );
     const iosDetails = DarwinNotificationDetails(
       presentAlert: true,
