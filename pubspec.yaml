@@ -203,3 +203,4 @@ flutter_launcher_icons:
     - assets/icons/specialties/
     - assets/icons/mini_specialties/
     - assets/icons/social/
+  flutter_native_splash: ^2.4.0
