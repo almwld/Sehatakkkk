@@ -136,13 +136,10 @@ flutter:
     - assets/icons/payment/
     - assets/icons/plans/
     - assets/icons/navigation/
-    - assets/icons/services/
     - assets/icons/specialties/
-    - assets/icons/lab/
     - assets/icons/social/
     - assets/icons/consultations/
     - assets/icons/offers/
-    - assets/icons/svg/
     - assets/images/
     - assets/fonts/
     - assets/audio/
@@ -197,3 +194,12 @@ flutter_launcher_icons:
   ios: false
   image_path: "assets/icons/app_icon.png"
   min_sdk_android: 21
+
+    - assets/icons/core/
+    - assets/icons/specialties/
+    - assets/icons/mini_specialties/
+    - assets/icons/social/
+    - assets/icons/core/
+    - assets/icons/specialties/
+    - assets/icons/mini_specialties/
+    - assets/icons/social/

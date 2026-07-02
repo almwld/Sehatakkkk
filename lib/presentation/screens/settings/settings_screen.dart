@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/sound_manager.dart';
 import 'package:sehatak/core/services/notification_service.dart';
@@ -215,12 +216,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   );
                 },
               ),
-              // ✅ زر عرض FCM Token
-              _buildInfoTile(
-                icon: Icons.qr_code_scanner_rounded,
+              // ✅ زر عرض FCM Token (باستخدام SVG)
+              _buildInfoTileSVG(
+                icon: 'assets/icons/core/notifications_active.svg',
                 title: 'عرض FCM Token',
                 subtitle: 'انسخ التوكن لإرسال الإشعارات',
                 onTap: _showFCMToken,
+              ),
+              // ✅ زر إعدادات الإشعارات (باستخدام SVG)
+              _buildInfoTileSVG(
+                icon: 'assets/icons/core/notifications_active.svg',
+                title: 'إعدادات الإشعارات',
+                subtitle: 'تخصيص إشعارات التطبيق',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const NotificationSettingsScreen(),
+                    ),
+                  );
+                },
               ),
             ],
           ),
@@ -424,6 +439,48 @@ class _SettingsScreenState extends State<SettingsScreen> {
           onChanged: onChanged,
           underline: const SizedBox(),
         ),
+      ),
+    );
+  }
+
+  // ✅ دالة جديدة للأيقونات SVG
+  Widget _buildInfoTileSVG({
+    required String icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: SvgPicture.asset(
+          icon,
+          width: 24,
+          height: 24,
+          colorFilter: ColorFilter.mode(AppColors.primary, BlendMode.srcIn),
+        ),
+        title: Text(
+          title,
+          style: TextStyle(
+            color: isDark ? Colors.white : Colors.black87,
+          ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(
+            fontSize: 12,
+            color: AppColors.grey,
+          ),
+        ),
+        trailing: const Icon(
+          Icons.arrow_back_ios_rounded,
+          size: 14,
+          color: AppColors.grey,
+        ),
+        onTap: onTap,
       ),
     );
   }
