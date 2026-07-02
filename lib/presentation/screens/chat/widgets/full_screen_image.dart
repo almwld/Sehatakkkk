@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:photo_view/photo_view.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class FullScreenImage extends StatelessWidget {
@@ -18,17 +18,40 @@ class FullScreenImage extends StatelessWidget {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // ✅ صورة بتكبير
-          PhotoView(
-            imageProvider: NetworkImage(imageUrl),
-            heroAttributes: tag != null
-                ? PhotoViewHeroAttributes(tag: tag!)
-                : null,
-            backgroundDecoration: const BoxDecoration(
-              color: Colors.black,
+          // ✅ صورة بملء الشاشة (بدون photo_view)
+          Center(
+            child: GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Hero(
+                tag: tag ?? imageUrl,
+                child: CachedNetworkImage(
+                  imageUrl: imageUrl,
+                  width: double.infinity,
+                  height: double.infinity,
+                  fit: BoxFit.contain,
+                  placeholder: (_, __) => const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  ),
+                  errorWidget: (_, __, ___) => Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.broken_image,
+                          color: Colors.white54,
+                          size: 60,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'لا يمكن تحميل الصورة',
+                          style: TextStyle(color: Colors.white54),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             ),
-            minScale: PhotoViewComputedScale.contained,
-            maxScale: PhotoViewComputedScale.covered * 2,
           ),
           // ✅ زر العودة
           Positioned(
@@ -58,7 +81,7 @@ class FullScreenImage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Text(
-                  'اضغط مع الاستمرار للخيارات',
+                  'اضغط للعودة',
                   style: TextStyle(color: Colors.white70, fontSize: 12),
                 ),
               ),
