@@ -6,62 +6,182 @@ class PrivacyScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('سياسة الخصوصية', style: TextStyle(fontWeight: FontWeight.bold))),
+      backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
+      appBar: AppBar(
+        title: const Text(
+          'سياسة الخصوصية',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const _Header(title: 'سياسة الخصوصية لمنصة صحتك', subtitle: 'آخر تحديث: 1 مايو 2026'),
-          const SizedBox(height: 14),
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(color: AppColors.info.withOpacity(0.05), borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.info.withOpacity(0.2))),
-            child: const Row(children: [Icon(Icons.info, color: AppColors.info, size: 20), SizedBox(width: 8), Expanded(child: Text('نحن نهتم بخصوصيتك. تشرح هذه السياسة كيف نجمع ونستخدم ونحمي بياناتك.', style: TextStyle(fontSize: 12, color: AppColors.darkGrey)))]),
-          ),
-          const SizedBox(height: 16),
-          const _Section(title: '1. المعلومات التي نجمعها', content: '• المعلومات الشخصية: الاسم، البريد الإلكتروني، رقم الهاتف.\n• المعلومات الصحية: التاريخ الطبي، الأمراض، الحساسية، الأدوية.\n• معلومات الجهاز: نوع الجهاز، نظام التشغيل، عنوان IP.\n• معلومات الموقع: موقعك الجغرافي للخدمات القريبة.'),
-          const _Section(title: '2. كيفية استخدام المعلومات', content: '• تقديم وتحسين خدماتنا الصحية.\n• تخصيص تجربتك في التطبيق.\n• التواصل معك بخصوص المواعيد والتذكيرات.\n• مشاركة البيانات مع الأطباء بموافقتك الصريحة.'),
-          const _Section(title: '3. مشاركة المعلومات', content: '• لا نبيع بياناتك لأي طرف ثالث.\n• نشارك البيانات مع مقدمي الرعاية الصحية بموافقتك.\n• قد نشارك بيانات مجمعة (بدون تعريف شخصي) لأغراض بحثية.\n• نلتزم بالقوانين المحلية والدولية لحماية البيانات.'),
-          const _Section(title: '4. أمان البيانات', content: '• تشفير جميع البيانات أثناء النقل والتخزين.\n• استخدام بروتوكولات أمان متقدمة.\n• فريق أمني متخصص لمراقبة وحماية البيانات.\n• نسخ احتياطي دوري للبيانات.'),
-          const _Section(title: '5. حقوق المستخدم', content: '• الوصول إلى بياناتك الشخصية.\n• تصحيح البيانات غير الدقيقة.\n• حذف حسابك وبياناتك.\n• سحب الموافقة على معالجة البيانات.\n• تصدير بياناتك بصيغة مقروءة.'),
-          const _Section(title: '6. ملفات تعريف الارتباط', content: '• نستخدم ملفات تعريف الارتباط لتحسين تجربة التطبيق.\n• يمكنك تعطيلها من إعدادات جهازك.\n• لا نستخدم ملفات تتبع طرف ثالث.'),
-          const _Section(title: '7. الاحتفاظ بالبيانات', content: '• نحتفظ ببياناتك طوال فترة استخدامك للتطبيق.\n• بعد حذف الحساب، نحذف البيانات خلال 30 يوماً.\n• قد نحتفظ ببعض البيانات للأغراض القانونية.'),
-          const _Section(title: '8. تحديثات السياسة', content: '• سنخطرك بأي تغييرات جوهرية في سياسة الخصوصية.\n• استمرار استخدامك للمنصة يعني موافقتك على التحديثات.'),
-          const _Section(title: '9. تواصل معنا', content: 'لأي استفسار عن سياسة الخصوصية:\n📧 privacy@sehatak.com\n📱 +967 777 123 456\n🏢 شارع الزبيري، صنعاء، اليمن'),
-          const SizedBox(height: 20),
-        ]),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ✅ التاريخ
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.calendar_today_rounded,
+                    size: 16,
+                    color: AppColors.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'آخر تحديث: 1 يوليو 2026',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            // ✅ المقدمة
+            _buildSection(
+              title: 'المقدمة',
+              content:
+                  'نحن في "صحتك" نولي خصوصية بياناتك أهمية قصوى. توضح سياسة الخصوصية هذه كيفية جمعنا واستخدامنا وحمايتنا لمعلوماتك الشخصية عند استخدامك لتطبيقنا.',
+            ),
+            const SizedBox(height: 20),
+            // ✅ المعلومات التي نجمعها
+            _buildSection(
+              title: 'المعلومات التي نجمعها',
+              content:
+                  '1. المعلومات الشخصية: الاسم، البريد الإلكتروني، رقم الهاتف، تاريخ الميلاد.\n'
+                  '2. المعلومات الصحية: السجل الطبي، المواعيد، التحاليل، الوصفات الطبية.\n'
+                  '3. معلومات الاستخدام: بيانات التفاعل مع التطبيق، الميزات المستخدمة.\n'
+                  '4. معلومات الجهاز: نوع الجهاز، نظام التشغيل، معرف الجهاز الفريد.',
+            ),
+            const SizedBox(height: 20),
+            // ✅ كيفية استخدام المعلومات
+            _buildSection(
+              title: 'كيفية استخدام معلوماتك',
+              content:
+                  '1. تقديم وتحسين خدمات الرعاية الصحية.\n'
+                  '2. إدارة المواعيد والتذكيرات.\n'
+                  '3. التواصل مع الأطباء والمختبرات.\n'
+                  '4. تحليل البيانات لتحسين جودة الخدمات.\n'
+                  '5. إرسال إشعارات وتحديثات مهمة.',
+            ),
+            const SizedBox(height: 20),
+            // ✅ مشاركة المعلومات
+            _buildSection(
+              title: 'مشاركة المعلومات',
+              content:
+                  'نحن لا نشارك معلوماتك الشخصية مع أطراف ثالثة إلا في الحالات التالية:\n'
+                  '• بموافقتك الصريحة.\n'
+                  '• مع مقدمي الرعاية الصحية لتقديم الخدمات.\n'
+                  '• للامتثال للمتطلبات القانونية.\n'
+                  '• لحماية حقوقنا ومستخدمينا.',
+            ),
+            const SizedBox(height: 20),
+            // ✅ أمان البيانات
+            _buildSection(
+              title: 'أمان البيانات',
+              content:
+                  'نحن نستخدم إجراءات أمنية متقدمة لحماية معلوماتك، بما في ذلك:\n'
+                  '• تشفير البيانات أثناء النقل والتخزين.\n'
+                  '• التحقق من الهوية متعدد العوامل.\n'
+                  '• مراقبة النشاطات المشبوهة.\n'
+                  '• تحديثات أمنية منتظمة.',
+            ),
+            const SizedBox(height: 20),
+            // ✅ حقوق المستخدم
+            _buildSection(
+              title: 'حقوق المستخدم',
+              content:
+                  'لديك الحق في:\n'
+                  '1. الوصول إلى بياناتك الشخصية.\n'
+                  '2. تصحيح أو تحديث معلوماتك.\n'
+                  '3. حذف حسابك وبياناتك.\n'
+                  '4. سحب الموافقة في أي وقت.\n'
+                  '5. تقديم شكوى إذا كنت تعتقد أن بياناتك قد استخدمت بشكل غير صحيح.',
+            ),
+            const SizedBox(height: 20),
+            // ✅ الاتصال بنا
+            _buildSection(
+              title: 'الاتصال بنا',
+              content:
+                  'إذا كان لديك أي استفسار حول سياسة الخصوصية، يمكنك التواصل معنا عبر:\n'
+                  '• البريد الإلكتروني: support@sehatak.com\n'
+                  '• الهاتف: +967 123 456 789',
+            ),
+            const SizedBox(height: 30),
+            // ✅ موافقة
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: AppColors.primary.withOpacity(0.1),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.check_circle_rounded,
+                    color: AppColors.success,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'باستخدامك لتطبيق "صحتك"، فإنك توافق على سياسة الخصوصية هذه.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isDark ? Colors.white70 : Colors.black87,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 40),
+          ],
+        ),
       ),
     );
   }
-}
 
-class _Header extends StatelessWidget {
-  final String title, subtitle;
-  const _Header({required this.title, required this.subtitle});
-  @override
-  Widget build(BuildContext context) {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.primary)),
-      const SizedBox(height: 4),
-      Text(subtitle, style: const TextStyle(fontSize: 11, color: AppColors.grey)),
-    ]);
-  }
-}
-
-class _Section extends StatelessWidget {
-  final String title, content;
-  const _Section({required this.title, required this.content});
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4)]),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.primary)),
+  Widget _buildSection({
+    required String title,
+    required String content,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         const SizedBox(height: 8),
-        Text(content, style: const TextStyle(fontSize: 13, height: 1.6, color: AppColors.darkGrey)),
-      ]),
+        Text(
+          content,
+          style: const TextStyle(
+            fontSize: 14,
+            height: 1.8,
+          ),
+        ),
+      ],
     );
   }
 }
