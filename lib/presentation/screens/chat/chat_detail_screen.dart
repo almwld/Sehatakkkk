@@ -46,12 +46,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
   List<Map<String, dynamic>> _messages = [];
 
-  // ✅ Background pattern for chat
-  final List<String> _backgroundPatterns = [
-    '🌿', '💚', '🩺', '🏥', '💊', '🌱', '☀️', '🌙',
-    '⭐', '🌸', '🌺', '🌻', '🌹', '🌷', '🌼', '🌿',
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -269,14 +263,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      // ✅ خلفية كتابية أورسومية (مثل واتساب)
+      // ✅ خلفية أورسومية صحية (مثل واتساب)
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFE8F0E8),
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
             image: const AssetImage('assets/images/chat_background.png'),
-            opacity: 0.05,
             fit: BoxFit.cover,
+            opacity: 0.6,
           ),
         ),
         child: Column(
@@ -516,7 +510,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 ),
               ],
             ),
-            // ✅ زر التسجيل الصوتي (ضغط مطول)
+            // ✅ زر التسجيل الصوتي
             GestureDetector(
               onLongPress: _startRecording,
               onLongPressEnd: (_) => _stopRecording(),
@@ -587,7 +581,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   }
 
   void _mergeMessages(List<Map<String, dynamic>> firestoreMessages) {
-    // دمج الرسائل المحلية مع رسائل Firestore
     for (final msg in firestoreMessages) {
       final exists = _messages.any((m) => m['id'] == msg['id']);
       if (!exists) {
