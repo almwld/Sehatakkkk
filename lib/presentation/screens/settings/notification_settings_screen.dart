@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -10,7 +11,6 @@ class NotificationSettingsScreen extends StatefulWidget {
 }
 
 class _NotificationSettingsScreenState extends State<NotificationSettingsScreen> {
-  // ✅ إعدادات الإشعارات
   bool _allNotifications = true;
   bool _appointments = true;
   bool _messages = true;
@@ -172,8 +172,9 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
             isDark: isDark,
           ),
 
-          _buildSwitchTile(
-            icon: Icons.popup,
+          // ✅ استخدام أيقونة SVG بدلاً من Icons
+          _buildSwitchTileSVG(
+            icon: 'assets/icons/core/notifications_active.svg',
             title: 'نوافذ منبثقة',
             subtitle: 'عرض الإشعارات كنوافذ منبثقة',
             value: _popup,
@@ -230,18 +231,52 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
         value: value,
         onChanged: onChanged,
         activeColor: AppColors.primary,
-        secondary: Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(10),
+        secondary: Icon(
+          icon,
+          color: AppColors.primary,
+          size: 20,
+        ),
+      ),
+    );
+  }
+
+  // ✅ دالة جديدة لأيقونات SVG في الـ SwitchListTile
+  Widget _buildSwitchTileSVG({
+    required String icon,
+    required String title,
+    required String subtitle,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+    required bool isDark,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: SwitchListTile(
+        contentPadding: EdgeInsets.zero,
+        title: Text(
+          title,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: isDark ? Colors.white : Colors.black87,
           ),
-          child: Icon(
-            icon,
-            color: AppColors.primary,
-            size: 18,
+        ),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(
+            fontSize: 11,
+            color: AppColors.grey,
           ),
+        ),
+        value: value,
+        onChanged: onChanged,
+        activeColor: AppColors.primary,
+        secondary: SvgPicture.asset(
+          icon,
+          width: 24,
+          height: 24,
+          colorFilter: ColorFilter.mode(AppColors.primary, BlendMode.srcIn),
         ),
       ),
     );
