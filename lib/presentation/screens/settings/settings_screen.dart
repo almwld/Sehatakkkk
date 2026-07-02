@@ -526,3 +526,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await _launchUrl('https://github.com/almwld/Sehatakkkk');
   }
 }
+
+  // ✅ إضافة زر عرض FCM Token
+  _buildInfoTile(
+    icon: Icons.qr_code_scanner_rounded,
+    title: 'عرض FCM Token',
+    subtitle: 'انسخ التوكن لإرسال الإشعارات',
+    onTap: () async {
+      final token = await NotificationService().getToken();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: SelectableText('🔑 $token'),
+          duration: const Duration(seconds: 30),
+        ),
+      );
+    },
+  ),
