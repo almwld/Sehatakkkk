@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/sound_manager.dart';
 
@@ -11,8 +12,14 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
-  final List<Map<String, dynamic>> _notifications = [];
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  List<Map<String, dynamic>> _notifications = [];
   bool _isLoading = true;
+  String _selectedFilter = 'الكل';
+
+  final List<String> _filters = ['الكل', 'غير مقروءة', 'مقروءة'];
 
   @override
   void initState() {
@@ -22,72 +29,125 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   Future<void> _loadNotifications() async {
     setState(() => _isLoading = true);
-    
-    // ✅ محاكاة جلب الإشعارات من Firebase
-    await Future.delayed(const Duration(seconds: 1));
-    
-    // ✅ بيانات تجريبية (ستأتي من Firebase لاحقاً)
-    _notifications.addAll([
+
+    final user = _auth.currentUser;
+    if (user != null) {
+      try {
+        final doc = await _firestore.collection('users').doc(user.uid).get();
+        if (doc.exists) {
+          final data = doc.data() as Map<String, dynamic>;
+          final notifications = List<Map<String, dynamic>>.from(data['notifications'] ?? []);
+          setState(() => _notifications = notifications);
+        } else {
+          // ✅ بيانات وهمية للاختبار
+          _loadMockNotifications();
+        }
+      } catch (e) {
+        print('❌ Error loading notifications: $e');
+        _loadMockNotifications();
+      }
+    } else {
+      _loadMockNotifications();
+    }
+
+    setState(() => _isLoading = false);
+
+    // ✅ تشغيل نغمة الإشعار
+    SoundManager().playNotification();
+  }
+
+  void _loadMockNotifications() {
+    _notifications = [
       {
         'id': '1',
         'title': 'موعد جديد',
         'body': 'تم تأكيد موعدك مع د. أحمد المولد غداً الساعة 10 صباحاً',
-        'time': 'منذ 5 دقائق',
+        'time': DateTime.now().subtract(const Duration(minutes: 5)),
         'read': false,
         'icon': Icons.calendar_today_rounded,
         'color': AppColors.primary,
+        'type': 'appointment',
       },
       {
         'id': '2',
         'title': 'تذكير دواء',
         'body': 'حان موعد تناول دواء باراسيتامول 500mg',
-        'time': 'منذ 30 دقيقة',
+        'time': DateTime.now().subtract(const Duration(minutes: 30)),
         'read': false,
         'icon': Icons.medication_rounded,
         'color': AppColors.warning,
+        'type': 'medication',
       },
       {
         'id': '3',
         'title': 'نتيجة تحليل',
-        'body': 'نتيجة تحليل الدم جاهزة للمراجعة',
-        'time': 'منذ ساعتين',
+        'body': 'نتيجة تحليل الدم الشامل جاهزة للمراجعة',
+        'time': DateTime.now().subtract(const Duration(hours: 2)),
         'read': true,
         'icon': Icons.science_rounded,
         'color': AppColors.purple,
+        'type': 'lab',
       },
       {
         'id': '4',
         'title': 'رسالة جديدة',
         'body': 'د. فاطمة صديقي أرسلت لك رسالة جديدة',
-        'time': 'منذ 3 ساعات',
+        'time': DateTime.now().subtract(const Duration(hours: 3)),
         'read': true,
         'icon': Icons.chat_rounded,
         'color': AppColors.info,
+        'type': 'message',
       },
       {
         'id': '5',
         'title': 'عرض خاص',
         'body': 'خصم 30% على جميع الأدوية في صيدلية النهدي',
-        'time': 'منذ يوم',
+        'time': DateTime.now().subtract(const Duration(days: 1)),
         'read': true,
         'icon': Icons.local_offer_rounded,
         'color': AppColors.success,
+        'type': 'offer',
       },
-      {
-        'id': '6',
-        'title': 'تحديث التطبيق',
-        'body': 'تحديث جديد للإصدار 1.1.0 متوفر الآن',
-        'time': 'منذ يومين',
-        'read': true,
-        'icon': Icons.system_update_rounded,
-        'color': AppColors.orange,
-      },
-    ]);
+    ];
+  }
 
-    // ✅ تشغيل نغمة الإشعار
-    SoundManager().playNotification();
+  List<Map<String, dynamic>> get _filteredNotifications {
+    if (_selectedFilter == 'الكل') return _notifications;
+    if (_selectedFilter == 'غير مقروءة') {
+      return _notifications.where((n) => !n['read']).toList();
+    }
+    return _notifications.where((n) => n['read']).toList();
+  }
 
-    setState(() => _isLoading = false);
+  String _formatTime(DateTime time) {
+    final now = DateTime.now();
+    final diff = now.difference(time);
+
+    if (diff.inMinutes < 1) return 'الآن';
+    if (diff.inMinutes < 60) return 'منذ ${diff.inMinutes} دقيقة';
+    if (diff.inHours < 24) return 'منذ ${diff.inHours} ساعة';
+    if (diff.inDays < 7) return 'منذ ${diff.inDays} يوم';
+    return '${time.day}/${time.month}/${time.year}';
+  }
+
+  Future<void> _markAsRead(String id) async {
+    setState(() {
+      final index = _notifications.indexWhere((n) => n['id'] == id);
+      if (index != -1) {
+        _notifications[index]['read'] = true;
+      }
+    });
+
+    final user = _auth.currentUser;
+    if (user != null) {
+      try {
+        await _firestore.collection('users').doc(user.uid).set({
+          'notifications': _notifications,
+        }, SetOptions(merge: true));
+      } catch (e) {
+        print('❌ Error saving notification: $e');
+      }
+    }
   }
 
   Future<void> _markAllAsRead() async {
@@ -96,9 +156,21 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         notification['read'] = true;
       }
     });
+
+    final user = _auth.currentUser;
+    if (user != null) {
+      try {
+        await _firestore.collection('users').doc(user.uid).set({
+          'notifications': _notifications,
+        }, SetOptions(merge: true));
+      } catch (e) {
+        print('❌ Error saving notifications: $e');
+      }
+    }
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('تم تحديد جميع الإشعارات كمقروءة'),
+        content: Text('✅ تم تحديد جميع الإشعارات كمقروءة'),
         backgroundColor: AppColors.success,
       ),
     );
@@ -108,26 +180,29 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     setState(() {
       _notifications.removeWhere((n) => n['id'] == id);
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('تم حذف الإشعار'),
-        backgroundColor: AppColors.error,
-      ),
-    );
+
+    final user = _auth.currentUser;
+    if (user != null) {
+      try {
+        await _firestore.collection('users').doc(user.uid).set({
+          'notifications': _notifications,
+        }, SetOptions(merge: true));
+      } catch (e) {
+        print('❌ Error deleting notification: $e');
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final filtered = _filteredNotifications;
     final unreadCount = _notifications.where((n) => !n['read']).length;
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
       appBar: AppBar(
-        title: const Text(
-          'الإشعارات',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        title: const Text('الإشعارات', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -142,21 +217,65 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _notifications.isEmpty
-              ? _buildEmptyState()
-              : ListView.builder(
-                  padding: const EdgeInsets.all(12),
-                  itemCount: _notifications.length,
-                  itemBuilder: (context, index) {
-                    final notification = _notifications[index];
-                    return _buildNotificationItem(
-                      context,
-                      notification,
-                      isDark,
-                      index,
-                    );
-                  },
+          : Column(
+              children: [
+                // ✅ فلترة الإشعارات
+                _buildFilterTabs(),
+                // ✅ قائمة الإشعارات
+                Expanded(
+                  child: filtered.isEmpty
+                      ? _buildEmptyState()
+                      : ListView.builder(
+                          padding: const EdgeInsets.all(12),
+                          itemCount: filtered.length,
+                          itemBuilder: (context, index) {
+                            final notification = filtered[index];
+                            return _buildNotificationItem(
+                              context,
+                              notification,
+                              isDark,
+                            );
+                          },
+                        ),
                 ),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildFilterTabs() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: Colors.white,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: _filters.map((filter) {
+            final isSelected = _selectedFilter == filter;
+            return Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: GestureDetector(
+                onTap: () => setState(() => _selectedFilter = filter),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppColors.primary : Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    filter,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      color: isSelected ? Colors.white : AppColors.grey,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
     );
   }
 
@@ -203,11 +322,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     BuildContext context,
     Map<String, dynamic> notification,
     bool isDark,
-    int index,
   ) {
     final isRead = notification['read'] as bool;
     final color = notification['color'] as Color;
     final icon = notification['icon'] as IconData;
+    final time = notification['time'] is DateTime
+        ? notification['time'] as DateTime
+        : DateTime.now();
 
     return Dismissible(
       key: Key(notification['id']),
@@ -229,9 +350,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       ),
       child: GestureDetector(
         onTap: () {
-          setState(() {
-            notification['read'] = true;
-          });
+          if (!isRead) {
+            _markAsRead(notification['id']);
+          }
         },
         child: Container(
           margin: const EdgeInsets.only(bottom: 8),
@@ -313,10 +434,25 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          notification['time'],
+                          _formatTime(time),
                           style: TextStyle(
                             fontSize: 10,
                             color: AppColors.grey,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: color.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            notification['type'] ?? 'عام',
+                            style: TextStyle(
+                              fontSize: 8,
+                              color: color,
+                            ),
                           ),
                         ),
                       ],
