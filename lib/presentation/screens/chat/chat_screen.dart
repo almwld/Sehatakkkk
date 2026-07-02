@@ -1,5 +1,3 @@
-import 'package:sehatak/core/services/sound_manager.dart';
-import 'package:sehatak/core/services/sound_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -71,62 +69,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
           ),
         ),
         actions: [
-          // ✅ زر المكالمة الصوتية
-          IconButton(
-            icon: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: AppColors.success.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(Icons.call_rounded, color: AppColors.success, size: 20),
-            ),
-            onPressed: () {
-              if (_topDoctors.isNotEmpty) {
-                final doctor = _topDoctors[0];
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => CallScreen(
-                      chatId: 'call_${DateTime.now().millisecondsSinceEpoch}',
-                      doctorName: doctor['name'],
-                      doctorId: doctor['id'],
-                      isVideo: false,
-                    ),
-                  ),
-                );
-              }
-            },
-            tooltip: 'مكالمة صوتية',
-          ),
-          // ✅ زر مكالمة الفيديو
-          IconButton(
-            icon: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: AppColors.info.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(Icons.videocam_rounded, color: AppColors.info, size: 20),
-            ),
-            onPressed: () {
-              if (_topDoctors.isNotEmpty) {
-                final doctor = _topDoctors[0];
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => CallScreen(
-                      chatId: 'call_${DateTime.now().millisecondsSinceEpoch}',
-                      doctorName: doctor['name'],
-                      doctorId: doctor['id'],
-                      isVideo: true,
-                    ),
-                  ),
-                );
-              }
-            },
-            tooltip: 'مكالمة فيديو',
-          ),
+          // ✅ أزرار البحث والمزيد فقط (تم إزالة أزرار المكالمات)
           IconButton(
             icon: const Icon(Icons.search_rounded, color: AppColors.primary),
             onPressed: () {},
@@ -520,71 +463,9 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                 ],
               ),
             ),
-            // ✅ أزرار الاتصال السريع
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // ✅ زر المكالمة الصوتية
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => CallScreen(
-                          chatId: 'call_${DateTime.now().millisecondsSinceEpoch}',
-                          doctorName: name,
-                          doctorId: doctorId,
-                          isVideo: false,
-                        ),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: AppColors.success.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.call_rounded,
-                      color: AppColors.success,
-                      size: 16,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                // ✅ زر مكالمة الفيديو
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => CallScreen(
-                          chatId: 'call_${DateTime.now().millisecondsSinceEpoch}',
-                          doctorName: name,
-                          doctorId: doctorId,
-                          isVideo: true,
-                        ),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: AppColors.info.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.videocam_rounded,
-                      color: AppColors.info,
-                      size: 16,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            // ✅ تم إزالة أزرار المكالمات من هنا
+            // أضفنا مساحة فارغة بدلاً من الأزرار
+            const SizedBox(width: 8),
           ],
         ),
       ),
