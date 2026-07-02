@@ -2,6 +2,9 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:sehatak/core/services/sound_manager.dart';
 
+// ✅ استيراد Color من dart:ui
+import 'dart:ui';
+
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
@@ -88,7 +91,6 @@ class NotificationService {
     print('📩 Local notification tapped: ${response.payload}');
   }
 
-  // ✅ الحل النهائي: استخدام const مباشرة مع اللون
   Future<void> _showLocalNotification({
     required String title,
     required String body,
@@ -104,7 +106,7 @@ class NotificationService {
       playSound: true,
       sound: RawResourceAndroidNotificationSound('notification'),
       icon: '@drawable/ic_notification',
-      color: Color(0xFF00796B), // ✅ استخدام const مباشرة
+      color: Color(0xFF00796B), // ✅ يعمل الآن مع import 'dart:ui'
     );
     const iosDetails = DarwinNotificationDetails(
       presentAlert: true,
