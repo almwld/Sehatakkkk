@@ -405,7 +405,6 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen> {
     {'name': 'عيادة الدكتور زيد', 'address': 'شارع هائل، جولة كنتاكي', 'lat': 15.3640, 'lng': 44.1960, 'phone': '01-888999', 'type': 'عيادة خاصة', 'specialties': 'مسالك بولية', 'image': '⚕️', 'rating': 4.1},
   ];
 
-
   List<Map<String, dynamic>> get _currentLocations {
     switch (widget.type) {
       case 'hospitals': return _hospitals;
@@ -462,7 +461,6 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen> {
   // ... باقي الكود (الـ getters والـ methods)
   // ملاحظة: سأكمل الكود في الجزء الثاني بسبب طول الملف
 
-  List<Map<String, dynamic>> get _currentLocations {
     switch (widget.type) {
       case 'hospitals': return _hospitals;
       case 'pharmacies': return _pharmacies;
@@ -475,7 +473,6 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen> {
     }
   }
 
-  String get _title {
     final count = _currentLocations.length;
     switch (widget.type) {
       case 'hospitals': return 'المستشفيات ($count)';
@@ -489,7 +486,6 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen> {
     }
   }
 
-  IconData get _icon {
     switch (widget.type) {
       case 'hospitals': return Icons.local_hospital;
       case 'pharmacies': return Icons.local_pharmacy;
@@ -502,7 +498,6 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen> {
     }
   }
 
-  Color _getMarkerColor() {
     switch (widget.type) {
       case 'hospitals': return AppColors.error;
       case 'pharmacies': return AppColors.success;
@@ -553,7 +548,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen> {
       if (permission == LocationPermission.whileInUse || 
           permission == LocationPermission.always) {
         final position = await Geolocator.getCurrentPosition(
-          locationSettings: const LocationSettings(
+          desiredAccuracy: LocationAccuracy.high
             accuracy: LocationAccuracy.high,
           ),
         );
