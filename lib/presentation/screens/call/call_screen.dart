@@ -1,11 +1,8 @@
-import 'package:sehatak/core/services/sound_manager.dart';
-import 'package:sehatak/core/services/sound_manager.dart';
-import 'package:sehatak/core/services/sound_manager.dart';
-import 'package:sehatak/core/services/sound_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:sehatak/core/services/livekit_service.dart';
+import 'package:sehatak/core/services/sound_manager.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class CallScreen extends StatefulWidget {
@@ -49,6 +46,8 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    // ✅ إيقاف جميع النغمات عند الخروج
+    SoundManager().stopAll();
     _liveKit.endCall();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -71,13 +70,18 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
   }
 
   void _startCall() async {
-    SoundManager().playCallRingtone();
     try {
+      // ✅ تشغيل نغمة الرنين
+      SoundManager().playCallRingtone();
+      
       await _liveKit.startCall(
         roomName: widget.chatId,
         callerName: widget.doctorName,
         isVideo: widget.isVideo && _hasCameraPermission,
       );
+
+      // ✅ إيقاف نغمة الرنين بعد الاتصال
+      SoundManager().stopAll();
 
       final room = _liveKit.room;
       if (room != null) {
@@ -105,6 +109,8 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
         _startTimer();
       }
     } catch (e) {
+      // ✅ إيقاف النغمة عند الفشل
+      SoundManager().stopAll();
       if (mounted) {
         setState(() {
           _isConnecting = false;
@@ -166,6 +172,16 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
       _isMuted = !_isMuted;
       _liveKit.room?.localParticipant?.setMicrophoneEnabled(!_isMuted);
     });
+  }
+
+  // ✅ دالة إنهاء المكالمة مع إيقاف النغمات
+  void _endCall() {
+    // ✅ إيقاف جميع النغمات
+    SoundManager().stopAll();
+    // ✅ تشغيل صوت إنهاء المكالمة
+    SoundManager().playCallEnd();
+    // ✅ العودة للشاشة السابقة
+    Navigator.pop(context);
   }
 
   @override
@@ -275,12 +291,12 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                           color: _isCameraOn ? Colors.white : AppColors.error,
                           onTap: _toggleCamera,
                         ),
-                      // 📞 إنهاء المكالمة
+                      // 📞 إنهاء المكالمة (مع إيقاف النغمات)
                       _callButton(
                         icon: Icons.call_end_rounded,
                         color: AppColors.error,
                         size: 60,
-                        onTap: () => Navigator.pop(context),
+                        onTap: _endCall,
                       ),
                       // 🔊 مكبر الصوت
                       _callButton(
