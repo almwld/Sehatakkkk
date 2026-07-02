@@ -1,143 +1,311 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
+
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final TextEditingController _nameController = TextEditingController(text: 'أحمد محمد');
-  final TextEditingController _emailController = TextEditingController(text: 'ahmed@email.com');
-  final TextEditingController _phoneController = TextEditingController(text: '+967 777 123 456');
-  final TextEditingController _addressController = TextEditingController(text: 'شارع الزبيري، صنعاء');
-  final TextEditingController _emergencyContactController = TextEditingController(text: '+967 777 987 654');
-  
-  String _gender = 'ذكر';
-  String _bloodType = 'O+';
-  DateTime? _birthDate;
-  double _height = 175;
-  double _weight = 72;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _bloodTypeController = TextEditingController();
+  final _allergiesController = TextEditingController();
+
+  bool _isLoading = true;
+  bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    setState(() => _isLoading = true);
+
+    final user = _auth.currentUser;
+    if (user == null) {
+      setState(() => _isLoading = false);
+      return;
+    }
+
+    try {
+      final doc = await _firestore.collection('users').doc(user.uid).get();
+      if (doc.exists) {
+        final data = doc.data() as Map<String, dynamic>;
+        setState(() {
+          _nameController.text = data['name'] ?? user.displayName ?? '';
+          _phoneController.text = data['phone'] ?? user.phoneNumber ?? '';
+          _addressController.text = data['address'] ?? '';
+          _bloodTypeController.text = data['bloodType'] ?? '';
+          _allergiesController.text = data['allergies'] ?? '';
+        });
+      } else {
+        // ✅ بيانات من Firebase Auth كنسخة احتياطية
+        setState(() {
+          _nameController.text = user.displayName ?? '';
+          _phoneController.text = user.phoneNumber ?? '';
+        });
+      }
+    } catch (e) {
+      print('❌ Error loading user data: $e');
+    }
+
+    setState(() => _isLoading = false);
+  }
+
+  Future<void> _saveProfile() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    setState(() => _isSaving = true);
+
+    try {
+      // ✅ تحديث DisplayName في Firebase Auth
+      await user.updateDisplayName(_nameController.text.trim());
+
+      // ✅ حفظ البيانات في Firestore
+      await _firestore.collection('users').doc(user.uid).set({
+        'name': _nameController.text.trim(),
+        'phone': _phoneController.text.trim(),
+        'address': _addressController.text.trim(),
+        'bloodType': _bloodTypeController.text.trim(),
+        'allergies': _allergiesController.text.trim(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      // ✅ تحديث الـ Auth مرة أخرى بعد التحديث
+      await user.reload();
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✅ تم تحديث الملف الشخصي بنجاح'),
+          backgroundColor: AppColors.success,
+        ),
+      );
+
+      Navigator.pop(context, true);
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ فشل التحديث: $e'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+
+    setState(() => _isSaving = false);
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
+    _bloodTypeController.dispose();
+    _allergiesController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    if (_isLoading) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('تعديل الملف الشخصي'),
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
+      backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
       appBar: AppBar(
-        title: const Text('تعديل الملف الشخصي', style: TextStyle(fontWeight: FontWeight.bold)),
-        actions: [TextButton(onPressed: () {}, child: const Text('حفظ', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)))],
+        title: const Text('تعديل الملف الشخصي'),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        actions: [
+          TextButton(
+            onPressed: _isSaving ? null : _saveProfile,
+            child: Text(
+              'حفظ',
+              style: TextStyle(
+                color: _isSaving ? AppColors.grey : Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(14),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          // الصورة الشخصية
-          Center(
-            child: Stack(children: [
-              const CircleAvatar(radius: 50, backgroundColor: AppColors.primary, child: Text('أح', style: TextStyle(fontSize: 40, color: Colors.white))),
-              Positioned(bottom: 0, right: 0, child: Container(padding: const EdgeInsets.all(6), decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle), child: const Icon(Icons.camera_alt, color: Colors.white, size: 18))),
-            ]),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            // ✅ صورة الملف الشخصي
+            _buildProfileImage(),
+            const SizedBox(height: 24),
+            // ✅ الحقول
+            _buildTextField(
+              controller: _nameController,
+              label: 'الاسم الكامل',
+              icon: Icons.person_rounded,
+              enabled: !_isSaving,
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              controller: _phoneController,
+              label: 'رقم الهاتف',
+              icon: Icons.phone_rounded,
+              keyboardType: TextInputType.phone,
+              enabled: !_isSaving,
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              controller: _addressController,
+              label: 'العنوان',
+              icon: Icons.location_on_rounded,
+              enabled: !_isSaving,
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              controller: _bloodTypeController,
+              label: 'فصيلة الدم',
+              icon: Icons.bloodtype_rounded,
+              enabled: !_isSaving,
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              controller: _allergiesController,
+              label: 'الحساسية (إن وجدت)',
+              icon: Icons.warning_rounded,
+              enabled: !_isSaving,
+            ),
+            const SizedBox(height: 30),
+            // ✅ زر الحفظ
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                onPressed: _isSaving ? null : _saveProfile,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: _isSaving
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text(
+                        'حفظ التغييرات',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileImage() {
+    final user = _auth.currentUser;
+    final photoUrl = user?.photoURL;
+
+    return Center(
+      child: Stack(
+        children: [
+          CircleAvatar(
+            radius: 50,
+            backgroundColor: AppColors.primary.withOpacity(0.1),
+            backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
+            child: photoUrl == null
+                ? Text(
+                    _nameController.text.isNotEmpty
+                        ? _nameController.text[0]
+                        : 'م',
+                    style: const TextStyle(
+                      fontSize: 32,
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )
+                : null,
           ),
-          const SizedBox(height: 24),
-
-          // المعلومات الأساسية
-          _sectionTitle('المعلومات الأساسية'),
-          _textField('الاسم الكامل', Icons.person, _nameController),
-          _textField('البريد الإلكتروني', Icons.email, _emailController, keyboardType: TextInputType.emailAddress),
-          _textField('رقم الهاتف', Icons.phone, _phoneController, keyboardType: TextInputType.phone),
-          const SizedBox(height: 18),
-
-          // المعلومات الشخصية
-          _sectionTitle('المعلومات الشخصية'),
-          _dropdownField('الجنس', Icons.people, _gender, ['ذكر', 'أنثى'], (v) => setState(() => _gender = v!)),
-          _dateField('تاريخ الميلاد', Icons.cake, _birthDate, (d) => setState(() => _birthDate = d)),
-          _dropdownField('فصيلة الدم', Icons.bloodtype, _bloodType, ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'], (v) => setState(() => _bloodType = v!)),
-          _textField('العنوان', Icons.location_on, _addressController),
-          const SizedBox(height: 18),
-
-          // القياسات
-          _sectionTitle('القياسات الجسمية'),
-          _sliderField('الطول', '${_height.toInt()} سم', _height, 100, 250, (v) => setState(() => _height = v)),
-          _sliderField('الوزن', '${_weight.toInt()} كجم', _weight, 30, 200, (v) => setState(() => _weight = v)),
-          const SizedBox(height: 18),
-
-          // اتصال الطوارئ
-          _sectionTitle('جهة اتصال طوارئ'),
-          _textField('اسم جهة الاتصال', Icons.contact_emergency, _emergencyContactController),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: AppColors.info.withOpacity(0.05), borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.info.withOpacity(0.2))),
-            child: const Row(children: [Icon(Icons.info, color: AppColors.info, size: 16), SizedBox(width: 8), Expanded(child: Text('سيتم التواصل مع هذا الرقم في الحالات الطارئة', style: TextStyle(fontSize: 10, color: AppColors.info)))]),
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2),
+              ),
+              child: const Icon(
+                Icons.camera_alt_rounded,
+                color: Colors.white,
+                size: 16,
+              ),
+            ),
           ),
-          const SizedBox(height: 24),
-
-          // أزرار
-          SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () {}, style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, padding: const EdgeInsets.symmetric(vertical: 14)), child: const Text('حفظ التغييرات', style: TextStyle(fontSize: 16)))),
-          const SizedBox(height: 10),
-          SizedBox(width: double.infinity, child: OutlinedButton(onPressed: () => Navigator.pop(context), style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)), child: const Text('إلغاء'))),
-          const SizedBox(height: 20),
-        ]),
+        ],
       ),
     );
   }
 
-  Widget _sectionTitle(String title) {
-    return Padding(padding: const EdgeInsets.only(bottom: 10, right: 4), child: Text(title, style: const TextStyle(fontSize: 14, color: AppColors.grey, fontWeight: FontWeight.w600)));
-  }
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    TextInputType keyboardType = TextInputType.text,
+    bool enabled = true,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-  Widget _textField(String label, IconData icon, TextEditingController controller, {TextInputType keyboardType = TextInputType.text}) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4)]),
-      child: TextField(
-        controller: controller,
-        keyboardType: keyboardType,
-        textAlign: TextAlign.right,
-        decoration: InputDecoration(labelText: label, prefixIcon: Icon(icon, color: AppColors.primary), border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)), contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12)),
+    return TextField(
+      controller: controller,
+      enabled: enabled,
+      textAlign: TextAlign.right,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, color: AppColors.primary),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        filled: true,
+        fillColor: isDark ? const Color(0xFF1A2540) : Colors.white,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
-    );
-  }
-
-  Widget _dropdownField(String label, IconData icon, String value, List<String> items, Function(String?) onChange) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4)]),
-      child: DropdownButtonFormField<String>(
-        value: value,
-        decoration: InputDecoration(labelText: label, prefixIcon: Icon(icon, color: AppColors.primary), border: InputBorder.none),
-        items: items.map((i) => DropdownMenuItem(value: i, child: Text(i))).toList(),
-        onChanged: onChange,
-      ),
-    );
-  }
-
-  Widget _dateField(String label, IconData icon, DateTime? date, Function(DateTime) onSelected) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4)]),
-      child: ListTile(
-        leading: const Icon(Icons.cake, color: AppColors.primary),
-        title: Text(label, style: const TextStyle(fontSize: 12, color: AppColors.grey)),
-        subtitle: Text(date != null ? '${date.day}/${date.month}/${date.year}' : 'اختر التاريخ', style: const TextStyle(fontWeight: FontWeight.w500)),
-        trailing: const Icon(Icons.arrow_drop_down),
-        onTap: () async {
-          final picked = await showDatePicker(context: context, initialDate: date ?? DateTime(1995), firstDate: DateTime(1940), lastDate: DateTime.now());
-          if (picked != null) onSelected(picked);
-        },
-      ),
-    );
-  }
-
-  Widget _sliderField(String label, String value, double current, double min, double max, Function(double) onChange) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4)]),
-      child: Column(children: [
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(label), Text(value, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary))]),
-        Slider(value: current, min: min, max: max, activeColor: AppColors.primary, onChanged: onChange),
-      ]),
     );
   }
 }
