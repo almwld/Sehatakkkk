@@ -3,290 +3,1073 @@ import 'package:sehatak/core/constants/app_colors.dart';
 
 class HealthCommunityScreen extends StatefulWidget {
   const HealthCommunityScreen({super.key});
+
   @override
   State<HealthCommunityScreen> createState() => _HealthCommunityScreenState();
 }
 
-class _HealthCommunityScreenState extends State<HealthCommunityScreen> {
-  String _selectedCategory = 'الكل';
+class _HealthCommunityScreenState extends State<HealthCommunityScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
   final TextEditingController _postController = TextEditingController();
   final TextEditingController _commentController = TextEditingController();
 
+  // ✅ 40+ منشورات
   final List<Map<String, dynamic>> _posts = [
+    // === منشورات الأطباء (10) ===
     {
-      'user': 'أم محمد',
-      'avatar': '👩',
-      'topic': 'سكري الأطفال',
-      'content': 'ابني عمره 8 سنوات وشُخص بالسكري. أي نصائح للتعامل معه في المدرسة؟ وهل يوجد أطعمة معينة يجب تجنبها؟',
-      'replies': 24,
-      'likes': 45,
-      'time': 'منذ 2 ساعة',
-      'category': 'استشارات',
-      'isLiked': false,
-      'isSaved': false,
+      'id': '1',
+      'user': 'د. أحمد المولد',
+      'role': 'طبيب',
+      'avatar': 'https://ui-avatars.com/api/?name=أحمد+المولد&background=00796B&color=fff',
+      'time': 'منذ 10 دقائق',
+      'content': 'نصيحة اليوم: الإكثار من شرب الماء في فصل الصيف يحمي من الجفاف ويحسن صحة الكلى 🌿💧',
+      'likes': 256,
+      'comments': 48,
+      'shares': 32,
+      'liked': false,
+      'type': 'نصيحة',
     },
     {
-      'user': 'د. حسن رضا',
-      'avatar': '👨‍⚕️',
-      'topic': 'نصيحة طبية',
-      'content': '🫀 تذكير: قياس ضغط الدم بانتظام من أهم عادات الوقاية. المعدل الطبيعي أقل من 120/80. لا تهملوا صحتكم!',
-      'replies': 18,
-      'likes': 92,
-      'time': 'منذ 5 ساعات',
-      'category': 'نصائح',
-      'isLiked': true,
-      'isSaved': true,
-      'verified': true,
-    },
-    {
-      'user': 'أبو خالد',
-      'avatar': '👨',
-      'topic': 'آلام الظهر',
-      'content': 'أعاني من آلام أسفل الظهر منذ شهرين. جربت المسكنات وما نفعت. هل فيه أحد جرب العلاج الطبيعي؟',
-      'replies': 18,
-      'likes': 12,
-      'time': 'منذ 5 ساعات',
-      'category': 'استشارات',
-      'isLiked': false,
-      'isSaved': false,
-    },
-    {
-      'user': 'سارة',
-      'avatar': '👩',
-      'topic': 'الحمل والولادة',
-      'content': 'أنا في الشهر السابع وأعاني من حرقة المعدة باستمرار. أي حلول طبيعية مجربة؟ تعبت من الأدوية 💔',
-      'replies': 35,
-      'likes': 67,
-      'time': 'منذ 8 ساعات',
-      'category': 'استشارات',
-      'isLiked': true,
-      'isSaved': false,
-    },
-    {
-      'user': 'محمد',
-      'avatar': '👨',
-      'topic': 'الرياضة والصحة',
-      'content': 'ما أفضل التمارين لحرق الدهون في المنزل بدون معدات؟ وهل يكفي 30 دقيقة يومياً؟',
-      'replies': 42,
-      'likes': 88,
-      'time': 'منذ 12 ساعة',
-      'category': 'رياضة',
-      'isLiked': false,
-      'isSaved': true,
-    },
-    {
-      'user': 'نورة',
-      'avatar': '👩',
-      'topic': 'تغذية الأطفال',
-      'content': 'طفلي عمره سنتين يرفض الأكل. كيف أشجعه على تناول الطعام الصحي؟ جربت كل الطرق وما في فايدة 😢',
-      'replies': 29,
-      'likes': 34,
-      'time': 'منذ يوم',
-      'category': 'تغذية',
-      'isLiked': false,
-      'isSaved': false,
-    },
-    {
+      'id': '2',
       'user': 'د. فاطمة صديقي',
-      'avatar': '👩‍⚕️',
-      'topic': 'توعية',
-      'content': '👶 تذكير للأمهات: تطعيم الأطفال في موعده يحميهم من أمراض خطيرة. راجعوا جدول التطعيمات في التطبيق!',
-      'replies': 15,
-      'likes': 120,
-      'time': 'منذ يومين',
-      'category': 'نصائح',
-      'isLiked': true,
-      'isSaved': false,
-      'verified': true,
+      'role': 'طبيبة',
+      'avatar': 'https://ui-avatars.com/api/?name=فاطمة+صديقي&background=00796B&color=fff',
+      'time': 'منذ 25 دقيقة',
+      'content': 'التغذية السليمة هي أساس الصحة الجيدة. تناولوا الخضروات والفواكه يومياً 🥗🍎',
+      'likes': 189,
+      'comments': 34,
+      'shares': 28,
+      'liked': false,
+      'type': 'نصيحة',
+    },
+    {
+      'id': '3',
+      'user': 'د. خالد النخلاني',
+      'role': 'طبيب',
+      'avatar': 'https://ui-avatars.com/api/?name=خالد+النخلاني&background=00796B&color=fff',
+      'time': 'منذ ساعة',
+      'content': 'مرضى الضغط يجب عليهم متابعة قراءاتهم بانتظام وتجنب الأطعمة المالحة 🩺❤️',
+      'likes': 312,
+      'comments': 56,
+      'shares': 45,
+      'liked': false,
+      'type': 'استشارة',
+    },
+    {
+      'id': '4',
+      'user': 'د. علي البراشي',
+      'role': 'طبيب',
+      'avatar': 'https://ui-avatars.com/api/?name=علي+البراشي&background=00796B&color=fff',
+      'time': 'منذ ساعتين',
+      'content': 'العناية بالبشرة تبدأ من الداخل. شرب الماء والنوم الكافي أهم من أي كريم 🧴💤',
+      'likes': 278,
+      'comments': 67,
+      'shares': 34,
+      'liked': false,
+      'type': 'نصيحة',
+    },
+    {
+      'id': '5',
+      'user': 'د. سارة أحمد',
+      'role': 'طبيبة',
+      'avatar': 'https://ui-avatars.com/api/?name=سارة+أحمد&background=00796B&color=fff',
+      'time': 'منذ 3 ساعات',
+      'content': 'متابعة الحمل: تأكدي من تناول حمض الفوليك يومياً خلال الأشهر الأولى 🤰💊',
+      'likes': 198,
+      'comments': 45,
+      'shares': 29,
+      'liked': false,
+      'type': 'استشارة',
+    },
+    {
+      'id': '6',
+      'user': 'د. حسن رضا',
+      'role': 'طبيب',
+      'avatar': 'https://ui-avatars.com/api/?name=حسن+رضا&background=00796B&color=fff',
+      'time': 'منذ 4 ساعات',
+      'content': 'ألم الظهر المزمن قد يكون بسبب الجلوس الخاطئ. تمارين الإطالة اليومية مفيدة جداً 🦴🧘',
+      'likes': 234,
+      'comments': 52,
+      'shares': 38,
+      'liked': false,
+      'type': 'نصيحة',
+    },
+    {
+      'id': '7',
+      'user': 'د. نادية حسين',
+      'role': 'طبيبة',
+      'avatar': 'https://ui-avatars.com/api/?name=نادية+حسين&background=00796B&color=fff',
+      'time': 'منذ 5 ساعات',
+      'content': 'الصداع النصفي: تجنب المحفزات مثل الإجهاد وقلة النوم والأطعمة المصنعة 🤕🌙',
+      'likes': 167,
+      'comments': 39,
+      'shares': 22,
+      'liked': false,
+      'type': 'استشارة',
+    },
+    {
+      'id': '8',
+      'user': 'د. محمد العلاي',
+      'role': 'طبيب',
+      'avatar': 'https://ui-avatars.com/api/?name=محمد+العلاي&background=00796B&color=fff',
+      'time': 'منذ 6 ساعات',
+      'content': 'التهاب الجيوب الأنفية: استخدم بخاخات الماء المالح وتجنب المسببات 🌬️🤧',
+      'likes': 145,
+      'comments': 28,
+      'shares': 19,
+      'liked': false,
+      'type': 'نصيحة',
+    },
+    {
+      'id': '9',
+      'user': 'د. رنا النجار',
+      'role': 'طبيبة',
+      'avatar': 'https://ui-avatars.com/api/?name=رنا+النجار&background=00796B&color=fff',
+      'time': 'منذ 7 ساعات',
+      'content': 'الصحة النفسية مهمة مثل الصحة الجسدية. خصص وقتاً للاسترخاء والتأمل 🧠🧘‍♀️',
+      'likes': 456,
+      'comments': 89,
+      'shares': 67,
+      'liked': false,
+      'type': 'نصيحة',
+    },
+    {
+      'id': '10',
+      'user': 'د. لبيب الاغبري',
+      'role': 'طبيب',
+      'avatar': 'https://ui-avatars.com/api/?name=لبيب+الاغبري&background=00796B&color=fff',
+      'time': 'منذ 8 ساعات',
+      'content': 'الكشف المبكر عن الأورام يزيد من فرص العلاج. لا تتردد في إجراء الفحوصات الدورية 🏥🔬',
+      'likes': 389,
+      'comments': 72,
+      'shares': 56,
+      'liked': false,
+      'type': 'استشارة',
+    },
+    // === منشورات المستخدمين (15) ===
+    {
+      'id': '11',
+      'user': 'أم محمد',
+      'role': 'مستخدمة',
+      'avatar': 'https://ui-avatars.com/api/?name=أم+محمد&background=00796B&color=fff',
+      'time': 'منذ 10 دقائق',
+      'content': 'الحمد لله ابني تعافى بعد استشارة الدكتور حسن. شكراً منصة صحتك 🙏❤️',
+      'likes': 189,
+      'comments': 32,
+      'shares': 15,
+      'liked': false,
+      'type': 'تجربة',
+    },
+    {
+      'id': '12',
+      'user': 'أبو محمد',
+      'role': 'مستخدم',
+      'avatar': 'https://ui-avatars.com/api/?name=أبو+محمد&background=00796B&color=fff',
+      'time': 'منذ 20 دقيقة',
+      'content': 'أفضل تطبيق طبي في اليمن بلا منازع 🤲🌟',
+      'likes': 321,
+      'comments': 56,
+      'shares': 23,
+      'liked': false,
+      'type': 'تجربة',
+    },
+    {
+      'id': '13',
+      'user': 'سارة علي',
+      'role': 'مستخدمة',
+      'avatar': 'https://ui-avatars.com/api/?name=سارة+علي&background=00796B&color=fff',
+      'time': 'منذ 35 دقيقة',
+      'content': 'التحاليل الدورية ساعدتني في اكتشاف نقص الفيتامينات مبكراً. أنصح الجميع بإجراء الفحوصات 🩺📊',
+      'likes': 234,
+      'comments': 45,
+      'shares': 28,
+      'liked': false,
+      'type': 'تجربة',
+    },
+    {
+      'id': '14',
+      'user': 'أحمد حسن',
+      'role': 'مستخدم',
+      'avatar': 'https://ui-avatars.com/api/?name=أحمد+حسن&background=00796B&color=fff',
+      'time': 'منذ ساعة',
+      'content': 'صرت أستخدم التطبيق لمتابعة ضغط الدم اليومي. ساعدني كثيراً في تحسين حالتي ❤️📱',
+      'likes': 167,
+      'comments': 34,
+      'shares': 19,
+      'liked': false,
+      'type': 'تجربة',
+    },
+    {
+      'id': '15',
+      'user': 'فاطمة نور',
+      'role': 'مستخدمة',
+      'avatar': 'https://ui-avatars.com/api/?name=فاطمة+نور&background=00796B&color=fff',
+      'time': 'منذ ساعتين',
+      'content': 'تطبيق رائع وسهل الاستخدام. أوصي به لكل العائلة 👨‍👩‍👧‍👦💚',
+      'likes': 278,
+      'comments': 67,
+      'shares': 34,
+      'liked': false,
+      'type': 'تجربة',
+    },
+    {
+      'id': '16',
+      'user': 'خالد عمر',
+      'role': 'مستخدم',
+      'avatar': 'https://ui-avatars.com/api/?name=خالد+عمر&background=00796B&color=fff',
+      'time': 'منذ 3 ساعات',
+      'content': 'الدعم الفني سريع ومحترف. حلوا مشكلتي في دقائق ⚡👍',
+      'likes': 145,
+      'comments': 28,
+      'shares': 12,
+      'liked': false,
+      'type': 'تجربة',
+    },
+    {
+      'id': '17',
+      'user': 'منيرة يوسف',
+      'role': 'مستخدمة',
+      'avatar': 'https://ui-avatars.com/api/?name=منيرة+يوسف&background=00796B&color=fff',
+      'time': 'منذ 4 ساعات',
+      'content': 'فضلت التطبيق على العيادات الخاصة لأنه يوفر الوقت والجهد 🏥💻',
+      'likes': 198,
+      'comments': 41,
+      'shares': 22,
+      'liked': false,
+      'type': 'تجربة',
+    },
+    {
+      'id': '18',
+      'user': 'عبدالله صالح',
+      'role': 'مستخدم',
+      'avatar': 'https://ui-avatars.com/api/?name=عبدالله+صالح&background=00796B&color=fff',
+      'time': 'منذ 5 ساعات',
+      'content': 'التطبيق متكامل ومفيد جداً. كل الخدمات الصحية في مكان واحد 🎯💯',
+      'likes': 345,
+      'comments': 78,
+      'shares': 45,
+      'liked': false,
+      'type': 'تجربة',
+    },
+    {
+      'id': '19',
+      'user': 'ريم خالد',
+      'role': 'مستخدمة',
+      'avatar': 'https://ui-avatars.com/api/?name=ريم+خالد&background=00796B&color=fff',
+      'time': 'منذ 6 ساعات',
+      'content': 'حجز المواعيد أصبح سهلاً وسريعاً. شكراً لكم 📅✨',
+      'likes': 156,
+      'comments': 32,
+      'shares': 18,
+      'liked': false,
+      'type': 'تجربة',
+    },
+    {
+      'id': '20',
+      'user': 'محمد سعيد',
+      'role': 'مستخدم',
+      'avatar': 'https://ui-avatars.com/api/?name=محمد+سعيد&background=00796B&color=fff',
+      'time': 'منذ 7 ساعات',
+      'content': 'أنصح جميع أصدقائي بتحميل التطبيق. خدمة رائعة ومتميزة 🌟📲',
+      'likes': 412,
+      'comments': 89,
+      'shares': 56,
+      'liked': false,
+      'type': 'تجربة',
+    },
+    {
+      'id': '21',
+      'user': 'نورة سعد',
+      'role': 'مستخدمة',
+      'avatar': 'https://ui-avatars.com/api/?name=نورة+سعد&background=00796B&color=fff',
+      'time': 'منذ 8 ساعات',
+      'content': 'الاستشارات الطبية عبر الفيديو أوفر وأسرع من الذهاب للعيادة 📹💻',
+      'likes': 189,
+      'comments': 38,
+      'shares': 24,
+      'liked': false,
+      'type': 'تجربة',
+    },
+    {
+      'id': '22',
+      'user': 'ياسر علي',
+      'role': 'مستخدم',
+      'avatar': 'https://ui-avatars.com/api/?name=ياسر+علي&background=00796B&color=fff',
+      'time': 'منذ 9 ساعات',
+      'content': 'أول تطبيق صحي يمني متكامل. فخورون بكم 🇾🇪💚',
+      'likes': 567,
+      'comments': 123,
+      'shares': 89,
+      'liked': false,
+      'type': 'تجربة',
+    },
+    {
+      'id': '23',
+      'user': 'هدى أحمد',
+      'role': 'مستخدمة',
+      'avatar': 'https://ui-avatars.com/api/?name=هدى+أحمد&background=00796B&color=fff',
+      'time': 'منذ 10 ساعات',
+      'content': 'تطبيق مفيد جداً لمرضى السكري. تتبع السكر أصبح أسهل 🍬📊',
+      'likes': 234,
+      'comments': 56,
+      'shares': 34,
+      'liked': false,
+      'type': 'تجربة',
+    },
+    {
+      'id': '24',
+      'user': 'سامي محمد',
+      'role': 'مستخدم',
+      'avatar': 'https://ui-avatars.com/api/?name=سامي+محمد&background=00796B&color=fff',
+      'time': 'منذ 11 ساعة',
+      'content': 'التوصيل الدوائي سريع وآمن. وصلتني الأدوية في نفس اليوم 💊🚀',
+      'likes': 178,
+      'comments': 34,
+      'shares': 19,
+      'liked': false,
+      'type': 'تجربة',
+    },
+    {
+      'id': '25',
+      'user': 'ليلى عمر',
+      'role': 'مستخدمة',
+      'avatar': 'https://ui-avatars.com/api/?name=ليلى+عمر&background=00796B&color=fff',
+      'time': 'منذ 12 ساعة',
+      'content': 'خدمة المرضى ممتازة والموظفون متعاونون جداً 🤝💙',
+      'likes': 289,
+      'comments': 67,
+      'shares': 45,
+      'liked': false,
+      'type': 'تجربة',
+    },
+    // === منشورات شركاء (10) ===
+    {
+      'id': '26',
+      'user': 'صيدلية الشفاء',
+      'role': 'شريك معتمد',
+      'avatar': 'https://ui-avatars.com/api/?name=صيدلية+الشفاء&background=00796B&color=fff',
+      'time': 'منذ 10 دقائق',
+      'content': 'وصلتنا شحنة جديدة من الأدوية المستوردة. خصم 20% على جميع الأدوية لمدة أسبوع 💊✨',
+      'likes': 432,
+      'comments': 87,
+      'shares': 64,
+      'liked': false,
+      'type': 'عرض',
+    },
+    {
+      'id': '27',
+      'user': 'مختبر الثقة',
+      'role': 'شريك معتمد',
+      'avatar': 'https://ui-avatars.com/api/?name=مختبر+الثقة&background=00796B&color=fff',
+      'time': 'منذ 20 دقيقة',
+      'content': 'نتائج تحاليل كورونا خلال 4 ساعات فقط 🧪⚡',
+      'likes': 567,
+      'comments': 124,
+      'shares': 89,
+      'liked': false,
+      'type': 'عرض',
+    },
+    {
+      'id': '28',
+      'user': 'مركز الأشعة المتقدم',
+      'role': 'شريك معتمد',
+      'avatar': 'https://ui-avatars.com/api/?name=مركز+الأشعة&background=00796B&color=fff',
+      'time': 'منذ ساعة',
+      'content': 'خصم 30% على جميع أنواع الأشعة حتى نهاية الشهر 📷🩻',
+      'likes': 234,
+      'comments': 45,
+      'shares': 34,
+      'liked': false,
+      'type': 'عرض',
+    },
+    {
+      'id': '29',
+      'user': 'صيدلية النهدي',
+      'role': 'شريك معتمد',
+      'avatar': 'https://ui-avatars.com/api/?name=صيدلية+النهدي&background=00796B&color=fff',
+      'time': 'منذ ساعتين',
+      'content': 'عرض خاص على مستلزمات العناية بالبشرة. خصم يصل إلى 40% 🧴🌸',
+      'likes': 189,
+      'comments': 34,
+      'shares': 23,
+      'liked': false,
+      'type': 'عرض',
+    },
+    {
+      'id': '30',
+      'user': 'مختبرات العولقي',
+      'role': 'شريك معتمد',
+      'avatar': 'https://ui-avatars.com/api/?name=مختبرات+العولقي&background=00796B&color=fff',
+      'time': 'منذ 3 ساعات',
+      'content': 'تحليل شامل للجسم بسعر خاص. احجز الآن واستفيد من الخصم 🩺🔬',
+      'likes': 345,
+      'comments': 67,
+      'shares': 45,
+      'liked': false,
+      'type': 'عرض',
+    },
+    {
+      'id': '31',
+      'user': 'مستشفى الثورة',
+      'role': 'شريك معتمد',
+      'avatar': 'https://ui-avatars.com/api/?name=مستشفى+الثورة&background=00796B&color=fff',
+      'time': 'منذ 4 ساعات',
+      'content': 'عيادات جديدة مفتوحة للاستقبال. حجز المواعيد متاح الآن 🏥📅',
+      'likes': 456,
+      'comments': 89,
+      'shares': 67,
+      'liked': false,
+      'type': 'عرض',
+    },
+    {
+      'id': '32',
+      'user': 'مختبرات الرازي',
+      'role': 'شريك معتمد',
+      'avatar': 'https://ui-avatars.com/api/?name=مختبرات+الرازي&background=00796B&color=fff',
+      'time': 'منذ 5 ساعات',
+      'content': 'خدمة الفحص المنزلي متوفرة الآن. اتصل واحجز فحصك في المنزل 🏠🧪',
+      'likes': 234,
+      'comments': 56,
+      'shares': 34,
+      'liked': false,
+      'type': 'عرض',
+    },
+    {
+      'id': '33',
+      'user': 'صيدليات ابن حيان',
+      'role': 'شريك معتمد',
+      'avatar': 'https://ui-avatars.com/api/?name=ابن+حيان&background=00796B&color=fff',
+      'time': 'منذ 6 ساعات',
+      'content': 'توصيل مجاني للطلبات التي تزيد عن 5000 ريال 🚚💨',
+      'likes': 567,
+      'comments': 123,
+      'shares': 89,
+      'liked': false,
+      'type': 'عرض',
+    },
+    {
+      'id': '34',
+      'user': 'مركز زاد الطبي',
+      'role': 'شريك معتمد',
+      'avatar': 'https://ui-avatars.com/api/?name=مركز+زاد&background=00796B&color=fff',
+      'time': 'منذ 7 ساعات',
+      'content': 'عيادة جديدة لطب الأسرة. استقبال جميع الحالات 🩺👨‍👩‍👧‍👦',
+      'likes': 178,
+      'comments': 34,
+      'shares': 22,
+      'liked': false,
+      'type': 'عرض',
+    },
+    {
+      'id': '35',
+      'user': 'مختبرات الأمانة',
+      'role': 'شريك معتمد',
+      'avatar': 'https://ui-avatars.com/api/?name=مختبرات+الأمانة&background=00796B&color=fff',
+      'time': 'منذ 8 ساعات',
+      'content': 'نتائج التحاليل خلال ساعتين فقط. دقة وسرعة 🔬⚡',
+      'likes': 289,
+      'comments': 56,
+      'shares': 34,
+      'liked': false,
+      'type': 'عرض',
+    },
+    // === منشورات إضافية (5) ===
+    {
+      'id': '36',
+      'user': 'د. عمرو النجار',
+      'role': 'طبيب',
+      'avatar': 'https://ui-avatars.com/api/?name=عمرو+النجار&background=00796B&color=fff',
+      'time': 'منذ ساعة',
+      'content': 'جراحة المناظير أصبحت متوفرة في مستشفى المتحدون. استفسر الآن 🏥🔬',
+      'likes': 234,
+      'comments': 45,
+      'shares': 28,
+      'liked': false,
+      'type': 'استشارة',
+    },
+    {
+      'id': '37',
+      'user': 'أمينة خالد',
+      'role': 'مستخدمة',
+      'avatar': 'https://ui-avatars.com/api/?name=أمينة+خالد&background=00796B&color=fff',
+      'time': 'منذ ساعتين',
+      'content': 'التطبيق ساعدني في متابعة حملي بكل سهولة. شكراً للفريق 🤰💚',
+      'likes': 345,
+      'comments': 78,
+      'shares': 45,
+      'liked': false,
+      'type': 'تجربة',
+    },
+    {
+      'id': '38',
+      'user': 'صيدلية المدينة',
+      'role': 'شريك معتمد',
+      'avatar': 'https://ui-avatars.com/api/?name=صيدلية+المدينة&background=00796B&color=fff',
+      'time': 'منذ 3 ساعات',
+      'content': 'عرض خاص على مستلزمات الأطفال. احصل على خصم 25% 🧸👶',
+      'likes': 198,
+      'comments': 34,
+      'shares': 22,
+      'liked': false,
+      'type': 'عرض',
+    },
+    {
+      'id': '39',
+      'user': 'د. كمال أحمد',
+      'role': 'طبيب',
+      'avatar': 'https://ui-avatars.com/api/?name=كمال+أحمد&background=00796B&color=fff',
+      'time': 'منذ 4 ساعات',
+      'content': 'أمراض العظام: الوقاية خير من العلاج. ممارسة الرياضة بانتظام 🦴🏃',
+      'likes': 267,
+      'comments': 56,
+      'shares': 34,
+      'liked': false,
+      'type': 'نصيحة',
+    },
+    {
+      'id': '40',
+      'user': 'مريم سليمان',
+      'role': 'مستخدمة',
+      'avatar': 'https://ui-avatars.com/api/?name=مريم+سليمان&background=00796B&color=fff',
+      'time': 'منذ 5 ساعات',
+      'content': 'تجربتي مع التطبيق كانت ممتازة. أوصي به للجميع 🌟📱',
+      'likes': 456,
+      'comments': 89,
+      'shares': 56,
+      'liked': false,
+      'type': 'تجربة',
+    },
+    {
+      'id': '41',
+      'user': 'د. عادل حميد',
+      'role': 'طبيب',
+      'avatar': 'https://ui-avatars.com/api/?name=عادل+حميد&background=00796B&color=fff',
+      'time': 'منذ 6 ساعات',
+      'content': 'جراحة المفاصل أصبحت أقل ألماً باستخدام التقنيات الحديثة 🏥💉',
+      'likes': 189,
+      'comments': 34,
+      'shares': 22,
+      'liked': false,
+      'type': 'استشارة',
+    },
+    {
+      'id': '42',
+      'user': 'نوال حسن',
+      'role': 'مستخدمة',
+      'avatar': 'https://ui-avatars.com/api/?name=نوال+حسن&background=00796B&color=fff',
+      'time': 'منذ 7 ساعات',
+      'content': 'خدمة التذكير بالأدوية ميزة رائعة. لم أنسَ أي جرعة منذ استخدامي للتطبيق 💊⏰',
+      'likes': 234,
+      'comments': 45,
+      'shares': 28,
+      'liked': false,
+      'type': 'تجربة',
+    },
+    {
+      'id': '43',
+      'user': 'مختبرات الشفاء',
+      'role': 'شريك معتمد',
+      'avatar': 'https://ui-avatars.com/api/?name=مختبرات+الشفاء&background=00796B&color=fff',
+      'time': 'منذ 8 ساعات',
+      'content': 'عرض خاص على تحاليل ما قبل الزواج. استفسر عن التفاصيل 💍🔬',
+      'likes': 312,
+      'comments': 67,
+      'shares': 45,
+      'liked': false,
+      'type': 'عرض',
     },
   ];
 
-  List<Map<String, dynamic>> get _filteredPosts {
-    if (_selectedCategory == 'الكل') return _posts;
-    return _posts.where((p) => p['category'] == _selectedCategory).toList();
+  List<Map<String, dynamic>> _comments = [
+    {
+      'id': '1',
+      'user': 'أم محمد',
+      'avatar': 'https://ui-avatars.com/api/?name=أم+محمد&background=00796B&color=fff',
+      'time': 'منذ 10 دقائق',
+      'content': 'شكراً على النصيحة! جزاك الله خيراً 🙏',
+    },
+    {
+      'id': '2',
+      'user': 'د. فاطمة صديقي',
+      'role': 'طبيبة',
+      'avatar': 'https://ui-avatars.com/api/?name=فاطمة+صديقي&background=00796B&color=fff',
+      'time': 'منذ 30 دقيقة',
+      'content': 'نصيحة مهمة جداً، شكراً دكتور أحمد 🌟',
+    },
+  ];
+
+  final List<Map<String, dynamic>> _categories = [
+    {'icon': Icons.medical_services_rounded, 'label': 'استشارات', 'color': AppColors.primary},
+    {'icon': Icons.tips_and_updates_rounded, 'label': 'نصائح', 'color': AppColors.success},
+    {'icon': Icons.local_offer_rounded, 'label': 'عروض', 'color': AppColors.warning},
+    {'icon': Icons.science_rounded, 'label': 'تحاليل', 'color': AppColors.purple},
+    {'icon': Icons.chat_rounded, 'label': 'نقاشات', 'color': AppColors.info},
+    {'icon': Icons.emoji_events_rounded, 'label': 'تحديات', 'color': AppColors.amber},
+  ];
+
+  int _selectedCategory = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    _postController.dispose();
+    _commentController.dispose();
+    super.dispose();
   }
 
   void _toggleLike(int index) {
     setState(() {
-      _posts[index]['isLiked'] = !(_posts[index]['isLiked'] as bool);
-      _posts[index]['likes'] = (_posts[index]['likes'] as int) + (_posts[index]['isLiked'] ? 1 : -1);
+      _posts[index]['liked'] = !_posts[index]['liked'];
+      _posts[index]['likes'] += _posts[index]['liked'] ? 1 : -1;
     });
   }
 
-  void _toggleSave(int index) {
-    setState(() => _posts[index]['isSaved'] = !(_posts[index]['isSaved'] as bool));
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(_posts[index]['isSaved'] ? 'تم الحفظ' : 'تم إلغاء الحفظ'),
-      backgroundColor: AppColors.success,
-      duration: const Duration(seconds: 1),
-    ));
-  }
-
-  void _addPost() {
+  void _showAddPostDialog() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (_) => Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: 20, right: 20, top: 20),
-        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)))),
-          const SizedBox(height: 16),
-          const Text('منشور جديد', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
-          DropdownButtonFormField<String>(
-            value: 'استشارات',
-            decoration: InputDecoration(labelText: 'التصنيف', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
-            items: ['استشارات', 'نصائح', 'رياضة', 'تغذية', 'نفسية', 'أطفال', 'أخرى'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-            onChanged: (_) {},
-          ),
-          const SizedBox(height: 10),
-          TextField(controller: _postController, maxLines: 4, textAlign: TextAlign.right, decoration: InputDecoration(hintText: 'اكتب منشورك هنا...', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)))),
-          const SizedBox(height: 16),
-          SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () { if (_postController.text.isNotEmpty) { setState(() => _posts.insert(0, {'user': 'أنت', 'avatar': '⭐', 'topic': 'جديد', 'content': _postController.text, 'replies': 0, 'likes': 0, 'time': 'الآن', 'category': 'استشارات', 'isLiked': false, 'isSaved': false})); _postController.clear(); Navigator.pop(context); ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم نشر منشورك!'), backgroundColor: AppColors.success)); } }, style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, padding: const EdgeInsets.symmetric(vertical: 14)), child: const Text('نشر'))),
-          const SizedBox(height: 20),
-        ]),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-    );
-  }
-
-  void _showComments(Map<String, dynamic> post) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (_) => Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-        child: SizedBox(
-          height: MediaQuery.of(context).size.height * 0.6,
-          child: Column(children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(children: [
-                const Text('التعليقات', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                const Spacer(),
-                IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close)),
-              ]),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'إنشاء منشور جديد',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            const Divider(height: 1),
-            Expanded(
-              child: ListView(padding: const EdgeInsets.all(16), children: [
-                _commentTile('👩', 'أم محمد', 'شكراً على النصيحة!', 'منذ ساعة'),
-                _commentTile('👨‍⚕️', 'د. حسن', 'العفو، بالتوفيق', 'منذ 45 دقيقة'),
-                _commentTile('👩', 'سارة', 'معلومات مفيدة جداً 🙏', 'منذ 30 دقيقة'),
-              ]),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _postController,
+              maxLines: 4,
+              textAlign: TextAlign.right,
+              decoration: const InputDecoration(
+                hintText: 'ماذا تريد مشاركته مع المجتمع؟',
+                border: OutlineInputBorder(),
+                filled: true,
+                fillColor: Colors.grey,
+              ),
             ),
-            Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, -1))]), child: Row(children: [
-              Expanded(child: TextField(controller: _commentController, textAlign: TextAlign.right, decoration: InputDecoration(hintText: 'اكتب تعليقاً...', filled: true, fillColor: AppColors.surfaceContainerLow, border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none), contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8)))),
-              const SizedBox(width: 6),
-              CircleAvatar(backgroundColor: AppColors.primary, child: IconButton(icon: const Icon(Icons.send, color: Colors.white, size: 16), onPressed: () { _commentController.clear(); })),
-            ])),
-          ]),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                _categoryChip(Icons.image_rounded, 'صورة'),
+                _categoryChip(Icons.medical_services_rounded, 'استشارة'),
+                _categoryChip(Icons.tips_and_updates_rounded, 'نصيحة'),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('إلغاء'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('✅ تم نشر المنشور بنجاح'),
+                          backgroundColor: AppColors.success,
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text('نشر'),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _commentTile(String avatar, String name, String comment, String time) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        CircleAvatar(radius: 16, backgroundColor: AppColors.primary.withOpacity(0.1), child: Text(avatar, style: const TextStyle(fontSize: 16))),
-        const SizedBox(width: 8),
-        Expanded(child: Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: AppColors.surfaceContainerLow, borderRadius: BorderRadius.circular(12)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11)), const SizedBox(height: 2), Text(comment, style: const TextStyle(fontSize: 12)), const SizedBox(height: 2), Text(time, style: const TextStyle(fontSize: 9, color: AppColors.grey))]))),
-      ]),
+  Widget _categoryChip(IconData icon, String label) {
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: AppColors.primary),
+          const SizedBox(width: 4),
+          Text(label, style: const TextStyle(fontSize: 11)),
+        ],
+      ),
     );
+  }
+
+  String _getTypeColor(String type) {
+    switch (type) {
+      case 'نصيحة':
+        return AppColors.success.value.toString();
+      case 'استشارة':
+        return AppColors.primary.value.toString();
+      case 'تجربة':
+        return AppColors.info.value.toString();
+      case 'عرض':
+        return AppColors.warning.value.toString();
+      default:
+        return AppColors.grey.value.toString();
+    }
+  }
+
+  String _getTypeLabel(String type) {
+    return type;
+  }
+
+  Color _getStatusColor(String type) {
+    switch (type) {
+      case 'نصيحة':
+        return AppColors.success;
+      case 'استشارة':
+        return AppColors.primary;
+      case 'تجربة':
+        return AppColors.info;
+      case 'عرض':
+        return AppColors.warning;
+      default:
+        return AppColors.grey;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
+      backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
       appBar: AppBar(
         title: const Text('مجتمع صحتك', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        elevation: 0,
         actions: [
-          IconButton(icon: const Icon(Icons.search), onPressed: () {}),
-          IconButton(icon: const Icon(Icons.notifications_outlined), onPressed: () {}),
+          IconButton(
+            icon: const Icon(Icons.add_rounded),
+            onPressed: _showAddPostDialog,
+            tooltip: 'إنشاء منشور',
+          ),
         ],
       ),
-      body: Column(children: [
-        // بطاقة الترحيب
-        Container(
-          margin: const EdgeInsets.fromLTRB(14, 14, 14, 0),
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(gradient: LinearGradient(colors: [AppColors.teal, AppColors.primary]), borderRadius: BorderRadius.circular(16)),
-          child: Row(children: [const Icon(Icons.people, color: Colors.white, size: 36), const SizedBox(width: 10), const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('مجتمع صحتك', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)), Text('انضم إلى 15,000+ عضو', style: TextStyle(color: Colors.white70, fontSize: 11))])), Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(12)), child: const Text('7 منشورات', style: TextStyle(color: Colors.white, fontSize: 10)))]),
-        ),
-
-        // تصنيفات
-        SizedBox(
-          height: 45,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            itemCount: ['الكل', 'استشارات', 'نصائح', 'رياضة', 'تغذية', 'نفسية', 'أطفال'].length,
-            separatorBuilder: (_, __) => const SizedBox(width: 4),
-            itemBuilder: (context, i) {
-              final cat = ['الكل', 'استشارات', 'نصائح', 'رياضة', 'تغذية', 'نفسية', 'أطفال'][i];
-              final selected = _selectedCategory == cat;
-              return ChoiceChip(label: Text(cat, style: const TextStyle(fontSize: 10)), selected: selected, selectedColor: AppColors.primary, labelStyle: TextStyle(color: selected ? Colors.white : AppColors.darkGrey), onSelected: (v) => setState(() => _selectedCategory = v! ? cat : 'الكل'));
-            },
+      body: Column(
+        children: [
+          _buildCategories(),
+          _buildTabs(),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildPostsList(isDark),
+                _buildQuestionsTab(isDark),
+                _buildDoctorsTab(isDark),
+              ],
+            ),
           ),
-        ),
-        const Divider(height: 1),
+        ],
+      ),
+    );
+  }
 
-        // المنشورات
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.all(12),
-            itemCount: _filteredPosts.length,
-            itemBuilder: (context, idx) {
-              final p = _filteredPosts[idx];
-              return Container(
-                margin: const EdgeInsets.only(bottom: 10),
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6)]),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  // رأس المنشور
-                  Row(children: [
-                    CircleAvatar(radius: 18, backgroundColor: AppColors.primary.withOpacity(0.1), child: Text(p['avatar'], style: const TextStyle(fontSize: 18))),
-                    const SizedBox(width: 8),
-                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Row(children: [
-                        Text(p['user'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                        if (p['verified'] == true) ...[const SizedBox(width: 4), const Icon(Icons.verified, color: AppColors.info, size: 16)],
-                      ]),
-                      Text(p['time'], style: const TextStyle(fontSize: 9, color: AppColors.grey)),
-                    ])),
-                    PopupMenuButton(
-                      icon: const Icon(Icons.more_vert, size: 16),
-                      itemBuilder: (_) => [const PopupMenuItem(value: 'save', child: Text('حفظ')), const PopupMenuItem(value: 'report', child: Text('إبلاغ', style: TextStyle(color: AppColors.error)))],
-                      onSelected: (v) { if (v == 'save') _toggleSave(idx); },
+  Widget _buildCategories() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      color: Colors.white,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: Row(
+          children: _categories.asMap().entries.map((entry) {
+            final index = entry.key;
+            final category = entry.value;
+            final color = category['color'] as Color;
+            final isSelected = _selectedCategory == index;
+            return GestureDetector(
+              onTap: () => setState(() => _selectedCategory = index),
+              child: Container(
+                margin: const EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: isSelected ? color : Colors.transparent,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isSelected ? color : color.withOpacity(0.2),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      category['icon'] as IconData,
+                      color: isSelected ? Colors.white : color,
+                      size: 16,
                     ),
-                  ]),
-                  const SizedBox(height: 8),
-
-                  // المحتوى
-                  Text(p['content'], style: const TextStyle(fontSize: 13, height: 1.5, color: AppColors.darkGrey)),
-                  const SizedBox(height: 4),
-                  Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.06), borderRadius: BorderRadius.circular(8)), child: Text(p['topic'], style: const TextStyle(fontSize: 9, color: AppColors.primary))),
-                  const SizedBox(height: 10),
-
-                  // أزرار التفاعل
-                  Row(children: [
-                    GestureDetector(onTap: () => _toggleLike(idx), child: Row(children: [Icon(p['isLiked'] ? Icons.favorite : Icons.favorite_border, color: p['isLiked'] ? AppColors.error : AppColors.grey, size: 18), const SizedBox(width: 4), Text('${p['likes']}', style: TextStyle(fontSize: 11, color: p['isLiked'] ? AppColors.error : AppColors.grey))])),
-                    const SizedBox(width: 16),
-                    GestureDetector(onTap: () => _showComments(p), child: Row(children: [const Icon(Icons.chat_bubble_outline, size: 18, color: AppColors.grey), const SizedBox(width: 4), Text('${p['replies']}', style: const TextStyle(fontSize: 11, color: AppColors.grey))])),
-                    const Spacer(),
-                    GestureDetector(onTap: () => _toggleSave(idx), child: Icon(p['isSaved'] ? Icons.bookmark : Icons.bookmark_border, color: p['isSaved'] ? AppColors.primary : AppColors.grey, size: 18)),
-                    const SizedBox(width: 12),
-                    const Icon(Icons.share, size: 18, color: AppColors.grey),
-                  ]),
-                ]),
-              );
-            },
-          ),
+                    const SizedBox(width: 4),
+                    Text(
+                      category['label'] as String,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: isSelected ? Colors.white : color,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
         ),
-      ]),
-      floatingActionButton: FloatingActionButton(onPressed: _addPost, backgroundColor: AppColors.primary, child: const Icon(Icons.add, color: Colors.white)),
+      ),
+    );
+  }
+
+  Widget _buildTabs() {
+    return Container(
+      color: Colors.white,
+      child: TabBar(
+        controller: _tabController,
+        indicatorColor: AppColors.primary,
+        labelColor: AppColors.primary,
+        unselectedLabelColor: AppColors.grey,
+        tabs: const [
+          Tab(text: 'الرئيسية'),
+          Tab(text: 'الأسئلة'),
+          Tab(text: 'الأطباء'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPostsList(bool isDark) {
+    return ListView.builder(
+      padding: const EdgeInsets.all(12),
+      itemCount: _posts.length,
+      itemBuilder: (context, index) {
+        final post = _posts[index];
+        return _buildPostCard(post, isDark, index);
+      },
+    );
+  }
+
+  Widget _buildPostCard(Map<String, dynamic> post, bool isDark, int index) {
+    final color = _getStatusColor(post['type']);
+    final roleColor = post['role'] == 'طبيب' || post['role'] == 'طبيبة'
+        ? AppColors.primary
+        : AppColors.grey;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2540) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+          ),
+        ],
+        border: Border.all(
+          color: isDark ? const Color(0xFF2D3A54) : Colors.transparent,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 20,
+                backgroundColor: AppColors.primary.withOpacity(0.1),
+                backgroundImage: NetworkImage(post['avatar']),
+                child: const Icon(Icons.person, color: Colors.white, size: 16),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          post['user'],
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: roleColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            post['role'],
+                            style: TextStyle(
+                              fontSize: 8,
+                              color: roleColor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      post['time'],
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: AppColors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  _getTypeLabel(post['type']),
+                  style: TextStyle(
+                    fontSize: 8,
+                    color: color,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            post['content'],
+            style: const TextStyle(fontSize: 13, height: 1.6),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              GestureDetector(
+                onTap: () => _toggleLike(index),
+                child: Row(
+                  children: [
+                    Icon(
+                      post['liked'] ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                      color: post['liked'] ? AppColors.error : AppColors.grey,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${post['likes']}',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: post['liked'] ? AppColors.error : AppColors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              Row(
+                children: [
+                  const Icon(Icons.chat_bubble_outline_rounded, size: 16, color: AppColors.grey),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${post['comments']}',
+                    style: TextStyle(fontSize: 11, color: AppColors.grey),
+                  ),
+                ],
+              ),
+              const Spacer(),
+              GestureDetector(
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('✅ تم المشاركة'),
+                      backgroundColor: AppColors.success,
+                    ),
+                  );
+                },
+                child: Row(
+                  children: [
+                    const Icon(Icons.share_rounded, size: 16, color: AppColors.grey),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${post['shares']}',
+                      style: TextStyle(fontSize: 11, color: AppColors.grey),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuestionsTab(bool isDark) {
+    final questions = _posts.where((p) => p['type'] == 'استشارة').toList();
+    return _buildTabContent(questions, isDark);
+  }
+
+  Widget _buildDoctorsTab(bool isDark) {
+    final doctors = _posts.where((p) => p['role'] == 'طبيب' || p['role'] == 'طبيبة').toList();
+    return _buildTabContent(doctors, isDark);
+  }
+
+  Widget _buildTabContent(List<Map<String, dynamic>> items, bool isDark) {
+    if (items.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.inbox_rounded, size: 60, color: AppColors.grey),
+            const SizedBox(height: 16),
+            Text(
+              'لا توجد منشورات',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.grey,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.all(12),
+      itemCount: items.length,
+      itemBuilder: (context, index) {
+        final post = items[index];
+        final actualIndex = _posts.indexOf(post);
+        return _buildPostCard(post, isDark, actualIndex);
+      },
     );
   }
 }

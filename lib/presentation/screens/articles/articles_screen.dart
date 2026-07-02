@@ -10,8 +10,6 @@ class ArticlesScreen extends StatefulWidget {
 
 class _ArticlesScreenState extends State<ArticlesScreen> {
   String _selectedCategory = 'الكل';
-  bool _isLoading = false;
-
   final List<String> _categories = [
     'الكل',
     'الصحة العامة',
@@ -19,93 +17,319 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
     'الأمراض',
     'الوقاية',
     'الصحة النفسية',
-    'الأدوية',
+    'الرياضة',
   ];
 
   final List<Map<String, dynamic>> _articles = [
     {
       'id': '1',
-      'title': 'فوائد شرب الماء على الريق',
-      'subtitle': '8 أسباب تجعلك تبدأ يومك بكوب ماء',
+      'title': '10 نصائح للحفاظ على صحة القلب',
       'category': 'الصحة العامة',
-      'readTime': '5 دقائق',
-      'image': '💧',
-      'color': AppColors.info,
+      'author': 'د. خالد النخلاني',
       'date': '2026-07-01',
+      'readTime': '5 دقائق',
+      'image': 'https://images.unsplash.com/photo-1505751172876-fa5323e0e4d?w=400',
       'likes': 245,
-      'views': 1200,
-      'author': 'د. أحمد المولد',
+      'views': 1234,
+      'summary': 'تعرف على أهم النصائح للحفاظ على قلبك سليماً وصحياً، من خلال تغييرات بسيطة في نمط الحياة.',
+      'isSaved': false,
     },
     {
       'id': '2',
-      'title': 'نظام غذائي صحي للقلب',
-      'subtitle': 'أطعمة تحمي قلبك وتخفض الكوليسترول',
-      'category': 'التغذية',
-      'readTime': '7 دقائق',
-      'image': '❤️',
-      'color': AppColors.error,
+      'title': 'فوائد المشي اليومي للصحة العامة',
+      'category': 'الرياضة',
+      'author': 'د. حسن رضا',
       'date': '2026-06-28',
+      'readTime': '4 دقائق',
+      'image': 'https://images.unsplash.com/photo-1449300079326-7b6bc2d1d28?w=400',
       'likes': 189,
-      'views': 850,
-      'author': 'د. خالد النخلاني',
+      'views': 987,
+      'summary': 'المشي من أفضل التمارين التي يمكن ممارستها يومياً لتحسين الصحة البدنية والنفسية.',
+      'isSaved': false,
     },
     {
       'id': '3',
-      'title': 'كيف تتغلب على التوتر والقلق',
-      'subtitle': '5 تقنيات فعالة للاسترخاء',
-      'category': 'الصحة النفسية',
-      'readTime': '6 دقائق',
-      'image': '🧠',
-      'color': AppColors.purple,
+      'title': 'دليل التغذية السليمة في رمضان',
+      'category': 'التغذية',
+      'author': 'د. سارة أحمد',
       'date': '2026-06-25',
+      'readTime': '6 دقائق',
+      'image': 'https://images.unsplash.com/photo-1546069901-ba9599a7e63?w=400',
       'likes': 312,
-      'views': 2100,
-      'author': 'د. رنا النجار',
+      'views': 1567,
+      'summary': 'كيف تحافظ على صحتك وتغذيتك خلال شهر رمضان المبارك مع نصائح عملية ومفيدة.',
+      'isSaved': false,
     },
     {
       'id': '4',
-      'title': 'فيتامين د: أهميته ومصادره',
-      'subtitle': 'كل ما تحتاج معرفته عن فيتامين الشمس',
-      'category': 'الصحة العامة',
-      'readTime': '4 دقائق',
-      'image': '☀️',
-      'color': AppColors.warning,
+      'title': 'أعراض نقص فيتامين د وكيفية علاجه',
+      'category': 'الأمراض',
+      'author': 'د. فاطمة صديقي',
       'date': '2026-06-22',
-      'likes': 156,
-      'views': 980,
-      'author': 'د. عائشة ملك',
+      'readTime': '5 دقائق',
+      'image': 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400',
+      'likes': 278,
+      'views': 2100,
+      'summary': 'تعرف على أعراض نقص فيتامين د وطرق العلاج الفعالة لتحسين صحتك العامة.',
+      'isSaved': false,
     },
     {
       'id': '5',
-      'title': 'علامات مبكرة للسكري',
-      'subtitle': 'لا تتجاهل هذه الأعراض',
-      'category': 'الأمراض',
-      'readTime': '8 دقائق',
-      'image': '🩸',
-      'color': AppColors.primary,
+      'title': 'كيف تتعامل مع التوتر والقلق اليومي',
+      'category': 'الصحة النفسية',
+      'author': 'د. رنا النجار',
       'date': '2026-06-20',
-      'likes': 278,
-      'views': 1500,
-      'author': 'د. حسن رضا',
+      'readTime': '7 دقائق',
+      'image': 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400',
+      'likes': 456,
+      'views': 3200,
+      'summary': 'استراتيجيات فعالة للتعامل مع التوتر والقلق في الحياة اليومية وتحسين الصحة النفسية.',
+      'isSaved': false,
     },
     {
       'id': '6',
-      'title': 'فوائد المشي اليومي',
-      'subtitle': '30 دقيقة تغير حياتك',
+      'title': 'الوقاية من أمراض القلب والشرايين',
       'category': 'الوقاية',
-      'readTime': '3 دقائق',
-      'image': '🚶',
-      'color': AppColors.success,
+      'author': 'د. خالد النخلاني',
       'date': '2026-06-18',
+      'readTime': '6 دقائق',
+      'image': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400',
+      'likes': 345,
+      'views': 1800,
+      'summary': 'تعرف على طرق الوقاية من أمراض القلب والشرايين من خلال تغييرات بسيطة في نمط الحياة.',
+      'isSaved': false,
+    },
+    {
+      'id': '7',
+      'title': 'أهمية شرب الماء للجسم',
+      'category': 'الصحة العامة',
+      'author': 'د. أحمد المولد',
+      'date': '2026-06-15',
+      'readTime': '3 دقائق',
+      'image': 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=400',
+      'likes': 567,
+      'views': 4500,
+      'summary': 'الماء هو سر الحياة والصحة، تعرف على فوائد شرب الماء الكافية للجسم.',
+      'isSaved': false,
+    },
+    {
+      'id': '8',
+      'title': 'أفضل الأطعمة لصحة الدماغ',
+      'category': 'التغذية',
+      'author': 'د. سارة أحمد',
+      'date': '2026-06-12',
+      'readTime': '5 دقائق',
+      'image': 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400',
+      'likes': 234,
+      'views': 1200,
+      'summary': 'تعرف على الأطعمة التي تعزز صحة الدماغ وتحسن الذاكرة والتركيز.',
+      'isSaved': false,
+    },
+    {
+      'id': '9',
+      'title': 'كيف تحافظ على صحة عظامك',
+      'category': 'الوقاية',
+      'author': 'د. حسن رضا',
+      'date': '2026-06-10',
+      'readTime': '4 دقائق',
+      'image': 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=400',
       'likes': 198,
-      'views': 1100,
-      'author': 'د. علي المولد',
+      'views': 980,
+      'summary': 'نصائح للحفاظ على صحة العظام والوقاية من هشاشة العظام مع التقدم في العمر.',
+      'isSaved': false,
+    },
+    {
+      'id': '10',
+      'title': 'الصحة النفسية في العمل',
+      'category': 'الصحة النفسية',
+      'author': 'د. رنا النجار',
+      'date': '2026-06-08',
+      'readTime': '6 دقائق',
+      'image': 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=400',
+      'likes': 389,
+      'views': 2100,
+      'summary': 'كيف تحافظ على صحتك النفسية في بيئة العمل وتتغلب على ضغوطات العمل اليومية.',
+      'isSaved': false,
+    },
+    {
+      'id': '11',
+      'title': 'فوائد ممارسة الرياضة اليومية',
+      'category': 'الرياضة',
+      'author': 'د. كمال أحمد',
+      'date': '2026-06-05',
+      'readTime': '4 دقائق',
+      'image': 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400',
+      'likes': 456,
+      'views': 2800,
+      'summary': 'تعرف على فوائد ممارسة الرياضة اليومية للجسم والعقل وكيفية البدء في روتين رياضي.',
+      'isSaved': false,
+    },
+    {
+      'id': '12',
+      'title': 'التغذية السليمة للأطفال',
+      'category': 'التغذية',
+      'author': 'د. فاطمة صديقي',
+      'date': '2026-06-03',
+      'readTime': '7 دقائق',
+      'image': 'https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?w=400',
+      'likes': 567,
+      'views': 3500,
+      'summary': 'دليل شامل لتغذية الأطفال في مختلف المراحل العمرية لضمان نمو صحي وسليم.',
+      'isSaved': false,
     },
   ];
 
   List<Map<String, dynamic>> get _filteredArticles {
     if (_selectedCategory == 'الكل') return _articles;
     return _articles.where((a) => a['category'] == _selectedCategory).toList();
+  }
+
+  void _showArticleDetails(Map<String, dynamic> article) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.network(
+                article['image'],
+                height: 180,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  height: 180,
+                  color: AppColors.primary.withOpacity(0.1),
+                  child: const Icon(Icons.article_rounded, size: 60, color: AppColors.primary),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              article['title'],
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Text(
+                  article['author'],
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  width: 4,
+                  height: 4,
+                  decoration: const BoxDecoration(
+                    color: AppColors.grey,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  article['date'],
+                  style: const TextStyle(fontSize: 11, color: AppColors.grey),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  width: 4,
+                  height: 4,
+                  decoration: const BoxDecoration(
+                    color: AppColors.grey,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '${article['readTime']} قراءة',
+                  style: const TextStyle(fontSize: 11, color: AppColors.grey),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                article['category'],
+                style: TextStyle(
+                  fontSize: 10,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              article['summary'],
+              style: const TextStyle(fontSize: 14, height: 1.6),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('📖 جاري فتح المقال: ${article['title']}'),
+                          backgroundColor: AppColors.primary,
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.menu_book_rounded),
+                    label: const Text('قراءة المقال'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  onPressed: () {
+                    setState(() {
+                      article['isSaved'] = !article['isSaved'];
+                    });
+                  },
+                  icon: Icon(
+                    article['isSaved'] ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                    color: article['isSaved'] ? AppColors.primary : AppColors.grey,
+                    size: 28,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('إغلاق'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -130,7 +354,7 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
       body: Column(
         children: [
           // ✅ التصنيفات
-          _buildCategories(isDark),
+          _buildCategories(),
           // ✅ قائمة المقالات
           Expanded(
             child: filtered.isEmpty
@@ -140,7 +364,7 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
                     itemCount: filtered.length,
                     itemBuilder: (context, index) {
                       final article = filtered[index];
-                      return _buildArticleCard(context, article, isDark);
+                      return _buildArticleCard(article, isDark);
                     },
                   ),
           ),
@@ -149,33 +373,25 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
     );
   }
 
-  Widget _buildCategories(bool isDark) {
+  Widget _buildCategories() {
     return Container(
-      height: 48,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      color: Colors.white,
+      child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        itemCount: _categories.length,
-        itemBuilder: (context, index) {
-          final category = _categories[index];
-          final isSelected = _selectedCategory == category;
-          return GestureDetector(
-            onTap: () => setState(() => _selectedCategory = category),
-            child: Container(
-              margin: const EdgeInsets.only(right: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.primary
-                    : (isDark ? const Color(0xFF1A2540) : Colors.white),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isSelected
-                      ? AppColors.primary
-                      : AppColors.grey.withOpacity(0.3),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: Row(
+          children: _categories.map((category) {
+            final isSelected = _selectedCategory == category;
+            return GestureDetector(
+              onTap: () => setState(() => _selectedCategory = category),
+              child: Container(
+                margin: const EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppColors.primary : Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(20),
                 ),
-              ),
-              child: Center(
                 child: Text(
                   category,
                   style: TextStyle(
@@ -185,9 +401,9 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
                   ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          }).toList(),
+        ),
       ),
     );
   }
@@ -220,7 +436,7 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            'لا توجد مقالات في هذا التصنيف',
+            'سيتم إضافة مقالات جديدة قريباً',
             style: TextStyle(
               fontSize: 14,
               color: AppColors.grey,
@@ -231,20 +447,11 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
     );
   }
 
-  Widget _buildArticleCard(
-    BuildContext context,
-    Map<String, dynamic> article,
-    bool isDark,
-  ) {
-    final color = article['color'] as Color;
-    final image = article['image'] as String;
-
+  Widget _buildArticleCard(Map<String, dynamic> article, bool isDark) {
     return GestureDetector(
-      onTap: () {
-        // ✅ فتح تفاصيل المقال
-      },
+      onTap: () => _showArticleDetails(article),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
+        margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF1A2540) : Colors.white,
@@ -256,21 +463,25 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
               offset: const Offset(0, 2),
             ),
           ],
+          border: Border.all(
+            color: isDark ? const Color(0xFF2D3A54) : Colors.transparent,
+          ),
         ),
         child: Row(
           children: [
-            // ✅ أيقونة المقال
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Center(
-                child: Text(
-                  image,
-                  style: const TextStyle(fontSize: 28),
+            // ✅ صورة المقال
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.network(
+                article['image'],
+                width: 80,
+                height: 80,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  width: 80,
+                  height: 80,
+                  color: AppColors.primary.withOpacity(0.1),
+                  child: const Icon(Icons.article_rounded, size: 30, color: AppColors.primary),
                 ),
               ),
             ),
@@ -282,19 +493,18 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
                 children: [
                   Text(
                     article['title'],
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
-                      color: isDark ? Colors.white : Colors.black87,
                     ),
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 4),
                   Text(
-                    article['subtitle'],
+                    article['summary'],
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 11,
                       color: AppColors.grey,
                     ),
                     maxLines: 2,
@@ -304,87 +514,53 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: color.withOpacity(0.1),
+                          color: AppColors.primary.withOpacity(0.08),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           article['category'],
                           style: TextStyle(
-                            fontSize: 9,
-                            color: color,
+                            fontSize: 8,
+                            color: AppColors.primary,
                           ),
                         ),
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        '${article['readTime']} • ${article['date']}',
+                        '${article['readTime']}',
                         style: TextStyle(
-                          fontSize: 10,
+                          fontSize: 9,
                           color: AppColors.grey,
                         ),
+                      ),
+                      const Spacer(),
+                      Row(
+                        children: [
+                          const Icon(Icons.favorite_border_rounded, size: 12, color: AppColors.grey),
+                          const SizedBox(width: 2),
+                          Text(
+                            '${article['likes']}',
+                            style: TextStyle(fontSize: 9, color: AppColors.grey),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(width: 8),
+                      Row(
+                        children: [
+                          const Icon(Icons.remove_red_eye_rounded, size: 12, color: AppColors.grey),
+                          const SizedBox(width: 2),
+                          Text(
+                            '${article['views']}',
+                            style: TextStyle(fontSize: 9, color: AppColors.grey),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ],
               ),
-            ),
-            // ✅ الإحصائيات
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.visibility_rounded,
-                      size: 12,
-                      color: AppColors.grey,
-                    ),
-                    const SizedBox(width: 2),
-                    Text(
-                      '${article['views']}',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: AppColors.grey,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.favorite_rounded,
-                      size: 12,
-                      color: AppColors.error,
-                    ),
-                    const SizedBox(width: 2),
-                    Text(
-                      '${article['likes']}',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: AppColors.error,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    'اقرأ',
-                    style: TextStyle(
-                      fontSize: 9,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ),
-              ],
             ),
           ],
         ),
