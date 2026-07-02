@@ -2,6 +2,9 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:sehatak/core/services/sound_manager.dart';
 
+// ✅ استيراد Color من dart:ui
+import 'dart:ui';
+
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
@@ -17,7 +20,6 @@ class NotificationService {
   Future<void> initialize() async {
     if (_isInitialized) return;
 
-    // ✅ طلب صلاحية الإشعارات
     await _fcm.requestPermission(
       alert: true,
       badge: true,
@@ -25,7 +27,6 @@ class NotificationService {
       provisional: false,
     );
 
-    // ✅ إعداد الإشعارات المحلية
     const androidSettings = AndroidInitializationSettings('@drawable/ic_notification');
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
@@ -41,7 +42,6 @@ class NotificationService {
       onDidReceiveNotificationResponse: _onNotificationTap,
     );
 
-    // ✅ إنشاء قناة الإشعارات (Android 8.0+)
     const channel = AndroidNotificationChannel(
       'sehatak_channel',
       'صحتك',
@@ -53,44 +53,33 @@ class NotificationService {
     await _localNotifications.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>()?.createNotificationChannel(channel);
 
-    // ✅ الحصول على FCM Token
     final token = await _fcm.getToken();
     print('🔑 FCM Token: $token');
 
-    // ✅ الاستماع للرسائل في الخلفية
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-    // ✅ الاستماع للرسائل في المقدمة
     FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
-
-    // ✅ التعامل مع فتح التطبيق من الإشعار
     FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpen);
 
     _isInitialized = true;
     print('✅ Notification Service initialized');
   }
 
-  // ✅ معالجة الرسائل في الخلفية
   @pragma('vm:entry-point')
   static Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     print('📩 Background message: ${message.messageId}');
     SoundManager().playNotification();
   }
 
-  // ✅ معالجة الرسائل في المقدمة
   void _handleForegroundMessage(RemoteMessage message) {
     print('📩 Foreground message: ${message.messageId}');
-    
     _showLocalNotification(
       title: message.notification?.title ?? 'صحتك',
       body: message.notification?.body ?? 'لديك إشعار جديد',
       payload: message.data.toString(),
     );
-
     SoundManager().playNotification();
   }
 
-  // ✅ التعامل مع فتح التطبيق من الإشعار
   void _handleMessageOpen(RemoteMessage message) {
     print('📩 App opened from notification: ${message.messageId}');
     final data = message.data;
@@ -99,20 +88,18 @@ class NotificationService {
     }
   }
 
-  // ✅ التعامل مع الضغط على الإشعار المحلي
   void _onNotificationTap(NotificationResponse response) {
     print('📩 Local notification tapped: ${response.payload}');
   }
 
-  // ✅ عرض إشعار محلي
   Future<void> _showLocalNotification({
     required String title,
     required String body,
     String? payload,
   }) async {
-    // ✅ تحويل اللون بشكل صحيح
-    const color = Color(0xFF00796B);
-    
+    // ✅ استخدام Color.fromARGB بدلاً من Color مباشرة
+    final color = const Color.fromARGB(255, 0, 121, 107); // #00796B
+
     const androidDetails = AndroidNotificationDetails(
       'sehatak_channel',
       'صحتك',
@@ -144,28 +131,15 @@ class NotificationService {
     );
   }
 
-  // ✅ إرسال إشعار عبر FCM (للمطورين)
-  Future<void> sendTestNotification() async {
-    print('📩 Test notification sent');
-  }
-
-  // ✅ الحصول على FCM Token
   Future<String?> getToken() async {
     return await _fcm.getToken();
   }
 
-  // ✅ تحديث Token (عند تغييره)
-  Future<void> updateToken(String token) async {
-    print('🔑 Token updated: $token');
-  }
-
-  // ✅ إلغاء الاشتراك من موضوع
-  Future<void> unsubscribeFromTopic(String topic) async {
-    await _fcm.unsubscribeFromTopic(topic);
-  }
-
-  // ✅ الاشتراك في موضوع
   Future<void> subscribeToTopic(String topic) async {
     await _fcm.subscribeToTopic(topic);
+  }
+
+  Future<void> unsubscribeFromTopic(String topic) async {
+    await _fcm.unsubscribeFromTopic(topic);
   }
 }
