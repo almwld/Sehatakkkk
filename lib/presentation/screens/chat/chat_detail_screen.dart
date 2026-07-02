@@ -1,16 +1,15 @@
-import 'package:sehatak/core/services/sound_manager.dart';
-import 'package:sehatak/core/services/sound_manager.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/chat_service.dart';
 import 'package:sehatak/presentation/bloc/chat_bloc/chat_bloc.dart';
 import 'package:sehatak/presentation/bloc/chat_bloc/chat_event.dart';
 import 'package:sehatak/presentation/bloc/chat_bloc/chat_state.dart';
 import 'package:sehatak/presentation/screens/call/call_screen.dart';
+import 'package:sehatak/presentation/screens/chat/widgets/message_bubble.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:record/record.dart';
 
@@ -39,7 +38,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   final AudioRecorder _audioRecorder = AudioRecorder();
 
   bool _isRecording = false;
-  String? _recordingPath;
   bool _isTyping = false;
   bool _isSending = false;
   File? _selectedImage;
@@ -47,6 +45,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   String? _currentChatId;
 
   List<Map<String, dynamic>> _messages = [];
+
+  // ✅ Background pattern for chat
+  final List<String> _backgroundPatterns = [
+    '🌿', '💚', '🩺', '🏥', '💊', '🌱', '☀️', '🌙',
+    '⭐', '🌸', '🌺', '🌻', '🌹', '🌷', '🌼', '🌿',
+  ];
 
   @override
   void initState() {
@@ -68,12 +72,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           patientId: widget.isDoctor ? widget.userId : userId,
           patientName: widget.isDoctor ? widget.userName : userName,
         );
-        
-        setState(() {
-          _currentChatId = newChatId;
-        });
+        setState(() => _currentChatId = newChatId);
       }
-      
       context.read<ChatBloc>().add(LoadChatMessages(_currentChatId!));
     } catch (e) {
       print('❌ Error initializing chat: $e');
@@ -118,25 +118,21 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   void _sendMessage() async {
     final text = _messageController.text.trim();
     if ((text.isEmpty && _selectedImage == null) || _isSending) return;
-    if (_currentChatId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('جاري إنشاء المحادثة...')),
-      );
-      return;
-    }
+    if (_currentChatId == null) return;
+
+    setState(() => _isSending = true);
 
     final messageId = 'local_${DateTime.now().millisecondsSinceEpoch}';
     final newMessage = {
       'id': messageId,
       'senderId': FirebaseAuth.instance.currentUser?.uid ?? 'me',
-      'senderName': 'أنا',
+      'senderName': FirebaseAuth.instance.currentUser?.displayName ?? 'أنا',
       'text': text.isNotEmpty ? text : (_selectedImage != null ? 'صورة' : ''),
+      'type': _selectedImage != null ? 'image' : 'text',
       'imageUrl': _selectedImage?.path,
-      'audioUrl': _recordingPath,
       'timestamp': DateTime.now(),
       'status': 'sending',
       'isLocal': true,
-      'isTemp': true,
     };
 
     setState(() {
@@ -144,51 +140,32 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       _selectedImage = null;
       _showMediaPreview = false;
       _messageController.clear();
-      _recordingPath = null;
     });
     _scrollToBottom();
-    setState(() => _isSending = true);
 
     try {
       String? imageUrl;
-      String? audioUrl;
-
       if (_selectedImage != null) {
         imageUrl = await _chatService.uploadMedia(_selectedImage!, 'image');
-      }
-
-      if (_recordingPath != null && _recordingPath!.isNotEmpty) {
-        audioUrl = await _chatService.uploadMedia(File(_recordingPath!), 'audio');
       }
 
       await _chatService.sendMessage(
         chatId: _currentChatId!,
         text: text.isNotEmpty ? text : (imageUrl != null ? 'صورة' : ''),
         imageUrl: imageUrl,
-        audioUrl: audioUrl,
       );
 
       setState(() {
-        final index = _messages.indexWhere((msg) => msg['id'] == messageId);
-        if (index != -1) {
-          _messages[index]['status'] = 'sent';
-          _messages[index]['isTemp'] = false;
-          _messages[index]['imageUrl'] = imageUrl ?? _messages[index]['imageUrl'];
-          _messages[index]['audioUrl'] = audioUrl ?? _messages[index]['audioUrl'];
-        }
+        _messages.removeWhere((msg) => msg['id'] == messageId);
+        _selectedImage = null;
+        _showMediaPreview = false;
+        _messageController.clear();
       });
-
       context.read<ChatBloc>().add(LoadChatMessages(_currentChatId!));
     } catch (e) {
       setState(() {
-        final index = _messages.indexWhere((msg) => msg['id'] == messageId);
-        if (index != -1) {
-          _messages[index]['status'] = 'failed';
-        }
+        _messages.removeWhere((msg) => msg['id'] == messageId);
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('فشل الإرسال: $e')),
-      );
     } finally {
       setState(() => _isSending = false);
     }
@@ -228,10 +205,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           ),
           path: path,
         );
-        setState(() {
-          _isRecording = true;
-          _recordingPath = path;
-        });
+        setState(() => _isRecording = true);
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -243,33 +217,28 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   void _stopRecording() async {
     try {
       final path = await _audioRecorder.stop();
-      setState(() {
-        _isRecording = false;
-      });
+      setState(() => _isRecording = false);
       if (path != null && path.isNotEmpty) {
-        setState(() {
-          _recordingPath = path;
-          _showMediaPreview = true;
-        });
-        _sendMessage();
+        setState(() => _isSending = true);
+        try {
+          final audioUrl = await _chatService.uploadMedia(File(path), 'audio');
+          await _chatService.sendMessage(
+            chatId: _currentChatId!,
+            text: 'رسالة صوتية',
+            audioUrl: audioUrl,
+          );
+          _scrollToBottom();
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('فشل رفع الصوت: $e')),
+          );
+        } finally {
+          setState(() => _isSending = false);
+        }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('فشل إيقاف التسجيل: $e')),
-      );
-      setState(() {
-        _isRecording = false;
-        _recordingPath = null;
-      });
+      setState(() => _isRecording = false);
     }
-  }
-
-  void _clearMedia() {
-    setState(() {
-      _selectedImage = null;
-      _recordingPath = null;
-      _showMediaPreview = false;
-    });
   }
 
   void _scrollToBottom() {
@@ -295,158 +264,89 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     }
   }
 
-  Widget _buildStatusIcon(String status) {
-    switch (status) {
-      case 'sending':
-        return const SizedBox(
-          width: 14,
-          height: 14,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: Colors.white70,
-          ),
-        );
-      case 'sent':
-        return const Icon(
-          Icons.done_all_rounded,
-          size: 14,
-          color: Colors.white70,
-        );
-      case 'failed':
-        return const Icon(
-          Icons.error_outline_rounded,
-          size: 14,
-          color: Colors.red,
-        );
-      default:
-        return const Icon(
-          Icons.done_rounded,
-          size: 14,
-          color: Colors.white70,
-        );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: AppColors.surfaceContainerLow,
-      appBar: _buildAppBar(),
-      body: Column(
-        children: [
-          if (_showMediaPreview && (_selectedImage != null || _recordingPath != null))
-            _buildMediaPreview(),
-          Expanded(
-            child: BlocConsumer<ChatBloc, ChatState>(
-              listener: (context, state) {
-                if (state is ChatErrorState) {
-                  print('⚠️ Chat error: ${state.message}');
-                }
-                if (state is ChatLoadedState) {
-                  _mergeMessages(state.messages);
-                  _scrollToBottom();
-                }
-              },
-              builder: (context, state) {
-                if (state is ChatLoadingState && _messages.isEmpty) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (state is ChatErrorState && _messages.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.error_outline_rounded, size: 60, color: AppColors.error),
-                        const SizedBox(height: 16),
-                        Text(state.message),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: _initializeChat,
-                          child: const Text('إعادة المحاولة'),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                final allMessages = [..._messages];
-                allMessages.sort((a, b) {
-                  final aTime = a['timestamp'] is DateTime
-                      ? (a['timestamp'] as DateTime).millisecondsSinceEpoch
-                      : 0;
-                  final bTime = b['timestamp'] is DateTime
-                      ? (b['timestamp'] as DateTime).millisecondsSinceEpoch
-                      : 0;
-                  return aTime.compareTo(bTime);
-                });
-
-                return ListView.builder(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.all(16),
-                  itemCount: allMessages.length,
-                  reverse: false,
-                  itemBuilder: (context, index) {
-                    final message = allMessages[index];
-                    final isMe = message['senderId'] == FirebaseAuth.instance.currentUser?.uid ||
-                        message['senderId'] == 'me';
-                    final isTemp = message['isTemp'] == true;
-                    final status = message['status'] ?? 'sent';
-
-                    return _buildMessageBubble(
-                      text: message['text'] ?? '',
-                      isMe: isMe,
-                      time: message['timestamp'] is DateTime
-                          ? _formatTime(message['timestamp'])
-                          : '',
-                      imageUrl: message['imageUrl'],
-                      audioUrl: message['audioUrl'],
-                      isTemp: isTemp,
-                      status: status,
-                    );
-                  },
-                );
-              },
-            ),
+      // ✅ خلفية كتابية أورسومية (مثل واتساب)
+      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFE8F0E8),
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: const AssetImage('assets/images/chat_background.png'),
+            opacity: 0.05,
+            fit: BoxFit.cover,
           ),
-          _buildInputBar(),
-        ],
+        ),
+        child: Column(
+          children: [
+            _buildAppBar(isDark),
+            if (_showMediaPreview && _selectedImage != null) _buildMediaPreview(),
+            Expanded(
+              child: BlocConsumer<ChatBloc, ChatState>(
+                listener: (context, state) {
+                  if (state is ChatLoadedState) {
+                    _mergeMessages(state.messages);
+                    _scrollToBottom();
+                  }
+                },
+                builder: (context, state) {
+                  if (state is ChatLoadingState && _messages.isEmpty) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  final allMessages = [..._messages];
+                  allMessages.sort((a, b) {
+                    final aTime = a['timestamp'] is DateTime
+                        ? (a['timestamp'] as DateTime).millisecondsSinceEpoch
+                        : 0;
+                    final bTime = b['timestamp'] is DateTime
+                        ? (b['timestamp'] as DateTime).millisecondsSinceEpoch
+                        : 0;
+                    return aTime.compareTo(bTime);
+                  });
+
+                  return ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(12),
+                    itemCount: allMessages.length,
+                    reverse: false,
+                    itemBuilder: (context, index) {
+                      final message = allMessages[index];
+                      final isMe = message['senderId'] == FirebaseAuth.instance.currentUser?.uid ||
+                          message['senderId'] == 'me';
+                      final isTemp = message['isTemp'] == true;
+                      final type = message['type'] ?? 'text';
+
+                      return MessageBubble(
+                        text: message['text'] ?? '',
+                        type: type,
+                        mediaUrl: message['imageUrl'] ?? message['audioUrl'],
+                        isMe: isMe,
+                        time: message['timestamp'] is DateTime
+                            ? _formatTime(message['timestamp'])
+                            : '',
+                        isRead: message['status'] == 'sent' || !isTemp,
+                        senderName: isMe ? null : (message['senderName'] ?? widget.userName),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+            _buildInputBar(isDark),
+          ],
+        ),
       ),
     );
   }
 
-  void _mergeMessages(List<Map<String, dynamic>> firestoreMessages) {
-    _messages.removeWhere((msg) => 
-      msg['isLocal'] == true && 
-      msg['status'] == 'sent' &&
-      firestoreMessages.any((fm) => 
-        fm['text'] == msg['text'] && 
-        fm['timestamp'] is Timestamp &&
-        fm['timestamp'].toDate().difference(msg['timestamp']).inSeconds.abs() < 5
-      )
-    );
-
-    for (final msg in firestoreMessages) {
-      final exists = _messages.any((m) => 
-        m['id'] == msg['id'] || 
-        (m['text'] == msg['text'] && 
-         m['isLocal'] == true && 
-         m['status'] == 'sending')
-      );
-      if (!exists) {
-        _messages.add({
-          ...msg,
-          'status': 'sent',
-          'isLocal': false,
-        });
-      }
-    }
-  }
-
-  PreferredSizeWidget _buildAppBar() {
+  PreferredSizeWidget _buildAppBar(bool isDark) {
     return AppBar(
-      backgroundColor: AppColors.primary,
-      foregroundColor: Colors.white,
-      elevation: 0,
+      backgroundColor: isDark ? const Color(0xFF1A2540) : Colors.white,
+      foregroundColor: isDark ? Colors.white : AppColors.primary,
+      elevation: 1,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back_rounded),
         onPressed: () => Navigator.pop(context),
@@ -457,7 +357,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: Colors.white24,
+              gradient: const LinearGradient(
+                colors: [AppColors.primary, AppColors.primaryDark],
+              ),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
@@ -478,17 +380,31 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               children: [
                 Text(
                   widget.userName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
                   ),
                 ),
-                const Text(
-                  'متصل',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.white70,
-                  ),
+                Row(
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: AppColors.success,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Text(
+                      'متصل',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppColors.success,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -500,25 +416,23 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           icon: Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: AppColors.success.withOpacity(0.15),
+              color: AppColors.success.withOpacity(0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(Icons.call_rounded, color: AppColors.success, size: 20),
           ),
           onPressed: _startAudioCall,
-          tooltip: 'مكالمة صوتية',
         ),
         IconButton(
           icon: Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: AppColors.info.withOpacity(0.15),
+              color: AppColors.info.withOpacity(0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(Icons.videocam_rounded, color: AppColors.info, size: 20),
           ),
           onPressed: _startVideoCall,
-          tooltip: 'مكالمة فيديو',
         ),
       ],
     );
@@ -533,273 +447,156 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       ),
       child: Row(
         children: [
-          if (_selectedImage != null)
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.file(
-                  _selectedImage!,
-                  height: 80,
-                  width: 80,
-                  fit: BoxFit.cover,
-                ),
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.file(
+                _selectedImage!,
+                height: 80,
+                width: 80,
+                fit: BoxFit.cover,
               ),
             ),
-          if (_recordingPath != null && _selectedImage == null)
-            const Expanded(
-              child: Row(
-                children: [
-                  Icon(Icons.audio_file_rounded, color: Colors.white, size: 30),
-                  SizedBox(width: 8),
-                  Text(
-                    '🎵 رسالة صوتية',
-                    style: TextStyle(color: Colors.white, fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
+          ),
           IconButton(
             icon: const Icon(Icons.close_rounded, color: Colors.white),
-            onPressed: _clearMedia,
+            onPressed: () => setState(() {
+              _selectedImage = null;
+              _showMediaPreview = false;
+            }),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildInputBar() {
+  Widget _buildInputBar(bool isDark) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2540) : Colors.white,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
-            blurRadius: 5,
+            blurRadius: 6,
             offset: const Offset(0, -2),
           ),
         ],
       ),
-      child: Row(
-        children: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.attach_file_rounded, color: AppColors.grey),
-            onSelected: (value) {
-              if (value == 'gallery') {
-                _pickImage();
-              } else if (value == 'camera') {
-                _takePhoto();
-              }
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'gallery',
-                child: Row(
-                  children: [
-                    Icon(Icons.photo_library_rounded),
-                    SizedBox(width: 8),
-                    Text('المعرض'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'camera',
-                child: Row(
-                  children: [
-                    Icon(Icons.camera_alt_rounded),
-                    SizedBox(width: 8),
-                    Text('الكاميرا'),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          IconButton(
-            icon: Icon(
-              _isRecording ? Icons.stop_rounded : Icons.mic_rounded,
-              color: _isRecording ? AppColors.error : AppColors.grey,
-            ),
-            onPressed: _isRecording ? _stopRecording : _startRecording,
-          ),
-          Expanded(
-            child: TextField(
-              controller: _messageController,
-              decoration: InputDecoration(
-                hintText: 'اكتب رسالتك...',
-                hintStyle: const TextStyle(fontSize: 13, color: AppColors.grey),
-                filled: true,
-                fillColor: AppColors.surfaceContainerLow,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
-              ),
-              onChanged: (text) {
-                setState(() {
-                  _isTyping = text.isNotEmpty;
-                });
-              },
-              onSubmitted: (_) => _sendMessage(),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: (_selectedImage != null || 
-                         _recordingPath != null || 
-                         _messageController.text.trim().isNotEmpty)
-                    ? [AppColors.primary, AppColors.primaryDark]
-                    : [AppColors.grey, AppColors.grey],
-              ),
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              icon: _isSending
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Icon(Icons.send_rounded, color: Colors.white, size: 20),
-              onPressed: _sendMessage,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMessageBubble({
-    required String text,
-    required bool isMe,
-    required String time,
-    String? imageUrl,
-    String? audioUrl,
-    bool isTemp = false,
-    String status = 'sent',
-  }) {
-    return Align(
-      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.75,
-        ),
-        decoration: BoxDecoration(
-          color: isMe ? AppColors.primary : AppColors.surfaceContainerLow,
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(20),
-            topRight: const Radius.circular(20),
-            bottomLeft: Radius.circular(isMe ? 20 : 5),
-            bottomRight: Radius.circular(isMe ? 5 : 20),
-          ),
-          border: isTemp ? Border.all(color: AppColors.warning, width: 1) : null,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
+      child: SafeArea(
+        child: Row(
           children: [
-            if (imageUrl != null && imageUrl.isNotEmpty)
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: imageUrl.startsWith('http')
-                    ? Image.network(
-                        imageUrl,
-                        width: 200,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          height: 150,
-                          color: Colors.grey.shade200,
-                          child: const Icon(Icons.broken_image_rounded),
+            // ✅ زر المرفقات
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.attach_file_rounded, color: AppColors.grey),
+              onSelected: (value) {
+                if (value == 'gallery') _pickImage();
+                else if (value == 'camera') _takePhoto();
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'gallery',
+                  child: Row(
+                    children: [
+                      Icon(Icons.photo_library_rounded),
+                      SizedBox(width: 8),
+                      Text('المعرض'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'camera',
+                  child: Row(
+                    children: [
+                      Icon(Icons.camera_alt_rounded),
+                      SizedBox(width: 8),
+                      Text('الكاميرا'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            // ✅ زر التسجيل الصوتي (ضغط مطول)
+            GestureDetector(
+              onLongPress: _startRecording,
+              onLongPressEnd: (_) => _stopRecording(),
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: _isRecording ? AppColors.error.withOpacity(0.1) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Icon(
+                  _isRecording ? Icons.circle_rounded : Icons.mic_rounded,
+                  color: _isRecording ? AppColors.error : AppColors.grey,
+                  size: 24,
+                ),
+              ),
+            ),
+            // ✅ حقل النص
+            Expanded(
+              child: TextField(
+                controller: _messageController,
+                textAlign: TextAlign.right,
+                decoration: InputDecoration(
+                  hintText: 'اكتب رسالتك...',
+                  hintStyle: const TextStyle(fontSize: 13, color: AppColors.grey),
+                  filled: true,
+                  fillColor: isDark ? const Color(0xFF0B1121) : Colors.grey[100],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(24),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                ),
+                onChanged: (text) => setState(() => _isTyping = text.isNotEmpty),
+                onSubmitted: (_) => _sendMessage(),
+              ),
+            ),
+            // ✅ زر الإرسال
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: (_selectedImage != null || _messageController.text.trim().isNotEmpty)
+                      ? [AppColors.primary, AppColors.primaryDark]
+                      : [AppColors.grey, AppColors.grey],
+                ),
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                icon: _isSending
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
                         ),
                       )
-                    : Image.file(
-                        File(imageUrl),
-                        width: 200,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          height: 150,
-                          color: Colors.grey.shade200,
-                          child: const Icon(Icons.broken_image_rounded),
-                        ),
-                      ),
+                    : const Icon(Icons.send_rounded, color: Colors.white, size: 20),
+                onPressed: _sendMessage,
               ),
-            if (audioUrl != null && audioUrl.isNotEmpty)
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: isMe
-                      ? Colors.white.withOpacity(0.2)
-                      : AppColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.play_arrow_rounded,
-                      color: isMe ? Colors.white : AppColors.primary,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Container(
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: isMe
-                              ? Colors.white24
-                              : AppColors.grey.withOpacity(0.3),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '0:30',
-                      style: TextStyle(
-                        color: isMe ? Colors.white70 : AppColors.grey,
-                        fontSize: 10,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            if (text.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(
-                  text,
-                  style: TextStyle(
-                    color: isMe ? Colors.white : Colors.black87,
-                    fontSize: 14,
-                    height: 1.4,
-                  ),
-                ),
-              ),
-            const SizedBox(height: 4),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  time,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: isMe ? Colors.white70 : AppColors.grey,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                if (isMe) _buildStatusIcon(status),
-              ],
             ),
           ],
         ),
       ),
     );
+  }
+
+  void _mergeMessages(List<Map<String, dynamic>> firestoreMessages) {
+    // دمج الرسائل المحلية مع رسائل Firestore
+    for (final msg in firestoreMessages) {
+      final exists = _messages.any((m) => m['id'] == msg['id']);
+      if (!exists) {
+        _messages.add({
+          ...msg,
+          'status': 'sent',
+          'isLocal': false,
+        });
+      }
+    }
   }
 }

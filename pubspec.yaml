@@ -204,3 +204,8 @@ flutter_launcher_icons:
     - assets/icons/mini_specialties/
     - assets/icons/social/
   flutter_native_splash: ^2.4.0
+  # ✅ للدردشة المتطورة
+  photo_view: ^0.14.0
+  just_audio: ^0.9.36
+  flutter_chat_bubble: ^2.0.2
+  flutter_emoji: ^2.0.0
