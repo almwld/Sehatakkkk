@@ -10,7 +10,7 @@ import 'presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'presentation/bloc/theme_bloc/theme_bloc.dart';
 import 'presentation/bloc/chat_bloc/chat_bloc.dart';
 import 'presentation/bloc/doctor_bloc/doctor_bloc.dart';
-import 'presentation/screens/auth/onboarding_screen.dart';
+import 'presentation/screens/auth/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,10 +20,12 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
+  // ✅ تهيئة Firebase أولاً
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  // ✅ تهيئة الخدمات الأساسية
   await FirebaseService().initialize();
   await NotificationService().initialize();
 
@@ -58,7 +60,7 @@ class MyApp extends StatelessWidget {
             themeMode: state is ThemeLoadedState
                 ? state.themeMode
                 : ThemeMode.light,
-            home: const OnboardingScreen(),
+            home: const SplashScreen(),
           );
         },
       ),
