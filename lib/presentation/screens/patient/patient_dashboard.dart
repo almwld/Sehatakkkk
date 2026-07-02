@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/blood_pressure/blood_pressure_screen.dart';
 import 'package:sehatak/presentation/screens/glucose_tracker/glucose_tracker_screen.dart';
@@ -16,80 +17,140 @@ class PatientDashboard extends StatefulWidget {
 
 class _PatientDashboardState extends State<PatientDashboard> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // ✅ إحصائيات المريض
-  final Map<String, dynamic> _stats = {
-    'bloodPressure': '128/82',
-    'glucose': '95',
-    'weight': '72',
-    'medications': '4',
+  // ✅ بيانات المريض من Firestore
+  Map<String, dynamic> _patientData = {};
+  bool _isLoading = true;
+  String _patientName = 'مستخدم';
+  String _patientEmail = 'غير متوفر';
+  String _patientPhone = 'غير متوفر';
+
+  // ✅ إحصائيات المريض (افتراضية)
+  Map<String, dynamic> _stats = {
+    'bloodPressure': '--/--',
+    'glucose': '--',
+    'weight': '--',
+    'medications': '0',
   };
 
   // ✅ آخر المواعيد
-  final List<Map<String, dynamic>> _appointments = [
-    {
-      'doctor': 'د. أحمد المولد',
-      'date': '2026-07-05',
-      'time': '10:00 ص',
-      'status': 'قادم',
-    },
-    {
-      'doctor': 'د. فاطمة صديقي',
-      'date': '2026-06-28',
-      'time': '2:30 م',
-      'status': 'منتهي',
-    },
-  ];
+  List<Map<String, dynamic>> _appointments = [];
 
   // ✅ آخر النتائج الطبية
-  final List<Map<String, dynamic>> _recentResults = [
-    {
-      'title': 'تحليل الدم الشامل',
-      'date': '2026-06-25',
-      'status': 'طبيعي',
-      'icon': Icons.science_rounded,
-      'color': AppColors.success,
-    },
-    {
-      'title': 'تخطيط القلب',
-      'date': '2026-06-20',
-      'status': 'طبيعي',
-      'icon': Icons.monitor_heart_rounded,
-      'color': AppColors.success,
-    },
-    {
-      'title': 'فيتامين د',
-      'date': '2026-06-15',
-      'status': 'منخفض',
-      'icon': Icons.broken_image,
-      'color': AppColors.error,
-    },
-  ];
+  List<Map<String, dynamic>> _recentResults = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPatientData();
+  }
+
+  Future<void> _loadPatientData() async {
+    setState(() => _isLoading = true);
+
+    final user = _auth.currentUser;
+    if (user == null) {
+      setState(() => _isLoading = false);
+      return;
+    }
+
+    try {
+      // ✅ جلب بيانات المريض من Firestore
+      final doc = await _firestore.collection('users').doc(user.uid).get();
+      if (doc.exists) {
+        final data = doc.data() as Map<String, dynamic>;
+        setState(() {
+          _patientData = data;
+          _patientName = data['name'] ?? user.displayName ?? 'مستخدم';
+          _patientEmail = data['email'] ?? user.email ?? 'غير متوفر';
+          _patientPhone = data['phone'] ?? user.phoneNumber ?? 'غير متوفر';
+          
+          // ✅ جلب الإحصائيات
+          _stats = {
+            'bloodPressure': data['bloodPressure'] ?? '--/--',
+            'glucose': data['glucose']?.toString() ?? '--',
+            'weight': data['weight']?.toString() ?? '--',
+            'medications': data['medications']?.toString() ?? '0',
+          };
+
+          // ✅ جلب المواعيد
+          _appointments = List<Map<String, dynamic>>.from(data['appointments'] ?? []);
+
+          // ✅ جلب النتائج
+          _recentResults = List<Map<String, dynamic>>.from(data['recentResults'] ?? []);
+        });
+      } else {
+        // ✅ إذا لم يكن هناك مستند، أنشئ واحداً
+        await _firestore.collection('users').doc(user.uid).set({
+          'name': user.displayName ?? 'مستخدم',
+          'email': user.email ?? '',
+          'phone': user.phoneNumber ?? '',
+          'bloodPressure': '--/--',
+          'glucose': '--',
+          'weight': '--',
+          'medications': '0',
+          'appointments': [],
+          'recentResults': [],
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+        setState(() {
+          _patientName = user.displayName ?? 'مستخدم';
+          _patientEmail = user.email ?? 'غير متوفر';
+          _patientPhone = user.phoneNumber ?? 'غير متوفر';
+        });
+      }
+    } catch (e) {
+      print('❌ Error loading patient data: $e');
+      // ✅ استخدام بيانات Firebase Auth كنسخة احتياطية
+      setState(() {
+        _patientName = user.displayName ?? 'مستخدم';
+        _patientEmail = user.email ?? 'غير متوفر';
+        _patientPhone = user.phoneNumber ?? 'غير متوفر';
+      });
+    }
+
+    setState(() => _isLoading = false);
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final user = _auth.currentUser;
-    final userName = user?.displayName ?? 'مستخدم';
+
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
+        appBar: AppBar(
+          title: const Text('صحتي', style: TextStyle(fontWeight: FontWeight.bold)),
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          elevation: 0,
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
       appBar: AppBar(
-        title: const Text(
-          'صحتي',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        title: const Text('صحتي', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded),
+            onPressed: _loadPatientData,
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ✅ بطاقة الترحيب
-            _buildWelcomeCard(userName, isDark),
+            // ✅ بطاقة الترحيب (بيانات من Firestore)
+            _buildWelcomeCard(_patientName, isDark),
             const SizedBox(height: 16),
             // ✅ الإحصائيات السريعة
             _buildQuickStats(),
@@ -324,73 +385,84 @@ class _PatientDashboardState extends State<PatientDashboard> {
             ],
           ),
           const SizedBox(height: 8),
-          ..._appointments.map((appointment) {
-            final isPast = appointment['status'] == 'منتهي';
-            return Container(
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: Colors.grey.shade100,
-                  ),
+          if (_appointments.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Center(
+                child: Text(
+                  'لا توجد مواعيد',
+                  style: TextStyle(color: AppColors.grey, fontSize: 13),
                 ),
               ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.08),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.calendar_month_rounded,
-                      color: AppColors.primary,
+            )
+          else
+            ..._appointments.map((appointment) {
+              final isPast = appointment['status'] == 'منتهي';
+              return Container(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: Colors.grey.shade100,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          appointment['doctor'],
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                        ),
-                        Text(
-                          '${appointment['date']} • ${appointment['time']}',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: AppColors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: isPast
-                          ? AppColors.grey.withOpacity(0.2)
-                          : AppColors.success.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      appointment['status'],
-                      style: TextStyle(
-                        fontSize: 9,
-                        color: isPast ? AppColors.grey : AppColors.success,
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.calendar_month_rounded,
+                        color: AppColors.primary,
                       ),
                     ),
-                  ),
-                ],
-              ),
-            );
-          }),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            appointment['doctor'] ?? 'طبيب',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                          Text(
+                            '${appointment['date'] ?? ''} • ${appointment['time'] ?? ''}',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppColors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: isPast
+                            ? AppColors.grey.withOpacity(0.2)
+                            : AppColors.success.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        appointment['status'] ?? 'قادم',
+                        style: TextStyle(
+                          fontSize: 9,
+                          color: isPast ? AppColors.grey : AppColors.success,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
         ],
       ),
     );
@@ -433,73 +505,84 @@ class _PatientDashboardState extends State<PatientDashboard> {
             ],
           ),
           const SizedBox(height: 8),
-          ..._recentResults.map((result) {
-            final color = result['color'] as Color;
-            return Container(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: Colors.grey.shade100,
-                  ),
+          if (_recentResults.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Center(
+                child: Text(
+                  'لا توجد نتائج',
+                  style: TextStyle(color: AppColors.grey, fontSize: 13),
                 ),
               ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: color.withOpacity(0.08),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      result['icon'] as IconData,
-                      color: color,
-                      size: 18,
+            )
+          else
+            ..._recentResults.map((result) {
+              final color = result['color'] as Color? ?? AppColors.primary;
+              return Container(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: Colors.grey.shade100,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          result['title'],
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                        ),
-                        Text(
-                          result['date'],
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: AppColors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: color.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      result['status'],
-                      style: TextStyle(
-                        fontSize: 9,
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        result['icon'] as IconData? ?? Icons.science_rounded,
                         color: color,
-                        fontWeight: FontWeight.bold,
+                        size: 18,
                       ),
                     ),
-                  ),
-                ],
-              ),
-            );
-          }),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            result['title'] ?? 'تقرير',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                          Text(
+                            result['date'] ?? '',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppColors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        result['status'] ?? 'طبيعي',
+                        style: TextStyle(
+                          fontSize: 9,
+                          color: color,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
         ],
       ),
     );
