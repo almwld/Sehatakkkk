@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:sehatak/core/services/sound_manager.dart';
@@ -74,7 +75,6 @@ class NotificationService {
   @pragma('vm:entry-point')
   static Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     print('📩 Background message: ${message.messageId}');
-    // ✅ تشغيل نغمة الإشعار
     SoundManager().playNotification();
   }
 
@@ -82,21 +82,18 @@ class NotificationService {
   void _handleForegroundMessage(RemoteMessage message) {
     print('📩 Foreground message: ${message.messageId}');
     
-    // ✅ عرض إشعار محلي
     _showLocalNotification(
       title: message.notification?.title ?? 'صحتك',
       body: message.notification?.body ?? 'لديك إشعار جديد',
       payload: message.data.toString(),
     );
 
-    // ✅ تشغيل نغمة الإشعار
     SoundManager().playNotification();
   }
 
   // ✅ التعامل مع فتح التطبيق من الإشعار
   void _handleMessageOpen(RemoteMessage message) {
     print('📩 App opened from notification: ${message.messageId}');
-    // ✅ التنقل إلى الشاشة المناسبة حسب البيانات
     final data = message.data;
     if (data['screen'] != null) {
       // TODO: التنقل إلى الشاشة المحددة
@@ -106,7 +103,6 @@ class NotificationService {
   // ✅ التعامل مع الضغط على الإشعار المحلي
   void _onNotificationTap(NotificationResponse response) {
     print('📩 Local notification tapped: ${response.payload}');
-    // TODO: التنقل حسب الـ payload
   }
 
   // ✅ عرض إشعار محلي
@@ -125,7 +121,7 @@ class NotificationService {
       playSound: true,
       sound: RawResourceAndroidNotificationSound('notification'),
       icon: '@drawable/ic_notification',
-      color: const Color(0xFF00796B),
+      color: 0xFF00796B, // ✅ استخدام int مباشرة
     );
     const iosDetails = DarwinNotificationDetails(
       presentAlert: true,
@@ -148,7 +144,6 @@ class NotificationService {
 
   // ✅ إرسال إشعار عبر FCM (للمطورين)
   Future<void> sendTestNotification() async {
-    // ✅ إرسال إشعار تجريبي عبر Firebase Console
     print('📩 Test notification sent');
   }
 
@@ -159,7 +154,6 @@ class NotificationService {
 
   // ✅ تحديث Token (عند تغييره)
   Future<void> updateToken(String token) async {
-    // TODO: حفظ التوكن في Firestore
     print('🔑 Token updated: $token');
   }
 
