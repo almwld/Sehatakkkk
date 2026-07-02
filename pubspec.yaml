@@ -19,6 +19,8 @@ dependencies:
   equatable: ^2.0.5
   iconsax: ^0.0.8
   intl: ^0.18.1
+  get_it: ^7.6.7
+  go_router: ^13.0.1
 
   # ============================================================
   # 🔥 Firebase
@@ -30,6 +32,7 @@ dependencies:
   firebase_messaging: ^14.7.15
   firebase_analytics: ^10.8.0
   firebase_crashlytics: ^3.4.9
+  firebase_app_check: ^0.2.1
   google_sign_in: ^6.2.1
 
   # ============================================================
@@ -55,6 +58,7 @@ dependencies:
   sqflite: ^2.3.0
   path: ^1.8.3
   path_provider: ^2.1.1
+  hive_flutter: ^1.1.0
 
   # ============================================================
   # 🎨 UI Components
@@ -81,6 +85,7 @@ dependencies:
   image_picker: ^1.0.7
   record: ^5.0.0
   audioplayers: ^5.2.1
+  photo_view: ^0.14.0
 
   # ============================================================
   # 🔐 Permissions & Device
@@ -116,6 +121,17 @@ dependencies:
   # ============================================================
   dart_jsonwebtoken: ^2.4.0
 
+  # ============================================================
+  # 🏃 Background Services
+  # ============================================================
+  workmanager: ^0.5.2
+  flutter_background_service: ^5.0.5
+
+  # ============================================================
+  # 📞 Jitsi Meet (بديل لـ LiveKit)
+  # ============================================================
+  jitsi_meet_flutter_sdk: ^12.1.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -124,6 +140,7 @@ dev_dependencies:
   retrofit_generator: ^8.0.6
   json_serializable: ^6.7.1
   flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.4.0
 
 flutter:
   uses-material-design: true
@@ -140,6 +157,8 @@ flutter:
     - assets/icons/social/
     - assets/icons/consultations/
     - assets/icons/offers/
+    - assets/icons/core/
+    - assets/icons/mini_specialties/
     - assets/images/
     - assets/fonts/
     - assets/audio/
@@ -186,22 +205,17 @@ flutter:
         - asset: assets/fonts/Rubik-Light.ttf
           weight: 300
 
-# ============================================================
-# 🖼️ Launcher Icons
-# ============================================================
+  # ============================================================
+  # 🖼️ Launcher Icons
+  # ============================================================
 flutter_launcher_icons:
   android: true
   ios: false
   image_path: "assets/icons/app_icon.png"
   min_sdk_android: 21
 
-    - assets/icons/core/
-    - assets/icons/specialties/
-    - assets/icons/mini_specialties/
-    - assets/icons/social/
-    - assets/icons/core/
-    - assets/icons/specialties/
-    - assets/icons/mini_specialties/
-    - assets/icons/social/
-  flutter_native_splash: ^2.4.0
-  # ✅ للدردشة المتطورة
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: assets/icons/app_icon.png
+  android: true
+  ios: false
