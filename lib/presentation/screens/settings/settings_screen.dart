@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/sound_manager.dart';
+import 'package:sehatak/core/services/notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'notification_settings_screen.dart';
+import '../rate_app/rate_app_screen.dart';
+import '../share_app/share_app_screen.dart';
+import '../about/about_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -61,6 +66,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
       const SnackBar(
         content: Text('تم حفظ الإعدادات'),
         backgroundColor: AppColors.success,
+      ),
+    );
+  }
+
+  void _showFCMToken() async {
+    final token = await NotificationService().getToken();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: SelectableText('🔑 $token'),
+        duration: const Duration(seconds: 30),
       ),
     );
   }
@@ -175,16 +190,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onTap: () => _launchUrl('https://sehatak.com/terms'),
               ),
               _buildInfoTile(
-                icon: Icons.star_rounded,
-                title: 'قيّم التطبيق',
-                subtitle: 'شاركنا رأيك',
-                onTap: () => _rateApp(),
-              ),
-              _buildInfoTile(
                 icon: Icons.share_rounded,
                 title: 'مشاركة التطبيق',
                 subtitle: 'شارك التطبيق مع أصدقائك',
-                onTap: () => _shareApp(),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ShareAppScreen(),
+                    ),
+                  );
+                },
+              ),
+              _buildInfoTile(
+                icon: Icons.star_rounded,
+                title: 'قيّم التطبيق',
+                subtitle: 'شاركنا رأيك',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const RateAppScreen(),
+                    ),
+                  );
+                },
+              ),
+              // ✅ زر عرض FCM Token
+              _buildInfoTile(
+                icon: Icons.qr_code_scanner_rounded,
+                title: 'عرض FCM Token',
+                subtitle: 'انسخ التوكن لإرسال الإشعارات',
+                onTap: _showFCMToken,
               ),
             ],
           ),
@@ -515,30 +551,4 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
     }
   }
-
-  void _rateApp() {
-    // ✅ فتح صفحة التقييم على Google Play
-    _launchUrl('https://play.google.com/store/apps/details?id=com.sehatak.app');
-  }
-
-  Future<void> _shareApp() async {
-    // ✅ مشاركة التطبيق
-    await _launchUrl('https://github.com/almwld/Sehatakkkk');
-  }
 }
-
-  // ✅ إضافة زر عرض FCM Token
-  _buildInfoTile(
-    icon: Icons.qr_code_scanner_rounded,
-    title: 'عرض FCM Token',
-    subtitle: 'انسخ التوكن لإرسال الإشعارات',
-    onTap: () async {
-      final token = await NotificationService().getToken();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: SelectableText('🔑 $token'),
-          duration: const Duration(seconds: 30),
-        ),
-      );
-    },
-  ),
