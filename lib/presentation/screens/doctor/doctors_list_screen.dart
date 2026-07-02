@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
@@ -19,21 +20,22 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
   String _sortBy = 'التقييم';
   bool _showAvailableOnly = false;
 
+  // ✅ تخصصات مع أيقونات SVG
   final List<Map<String, String>> _specialties = const [
-    {'icon': '🫀', 'name': 'الكل'},
-    {'icon': '👨‍⚕️', 'name': 'عام'},
-    {'icon': '🫀', 'name': 'قلب'},
-    {'icon': '🫁', 'name': 'صدرية'},
-    {'icon': '🧠', 'name': 'أعصاب'},
-    {'icon': '🦴', 'name': 'عظام'},
-    {'icon': '👶', 'name': 'أطفال'},
-    {'icon': '👩‍🦰', 'name': 'جلدية'},
-    {'icon': '👁️', 'name': 'عيون'},
-    {'icon': '🦷', 'name': 'أسنان'},
-    {'icon': '🧘', 'name': 'نفسية'},
-    {'icon': '🤰', 'name': 'نسائية'},
-    {'icon': '🩺', 'name': 'أنف وأذن'},
-    {'icon': '📊', 'name': 'أشعة'},
+    {'icon': 'assets/icons/specialties/cardiology.svg', 'name': 'الكل'},
+    {'icon': 'assets/icons/mini_specialties/pill.svg', 'name': 'عام'},
+    {'icon': 'assets/icons/specialties/cardiology.svg', 'name': 'قلب'},
+    {'icon': 'assets/icons/specialties/pulmonology.svg', 'name': 'صدرية'},
+    {'icon': 'assets/icons/specialties/neurology.svg', 'name': 'أعصاب'},
+    {'icon': 'assets/icons/specialties/orthopedic.svg', 'name': 'عظام'},
+    {'icon': 'assets/icons/specialties/pediatrics.svg', 'name': 'أطفال'},
+    {'icon': 'assets/icons/specialties/dermatology.svg', 'name': 'جلدية'},
+    {'icon': 'assets/icons/specialties/ophthalmology.svg', 'name': 'عيون'},
+    {'icon': 'assets/icons/specialties/dentistry.svg', 'name': 'أسنان'},
+    {'icon': 'assets/icons/specialties/psychiatry.svg', 'name': 'نفسية'},
+    {'icon': 'assets/icons/mini_specialties/baby.svg', 'name': 'نسائية'},
+    {'icon': 'assets/icons/mini_specialties/stomach.svg', 'name': 'أنف وأذن'},
+    {'icon': 'assets/icons/specialties/radiology.svg', 'name': 'أشعة'},
   ];
 
   @override
@@ -181,9 +183,10 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
     );
   }
 
+  // ✅ شريط التخصصات مع أيقونات SVG
   Widget _buildSpecialties(bool isDark) {
     return SizedBox(
-      height: 44,
+      height: 52,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -206,8 +209,16 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(s['icon']!, style: const TextStyle(fontSize: 16)),
-                  const SizedBox(width: 4),
+                  SvgPicture.asset(
+                    s['icon']!,
+                    width: 20,
+                    height: 20,
+                    colorFilter: ColorFilter.mode(
+                      sel ? Colors.white : AppColors.grey,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
                   Text(
                     s['name']!,
                     style: TextStyle(
@@ -350,7 +361,12 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                     color: AppColors.info.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.chat_rounded, color: AppColors.info, size: 18),
+                  child: SvgPicture.asset(
+                    'assets/icons/core/text_chat.svg',
+                    width: 20,
+                    height: 20,
+                    colorFilter: const ColorFilter.mode(AppColors.info, BlendMode.srcIn),
+                  ),
                 ),
               ),
               const SizedBox(height: 6),
