@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:sehatak/core/services/sound_manager.dart';
@@ -111,6 +110,9 @@ class NotificationService {
     required String body,
     String? payload,
   }) async {
+    // ✅ تحويل اللون بشكل صحيح
+    const color = Color(0xFF00796B);
+    
     const androidDetails = AndroidNotificationDetails(
       'sehatak_channel',
       'صحتك',
@@ -121,7 +123,7 @@ class NotificationService {
       playSound: true,
       sound: RawResourceAndroidNotificationSound('notification'),
       icon: '@drawable/ic_notification',
-      color: 0xFF00796B, // ✅ استخدام int مباشرة
+      color: color,
     );
     const iosDetails = DarwinNotificationDetails(
       presentAlert: true,
