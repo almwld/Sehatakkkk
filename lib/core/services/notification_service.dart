@@ -125,7 +125,7 @@ class NotificationService {
       playSound: true,
       sound: RawResourceAndroidNotificationSound('notification'),
       icon: '@drawable/ic_notification',
-      color: 0xFF00796B,
+      color: const Color(0xFF00796B),
     );
     const iosDetails = DarwinNotificationDetails(
       presentAlert: true,

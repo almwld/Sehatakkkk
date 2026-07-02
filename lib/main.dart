@@ -2,18 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:sehatak/core/services/firebase_service.dart';
-import 'package:sehatak/core/services/notification_service.dart';
-import 'package:sehatak/core/themes/theme_manager.dart';
-import 'package:sehatak/presentation/bloc/auth_bloc/auth_bloc.dart';
-import 'package:sehatak/presentation/bloc/auth_bloc/auth_event.dart';
-import 'package:sehatak/presentation/bloc/theme_bloc/theme_bloc.dart';
-import 'package:sehatak/presentation/bloc/chat_bloc/chat_bloc.dart';
-import 'package:sehatak/presentation/bloc/doctor_bloc/doctor_bloc.dart';
-import 'package:sehatak/presentation/screens/onboarding/onboarding_screen.dart';
 import 'firebase_options.dart';
-
-final NotificationService notificationService = NotificationService();
+import 'core/services/firebase_service.dart';
+import 'core/services/notification_service.dart';
+import 'core/themes/theme_manager.dart';
+import 'presentation/bloc/auth_bloc/auth_bloc.dart';
+import 'presentation/bloc/theme_bloc/theme_bloc.dart';
+import 'presentation/bloc/chat_bloc/chat_bloc.dart';
+import 'presentation/bloc/doctor_bloc/doctor_bloc.dart';
+import 'presentation/screens/auth/onboarding_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,14 +20,12 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  // ✅ تهيئة Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  await FirebaseService().initialize();
 
-  // ✅ تهيئة الإشعارات
-  await notificationService.initialize();
+  await FirebaseService().initialize();
+  await NotificationService().initialize();
 
   runApp(const MyApp());
 }
@@ -43,7 +38,7 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<AuthBloc>(
-          create: (_) => AuthBloc()..add(const AppStarted()),
+          create: (_) => AuthBloc()..add(AppStarted()),
         ),
         BlocProvider<ThemeBloc>(create: (_) => ThemeBloc()),
         BlocProvider<ChatBloc>(create: (_) => ChatBloc()),
