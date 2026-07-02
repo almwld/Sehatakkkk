@@ -20,16 +20,24 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  // ✅ تهيئة Firebase أولاً
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-
-  // ✅ تهيئة الخدمات الأساسية
-  await FirebaseService().initialize();
-  await NotificationService().initialize();
-
+  // ✅ تشغيل التطبيق فوراً
   runApp(const MyApp());
+
+  // ✅ تهيئة Firebase في الخلفية (لا تؤثر على فتح التطبيق)
+  _initFirebaseInBackground();
+}
+
+Future<void> _initFirebaseInBackground() async {
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    await FirebaseService().initialize();
+    await NotificationService().initialize();
+    debugPrint('✅ Firebase initialized successfully');
+  } catch (e) {
+    debugPrint('❌ Firebase initialization failed: $e');
+  }
 }
 
 class MyApp extends StatelessWidget {
