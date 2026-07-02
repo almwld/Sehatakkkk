@@ -3,52 +3,320 @@ import 'package:sehatak/core/constants/app_colors.dart';
 
 class GlucoseTrackerScreen extends StatefulWidget {
   const GlucoseTrackerScreen({super.key});
+
   @override
   State<GlucoseTrackerScreen> createState() => _GlucoseTrackerScreenState();
 }
 
 class _GlucoseTrackerScreenState extends State<GlucoseTrackerScreen> {
-  List<Map<String, dynamic>> _readings = [
-    {'time': 'قبل الفطور', 'value': 95, 'status': 'طبيعي'},
-    {'time': 'بعد الفطور', 'value': 140, 'status': 'مرتفع'},
-    {'time': 'قبل الغداء', 'value': 88, 'status': 'طبيعي'},
-    {'time': 'بعد الغداء', 'value': 155, 'status': 'مرتفع'},
-    {'time': 'قبل العشاء', 'value': 102, 'status': 'طبيعي'},
-    {'time': 'بعد العشاء', 'value': 180, 'status': 'عالي'},
+  final TextEditingController _glucoseCtrl = TextEditingController();
+  String _selectedMeal = 'قبل الفطور';
+  bool _isAdding = false;
+
+  final List<String> _mealOptions = [
+    'قبل الفطور',
+    'بعد الفطور',
+    'قبل الغداء',
+    'بعد الغداء',
+    'قبل العشاء',
+    'بعد العشاء',
   ];
-  final _value = TextEditingController();
-  String _time = 'قبل الفطور';
 
-  Color _c(String s) => s == 'طبيعي' ? AppColors.success : s == 'مرتفع' ? AppColors.warning : AppColors.error;
+  final List<Map<String, dynamic>> _readings = [
+    {'meal': 'قبل الفطور', 'value': 95, 'status': 'طبيعي', 'time': '6:30 ص'},
+    {'meal': 'بعد الفطور', 'value': 140, 'status': 'مرتفع', 'time': '8:00 ص'},
+    {'meal': 'قبل الغداء', 'value': 88, 'status': 'طبيعي', 'time': '12:30 م'},
+    {'meal': 'بعد الغداء', 'value': 155, 'status': 'مرتفع', 'time': '2:00 م'},
+    {'meal': 'قبل العشاء', 'value': 102, 'status': 'طبيعي', 'time': '6:30 م'},
+    {'meal': 'بعد العشاء', 'value': 180, 'status': 'عالي', 'time': '8:00 م'},
+  ];
 
-  void _add() {
-    if (_value.text.isEmpty) return;
-    setState(() => _readings.insert(0, {'time': _time, 'value': int.parse(_value.text), 'status': int.parse(_value.text) < 110 ? 'طبيعي' : int.parse(_value.text) < 140 ? 'مرتفع' : 'عالي'}));
-    _value.clear(); Navigator.pop(context);
+  void _saveReading() {
+    if (_glucoseCtrl.text.isEmpty) return;
+
+    setState(() {
+      _readings.insert(0, {
+        'meal': _selectedMeal,
+        'value': int.parse(_glucoseCtrl.text),
+        'status': _getStatus(int.parse(_glucoseCtrl.text)),
+        'time': '${DateTime.now().hour}:${DateTime.now().minute}',
+      });
+      _isAdding = false;
+      _glucoseCtrl.clear();
+    });
+  }
+
+  String _getStatus(int value) {
+    if (value < 100) return 'طبيعي';
+    if (value < 126) return 'مرتفع';
+    return 'عالي';
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'طبيعي': return AppColors.success;
+      case 'مرتفع': return AppColors.warning;
+      case 'عالي': return AppColors.error;
+      default: return AppColors.grey;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('تتبع السكر', style: TextStyle(fontWeight: FontWeight.bold))),
-      body: SingleChildScrollView(padding: const EdgeInsets.all(14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Container(padding: const EdgeInsets.all(20), decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.blue.shade300, Colors.blue.shade700]), borderRadius: BorderRadius.circular(16)), child: Column(children: [
-          const Text('متوسط السكر التراكمي', style: TextStyle(color: Colors.white70)),
-          Text('${(_readings.fold(0, (s, r) => s + (r['value'] as int)) / (_readings.length * 18.0)).toStringAsFixed(1)}%', style: const TextStyle(color: Colors.white, fontSize: 42, fontWeight: FontWeight.bold)),
-        ])),
-        const SizedBox(height: 16),
-        Text('قراءات اليوم', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-        for (final r in _readings) Container(margin: const EdgeInsets.only(bottom: 6), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)), child: Row(children: [const Icon(Icons.bloodtype, color: AppColors.error, size: 20), const SizedBox(width: 8), Expanded(child: Text(r['time'], style: const TextStyle(fontWeight: FontWeight.w500))), Text('${r['value']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: AppColors.primary)), const SizedBox(width: 8), Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(color: _c(r['status']).withOpacity(0.1), borderRadius: BorderRadius.circular(6)), child: Text(r['status'], style: TextStyle(fontSize: 9, color: _c(r['status']))))])),
-      ])),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => showModalBottomSheet(context: context, builder: (_) => Padding(padding: const EdgeInsets.all(20), child: Column(mainAxisSize: MainAxisSize.min, children: [
-          DropdownButtonFormField(value: _time, items: ['قبل الفطور','بعد الفطور','قبل الغداء','بعد الغداء','قبل العشاء','بعد العشاء'].map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(), onChanged: (v) => setState(() => _time = v!)),
-          const SizedBox(height: 10),
-          TextField(controller: _value, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'القراءة', border: OutlineInputBorder())),
-          const SizedBox(height: 16),
-          SizedBox(width: double.infinity, child: ElevatedButton(onPressed: _add, child: const Text('إضافة')))
-        ]))),
-        backgroundColor: AppColors.primary, icon: const Icon(Icons.add), label: const Text('إضافة قراءة'),
+      backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
+      appBar: AppBar(
+        title: const Text('تتبع السكر', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add_rounded),
+            onPressed: () => setState(() => _isAdding = true),
+          ),
+        ],
+      ),
+      body: Stack(
+        children: [
+          // ✅ المحتوى الرئيسي
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                // ✅ متوسط السكر التراكمي
+                _buildAverageCard(isDark),
+                const SizedBox(height: 20),
+                // ✅ قراءات اليوم
+                _buildReadingsList(isDark),
+              ],
+            ),
+          ),
+          // ✅ حقل الإدخال في منتصف الشاشة (عند الضغط على إضافة)
+          if (_isAdding) _buildAddReadingDialog(isDark),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAverageCard(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [AppColors.primary, AppColors.primaryDark],
+        ),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          const Text(
+            'متوسط السكر التراكمي',
+            style: TextStyle(color: Colors.white70, fontSize: 14),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            '7.0%',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 36,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Text(
+              'مستوى طبيعي',
+              style: TextStyle(color: Colors.white, fontSize: 12),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReadingsList(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2540) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'قراءات اليوم',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+          ..._readings.map((reading) => Container(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: isDark ? const Color(0xFF2D3A54) : Colors.grey.shade100,
+                ),
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        reading['meal'],
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                      Text(
+                        reading['time'],
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppColors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: _getStatusColor(reading['status']).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    reading['status'],
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: _getStatusColor(reading['status']),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  '${reading['value']}',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          )),
+        ],
+      ),
+    );
+  }
+
+  // ✅ حقل الإدخال في منتصف الشاشة
+  Widget _buildAddReadingDialog(bool isDark) {
+    return GestureDetector(
+      onTap: () => setState(() => _isAdding = false),
+      child: Container(
+        color: Colors.black54,
+        child: Center(
+          child: GestureDetector(
+            onTap: () {},
+            child: Container(
+              margin: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 20,
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'إضافة قراءة',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<String>(
+                    value: _selectedMeal,
+                    items: _mealOptions.map((meal) {
+                      return DropdownMenuItem<String>(
+                        value: meal,
+                        child: Text(meal),
+                      );
+                    }).toList(),
+                    onChanged: (value) => setState(() => _selectedMeal = value!),
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _glucoseCtrl,
+                    keyboardType: TextInputType.number,
+                    textAlign: TextAlign.center,
+                    decoration: const InputDecoration(
+                      labelText: 'القراءة (mg/dL)',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'المستوى: ${_glucoseCtrl.text.isNotEmpty ? _getStatus(int.parse(_glucoseCtrl.text)) : ''}',
+                    style: TextStyle(
+                      color: _glucoseCtrl.text.isNotEmpty
+                          ? _getStatusColor(_getStatus(int.parse(_glucoseCtrl.text)))
+                          : AppColors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => setState(() => _isAdding = false),
+                          child: const Text('إلغاء'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: _saveReading,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                          ),
+                          child: const Text('حفظ'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

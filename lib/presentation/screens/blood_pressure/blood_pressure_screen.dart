@@ -1,75 +1,328 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/services/patient_data_service.dart';
 
 class BloodPressureScreen extends StatefulWidget {
   const BloodPressureScreen({super.key});
+
   @override
   State<BloodPressureScreen> createState() => _BloodPressureScreenState();
 }
 
 class _BloodPressureScreenState extends State<BloodPressureScreen> {
-  final _data = PatientDataService();
-  List<Map<String, dynamic>> _readings = [];
-  final _sys = TextEditingController(), _dia = TextEditingController(), _pulse = TextEditingController();
+  final TextEditingController _systolicCtrl = TextEditingController();
+  final TextEditingController _diastolicCtrl = TextEditingController();
+  final TextEditingController _pulseCtrl = TextEditingController();
+  bool _isAdding = false;
 
-  @override
-  void initState() { super.initState(); _load(); }
+  final List<Map<String, dynamic>> _readings = [
+    {'date': '1 مايو', 'time': 'صباحاً', 'systolic': 128, 'diastolic': 82, 'pulse': 72},
+    {'date': '28 أبريل', 'time': 'مساءً', 'systolic': 135, 'diastolic': 88, 'pulse': 75},
+  ];
 
-  Future<void> _load() async {
-    await _data.init();
-    setState(() => _readings = [
-      {'date': '1 مايو', 'sys': 128, 'dia': 82, 'pulse': 72, 'time': 'صباحاً', 'status': 'طبيعي'},
-      {'date': '28 أبريل', 'sys': 135, 'dia': 88, 'pulse': 75, 'time': 'مساءً', 'status': 'مرتفع'},
-    ]);
-  }
+  void _saveReading() {
+    if (_systolicCtrl.text.isEmpty || _diastolicCtrl.text.isEmpty) return;
 
-  Color _c(String s) => s == 'مثالي' ? AppColors.success : s == 'طبيعي' ? AppColors.info : s == 'مرتفع' ? AppColors.warning : AppColors.error;
-
-  void _add() {
-    if (_sys.text.isEmpty || _dia.text.isEmpty) return;
-    setState(() => _readings.insert(0, {
-      'date': 'اليوم', 'sys': int.parse(_sys.text), 'dia': int.parse(_dia.text),
-      'pulse': int.tryParse(_pulse.text) ?? 0, 'time': 'الآن',
-      'status': int.parse(_sys.text) < 120 ? 'مثالي' : int.parse(_sys.text) < 130 ? 'طبيعي' : int.parse(_sys.text) < 140 ? 'مرتفع' : 'عالي',
-    }));
-    _sys.clear(); _dia.clear(); _pulse.clear(); Navigator.pop(context);
+    setState(() {
+      _readings.insert(0, {
+        'date': 'اليوم',
+        'time': '${DateTime.now().hour}:${DateTime.now().minute}',
+        'systolic': int.parse(_systolicCtrl.text),
+        'diastolic': int.parse(_diastolicCtrl.text),
+        'pulse': int.parse(_pulseCtrl.text.isNotEmpty ? _pulseCtrl.text : '0'),
+      });
+      _isAdding = false;
+      _systolicCtrl.clear();
+      _diastolicCtrl.clear();
+      _pulseCtrl.clear();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('ضغط الدم', style: TextStyle(fontWeight: FontWeight.bold))),
-      body: SingleChildScrollView(padding: const EdgeInsets.all(14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Container(padding: const EdgeInsets.all(20), decoration: BoxDecoration(gradient: const LinearGradient(colors: [AppColors.primary, AppColors.primaryDark]), borderRadius: BorderRadius.circular(16)), child: Column(children: [
-          const Text('آخر قراءة', style: TextStyle(color: Colors.white70)), const SizedBox(height: 8),
-          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Column(children: [const Text('الانقباضي', style: TextStyle(color: Colors.white70, fontSize: 11)), Text('${_readings.isNotEmpty ? _readings.first['sys'] : "-"}', style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold))]),
-            const Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: Text('/', style: TextStyle(color: Colors.white38, fontSize: 36))),
-            Column(children: [const Text('الانبساطي', style: TextStyle(color: Colors.white70, fontSize: 11)), Text('${_readings.isNotEmpty ? _readings.first['dia'] : "-"}', style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold))]),
-          ]),
-          if (_readings.isNotEmpty) Text('نبض: ${_readings.first['pulse']} bpm', style: const TextStyle(color: Colors.white70)),
-        ])),
-        const SizedBox(height: 14),
-        Text('سجل القراءات', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-        for (final r in _readings) Container(margin: const EdgeInsets.only(bottom: 6), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4)]), child: Row(children: [
-          Container(width: 4, height: 40, decoration: BoxDecoration(color: _c(r['status']), borderRadius: BorderRadius.circular(2))), const SizedBox(width: 10),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('${r['date']} • ${r['time']}', style: const TextStyle(fontWeight: FontWeight.w500)), Text('نبض: ${r['pulse']} bpm', style: const TextStyle(fontSize: 10, color: AppColors.grey))])),
-          Text('${r['sys']}/${r['dia']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-          const SizedBox(width: 8), Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(color: _c(r['status']).withOpacity(0.1), borderRadius: BorderRadius.circular(6)), child: Text(r['status'], style: TextStyle(fontSize: 9, color: _c(r['status'])))),
-        ])),
-      ])),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => showModalBottomSheet(context: context, builder: (_) => Padding(padding: const EdgeInsets.all(20), child: Column(mainAxisSize: MainAxisSize.min, children: [
-          TextField(controller: _sys, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'الانقباضي', border: OutlineInputBorder())),
-          const SizedBox(height: 10),
-          TextField(controller: _dia, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'الانبساطي', border: OutlineInputBorder())),
-          const SizedBox(height: 10),
-          TextField(controller: _pulse, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'النبض', border: OutlineInputBorder())),
-          const SizedBox(height: 16),
-          SizedBox(width: double.infinity, child: ElevatedButton(onPressed: _add, child: const Text('إضافة قراءة')))
-        ]))),
-        backgroundColor: AppColors.primary, icon: const Icon(Icons.add), label: const Text('إضافة قراءة'),
+      backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
+      appBar: AppBar(
+        title: const Text('ضغط الدم', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add_rounded),
+            onPressed: () => setState(() => _isAdding = true),
+          ),
+        ],
+      ),
+      body: Stack(
+        children: [
+          // ✅ المحتوى الرئيسي
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                // ✅ آخر قراءة
+                _buildLastReading(isDark),
+                const SizedBox(height: 20),
+                // ✅ سجل القراءات
+                _buildReadingsList(isDark),
+              ],
+            ),
+          ),
+          // ✅ حقل الإدخال في منتصف الشاشة (عند الضغط على إضافة)
+          if (_isAdding) _buildAddReadingDialog(isDark),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLastReading(bool isDark) {
+    final last = _readings.isNotEmpty ? _readings.first : null;
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [AppColors.primary, AppColors.primaryDark],
+        ),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          const Text(
+            'آخر قراءة',
+            style: TextStyle(color: Colors.white70, fontSize: 14),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Column(
+                children: [
+                  Text(
+                    'الانقباضي',
+                    style: TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
+                  Text(
+                    last != null ? '${last['diastolic']}' : '--',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 20),
+              Container(
+                height: 40,
+                width: 2,
+                color: Colors.white24,
+              ),
+              const SizedBox(width: 20),
+              Column(
+                children: [
+                  Text(
+                    'الانبساطي',
+                    style: TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
+                  Text(
+                    last != null ? '${last['systolic']}' : '--',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (last != null)
+            Text(
+              'نبض: ${last['pulse']} bpm',
+              style: const TextStyle(color: Colors.white70, fontSize: 14),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReadingsList(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2540) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'سجل القراءات',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+          ..._readings.map((reading) => Container(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: isDark ? const Color(0xFF2D3A54) : Colors.grey.shade100,
+                ),
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${reading['date']} • ${reading['time']}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.grey,
+                        ),
+                      ),
+                      Text(
+                        'نبض: ${reading['pulse']} bpm',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppColors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '${reading['systolic']}/${reading['diastolic']}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          )),
+        ],
+      ),
+    );
+  }
+
+  // ✅ حقل الإدخال في منتصف الشاشة
+  Widget _buildAddReadingDialog(bool isDark) {
+    return GestureDetector(
+      onTap: () => setState(() => _isAdding = false),
+      child: Container(
+        color: Colors.black54,
+        child: Center(
+          child: GestureDetector(
+            onTap: () {}, // منع الإغلاق عند الضغط على الحقل
+            child: Container(
+              margin: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 20,
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'إضافة قراءة',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _systolicCtrl,
+                          keyboardType: TextInputType.number,
+                          textAlign: TextAlign.center,
+                          decoration: const InputDecoration(
+                            labelText: 'الانقباضي',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text('/', style: TextStyle(fontSize: 20, color: AppColors.grey)),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: _diastolicCtrl,
+                          keyboardType: TextInputType.number,
+                          textAlign: TextAlign.center,
+                          decoration: const InputDecoration(
+                            labelText: 'الانبساطي',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _pulseCtrl,
+                    keyboardType: TextInputType.number,
+                    textAlign: TextAlign.center,
+                    decoration: const InputDecoration(
+                      labelText: 'النّبض (bpm)',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => setState(() => _isAdding = false),
+                          child: const Text('إلغاء'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: _saveReading,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                          ),
+                          child: const Text('حفظ'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
