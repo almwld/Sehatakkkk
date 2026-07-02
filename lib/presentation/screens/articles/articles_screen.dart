@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:intl/intl.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class ArticlesScreen extends StatefulWidget {
@@ -11,144 +9,180 @@ class ArticlesScreen extends StatefulWidget {
 }
 
 class _ArticlesScreenState extends State<ArticlesScreen> {
-  final TextEditingController _searchCtrl = TextEditingController();
   String _selectedCategory = 'الكل';
+  bool _isLoading = false;
 
   final List<String> _categories = [
-    'الكل', 'صحة عامة', 'تغذية', 'أمراض', 'أدوية', 'صحة نفسية', 'صحة المرأة', 'صحة الطفل'
+    'الكل',
+    'الصحة العامة',
+    'التغذية',
+    'الأمراض',
+    'الوقاية',
+    'الصحة النفسية',
+    'الأدوية',
   ];
+
+  final List<Map<String, dynamic>> _articles = [
+    {
+      'id': '1',
+      'title': 'فوائد شرب الماء على الريق',
+      'subtitle': '8 أسباب تجعلك تبدأ يومك بكوب ماء',
+      'category': 'الصحة العامة',
+      'readTime': '5 دقائق',
+      'image': '💧',
+      'color': AppColors.info,
+      'date': '2026-07-01',
+      'likes': 245,
+      'views': 1200,
+      'author': 'د. أحمد المولد',
+    },
+    {
+      'id': '2',
+      'title': 'نظام غذائي صحي للقلب',
+      'subtitle': 'أطعمة تحمي قلبك وتخفض الكوليسترول',
+      'category': 'التغذية',
+      'readTime': '7 دقائق',
+      'image': '❤️',
+      'color': AppColors.error,
+      'date': '2026-06-28',
+      'likes': 189,
+      'views': 850,
+      'author': 'د. خالد النخلاني',
+    },
+    {
+      'id': '3',
+      'title': 'كيف تتغلب على التوتر والقلق',
+      'subtitle': '5 تقنيات فعالة للاسترخاء',
+      'category': 'الصحة النفسية',
+      'readTime': '6 دقائق',
+      'image': '🧠',
+      'color': AppColors.purple,
+      'date': '2026-06-25',
+      'likes': 312,
+      'views': 2100,
+      'author': 'د. رنا النجار',
+    },
+    {
+      'id': '4',
+      'title': 'فيتامين د: أهميته ومصادره',
+      'subtitle': 'كل ما تحتاج معرفته عن فيتامين الشمس',
+      'category': 'الصحة العامة',
+      'readTime': '4 دقائق',
+      'image': '☀️',
+      'color': AppColors.warning,
+      'date': '2026-06-22',
+      'likes': 156,
+      'views': 980,
+      'author': 'د. عائشة ملك',
+    },
+    {
+      'id': '5',
+      'title': 'علامات مبكرة للسكري',
+      'subtitle': 'لا تتجاهل هذه الأعراض',
+      'category': 'الأمراض',
+      'readTime': '8 دقائق',
+      'image': '🩸',
+      'color': AppColors.primary,
+      'date': '2026-06-20',
+      'likes': 278,
+      'views': 1500,
+      'author': 'د. حسن رضا',
+    },
+    {
+      'id': '6',
+      'title': 'فوائد المشي اليومي',
+      'subtitle': '30 دقيقة تغير حياتك',
+      'category': 'الوقاية',
+      'readTime': '3 دقائق',
+      'image': '🚶',
+      'color': AppColors.success,
+      'date': '2026-06-18',
+      'likes': 198,
+      'views': 1100,
+      'author': 'د. علي المولد',
+    },
+  ];
+
+  List<Map<String, dynamic>> get _filteredArticles {
+    if (_selectedCategory == 'الكل') return _articles;
+    return _articles.where((a) => a['category'] == _selectedCategory).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final filtered = _filteredArticles;
 
     return Scaffold(
+      backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
       appBar: AppBar(
         title: const Text('المقالات الطبية', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
+        elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.bookmark_border),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('المقالات المحفوظة قريباً'), backgroundColor: AppColors.info),
-              );
-            },
+            icon: const Icon(Icons.search_rounded),
+            onPressed: () {},
           ),
         ],
       ),
       body: Column(
         children: [
-          _buildSearchBar(isDark),
-          _buildCategoryFilter(),
+          // ✅ التصنيفات
+          _buildCategories(isDark),
+          // ✅ قائمة المقالات
           Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('articles')
-                  .orderBy('createdAt', descending: true)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError) {
-                  return Center(child: Text('حدث خطأ: ${snapshot.error}'));
-                }
-
-                var articles = snapshot.data?.docs ?? [];
-                if (_searchCtrl.text.isNotEmpty) {
-                  final q = _searchCtrl.text.toLowerCase();
-                  articles = articles.where((doc) {
-                    final data = doc.data() as Map<String, dynamic>;
-                    return data['title'].toLowerCase().contains(q) ||
-                        data['summary'].toLowerCase().contains(q);
-                  }).toList();
-                }
-                if (_selectedCategory != 'الكل') {
-                  articles = articles.where((doc) {
-                    final data = doc.data() as Map<String, dynamic>;
-                    return data['category'] == _selectedCategory;
-                  }).toList();
-                }
-
-                if (articles.isEmpty) {
-                  return const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.article_outlined, size: 60, color: AppColors.grey),
-                        SizedBox(height: 16),
-                        Text('لا توجد مقالات', style: TextStyle(color: AppColors.grey)),
-                      ],
-                    ),
-                  );
-                }
-
-                return ListView.builder(
-                  padding: const EdgeInsets.all(12),
-                  itemCount: articles.length,
-                  itemBuilder: (context, index) {
-                    final data = articles[index].data() as Map<String, dynamic>;
-                    return _buildArticleCard(data, isDark);
-                  },
-                );
-              },
-            ),
+            child: filtered.isEmpty
+                ? _buildEmptyState()
+                : ListView.builder(
+                    padding: const EdgeInsets.all(12),
+                    itemCount: filtered.length,
+                    itemBuilder: (context, index) {
+                      final article = filtered[index];
+                      return _buildArticleCard(context, article, isDark);
+                    },
+                  ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSearchBar(bool isDark) {
-    return Padding(
-      padding: const EdgeInsets.all(12),
-      child: Container(
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1A2540) : Colors.grey[100],
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: TextField(
-          controller: _searchCtrl,
-          onChanged: (_) => setState(() {}),
-          textAlign: TextAlign.right,
-          decoration: InputDecoration(
-            hintText: 'ابحث عن مقال...',
-            prefixIcon: const Icon(Icons.search, color: AppColors.primary),
-            border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCategoryFilter() {
-    return SizedBox(
-      height: 44,
-      child: ListView.separated(
+  Widget _buildCategories(bool isDark) {
+    return Container(
+      height: 48,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
         itemCount: _categories.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 6),
-        itemBuilder: (_, index) {
-          final cat = _categories[index];
-          final selected = _selectedCategory == cat;
+        itemBuilder: (context, index) {
+          final category = _categories[index];
+          final isSelected = _selectedCategory == category;
           return GestureDetector(
-            onTap: () => setState(() => _selectedCategory = cat),
+            onTap: () => setState(() => _selectedCategory = category),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
-                color: selected ? AppColors.primary : Colors.grey[200],
+                color: isSelected
+                    ? AppColors.primary
+                    : (isDark ? const Color(0xFF1A2540) : Colors.white),
                 borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isSelected
+                      ? AppColors.primary
+                      : AppColors.grey.withOpacity(0.3),
+                ),
               ),
-              child: Text(
-                cat,
-                style: TextStyle(
-                  color: selected ? Colors.white : AppColors.darkGrey,
-                  fontSize: 12,
-                  fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+              child: Center(
+                child: Text(
+                  category,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    color: isSelected ? Colors.white : AppColors.grey,
+                  ),
                 ),
               ),
             ),
@@ -158,89 +192,202 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
     );
   }
 
-  Widget _buildArticleCard(Map<String, dynamic> data, bool isDark) {
-    final date = (data['createdAt'] as Timestamp).toDate();
-    final category = data['category'] ?? 'صحة عامة';
-    final color = category == 'تغذية' ? AppColors.success :
-                  category == 'أمراض' ? AppColors.error :
-                  category == 'أدوية' ? AppColors.info :
-                  category == 'صحة نفسية' ? AppColors.purple :
-                  category == 'صحة المرأة' ? AppColors.pink :
-                  category == 'صحة الطفل' ? AppColors.orange : AppColors.primary;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2540) : Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8)],
-        border: Border.all(color: color.withOpacity(0.2)),
-      ),
+  Widget _buildEmptyState() {
+    return Center(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  category,
-                  style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w500),
-                ),
-              ),
-              const Spacer(),
-              Text(
-                DateFormat('dd/MM/yyyy').format(date),
-                style: const TextStyle(fontSize: 10, color: AppColors.grey),
-              ),
-            ],
+          Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.article_rounded,
+              size: 60,
+              color: AppColors.primary,
+            ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 24),
+          const Text(
+            'لا توجد مقالات',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
           Text(
-            data['title'] ?? 'مقال طبي',
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            data['summary'] ?? '',
-            style: const TextStyle(fontSize: 12, color: AppColors.grey),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(Icons.visibility, size: 14, color: AppColors.grey),
-              const SizedBox(width: 4),
-              Text('${data['views'] ?? 0}', style: const TextStyle(fontSize: 10, color: AppColors.grey)),
-              const SizedBox(width: 12),
-              const Icon(Icons.favorite_border, size: 14, color: AppColors.grey),
-              const SizedBox(width: 4),
-              Text('${data['likes'] ?? 0}', style: const TextStyle(fontSize: 10, color: AppColors.grey)),
-              const Spacer(),
-              ElevatedButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('📖 جاري فتح المقال: ${data['title']}'), backgroundColor: AppColors.primary),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(60, 28),
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  textStyle: const TextStyle(fontSize: 10),
-                ),
-                child: const Text('اقرأ'),
-              ),
-            ],
+            'لا توجد مقالات في هذا التصنيف',
+            style: TextStyle(
+              fontSize: 14,
+              color: AppColors.grey,
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildArticleCard(
+    BuildContext context,
+    Map<String, dynamic> article,
+    bool isDark,
+  ) {
+    final color = article['color'] as Color;
+    final image = article['image'] as String;
+
+    return GestureDetector(
+      onTap: () {
+        // ✅ فتح تفاصيل المقال
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1A2540) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // ✅ أيقونة المقال
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Center(
+                child: Text(
+                  image,
+                  style: const TextStyle(fontSize: 28),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            // ✅ معلومات المقال
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    article['title'],
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    article['subtitle'],
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.grey,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          article['category'],
+                          style: TextStyle(
+                            fontSize: 9,
+                            color: color,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '${article['readTime']} • ${article['date']}',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: AppColors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // ✅ الإحصائيات
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.visibility_rounded,
+                      size: 12,
+                      color: AppColors.grey,
+                    ),
+                    const SizedBox(width: 2),
+                    Text(
+                      '${article['views']}',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: AppColors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.favorite_rounded,
+                      size: 12,
+                      color: AppColors.error,
+                    ),
+                    const SizedBox(width: 2),
+                    Text(
+                      '${article['likes']}',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: AppColors.error,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'اقرأ',
+                    style: TextStyle(
+                      fontSize: 9,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
