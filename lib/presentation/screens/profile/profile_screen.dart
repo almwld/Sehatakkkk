@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/settings/settings_screen.dart';
 import 'package:sehatak/presentation/screens/auth/login_screen.dart';
@@ -12,16 +13,20 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   String? _avatarUrl;
   bool _isUploading = false;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  User? get _user => _auth.currentUser;
+  String get _userName => _user?.displayName ?? 'مستخدم';
+  String get _userEmail => _user?.email ?? 'غير متوفر';
+  String get _userPhone => _user?.phoneNumber ?? 'غير متوفر';
 
   void _pickImage() {
     setState(() => _isUploading = true);
-    
-    // محاكاة تحميل مع Shimmer
     Future.delayed(const Duration(seconds: 2), () {
       if (!mounted) return;
       setState(() {
         _isUploading = false;
-        _avatarUrl = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200';
+        _avatarUrl = _user?.photoURL ?? 'https://ui-avatars.com/api/?name=${Uri.encodeComponent(_userName)}&background=00796B&color=fff';
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('✅ تم تحديث الصورة الشخصية'), backgroundColor: AppColors.success),
@@ -39,12 +44,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Future<void> _logout() async {
+    await _auth.signOut();
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('حسابي', style: TextStyle(fontWeight: FontWeight.bold)),
-        actions: [IconButton(icon: const Icon(Icons.settings_outlined), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen())))],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen())),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(14),
@@ -52,7 +71,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           // بطاقة الملف الشخصي
           Container(
             padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(gradient: const LinearGradient(colors: [AppColors.primary, AppColors.primaryDark]), borderRadius: BorderRadius.circular(16)),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(colors: [AppColors.primary, AppColors.primaryDark]),
+              borderRadius: BorderRadius.circular(16),
+            ),
             child: Column(children: [
               // صورة الملف الشخصي
               Stack(children: [
@@ -64,10 +86,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             backgroundImage: NetworkImage(_avatarUrl!),
                             backgroundColor: Colors.white24,
                           )
-                        : const CircleAvatar(
+                        : CircleAvatar(
                             radius: 50,
                             backgroundColor: Colors.white24,
-                            child: Text('أح', style: TextStyle(fontSize: 36, color: Colors.white)),
+                            child: Text(
+                              _userName.isNotEmpty ? _userName[0] : 'م',
+                              style: const TextStyle(fontSize: 36, color: Colors.white),
+                            ),
                           ),
                 Positioned(
                   bottom: 0,
@@ -91,11 +116,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ]),
               const SizedBox(height: 12),
-              const Text('أحمد محمد', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
-              const Text('ahmed@email.com', style: TextStyle(color: Colors.white70, fontSize: 13)),
-              const Text('📱 +967 777 123 456', style: TextStyle(color: Colors.white70, fontSize: 12)),
+              Text(
+                _userName,
+                style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                _userEmail,
+                style: const TextStyle(color: Colors.white70, fontSize: 13),
+              ),
+              Text(
+                '📱 $_userPhone',
+                style: const TextStyle(color: Colors.white70, fontSize: 12),
+              ),
               const SizedBox(height: 10),
-              Container(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6), decoration: BoxDecoration(color: Colors.white.withOpacity(0.15), borderRadius: BorderRadius.circular(20)), child: const Text('عضو منذ 2024', style: TextStyle(color: Colors.white, fontSize: 11))),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Text('عضو منذ 2024', style: TextStyle(color: Colors.white, fontSize: 11)),
+              ),
             ]),
           ),
           const SizedBox(height: 20),
@@ -122,10 +163,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
-              onPressed: () => Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const LoginScreen()), (route) => false),
+              onPressed: _logout,
               icon: const Icon(Icons.logout, color: AppColors.error),
               label: const Text('تسجيل الخروج'),
-              style: OutlinedButton.styleFrom(foregroundColor: AppColors.error, side: const BorderSide(color: AppColors.error), padding: const EdgeInsets.symmetric(vertical: 12)),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.error,
+                side: const BorderSide(color: AppColors.error),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
             ),
           ),
         ]),
@@ -143,7 +188,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _statCard(String label, String value, IconData icon, Color color) {
     return Expanded(
-      child: Container(padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: color.withOpacity(0.06), borderRadius: BorderRadius.circular(12)), child: Column(children: [Icon(icon, color: color, size: 24), const SizedBox(height: 6), Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: color)), Text(label, style: const TextStyle(fontSize: 10, color: AppColors.grey))])),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.06),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(children: [
+          Icon(icon, color: color, size: 24),
+          const SizedBox(height: 6),
+          Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: color)),
+          Text(label, style: const TextStyle(fontSize: 10, color: AppColors.grey)),
+        ]),
+      ),
     );
   }
 
@@ -153,7 +210,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.2),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: ListTile(
-        leading: Container(padding: const EdgeInsets.all(7), decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.08), borderRadius: BorderRadius.circular(8)), child: Icon(icon, color: AppColors.primary, size: 20)),
+        leading: Container(
+          padding: const EdgeInsets.all(7),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: AppColors.primary, size: 20),
+        ),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13)),
         subtitle: Text(subtitle, style: const TextStyle(fontSize: 9, color: AppColors.grey)),
         trailing: const Icon(Icons.arrow_back_ios, size: 12, color: AppColors.grey),
