@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
-class TemperatureScreen extends StatelessWidget {
-  const TemperatureScreen({super.key});
+class BloodOxygenScreen extends StatelessWidget {
+  const BloodOxygenScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -11,7 +11,7 @@ class TemperatureScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
       appBar: AppBar(
-        title: const Text('درجة الحرارة', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('نسبة الأكسجين', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -24,18 +24,18 @@ class TemperatureScreen extends StatelessWidget {
               width: 120,
               height: 120,
               decoration: BoxDecoration(
-                color: AppColors.orange.withOpacity(0.1),
+                color: AppColors.purple.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
-                Icons.thermostat_rounded,
+                Icons.bloodtype_rounded,
                 size: 60,
-                color: AppColors.orange,
+                color: AppColors.purple,
               ),
             ),
             const SizedBox(height: 24),
             const Text(
-              'درجة حرارة الجسم',
+              'نسبة الأكسجين في الدم',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
