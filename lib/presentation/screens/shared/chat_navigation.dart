@@ -1,30 +1,32 @@
 import 'package:flutter/material.dart';
-import '../chat/chat_screen.dart';
-import '../call/call_screen.dart';
+import 'package:sehatak/presentation/screens/chat/chat_detail_screen.dart';
+import 'package:sehatak/presentation/screens/call/call_screen.dart';
 
 class ChatNavigation {
-  // ✅ فتح شاشة الدردشة
   static void openChat(
     BuildContext context, {
     required String doctorName,
-    String? doctorId,
-    String? chatId,
+    required String doctorId,
   }) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ChatScreen(),
+        builder: (_) => ChatDetailScreen(
+          chatId: 'chat_${doctorId}_${DateTime.now().millisecondsSinceEpoch}',
+          userName: doctorName,
+          userId: doctorId,
+          isDoctor: false,
+        ),
       ),
     );
   }
 
-  // ✅ فتح شاشة المكالمة
   static void openCall(
     BuildContext context, {
+    required String chatId,
     required String doctorName,
     required String doctorId,
-    required String chatId,
-    bool isVideo = true,
+    required bool isVideo,
   }) {
     Navigator.push(
       context,

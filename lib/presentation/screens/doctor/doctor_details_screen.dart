@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/services/image_service.dart';
 import 'package:sehatak/presentation/screens/shared/chat_navigation.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_booking_screen.dart';
 
@@ -19,7 +21,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
     switch (widget.doctorId) {
       case '1':
         return {
-          'name': 'د. علي المولد',
+          'name': 'د. أحمد المولد',
           'specialty': 'استشاري باطنية وأطفال',
           'experience': '20+ سنة',
           'rating': 4.9,
@@ -28,20 +30,50 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
           'available': true,
           'about': 'استشاري باطنية وأطفال مع خبرة واسعة',
           'hospital': 'مستشفى الثورة العام',
-          'availability': ['السبت - الأربعاء: 9 ص - 5 م']
+          'availability': ['السبت - الأربعاء: 9 ص - 5 م'],
+          'image': ImageService.doctor1,
+        };
+      case '2':
+        return {
+          'name': 'د. خالد النخلاني',
+          'specialty': 'أمراض قلبية',
+          'experience': '15 سنة',
+          'rating': 4.7,
+          'reviews': 256,
+          'fee': '600',
+          'available': true,
+          'about': 'أخصائي أمراض القلب والقسطرة',
+          'hospital': 'مركز قلب العاصمة',
+          'availability': ['الأحد - الخميس: 10 ص - 6 م'],
+          'image': ImageService.doctor2,
+        };
+      case '3':
+        return {
+          'name': 'د. أسماء الهندي',
+          'specialty': 'أطفال وحديثي الولادة',
+          'experience': '12 سنة',
+          'rating': 4.8,
+          'reviews': 189,
+          'fee': '450',
+          'available': true,
+          'about': 'أخصائية أطفال وحديثي الولادة',
+          'hospital': 'مستشفى السبعين',
+          'availability': ['السبت - الخميس: 8 ص - 2 م'],
+          'image': ImageService.doctor3,
         };
       default:
         return {
-          'name': 'د. أحمد محمد',
-          'specialty': 'طبيب عام',
-          'experience': '5+ سنة',
+          'name': 'د. محمد العلاي',
+          'specialty': 'أنف وأذن وحنجرة',
+          'experience': '8 سنوات',
           'rating': 4.5,
           'reviews': 89,
-          'fee': '200',
+          'fee': '400',
           'available': true,
-          'about': 'طبيب عام مهتم بصحة المجتمع',
-          'hospital': 'مستشفى عام',
-          'availability': ['الأحد - الخميس: 8 ص - 2 م']
+          'about': 'أخصائي أنف وأذن وحنجرة',
+          'hospital': 'مستشفى الأنف والأذن',
+          'availability': ['الأحد - الخميس: 9 ص - 3 م'],
+          'image': ImageService.doctor4,
         };
     }
   }
@@ -55,12 +87,15 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
   @override
   Widget build(BuildContext context) {
     final doc = _doctor;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: Text(doc['name']),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
+        elevation: 0,
         actions: [
           IconButton(
             icon: Icon(_isFavorite ? Icons.favorite : Icons.favorite_border, color: Colors.white),
@@ -73,45 +108,80 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
           Container(
             padding: const EdgeInsets.all(16),
             color: AppColors.primary,
-            child: Column(
+            child: Row(
               children: [
-                CircleAvatar(
-                  radius: 40,
-                  backgroundColor: Colors.white24,
-                  child: Text(
-                    doc['name'][0],
-                    style: const TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.bold),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: CachedNetworkImage(
+                    imageUrl: doc['image'],
+                    width: 80,
+                    height: 80,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(
+                      width: 80,
+                      height: 80,
+                      color: Colors.white24,
+                      child: const Icon(Icons.person, color: Colors.white, size: 40),
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      width: 80,
+                      height: 80,
+                      color: Colors.white24,
+                      child: const Icon(Icons.person, color: Colors.white, size: 40),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(doc['name'], style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-                Text(doc['specialty'], style: const TextStyle(color: Colors.white70, fontSize: 14)),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.star, color: Colors.amber, size: 18),
-                    Text(' ${doc['rating']} (${doc['reviews']} تقييم)', style: const TextStyle(color: Colors.white70)),
-                    const SizedBox(width: 16),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: doc['available'] ? AppColors.success.withOpacity(0.3) : AppColors.error.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(12),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(doc['name'], style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                      Text(doc['specialty'], style: const TextStyle(color: Colors.white70, fontSize: 14)),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(Icons.star, color: Colors.amber, size: 16),
+                          Text(' ${doc['rating']} (${doc['reviews']} تقييم)', style: const TextStyle(color: Colors.white70)),
+                          const SizedBox(width: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: doc['available'] ? Colors.green.withOpacity(0.3) : Colors.red.withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(doc['available'] ? 'متاح' : 'غير متاح', style: const TextStyle(color: Colors.white, fontSize: 11)),
+                          ),
+                        ],
                       ),
-                      child: Text(doc['available'] ? 'متاح' : 'غير متاح', style: const TextStyle(color: Colors.white)),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _actionBtn(Icons.chat, 'محادثة', AppColors.info, () => ChatNavigation.openChat(context, doctorName: doc['name'], doctorId: widget.doctorId ?? '1')),
-                    _actionBtn(Icons.call, 'اتصال', AppColors.success, () => ChatNavigation.openChat(context, doctorName: doc['name'], doctorId: widget.doctorId ?? '1')),
-                    _actionBtn(Icons.calendar_today, 'حجز', AppColors.teal, () => Navigator.push(context, MaterialPageRoute(builder: (_) => DoctorBookingScreen(doctorId: widget.doctorId ?? '1')))),
-                  ],
-                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            color: AppColors.primary,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _actionBtn(Icons.chat, 'محادثة', AppColors.info, () => ChatNavigation.openChat(context, doctorName: doc['name'], doctorId: widget.doctorId ?? '1')),
+                _actionBtn(Icons.call, 'اتصال', AppColors.success, () => ChatNavigation.openCall(
+                  context,
+                  chatId: 'call_${widget.doctorId ?? "1"}_${DateTime.now().millisecondsSinceEpoch}',
+                  doctorName: doc['name'],
+                  doctorId: widget.doctorId ?? '1',
+                  isVideo: false,
+                )),
+                _actionBtn(Icons.videocam, 'فيديو', AppColors.primary, () => ChatNavigation.openCall(
+                  context,
+                  chatId: 'call_${widget.doctorId ?? "1"}_${DateTime.now().millisecondsSinceEpoch}',
+                  doctorName: doc['name'],
+                  doctorId: widget.doctorId ?? '1',
+                  isVideo: true,
+                )),
+                _actionBtn(Icons.calendar_today, 'حجز', AppColors.teal, () => Navigator.push(context, MaterialPageRoute(builder: (_) => DoctorBookingScreen(doctorId: widget.doctorId ?? '1')))),
               ],
             ),
           ),
@@ -170,6 +240,8 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
   }
 
   Widget _aboutTab(Map<String, dynamic> doc) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -177,15 +249,15 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
         children: [
           const Text('نبذة عن الطبيب', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          Text(doc['about'], style: const TextStyle(fontSize: 14)),
+          Text(doc['about'], style: TextStyle(fontSize: 14, color: isDark ? Colors.grey[300] : Colors.grey[700])),
           const SizedBox(height: 16),
           const Text('المستشفى', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
-          Text(doc['hospital'], style: const TextStyle(fontSize: 14, color: AppColors.grey)),
+          Text(doc['hospital'], style: TextStyle(fontSize: 14, color: isDark ? Colors.grey[300] : Colors.grey[700])),
           const SizedBox(height: 16),
           const Text('الخبرة', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
-          Text(doc['experience'], style: const TextStyle(fontSize: 14, color: AppColors.grey)),
+          Text(doc['experience'], style: TextStyle(fontSize: 14, color: isDark ? Colors.grey[300] : Colors.grey[700])),
         ],
       ),
     );
