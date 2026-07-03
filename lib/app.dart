@@ -22,10 +22,22 @@ class SehatakApp extends StatelessWidget {
         final lightTheme = ThemeData(
           useMaterial3: true,
           brightness: Brightness.light,
-          primaryColor: const Color(0xFF0D9488),
+          primaryColor: const Color(0xFF0D5257), // ✅ اللون الأساسي الجديد
           scaffoldBackgroundColor: const Color(0xFFF8FAFC),
-          fontFamily: 'Cairo',
-          textTheme: GoogleFonts.interTextTheme(
+          fontFamily: 'Tajawal', // ✅ خط موحد
+          colorScheme: const ColorScheme.light(
+            primary: Color(0xFF0D5257),
+            secondary: Color(0xFF0D5257),
+            surface: Colors.white,
+            background: Color(0xFFF8FAFC),
+            error: Color(0xFFEF4444),
+            onPrimary: Colors.white,
+            onSecondary: Colors.white,
+            onSurface: Color(0xFF1E293B),
+            onBackground: Color(0xFF1E293B),
+            onError: Colors.white,
+          ),
+          textTheme: GoogleFonts.tajawalTextTheme(
             ThemeData.light().textTheme,
           ).copyWith(
             displayLarge: TextStyle(fontSize: 57 * fontScale, fontWeight: FontWeight.bold, color: const Color(0xFF1E293B)),
@@ -45,7 +57,7 @@ class SehatakApp extends StatelessWidget {
             labelSmall: TextStyle(fontSize: 11 * fontScale, color: const Color(0xFF94A3B8)),
           ),
           appBarTheme: const AppBarTheme(
-            backgroundColor: Color(0xFF0D9488),
+            backgroundColor: Color(0xFF0D5257),
             foregroundColor: Colors.white,
             elevation: 0,
             centerTitle: true,
@@ -71,13 +83,13 @@ class SehatakApp extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF0D9488), width: 2),
+              borderSide: const BorderSide(color: Color(0xFF0D5257), width: 2),
             ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
           elevatedButtonTheme: ElevatedButtonThemeData(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0D9488),
+              backgroundColor: const Color(0xFF0D5257),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -88,7 +100,7 @@ class SehatakApp extends StatelessWidget {
           ),
           bottomNavigationBarTheme: const BottomNavigationBarThemeData(
             backgroundColor: Colors.white,
-            selectedItemColor: Color(0xFF0D9488),
+            selectedItemColor: Color(0xFF0D5257),
             unselectedItemColor: Color(0xFF94A3B8),
             selectedLabelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
             unselectedLabelStyle: TextStyle(fontSize: 12),
