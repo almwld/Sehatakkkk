@@ -72,6 +72,7 @@ dependencies:
   pull_to_refresh: ^2.0.0
   flutter_slidable: ^3.0.1
   flutter_animate: ^4.5.0
+  carousel_slider: ^4.2.1
 
   # ============================================================
   # 📅 Calendar & Charts
@@ -135,7 +136,7 @@ dev_dependencies:
   retrofit_generator: ^8.0.6
   json_serializable: ^6.7.1
   flutter_launcher_icons: ^0.13.1
-  flutter_native_splash: ^2.3.10  # ✅ تم التخفيض للإصدار المتوافق
+  flutter_native_splash: ^2.3.10
 
 flutter:
   uses-material-design: true
@@ -159,7 +160,7 @@ flutter:
     - assets/audio/
 
   # ============================================================
-  # 🔤 Fonts
+  # 🔤 Fonts - Cairo
   # ============================================================
   fonts:
     - family: Cairo
@@ -200,6 +201,26 @@ flutter:
         - asset: assets/fonts/Rubik-Light.ttf
           weight: 300
 
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter_18pt-Black.ttf
+          weight: 900
+        - asset: assets/fonts/Inter_18pt-ExtraBold.ttf
+          weight: 800
+        - asset: assets/fonts/Inter_18pt-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Inter_18pt-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Inter_18pt-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter_18pt-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Inter_18pt-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Inter_18pt-Italic.ttf
+          weight: 400
+          style: italic
+
   # ============================================================
   # 🖼️ Launcher Icons
   # ============================================================
@@ -214,4 +235,3 @@ flutter_native_splash:
   image: assets/icons/app_icon.png
   android: true
   ios: false
-  carousel_slider: ^4.2.1
