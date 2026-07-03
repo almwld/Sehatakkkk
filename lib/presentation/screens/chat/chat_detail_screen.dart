@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/chat_service.dart';
 import 'package:sehatak/presentation/screens/shared/chat_navigation.dart';
+import 'dart:io';
 
 class ChatDetailScreen extends StatefulWidget {
   final String chatId;
@@ -27,7 +30,129 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ChatService _chatService = ChatService();
   final ScrollController _scrollController = ScrollController();
+  final ImagePicker _imagePicker = ImagePicker();
+
   bool _isRecording = false;
+  bool _isSending = false;
+
+  // ✅ اختيار الصورة من المعرض أو الكاميرا
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? image = await _imagePicker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 80,
+      );
+
+      if (image != null) {
+        setState(() => _isSending = true);
+        // ✅ تحويل الصورة إلى File وإرسالها
+        final file = File(image.path);
+        await _chatService.sendMessage(
+          chatId: widget.chatId,
+          text: '',
+          imageFile: file,
+        );
+        setState(() => _isSending = false);
+      }
+    } catch (e) {
+      setState(() => _isSending = false);
+      _showError('فشل إرسال الصورة: $e');
+    }
+  }
+
+  // ✅ إظهار قائمة اختيار الصورة
+  void _showImagePickerOptions() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'اختر مصدر الصورة',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildPickerOption(
+                      icon: Icons.photo_library_rounded,
+                      label: 'المعرض',
+                      onTap: () {
+                        Navigator.pop(context);
+                        _pickImage(ImageSource.gallery);
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildPickerOption(
+                      icon: Icons.camera_alt_rounded,
+                      label: 'الكاميرا',
+                      onTap: () {
+                        Navigator.pop(context);
+                        _pickImage(ImageSource.camera);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPickerOption({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0D5257).withOpacity(0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFF0D5257).withOpacity(0.2)),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: const Color(0xFF0D5257), size: 32),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF0D5257),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,54 +193,65 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           ),
         ],
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: _chatService.getMessages(widget.chatId),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return Center(child: Text('خطأ: ${snapshot.error}'));
-                }
-                if (!snapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+          Column(
+            children: [
+              Expanded(
+                child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                  stream: _chatService.getMessages(widget.chatId),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return Center(child: Text('خطأ: ${snapshot.error}'));
+                    }
+                    if (!snapshot.hasData) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
 
-                final messages = snapshot.data!.docs;
-                if (messages.isEmpty) {
-                  return const Center(child: Text('ابدأ المحادثة الآن'));
-                }
+                    final messages = snapshot.data!.docs;
+                    if (messages.isEmpty) {
+                      return const Center(child: Text('ابدأ المحادثة الآن'));
+                    }
 
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (_scrollController.hasClients) {
-                    _scrollController.animateTo(
-                      0,
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeOut,
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (_scrollController.hasClients) {
+                        _scrollController.animateTo(
+                          0,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeOut,
+                        );
+                      }
+                    });
+
+                    return ListView.builder(
+                      controller: _scrollController,
+                      reverse: true,
+                      itemCount: messages.length,
+                      itemBuilder: (context, index) {
+                        final data = messages[index].data();
+                        final isMe = data['senderId'] == FirebaseAuth.instance.currentUser?.uid;
+                        return _buildMessageBubble(data, isMe, isDark);
+                      },
                     );
-                  }
-                });
-
-                return ListView.builder(
-                  controller: _scrollController,
-                  reverse: true,
-                  itemCount: messages.length,
-                  itemBuilder: (context, index) {
-                    final data = messages[index].data() as Map<String, dynamic>;
-                    final isMe = data['senderId'] == FirebaseAuth.instance.currentUser?.uid;
-                    return _buildMessageBubble(data, isMe, isDark);
                   },
-                );
-              },
-            ),
+                ),
+              ),
+              _buildInputBar(isDark, primaryColor),
+            ],
           ),
-          _buildInputBar(isDark, primaryColor),
+          if (_isSending)
+            Container(
+              color: Colors.black.withOpacity(0.3),
+              child: const Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              ),
+            ),
         ],
       ),
     );
   }
 
-  // ✅ رسالة مع صورة محسنة (بدون تشويه)
+  // ✅ بناء فقاعة الرسالة - منفردة (نص OR صورة OR صوت)
   Widget _buildMessageBubble(Map<String, dynamic> data, bool isMe, bool isDark) {
     final hasImage = data['imageUrl'] != null && data['imageUrl'].isNotEmpty;
     final hasText = data['text'] != null && data['text'].isNotEmpty;
@@ -157,7 +293,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ✅ صورة محسنة - بدون تشويه
+                // ✅ صورة منفردة (بدون نص)
                 if (hasImage)
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12),
@@ -178,8 +314,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       ),
                     ),
                   ),
-                if (hasImage && hasText) const SizedBox(height: 8),
-                if (hasText)
+                // ✅ نص منفرد (بدون صورة)
+                if (hasText && !hasImage)
                   Text(
                     data['text'],
                     style: TextStyle(
@@ -187,6 +323,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       fontSize: 14,
                     ),
                   ),
+                // ✅ صوت منفرد (بدون نص أو صورة)
                 if (isVoice)
                   Row(
                     children: [
@@ -227,8 +364,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     );
   }
 
-  // ✅ شريط الإدخال المحسّن
+  // ✅ شريط الإدخال المحسّن مع أزرار منفصلة
   Widget _buildInputBar(bool isDark, Color primaryColor) {
+    final hasText = _messageController.text.isNotEmpty;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
@@ -243,12 +382,21 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       ),
       child: Row(
         children: [
-          // ✅ زر المرفقات
+          // ✅ زر إرفاق صورة (منفصل)
           IconButton(
-            icon: Icon(Icons.attach_file_rounded, color: isDark ? Colors.grey[400] : Colors.grey[600]),
-            onPressed: () {
-              // فتح قائمة المرفقات (صورة، ملف، موقع)
-            },
+            icon: Icon(
+              Icons.image_rounded,
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
+            ),
+            onPressed: _showImagePickerOptions,
+          ),
+          // ✅ زر إرفاق ملف
+          IconButton(
+            icon: Icon(
+              Icons.attach_file_rounded,
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
+            ),
+            onPressed: () {},
           ),
           // ✅ حقل النص
           Expanded(
@@ -260,7 +408,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               child: Row(
                 children: [
                   const SizedBox(width: 12),
-                  Icon(Icons.emoji_emotions_outlined, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                  Icon(
+                    Icons.emoji_emotions_outlined,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: TextField(
@@ -273,48 +424,58 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.symmetric(vertical: 10),
                       ),
-                      onSubmitted: (_) => _sendMessage(),
+                      onChanged: (_) => setState(() {}),
+                      onSubmitted: (_) => _sendTextMessage(),
                     ),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.attach_file, color: isDark ? Colors.grey[400] : Colors.grey[600]),
-                    onPressed: () {},
                   ),
                 ],
               ),
             ),
           ),
           const SizedBox(width: 8),
-          // ✅ زر الإرسال / الميكروفون
-          GestureDetector(
-            onLongPress: () {
-              setState(() => _isRecording = true);
-              // بدء التسجيل
-            },
-            onLongPressEnd: (_) {
-              setState(() => _isRecording = false);
-              // إيقاف التسجيل وإرسال الصوت
-            },
-            child: CircleAvatar(
+          // ✅ زر الإرسال (نص) أو الميكروفون (صوت)
+          if (hasText)
+            CircleAvatar(
               radius: 24,
-              backgroundColor: _isRecording ? Colors.red : primaryColor,
-              child: Icon(
-                _isRecording ? Icons.stop : (_messageController.text.isNotEmpty ? Icons.send : Icons.mic),
-                color: Colors.white,
-                size: 22,
+              backgroundColor: primaryColor,
+              child: IconButton(
+                icon: const Icon(Icons.send, color: Colors.white, size: 20),
+                onPressed: _sendTextMessage,
+                padding: EdgeInsets.zero,
+              ),
+            )
+          else
+            GestureDetector(
+              onLongPress: () {
+                setState(() => _isRecording = true);
+                // بدء التسجيل
+              },
+              onLongPressEnd: (_) {
+                setState(() => _isRecording = false);
+                // إيقاف التسجيل وإرسال الصوت
+              },
+              child: CircleAvatar(
+                radius: 24,
+                backgroundColor: _isRecording ? Colors.red : primaryColor,
+                child: Icon(
+                  _isRecording ? Icons.stop : Icons.mic,
+                  color: Colors.white,
+                  size: 22,
+                ),
               ),
             ),
-          ),
         ],
       ),
     );
   }
 
-  Future<void> _sendMessage() async {
+  // ✅ إرسال رسالة نصية منفردة
+  Future<void> _sendTextMessage() async {
     if (_messageController.text.isEmpty) return;
 
     final text = _messageController.text.trim();
     _messageController.clear();
+    setState(() {});
 
     try {
       await _chatService.sendMessage(
@@ -322,24 +483,31 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         text: text,
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('❌ فشل إرسال الرسالة: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showError('فشل إرسال الرسالة: $e');
     }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('❌ $message'),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
 
   String _formatTime(dynamic timestamp) {
     if (timestamp == null) return '';
     try {
-      final date = (timestamp as Timestamp).toDate();
-      final now = DateTime.now();
-      if (date.day == now.day) {
-        return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+      if (timestamp is Timestamp) {
+        final date = timestamp.toDate();
+        final now = DateTime.now();
+        if (date.day == now.day && date.month == now.month && date.year == now.year) {
+          return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+        }
+        return '${date.day}/${date.month}';
       }
-      return '${date.day}/${date.month}';
+      return '';
     } catch (e) {
       return '';
     }
