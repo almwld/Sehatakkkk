@@ -1,104 +1,76 @@
 import 'package:flutter/material.dart';
-import 'package:sehatak/core/theme/app_theme.dart';
-import 'package:sehatak/presentation/screens/more/more_screen.dart';
-import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
-import 'package:sehatak/presentation/screens/chat/chat_room_screen.dart';
-import 'package:sehatak/presentation/screens/map/medical_map_screen.dart';
-import 'package:sehatak/presentation/screens/payment/payment_invoice_screen.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'core/services/firebase_service.dart';
+import 'core/services/notification_service.dart';
+import 'core/themes/theme_manager.dart';
+import 'presentation/bloc/auth_bloc/auth_bloc.dart';
+import 'presentation/bloc/theme_bloc/theme_bloc.dart';
+import 'presentation/bloc/chat_bloc/chat_bloc.dart';
+import 'presentation/bloc/doctor_bloc/doctor_bloc.dart';
+import 'presentation/screens/auth/splash_screen.dart';
 
-void main() {
-  runApp(const SehatakApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
+  // ✅ تشغيل التطبيق فوراً
+  runApp(const MyApp());
+
+  // ✅ تهيئة Firebase في الخلفية (لا تؤثر على فتح التطبيق)
+  _initFirebaseInBackground();
 }
 
-class SehatakApp extends StatelessWidget {
-  const SehatakApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'صحتك',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
-      home: const MainNavigationScreen(),
-      routes: {
-        '/chat': (context) => const ChatScreen(),
-        '/chat_room': (context) => const ChatRoomScreen(
-              contactName: 'د. خالد النخلاني',
-              contactType: 'استشاري قلبية',
-            ),
-        '/map': (context) => const MedicalMapScreen(),
-        '/payment': (context) => const PaymentInvoiceScreen(),
-      },
+Future<void> _initFirebaseInBackground() async {
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
     );
+    await FirebaseService().initialize();
+    await NotificationService().initialize();
+    debugPrint('✅ Firebase initialized successfully');
+  } catch (e) {
+    debugPrint('❌ Firebase initialization failed: $e');
   }
 }
 
-class MainNavigationScreen extends StatefulWidget {
-  const MainNavigationScreen({super.key});
-
-  @override
-  State<MainNavigationScreen> createState() => _MainNavigationScreenState();
-}
-
-class _MainNavigationScreenState extends State<MainNavigationScreen> {
-  int _currentIndex = 0;
-
-  final List<Widget> _screens = const [
-    MoreScreen(),
-    ChatScreen(),
-    MedicalMapScreen(),
-    PaymentInvoiceScreen(),
-  ];
-
-  final List<String> _titles = [
-    'الرئيسية',
-    'المحادثات',
-    'الخريطة',
-    'الدفع',
-  ];
-
-  final List<IconData> _icons = [
-    Icons.home_rounded,
-    Icons.chat_rounded,
-    Icons.map_rounded,
-    Icons.payment_rounded,
-  ];
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Scaffold(
-      body: _screens[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
-        selectedItemColor: AppTheme.primaryColor,
-        unselectedItemColor: isDark ? Colors.grey[500] : Colors.grey[600],
-        selectedLabelStyle: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          fontFamily: 'Tajawal',
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<AuthBloc>(
+          create: (_) => AuthBloc()..add(AppStarted()),
         ),
-        unselectedLabelStyle: const TextStyle(
-          fontSize: 11,
-          fontFamily: 'Tajawal',
-        ),
-        elevation: 8,
-        items: List.generate(4, (index) {
-          return BottomNavigationBarItem(
-            icon: Icon(_icons[index]),
-            label: _titles[index],
+        BlocProvider<ThemeBloc>(create: (_) => ThemeBloc()),
+        BlocProvider<ChatBloc>(create: (_) => ChatBloc()),
+        BlocProvider<DoctorBloc>(create: (_) => DoctorBloc()..add(LoadDoctors())),
+      ],
+      child: BlocBuilder<ThemeBloc, ThemeState>(
+        builder: (context, state) {
+          return MaterialApp(
+            title: 'صحتك',
+            debugShowCheckedModeBanner: false,
+            builder: (_, child) => Directionality(
+              textDirection: TextDirection.rtl,
+              child: child!,
+            ),
+            theme: ThemeManager.lightTheme,
+            darkTheme: ThemeManager.darkTheme,
+            themeMode: state is ThemeLoadedState
+                ? state.themeMode
+                : ThemeMode.light,
+            home: const SplashScreen(),
           );
-        }),
+        },
       ),
     );
   }
