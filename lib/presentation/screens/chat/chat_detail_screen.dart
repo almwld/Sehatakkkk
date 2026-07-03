@@ -47,12 +47,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
       if (image != null) {
         setState(() => _isSending = true);
-        // ✅ تحويل الصورة إلى File وإرسالها
         final file = File(image.path);
+        
+        // ✅ حفظ الصورة محلياً وإرسالها كـ imageUrl
+        final imagePath = await _chatService.saveLocalFile(file);
         await _chatService.sendMessage(
           chatId: widget.chatId,
           text: '',
-          imageFile: file,
+          imageUrl: imagePath,
         );
         setState(() => _isSending = false);
       }
@@ -198,7 +200,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           Column(
             children: [
               Expanded(
-                child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                child: StreamBuilder<QuerySnapshot>(
                   stream: _chatService.getMessages(widget.chatId),
                   builder: (context, snapshot) {
                     if (snapshot.hasError) {
@@ -228,7 +230,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       reverse: true,
                       itemCount: messages.length,
                       itemBuilder: (context, index) {
-                        final data = messages[index].data();
+                        final data = messages[index].data() as Map<String, dynamic>;
                         final isMe = data['senderId'] == FirebaseAuth.instance.currentUser?.uid;
                         return _buildMessageBubble(data, isMe, isDark);
                       },
@@ -293,7 +295,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ✅ صورة منفردة (بدون نص)
+                // ✅ صورة منفردة
                 if (hasImage)
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12),
@@ -314,7 +316,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       ),
                     ),
                   ),
-                // ✅ نص منفرد (بدون صورة)
+                // ✅ نص منفرد
                 if (hasText && !hasImage)
                   Text(
                     data['text'],
@@ -323,7 +325,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       fontSize: 14,
                     ),
                   ),
-                // ✅ صوت منفرد (بدون نص أو صورة)
+                // ✅ صوت منفرد
                 if (isVoice)
                   Row(
                     children: [
@@ -364,7 +366,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     );
   }
 
-  // ✅ شريط الإدخال المحسّن مع أزرار منفصلة
+  // ✅ شريط الإدخال المحسّن
   Widget _buildInputBar(bool isDark, Color primaryColor) {
     final hasText = _messageController.text.isNotEmpty;
 
@@ -382,7 +384,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       ),
       child: Row(
         children: [
-          // ✅ زر إرفاق صورة (منفصل)
+          // ✅ زر إرفاق صورة
           IconButton(
             icon: Icon(
               Icons.image_rounded,
