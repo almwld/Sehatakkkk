@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/theme/app_theme.dart';
+import 'package:sehatak/presentation/screens/chat/chat_room_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -12,7 +13,6 @@ class _ChatScreenState extends State<ChatScreen> {
   int _activeTab = 0;
   final List<String> _tabs = ['الكل', 'الأطباء', 'الصيدليات', 'الذكاء الاصطناعي'];
 
-  // بيانات المحادثات
   final List<Map<String, dynamic>> _chats = [
     {
       'name': 'المساعد الصحي الذكي',
@@ -85,30 +85,17 @@ class _ChatScreenState extends State<ChatScreen> {
             fontFamily: 'Tajawal',
           ),
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.search, color: AppTheme.primaryColor),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: Icon(Icons.rate_review_outlined, color: AppTheme.primaryColor),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: Column(
         children: [
-          // نظام الفلاتر العلوية
           _buildFilterTabs(isDark),
-          // قائمة المحادثات
           Expanded(
             child: ListView.builder(
               physics: const BouncingScrollPhysics(),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               itemCount: _filteredChats.length,
               itemBuilder: (context, index) {
-                final chat = _filteredChats[index];
-                return _buildChatCard(chat);
+                return _buildChatCard(_filteredChats[index]);
               },
             ),
           ),
@@ -117,9 +104,6 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  // ============================================================
-  // 🧩 بناء تبويبات الفلترة
-  // ============================================================
   Widget _buildFilterTabs(bool isDark) {
     return Container(
       height: 56,
@@ -160,9 +144,6 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  // ============================================================
-  // 🧩 بناء كرت المحادثة الموحد
-  // ============================================================
   Widget _buildChatCard(Map<String, dynamic> chat) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final labelColor = chat['labelColor'] as Color;
@@ -172,39 +153,15 @@ class _ChatScreenState extends State<ChatScreen> {
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1A2540) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? Colors.grey[800]! : AppTheme.cardBorderColor,
-          width: 0.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.01),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: isDark ? Colors.grey[800]! : AppTheme.cardBorderColor, width: 0.5),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: Stack(
-          alignment: Alignment.bottomRight,
-          children: [
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                color: labelColor.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(chat['icon'] as IconData, color: labelColor, size: 26),
-            ),
-            if (chat['isVerified'] as bool)
-              const CircleAvatar(
-                radius: 8,
-                backgroundColor: Colors.white,
-                child: Icon(Icons.check_circle, color: Colors.blue, size: 14),
-              ),
-          ],
+        leading: Container(
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(color: labelColor.withOpacity(0.1), shape: BoxShape.circle),
+          child: Icon(chat['icon'] as IconData, color: labelColor, size: 26),
         ),
         title: Row(
           children: [
@@ -213,30 +170,13 @@ class _ChatScreenState extends State<ChatScreen> {
                 chat['name'] as String,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.primaryColor,
-                  fontSize: 15,
-                  fontFamily: 'Tajawal',
-                ),
+                style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryColor, fontSize: 15, fontFamily: 'Tajawal'),
               ),
             ),
-            const SizedBox(width: 6),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: labelColor.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text(
-                chat['label'] as String,
-                style: TextStyle(
-                  color: labelColor,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Tajawal',
-                ),
-              ),
+              decoration: BoxDecoration(color: labelColor.withOpacity(0.12), borderRadius: BorderRadius.circular(6)),
+              child: Text(chat['label'] as String, style: TextStyle(color: labelColor, fontSize: 10, fontWeight: FontWeight.bold, fontFamily: 'Tajawal')),
             ),
           ],
         ),
@@ -246,43 +186,20 @@ class _ChatScreenState extends State<ChatScreen> {
             chat['message'] as String,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: (chat['unreadCount'] as int) > 0
-                  ? (isDark ? Colors.white : Colors.black87)
-                  : (isDark ? Colors.grey[500] : Colors.grey[500]),
-              fontSize: 13,
-              fontFamily: 'Tajawal',
-            ),
+            style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[500], fontSize: 13, fontFamily: 'Tajawal'),
           ),
         ),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              chat['time'] as String,
-              style: TextStyle(
-                color: isDark ? Colors.grey[500] : Colors.grey[400],
-                fontSize: 11,
-                fontFamily: 'Tajawal',
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChatRoomScreen(
+                contactName: chat['name'] as String,
+                contactType: chat['label'] as String,
               ),
             ),
-            if ((chat['unreadCount'] as int) > 0)
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                child: Text(
-                  '${chat['unreadCount']}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-          ],
-        ),
-        onTap: () {},
+          );
+        },
       ),
     );
   }
