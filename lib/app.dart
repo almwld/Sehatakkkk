@@ -1,154 +1,115 @@
 import 'package:flutter/material.dart';
-import 'presentation/screens/auth/splash_screen.dart';
-import 'presentation/screens/auth/login_screen.dart';
-import 'presentation/screens/auth/register_screen.dart';
-import 'presentation/screens/auth/forgot_password_screen.dart';
-import 'presentation/screens/auth/otp_verification_screen.dart';
-import 'presentation/screens/auth/reset_password_screen.dart';
-import 'presentation/screens/home/main_navigation.dart';
-import 'presentation/screens/home/home_screen.dart';
-import 'presentation/screens/doctor/doctors_list_screen.dart';
-import 'presentation/screens/doctor/doctor_details_screen.dart';
-import 'presentation/screens/doctor/doctor_booking_screen.dart';
-import 'presentation/screens/patient/patient_dashboard.dart';
-import 'presentation/screens/patient/patient_profile.dart';
-import 'presentation/screens/patient/patient_medical_history.dart';
-import 'presentation/screens/patient/patient_appointments.dart';
-import 'presentation/screens/patient/patient_prescriptions.dart';
-import 'presentation/screens/pharmacy/pharmacies_list_screen.dart';
-import 'presentation/screens/pharmacy/pharmacy_products_screen.dart';
-import 'presentation/screens/pharmacy/cart_screen.dart';
-import 'presentation/screens/lab/labs_list_screen.dart';
-import 'presentation/screens/lab/lab_tests_screen.dart';
-import 'presentation/screens/lab/test_booking_screen.dart';
-import 'presentation/screens/insurance/insurance_companies.dart';
-import 'presentation/screens/insurance/insurance_plans.dart';
-import 'presentation/screens/health/health_dashboard.dart';
-import 'presentation/screens/payment/wallet_screen.dart';
-import 'presentation/screens/payment/payment_methods.dart';
-import 'presentation/screens/emergencies/emergency_numbers.dart';
-import 'presentation/screens/emergencies/sos_screen.dart';
-import 'presentation/screens/settings/settings_screen.dart';
-import 'presentation/screens/reports/reports_dashboard.dart';
-import 'presentation/screens/shared/notifications_screen.dart';
-import 'presentation/screens/shared/search_screen.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:sehatak/core/providers/user_provider.dart';
+import 'package:sehatak/core/providers/font_size_provider.dart';
+import 'package:sehatak/presentation/bloc/auth_bloc/auth_bloc.dart';
+import 'package:sehatak/presentation/bloc/theme_bloc/theme_bloc.dart';
+import 'package:sehatak/presentation/screens/auth/splash_screen.dart';
+import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/app_router.dart';
 
-class AppRouter {
-  static const String splash = '/';
-  static const String login = '/login';
-  static const String register = '/register';
-  static const String forgotPassword = '/forgot-password';
-  static const String otpVerification = '/otp-verification';
-  static const String resetPassword = '/reset-password';
-  static const String mainNav = '/main';
-  static const String home = '/home';
-  static const String doctorsList = '/doctors';
-  static const String doctorDetails = '/doctor-details';
-  static const String doctorBooking = '/doctor-booking';
-  static const String patientDashboard = '/patient-dashboard';
-  static const String patientProfile = '/patient-profile';
-  static const String patientMedicalHistory = '/patient-medical-history';
-  static const String patientAppointments = '/patient-appointments';
-  static const String patientPrescriptions = '/patient-prescriptions';
-  static const String pharmaciesList = '/pharmacies';
-  static const String pharmacyProducts = '/pharmacy-products';
-  static const String cart = '/cart';
-  static const String labsList = '/labs';
-  static const String labTests = '/lab-tests';
-  static const String testBooking = '/test-booking';
-  static const String insuranceCompanies = '/insurance';
-  static const String insurancePlans = '/insurance-plans';
-  static const String healthDashboard = '/health';
-  static const String wallet = '/wallet';
-  static const String paymentMethods = '/payment-methods';
-  static const String emergencyNumbers = '/emergency';
-  static const String sos = '/sos';
-  static const String settings = '/settings';
-  static const String reports = '/reports';
-  static const String notifications = '/notifications';
-  static const String search = '/search';
+class SehatakApp extends StatelessWidget {
+  const SehatakApp({super.key});
 
-  static Route<dynamic> generateRoute(RouteSettings settings) {
-    switch (settings.name) {
-      case splash:
-        return MaterialPageRoute(builder: (_) => const SplashScreen());
-      case login:
-        return MaterialPageRoute(builder: (_) => const LoginScreen());
-      case register:
-        return MaterialPageRoute(builder: (_) => const RegisterScreen());
-      case forgotPassword:
-        return MaterialPageRoute(builder: (_) => const ForgotPasswordScreen());
-      case otpVerification:
-        final phone = settings.arguments as String?;
-        return MaterialPageRoute(builder: (_) => OtpVerificationScreen(phone: phone ?? ''));
-      case resetPassword:
-        return MaterialPageRoute(builder: (_) => const ResetPasswordScreen());
-      case mainNav:
-        return MaterialPageRoute(builder: (_) => const MainNavigation());
-      case home:
-        return MaterialPageRoute(builder: (_) => const HomeScreen());
-      case doctorsList:
-        return MaterialPageRoute(builder: (_) => const DoctorsListScreen());
-      case doctorDetails:
-        final doctorId = settings.arguments as String?;
-        return MaterialPageRoute(builder: (_) => DoctorDetailsScreen(doctorId: doctorId ?? ''));
-      case doctorBooking:
-        final doctorId = settings.arguments as String?;
-        return MaterialPageRoute(builder: (_) => DoctorBookingScreen(doctorId: doctorId ?? ''));
-      case patientDashboard:
-        return MaterialPageRoute(builder: (_) => const PatientDashboard());
-      case patientProfile:
-        return MaterialPageRoute(builder: (_) => const PatientProfile());
-      case patientMedicalHistory:
-        return MaterialPageRoute(builder: (_) => const PatientMedicalHistory());
-      case patientAppointments:
-        return MaterialPageRoute(builder: (_) => const PatientAppointments());
-      case patientPrescriptions:
-        return MaterialPageRoute(builder: (_) => const PatientPrescriptions());
-      case pharmaciesList:
-        return MaterialPageRoute(builder: (_) => const PharmaciesListScreen());
-      case pharmacyProducts:
-        final pharmacyId = settings.arguments as String?;
-        return MaterialPageRoute(builder: (_) => PharmacyProductsScreen(pharmacyId: pharmacyId ?? ''));
-      case cart:
-        return MaterialPageRoute(builder: (_) => const CartScreen());
-      case labsList:
-        return MaterialPageRoute(builder: (_) => const LabsListScreen());
-      case labTests:
-        final labId = settings.arguments as String?;
-        return MaterialPageRoute(builder: (_) => LabTestsScreen(labId: labId ?? ''));
-      case testBooking:
-        final testId = settings.arguments as String?;
-        return MaterialPageRoute(builder: (_) => TestBookingScreen(testId: testId ?? ''));
-      case insuranceCompanies:
-        return MaterialPageRoute(builder: (_) => const InsuranceCompanies());
-      case insurancePlans:
-        final companyId = settings.arguments as String?;
-        return MaterialPageRoute(builder: (_) => InsurancePlans(companyId: companyId ?? ''));
-      case healthDashboard:
-        return MaterialPageRoute(builder: (_) => const HealthDashboard());
-      case wallet:
-        return MaterialPageRoute(builder: (_) => const WalletScreen());
-      case paymentMethods:
-        return MaterialPageRoute(builder: (_) => const PaymentMethods());
-      case emergencyNumbers:
-        return MaterialPageRoute(builder: (_) => const EmergencyNumbers());
-      case sos:
-        return MaterialPageRoute(builder: (_) => const SosScreen());
-      case settings:
-        return MaterialPageRoute(builder: (_) => const SettingsScreen());
-      case reports:
-        return MaterialPageRoute(builder: (_) => const ReportsDashboard());
-      case notifications:
-        return MaterialPageRoute(builder: (_) => const NotificationsScreen());
-      case search:
-        return MaterialPageRoute(builder: (_) => const SearchScreen());
-      default:
-        return MaterialPageRoute(
-          builder: (_) => Scaffold(
-            body: Center(child: Text('No route defined for ${settings.name}')),
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ThemeBloc, ThemeState>(
+      builder: (context, themeState) {
+        final fontScale = context.watch<FontSizeProvider>().fontScale;
+
+        final lightTheme = ThemeData(
+          useMaterial3: true,
+          brightness: Brightness.light,
+          primaryColor: const Color(0xFF0D9488),
+          scaffoldBackgroundColor: const Color(0xFFF8FAFC),
+          fontFamily: 'Cairo',
+          textTheme: GoogleFonts.interTextTheme(
+            ThemeData.light().textTheme,
+          ).copyWith(
+            displayLarge: TextStyle(fontSize: 57 * fontScale, fontWeight: FontWeight.bold, color: const Color(0xFF1E293B)),
+            displayMedium: TextStyle(fontSize: 45 * fontScale, fontWeight: FontWeight.bold, color: const Color(0xFF1E293B)),
+            displaySmall: TextStyle(fontSize: 36 * fontScale, fontWeight: FontWeight.bold, color: const Color(0xFF1E293B)),
+            headlineLarge: TextStyle(fontSize: 32 * fontScale, fontWeight: FontWeight.bold, color: const Color(0xFF1E293B)),
+            headlineMedium: TextStyle(fontSize: 28 * fontScale, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B)),
+            headlineSmall: TextStyle(fontSize: 24 * fontScale, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B)),
+            titleLarge: TextStyle(fontSize: 22 * fontScale, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B)),
+            titleMedium: TextStyle(fontSize: 16 * fontScale, fontWeight: FontWeight.w500, color: const Color(0xFF1E293B)),
+            titleSmall: TextStyle(fontSize: 14 * fontScale, fontWeight: FontWeight.w500, color: const Color(0xFF475569)),
+            bodyLarge: TextStyle(fontSize: 16 * fontScale, color: const Color(0xFF1E293B)),
+            bodyMedium: TextStyle(fontSize: 14 * fontScale, color: const Color(0xFF475569)),
+            bodySmall: TextStyle(fontSize: 12 * fontScale, color: const Color(0xFF94A3B8)),
+            labelLarge: TextStyle(fontSize: 14 * fontScale, fontWeight: FontWeight.w500, color: const Color(0xFF1E293B)),
+            labelMedium: TextStyle(fontSize: 12 * fontScale, color: const Color(0xFF475569)),
+            labelSmall: TextStyle(fontSize: 11 * fontScale, color: const Color(0xFF94A3B8)),
+          ),
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Color(0xFF0D9488),
+            foregroundColor: Colors.white,
+            elevation: 0,
+            centerTitle: true,
+          ),
+          cardTheme: CardTheme(
+            color: Colors.white,
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            margin: const EdgeInsets.all(8),
+          ),
+          inputDecorationTheme: InputDecorationTheme(
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.shade200),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFF0D9488), width: 2),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          ),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0D9488),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+            ),
+          ),
+          bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+            backgroundColor: Colors.white,
+            selectedItemColor: Color(0xFF0D9488),
+            unselectedItemColor: Color(0xFF94A3B8),
+            selectedLabelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+            unselectedLabelStyle: TextStyle(fontSize: 12),
+            elevation: 8,
           ),
         );
-    }
+
+        return MaterialApp(
+          title: 'صحتك',
+          debugShowCheckedModeBanner: false,
+          locale: const Locale('ar', 'YE'),
+          supportedLocales: const [
+            Locale('ar', 'YE'),
+            Locale('en', 'US'),
+          ],
+          theme: lightTheme,
+          themeMode: ThemeMode.light,
+          onGenerateRoute: AppRouter.generateRoute,
+          initialRoute: AppRouter.splash,
+        );
+      },
+    );
   }
 }

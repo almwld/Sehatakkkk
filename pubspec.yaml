@@ -128,6 +128,11 @@ dependencies:
   workmanager: ^0.5.2
   flutter_background_service: ^5.0.5
 
+  # ============================================================
+  # 🔤 Google Fonts
+  # ============================================================
+  google_fonts: ^6.2.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -160,7 +165,7 @@ flutter:
     - assets/audio/
 
   # ============================================================
-  # 🔤 Fonts - Cairo
+  # 🔤 Fonts - Cairo (للعربية)
   # ============================================================
   fonts:
     - family: Cairo
@@ -174,52 +179,6 @@ flutter:
           weight: 500
         - asset: assets/fonts/Cairo-Light.ttf
           weight: 300
-
-    - family: Tajawal
-      fonts:
-        - asset: assets/fonts/Tajawal-Regular.ttf
-        - asset: assets/fonts/Tajawal-Bold.ttf
-          weight: 700
-        - asset: assets/fonts/Tajawal-Medium.ttf
-          weight: 500
-
-    - family: NotoSansArabic
-      fonts:
-        - asset: assets/fonts/NotoSansArabic-Regular.ttf
-        - asset: assets/fonts/NotoSansArabic-Bold.ttf
-          weight: 700
-        - asset: assets/fonts/NotoSansArabic-Medium.ttf
-          weight: 500
-
-    - family: Rubik
-      fonts:
-        - asset: assets/fonts/Rubik-Regular.ttf
-        - asset: assets/fonts/Rubik-Bold.ttf
-          weight: 700
-        - asset: assets/fonts/Rubik-Medium.ttf
-          weight: 500
-        - asset: assets/fonts/Rubik-Light.ttf
-          weight: 300
-
-    - family: Inter
-      fonts:
-        - asset: assets/fonts/Inter_18pt-Black.ttf
-          weight: 900
-        - asset: assets/fonts/Inter_18pt-ExtraBold.ttf
-          weight: 800
-        - asset: assets/fonts/Inter_18pt-Bold.ttf
-          weight: 700
-        - asset: assets/fonts/Inter_18pt-SemiBold.ttf
-          weight: 600
-        - asset: assets/fonts/Inter_18pt-Medium.ttf
-          weight: 500
-        - asset: assets/fonts/Inter_18pt-Regular.ttf
-          weight: 400
-        - asset: assets/fonts/Inter_18pt-Light.ttf
-          weight: 300
-        - asset: assets/fonts/Inter_18pt-Italic.ttf
-          weight: 400
-          style: italic
 
   # ============================================================
   # 🖼️ Launcher Icons
