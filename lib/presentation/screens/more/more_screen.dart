@@ -15,7 +15,6 @@ import 'package:sehatak/presentation/screens/services/services_screen.dart';
 import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
 import 'package:sehatak/presentation/screens/insurance/insurance_companies.dart';
 import 'package:sehatak/presentation/screens/health/health_dashboard.dart';
-import 'package:sehatak/presentation/screens/ai/symptom_checker_screen.dart';
 
 class MoreScreen extends StatefulWidget {
   const MoreScreen({super.key});
@@ -34,9 +33,7 @@ class _MoreScreenState extends State<MoreScreen> {
     'لوجستيات',
   ];
 
-  // ✅ قائمة الخدمات المصنفة
   final List<Map<String, dynamic>> _services = [
-    // 📋 الملف الشخصي
     {
       'id': 'profile',
       'title': 'الملف الشخصي',
@@ -65,8 +62,6 @@ class _MoreScreenState extends State<MoreScreen> {
       'category': 'الكل',
       'screen': const PatientMedicalHistory(),
     },
-
-    // 💰 المالية
     {
       'id': 'wallet',
       'title': 'محفظتي',
@@ -81,8 +76,6 @@ class _MoreScreenState extends State<MoreScreen> {
       'category': 'الكل',
       'screen': const ReportsDashboard(),
     },
-
-    // 👨‍👩‍👧‍👦 رعاية عائلية
     {
       'id': 'family_doctor',
       'title': 'طبيب العائلة',
@@ -111,14 +104,12 @@ class _MoreScreenState extends State<MoreScreen> {
       'category': 'رعاية عائلية',
       'screen': const ServicesScreen(),
     },
-
-    // 🩺 أدوات تشخيصية
     {
       'id': 'symptom_checker',
       'title': 'فحص الأعراض',
       'icon': AppIcons.specialtyBrain,
       'category': 'أدوات تشخيصية',
-      'screen': const SymptomCheckerScreen(),
+      'screen': const HealthDashboard(),
     },
     {
       'id': 'stress_meter',
@@ -134,8 +125,6 @@ class _MoreScreenState extends State<MoreScreen> {
       'category': 'أدوات تشخيصية',
       'screen': const HealthDashboard(),
     },
-
-    // 🏥 لوجستيات
     {
       'id': 'labs',
       'title': 'المختبرات',
@@ -174,7 +163,6 @@ class _MoreScreenState extends State<MoreScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final AppColors.primaryColor = const Color(0xFF0D5257);
     final filteredServices = _filteredServices;
 
     return Scaffold(
@@ -195,11 +183,8 @@ class _MoreScreenState extends State<MoreScreen> {
       ),
       body: Column(
         children: [
-          // ✅ شريط الفلتر
           _buildFilterChips(isDark),
           const SizedBox(height: 8),
-
-          // ✅ قائمة الخدمات
           Expanded(
             child: filteredServices.isEmpty
                 ? _buildEmptyState(isDark)
@@ -217,9 +202,6 @@ class _MoreScreenState extends State<MoreScreen> {
     );
   }
 
-  // ============================================================
-  // 🧩 ويدجتس
-  // ============================================================
   Widget _buildFilterChips(bool isDark) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -282,7 +264,7 @@ class _MoreScreenState extends State<MoreScreen> {
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: const Color(0xFF0D5257).withOpacity(0.08),
+            color: AppColors.primaryColor.withOpacity(0.08),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Center(
@@ -291,17 +273,17 @@ class _MoreScreenState extends State<MoreScreen> {
                     iconPath,
                     width: 24,
                     height: 24,
-                    color: const Color(0xFF0D5257),
+                    color: AppColors.primaryColor,
                   )
                 : Image.asset(
                     iconPath,
                     width: 24,
                     height: 24,
-                    color: const Color(0xFF0D5257),
+                    color: AppColors.primaryColor,
                     errorBuilder: (context, error, stackTrace) {
                       return Icon(
                         Icons.medical_services_rounded,
-                        color: const Color(0xFF0D5257),
+                        color: AppColors.primaryColor,
                         size: 24,
                       );
                     },

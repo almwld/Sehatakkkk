@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class LabTestsScreen extends StatelessWidget {
-  final String labId;
-  const LabTestsScreen({super.key, this.labId = ''});
+  const LabTestsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

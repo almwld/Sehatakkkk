@@ -6,6 +6,7 @@ import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/app_icons.dart';
 import 'package:sehatak/presentation/screens/edit_profile/edit_profile_screen.dart';
 import 'package:sehatak/presentation/screens/settings/settings_screen.dart';
+import 'package:sehatak/presentation/screens/auth/login_screen.dart';
 
 class PatientProfile extends StatefulWidget {
   const PatientProfile({super.key});
@@ -79,7 +80,7 @@ class _PatientProfileState extends State<PatientProfile> {
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: const Text('ملفي الشخصي'),
-        backgroundColor: const Color(0xFF0D5257),
+        backgroundColor: AppColors.primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
@@ -112,15 +113,10 @@ class _PatientProfileState extends State<PatientProfile> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ✅ الصورة والاسم
             _buildProfileHeader(photoUrl, name, email, isDark),
             const SizedBox(height: 20),
-
-            // ✅ الإحصائيات السريعة
             _buildQuickStats(isDark),
             const SizedBox(height: 20),
-
-            // ✅ المعلومات الشخصية
             _buildInfoSection('المعلومات الشخصية', isDark),
             const SizedBox(height: 12),
             _buildInfoCard([
@@ -132,18 +128,12 @@ class _PatientProfileState extends State<PatientProfile> {
               {'icon': Icons.email_rounded, 'label': 'البريد الإلكتروني', 'value': email},
             ], isDark),
             const SizedBox(height: 20),
-
-            // ✅ الإحصائيات الصحية
             _buildInfoSection('الإحصائيات الصحية', isDark),
             const SizedBox(height: 12),
             _buildHealthStats(isDark),
             const SizedBox(height: 20),
-
-            // ✅ أزرار سريعة
             _buildQuickActions(isDark),
             const SizedBox(height: 20),
-
-            // ✅ زر تسجيل الخروج
             _buildLogoutButton(isDark),
           ],
         ),
@@ -163,7 +153,7 @@ class _PatientProfileState extends State<PatientProfile> {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             border: Border.all(
-              color: const Color(0xFF0D5257),
+              color: AppColors.primaryColor,
               width: 3,
             ),
           ),
@@ -183,14 +173,14 @@ class _PatientProfileState extends State<PatientProfile> {
                     ),
                   )
                 : Container(
-                    color: const Color(0xFF0D5257).withOpacity(0.1),
+                    color: AppColors.primaryColor.withOpacity(0.1),
                     child: Center(
                       child: Text(
                         name.isNotEmpty ? name[0] : 'م',
                         style: const TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF0D5257),
+                          color: AppColors.primaryColor,
                         ),
                       ),
                     ),
@@ -276,7 +266,7 @@ class _PatientProfileState extends State<PatientProfile> {
         ),
         child: Column(
           children: [
-            Icon(icon, color: const Color(0xFF0D5257), size: 22),
+            Icon(icon, color: AppColors.primaryColor, size: 22),
             const SizedBox(height: 4),
             Text(
               value,
@@ -306,7 +296,7 @@ class _PatientProfileState extends State<PatientProfile> {
           width: 4,
           height: 20,
           decoration: BoxDecoration(
-            color: const Color(0xFF0D5257),
+            color: AppColors.primaryColor,
             borderRadius: BorderRadius.circular(2),
           ),
         ),
@@ -353,7 +343,7 @@ class _PatientProfileState extends State<PatientProfile> {
             children: [
               Icon(
                 item['icon'] as IconData,
-                color: hasValue ? const Color(0xFF0D5257) : Colors.grey,
+                color: hasValue ? AppColors.primaryColor : Colors.grey,
                 size: 20,
               ),
               const SizedBox(height: 4),
@@ -469,7 +459,7 @@ class _PatientProfileState extends State<PatientProfile> {
 
   Widget _buildQuickActions(bool isDark) {
     final actions = [
-      {'icon': Icons.medical_services_rounded, 'label': 'استشارة', 'color': const Color(0xFF0D5257)},
+      {'icon': Icons.medical_services_rounded, 'label': 'استشارة', 'color': AppColors.primaryColor},
       {'icon': Icons.calendar_month_rounded, 'label': 'موعد', 'color': Colors.blue},
       {'icon': Icons.local_pharmacy_rounded, 'label': 'صيدلية', 'color': Colors.green},
       {'icon': Icons.science_rounded, 'label': 'مختبر', 'color': Colors.purple},
