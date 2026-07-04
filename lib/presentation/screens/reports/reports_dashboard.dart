@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/services/reports/reports_service.dart';
+import 'package:sehatak/data/models/reports/report_model.dart';
 
 class ReportsDashboard extends StatefulWidget {
   const ReportsDashboard({super.key});
@@ -9,202 +12,35 @@ class ReportsDashboard extends StatefulWidget {
 }
 
 class _ReportsDashboardState extends State<ReportsDashboard> {
-  final List<Map<String, dynamic>> _reports = [
-    {
-      'id': '1',
-      'title': 'تقرير الدهون الثلاثية',
-      'doctor': 'د. عثمان خان',
-      'date': '25 أبريل 2026',
-      'type': 'تحليل',
-      'status': 'مرتفع',
-      'size': '195 KB',
-      'result': 'نسبة الدهون الثلاثية: 210 mg/dL (مرتفع)\nالقيمة الطبيعية: أقل من 150 mg/dL',
-    },
-    {
-      'id': '2',
-      'title': 'تقرير السكر التراكمي HbA1c',
-      'doctor': 'د. حسن رضا',
-      'date': '20 أبريل 2026',
-      'type': 'تحليل',
-      'status': 'طبيعي',
-      'size': '210 KB',
-      'result': 'نسبة السكر التراكمي: 5.8%\nالقيمة الطبيعية: أقل من 5.7%',
-    },
-    {
-      'id': '3',
-      'title': 'تقرير فيتامين د',
-      'doctor': 'د. عائشة ملك',
-      'date': '15 أبريل 2026',
-      'type': 'تحليل',
-      'status': 'منخفض',
-      'size': '175 KB',
-      'result': 'نسبة فيتامين د: 18 ng/mL (منخفض)\nالقيمة الطبيعية: 30-100 ng/mL',
-    },
-    {
-      'id': '4',
-      'title': 'تقرير الغدة الدرقية',
-      'doctor': 'د. حسن رضا',
-      'date': '10 أبريل 2026',
-      'type': 'تحليل',
-      'status': 'طبيعي',
-      'size': '230 KB',
-      'result': 'TSH: 2.5 mIU/L (طبيعي)\nT3: 1.2 ng/mL (طبيعي)\nT4: 8.5 µg/dL (طبيعي)',
-    },
-    {
-      'id': '5',
-      'title': 'تقرير تخطيط القلب',
-      'doctor': 'د. عثمان خان',
-      'date': '5 أبريل 2026',
-      'type': 'تخطيط',
-      'status': 'طبيعي',
-      'size': '450 KB',
-      'result': 'نبضات القلب منتظمة\nمعدل ضربات القلب: 72 bpm',
-    },
-  ];
+  final ReportsService _reportsService = ReportsService();
+  
+  UserStatsModel? _stats;
+  List<ChartDataModel> _chartData = [];
+  List<MedicalReportModel> _medicalReports = [];
+  List<MedicationReportModel> _medicationReports = [];
+  
+  bool _isLoading = true;
+  ChartType _selectedChart = ChartType.appointments;
+  int _selectedTab = 0;
 
-  void _showReportDetails(Map<String, dynamic> report) {
-    final statusColor = report['status'] == 'طبيعي'
-        ? AppColors.success
-        : report['status'] == 'مرتفع'
-            ? AppColors.error
-            : AppColors.warning;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.description_rounded, color: AppColors.primary),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        report['title'],
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        '${report['date']} • ${report['type']}',
-                        style: TextStyle(color: AppColors.grey, fontSize: 12),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    report['status'],
-                    style: TextStyle(color: statusColor, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const Divider(),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                _detailChip('👨‍⚕️ ${report['doctor']}'),
-                const SizedBox(width: 8),
-                _detailChip('📁 ${report['size']}'),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'نتيجة التقرير',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade50,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                report['result'],
-                style: const TextStyle(fontSize: 14, height: 1.8),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('📄 جاري تحميل PDF...'),
-                          backgroundColor: AppColors.success,
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.picture_as_pdf_rounded),
-                    label: const Text('تحميل PDF'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.error,
-                      foregroundColor: Colors.white,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close_rounded),
-                    label: const Text('إغلاق'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.grey,
-                      foregroundColor: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
   }
 
-  Widget _detailChip(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(fontSize: 11, color: AppColors.primary),
-      ),
-    );
+  Future<void> _loadData() async {
+    setState(() => _isLoading = true);
+    try {
+      _stats = await _reportsService.getUserStats('user_123');
+      _chartData = await _reportsService.getChartData('user_123', _selectedChart);
+      _medicalReports = await _reportsService.getMedicalReports('user_123');
+      _medicationReports = await _reportsService.getMedicationReports('user_123');
+    } catch (e) {
+      print('❌ Error loading reports: $e');
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -212,158 +48,566 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
+      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('التقارير الطبية', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: AppColors.primary,
+        title: const Text('التقارير والإحصائيات'),
+        backgroundColor: const Color(0xFF0D5257),
         foregroundColor: Colors.white,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded),
+            onPressed: _loadData,
+          ),
+        ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            // ✅ إحصائيات سريعة
-            _buildStats(),
-            const SizedBox(height: 20),
-            // ✅ قائمة التقارير
-            ..._reports.map((report) => _buildReportCard(report, isDark)),
-          ],
-        ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _stats == null
+              ? _buildErrorWidget(isDark)
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ✅ بطاقة الإحصائيات
+                      _buildStatsCards(isDark),
+                      const SizedBox(height: 16),
+
+                      // ✅ الرسم البياني
+                      _buildChartSection(isDark),
+                      const SizedBox(height: 16),
+
+                      // ✅ تبويبات التقارير
+                      _buildTabs(isDark),
+                      const SizedBox(height: 16),
+
+                      // ✅ المحتوى حسب التبويب
+                      _buildTabContent(isDark),
+                      const SizedBox(height: 20),
+                    ],
+                  ),
+                ),
+    );
+  }
+
+  Widget _buildErrorWidget(bool isDark) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: 64,
+            color: isDark ? Colors.grey[600] : Colors.grey[400],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'حدث خطأ في تحميل التقارير',
+            style: TextStyle(
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: _loadData,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0D5257),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('إعادة المحاولة'),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildStats() {
-    return Row(
-      children: [
-        _statCard('4', 'يحتاج متابعة', AppColors.error),
-        const SizedBox(width: 8),
-        _statCard('7', 'طبيعي', AppColors.success),
-        const SizedBox(width: 8),
-        _statCard('11', 'تقرير', AppColors.info),
-      ],
-    );
-  }
+  // ============================================================
+  // 📊 بطاقات الإحصائيات
+  // ============================================================
+  Widget _buildStatsCards(bool isDark) {
+    final stats = _stats!;
+    final cards = [
+      {
+        'label': 'المواعيد',
+        'value': '${stats.totalAppointments}',
+        'icon': Icons.calendar_today_rounded,
+        'color': const Color(0xFF0D5257),
+      },
+      {
+        'label': 'المكتملة',
+        'value': '${stats.completedAppointments}',
+        'icon': Icons.check_circle_rounded,
+        'color': Colors.green,
+      },
+      {
+        'label': 'الطلبات',
+        'value': '${stats.totalOrders}',
+        'icon': Icons.shopping_bag_rounded,
+        'color': Colors.orange,
+      },
+      {
+        'label': 'المصروف',
+        'value': '${stats.totalSpent.toStringAsFixed(0)} ر.ي',
+        'icon': Icons.payment_rounded,
+        'color': Colors.blue,
+      },
+    ];
 
-  Widget _statCard(String value, String label, Color color) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.06),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          children: [
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 1.2,
+      ),
+      itemCount: cards.length,
+      itemBuilder: (context, index) {
+        final card = cards[index];
+        final color = card['color'] as Color;
+        return Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1A2540) : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 8,
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                card['icon'] as IconData,
                 color: color,
+                size: 28,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                card['value'] as String,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+              Text(
+                card['label'] as String,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // ============================================================
+  // 📈 الرسم البياني
+  // ============================================================
+  Widget _buildChartSection(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2540) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'الرسم البياني',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+              DropdownButton<ChartType>(
+                value: _selectedChart,
+                dropdownColor: isDark ? const Color(0xFF1A2540) : Colors.white,
+                style: TextStyle(
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+                items: ChartType.values.map((type) {
+                  return DropdownMenuItem(
+                    value: type,
+                    child: Text(_getChartLabel(type)),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      _selectedChart = value;
+                      _loadData();
+                    });
+                  }
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 200,
+            child: BarChart(
+              BarChartData(
+                alignment: BarChartAlignment.spaceAround,
+                maxY: _chartData.map((e) => e.value).reduce((a, b) => a > b ? a : b) * 1.2,
+                barGroups: _chartData.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final data = entry.value;
+                  return BarChartGroupData(
+                    x: index,
+                    barRods: [
+                      BarChartRodData(
+                        toY: data.value,
+                        color: const Color(0xFF0D5257),
+                        width: 20,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ],
+                  );
+                }).toList(),
+                titlesData: FlTitlesData(
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (value, meta) {
+                        final index = value.toInt();
+                        if (index < _chartData.length) {
+                          return Text(
+                            _chartData[index].label,
+                            style: const TextStyle(fontSize: 10),
+                          );
+                        }
+                        return const Text('');
+                      },
+                    ),
+                  ),
+                ),
               ),
             ),
-            Text(
-              label,
-              style: TextStyle(fontSize: 10, color: AppColors.grey),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildReportCard(Map<String, dynamic> report, bool isDark) {
-    final statusColor = report['status'] == 'طبيعي'
-        ? AppColors.success
-        : report['status'] == 'مرتفع'
-            ? AppColors.error
-            : AppColors.warning;
+  String _getChartLabel(ChartType type) {
+    switch (type) {
+      case ChartType.appointments:
+        return 'المواعيد';
+      case ChartType.orders:
+        return 'الطلبات';
+      case ChartType.spending:
+        return 'المصروف';
+      case ChartType.consultations:
+        return 'الاستشارات';
+    }
+  }
 
-    return GestureDetector(
-      onTap: () => _showReportDetails(report),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1A2540) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 8,
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(Icons.description_rounded, color: AppColors.primary),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    report['title'],
+  // ============================================================
+  // 📋 تبويبات التقارير
+  // ============================================================
+  Widget _buildTabs(bool isDark) {
+    final tabs = ['التقارير الطبية', 'الأدوية'];
+    return Container(
+      height: 40,
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2540) : Colors.grey[100],
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        children: List.generate(tabs.length, (index) {
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => setState(() => _selectedTab = index),
+              child: Container(
+                margin: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: _selectedTab == index
+                      ? const Color(0xFF0D5257)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Center(
+                  child: Text(
+                    tabs[index],
                     style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                      color: _selectedTab == index
+                          ? Colors.white
+                          : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                      fontWeight: _selectedTab == index
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                     ),
                   ),
-                  Text(
-                    '${report['doctor']} • ${report['date']}',
-                    style: TextStyle(fontSize: 11, color: AppColors.grey),
-                  ),
-                  Text(
-                    '${report['type']} • ${report['size']}',
-                    style: TextStyle(fontSize: 10, color: AppColors.grey),
-                  ),
-                ],
+                ),
               ),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildTabContent(bool isDark) {
+    return _selectedTab == 0
+        ? _buildMedicalReports(isDark)
+        : _buildMedicationReports(isDark);
+  }
+
+  // ============================================================
+  // 📋 التقارير الطبية
+  // ============================================================
+  Widget _buildMedicalReports(bool isDark) {
+    if (_medicalReports.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 32),
+          child: Text(
+            'لا توجد تقارير طبية',
+            style: TextStyle(
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: _medicalReports.length,
+      itemBuilder: (context, index) {
+        final report = _medicalReports[index];
+        return _buildMedicalReportCard(report, isDark);
+      },
+    );
+  }
+
+  Widget _buildMedicalReportCard(MedicalReportModel report, bool isDark) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2540) : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark ? Colors.grey[700]! : Colors.grey[200]!,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  report.title,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: report.status == 'مكتمل'
+                      ? Colors.green.withOpacity(0.1)
+                      : Colors.orange.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  report.statusLabel,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: report.status == 'مكتمل' ? Colors.green : Colors.orange,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            report.summary,
+            style: TextStyle(
+              fontSize: 12,
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Icon(
+                Icons.person_rounded,
+                size: 12,
+                color: isDark ? Colors.grey[500] : Colors.grey[400],
+              ),
+              const SizedBox(width: 4),
+              Text(
+                report.doctor,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Icon(
+                Icons.calendar_today_rounded,
+                size: 12,
+                color: isDark ? Colors.grey[500] : Colors.grey[400],
+              ),
+              const SizedBox(width: 4),
+              Text(
+                '${report.date.day}/${report.date.month}/${report.date.year}',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // 💊 تقارير الأدوية
+  // ============================================================
+  Widget _buildMedicationReports(bool isDark) {
+    if (_medicationReports.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 32),
+          child: Text(
+            'لا توجد أدوية',
+            style: TextStyle(
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: _medicationReports.length,
+      itemBuilder: (context, index) {
+        final medication = _medicationReports[index];
+        return _buildMedicationCard(medication, isDark);
+      },
+    );
+  }
+
+  Widget _buildMedicationCard(MedicationReportModel medication, bool isDark) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2540) : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: medication.status == 'نشط'
+              ? Colors.green.withOpacity(0.3)
+              : (isDark ? Colors.grey[700]! : Colors.grey[200]!),
+          width: medication.status == 'نشط' ? 1.5 : 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  medication.name,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: medication.status == 'نشط'
+                      ? Colors.green.withOpacity(0.1)
+                      : Colors.grey.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  medication.statusLabel,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: medication.status == 'نشط' ? Colors.green : Colors.grey,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              const Icon(Icons.medical_services_rounded, size: 14, color: Color(0xFF0D5257)),
+              const SizedBox(width: 4),
+              Text(
+                'الجرعة: ${medication.dosage}',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              const Icon(Icons.calendar_today_rounded, size: 14, color: Color(0xFF0D5257)),
+              const SizedBox(width: 4),
+              Text(
+                'المدة: ${medication.duration}',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                ),
+              ),
+              const SizedBox(width: 12),
+              if (medication.status == 'نشط')
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.1),
+                    color: Colors.blue.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    report['status'],
-                    style: TextStyle(
+                    'متبقي ${medication.remainingDays} يوم',
+                    style: const TextStyle(
                       fontSize: 10,
-                      color: statusColor,
-                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
-                const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.05),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    'معاينة',
-                    style: TextStyle(fontSize: 9, color: AppColors.primary),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+            ],
+          ),
+        ],
       ),
     );
   }
