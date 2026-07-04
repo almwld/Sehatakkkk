@@ -21,6 +21,7 @@ class AppColors {
   static const Color teal = Color(0xFF14B8A6);
   static const Color amber = Color(0xFFF59E0B);
   static const Color indigo = Color(0xFF6366F1);
+  static const Color orange = Color(0xFFF97316);
 
   // ============================================================
   // 🎨 الألوان المحايدة
@@ -30,6 +31,9 @@ class AppColors {
   static const Color darkGrey = Color(0xFF374151);
   static const Color white = Color(0xFFFFFFFF);
   static const Color black = Color(0xFF000000);
+  static const Color shadow = Color(0xFF000000);
+  static const Color outlineVariant = Color(0xFFD1D5DB);
+  static const Color surfaceContainerLow = Color(0xFFF3F4F6);
 
   // ============================================================
   // 🎨 تدرجات
@@ -37,6 +41,16 @@ class AppColors {
   static const List<Color> primaryGradient = [
     Color(0xFF0D9488),
     Color(0xFF0F766E),
+  ];
+
+  static const List<Color> secondaryGradient = [
+    Color(0xFF6366F1),
+    Color(0xFF4F46E5),
+  ];
+
+  static const List<Color> medicalGradient = [
+    Color(0xFF0D5257),
+    Color(0xFF0A3D42),
   ];
 
   static const List<Color> successGradient = [
@@ -48,4 +62,6 @@ class AppColors {
     Color(0xFFEF4444),
     Color(0xFFDC2626),
   ];
+
+  static const Color secondary = Color(0xFF6366F1);
 }
