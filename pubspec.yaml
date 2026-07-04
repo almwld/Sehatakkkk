@@ -133,11 +133,6 @@ dependencies:
   # ============================================================
   google_fonts: ^5.1.0
 
-  # ============================================================
-  # ⚡ Performance
-  # ============================================================
-  flutter_staggered_animations: ^1.1.1
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -152,14 +147,14 @@ flutter:
   uses-material-design: true
 
   # ============================================================
-  # 📁 Assets
+  # 📁 Assets - جميع المجلدات
   # ============================================================
   assets:
     - assets/icons/app_icon.png
     - assets/icons/consultations/
     - assets/icons/core/
-    - assets/icons/mini_specialties/
     - assets/icons/lab/
+    - assets/icons/mini_specialties/
     - assets/icons/navigation/
     - assets/icons/offers/
     - assets/icons/payment/
@@ -171,8 +166,10 @@ flutter:
     - assets/icons/specialties/
     - assets/icons/svg/
     - assets/images/
-    - assets/fonts/
+    - assets/images/medications/
+    - assets/images/pharmacies/
     - assets/audio/
+    - assets/animations/
 
   # ============================================================
   # 🔤 Fonts - OpenSans فقط
@@ -182,19 +179,16 @@ flutter:
       fonts:
         - asset: assets/fonts/OpenSans-Regular.ttf
           weight: 400
-        - asset: assets/fonts/OpenSans-Bold.ttf
-          weight: 700
         - asset: assets/fonts/OpenSans-Light.ttf
           weight: 300
         - asset: assets/fonts/OpenSans-SemiBold.ttf
           weight: 600
+        - asset: assets/fonts/OpenSans-Bold.ttf
+          weight: 700
         - asset: assets/fonts/OpenSans-Italic.ttf
           weight: 400
           style: italic
 
-  # ============================================================
-  # 🖼️ Launcher Icons
-  # ============================================================
 flutter_launcher_icons:
   android: true
   ios: false
