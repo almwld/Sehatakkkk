@@ -174,14 +174,14 @@ class _MoreScreenState extends State<MoreScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = const Color(0xFF0D5257);
+    final AppColors.primaryColor = const Color(0xFF0D5257);
     final filteredServices = _filteredServices;
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: const Text('المزيد'),
-        backgroundColor: primaryColor,
+        backgroundColor: AppColors.primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
@@ -237,10 +237,10 @@ class _MoreScreenState extends State<MoreScreen> {
               margin: const EdgeInsets.only(right: 8),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               decoration: BoxDecoration(
-                color: isSelected ? primaryColor : (isDark ? const Color(0xFF1A2540) : Colors.white),
+                color: isSelected ? AppColors.primaryColor : (isDark ? const Color(0xFF1A2540) : Colors.white),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: isSelected ? primaryColor : (isDark ? Colors.grey[700]! : Colors.grey[200]!),
+                  color: isSelected ? AppColors.primaryColor : (isDark ? Colors.grey[700]! : Colors.grey[200]!),
                 ),
               ),
               child: Center(

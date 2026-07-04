@@ -1,37 +1,37 @@
 import 'package:flutter/material.dart';
-import 'presentation/screens/auth/splash_screen.dart';
-import 'presentation/screens/auth/login_screen.dart';
-import 'presentation/screens/auth/register_screen.dart';
-import 'presentation/screens/auth/forgot_password_screen.dart';
-import 'presentation/screens/auth/otp_verification_screen.dart';
-import 'presentation/screens/auth/reset_password_screen.dart';
-import 'presentation/screens/home/main_navigation.dart';
-import 'presentation/screens/home/home_screen.dart';
-import 'presentation/screens/doctor/doctors_list_screen.dart';
-import 'presentation/screens/doctor/doctor_details_screen.dart';
-import 'presentation/screens/doctor/doctor_booking_screen.dart';
-import 'presentation/screens/patient/patient_dashboard.dart';
-import 'presentation/screens/patient/patient_profile.dart';
-import 'presentation/screens/patient/patient_medical_history.dart';
-import 'presentation/screens/patient/patient_appointments.dart';
-import 'presentation/screens/patient/patient_prescriptions.dart';
-import 'presentation/screens/pharmacy/pharmacies_list_screen.dart';
-import 'presentation/screens/pharmacy/pharmacy_products_screen.dart';
-import 'presentation/screens/pharmacy/cart_screen.dart';
-import 'presentation/screens/lab/labs_list_screen.dart';
-import 'presentation/screens/lab/lab_tests_screen.dart';
-import 'presentation/screens/lab/test_booking_screen.dart';
-import 'presentation/screens/insurance/insurance_companies.dart';
-import 'presentation/screens/insurance/insurance_plans.dart';
-import 'presentation/screens/health/health_dashboard.dart';
-import 'presentation/screens/payment/wallet_screen.dart';
-import 'presentation/screens/payment/payment_methods.dart';
-import 'presentation/screens/emergencies/emergency_numbers.dart';
-import 'presentation/screens/emergencies/sos_screen.dart';
-import 'presentation/screens/settings/settings_screen.dart';
-import 'presentation/screens/reports/reports_dashboard.dart';
-import 'presentation/screens/shared/notifications_screen.dart';
-import 'presentation/screens/shared/search_screen.dart';
+import 'package:sehatak/presentation/screens/auth/splash_screen.dart';
+import 'package:sehatak/presentation/screens/auth/login_screen.dart';
+import 'package:sehatak/presentation/screens/auth/register_screen.dart';
+import 'package:sehatak/presentation/screens/auth/forgot_password_screen.dart';
+import 'package:sehatak/presentation/screens/auth/otp_verification_screen.dart';
+import 'package:sehatak/presentation/screens/auth/reset_password_screen.dart';
+import 'package:sehatak/presentation/screens/home/main_navigation.dart';
+import 'package:sehatak/presentation/screens/home/home_screen.dart';
+import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
+import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
+import 'package:sehatak/presentation/screens/doctor/doctor_booking_screen.dart';
+import 'package:sehatak/presentation/screens/patient/patient_dashboard.dart';
+import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
+import 'package:sehatak/presentation/screens/patient/patient_medical_history.dart';
+import 'package:sehatak/presentation/screens/patient/patient_appointments.dart';
+import 'package:sehatak/presentation/screens/patient/patient_prescriptions.dart';
+import 'package:sehatak/presentation/screens/pharmacy/pharmacies_list_screen.dart';
+import 'package:sehatak/presentation/screens/pharmacy/pharmacy_products_screen.dart';
+import 'package:sehatak/presentation/screens/pharmacy/cart_screen.dart';
+import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
+import 'package:sehatak/presentation/screens/lab/lab_tests_screen.dart';
+import 'package:sehatak/presentation/screens/lab/test_booking_screen.dart';
+import 'package:sehatak/presentation/screens/insurance/insurance_companies.dart';
+import 'package:sehatak/presentation/screens/insurance/insurance_plans.dart';
+import 'package:sehatak/presentation/screens/health/health_dashboard.dart';
+import 'package:sehatak/presentation/screens/payment/wallet_screen.dart';
+import 'package:sehatak/presentation/screens/payment/payment_methods.dart';
+import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart';
+import 'package:sehatak/presentation/screens/emergencies/sos_screen.dart';
+import 'package:sehatak/presentation/screens/settings/settings_screen.dart';
+import 'package:sehatak/presentation/screens/reports/reports_dashboard.dart';
+import 'package:sehatak/presentation/screens/shared/notifications_screen.dart';
+import 'package:sehatak/presentation/screens/shared/search_screen.dart';
 
 class AppRouter {
   static const String splash = '/';
@@ -63,7 +63,7 @@ class AppRouter {
   static const String paymentMethods = '/payment-methods';
   static const String emergencyNumbers = '/emergency';
   static const String sos = '/sos';
-  static const String settings = '/settings';
+  static const String settingsScreen = '/settings';
   static const String reports = '/reports';
   static const String notifications = '/notifications';
   static const String search = '/search';
@@ -115,8 +115,7 @@ class AppRouter {
       case labsList:
         return MaterialPageRoute(builder: (_) => const LabsListScreen());
       case labTests:
-        final labId = settings.arguments as String?;
-        return MaterialPageRoute(builder: (_) => LabTestsScreen(labId: labId ?? ''));
+        return MaterialPageRoute(builder: (_) => const LabTestsScreen());
       case testBooking:
         final testId = settings.arguments as String?;
         return MaterialPageRoute(builder: (_) => TestBookingScreen(testId: testId ?? ''));
@@ -135,7 +134,7 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const EmergencyNumbers());
       case sos:
         return MaterialPageRoute(builder: (_) => const SosScreen());
-      case settings:
+      case settingsScreen:
         return MaterialPageRoute(builder: (_) => const SettingsScreen());
       case reports:
         return MaterialPageRoute(builder: (_) => const ReportsDashboard());
