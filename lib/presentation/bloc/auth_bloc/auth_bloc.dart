@@ -210,3 +210,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 }
+
+// ✅ عند تسجيل الخروج، حذف FCM Token
+import 'package:sehatak/core/services/notifications/notification_service.dart';
+
+// ✅ في دالة _onLogout
+Future<void> _onLogout(Logout event, Emitter<AuthState> emit) async {
+  emit(AuthLoading());
+  try {
+    // ✅ حذف FCM Token من Firestore
+    await NotificationService().removeTokenFromFirestore();
+    
+    await _auth.signOut();
+    await _googleSignIn.signOut();
+    emit(Unauthenticated());
+  } catch (e) {
+    emit(AuthError('حدث خطأ أثناء تسجيل الخروج'));
+  }
+}

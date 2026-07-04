@@ -75,3 +75,16 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+// ✅ تهيئة الإشعارات عند بدء التطبيق
+import 'package:sehatak/core/services/notifications/notification_service.dart';
+
+// ✅ في دالة main
+void main() async {
+  // ... الكود الحالي ...
+  
+  // ✅ تهيئة الإشعارات
+  await NotificationService().initialize();
+  
+  // ... باقي الكود ...
+}
