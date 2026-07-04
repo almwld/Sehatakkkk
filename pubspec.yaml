@@ -204,3 +204,9 @@ flutter_native_splash:
   image: assets/icons/app_icon.png
   android: true
   ios: false
+
+  # ============================================================
+  # ⚡ Performance
+  # ============================================================
+  flutter_staggered_animations: ^1.1.1
+  flutter_slidable: ^3.0.1
