@@ -395,7 +395,7 @@ class _HomeTabState extends State<_HomeTab> {
         itemBuilder: (context, index) {
           final doctor = doctors[index];
           return GestureDetector(
-            onTap: () => _go(context, DoctorDetailsScreen(doctorId: doctor['id'])),
+            onTap: () => _go(context, DoctorDetailsScreen(doctorId: doctor["id"] as String)),
             child: Container(
               width: 160,
               margin: const EdgeInsets.only(right: 8),
@@ -410,7 +410,7 @@ class _HomeTabState extends State<_HomeTab> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(10),
                     child: CachedNetworkImage(
-                      imageUrl: doctor['image'],
+                      imageUrl: doctor["image"] as String,
                       width: 50,
                       height: 50,
                       fit: BoxFit.cover,
@@ -424,8 +424,8 @@ class _HomeTabState extends State<_HomeTab> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(doctor['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
-                        Text(doctor['specialty'], style: const TextStyle(fontSize: 10, color: Colors.grey), maxLines: 1, overflow: TextOverflow.ellipsis),
+                        Text(doctor["name"] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
+                        Text(doctor["specialty"] as String, style: const TextStyle(fontSize: 10, color: Colors.grey), maxLines: 1, overflow: TextOverflow.ellipsis),
                         Row(children: [const Icon(Icons.star, color: Colors.amber, size: 12), const SizedBox(width: 2), Text('${doctor['rating']}', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold))]),
                       ],
                     ),
@@ -521,7 +521,7 @@ class _HomeTabState extends State<_HomeTab> {
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
                   child: CachedNetworkImage(
-                    imageUrl: post['image'],
+                    imageUrl: post["image"] as String,
                     height: 100,
                     width: double.infinity,
                     fit: BoxFit.cover,
@@ -536,13 +536,13 @@ class _HomeTabState extends State<_HomeTab> {
                     children: [
                       Row(
                         children: [
-                          CircleAvatar(radius: 14, backgroundImage: CachedNetworkImageProvider(post['avatar']), child: const Icon(Icons.person, size: 14)),
+                          CircleAvatar(radius: 14, backgroundImage: CachedNetworkImageProvider(post["avatar"] as String), child: const Icon(Icons.person, size: 14)),
                           const SizedBox(width: 6),
-                          Expanded(child: Text(post['author'], style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                          Expanded(child: Text(post["author"] as String, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600), maxLines: 1, overflow: TextOverflow.ellipsis)),
                         ],
                       ),
                       const SizedBox(height: 4),
-                      Text(post['title'], style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500), maxLines: 2, overflow: TextOverflow.ellipsis),
+                      Text(post["title"] as String, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500), maxLines: 2, overflow: TextOverflow.ellipsis),
                       const SizedBox(height: 4),
                       Row(
                         children: [
@@ -554,7 +554,7 @@ class _HomeTabState extends State<_HomeTab> {
                           const SizedBox(width: 2),
                           Text('${post['comments']}', style: const TextStyle(fontSize: 10, color: Colors.grey)),
                           const Spacer(),
-                          Text(post['time'], style: const TextStyle(fontSize: 9, color: Colors.grey)),
+                          Text(post["time"] as String, style: const TextStyle(fontSize: 9, color: Colors.grey)),
                         ],
                       ),
                     ],
