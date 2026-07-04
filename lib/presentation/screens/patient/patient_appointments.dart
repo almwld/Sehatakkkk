@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:intl/intl.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/services/image_service.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
 
 class PatientAppointments extends StatefulWidget {
@@ -14,77 +17,132 @@ class _PatientAppointmentsState extends State<PatientAppointments>
   late TabController _tabController;
   String _selectedFilter = 'الكل';
 
-  final List<String> _filters = ['الكل', 'قادم', 'مكتمل', 'ملغي'];
+  final List<String> _filters = [
+    'الكل',
+    'اليوم',
+    'هذا الأسبوع',
+    'هذا الشهر',
+  ];
 
-  // ✅ بيانات المواعيد التجريبية
+  // ✅ بيانات المواعيد (ملاحظة: يجب ربطها مع Firebase لاحقاً)
   final List<Map<String, dynamic>> _appointments = [
     {
       'id': '1',
-      'doctor': 'د. أحمد المولد',
+      'doctorName': 'د. أحمد المولد',
+      'doctorImage': ImageService.doctor1,
       'specialty': 'استشاري باطنية',
-      'date': '2026-07-10',
-      'time': '10:00 صباحاً',
+      'date': DateTime.now().add(const Duration(days: 1)),
+      'time': '10:00 ص',
       'status': 'قادم',
-      'image': '👨‍⚕️',
-      'location': 'عيادة المولد الطبية، شارع الزبيري',
-      'notes': 'جلب التحاليل السابقة',
-      'color': Colors.green,
+      'type': 'استشارة فيديو',
+      'hospital': 'مستشفى الثورة العام',
+      'notes': 'يرجى التحضير قبل الموعد بـ 10 دقائق',
+      'price': '500 ر.ي',
     },
     {
       'id': '2',
-      'doctor': 'د. خالد النخلاني',
+      'doctorName': 'د. خالد النخلاني',
+      'doctorImage': ImageService.doctor2,
       'specialty': 'أمراض قلبية',
-      'date': '2026-07-08',
-      'time': '02:30 مساءً',
-      'status': 'مكتمل',
-      'image': '👨‍⚕️',
-      'location': 'مركز قلب العاصمة، شارع الستين',
-      'notes': 'متابعة ضغط الدم',
-      'color': Colors.blue,
+      'date': DateTime.now().add(const Duration(days: 3)),
+      'time': '02:30 م',
+      'status': 'قادم',
+      'type': 'استشارة صوتية',
+      'hospital': 'مركز قلب العاصمة',
+      'notes': 'يجب إجراء تخطيط قلب قبل الموعد',
+      'price': '600 ر.ي',
     },
     {
       'id': '3',
-      'doctor': 'د. أسماء الهندي',
+      'doctorName': 'د. أسماء الهندي',
+      'doctorImage': ImageService.doctor3,
       'specialty': 'أطفال وحديثي الولادة',
-      'date': '2026-07-05',
-      'time': '09:00 صباحاً',
-      'status': 'مكتمل',
-      'image': '👩‍⚕️',
-      'location': 'مستشفى السبعين، شارع الأربعين',
-      'notes': 'تطعيمات دورية',
-      'color': Colors.blue,
+      'date': DateTime.now().subtract(const Duration(days: 2)),
+      'time': '09:00 ص',
+      'status': 'منتهي',
+      'type': 'استشارة فيديو',
+      'hospital': 'مستشفى السبعين',
+      'notes': 'تم متابعة حالة الطفل',
+      'price': '450 ر.ي',
     },
     {
       'id': '4',
-      'doctor': 'د. محمد العلاي',
+      'doctorName': 'د. محمد العلاي',
+      'doctorImage': ImageService.doctor4,
       'specialty': 'أنف وأذن وحنجرة',
-      'date': '2026-06-28',
-      'time': '11:30 صباحاً',
-      'status': 'ملغي',
-      'image': '👨‍⚕️',
-      'location': 'عيادة الأنف والأذن، شارع الخمسين',
-      'notes': 'تم الإلغاء بسبب ظروف طارئة',
-      'color': Colors.red,
+      'date': DateTime.now().subtract(const Duration(days: 5)),
+      'time': '11:30 ص',
+      'status': 'منتهي',
+      'type': 'استشارة صوتية',
+      'hospital': 'مستشفى الأنف والأذن',
+      'notes': 'تم وصف علاج مناسب',
+      'price': '400 ر.ي',
     },
     {
       'id': '5',
-      'doctor': 'د. سارة العمري',
+      'doctorName': 'د. فاطمة صديقي',
+      'doctorImage': ImageService.doctor1,
       'specialty': 'نساء وولادة',
-      'date': '2026-07-15',
-      'time': '01:00 مساءً',
+      'date': DateTime.now().add(const Duration(days: 7)),
+      'time': '04:00 م',
       'status': 'قادم',
-      'image': '👩‍⚕️',
-      'location': 'مركز زاد الطبي، شارع هائل',
-      'notes': 'موعد متابعة الحمل',
-      'color': Colors.green,
+      'type': 'استشارة فيديو',
+      'hospital': 'مستشفى الولادة',
+      'notes': 'متابعة الحمل الشهرية',
+      'price': '550 ر.ي',
+    },
+    {
+      'id': '6',
+      'doctorName': 'د. عمر الجابري',
+      'doctorImage': ImageService.doctor2,
+      'specialty': 'عظام ومفاصل',
+      'date': DateTime.now().add(const Duration(days: 10)),
+      'time': '01:00 م',
+      'status': 'قادم',
+      'type': 'استشارة فيديو',
+      'hospital': 'مركز العظام',
+      'notes': 'إحضار الأشعة السابقة',
+      'price': '500 ر.ي',
     },
   ];
 
   List<Map<String, dynamic>> get _filteredAppointments {
-    if (_selectedFilter == 'الكل') return _appointments;
-    return _appointments
-        .where((a) => a['status'] == _selectedFilter)
-        .toList();
+    var list = _appointments;
+    if (_selectedFilter != 'الكل') {
+      final now = DateTime.now();
+      switch (_selectedFilter) {
+        case 'اليوم':
+          list = list.where((a) =>
+            a['date'].year == now.year &&
+            a['date'].month == now.month &&
+            a['date'].day == now.day
+          ).toList();
+          break;
+        case 'هذا الأسبوع':
+          final weekStart = now.subtract(Duration(days: now.weekday - 1));
+          final weekEnd = weekStart.add(const Duration(days: 7));
+          list = list.where((a) =>
+            a['date'].isAfter(weekStart) &&
+            a['date'].isBefore(weekEnd)
+          ).toList();
+          break;
+        case 'هذا الشهر':
+          list = list.where((a) =>
+            a['date'].year == now.year &&
+            a['date'].month == now.month
+          ).toList();
+          break;
+      }
+    }
+    return list;
+  }
+
+  List<Map<String, dynamic>> get _upcomingAppointments {
+    return _filteredAppointments.where((a) => a['status'] == 'قادم').toList();
+  }
+
+  List<Map<String, dynamic>> get _pastAppointments {
+    return _filteredAppointments.where((a) => a['status'] == 'منتهي').toList();
   }
 
   @override
@@ -102,121 +160,91 @@ class _PatientAppointmentsState extends State<PatientAppointments>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final filtered = _filteredAppointments;
+    final primaryColor = const Color(0xFF0D5257);
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: const Text('مواعيدي'),
-        backgroundColor: const Color(0xFF0D5257),
+        backgroundColor: primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add_rounded),
+            onPressed: () {
+              // TODO: فتح شاشة حجز موعد
+            },
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(text: 'المواعيد', icon: Icon(Icons.calendar_today_rounded)),
-            Tab(text: 'التقويم', icon: Icon(Icons.calendar_month_rounded)),
+            Tab(text: 'قادمة'),
+            Tab(text: 'سابقة'),
           ],
           indicatorColor: Colors.white,
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white70,
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_rounded),
-            onPressed: () {
-              // ✅ فتح شاشة حجز موعد
-            },
-          ),
-        ],
       ),
-      body: TabBarView(
-        controller: _tabController,
+      body: Column(
         children: [
-          // ✅ تبويب المواعيد
-          Column(
-            children: [
-              // ✅ فلتر الحالة
-              _buildFilterChips(isDark),
-              const SizedBox(height: 8),
-              // ✅ قائمة المواعيد
-              Expanded(
-                child: filtered.isEmpty
-                    ? _buildEmptyState(isDark)
-                    : ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        itemCount: filtered.length,
-                        itemBuilder: (context, index) {
-                          final appointment = filtered[index];
-                          return _buildAppointmentCard(appointment, isDark);
-                        },
-                      ),
-              ),
-            ],
-          ),
-          // ✅ تبويب التقويم (سيتم إضافته لاحقاً)
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+          // ✅ الفلاتر
+          _buildFilters(),
+          // ✅ المحتوى حسب التبويب
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
               children: [
-                Icon(
-                  Icons.calendar_month_rounded,
-                  size: 64,
-                  color: isDark ? Colors.grey[600] : Colors.grey[400],
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'التقويم قيد التطوير',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  ),
-                ),
+                _buildAppointmentsList(_upcomingAppointments, isDark, primaryColor),
+                _buildAppointmentsList(_pastAppointments, isDark, primaryColor),
               ],
             ),
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // TODO: فتح شاشة حجز موعد
+        },
+        backgroundColor: primaryColor,
+        child: const Icon(Icons.add_rounded, color: Colors.white),
+      ),
     );
   }
 
-  // ============================================================
-  // 🧩 ويدجتس
-  // ============================================================
-  Widget _buildFilterChips(bool isDark) {
+  Widget _buildFilters() {
     return Container(
-      height: 44,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      height: 48,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: _filters.length,
         itemBuilder: (context, index) {
           final filter = _filters[index];
           final isSelected = _selectedFilter == filter;
-          return GestureDetector(
-            onTap: () => setState(() => _selectedFilter = filter),
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? const Color(0xFF0D5257)
-                    : (isDark ? const Color(0xFF1A2540) : Colors.white),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isSelected
-                      ? const Color(0xFF0D5257)
-                      : (isDark ? Colors.grey[700]! : Colors.grey[200]!),
-                ),
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: FilterChip(
+              label: Text(filter),
+              selected: isSelected,
+              onSelected: (selected) {
+                setState(() {
+                  _selectedFilter = selected ? filter : 'الكل';
+                });
+              },
+              backgroundColor: Colors.white,
+              selectedColor: const Color(0xFF0D5257),
+              labelStyle: TextStyle(
+                color: isSelected ? Colors.white : const Color(0xFF0D5257),
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
-              child: Center(
-                child: Text(
-                  filter,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    color: isSelected ? Colors.white : (isDark ? Colors.grey[300] : Colors.grey[700]),
-                  ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: BorderSide(
+                  color: isSelected ? const Color(0xFF0D5257) : Colors.grey.shade300,
                 ),
               ),
             ),
@@ -226,202 +254,367 @@ class _PatientAppointmentsState extends State<PatientAppointments>
     );
   }
 
-  Widget _buildAppointmentCard(Map<String, dynamic> appointment, bool isDark) {
-    final status = appointment['status'] as String;
-    final color = appointment['color'] as Color;
-    final isPast = status == 'مكتمل' || status == 'ملغي';
-
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => DoctorDetailsScreen(
-              doctorId: appointment['id'],
+  Widget _buildAppointmentsList(
+    List<Map<String, dynamic>> appointments,
+    bool isDark,
+    Color primaryColor,
+  ) {
+    if (appointments.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.calendar_month_outlined,
+              size: 64,
+              color: isDark ? Colors.grey[600] : Colors.grey[300],
             ),
-          ),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1A2540) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isPast
-                ? (isDark ? Colors.grey[700]! : Colors.grey[300]!)
-                : color.withOpacity(0.2),
-            width: isPast ? 1 : 2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+            const SizedBox(height: 16),
+            Text(
+              'لا توجد مواعيد',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'قم بحجز موعد جديد',
+              style: TextStyle(
+                fontSize: 13,
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                // TODO: فتح شاشة حجز موعد
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryColor,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('حجز موعد جديد'),
             ),
           ],
         ),
-        child: Row(
-          children: [
-            // ✅ أيقونة الطبيب
-            Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: appointments.length,
+      itemBuilder: (context, index) {
+        final appointment = appointments[index];
+        final isUpcoming = appointment['status'] == 'قادم';
+        return _buildAppointmentCard(appointment, isDark, primaryColor, isUpcoming);
+      },
+    );
+  }
+
+  Widget _buildAppointmentCard(
+    Map<String, dynamic> appointment,
+    bool isDark,
+    Color primaryColor,
+    bool isUpcoming,
+  ) {
+    final date = appointment['date'] as DateTime;
+    final dateFormat = DateFormat('EEEE، d MMMM y', 'ar');
+    final formattedDate = dateFormat.format(date);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2540) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+        border: isUpcoming
+            ? Border.all(color: primaryColor.withOpacity(0.2), width: 1)
+            : null,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ✅ رأس البطاقة
+          Row(
+            children: [
+              // ✅ صورة الطبيب
+              ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-              ),
-              child: Center(
-                child: Text(
-                  appointment['image'] ?? '👨‍⚕️',
-                  style: const TextStyle(fontSize: 24),
+                child: CachedNetworkImage(
+                  imageUrl: appointment['doctorImage'],
+                  width: 50,
+                  height: 50,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    width: 50,
+                    height: 50,
+                    color: isDark ? Colors.grey[800] : Colors.grey[200],
+                  ),
+                  errorWidget: (_, __, ___) => Container(
+                    width: 50,
+                    height: 50,
+                    color: isDark ? Colors.grey[800] : Colors.grey[200],
+                    child: Icon(Icons.person, color: isDark ? Colors.grey[600] : Colors.grey[400]),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(width: 12),
-            // ✅ المعلومات
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      appointment['doctorName'],
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                    Text(
+                      appointment['specialty'],
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // ✅ الحالة
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isUpcoming
+                      ? Colors.green.withOpacity(0.1)
+                      : Colors.grey.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: isUpcoming ? Colors.green : Colors.grey,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      appointment['status'],
+                      style: TextStyle(
+                        color: isUpcoming ? Colors.green : Colors.grey,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          // ✅ التفاصيل
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.calendar_today, size: 14, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                        const SizedBox(width: 4),
+                        Text(
+                          formattedDate,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(Icons.access_time, size: 14, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                        const SizedBox(width: 4),
+                        Text(
+                          appointment['time'],
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(Icons.medical_services, size: 14, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                        const SizedBox(width: 4),
+                        Text(
+                          appointment['type'],
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              // ✅ السعر
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: primaryColor.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  appointment['price'],
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: primaryColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (appointment['notes'] != null) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
                 children: [
-                  Text(
-                    appointment['doctor'],
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: isDark ? Colors.white : Colors.black87,
+                  Icon(Icons.note, size: 14, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      appointment['notes'],
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    appointment['specialty'],
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isDark ? Colors.grey[400] : Colors.grey[600],
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.calendar_today_rounded,
-                        size: 12,
-                        color: isDark ? Colors.grey[500] : Colors.grey[400],
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        appointment['date'],
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: isDark ? Colors.grey[400] : Colors.grey[600],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Icon(
-                        Icons.access_time_rounded,
-                        size: 12,
-                        color: isDark ? Colors.grey[500] : Colors.grey[400],
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        appointment['time'],
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: isDark ? Colors.grey[400] : Colors.grey[600],
-                        ),
-                      ),
-                    ],
                   ),
                 ],
               ),
             ),
-            // ✅ الحالة
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
+          ],
+          const SizedBox(height: 10),
+          // ✅ الأزرار
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => DoctorDetailsScreen(
+                          doctorId: appointment['id'],
+                        ),
+                      ),
+                    );
+                  },
+                  icon: Icon(Icons.info_outline, size: 16),
+                  label: const Text('تفاصيل'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: primaryColor,
+                    side: BorderSide(color: primaryColor.withOpacity(0.3)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
                   ),
-                  child: Text(
-                    status,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: color,
-                      fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(width: 8),
+              if (isUpcoming)
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      _showCancelDialog(appointment['id']);
+                    },
+                    icon: Icon(Icons.cancel_outlined, size: 16),
+                    label: const Text('إلغاء'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
                     ),
                   ),
                 ),
-                const SizedBox(height: 4),
-                if (status == 'قادم')
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      'تبقى 3 أيام',
-                      style: TextStyle(
-                        fontSize: 9,
-                        color: Colors.orange,
-                        fontWeight: FontWeight.w500,
+              if (!isUpcoming)
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      // TODO: إعادة حجز
+                    },
+                    icon: Icon(Icons.replay_outlined, size: 16),
+                    label: const Text('إعادة حجز'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: primaryColor,
+                      side: BorderSide(color: primaryColor.withOpacity(0.3)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
                       ),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
                     ),
                   ),
-              ],
-            ),
-          ],
-        ),
+                ),
+            ],
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildEmptyState(bool isDark) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.calendar_today_rounded,
-            size: 64,
-            color: isDark ? Colors.grey[600] : Colors.grey[400],
+  void _showCancelDialog(String appointmentId) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('إلغاء الموعد'),
+        content: const Text('هل أنت متأكد من رغبتك في إلغاء هذا الموعد؟'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('إلغاء'),
           ),
-          const SizedBox(height: 16),
-          Text(
-            'لا توجد مواعيد ${_selectedFilter == 'الكل' ? '' : _selectedFilter}',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: isDark ? Colors.grey[400] : Colors.grey[600],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'احجز موعداً جديداً مع أحد الأطباء',
-            style: TextStyle(
-              fontSize: 13,
-              color: isDark ? Colors.grey[500] : Colors.grey[400],
-            ),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
+          TextButton(
             onPressed: () {
-              // ✅ فتح شاشة حجز موعد
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('✅ تم إلغاء الموعد بنجاح'),
+                  backgroundColor: Colors.green,
+                ),
+              );
             },
-            icon: const Icon(Icons.add_rounded),
-            label: const Text('حجز موعد جديد'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0D5257),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('تأكيد الإلغاء'),
           ),
         ],
       ),
