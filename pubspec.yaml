@@ -128,11 +128,6 @@ dependencies:
   workmanager: ^0.5.2
   flutter_background_service: ^5.0.5
 
-  # ============================================================
-  # 🔤 Google Fonts
-  # ============================================================
-  google_fonts: ^6.2.0
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -147,7 +142,7 @@ flutter:
   uses-material-design: true
 
   # ============================================================
-  # 📁 Assets - جميع المجلدات الموجودة فعلاً
+  # 📁 Assets - جميع المجلدات الموجودة
   # ============================================================
   assets:
     - assets/icons/app_icon.png

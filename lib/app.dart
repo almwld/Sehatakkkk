@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:sehatak/core/providers/user_provider.dart';
 import 'package:sehatak/core/providers/font_size_provider.dart';
@@ -22,7 +21,7 @@ class SehatakApp extends StatelessWidget {
         final lightTheme = ThemeData(
           useMaterial3: true,
           brightness: Brightness.light,
-          primaryColor: AppColors.primaryColor,
+          primaryColor: const Color(0xFF0D5257),
           scaffoldBackgroundColor: const Color(0xFFF8FAFC),
           fontFamily: 'OpenSans',
           colorScheme: const ColorScheme.light(
@@ -38,21 +37,21 @@ class SehatakApp extends StatelessWidget {
             onError: Colors.white,
           ),
           textTheme: TextTheme(
-            displayLarge: TextStyle(fontSize: 57 * fontScale, fontWeight: FontWeight.bold, fontFamily: 'OpenSans', color: const Color(0xFF1E293B)),
-            displayMedium: TextStyle(fontSize: 45 * fontScale, fontWeight: FontWeight.bold, fontFamily: 'OpenSans', color: const Color(0xFF1E293B)),
-            displaySmall: TextStyle(fontSize: 36 * fontScale, fontWeight: FontWeight.bold, fontFamily: 'OpenSans', color: const Color(0xFF1E293B)),
-            headlineLarge: TextStyle(fontSize: 32 * fontScale, fontWeight: FontWeight.bold, fontFamily: 'OpenSans', color: const Color(0xFF1E293B)),
-            headlineMedium: TextStyle(fontSize: 28 * fontScale, fontWeight: FontWeight.w600, fontFamily: 'OpenSans', color: const Color(0xFF1E293B)),
-            headlineSmall: TextStyle(fontSize: 24 * fontScale, fontWeight: FontWeight.w600, fontFamily: 'OpenSans', color: const Color(0xFF1E293B)),
-            titleLarge: TextStyle(fontSize: 22 * fontScale, fontWeight: FontWeight.w600, fontFamily: 'OpenSans', color: const Color(0xFF1E293B)),
-            titleMedium: TextStyle(fontSize: 16 * fontScale, fontWeight: FontWeight.w500, fontFamily: 'OpenSans', color: const Color(0xFF1E293B)),
-            titleSmall: TextStyle(fontSize: 14 * fontScale, fontWeight: FontWeight.w500, fontFamily: 'OpenSans', color: const Color(0xFF475569)),
-            bodyLarge: TextStyle(fontSize: 16 * fontScale, fontFamily: 'OpenSans', color: const Color(0xFF1E293B)),
-            bodyMedium: TextStyle(fontSize: 14 * fontScale, fontFamily: 'OpenSans', color: const Color(0xFF475569)),
-            bodySmall: TextStyle(fontSize: 12 * fontScale, fontFamily: 'OpenSans', color: const Color(0xFF94A3B8)),
-            labelLarge: TextStyle(fontSize: 14 * fontScale, fontWeight: FontWeight.w500, fontFamily: 'OpenSans', color: const Color(0xFF1E293B)),
-            labelMedium: TextStyle(fontSize: 12 * fontScale, fontFamily: 'OpenSans', color: const Color(0xFF475569)),
-            labelSmall: TextStyle(fontSize: 11 * fontScale, fontFamily: 'OpenSans', color: const Color(0xFF94A3B8)),
+            displayLarge: TextStyle(fontSize: 57 * fontScale, fontWeight: FontWeight.bold, color: const Color(0xFF1E293B), fontFamily: 'OpenSans'),
+            displayMedium: TextStyle(fontSize: 45 * fontScale, fontWeight: FontWeight.bold, color: const Color(0xFF1E293B), fontFamily: 'OpenSans'),
+            displaySmall: TextStyle(fontSize: 36 * fontScale, fontWeight: FontWeight.bold, color: const Color(0xFF1E293B), fontFamily: 'OpenSans'),
+            headlineLarge: TextStyle(fontSize: 32 * fontScale, fontWeight: FontWeight.bold, color: const Color(0xFF1E293B), fontFamily: 'OpenSans'),
+            headlineMedium: TextStyle(fontSize: 28 * fontScale, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B), fontFamily: 'OpenSans'),
+            headlineSmall: TextStyle(fontSize: 24 * fontScale, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B), fontFamily: 'OpenSans'),
+            titleLarge: TextStyle(fontSize: 22 * fontScale, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B), fontFamily: 'OpenSans'),
+            titleMedium: TextStyle(fontSize: 16 * fontScale, fontWeight: FontWeight.w500, color: const Color(0xFF1E293B), fontFamily: 'OpenSans'),
+            titleSmall: TextStyle(fontSize: 14 * fontScale, fontWeight: FontWeight.w500, color: const Color(0xFF475569), fontFamily: 'OpenSans'),
+            bodyLarge: TextStyle(fontSize: 16 * fontScale, color: const Color(0xFF1E293B), fontFamily: 'OpenSans'),
+            bodyMedium: TextStyle(fontSize: 14 * fontScale, color: const Color(0xFF475569), fontFamily: 'OpenSans'),
+            bodySmall: TextStyle(fontSize: 12 * fontScale, color: const Color(0xFF94A3B8), fontFamily: 'OpenSans'),
+            labelLarge: TextStyle(fontSize: 14 * fontScale, fontWeight: FontWeight.w500, color: const Color(0xFF1E293B), fontFamily: 'OpenSans'),
+            labelMedium: TextStyle(fontSize: 12 * fontScale, color: const Color(0xFF475569), fontFamily: 'OpenSans'),
+            labelSmall: TextStyle(fontSize: 11 * fontScale, color: const Color(0xFF94A3B8), fontFamily: 'OpenSans'),
           ),
           appBarTheme: const AppBarTheme(
             backgroundColor: Color(0xFF0D5257),
