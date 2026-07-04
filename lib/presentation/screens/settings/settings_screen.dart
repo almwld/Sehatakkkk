@@ -1,295 +1,649 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:sehatak/presentation/bloc/theme_bloc/theme_bloc.dart';
+import 'package:provider/provider.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/providers/font_size_provider.dart';
+import 'package:sehatak/core/providers/user_provider.dart';
+import 'package:sehatak/presentation/bloc/theme_bloc/theme_bloc.dart';
+import 'package:sehatak/presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'package:sehatak/presentation/screens/auth/login_screen.dart';
-import 'package:sehatak/presentation/screens/edit_profile/edit_profile_screen.dart';
-import 'package:sehatak/presentation/screens/change_password/change_password_screen.dart';
-import 'package:sehatak/presentation/screens/two_factor_auth/two_factor_auth_screen.dart';
-import 'package:sehatak/presentation/screens/font_size/font_size_screen.dart';
-import 'package:sehatak/presentation/screens/privacy/privacy_screen.dart';
-import 'package:sehatak/presentation/screens/terms/terms_screen.dart';
-import 'package:sehatak/presentation/screens/permissions/permissions_screen.dart';
-import 'package:sehatak/presentation/screens/download_data/download_data_screen.dart';
-import 'package:sehatak/presentation/screens/help_center/help_center_screen.dart';
-import 'package:sehatak/presentation/screens/contact_us/contact_us_screen.dart';
-import 'package:sehatak/presentation/screens/report_issue/report_issue_screen.dart';
-import 'package:sehatak/presentation/screens/about/about_screen.dart';
-import 'package:sehatak/presentation/screens/share_app/share_app_screen.dart';
-import 'package:sehatak/presentation/screens/rate_app/rate_app_screen.dart';
+import 'package:sehatak/presentation/screens/settings/language_screen.dart';
+import 'package:sehatak/presentation/screens/settings/notifications_settings_screen.dart';
+import 'package:sehatak/presentation/screens/settings/privacy_screen.dart';
+import 'package:sehatak/presentation/screens/settings/about_screen.dart';
+import 'package:sehatak/presentation/screens/settings/help_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
+
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool _notifications = true;
-  bool _biometric = true;
-  String _language = 'العربية';
-
-  // ✅ جلب بيانات المستخدم من Firebase
-  User? get _user => FirebaseAuth.instance.currentUser;
-  String get _userName => _user?.displayName ?? 'مستخدم';
-  String get _userEmail => _user?.email ?? 'غير متوفر';
-  String get _userPhone => _user?.phoneNumber ?? 'غير متوفر';
-  String get _userPhoto => _user?.photoURL ?? '';
+  bool _isDark = false;
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final fontSizeProvider = context.watch<FontSizeProvider>();
+    final primaryColor = const Color(0xFF0D5257);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('الإعدادات', style: TextStyle(fontWeight: FontWeight.bold))),
+      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        title: const Text('الإعدادات'),
+        backgroundColor: primaryColor,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search_rounded),
+            onPressed: () {},
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(14),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          // ========== الملف الشخصي (بيانات من Firebase) ==========
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(colors: [AppColors.primary, AppColors.primaryDark]),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Row(children: [
-              // ✅ صورة المستخدم من Firebase
-              CircleAvatar(
-                radius: 32,
-                backgroundColor: Colors.white24,
-                backgroundImage: _userPhoto.isNotEmpty ? NetworkImage(_userPhoto) : null,
-                child: _userPhoto.isEmpty
-                    ? Text(
-                        _userName.isNotEmpty ? _userName[0] : 'م',
-                        style: const TextStyle(fontSize: 24, color: Colors.white),
-                      )
-                    : null,
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ✅ الملف الشخصي
+            _buildProfileSection(isDark),
+            const SizedBox(height: 16),
+
+            // ✅ المظهر
+            _buildSectionHeader('المظهر', isDark),
+            const SizedBox(height: 8),
+            _buildAppearanceCard(isDark, fontSizeProvider),
+            const SizedBox(height: 16),
+
+            // ✅ الإشعارات
+            _buildSectionHeader('الإشعارات', isDark),
+            const SizedBox(height: 8),
+            _buildCard(
+              child: Column(
+                children: [
+                  _buildListTile(
+                    icon: Icons.notifications_rounded,
+                    title: 'الإشعارات',
+                    subtitle: 'تفعيل أو تعطيل الإشعارات',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const NotificationsSettingsScreen(),
+                        ),
+                      );
+                    },
+                    isDark: isDark,
+                  ),
+                  _buildDivider(isDark),
+                  _buildSwitchTile(
+                    icon: Icons.sound_rounded,
+                    title: 'صوت الإشعارات',
+                    subtitle: 'تفعيل صوت الإشعارات',
+                    value: true,
+                    onChanged: (_) {},
+                    isDark: isDark,
+                  ),
+                  _buildDivider(isDark),
+                  _buildSwitchTile(
+                    icon: Icons.vibration_rounded,
+                    title: 'اهتزاز الإشعارات',
+                    subtitle: 'تفعيل الاهتزاز عند الإشعارات',
+                    value: false,
+                    onChanged: (_) {},
+                    isDark: isDark,
+                  ),
+                ],
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // ✅ اسم المستخدم من Firebase
-                    Text(
-                      _userName,
-                      style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+
+            // ✅ اللغة
+            _buildSectionHeader('اللغة', isDark),
+            const SizedBox(height: 8),
+            _buildCard(
+              child: _buildListTile(
+                icon: Icons.language_rounded,
+                title: 'اللغة',
+                subtitle: 'العربية (الافتراضية)',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const LanguageScreen(),
                     ),
-                    // ✅ البريد الإلكتروني من Firebase
-                    Text(
-                      _userEmail,
-                      style: const TextStyle(color: Colors.white70, fontSize: 11),
-                    ),
-                    // ✅ رقم الهاتف من Firebase
-                    Text(
-                      '📱 $_userPhone',
-                      style: const TextStyle(color: Colors.white70, fontSize: 11),
-                    ),
-                  ],
+                  );
+                },
+                isDark: isDark,
+                trailing: const Text(
+                  'العربية',
+                  style: TextStyle(color: Color(0xFF0D5257), fontWeight: FontWeight.w500),
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.edit, color: Colors.white),
-                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfileScreen())),
-              ),
-            ]),
-          ),
-          const SizedBox(height: 22),
+            ),
+            const SizedBox(height: 16),
 
-          // ========== الحساب ==========
-          _sectionTitle('الحساب'),
-          _menuItem(Icons.person_outline, 'تعديل الملف الشخصي', 'الاسم، البريد، الهاتف', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfileScreen()))),
-          _menuItem(Icons.lock_outline, 'تغيير كلمة المرور', 'تحديث كلمة المرور', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChangePasswordScreen()))),
-          _menuItem(Icons.security, 'المصادقة الثنائية', 'تعزيز أمان حسابك', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TwoFactorAuthScreen()))),
-          _menuItem(Icons.fingerprint, 'بصمة الإصبع', 'تسجيل الدخول بالبصمة', switchValue: _biometric, onSwitch: (v) => setState(() => _biometric = v)),
-          _menuItem(Icons.delete_outline, 'حذف الحساب', 'حذف نهائي للبيانات', onTap: () {}, isDanger: true),
-          const SizedBox(height: 22),
-
-          // ========== التفضيلات ==========
-          _sectionTitle('التفضيلات'),
-          BlocBuilder<ThemeBloc, ThemeState>(
-            builder: (context, state) {
-              bool isDark = false;
-              if (state is ThemeLoadedState) isDark = state.themeMode == ThemeMode.dark;
-              return SwitchListTile(
-                secondary: const Icon(Icons.dark_mode, color: AppColors.primary),
-                title: const Text('الوضع الليلي', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
-                subtitle: const Text('تفعيل الوضع الداكن', style: TextStyle(fontSize: 11, color: AppColors.grey)),
-                value: isDark,
-                activeColor: AppColors.primary,
-                onChanged: (v) => context.read<ThemeBloc>().add(SetThemeEvent(v)),
-              );
-            },
-          ),
-          _menuItem(Icons.notifications_active, 'الإشعارات', 'تفعيل التنبيهات', switchValue: _notifications, onSwitch: (v) => setState(() => _notifications = v)),
-          _menuItem(Icons.language, 'اللغة', _language, onTap: () => _showLanguagePicker()),
-          _menuItem(Icons.format_size, 'حجم الخط', 'متوسط', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FontSizeScreen()))),
-          _menuItem(Icons.color_lens, 'ثيم التطبيق', 'أخضر (افتراضي)', onTap: () {}),
-          const SizedBox(height: 22),
-
-          // ========== الخصوصية والأمان ==========
-          _sectionTitle('الخصوصية والأمان'),
-          _menuItem(Icons.privacy_tip_outlined, 'سياسة الخصوصية', 'كيف نحمي بياناتك', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyScreen()))),
-          _menuItem(Icons.description_outlined, 'الشروط والأحكام', 'شروط استخدام التطبيق', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TermsScreen()))),
-          _menuItem(Icons.admin_panel_settings, 'الأذونات', 'إدارة أذونات التطبيق', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PermissionsScreen()))),
-          _menuItem(Icons.download_done, 'تحميل بياناتي', 'تصدير جميع بياناتك', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DownloadDataScreen()))),
-          const SizedBox(height: 22),
-
-          // ========== الدعم والمساعدة ==========
-          _sectionTitle('الدعم والمساعدة'),
-          _menuItem(Icons.help_outline, 'مركز المساعدة', 'أسئلة شائعة', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpCenterScreen()))),
-          _menuItem(Icons.headset_mic, 'تواصل معنا', 'راسل فريق الدعم', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ContactUsScreen()))),
-          _menuItem(Icons.bug_report, 'الإبلاغ عن مشكلة', 'ساعدنا في التحسين', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReportIssueScreen()))),
-          _menuItem(Icons.star_rate, 'تقييم التطبيق', 'قيمنا على المتجر', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RateAppScreen()))),
-          const SizedBox(height: 22),
-
-          // ========== حول التطبيق ==========
-          _sectionTitle('حول التطبيق'),
-          _menuItem(Icons.info_outline, 'عن صحتك', 'الإصدار 1.0.0', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen()))),
-          _menuItem(Icons.share_rounded, 'مشاركة التطبيق', 'انشر الفائدة', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ShareAppScreen()))),
-          const SizedBox(height: 22),
-
-          // ========== تسجيل الخروج ==========
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () async {
-                await FirebaseAuth.instance.signOut();
-                if (!mounted) return;
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  (route) => false,
-                );
-              },
-              icon: const Icon(Icons.logout, color: AppColors.error),
-              label: const Text('تسجيل الخروج'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.error,
-                side: const BorderSide(color: AppColors.error),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            // ✅ الحساب
+            _buildSectionHeader('الحساب', isDark),
+            const SizedBox(height: 8),
+            _buildCard(
+              child: Column(
+                children: [
+                  _buildListTile(
+                    icon: Icons.person_rounded,
+                    title: 'الملف الشخصي',
+                    subtitle: 'تعديل بياناتك الشخصية',
+                    onTap: () {},
+                    isDark: isDark,
+                  ),
+                  _buildDivider(isDark),
+                  _buildListTile(
+                    icon: Icons.lock_rounded,
+                    title: 'تغيير كلمة المرور',
+                    subtitle: 'تحديث كلمة المرور الخاصة بك',
+                    onTap: () {},
+                    isDark: isDark,
+                  ),
+                  _buildDivider(isDark),
+                  _buildListTile(
+                    icon: Icons.email_rounded,
+                    title: 'البريد الإلكتروني',
+                    subtitle: 'تحديث البريد الإلكتروني',
+                    onTap: () {},
+                    isDark: isDark,
+                  ),
+                ],
               ),
             ),
-          ),
-          const SizedBox(height: 14),
-          Center(
-            child: Text(
-              '© 2026 صحتك. جميع الحقوق محفوظة',
-              style: TextStyle(color: AppColors.grey.withOpacity(0.7), fontSize: 11),
+            const SizedBox(height: 16),
+
+            // ✅ الخصوصية
+            _buildSectionHeader('الخصوصية والأمان', isDark),
+            const SizedBox(height: 8),
+            _buildCard(
+              child: Column(
+                children: [
+                  _buildListTile(
+                    icon: Icons.privacy_tip_rounded,
+                    title: 'سياسة الخصوصية',
+                    subtitle: 'عرض سياسة الخصوصية',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const PrivacyScreen(),
+                        ),
+                      );
+                    },
+                    isDark: isDark,
+                  ),
+                  _buildDivider(isDark),
+                  _buildSwitchTile(
+                    icon: Icons.biometric_rounded,
+                    title: 'المصادقة بالبصمة',
+                    subtitle: 'استخدام البصمة لتسجيل الدخول',
+                    value: false,
+                    onChanged: (_) {},
+                    isDark: isDark,
+                  ),
+                  _buildDivider(isDark),
+                  _buildListTile(
+                    icon: Icons.data_usage_rounded,
+                    title: 'البيانات والتخزين',
+                    subtitle: 'إدارة بيانات التطبيق',
+                    onTap: () {},
+                    isDark: isDark,
+                  ),
+                ],
+              ),
             ),
-          ),
-        ]),
-      ),
-    );
-  }
+            const SizedBox(height: 16),
 
-  Widget _sectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8, right: 4),
-      child: Text(
-        title,
-        style: const TextStyle(fontSize: 13, color: AppColors.grey, fontWeight: FontWeight.w600),
-      ),
-    );
-  }
-
-  Widget _menuItem(
-    IconData icon,
-    String title,
-    String subtitle, {
-    VoidCallback? onTap,
-    bool isDanger = false,
-    bool? switchValue,
-    Function(bool)? onSwitch,
-  }) {
-    if (switchValue != null && onSwitch != null) {
-      return Card(
-        margin: const EdgeInsets.only(bottom: 4),
-        elevation: 0,
-        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.2),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        child: SwitchListTile(
-          secondary: Container(
-            padding: const EdgeInsets.all(7),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(8),
+            // ✅ الدعم
+            _buildSectionHeader('الدعم', isDark),
+            const SizedBox(height: 8),
+            _buildCard(
+              child: Column(
+                children: [
+                  _buildListTile(
+                    icon: Icons.help_rounded,
+                    title: 'مركز المساعدة',
+                    subtitle: 'الأسئلة الشائعة والدعم',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const HelpScreen(),
+                        ),
+                      );
+                    },
+                    isDark: isDark,
+                  ),
+                  _buildDivider(isDark),
+                  _buildListTile(
+                    icon: Icons.feedback_rounded,
+                    title: 'إرسال ملاحظات',
+                    subtitle: 'شاركنا رأيك في التطبيق',
+                    onTap: () {},
+                    isDark: isDark,
+                  ),
+                  _buildDivider(isDark),
+                  _buildListTile(
+                    icon: Icons.share_rounded,
+                    title: 'مشاركة التطبيق',
+                    subtitle: 'دعوة الأصدقاء لاستخدام التطبيق',
+                    onTap: () {},
+                    isDark: isDark,
+                  ),
+                  _buildDivider(isDark),
+                  _buildListTile(
+                    icon: Icons.star_rounded,
+                    title: 'تقييم التطبيق',
+                    subtitle: 'قيم التطبيق في المتجر',
+                    onTap: () {},
+                    isDark: isDark,
+                  ),
+                ],
+              ),
             ),
-            child: Icon(icon, color: AppColors.primary, size: 20),
-          ),
-          title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13)),
-          subtitle: Text(subtitle, style: const TextStyle(fontSize: 10, color: AppColors.grey)),
-          value: switchValue,
-          activeColor: AppColors.primary,
-          onChanged: onSwitch,
-        ),
-      );
-    }
-    return Card(
-      margin: const EdgeInsets.only(bottom: 4),
-      elevation: 0,
-      color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.2),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: ListTile(
-        leading: Container(
-          padding: const EdgeInsets.all(7),
-          decoration: BoxDecoration(
-            color: isDanger ? AppColors.error.withOpacity(0.08) : AppColors.primary.withOpacity(0.08),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(icon, color: isDanger ? AppColors.error : AppColors.primary, size: 20),
-        ),
-        title: Text(
-          title,
-          style: TextStyle(
-            fontWeight: FontWeight.w500,
-            fontSize: 13,
-            color: isDanger ? AppColors.error : null,
-          ),
-        ),
-        subtitle: Text(subtitle, style: const TextStyle(fontSize: 10, color: AppColors.grey)),
-        trailing: const Icon(Icons.arrow_back_ios, size: 12, color: AppColors.grey),
-        onTap: onTap,
-      ),
-    );
-  }
+            const SizedBox(height: 16),
 
-  void _showLanguagePicker() {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-      builder: (_) => Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('اختر اللغة', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 14),
-            _langOption('العربية', '🇸🇦'),
-            _langOption('English', '🇬🇧'),
-            _langOption('Français', '🇫🇷'),
-            _langOption('اردو', '🇵🇰'),
+            // ✅ معلومات التطبيق
+            _buildSectionHeader('عن التطبيق', isDark),
+            const SizedBox(height: 8),
+            _buildCard(
+              child: _buildListTile(
+                icon: Icons.info_rounded,
+                title: 'عن صحتك',
+                subtitle: 'الإصدار 1.1.0',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const AboutScreen(),
+                    ),
+                  );
+                },
+                isDark: isDark,
+                trailing: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: primaryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'v1.1.0',
+                    style: TextStyle(
+                      color: primaryColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // ✅ زر تسجيل الخروج
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => _showLogoutDialog(context),
+                icon: const Icon(Icons.logout_rounded, color: Colors.red),
+                label: const Text(
+                  'تسجيل الخروج',
+                  style: TextStyle(color: Colors.red, fontSize: 16),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Colors.red),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
           ],
         ),
       ),
     );
   }
 
-  Widget _langOption(String lang, String flag) {
-    final selected = _language == lang;
-    return ListTile(
-      leading: Text(flag, style: const TextStyle(fontSize: 24)),
-      title: Text(
-        lang,
+  // ============================================================
+  // 🧩 ويدجتس مساعدة
+  // ============================================================
+  Widget _buildProfileSection(bool isDark) {
+    final userProvider = context.watch<UserProvider>();
+    final user = userProvider.currentUser;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [const Color(0xFF0D5257), const Color(0xFF0D5257).withOpacity(0.7)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 30,
+            backgroundColor: Colors.white.withOpacity(0.2),
+            child: const Icon(
+              Icons.person,
+              color: Colors.white,
+              size: 32,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  user?.displayName ?? 'مستخدم',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  user?.email ?? 'user@example.com',
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.green.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Text(
+              'نشط',
+              style: TextStyle(color: Colors.white, fontSize: 11),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: Text(
+        title,
         style: TextStyle(
-          fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-          color: selected ? AppColors.primary : null,
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: isDark ? Colors.grey[400] : Colors.grey[600],
         ),
       ),
-      trailing: selected ? const Icon(Icons.check, color: AppColors.primary) : null,
-      onTap: () {
-        setState(() => _language = lang);
-        Navigator.pop(context);
-      },
+    );
+  }
+
+  Widget _buildCard({required Widget child}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Card(
+      color: isDark ? const Color(0xFF1A2540) : Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      elevation: 0,
+      child: child,
+    );
+  }
+
+  Widget _buildDivider(bool isDark) {
+    return Divider(
+      height: 1,
+      thickness: 1,
+      color: isDark ? Colors.grey[800] : Colors.grey[200],
+    );
+  }
+
+  Widget _buildListTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    required bool isDark,
+    Widget? trailing,
+  }) {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+      leading: Icon(icon, color: const Color(0xFF0D5257)),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontWeight: FontWeight.w500,
+          color: isDark ? Colors.white : Colors.black87,
+        ),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: TextStyle(
+          fontSize: 12,
+          color: isDark ? Colors.grey[400] : Colors.grey[600],
+        ),
+      ),
+      trailing: trailing ?? const Icon(Icons.arrow_forward_ios, size: 16),
+      onTap: onTap,
+    );
+  }
+
+  Widget _buildSwitchTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+    required bool isDark,
+  }) {
+    return SwitchListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: isDark ? Colors.white : Colors.black87,
+        ),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: TextStyle(
+          fontSize: 12,
+          color: isDark ? Colors.grey[400] : Colors.grey[600],
+        ),
+      ),
+      secondary: Icon(icon, color: const Color(0xFF0D5257)),
+      value: value,
+      onChanged: onChanged,
+      activeColor: const Color(0xFF0D5257),
+    );
+  }
+
+  Widget _buildAppearanceCard(bool isDark, FontSizeProvider provider) {
+    final fontScale = provider.fontScale;
+
+    return _buildCard(
+      child: Column(
+        children: [
+          _buildSwitchTile(
+            icon: Icons.dark_mode_rounded,
+            title: 'الوضع المظلم',
+            subtitle: 'تفعيل الوضع المظلم للتطبيق',
+            value: isDark,
+            onChanged: (value) {
+              context.read<ThemeBloc>().add(
+                    value ? SetDarkTheme() : SetLightTheme(),
+                  );
+            },
+            isDark: isDark,
+          ),
+          _buildDivider(isDark),
+          _buildSwitchTile(
+            icon: Icons.brightness_auto_rounded,
+            title: 'الوضع التلقائي',
+            subtitle: 'متابعة إعدادات النظام',
+            value: context.read<ThemeBloc>().state.themeMode == ThemeMode.system,
+            onChanged: (value) {
+              context.read<ThemeBloc>().add(SetSystemTheme());
+            },
+            isDark: isDark,
+          ),
+          _buildDivider(isDark),
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+            leading: const Icon(Icons.text_fields_rounded, color: Color(0xFF0D5257)),
+            title: Text(
+              'حجم الخط',
+              style: TextStyle(
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+            ),
+            subtitle: Text(
+              '${provider.fontSizePercent}% - ${provider.getScaleLabel()}',
+              style: TextStyle(
+                fontSize: 12,
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
+              ),
+            ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.remove_circle_outline, color: Color(0xFF0D5257)),
+                  onPressed: () {
+                    if (fontScale > 0.81) {
+                      provider.setFontScale(fontScale - 0.05);
+                    }
+                  },
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '${(fontScale * 100).round()}%',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                    color: provider.getScaleColor(),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                IconButton(
+                  icon: const Icon(Icons.add_circle_outline, color: Color(0xFF0D5257)),
+                  onPressed: () {
+                    if (fontScale < 1.59) {
+                      provider.setFontScale(fontScale + 0.05);
+                    }
+                  },
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+              ],
+            ),
+          ),
+          _buildDivider(isDark),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildQuickSizeButton('صغير', 0.8, provider, isDark),
+                _buildQuickSizeButton('متوسط', 1.0, provider, isDark),
+                _buildQuickSizeButton('كبير', 1.3, provider, isDark),
+                _buildQuickSizeButton('كبير جداً', 1.6, provider, isDark),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickSizeButton(
+    String label,
+    double size,
+    FontSizeProvider provider,
+    bool isDark,
+  ) {
+    final isSelected = (provider.fontScale - size).abs() < 0.02;
+    return GestureDetector(
+      onTap: () => provider.setFontScale(size),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? const Color(0xFF0D5257)
+              : (isDark ? const Color(0xFF1A2540) : Colors.grey[200]),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF0D5257) : Colors.transparent,
+            width: 1.5,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 10 * (size / 1.0),
+            color: isSelected ? Colors.white : (isDark ? Colors.grey[400] : Colors.grey[600]),
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('تسجيل الخروج'),
+        content: const Text('هل أنت متأكد من رغبتك في تسجيل الخروج؟'),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'إلغاء',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              context.read<AuthBloc>().add(Logout());
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                (route) => false,
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text('تسجيل الخروج'),
+          ),
+        ],
+      ),
     );
   }
 }
