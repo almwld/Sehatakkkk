@@ -131,7 +131,7 @@ dependencies:
   # ============================================================
   # 🔤 Google Fonts
   # ============================================================
-  google_fonts: ^5.1.0
+  google_fonts: ^6.2.0
 
 dev_dependencies:
   flutter_test:
@@ -147,7 +147,7 @@ flutter:
   uses-material-design: true
 
   # ============================================================
-  # 📁 Assets - جميع المجلدات
+  # 📁 Assets - جميع المجلدات الموجودة فعلاً
   # ============================================================
   assets:
     - assets/icons/app_icon.png
@@ -166,29 +166,30 @@ flutter:
     - assets/icons/specialties/
     - assets/icons/svg/
     - assets/images/
-    - assets/images/medications/
-    - assets/images/pharmacies/
+    - assets/fonts/
     - assets/audio/
     - assets/animations/
 
   # ============================================================
-  # 🔤 Fonts - OpenSans فقط
+  # 🔤 Fonts - OpenSans (جميع الملفات موجودة)
   # ============================================================
   fonts:
     - family: OpenSans
       fonts:
         - asset: assets/fonts/OpenSans-Regular.ttf
-          weight: 400
-        - asset: assets/fonts/OpenSans-Light.ttf
-          weight: 300
-        - asset: assets/fonts/OpenSans-SemiBold.ttf
-          weight: 600
         - asset: assets/fonts/OpenSans-Bold.ttf
           weight: 700
+        - asset: assets/fonts/OpenSans-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/OpenSans-Light.ttf
+          weight: 300
         - asset: assets/fonts/OpenSans-Italic.ttf
           weight: 400
           style: italic
 
+  # ============================================================
+  # 🖼️ Launcher Icons
+  # ============================================================
 flutter_launcher_icons:
   android: true
   ios: false
