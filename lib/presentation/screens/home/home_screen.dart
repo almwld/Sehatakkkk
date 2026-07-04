@@ -891,3 +891,34 @@ class _HomeTabState extends State<_HomeTab> {
     );
   }
 }
+
+// ✅ استيراد AppIcons و ServiceIconWidget
+import 'package:sehatak/core/constants/app_icons.dart';
+import 'package:sehatak/presentation/widgets/service_icon_widget.dart';
+
+// ✅ تحديث الخدمات السريعة لاستخدام الأيقونات الجديدة
+Widget _buildQuickServicesWithIcons() {
+  final services = [
+    {'icon': AppIcons.doctor, 'label': 'أطباء', 'screen': const DoctorsListScreen()},
+    {'icon': AppIcons.pharmacy, 'label': 'صيدلية', 'screen': const PharmacyScreen()},
+    {'icon': AppIcons.labBlood, 'label': 'مختبرات', 'screen': const LabsListScreen()},
+    {'icon': AppIcons.navEmergency, 'label': 'طوارئ', 'screen': const EmergencyNumbers()},
+    {'icon': AppIcons.navVideoCall, 'label': 'استشارة', 'screen': const ConsultationScreen()},
+    {'icon': AppIcons.navHealthRecord, 'label': 'صحة', 'screen': const HealthDashboard()},
+    {'icon': AppIcons.navBlood, 'label': 'تبرع', 'screen': const BloodDonationScreen()},
+    {'icon': AppIcons.moreMenu, 'label': 'خدمات', 'screen': const ServicesScreen()},
+  ];
+
+  return Wrap(
+    spacing: 12,
+    runSpacing: 12,
+    children: services.map((service) {
+      return ServiceIconWidget(
+        iconPath: service['icon'] as String,
+        label: service['label'] as String,
+        onTap: () => _go(context, service['screen'] as Widget),
+        iconColor: AppColors.primary,
+      );
+    }).toList(),
+  );
+}

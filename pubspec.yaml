@@ -133,6 +133,11 @@ dependencies:
   # ============================================================
   google_fonts: ^6.2.0
 
+  # ============================================================
+  # 📦 SVG
+  # ============================================================
+  flutter_svg: ^2.0.9
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -147,19 +152,24 @@ flutter:
   uses-material-design: true
 
   # ============================================================
-  # 📁 Assets
+  # 📁 Assets - جميع الأيقونات
   # ============================================================
   assets:
     - assets/icons/app_icon.png
-    - assets/icons/payment/
-    - assets/icons/plans/
-    - assets/icons/navigation/
-    - assets/icons/specialties/
-    - assets/icons/social/
     - assets/icons/consultations/
-    - assets/icons/offers/
     - assets/icons/core/
     - assets/icons/mini_specialties/
+    - assets/icons/lab/
+    - assets/icons/navigation/
+    - assets/icons/offers/
+    - assets/icons/payment/
+    - assets/icons/plans/
+    - assets/icons/png_core/
+    - assets/icons/png_specialties/
+    - assets/icons/services/
+    - assets/icons/social/
+    - assets/icons/specialties/
+    - assets/icons/svg/
     - assets/images/
     - assets/fonts/
     - assets/audio/
