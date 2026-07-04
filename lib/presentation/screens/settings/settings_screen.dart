@@ -3,15 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/providers/font_size_provider.dart';
-import 'package:sehatak/core/providers/user_provider.dart';
 import 'package:sehatak/presentation/bloc/theme_bloc/theme_bloc.dart';
 import 'package:sehatak/presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'package:sehatak/presentation/screens/auth/login_screen.dart';
-import 'package:sehatak/presentation/screens/settings/language_screen.dart';
-import 'package:sehatak/presentation/screens/settings/notifications_settings_screen.dart';
-import 'package:sehatak/presentation/screens/settings/privacy_screen.dart';
-import 'package:sehatak/presentation/screens/settings/about_screen.dart';
-import 'package:sehatak/presentation/screens/settings/help_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -68,19 +62,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     icon: Icons.notifications_rounded,
                     title: 'الإشعارات',
                     subtitle: 'تفعيل أو تعطيل الإشعارات',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const NotificationsSettingsScreen(),
-                        ),
-                      );
-                    },
+                    onTap: () {},
                     isDark: isDark,
                   ),
                   _buildDivider(isDark),
                   _buildSwitchTile(
-                    icon: Icons.sound_rounded,
+                    icon: Icons.volume_up_rounded,
                     title: 'صوت الإشعارات',
                     subtitle: 'تفعيل صوت الإشعارات',
                     value: true,
@@ -109,14 +96,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: Icons.language_rounded,
                 title: 'اللغة',
                 subtitle: 'العربية (الافتراضية)',
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const LanguageScreen(),
-                    ),
-                  );
-                },
+                onTap: () {},
                 isDark: isDark,
                 trailing: const Text(
                   'العربية',
@@ -160,7 +140,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const SizedBox(height: 16),
 
-            // ✅ الخصوصية
+            // ✅ الخصوصية والأمان
             _buildSectionHeader('الخصوصية والأمان', isDark),
             const SizedBox(height: 8),
             _buildCard(
@@ -170,19 +150,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     icon: Icons.privacy_tip_rounded,
                     title: 'سياسة الخصوصية',
                     subtitle: 'عرض سياسة الخصوصية',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const PrivacyScreen(),
-                        ),
-                      );
-                    },
+                    onTap: () {},
                     isDark: isDark,
                   ),
                   _buildDivider(isDark),
                   _buildSwitchTile(
-                    icon: Icons.biometric_rounded,
+                    icon: Icons.fingerprint_rounded,
                     title: 'المصادقة بالبصمة',
                     subtitle: 'استخدام البصمة لتسجيل الدخول',
                     value: false,
@@ -212,14 +185,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     icon: Icons.help_rounded,
                     title: 'مركز المساعدة',
                     subtitle: 'الأسئلة الشائعة والدعم',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const HelpScreen(),
-                        ),
-                      );
-                    },
+                    onTap: () {},
                     isDark: isDark,
                   ),
                   _buildDivider(isDark),
@@ -259,14 +225,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: Icons.info_rounded,
                 title: 'عن صحتك',
                 subtitle: 'الإصدار 1.1.0',
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const AboutScreen(),
-                    ),
-                  );
-                },
+                onTap: () {},
                 isDark: isDark,
                 trailing: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -317,9 +276,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // 🧩 ويدجتس مساعدة
   // ============================================================
   Widget _buildProfileSection(bool isDark) {
-    final userProvider = context.watch<UserProvider>();
-    final user = userProvider.currentUser;
-
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -346,17 +302,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  user?.displayName ?? 'مستخدم',
-                  style: const TextStyle(
+                const Text(
+                  'مستخدم',
+                  style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Text(
-                  user?.email ?? 'user@example.com',
-                  style: const TextStyle(
+                const Text(
+                  'user@example.com',
+                  style: TextStyle(
                     color: Colors.white70,
                     fontSize: 12,
                   ),
@@ -486,9 +442,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             subtitle: 'تفعيل الوضع المظلم للتطبيق',
             value: isDark,
             onChanged: (value) {
-              context.read<ThemeBloc>().add(
-                    value ? SetDarkTheme() : SetLightTheme(),
-                  );
+              // ✅ تم التعليق مؤقتاً لحين إصلاح ThemeBloc
             },
             isDark: isDark,
           ),
@@ -497,10 +451,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             icon: Icons.brightness_auto_rounded,
             title: 'الوضع التلقائي',
             subtitle: 'متابعة إعدادات النظام',
-            value: context.read<ThemeBloc>().state.themeMode == ThemeMode.system,
-            onChanged: (value) {
-              context.read<ThemeBloc>().add(SetSystemTheme());
-            },
+            value: false,
+            onChanged: (_) {},
             isDark: isDark,
           ),
           _buildDivider(isDark),
