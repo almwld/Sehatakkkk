@@ -9,11 +9,11 @@ class EmergencyNumbers extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final numbers = [
       {'name': 'الشرطة', 'number': '199', 'icon': Icons.local_police, 'color': Colors.blue},
-      {'name': 'الإسعاف', 'number': '191', 'icon': Icons.ambulance, 'color': Colors.red},
-      {'name': 'مطافئ', 'number': '16', 'icon': Icons.fire_truck, 'color': Colors.orange},
+      {'name': 'الإسعاف', 'number': '191', 'icon': Icons.medical_services, 'color': Colors.red},
+      {'name': 'مطافئ', 'number': '16', 'icon': Icons.fire_extinguisher, 'color': Colors.orange},
       {'name': 'الدفاع المدني', 'number': '194', 'icon': Icons.shield, 'color': Colors.green},
       {'name': 'الدعم النفسي', 'number': '185', 'icon': Icons.psychology, 'color': Colors.purple},
-      {'name': 'التسمم', 'number': '180', 'icon': Icons.warning, 'color': Colors.yellow},
+      {'name': 'التسمم', 'number': '180', 'icon': Icons.warning_amber_rounded, 'color': Colors.yellow},
     ];
 
     return Scaffold(
