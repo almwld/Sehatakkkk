@@ -11,7 +11,6 @@ import 'package:sehatak/presentation/screens/patient/patient_appointments.dart';
 import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
 import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
 import 'package:sehatak/presentation/screens/blood_donation/blood_donation_screen.dart';
-import 'package:sehatak/presentation/screens/services/services_screen.dart';
 import 'package:sehatak/presentation/screens/insurance/insurance_companies.dart';
 import 'package:sehatak/presentation/screens/health_community/health_community_screen.dart';
 import 'package:sehatak/presentation/screens/medication/medicines_screen.dart';
@@ -34,255 +33,32 @@ class _ServicesScreenState extends State<ServicesScreen> {
   String _searchQuery = '';
   String _selectedCategory = 'الكل';
 
-  final List<String> _categories = [
-    'الكل',
-    'طبية',
-    'صحية',
-    'لوجستية',
-    'توعوية',
-  ];
+  final List<String> _categories = ['الكل', 'طبية', 'صحية', 'لوجستية', 'توعوية'];
 
-  // ✅ جميع الخدمات (35 خدمة)
   final List<Map<String, dynamic>> _allServices = [
-    // === طبية ===
-    {
-      'id': '1',
-      'icon': Icons.medical_services,
-      'label': 'الأطباء',
-      'color': AppColors.primary,
-      'category': 'طبية',
-      'screen': const DoctorsListScreen(),
-      'description': 'استشر أفضل الأطباء في مختلف التخصصات',
-    },
-    {
-      'id': '2',
-      'icon': Icons.local_pharmacy,
-      'label': 'الصيدلية',
-      'color': AppColors.success,
-      'category': 'طبية',
-      'screen': const PharmacyScreen(),
-      'description': 'اطلب أدويتك واستلمها في منزلك',
-    },
-    {
-      'id': '3',
-      'icon': Icons.science,
-      'label': 'المختبرات',
-      'color': AppColors.purple,
-      'category': 'طبية',
-      'screen': const LabsListScreen(),
-      'description': 'احجز تحاليلك في أفضل المختبرات',
-    },
-    {
-      'id': '4',
-      'icon': Icons.emergency,
-      'label': 'الطوارئ',
-      'color': AppColors.error,
-      'category': 'طبية',
-      'screen': const EmergencyNumbers(),
-      'description': 'أرقام الطوارئ والمساعدة الفورية',
-    },
-    {
-      'id': '5',
-      'icon': Icons.chat,
-      'label': 'استشارة فورية',
-      'color': AppColors.teal,
-      'category': 'طبية',
-      'screen': const ConsultationScreen(),
-      'description': 'تحدث مع طبيبك عبر الفيديو والصوت',
-    },
-    {
-      'id': '6',
-      'icon': Icons.calendar_month,
-      'label': 'المواعيد',
-      'color': AppColors.primaryDark,
-      'category': 'طبية',
-      'screen': const PatientAppointments(),
-      'description': 'إدارة مواعيدك الطبية بكل سهولة',
-    },
-    {
-      'id': '7',
-      'icon': Icons.chat_rounded,
-      'label': 'الدردشة',
-      'color': AppColors.info,
-      'category': 'طبية',
-      'screen': const ChatScreen(),
-      'description': 'تواصل مع الأطباء والصيدليات',
-    },
-    {
-      'id': '8',
-      'icon': Icons.map,
-      'label': 'الخريطة',
-      'color': Colors.orange,
-      'category': 'طبية',
-      'screen': const InteractiveMapScreen(),
-      'description': 'ابحث عن أقرب المنشآت الصحية',
-    },
-    {
-      'id': '9',
-      'icon': Icons.bloodtype,
-      'label': 'التبرع بالدم',
-      'color': Colors.red,
-      'category': 'طبية',
-      'screen': const BloodDonationScreen(),
-      'description': 'أنقذ حياة بتبرعك بالدم',
-    },
-    {
-      'id': '10',
-      'icon': Icons.shield,
-      'label': 'التأمين الصحي',
-      'color': Colors.blue,
-      'category': 'طبية',
-      'screen': const InsuranceCompanies(),
-      'description': 'خطط تأمين تناسب احتياجاتك',
-    },
-
-    // === صحية ===
-    {
-      'id': '11',
-      'icon': Icons.favorite,
-      'label': 'الصحة العامة',
-      'color': AppColors.pink,
-      'category': 'صحية',
-      'screen': const HealthDashboard(),
-      'description': 'متابعة حالتك الصحية بشكل شامل',
-    },
-    {
-      'id': '12',
-      'icon': Icons.monitor_heart,
-      'label': 'ضغط الدم',
-      'color': AppColors.error,
-      'category': 'صحية',
-      'screen': const BloodPressureScreen(),
-      'description': 'تتبع ومراقبة ضغط الدم',
-    },
-    {
-      'id': '13',
-      'icon': Icons.biotech,
-      'label': 'تتبع السكر',
-      'color': AppColors.warning,
-      'category': 'صحية',
-      'screen': const GlucoseTrackerScreen(),
-      'description': 'مراقبة مستوى السكر في الدم',
-    },
-    {
-      'id': '14',
-      'icon': Icons.monitor_weight,
-      'label': 'الوزن',
-      'color': AppColors.info,
-      'category': 'صحية',
-      'screen': const WeightTrackerScreen(),
-      'description': 'تتبع وزنك وحافظ على لياقتك',
-    },
-    {
-      'id': '15',
-      'icon': Icons.medication,
-      'label': 'الأدوية',
-      'color': AppColors.success,
-      'category': 'صحية',
-      'screen': const MedicinesScreen(),
-      'description': 'إدارة أدويتك وتذكيرك بها',
-    },
-    {
-      'id': '16',
-      'icon': Icons.healing,
-      'label': 'الإسعافات الأولية',
-      'color': Colors.orange,
-      'category': 'صحية',
-      'screen': const FirstAidScreen(),
-      'description': 'تعلم أساسيات الإسعافات الأولية',
-    },
-    {
-      'id': '17',
-      'icon': Icons.article,
-      'label': 'المقالات الطبية',
-      'color': Colors.blueGrey,
-      'category': 'صحية',
-      'screen': const ArticlesScreen(),
-      'description': 'اقرأ أحدث المقالات الطبية',
-    },
-    {
-      'id': '18',
-      'icon': Icons.group,
-      'label': 'مجتمع صحتك',
-      'color': Colors.teal,
-      'category': 'صحية',
-      'screen': const HealthCommunityScreen(),
-      'description': 'انضم لمجتمع صحي تفاعلي',
-    },
-
-    // === لوجستية ===
-    {
-      'id': '19',
-      'icon': Icons.wallet,
-      'label': 'المحفظة',
-      'color': AppColors.amber,
-      'category': 'لوجستية',
-      'screen': const WalletScreen(),
-      'description': 'إدارة محفظتك الإلكترونية',
-    },
-    {
-      'id': '20',
-      'icon': Icons.shopping_cart,
-      'label': 'السلة',
-      'color': Colors.brown,
-      'category': 'لوجستية',
-      'description': 'سلة مشترياتك الطبية',
-    },
-    {
-      'id': '21',
-      'icon': Icons.local_shipping,
-      'label': 'تتبع الطلب',
-      'color': Colors.purple,
-      'category': 'لوجستية',
-      'description': 'تتبع طلباتك في الوقت الفعلي',
-    },
-    {
-      'id': '22',
-      'icon': Icons.home_work,
-      'label': 'خدمات منزلية',
-      'color': Colors.brown,
-      'category': 'لوجستية',
-      'screen': const ServicesScreen(),
-      'description': 'خدمات طبية في منزلك',
-    },
-
-    // === توعوية ===
-    {
-      'id': '23',
-      'icon': Icons.lightbulb,
-      'label': 'نصائح صحية',
-      'color': Colors.amber,
-      'category': 'توعوية',
-      'screen': const HealthDashboard(),
-      'description': 'نصائح يومية للحفاظ على صحتك',
-    },
-    {
-      'id': '24',
-      'icon': Icons.sports,
-      'label': 'التمارين الرياضية',
-      'color': Colors.green,
-      'category': 'توعوية',
-      'screen': const HealthDashboard(),
-      'description': 'تمارين للياقة والرشاقة',
-    },
-    {
-      'id': '25',
-      'icon': Icons.restaurant,
-      'label': 'النظام الغذائي',
-      'color': Colors.orange,
-      'category': 'توعوية',
-      'screen': const HealthDashboard(),
-      'description': 'خطط غذائية صحية ومتوازنة',
-    },
-    {
-      'id': '26',
-      'icon': Icons.wb_sunny,
-      'label': 'الطقس والصحة',
-      'color': Colors.blue,
-      'category': 'توعوية',
-      'screen': const ServicesScreen(),
-      'description': 'تأثير الطقس على صحتك',
-    },
+    {'id': '1', 'icon': Icons.medical_services, 'label': 'الأطباء', 'color': AppColors.primary, 'category': 'طبية', 'screen': const DoctorsListScreen(), 'description': 'استشر أفضل الأطباء في مختلف التخصصات'},
+    {'id': '2', 'icon': Icons.local_pharmacy, 'label': 'الصيدلية', 'color': AppColors.success, 'category': 'طبية', 'screen': const PharmacyScreen(), 'description': 'اطلب أدويتك واستلمها في منزلك'},
+    {'id': '3', 'icon': Icons.science, 'label': 'المختبرات', 'color': AppColors.purple, 'category': 'طبية', 'screen': const LabsListScreen(), 'description': 'احجز تحاليلك في أفضل المختبرات'},
+    {'id': '4', 'icon': Icons.emergency, 'label': 'الطوارئ', 'color': AppColors.error, 'category': 'طبية', 'screen': const EmergencyNumbers(), 'description': 'أرقام الطوارئ والمساعدة الفورية'},
+    {'id': '5', 'icon': Icons.chat, 'label': 'استشارة فورية', 'color': AppColors.teal, 'category': 'طبية', 'screen': const ConsultationScreen(), 'description': 'تحدث مع طبيبك عبر الفيديو والصوت'},
+    {'id': '6', 'icon': Icons.calendar_month, 'label': 'المواعيد', 'color': AppColors.primaryDark, 'category': 'طبية', 'screen': const PatientAppointments(), 'description': 'إدارة مواعيدك الطبية بكل سهولة'},
+    {'id': '7', 'icon': Icons.chat_rounded, 'label': 'الدردشة', 'color': AppColors.info, 'category': 'طبية', 'screen': const ChatScreen(), 'description': 'تواصل مع الأطباء والصيدليات'},
+    {'id': '8', 'icon': Icons.map, 'label': 'الخريطة', 'color': Colors.orange, 'category': 'طبية', 'screen': const InteractiveMapScreen(), 'description': 'ابحث عن أقرب المنشآت الصحية'},
+    {'id': '9', 'icon': Icons.bloodtype, 'label': 'التبرع بالدم', 'color': Colors.red, 'category': 'طبية', 'screen': const BloodDonationScreen(), 'description': 'أنقذ حياة بتبرعك بالدم'},
+    {'id': '10', 'icon': Icons.shield, 'label': 'التأمين الصحي', 'color': Colors.blue, 'category': 'طبية', 'screen': const InsuranceCompanies(), 'description': 'خطط تأمين تناسب احتياجاتك'},
+    {'id': '11', 'icon': Icons.favorite, 'label': 'الصحة العامة', 'color': AppColors.pink, 'category': 'صحية', 'screen': const HealthDashboard(), 'description': 'متابعة حالتك الصحية بشكل شامل'},
+    {'id': '12', 'icon': Icons.monitor_heart, 'label': 'ضغط الدم', 'color': AppColors.error, 'category': 'صحية', 'screen': const BloodPressureScreen(), 'description': 'تتبع ومراقبة ضغط الدم'},
+    {'id': '13', 'icon': Icons.biotech, 'label': 'تتبع السكر', 'color': AppColors.warning, 'category': 'صحية', 'screen': const GlucoseTrackerScreen(), 'description': 'مراقبة مستوى السكر في الدم'},
+    {'id': '14', 'icon': Icons.monitor_weight, 'label': 'الوزن', 'color': AppColors.info, 'category': 'صحية', 'screen': const WeightTrackerScreen(), 'description': 'تتبع وزنك وحافظ على لياقتك'},
+    {'id': '15', 'icon': Icons.medication, 'label': 'الأدوية', 'color': AppColors.success, 'category': 'صحية', 'screen': const MedicinesScreen(), 'description': 'إدارة أدويتك وتذكيرك بها'},
+    {'id': '16', 'icon': Icons.healing, 'label': 'الإسعافات الأولية', 'color': Colors.orange, 'category': 'صحية', 'screen': const FirstAidScreen(), 'description': 'تعلم أساسيات الإسعافات الأولية'},
+    {'id': '17', 'icon': Icons.article, 'label': 'المقالات الطبية', 'color': Colors.blueGrey, 'category': 'صحية', 'screen': const ArticlesScreen(), 'description': 'اقرأ أحدث المقالات الطبية'},
+    {'id': '18', 'icon': Icons.group, 'label': 'مجتمع صحتك', 'color': Colors.teal, 'category': 'صحية', 'screen': const HealthCommunityScreen(), 'description': 'انضم لمجتمع صحي تفاعلي'},
+    {'id': '19', 'icon': Icons.wallet, 'label': 'المحفظة', 'color': AppColors.amber, 'category': 'لوجستية', 'screen': const WalletScreen(), 'description': 'إدارة محفظتك الإلكترونية'},
+    {'id': '20', 'icon': Icons.shopping_cart, 'label': 'السلة', 'color': Colors.brown, 'category': 'لوجستية', 'screen': const CartScreen(), 'description': 'سلة مشترياتك الطبية'},
+    {'id': '21', 'icon': Icons.local_shipping, 'label': 'تتبع الطلب', 'color': Colors.purple, 'category': 'لوجستية', 'screen': const OrderTrackingScreen(), 'description': 'تتبع طلباتك في الوقت الفعلي'},
+    {'id': '22', 'icon': Icons.home_work, 'label': 'خدمات منزلية', 'color': Colors.brown, 'category': 'لوجستية', 'screen': const ServicesScreen(), 'description': 'خدمات طبية في منزلك'},
+    {'id': '23', 'icon': Icons.lightbulb, 'label': 'نصائح صحية', 'color': Colors.amber, 'category': 'توعوية', 'screen': const HealthDashboard(), 'description': 'نصائح يومية للحفاظ على صحتك'},
   ];
 
   List<Map<String, dynamic>> get _filteredServices {
@@ -315,20 +91,14 @@ class _ServicesScreenState extends State<ServicesScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.search_rounded),
-            onPressed: () {
-              _showSearchBar();
-            },
+            onPressed: () => _showSearchBar(context),
           ),
         ],
       ),
       body: Column(
         children: [
-          // ✅ شريط البحث
-          if (_searchQuery.isNotEmpty)
-            _buildSearchBar(isDark),
-          // ✅ الفلاتر
+          if (_searchQuery.isNotEmpty) _buildSearchBar(isDark),
           _buildCategoryChips(),
-          // ✅ قائمة الخدمات
           Expanded(
             child: filtered.isEmpty
                 ? _buildEmptyState(isDark)
@@ -375,7 +145,6 @@ class _ServicesScreenState extends State<ServicesScreen> {
             Expanded(
               child: TextField(
                 onChanged: (v) => setState(() => _searchQuery = v),
-                autofocus: true,
                 style: TextStyle(color: isDark ? Colors.white : Colors.black87),
                 decoration: InputDecoration(
                   hintText: 'ابحث عن خدمة...',
@@ -412,9 +181,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
               label: Text(category),
               selected: isSelected,
               onSelected: (selected) {
-                setState(() {
-                  _selectedCategory = selected ? category : 'الكل';
-                });
+                setState(() => _selectedCategory = selected ? category : 'الكل');
               },
               backgroundColor: Colors.white,
               selectedColor: const Color(0xFF0D5257),
@@ -441,28 +208,11 @@ class _ServicesScreenState extends State<ServicesScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.search_off_outlined,
-            size: 64,
-            color: isDark ? Colors.grey[600] : Colors.grey[300],
-          ),
+          Icon(Icons.search_off_outlined, size: 64, color: isDark ? Colors.grey[600] : Colors.grey[300]),
           const SizedBox(height: 16),
-          Text(
-            'لا توجد خدمات',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : Colors.black87,
-            ),
-          ),
+          Text('لا توجد خدمات', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
           const SizedBox(height: 8),
-          Text(
-            'جرب تغيير البحث أو الفلتر',
-            style: TextStyle(
-              fontSize: 13,
-              color: isDark ? Colors.grey[400] : Colors.grey[600],
-            ),
-          ),
+          Text('جرب تغيير البحث أو الفلتر', style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[400] : Colors.grey[600])),
         ],
       ),
     );
@@ -500,11 +250,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
                 color: color.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
-                service['icon'] as IconData,
-                color: color,
-                size: 26,
-              ),
+              child: Icon(service['icon'] as IconData, color: color, size: 26),
             ),
             const SizedBox(height: 6),
             Text(
@@ -532,10 +278,8 @@ class _ServicesScreenState extends State<ServicesScreen> {
       ),
     );
   }
-}
 
-  // ✅ دالة البحث
-  void _showSearchBar() {
+  void _showSearchBar(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -543,9 +287,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
         return AlertDialog(
           title: const Text('بحث عن خدمة'),
           content: TextField(
-            onChanged: (value) {
-              tempSearch = value;
-            },
+            onChanged: (value) => tempSearch = value,
             autofocus: true,
             decoration: const InputDecoration(
               hintText: 'أدخل اسم الخدمة...',
@@ -559,9 +301,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
             ),
             TextButton(
               onPressed: () {
-                setState(() {
-                  _searchQuery = tempSearch;
-                });
+                setState(() => _searchQuery = tempSearch);
                 Navigator.pop(context);
               },
               child: const Text('بحث'),
@@ -571,3 +311,4 @@ class _ServicesScreenState extends State<ServicesScreen> {
       },
     );
   }
+}
