@@ -719,3 +719,35 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
     );
   }
 }
+
+  // ✅ دالة البحث
+  void _showSearchBar() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('بحث عن طبيب'),
+        content: TextField(
+          onChanged: (value) {
+            setState(() {
+              _searchQuery = value;
+            });
+          },
+          autofocus: true,
+          decoration: InputDecoration(
+            hintText: 'أدخل اسم الطبيب أو التخصص...',
+            prefixIcon: const Icon(Icons.search),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('إلغاء'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('بحث'),
+          ),
+        ],
+      ),
+    );
+  }

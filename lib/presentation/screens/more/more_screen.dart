@@ -34,7 +34,7 @@ class _MoreScreenState extends State<MoreScreen> {
   final List<Map<String, dynamic>> _vitals = [
     {'title': 'عداد الخطوات', 'value': '5,230', 'unit': 'خطوة', 'icon': Icons.directions_walk, 'color': Colors.orange, 'status': 'طبيعي', 'statusColor': Colors.green},
     {'title': 'ضغط الدم', 'value': '120/80', 'unit': 'ملم زئبق', 'icon': Icons.favorite, 'color': Colors.red, 'status': 'طبيعي', 'statusColor': Colors.green},
-    {'title': 'معدل القلب', 'value': '72', 'unit': 'نبضة/د', 'icon': Icons.pulse_tracker, 'color': Colors.pink, 'status': 'طبيعي', 'statusColor': Colors.green},
+    {'title': 'معدل القلب', 'value': '72', 'unit': 'نبضة/د', 'icon': Icons.favorite, 'color': Colors.pink, 'status': 'طبيعي', 'statusColor': Colors.green},
     {'title': 'نسبة السكر', 'value': '95', 'unit': 'مغ/دسل', 'icon': Icons.water_drop, 'color': Colors.blue, 'status': 'مرتفع', 'statusColor': Colors.red},
   ];
 
