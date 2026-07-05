@@ -15,13 +15,17 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool _isDark = false;
+  bool _notificationsEnabled = true;
+  bool _soundEnabled = true;
+  bool _vibrationEnabled = true;
+  bool _locationEnabled = false;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final fontSizeProvider = context.watch<FontSizeProvider>();
     final primaryColor = const Color(0xFF0D5257);
+    final fontProvider = context.watch<FontSizeProvider>();
+    final fontScale = fontProvider.fontScale;
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
@@ -32,309 +36,404 @@ class _SettingsScreenState extends State<SettingsScreen> {
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.search_rounded),
-            onPressed: () {},
+            icon: const Icon(Icons.restore_rounded),
+            onPressed: () {
+              fontProvider.resetToDefault();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('✅ تم إعادة حجم الخط إلى الافتراضي'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            },
+            tooltip: 'إعادة تعيين حجم الخط',
           ),
         ],
       ),
-      body: SingleChildScrollView(
+      body: ListView(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ✅ الملف الشخصي
-            _buildProfileSection(isDark),
-            const SizedBox(height: 16),
-
-            // ✅ المظهر
-            _buildSectionHeader('المظهر', isDark),
-            const SizedBox(height: 8),
-            _buildAppearanceCard(isDark, fontSizeProvider),
-            const SizedBox(height: 16),
-
-            // ✅ الإشعارات
-            _buildSectionHeader('الإشعارات', isDark),
-            const SizedBox(height: 8),
-            _buildCard(
-              child: Column(
-                children: [
-                  _buildListTile(
-                    icon: Icons.notifications_rounded,
-                    title: 'الإشعارات',
-                    subtitle: 'تفعيل أو تعطيل الإشعارات',
-                    onTap: () {},
-                    isDark: isDark,
-                  ),
-                  _buildDivider(isDark),
-                  _buildSwitchTile(
-                    icon: Icons.volume_up_rounded,
-                    title: 'صوت الإشعارات',
-                    subtitle: 'تفعيل صوت الإشعارات',
-                    value: true,
-                    onChanged: (_) {},
-                    isDark: isDark,
-                  ),
-                  _buildDivider(isDark),
-                  _buildSwitchTile(
-                    icon: Icons.vibration_rounded,
-                    title: 'اهتزاز الإشعارات',
-                    subtitle: 'تفعيل الاهتزاز عند الإشعارات',
-                    value: false,
-                    onChanged: (_) {},
-                    isDark: isDark,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // ✅ اللغة
-            _buildSectionHeader('اللغة', isDark),
-            const SizedBox(height: 8),
-            _buildCard(
-              child: _buildListTile(
-                icon: Icons.language_rounded,
-                title: 'اللغة',
-                subtitle: 'العربية (الافتراضية)',
-                onTap: () {},
-                isDark: isDark,
-                trailing: const Text(
-                  'العربية',
-                  style: TextStyle(color: Color(0xFF0D5257), fontWeight: FontWeight.w500),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // ✅ الحساب
-            _buildSectionHeader('الحساب', isDark),
-            const SizedBox(height: 8),
-            _buildCard(
-              child: Column(
-                children: [
-                  _buildListTile(
-                    icon: Icons.person_rounded,
-                    title: 'الملف الشخصي',
-                    subtitle: 'تعديل بياناتك الشخصية',
-                    onTap: () {},
-                    isDark: isDark,
-                  ),
-                  _buildDivider(isDark),
-                  _buildListTile(
-                    icon: Icons.lock_rounded,
-                    title: 'تغيير كلمة المرور',
-                    subtitle: 'تحديث كلمة المرور الخاصة بك',
-                    onTap: () {},
-                    isDark: isDark,
-                  ),
-                  _buildDivider(isDark),
-                  _buildListTile(
-                    icon: Icons.email_rounded,
-                    title: 'البريد الإلكتروني',
-                    subtitle: 'تحديث البريد الإلكتروني',
-                    onTap: () {},
-                    isDark: isDark,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // ✅ الخصوصية والأمان
-            _buildSectionHeader('الخصوصية والأمان', isDark),
-            const SizedBox(height: 8),
-            _buildCard(
-              child: Column(
-                children: [
-                  _buildListTile(
-                    icon: Icons.privacy_tip_rounded,
-                    title: 'سياسة الخصوصية',
-                    subtitle: 'عرض سياسة الخصوصية',
-                    onTap: () {},
-                    isDark: isDark,
-                  ),
-                  _buildDivider(isDark),
-                  _buildSwitchTile(
-                    icon: Icons.fingerprint_rounded,
-                    title: 'المصادقة بالبصمة',
-                    subtitle: 'استخدام البصمة لتسجيل الدخول',
-                    value: false,
-                    onChanged: (_) {},
-                    isDark: isDark,
-                  ),
-                  _buildDivider(isDark),
-                  _buildListTile(
-                    icon: Icons.data_usage_rounded,
-                    title: 'البيانات والتخزين',
-                    subtitle: 'إدارة بيانات التطبيق',
-                    onTap: () {},
-                    isDark: isDark,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // ✅ الدعم
-            _buildSectionHeader('الدعم', isDark),
-            const SizedBox(height: 8),
-            _buildCard(
-              child: Column(
-                children: [
-                  _buildListTile(
-                    icon: Icons.help_rounded,
-                    title: 'مركز المساعدة',
-                    subtitle: 'الأسئلة الشائعة والدعم',
-                    onTap: () {},
-                    isDark: isDark,
-                  ),
-                  _buildDivider(isDark),
-                  _buildListTile(
-                    icon: Icons.feedback_rounded,
-                    title: 'إرسال ملاحظات',
-                    subtitle: 'شاركنا رأيك في التطبيق',
-                    onTap: () {},
-                    isDark: isDark,
-                  ),
-                  _buildDivider(isDark),
-                  _buildListTile(
-                    icon: Icons.share_rounded,
-                    title: 'مشاركة التطبيق',
-                    subtitle: 'دعوة الأصدقاء لاستخدام التطبيق',
-                    onTap: () {},
-                    isDark: isDark,
-                  ),
-                  _buildDivider(isDark),
-                  _buildListTile(
-                    icon: Icons.star_rounded,
-                    title: 'تقييم التطبيق',
-                    subtitle: 'قيم التطبيق في المتجر',
-                    onTap: () {},
-                    isDark: isDark,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // ✅ معلومات التطبيق
-            _buildSectionHeader('عن التطبيق', isDark),
-            const SizedBox(height: 8),
-            _buildCard(
-              child: _buildListTile(
-                icon: Icons.info_rounded,
-                title: 'عن صحتك',
-                subtitle: 'الإصدار 1.1.0',
-                onTap: () {},
-                isDark: isDark,
-                trailing: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: primaryColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    'v1.1.0',
-                    style: TextStyle(
-                      color: primaryColor,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // ✅ زر تسجيل الخروج
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () => _showLogoutDialog(context),
-                icon: const Icon(Icons.logout_rounded, color: Colors.red),
-                label: const Text(
-                  'تسجيل الخروج',
-                  style: TextStyle(color: Colors.red, fontSize: 16),
-                ),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.red),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ============================================================
-  // 🧩 ويدجتس مساعدة
-  // ============================================================
-  Widget _buildProfileSection(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [const Color(0xFF0D5257), const Color(0xFF0D5257).withOpacity(0.7)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
         children: [
-          CircleAvatar(
-            radius: 30,
-            backgroundColor: Colors.white.withOpacity(0.2),
-            child: const Icon(
-              Icons.person,
-              color: Colors.white,
-              size: 32,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
+          // ✅ 1. المظهر
+          _buildSectionHeader('المظهر', isDark),
+          const SizedBox(height: 8),
+          _buildCard(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'مستخدم',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                _buildSwitchTile(
+                  icon: Icons.dark_mode_rounded,
+                  title: 'الوضع المظلم',
+                  subtitle: 'تفعيل الوضع المظلم للتطبيق',
+                  value: isDark,
+                  onChanged: (value) {
+                    context.read<ThemeBloc>().add(
+                      value ? SetDarkTheme() : SetLightTheme(),
+                    );
+                  },
+                  isDark: isDark,
                 ),
-                const Text(
-                  'user@example.com',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 12,
-                  ),
+                _buildDivider(isDark),
+                _buildSwitchTile(
+                  icon: Icons.brightness_auto_rounded,
+                  title: 'الوضع التلقائي',
+                  subtitle: 'متابعة إعدادات النظام',
+                  value: context.read<ThemeBloc>().state.themeMode == ThemeMode.system,
+                  onChanged: (value) {
+                    context.read<ThemeBloc>().add(SetSystemTheme());
+                  },
+                  isDark: isDark,
                 ),
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.3),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Text(
-              'نشط',
-              style: TextStyle(color: Colors.white, fontSize: 11),
+          const SizedBox(height: 16),
+
+          // ✅ 2. حجم الخط - متحكم فيه
+          _buildSectionHeader('حجم الخط', isDark),
+          const SizedBox(height: 8),
+          _buildCard(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  // ✅ عرض الحجم الحالي
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: fontProvider.getScaleColor().withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          fontProvider.getScaleIcon(),
+                          color: fontProvider.getScaleColor(),
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'حجم الخط الحالي',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? Colors.white : Colors.black87,
+                              ),
+                            ),
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: fontProvider.getScaleColor().withOpacity(0.15),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    '${fontProvider.fontSizePercent}%',
+                                    style: TextStyle(
+                                      color: fontProvider.getScaleColor(),
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  fontProvider.getScaleLabel(),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      // ✅ مثال للخط
+                      Text(
+                        'نص',
+                        style: TextStyle(
+                          fontSize: 16 * fontScale,
+                          fontWeight: FontWeight.bold,
+                          color: primaryColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // ✅ شريط التحكم
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.remove_circle_outline, color: primaryColor),
+                        onPressed: () {
+                          if (fontScale > 0.81) {
+                            fontProvider.setFontScale(fontScale - 0.05);
+                          }
+                        },
+                      ),
+                      Expanded(
+                        child: Slider(
+                          value: fontScale,
+                          min: 0.8,
+                          max: 1.6,
+                          divisions: 16,
+                          label: '${(fontScale * 100).round()}%',
+                          onChanged: (value) {
+                            fontProvider.setFontScale(value);
+                          },
+                          activeColor: primaryColor,
+                          inactiveColor: isDark ? Colors.grey[700] : Colors.grey[300],
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.add_circle_outline, color: primaryColor),
+                        onPressed: () {
+                          if (fontScale < 1.59) {
+                            fontProvider.setFontScale(fontScale + 0.05);
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+
+                  // ✅ أزرار سريعة
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildQuickSizeButton('صغير', 0.8, fontProvider, isDark),
+                      _buildQuickSizeButton('متوسط', 1.0, fontProvider, isDark),
+                      _buildQuickSizeButton('كبير', 1.3, fontProvider, isDark),
+                      _buildQuickSizeButton('كبير جداً', 1.6, fontProvider, isDark),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
+          const SizedBox(height: 16),
+
+          // ✅ 3. اللغة
+          _buildSectionHeader('اللغة', isDark),
+          const SizedBox(height: 8),
+          _buildCard(
+            child: Column(
+              children: [
+                _buildRadioTile(
+                  icon: Icons.language_rounded,
+                  title: 'العربية',
+                  subtitle: 'اللغة الافتراضية',
+                  value: 'ar',
+                  groupValue: 'ar',
+                  onChanged: (_) {},
+                  isDark: isDark,
+                ),
+                _buildDivider(isDark),
+                _buildRadioTile(
+                  icon: Icons.language_rounded,
+                  title: 'English',
+                  subtitle: 'Default language',
+                  value: 'en',
+                  groupValue: 'ar',
+                  onChanged: (_) {},
+                  isDark: isDark,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // ✅ 4. الإشعارات
+          _buildSectionHeader('الإشعارات', isDark),
+          const SizedBox(height: 8),
+          _buildCard(
+            child: Column(
+              children: [
+                _buildSwitchTile(
+                  icon: Icons.notifications_rounded,
+                  title: 'الإشعارات',
+                  subtitle: 'تلقي إشعارات التطبيق',
+                  value: _notificationsEnabled,
+                  onChanged: (value) => setState(() => _notificationsEnabled = value),
+                  isDark: isDark,
+                ),
+                _buildDivider(isDark),
+                _buildSwitchTile(
+                  icon: Icons.volume_up_rounded,
+                  title: 'الصوت',
+                  subtitle: 'تشغيل صوت الإشعارات',
+                  value: _soundEnabled,
+                  onChanged: (value) => setState(() => _soundEnabled = value),
+                  isDark: isDark,
+                ),
+                _buildDivider(isDark),
+                _buildSwitchTile(
+                  icon: Icons.vibration_rounded,
+                  title: 'الاهتزاز',
+                  subtitle: 'تفعيل الاهتزاز عند الإشعارات',
+                  value: _vibrationEnabled,
+                  onChanged: (value) => setState(() => _vibrationEnabled = value),
+                  isDark: isDark,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // ✅ 5. الخصوصية والأمان
+          _buildSectionHeader('الخصوصية والأمان', isDark),
+          const SizedBox(height: 8),
+          _buildCard(
+            child: Column(
+              children: [
+                _buildListTile(
+                  icon: Icons.lock_rounded,
+                  title: 'تغيير كلمة المرور',
+                  subtitle: 'تحديث كلمة المرور الخاصة بك',
+                  onTap: () {},
+                  isDark: isDark,
+                ),
+                _buildDivider(isDark),
+                _buildListTile(
+                  icon: Icons.fingerprint_rounded,
+                  title: 'البصمة',
+                  subtitle: 'تفعيل تسجيل الدخول بالبصمة',
+                  onTap: () {},
+                  isDark: isDark,
+                ),
+                _buildDivider(isDark),
+                _buildSwitchTile(
+                  icon: Icons.location_on_rounded,
+                  title: 'الموقع',
+                  subtitle: 'السماح للتطبيق بالوصول إلى موقعك',
+                  value: _locationEnabled,
+                  onChanged: (value) => setState(() => _locationEnabled = value),
+                  isDark: isDark,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // ✅ 6. الدعم
+          _buildSectionHeader('الدعم', isDark),
+          const SizedBox(height: 8),
+          _buildCard(
+            child: Column(
+              children: [
+                _buildListTile(
+                  icon: Icons.help_rounded,
+                  title: 'مركز المساعدة',
+                  subtitle: 'الأسئلة الشائعة والدعم',
+                  onTap: () {},
+                  isDark: isDark,
+                ),
+                _buildDivider(isDark),
+                _buildListTile(
+                  icon: Icons.feedback_rounded,
+                  title: 'إرسال ملاحظات',
+                  subtitle: 'شاركنا رأيك في التطبيق',
+                  onTap: () {},
+                  isDark: isDark,
+                ),
+                _buildDivider(isDark),
+                _buildListTile(
+                  icon: Icons.share_rounded,
+                  title: 'مشاركة التطبيق',
+                  subtitle: 'دعوة الأصدقاء لاستخدام التطبيق',
+                  onTap: () {},
+                  isDark: isDark,
+                ),
+                _buildDivider(isDark),
+                _buildListTile(
+                  icon: Icons.star_rounded,
+                  title: 'تقييم التطبيق',
+                  subtitle: 'قيم التطبيق على المتجر',
+                  onTap: () {},
+                  isDark: isDark,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // ✅ 7. معلومات التطبيق
+          _buildCard(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.health_and_safety,
+                    size: 48,
+                    color: primaryColor,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'صحتك',
+                    style: TextStyle(
+                      fontSize: 20 * fontScale,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'الإصدار 1.1.0',
+                    style: TextStyle(
+                      fontSize: 14 * fontScale,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'منصة صحتك الشاملة',
+                    style: TextStyle(
+                      fontSize: 13 * fontScale,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '© 2026 Sehatak Platform. All rights reserved.',
+                    style: TextStyle(
+                      fontSize: 10 * fontScale,
+                      color: isDark ? Colors.grey[600] : Colors.grey[400],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // ✅ 8. تسجيل الخروج
+          _buildCard(
+            child: ListTile(
+              leading: const Icon(Icons.logout_rounded, color: Colors.red),
+              title: const Text(
+                'تسجيل الخروج',
+                style: TextStyle(color: Colors.red),
+              ),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.red),
+              onTap: () {
+                _showLogoutDialog(context);
+              },
+            ),
+          ),
+          const SizedBox(height: 20),
         ],
       ),
     );
   }
+
+  // ============================================================
+  // 🧩 Widgets مساعدة
+  // ============================================================
 
   Widget _buildSectionHeader(String title, bool isDark) {
     return Padding(
@@ -351,11 +450,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildCard({required Widget child}) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
-      color: isDark ? const Color(0xFF1A2540) : Colors.white,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
       ),
       elevation: 0,
       child: child,
@@ -367,36 +464,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       height: 1,
       thickness: 1,
       color: isDark ? Colors.grey[800] : Colors.grey[200],
-    );
-  }
-
-  Widget _buildListTile({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-    required bool isDark,
-    Widget? trailing,
-  }) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-      leading: Icon(icon, color: const Color(0xFF0D5257)),
-      title: Text(
-        title,
-        style: TextStyle(
-          fontWeight: FontWeight.w500,
-          color: isDark ? Colors.white : Colors.black87,
-        ),
-      ),
-      subtitle: Text(
-        subtitle,
-        style: TextStyle(
-          fontSize: 12,
-          color: isDark ? Colors.grey[400] : Colors.grey[600],
-        ),
-      ),
-      trailing: trailing ?? const Icon(Icons.arrow_forward_ios, size: 16),
-      onTap: onTap,
     );
   }
 
@@ -430,99 +497,65 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildAppearanceCard(bool isDark, FontSizeProvider provider) {
-    final fontScale = provider.fontScale;
-
-    return _buildCard(
-      child: Column(
-        children: [
-          _buildSwitchTile(
-            icon: Icons.dark_mode_rounded,
-            title: 'الوضع المظلم',
-            subtitle: 'تفعيل الوضع المظلم للتطبيق',
-            value: isDark,
-            onChanged: (value) {
-              // ✅ تم التعليق مؤقتاً لحين إصلاح ThemeBloc
-            },
-            isDark: isDark,
-          ),
-          _buildDivider(isDark),
-          _buildSwitchTile(
-            icon: Icons.brightness_auto_rounded,
-            title: 'الوضع التلقائي',
-            subtitle: 'متابعة إعدادات النظام',
-            value: false,
-            onChanged: (_) {},
-            isDark: isDark,
-          ),
-          _buildDivider(isDark),
-          ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-            leading: const Icon(Icons.text_fields_rounded, color: Color(0xFF0D5257)),
-            title: Text(
-              'حجم الخط',
-              style: TextStyle(
-                color: isDark ? Colors.white : Colors.black87,
-              ),
-            ),
-            subtitle: Text(
-              '${provider.fontSizePercent}% - ${provider.getScaleLabel()}',
-              style: TextStyle(
-                fontSize: 12,
-                color: isDark ? Colors.grey[400] : Colors.grey[600],
-              ),
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.remove_circle_outline, color: Color(0xFF0D5257)),
-                  onPressed: () {
-                    if (fontScale > 0.81) {
-                      provider.setFontScale(fontScale - 0.05);
-                    }
-                  },
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  '${(fontScale * 100).round()}%',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                    color: provider.getScaleColor(),
-                  ),
-                ),
-                const SizedBox(width: 4),
-                IconButton(
-                  icon: const Icon(Icons.add_circle_outline, color: Color(0xFF0D5257)),
-                  onPressed: () {
-                    if (fontScale < 1.59) {
-                      provider.setFontScale(fontScale + 0.05);
-                    }
-                  },
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-              ],
-            ),
-          ),
-          _buildDivider(isDark),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildQuickSizeButton('صغير', 0.8, provider, isDark),
-                _buildQuickSizeButton('متوسط', 1.0, provider, isDark),
-                _buildQuickSizeButton('كبير', 1.3, provider, isDark),
-                _buildQuickSizeButton('كبير جداً', 1.6, provider, isDark),
-              ],
-            ),
-          ),
-        ],
+  Widget _buildRadioTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required String value,
+    required String groupValue,
+    required ValueChanged<String?> onChanged,
+    required bool isDark,
+  }) {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+      leading: Icon(icon, color: const Color(0xFF0D5257)),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: isDark ? Colors.white : Colors.black87,
+        ),
       ),
+      subtitle: Text(
+        subtitle,
+        style: TextStyle(
+          fontSize: 12,
+          color: isDark ? Colors.grey[400] : Colors.grey[600],
+        ),
+      ),
+      trailing: Radio<String>(
+        value: value,
+        groupValue: groupValue,
+        onChanged: onChanged,
+        activeColor: const Color(0xFF0D5257),
+      ),
+    );
+  }
+
+  Widget _buildListTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    required bool isDark,
+  }) {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+      leading: Icon(icon, color: const Color(0xFF0D5257)),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: isDark ? Colors.white : Colors.black87,
+        ),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: TextStyle(
+          fontSize: 12,
+          color: isDark ? Colors.grey[400] : Colors.grey[600],
+        ),
+      ),
+      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+      onTap: onTap,
     );
   }
 
@@ -538,9 +571,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected
-              ? const Color(0xFF0D5257)
-              : (isDark ? const Color(0xFF1A2540) : Colors.grey[200]),
+          color: isSelected ? const Color(0xFF0D5257) : (isDark ? const Color(0xFF1A2540) : Colors.grey[200]),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isSelected ? const Color(0xFF0D5257) : Colors.transparent,
@@ -565,18 +596,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (_) => AlertDialog(
         title: const Text('تسجيل الخروج'),
         content: const Text('هل أنت متأكد من رغبتك في تسجيل الخروج؟'),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'إلغاء',
-              style: TextStyle(color: Colors.grey),
-            ),
+            child: const Text('إلغاء'),
           ),
-          ElevatedButton(
+          TextButton(
             onPressed: () {
               context.read<AuthBloc>().add(Logout());
               Navigator.pushAndRemoveUntil(
@@ -585,13 +610,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 (route) => false,
               );
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('تسجيل الخروج'),
           ),
         ],
