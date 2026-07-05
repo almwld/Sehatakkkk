@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:sehatak/core/providers/user_provider.dart';
@@ -25,15 +24,6 @@ class SehatakApp extends StatelessWidget {
           
           // ✅ دعم اللغة العربية RTL
           locale: const Locale('ar', ''),
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: const [
-            Locale('ar', ''),
-            Locale('en', ''),
-          ],
           
           theme: _buildLightTheme(fontScale),
           darkTheme: _buildDarkTheme(fontScale),
@@ -50,8 +40,7 @@ class SehatakApp extends StatelessWidget {
       brightness: Brightness.light,
       primaryColor: const Color(0xFF0D5257),
       scaffoldBackgroundColor: const Color(0xFFF8FAFC),
-      fontFamily: .NotoSansArabicUI.,
-      textDirection: TextDirection.rtl,
+      fontFamily: 'NotoSansArabicUI',
       colorScheme: const ColorScheme.light(
         primary: Color(0xFF0D5257),
         secondary: Color(0xFF0D5257),
@@ -65,21 +54,21 @@ class SehatakApp extends StatelessWidget {
         onError: Colors.white,
       ),
       textTheme: TextTheme(
-        displayLarge: TextStyle(fontSize: 57 * fontScale, fontWeight: FontWeight.bold, color: const Color(0xFF1E293B), fontFamily: .NotoSansArabicUI.),
-        displayMedium: TextStyle(fontSize: 45 * fontScale, fontWeight: FontWeight.bold, color: const Color(0xFF1E293B), fontFamily: .NotoSansArabicUI.),
-        displaySmall: TextStyle(fontSize: 36 * fontScale, fontWeight: FontWeight.bold, color: const Color(0xFF1E293B), fontFamily: .NotoSansArabicUI.),
-        headlineLarge: TextStyle(fontSize: 32 * fontScale, fontWeight: FontWeight.bold, color: const Color(0xFF1E293B), fontFamily: .NotoSansArabicUI.),
-        headlineMedium: TextStyle(fontSize: 28 * fontScale, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B), fontFamily: .NotoSansArabicUI.),
-        headlineSmall: TextStyle(fontSize: 24 * fontScale, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B), fontFamily: .NotoSansArabicUI.),
-        titleLarge: TextStyle(fontSize: 22 * fontScale, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B), fontFamily: .NotoSansArabicUI.),
-        titleMedium: TextStyle(fontSize: 16 * fontScale, fontWeight: FontWeight.w500, color: const Color(0xFF1E293B), fontFamily: .NotoSansArabicUI.),
-        titleSmall: TextStyle(fontSize: 14 * fontScale, fontWeight: FontWeight.w500, color: const Color(0xFF475569), fontFamily: .NotoSansArabicUI.),
-        bodyLarge: TextStyle(fontSize: 16 * fontScale, color: const Color(0xFF1E293B), fontFamily: .NotoSansArabicUI.),
-        bodyMedium: TextStyle(fontSize: 14 * fontScale, color: const Color(0xFF475569), fontFamily: .NotoSansArabicUI.),
-        bodySmall: TextStyle(fontSize: 12 * fontScale, color: const Color(0xFF94A3B8), fontFamily: .NotoSansArabicUI.),
-        labelLarge: TextStyle(fontSize: 14 * fontScale, fontWeight: FontWeight.w500, color: const Color(0xFF1E293B), fontFamily: .NotoSansArabicUI.),
-        labelMedium: TextStyle(fontSize: 12 * fontScale, color: const Color(0xFF475569), fontFamily: .NotoSansArabicUI.),
-        labelSmall: TextStyle(fontSize: 11 * fontScale, color: const Color(0xFF94A3B8), fontFamily: .NotoSansArabicUI.),
+        displayLarge: TextStyle(fontSize: 57 * fontScale, fontWeight: FontWeight.bold, color: const Color(0xFF1E293B), fontFamily: 'NotoSansArabicUI'),
+        displayMedium: TextStyle(fontSize: 45 * fontScale, fontWeight: FontWeight.bold, color: const Color(0xFF1E293B), fontFamily: 'NotoSansArabicUI'),
+        displaySmall: TextStyle(fontSize: 36 * fontScale, fontWeight: FontWeight.bold, color: const Color(0xFF1E293B), fontFamily: 'NotoSansArabicUI'),
+        headlineLarge: TextStyle(fontSize: 32 * fontScale, fontWeight: FontWeight.bold, color: const Color(0xFF1E293B), fontFamily: 'NotoSansArabicUI'),
+        headlineMedium: TextStyle(fontSize: 28 * fontScale, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B), fontFamily: 'NotoSansArabicUI'),
+        headlineSmall: TextStyle(fontSize: 24 * fontScale, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B), fontFamily: 'NotoSansArabicUI'),
+        titleLarge: TextStyle(fontSize: 22 * fontScale, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B), fontFamily: 'NotoSansArabicUI'),
+        titleMedium: TextStyle(fontSize: 16 * fontScale, fontWeight: FontWeight.w500, color: const Color(0xFF1E293B), fontFamily: 'NotoSansArabicUI'),
+        titleSmall: TextStyle(fontSize: 14 * fontScale, fontWeight: FontWeight.w500, color: const Color(0xFF475569), fontFamily: 'NotoSansArabicUI'),
+        bodyLarge: TextStyle(fontSize: 16 * fontScale, color: const Color(0xFF1E293B), fontFamily: 'NotoSansArabicUI'),
+        bodyMedium: TextStyle(fontSize: 14 * fontScale, color: const Color(0xFF475569), fontFamily: 'NotoSansArabicUI'),
+        bodySmall: TextStyle(fontSize: 12 * fontScale, color: const Color(0xFF94A3B8), fontFamily: 'NotoSansArabicUI'),
+        labelLarge: TextStyle(fontSize: 14 * fontScale, fontWeight: FontWeight.w500, color: const Color(0xFF1E293B), fontFamily: 'NotoSansArabicUI'),
+        labelMedium: TextStyle(fontSize: 12 * fontScale, color: const Color(0xFF475569), fontFamily: 'NotoSansArabicUI'),
+        labelSmall: TextStyle(fontSize: 11 * fontScale, color: const Color(0xFF94A3B8), fontFamily: 'NotoSansArabicUI'),
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: Color(0xFF0D5257),
@@ -127,7 +116,7 @@ class SehatakApp extends StatelessWidget {
           textStyle: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            fontFamily: .NotoSansArabicUI.,
+            fontFamily: 'NotoSansArabicUI',
           ),
         ),
       ),
@@ -140,8 +129,7 @@ class SehatakApp extends StatelessWidget {
       brightness: Brightness.dark,
       primaryColor: const Color(0xFF0D5257),
       scaffoldBackgroundColor: const Color(0xFF0B1121),
-      fontFamily: .NotoSansArabicUI.,
-      textDirection: TextDirection.rtl,
+      fontFamily: 'NotoSansArabicUI',
       colorScheme: const ColorScheme.dark(
         primary: Color(0xFF0D5257),
         secondary: Color(0xFF0D5257),
@@ -155,21 +143,21 @@ class SehatakApp extends StatelessWidget {
         onError: Colors.white,
       ),
       textTheme: TextTheme(
-        displayLarge: TextStyle(fontSize: 57 * fontScale, fontWeight: FontWeight.bold, color: Colors.white, fontFamily: .NotoSansArabicUI.),
-        displayMedium: TextStyle(fontSize: 45 * fontScale, fontWeight: FontWeight.bold, color: Colors.white, fontFamily: .NotoSansArabicUI.),
-        displaySmall: TextStyle(fontSize: 36 * fontScale, fontWeight: FontWeight.bold, color: Colors.white, fontFamily: .NotoSansArabicUI.),
-        headlineLarge: TextStyle(fontSize: 32 * fontScale, fontWeight: FontWeight.bold, color: Colors.white, fontFamily: .NotoSansArabicUI.),
-        headlineMedium: TextStyle(fontSize: 28 * fontScale, fontWeight: FontWeight.w600, color: Colors.white, fontFamily: .NotoSansArabicUI.),
-        headlineSmall: TextStyle(fontSize: 24 * fontScale, fontWeight: FontWeight.w600, color: Colors.white, fontFamily: .NotoSansArabicUI.),
-        titleLarge: TextStyle(fontSize: 22 * fontScale, fontWeight: FontWeight.w600, color: Colors.white, fontFamily: .NotoSansArabicUI.),
-        titleMedium: TextStyle(fontSize: 16 * fontScale, fontWeight: FontWeight.w500, color: Colors.white70, fontFamily: .NotoSansArabicUI.),
-        titleSmall: TextStyle(fontSize: 14 * fontScale, fontWeight: FontWeight.w500, color: Colors.white60, fontFamily: .NotoSansArabicUI.),
-        bodyLarge: TextStyle(fontSize: 16 * fontScale, color: Colors.white, fontFamily: .NotoSansArabicUI.),
-        bodyMedium: TextStyle(fontSize: 14 * fontScale, color: Colors.white70, fontFamily: .NotoSansArabicUI.),
-        bodySmall: TextStyle(fontSize: 12 * fontScale, color: Colors.white60, fontFamily: .NotoSansArabicUI.),
-        labelLarge: TextStyle(fontSize: 14 * fontScale, fontWeight: FontWeight.w500, color: Colors.white, fontFamily: .NotoSansArabicUI.),
-        labelMedium: TextStyle(fontSize: 12 * fontScale, color: Colors.white70, fontFamily: .NotoSansArabicUI.),
-        labelSmall: TextStyle(fontSize: 11 * fontScale, color: Colors.white60, fontFamily: .NotoSansArabicUI.),
+        displayLarge: TextStyle(fontSize: 57 * fontScale, fontWeight: FontWeight.bold, color: Colors.white, fontFamily: 'NotoSansArabicUI'),
+        displayMedium: TextStyle(fontSize: 45 * fontScale, fontWeight: FontWeight.bold, color: Colors.white, fontFamily: 'NotoSansArabicUI'),
+        displaySmall: TextStyle(fontSize: 36 * fontScale, fontWeight: FontWeight.bold, color: Colors.white, fontFamily: 'NotoSansArabicUI'),
+        headlineLarge: TextStyle(fontSize: 32 * fontScale, fontWeight: FontWeight.bold, color: Colors.white, fontFamily: 'NotoSansArabicUI'),
+        headlineMedium: TextStyle(fontSize: 28 * fontScale, fontWeight: FontWeight.w600, color: Colors.white, fontFamily: 'NotoSansArabicUI'),
+        headlineSmall: TextStyle(fontSize: 24 * fontScale, fontWeight: FontWeight.w600, color: Colors.white, fontFamily: 'NotoSansArabicUI'),
+        titleLarge: TextStyle(fontSize: 22 * fontScale, fontWeight: FontWeight.w600, color: Colors.white, fontFamily: 'NotoSansArabicUI'),
+        titleMedium: TextStyle(fontSize: 16 * fontScale, fontWeight: FontWeight.w500, color: Colors.white70, fontFamily: 'NotoSansArabicUI'),
+        titleSmall: TextStyle(fontSize: 14 * fontScale, fontWeight: FontWeight.w500, color: Colors.white60, fontFamily: 'NotoSansArabicUI'),
+        bodyLarge: TextStyle(fontSize: 16 * fontScale, color: Colors.white, fontFamily: 'NotoSansArabicUI'),
+        bodyMedium: TextStyle(fontSize: 14 * fontScale, color: Colors.white70, fontFamily: 'NotoSansArabicUI'),
+        bodySmall: TextStyle(fontSize: 12 * fontScale, color: Colors.white60, fontFamily: 'NotoSansArabicUI'),
+        labelLarge: TextStyle(fontSize: 14 * fontScale, fontWeight: FontWeight.w500, color: Colors.white, fontFamily: 'NotoSansArabicUI'),
+        labelMedium: TextStyle(fontSize: 12 * fontScale, color: Colors.white70, fontFamily: 'NotoSansArabicUI'),
+        labelSmall: TextStyle(fontSize: 11 * fontScale, color: Colors.white60, fontFamily: 'NotoSansArabicUI'),
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: const Color(0xFF0B1121),
@@ -217,7 +205,7 @@ class SehatakApp extends StatelessWidget {
           textStyle: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            fontFamily: .NotoSansArabicUI.,
+            fontFamily: 'NotoSansArabicUI',
           ),
         ),
       ),

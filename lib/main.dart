@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:sehatak/core/providers/user_provider.dart';
@@ -33,10 +32,10 @@ void main() async {
         ChangeNotifierProvider(
           create: (_) => FontSizeProvider(),
         ),
-        BlocProvider(
+        ChangeNotifierProvider(
           create: (_) => AuthBloc()..add(CheckAuthStatus()),
         ),
-        BlocProvider(create: (_) => ThemeBloc()),
+        ChangeNotifierProvider(create: (_) => ThemeBloc()),
       ],
       child: const SehatakApp(),
     ),

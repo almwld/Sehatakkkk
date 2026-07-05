@@ -44,7 +44,6 @@ class _PatientAppointmentsState extends State<PatientAppointments>
         return;
       }
 
-      // جلب المواعيد من Firestore
       final querySnapshot = await _firestore
           .collection('appointments')
           .where('patientId', isEqualTo: user.uid)
@@ -114,18 +113,18 @@ class _PatientAppointmentsState extends State<PatientAppointments>
     return DateFormat('hh:mm a').format(date);
   }
 
-  String _getStatusColor(String status) {
+  Color _getStatusColor(String status) {
     switch (status) {
       case 'confirmed':
-        return AppColors.success.toHex();
+        return AppColors.success;
       case 'pending':
-        return AppColors.warning.toHex();
+        return AppColors.warning;
       case 'cancelled':
-        return AppColors.error.toHex();
+        return AppColors.error;
       case 'completed':
-        return AppColors.info.toHex();
+        return AppColors.info;
       default:
-        return AppColors.grey.toHex();
+        return AppColors.grey;
     }
   }
 
@@ -195,7 +194,7 @@ class _PatientAppointmentsState extends State<PatientAppointments>
               style: TextStyle(
                 fontSize: 18,
                 color: isDark ? Colors.grey[400] : Colors.grey[600],
-                fontFamily: 'OpenSans',
+                fontFamily: 'NotoSansArabicUI',
               ),
             ),
             const SizedBox(height: 8),
@@ -204,7 +203,7 @@ class _PatientAppointmentsState extends State<PatientAppointments>
               style: TextStyle(
                 fontSize: 14,
                 color: isDark ? Colors.grey[500] : Colors.grey[400],
-                fontFamily: 'OpenSans',
+                fontFamily: 'NotoSansArabicUI',
               ),
             ),
           ],
@@ -269,7 +268,7 @@ class _PatientAppointmentsState extends State<PatientAppointments>
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: isDark ? Colors.white : Colors.black,
-                    fontFamily: 'OpenSans',
+                    fontFamily: 'NotoSansArabicUI',
                   ),
                 ),
                 Text(
@@ -277,7 +276,7 @@ class _PatientAppointmentsState extends State<PatientAppointments>
                   style: TextStyle(
                     fontSize: 13,
                     color: isDark ? Colors.grey[400] : Colors.grey[600],
-                    fontFamily: 'OpenSans',
+                    fontFamily: 'NotoSansArabicUI',
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -294,7 +293,7 @@ class _PatientAppointmentsState extends State<PatientAppointments>
                       style: TextStyle(
                         fontSize: 12,
                         color: isDark ? Colors.grey[400] : Colors.grey[600],
-                        fontFamily: 'OpenSans',
+                        fontFamily: 'NotoSansArabicUI',
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -309,7 +308,7 @@ class _PatientAppointmentsState extends State<PatientAppointments>
                       style: TextStyle(
                         fontSize: 12,
                         color: isDark ? Colors.grey[400] : Colors.grey[600],
-                        fontFamily: 'OpenSans',
+                        fontFamily: 'NotoSansArabicUI',
                       ),
                     ),
                   ],
@@ -323,7 +322,7 @@ class _PatientAppointmentsState extends State<PatientAppointments>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Color(int.parse(_getStatusColor(status).replaceFirst('#', '0xFF'))).withOpacity(0.1),
+                  color: _getStatusColor(status).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -331,8 +330,8 @@ class _PatientAppointmentsState extends State<PatientAppointments>
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: Color(int.parse(_getStatusColor(status).replaceFirst('#', '0xFF'))),
-                    fontFamily: 'OpenSans',
+                    color: _getStatusColor(status),
+                    fontFamily: 'NotoSansArabicUI',
                   ),
                 ),
               ),
@@ -349,7 +348,7 @@ class _PatientAppointmentsState extends State<PatientAppointments>
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.red,
-                      fontFamily: 'OpenSans',
+                      fontFamily: 'NotoSansArabicUI',
                     ),
                   ),
                 ),
@@ -358,12 +357,5 @@ class _PatientAppointmentsState extends State<PatientAppointments>
         ],
       ),
     );
-  }
-}
-
-// ✅ إضافة extension لتحويل Color إلى Hex
-extension ColorExtension on Color {
-  String toHex() {
-    return '#${(r * 255).toInt().toRadixString(16).padLeft(2, '0')}${(g * 255).toInt().toRadixString(16).padLeft(2, '0')}${(b * 255).toInt().toRadixString(16).padLeft(2, '0')}';
   }
 }
