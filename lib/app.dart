@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:sehatak/presentation/bloc/theme_bloc/theme_bloc.dart';
 import 'package:sehatak/presentation/screens/auth/splash_screen.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -16,7 +17,18 @@ class SehatakApp extends StatelessWidget {
         return MaterialApp(
           title: 'صحتك',
           debugShowCheckedModeBanner: false,
-          locale: const Locale('ar', ''),
+          
+          // 👇 تفعيل دعم اتجاه الـ RTL واللغة العربية بشكل كامل ومستقر
+          locale: const Locale('ar', 'YE'),
+          supportedLocales: const [
+            Locale('ar', 'YE'),
+          ],
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          
           theme: ThemeData(
             useMaterial3: true,
             brightness: Brightness.light,
