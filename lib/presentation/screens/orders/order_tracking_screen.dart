@@ -1,351 +1,497 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class OrderTrackingScreen extends StatefulWidget {
-  const OrderTrackingScreen({super.key});
+  final String? orderId;
+  const OrderTrackingScreen({super.key, this.orderId});
 
   @override
   State<OrderTrackingScreen> createState() => _OrderTrackingScreenState();
 }
 
 class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
-  // بيانات الطلب
-  final String orderId = 'SHK-1783219241846';
-  final String status = 'مباشر';
-  final DateTime orderDate = DateTime.now();
-  final int currentStep = 3;
-  final int totalSteps = 6;
+  int _currentStep = 2;
+  bool _isLiveTracking = true;
+  late final MapController _mapController;
 
-  // خطوات التتبع
-  final List<Map<String, dynamic>> _steps = [
-    {'label': 'تم الطلب', 'time': '10:30 ص', 'completed': true},
-    {'label': 'قيد التحضير', 'time': '11:15 ص', 'completed': true},
-    {'label': 'تم التجهيز', 'time': '12:00 م', 'completed': true},
-    {'label': 'في الطريق', 'time': '01:30 م', 'completed': false},
-    {'label': 'قريب منك', 'time': '02:15 م', 'completed': false},
-    {'label': 'تم التوصيل', 'time': '03:00 م', 'completed': false},
+  LatLng _driverLocation = const LatLng(15.3694, 44.1910);
+  LatLng _destination = const LatLng(15.3550, 44.2000);
+
+  final List<LatLng> _routePoints = [
+    const LatLng(15.3694, 44.1910),
+    const LatLng(15.3680, 44.1930),
+    const LatLng(15.3660, 44.1950),
+    const LatLng(15.3630, 44.1960),
+    const LatLng(15.3600, 44.1980),
+    const LatLng(15.3570, 44.1990),
+    const LatLng(15.3550, 44.2000),
   ];
+
+  final List<Map<String, dynamic>> _steps = [
+    {'label': 'تم تأكيد الطلب', 'icon': Icons.check_circle, 'time': '10:30 ص', 'completed': true},
+    {'label': 'تم التجهيز', 'icon': Icons.pending, 'time': '10:45 ص', 'completed': true},
+    {'label': 'في الطريق إليك', 'icon': Icons.local_shipping, 'time': '11:00 ص', 'completed': false},
+    {'label': 'تم التوصيل', 'icon': Icons.home, 'time': 'جاري...', 'completed': false},
+  ];
+
+  final Map<String, dynamic> _driver = {
+    'name': 'أحمد علي',
+    'phone': '777888999',
+    'rating': 4.9,
+    'reviews': 328,
+    'vehicle': 'سيارة - صنعاء 1234',
+    'status': 'في الطريق',
+    'image': 'https://ui-avatars.com/api/?name=أحمد+علي&background=0D5257&color=fff',
+    'eta': '8 دقائق',
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    _mapController = MapController();
+    _startLiveTracking();
+  }
+
+  void _startLiveTracking() {
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          _driverLocation = const LatLng(15.3650, 44.1940);
+          _currentStep = 2;
+        });
+      }
+    });
+    Future.delayed(const Duration(seconds: 5), () {
+      if (mounted) {
+        setState(() {
+          _driverLocation = const LatLng(15.3600, 44.1970);
+        });
+      }
+    });
+    Future.delayed(const Duration(seconds: 8), () {
+      if (mounted) {
+        setState(() {
+          _driverLocation = const LatLng(15.3560, 44.1990);
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _mapController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = const Color(0xFF0D5257);
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text('تتبع الطلب'),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-      ),
-      body: Directionality(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ✅ كرت معلومات الطلب (الأزرق) - تم إصلاحه
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [
-                      Color(0xFF0D5257),
-                      Color(0xFF1A7A80),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+      body: Column(
+        children: [
+          // ✅ AppBar مخصص
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: primaryColor,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                ),
+              ],
+            ),
+            child: SafeArea(
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+                    onPressed: () => Navigator.pop(context),
                   ),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF0D5257).withOpacity(0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'تتبع الطلب',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          'رقم الطلب: ${widget.orderId ?? "#SHK-${DateTime.now().millisecondsSinceEpoch}"}',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.8),
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: const BoxDecoration(
+                            color: Colors.green,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Text(
+                          'مباشر',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // ✅ الخريطة
+          Expanded(
+            flex: 2,
+            child: Stack(
+              children: [
+                FlutterMap(
+                  mapController: _mapController,
+                  options: MapOptions(
+                    initialCenter: _driverLocation,
+                    initialZoom: 15,
+                  ),
+                  children: [
+                    TileLayer(
+                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      userAgentPackageName: 'com.sehatak.app',
+                    ),
+                    MarkerLayer(
+                      markers: [
+                        Marker(
+                          point: _driverLocation,
+                          width: 40,
+                          height: 40,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.blue,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.blue.withOpacity(0.4),
+                                  blurRadius: 12,
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.directions_car,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                        Marker(
+                          point: _destination,
+                          width: 30,
+                          height: 30,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.green,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.green.withOpacity(0.4),
+                                  blurRadius: 12,
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.location_on,
+                              color: Colors.white,
+                              size: 14,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    PolylineLayer(
+                      polylines: [
+                        Polyline(
+                          points: _routePoints,
+                          color: primaryColor.withOpacity(0.6),
+                          strokeWidth: 4,
+                        ),
+                      ],
                     ),
                   ],
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // ✅ صف العنوان - معكوس بشكل صحيح
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                // ✅ الوقت المتبقي
+                Positioned(
+                  top: 16,
+                  left: 16,
+                  right: 16,
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.08),
+                          blurRadius: 8,
+                        ),
+                      ],
+                    ),
+                    child: Row(
                       children: [
-                        Column(
+                        Icon(Icons.timer, color: primaryColor),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'الوقت المتوقع للتوصيل',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                                ),
+                              ),
+                              Text(
+                                '${_driver['eta']}',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {},
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primaryColor,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                          ),
+                          child: const Text('تحديث'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // ✅ معلومات السائق والمراحل
+          Expanded(
+            flex: 1,
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, -4),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  // ✅ معلومات السائق
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 24,
+                        backgroundColor: primaryColor.withOpacity(0.1),
+                        backgroundImage: NetworkImage(_driver['image']),
+                        child: const Icon(Icons.person, color: Colors.white),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              'رقم الطلب',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.white.withOpacity(0.7),
-                                fontFamily: 'NotoSansArabicUI',
-                              ),
+                            Row(
+                              children: [
+                                Text(
+                                  _driver['name'],
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    color: isDark ? Colors.white : Colors.black87,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    _driver['status'],
+                                    style: const TextStyle(
+                                      color: Colors.green,
+                                      fontSize: 8,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              orderId,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                                fontFamily: 'NotoSansArabicUI',
-                              ),
+                            Row(
+                              children: [
+                                const Icon(Icons.star, color: Colors.amber, size: 12),
+                                const SizedBox(width: 2),
+                                Text(
+                                  _driver['rating'].toString(),
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark ? Colors.white : Colors.black87,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '(${_driver['reviews']} تقييم)',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Icon(Icons.directions_car, size: 12, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                                const SizedBox(width: 2),
+                                Text(
+                                  _driver['vehicle'],
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.green.withOpacity(0.3),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: Colors.green.withOpacity(0.5),
-                              width: 1,
-                            ),
-                          ),
-                          child: Text(
-                            status,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              fontFamily: 'NotoSansArabicUI',
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    // ✅ التاريخ - اتجاه صحيح
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.calendar_today,
-                          color: Colors.white.withOpacity(0.6),
-                          size: 16,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          DateFormat('dd MMMM yyyy', 'ar').format(orderDate),
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.white.withOpacity(0.8),
-                            fontFamily: 'NotoSansArabicUI',
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Icon(
-                          Icons.access_time,
-                          color: Colors.white.withOpacity(0.6),
-                          size: 16,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          DateFormat('hh:mm a').format(orderDate),
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.white.withOpacity(0.8),
-                            fontFamily: 'NotoSansArabicUI',
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    // ✅ شريط التقدم
-                    LinearProgressIndicator(
-                      value: currentStep / totalSteps,
-                      backgroundColor: Colors.white.withOpacity(0.2),
-                      color: Colors.white,
-                      minHeight: 6,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          '$currentStep من $totalSteps',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.white.withOpacity(0.7),
-                            fontFamily: 'NotoSansArabicUI',
-                          ),
-                        ),
-                        Text(
-                          '${((currentStep / totalSteps) * 100).toInt()}%',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.white.withOpacity(0.7),
-                            fontFamily: 'NotoSansArabicUI',
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              // ✅ عنوان الخطوات
-              const Text(
-                'خطوات التتبع',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'NotoSansArabicUI',
-                ),
-              ),
-              const SizedBox(height: 16),
-              // ✅ قائمة الخطوات
-              ..._steps.asMap().entries.map((entry) {
-                final index = entry.key;
-                final step = entry.value;
-                final isCompleted = step['completed'] as bool;
-                final isActive = index == currentStep;
-
-                return _buildStepItem(
-                  step: step,
-                  index: index,
-                  isCompleted: isCompleted,
-                  isActive: isActive,
-                  isLast: index == _steps.length - 1,
-                  isDark: isDark,
-                );
-              }),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStepItem({
-    required Map<String, dynamic> step,
-    required int index,
-    required bool isCompleted,
-    required bool isActive,
-    required bool isLast,
-    required bool isDark,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // ✅ العمود الأيسر (الدائرة والخط)
-        SizedBox(
-          width: 40,
-          child: Column(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: isCompleted
-                      ? AppColors.success
-                      : isActive
-                          ? AppColors.primary
-                          : Colors.grey.shade300,
-                  border: isActive
-                      ? Border.all(color: AppColors.primary, width: 3)
-                      : null,
-                ),
-                child: Center(
-                  child: isCompleted
-                      ? const Icon(
-                          Icons.check,
-                          color: Colors.white,
-                          size: 18,
-                        )
-                      : Text(
-                          '${index + 1}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: isActive ? Colors.white : Colors.grey.shade600,
-                            fontFamily: 'NotoSansArabicUI',
-                          ),
-                        ),
-                ),
-              ),
-              if (!isLast)
-                Container(
-                  width: 2,
-                  height: 60,
-                  color: isCompleted
-                      ? AppColors.success
-                      : Colors.grey.shade300,
-                ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 12),
-        // ✅ العمود الأيمن (النص)
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                step['label'] as String,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                  color: isActive
-                      ? AppColors.primary
-                      : isCompleted
-                          ? (isDark ? Colors.white : Colors.black)
-                          : Colors.grey.shade500,
-                  fontFamily: 'NotoSansArabicUI',
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                step['time'] as String,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: isCompleted
-                      ? Colors.grey.shade600
-                      : Colors.grey.shade400,
-                  fontFamily: 'NotoSansArabicUI',
-                ),
-              ),
-              if (isActive && !isCompleted)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: AppColors.primary.withOpacity(0.3),
                       ),
-                    ),
-                    child: const Text(
-                      'جاري التنفيذ...',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: 'NotoSansArabicUI',
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.call, color: Colors.green),
+                            onPressed: () {},
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                          const SizedBox(width: 4),
+                          IconButton(
+                            icon: Icon(Icons.message, color: primaryColor),
+                            onPressed: () {},
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                        ],
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  // ✅ مراحل التتبع
+                  Expanded(
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _steps.length,
+                      itemBuilder: (context, index) {
+                        final step = _steps[index];
+                        final isCompleted = step['completed'] as bool;
+                        final isActive = index == _currentStep;
+                        final isLast = index == _steps.length - 1;
+
+                        return Row(
+                          children: [
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  width: 32,
+                                  height: 32,
+                                  decoration: BoxDecoration(
+                                    color: isCompleted
+                                        ? Colors.green
+                                        : (isActive ? primaryColor : Colors.grey.withOpacity(0.2)),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    isCompleted ? Icons.check : step['icon'] as IconData,
+                                    color: Colors.white,
+                                    size: 14,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  step['label'] as String,
+                                  style: TextStyle(
+                                    fontSize: 8,
+                                    fontWeight: isCompleted || isActive
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                    color: isCompleted || isActive
+                                        ? (isDark ? Colors.white : Colors.black87)
+                                        : (isDark ? Colors.grey[500] : Colors.grey[400]),
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                            if (!isLast)
+                              Container(
+                                width: 30,
+                                height: 2,
+                                color: isCompleted
+                                    ? Colors.green
+                                    : (isActive ? primaryColor : Colors.grey.withOpacity(0.2)),
+                              ),
+                          ],
+                        );
+                      },
                     ),
                   ),
-                ),
-              const SizedBox(height: 16),
-            ],
+                ],
+              ),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
