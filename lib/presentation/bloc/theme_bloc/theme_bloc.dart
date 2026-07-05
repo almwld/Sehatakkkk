@@ -1,40 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-// Events
-abstract class ThemeEvent {}
-class SetThemeEvent extends ThemeEvent {
-  final bool isDark;
-  SetThemeEvent(this.isDark);
-}
-class GetThemeEvent extends ThemeEvent {}
-
-// States
-abstract class ThemeState {}
-class ThemeInitialState extends ThemeState {}
-class ThemeLoadedState extends ThemeState {
+// ============================================================
+// 📦 States
+// ============================================================
+class ThemeState {
   final ThemeMode themeMode;
-  ThemeLoadedState(this.themeMode);
+  const ThemeState({required this.themeMode});
 }
 
-// BLoC
+// ============================================================
+// 📦 Events
+// ============================================================
+abstract class ThemeEvent {}
+
+class ToggleTheme extends ThemeEvent {}
+class SetLightTheme extends ThemeEvent {}
+class SetDarkTheme extends ThemeEvent {}
+class SetSystemTheme extends ThemeEvent {}
+
+// ============================================================
+// 🧠 BLoC
+// ============================================================
 class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
-  ThemeBloc() : super(ThemeInitialState()) {
-    on<GetThemeEvent>(_onGetTheme);
-    on<SetThemeEvent>(_onSetTheme);
-    add(GetThemeEvent());
+  ThemeBloc() : super(const ThemeState(themeMode: ThemeMode.system)) {
+    on<ToggleTheme>(_onToggleTheme);
+    on<SetLightTheme>(_onSetLightTheme);
+    on<SetDarkTheme>(_onSetDarkTheme);
+    on<SetSystemTheme>(_onSetSystemTheme);
   }
 
-  Future<void> _onGetTheme(GetThemeEvent event, Emitter<ThemeState> emit) async {
-    final prefs = await SharedPreferences.getInstance();
-    final isDark = prefs.getBool('isDark') ?? false;
-    emit(ThemeLoadedState(isDark ? ThemeMode.dark : ThemeMode.light));
+  void _onToggleTheme(ToggleTheme event, Emitter<ThemeState> emit) {
+    if (state.themeMode == ThemeMode.light) {
+      emit(const ThemeState(themeMode: ThemeMode.dark));
+    } else {
+      emit(const ThemeState(themeMode: ThemeMode.light));
+    }
   }
 
-  Future<void> _onSetTheme(SetThemeEvent event, Emitter<ThemeState> emit) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isDark', event.isDark);
-    emit(ThemeLoadedState(event.isDark ? ThemeMode.dark : ThemeMode.light));
+  void _onSetLightTheme(SetLightTheme event, Emitter<ThemeState> emit) {
+    emit(const ThemeState(themeMode: ThemeMode.light));
+  }
+
+  void _onSetDarkTheme(SetDarkTheme event, Emitter<ThemeState> emit) {
+    emit(const ThemeState(themeMode: ThemeMode.dark));
+  }
+
+  void _onSetSystemTheme(SetSystemTheme event, Emitter<ThemeState> emit) {
+    emit(const ThemeState(themeMode: ThemeMode.system));
   }
 }
