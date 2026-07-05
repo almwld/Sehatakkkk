@@ -41,7 +41,6 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
         centerTitle: true,
       ),
       body: Directionality(
-        textDirection: TextDirection.rtl,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
