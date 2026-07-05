@@ -72,16 +72,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   isDark: isDark,
                 ),
                 _buildDivider(isDark),
-                _buildSwitchTile(
-                  icon: Icons.brightness_auto_rounded,
-                  title: 'الوضع التلقائي',
-                  subtitle: 'متابعة إعدادات النظام',
-                  value: context.read<ThemeBloc>().state.themeMode == ThemeMode.system,
-                  onChanged: (value) {
-                    context.read<ThemeBloc>().add(SetSystemTheme());
-                  },
-                  isDark: isDark,
-                ),
               ],
             ),
           ),
