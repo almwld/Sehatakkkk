@@ -87,7 +87,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 16),
 
-          // ✅ 2. حجم الخط - متحكم فيه
+          // ✅ 2. حجم الخط
           _buildSectionHeader('حجم الخط', isDark),
           const SizedBox(height: 8),
           _buildCard(
@@ -95,7 +95,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  // ✅ عرض الحجم الحالي
                   Row(
                     children: [
                       Container(
@@ -152,7 +151,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ],
                         ),
                       ),
-                      // ✅ مثال للخط
                       Text(
                         'نص',
                         style: TextStyle(
@@ -164,8 +162,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
-
-                  // ✅ شريط التحكم
                   Row(
                     children: [
                       IconButton(
@@ -200,8 +196,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ],
                   ),
-
-                  // ✅ أزرار سريعة
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -298,11 +292,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   isDark: isDark,
                 ),
                 _buildDivider(isDark),
-                _buildListTile(
+                _buildSwitchTile(
                   icon: Icons.fingerprint_rounded,
                   title: 'البصمة',
                   subtitle: 'تفعيل تسجيل الدخول بالبصمة',
-                  onTap: () {},
+                  value: _locationEnabled,
+                  onChanged: (value) => setState(() => _locationEnabled = value),
                   isDark: isDark,
                 ),
                 _buildDivider(isDark),
@@ -348,14 +343,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onTap: () {},
                   isDark: isDark,
                 ),
-                _buildDivider(isDark),
-                _buildListTile(
-                  icon: Icons.star_rounded,
-                  title: 'تقييم التطبيق',
-                  subtitle: 'قيم التطبيق على المتجر',
-                  onTap: () {},
-                  isDark: isDark,
-                ),
               ],
             ),
           ),
@@ -367,11 +354,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  Icon(
-                    Icons.health_and_safety,
-                    size: 48,
-                    color: primaryColor,
-                  ),
+                  Icon(Icons.health_and_safety, size: 48, color: primaryColor),
                   const SizedBox(height: 8),
                   Text(
                     'صحتك',

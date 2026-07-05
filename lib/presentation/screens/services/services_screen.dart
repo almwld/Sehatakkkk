@@ -55,7 +55,6 @@ class _ServicesScreenState extends State<ServicesScreen> {
     {'id': '17', 'icon': Icons.article, 'label': 'المقالات الطبية', 'color': Colors.blueGrey, 'category': 'صحية', 'screen': const ArticlesScreen(), 'description': 'اقرأ أحدث المقالات الطبية'},
     {'id': '18', 'icon': Icons.group, 'label': 'مجتمع صحتك', 'color': Colors.teal, 'category': 'صحية', 'screen': const HealthCommunityScreen(), 'description': 'انضم لمجتمع صحي تفاعلي'},
     {'id': '19', 'icon': Icons.wallet, 'label': 'المحفظة', 'color': AppColors.amber, 'category': 'لوجستية', 'screen': const WalletScreen(), 'description': 'إدارة محفظتك الإلكترونية'},
-    {'id': '20', 'icon': Icons.shopping_cart, 'label': 'السلة', 'color': Colors.brown, 'category': 'لوجستية', 'screen': const CartScreen(), 'description': 'سلة مشترياتك الطبية'},
     {'id': '21', 'icon': Icons.local_shipping, 'label': 'تتبع الطلب', 'color': Colors.purple, 'category': 'لوجستية', 'screen': const OrderTrackingScreen(), 'description': 'تتبع طلباتك في الوقت الفعلي'},
     {'id': '22', 'icon': Icons.home_work, 'label': 'خدمات منزلية', 'color': Colors.brown, 'category': 'لوجستية', 'screen': const ServicesScreen(), 'description': 'خدمات طبية في منزلك'},
     {'id': '23', 'icon': Icons.lightbulb, 'label': 'نصائح صحية', 'color': Colors.amber, 'category': 'توعوية', 'screen': const HealthDashboard(), 'description': 'نصائح يومية للحفاظ على صحتك'},
