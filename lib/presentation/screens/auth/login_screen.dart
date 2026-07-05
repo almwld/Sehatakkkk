@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/biometric_service.dart';
 import 'package:sehatak/presentation/bloc/auth_bloc/auth_bloc.dart';
+import 'package:sehatak/presentation/bloc/auth_bloc/auth_event.dart';
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {

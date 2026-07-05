@@ -6,18 +6,10 @@ abstract class AuthEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class AppStarted extends AuthEvent {
-  const AppStarted();
+class CheckAuthStatus extends AuthEvent {
+  const CheckAuthStatus();
   @override
   List<Object?> get props => [];
-}
-
-class LoginWithPhone extends AuthEvent {
-  final String phone;
-  final String password;
-  const LoginWithPhone({required this.phone, required this.password});
-  @override
-  List<Object?> get props => [phone, password];
 }
 
 class LoginWithEmail extends AuthEvent {
@@ -28,8 +20,22 @@ class LoginWithEmail extends AuthEvent {
   List<Object?> get props => [email, password];
 }
 
+class LoginWithPhone extends AuthEvent {
+  final String phone;
+  final String password;
+  const LoginWithPhone({required this.phone, required this.password});
+  @override
+  List<Object?> get props => [phone, password];
+}
+
 class LoginWithGoogle extends AuthEvent {
   const LoginWithGoogle();
+  @override
+  List<Object?> get props => [];
+}
+
+class LoginWithBiometric extends AuthEvent {
+  const LoginWithBiometric();
   @override
   List<Object?> get props => [];
 }
@@ -54,33 +60,29 @@ class RegisterDoctor extends AuthEvent {
   final String email;
   final String phone;
   final String password;
-  final String license;
-  final String specialty;
   const RegisterDoctor({
     required this.name,
     required this.email,
     required this.phone,
     required this.password,
-    required this.license,
-    required this.specialty,
   });
   @override
-  List<Object?> get props => [name, email, phone, password, license, specialty];
+  List<Object?> get props => [name, email, phone, password];
 }
 
-class SendOTP extends AuthEvent {
+class SendOtp extends AuthEvent {
   final String phone;
-  const SendOTP(this.phone);
+  const SendOtp({required this.phone});
   @override
   List<Object?> get props => [phone];
 }
 
-class VerifyOTP extends AuthEvent {
+class VerifyOtp extends AuthEvent {
   final String verificationId;
-  final String code;
-  const VerifyOTP({required this.verificationId, required this.code});
+  final String otp;
+  const VerifyOtp({required this.verificationId, required this.otp});
   @override
-  List<Object?> get props => [verificationId, code];
+  List<Object?> get props => [verificationId, otp];
 }
 
 class Logout extends AuthEvent {
