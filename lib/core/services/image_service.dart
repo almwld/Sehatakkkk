@@ -3,7 +3,7 @@ class ImageService {
   // 👨‍⚕️ صور الأطباء
   // ============================================================
   static const String doctor1 = 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=300&h=300&fit=crop&crop=face';
-  static const String doctor2 = 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=300&h=300&fit=crop&crop=face';
+  static const String doctor2 = 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=300https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=300&h=300&fit=crop&crop=faceh=300https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=300&h=300&fit=crop&crop=facefit=crophttps://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=300&h=300&fit=crop&crop=facecrop=face';
   static const String doctor3 = 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=300&h=300&fit=crop&crop=face';
   static const String doctor4 = 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=300&h=300&fit=crop&crop=face';
 
@@ -12,7 +12,7 @@ class ImageService {
   // ============================================================
   static const String banner1 = 'https://images.unsplash.com/photo-1584982751601-97dcc096659c?w=600&h=300&fit=crop';
   static const String banner2 = 'https://images.unsplash.com/photo-1550572017-edd951b55104?w=600&h=300&fit=crop';
-  static const String banner3 = 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=600&h=300&fit=crop';
+  static const String banner3 = 'https://images.unsplash.com/photo-1584982751601-97dcc096659c?w=600https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=600&h=300&fit=croph=300https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=600&h=300&fit=cropfit=crop';
 
   // ============================================================
   // 💊 صور الأدوية
