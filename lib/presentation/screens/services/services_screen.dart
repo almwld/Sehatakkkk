@@ -226,7 +226,6 @@ class _ServicesScreenState extends State<ServicesScreen> {
       'label': 'السلة',
       'color': Colors.brown,
       'category': 'لوجستية',
-      'screen': const CartScreen(),
       'description': 'سلة مشترياتك الطبية',
     },
     {
@@ -235,7 +234,6 @@ class _ServicesScreenState extends State<ServicesScreen> {
       'label': 'تتبع الطلب',
       'color': Colors.purple,
       'category': 'لوجستية',
-      'screen': const OrderTrackingScreen(),
       'description': 'تتبع طلباتك في الوقت الفعلي',
     },
     {
@@ -535,3 +533,41 @@ class _ServicesScreenState extends State<ServicesScreen> {
     );
   }
 }
+
+  // ✅ دالة البحث
+  void _showSearchBar() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        String tempSearch = '';
+        return AlertDialog(
+          title: const Text('بحث عن خدمة'),
+          content: TextField(
+            onChanged: (value) {
+              tempSearch = value;
+            },
+            autofocus: true,
+            decoration: const InputDecoration(
+              hintText: 'أدخل اسم الخدمة...',
+              prefixIcon: Icon(Icons.search),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('إلغاء'),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _searchQuery = tempSearch;
+                });
+                Navigator.pop(context);
+              },
+              child: const Text('بحث'),
+            ),
+          ],
+        );
+      },
+    );
+  }

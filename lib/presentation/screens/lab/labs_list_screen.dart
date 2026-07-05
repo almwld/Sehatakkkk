@@ -443,7 +443,7 @@ class _LabsListScreenState extends State<LabsListScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => LabTestsScreen(labId: lab['id']),
+            builder: (_) =>  LabTestsScreen()['id']),
           ),
         );
       },
@@ -681,3 +681,41 @@ class _LabsListScreenState extends State<LabsListScreen> {
     );
   }
 }
+
+  // ✅ دالة البحث
+  void _showSearchBar() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        String tempSearch = '';
+        return AlertDialog(
+          title: const Text('بحث عن مختبر'),
+          content: TextField(
+            onChanged: (value) {
+              tempSearch = value;
+            },
+            autofocus: true,
+            decoration: const InputDecoration(
+              hintText: 'أدخل اسم المختبر...',
+              prefixIcon: Icon(Icons.search),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('إلغاء'),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _searchQuery = tempSearch;
+                });
+                Navigator.pop(context);
+              },
+              child: const Text('بحث'),
+            ),
+          ],
+        );
+      },
+    );
+  }
