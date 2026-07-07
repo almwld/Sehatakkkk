@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/biometric_service.dart';
@@ -15,20 +16,80 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  bool _isUserSelected = true;
+  // ✅ نوع الحساب
+  String _selectedRole = 'مستخدم';
+  
+  // ✅ الأدوار المدعومة
+  final List<Map<String, dynamic>> _roles = [
+    {'id': 'user', 'name': 'مستخدم', 'icon': Icons.person_outline, 'color': Colors.blue},
+    {'id': 'doctor', 'name': 'طبيب', 'icon': Icons.local_hospital_outlined, 'color': Colors.teal},
+    {'id': 'pharmacist', 'name': 'صيدلي', 'icon': Icons.local_pharmacy_outlined, 'color': Colors.green},
+    {'id': 'lab_tech', 'name': 'مخبري', 'icon': Icons.science_outlined, 'color': Colors.purple},
+    {'id': 'veterinarian', 'name': 'بيطري', 'icon': Icons.pets_outlined, 'color': Colors.orange},
+    {'id': 'paramedic', 'name': 'مسعف', 'icon': Icons.health_and_safety_outlined, 'color': Colors.red},
+    {'id': 'delivery', 'name': 'موصل طلبات', 'icon': Icons.delivery_dining_outlined, 'color': Colors.amber},
+    {'id': 'service', 'name': 'خدمي', 'icon': Icons.support_agent_outlined, 'color': Colors.indigo},
+    {'id': 'other', 'name': 'أخرى', 'icon': Icons.more_horiz_outlined, 'color': Colors.grey},
+  ];
+
+  // ✅ حقول مشتركة
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
+
+  // ✅ حقول الطبيب فقط
+  final TextEditingController _specialtyController = TextEditingController();
+  final TextEditingController _experienceController = TextEditingController();
+  final TextEditingController _clinicNameController = TextEditingController();
+  final TextEditingController _clinicAddressController = TextEditingController();
+  final TextEditingController _licenseController = TextEditingController();
+
+  // ✅ حقول الصيدلي
+  final TextEditingController _pharmacyNameController = TextEditingController();
+  final TextEditingController _pharmacyAddressController = TextEditingController();
+  final TextEditingController _pharmacyLicenseController = TextEditingController();
+
+  // ✅ حقول المخبري
+  final TextEditingController _labNameController = TextEditingController();
+  final TextEditingController _labAddressController = TextEditingController();
+  final TextEditingController _labLicenseController = TextEditingController();
+
+  // ✅ حقول المسعف
+  final TextEditingController _hospitalController = TextEditingController();
+  final TextEditingController _departmentController = TextEditingController();
+
+  // ✅ حقول الموصل
+  final TextEditingController _vehicleController = TextEditingController();
+  final TextEditingController _areaController = TextEditingController();
+
+  // ✅ حقول الخدمي
+  final TextEditingController _companyController = TextEditingController();
+  final TextEditingController _positionController = TextEditingController();
+
+  // ✅ القوائم المنسدلة
+  String _selectedSpecialty = 'باطنية';
+  String _selectedGender = 'ذكر';
+  String _selectedVehicleType = 'دراجة';
+  String _selectedServiceType = 'خدمة عملاء';
+  
+  final List<String> _specialties = [
+    'باطنية', 'قلبية', 'أطفال', 'نساء وولادة', 'جلدية', 'عظام',
+    'أعصاب', 'أنف وأذن وحنجرة', 'عيون', 'مسالك بولية', 'جراحة عامة',
+    'طب نفسي', 'علاج طبيعي', 'تغذية', 'أخرى',
+  ];
+
+  final List<String> _genders = ['ذكر', 'أنثى'];
+  final List<String> _vehicleTypes = ['دراجة', 'سيارة', 'شاحنة', 'أخرى'];
+  final List<String> _serviceTypes = ['خدمة عملاء', 'دعم فني', 'إداري', 'تسويق', 'أخرى'];
+
   bool _obscureText = true;
-  bool _loginOffline = false;
   bool _agreeTerms = false;
   bool _rememberMe = false;
   bool _isLoading = false;
   bool _hasBiometric = false;
   String _biometricName = 'البصمة';
-
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
   
   final BiometricService _biometricService = BiometricService();
 
@@ -80,6 +141,11 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
+  String _getRoleId(String roleName) {
+    final role = _roles.firstWhere((r) => r['name'] == roleName, orElse: () => _roles.first);
+    return role['id'] as String;
+  }
+
   Future<void> _handleAuth() async {
     if (widget.isSignUp) {
       await _register();
@@ -119,12 +185,32 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   Future<void> _register() async {
+    // ✅ التحقق من الحقول الأساسية
+    if (_nameController.text.isEmpty || _emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      _showMessage('يرجى ملء جميع الحقول المطلوبة', true);
+      return;
+    }
     if (_passwordController.text != _confirmPasswordController.text) {
       _showMessage('كلمتا المرور غير متطابقتين', true);
       return;
     }
     if (!_agreeTerms) {
       _showMessage('يرجى الموافقة على الشروط والأحكام', true);
+      return;
+    }
+
+    // ✅ التحقق من حقول الأدوار المتخصصة
+    final role = _selectedRole;
+    if (role == 'طبيب' && (_specialtyController.text.isEmpty || _experienceController.text.isEmpty)) {
+      _showMessage('يرجى ملء جميع حقول الطبيب', true);
+      return;
+    }
+    if (role == 'صيدلي' && (_pharmacyNameController.text.isEmpty || _pharmacyLicenseController.text.isEmpty)) {
+      _showMessage('يرجى ملء جميع حقول الصيدلي', true);
+      return;
+    }
+    if (role == 'مخبري' && (_labNameController.text.isEmpty || _labLicenseController.text.isEmpty)) {
+      _showMessage('يرجى ملء جميع حقول المخبري', true);
       return;
     }
 
@@ -136,16 +222,97 @@ class _AuthScreenState extends State<AuthScreen> {
       );
       final user = credential.user!;
       await user.updateDisplayName(_nameController.text.trim());
-      
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+
+      // ✅ بناء بيانات المستخدم الأساسية
+      final userData = {
         'uid': user.uid,
         'name': _nameController.text.trim(),
         'email': _emailController.text.trim(),
         'phone': _phoneController.text.trim(),
-        'role': _isUserSelected ? 'user' : 'doctor',
+        'role': _getRoleId(_selectedRole),
+        'roleName': _selectedRole,
+        'gender': _selectedGender,
         'createdAt': FieldValue.serverTimestamp(),
-      });
-      
+        'updatedAt': FieldValue.serverTimestamp(),
+        'isVerified': false,
+        'isActive': true,
+      };
+
+      // ✅ إضافة حقول حسب الدور
+      switch (_selectedRole) {
+        case 'طبيب':
+          userData.addAll({
+            'specialty': _selectedSpecialty,
+            'experience': _experienceController.text.trim(),
+            'clinicName': _clinicNameController.text.trim(),
+            'clinicAddress': _clinicAddressController.text.trim(),
+            'licenseNumber': _licenseController.text.trim(),
+            'rating': 0.0,
+            'reviewCount': 0,
+            'isAvailable': true,
+          });
+          break;
+
+        case 'صيدلي':
+          userData.addAll({
+            'pharmacyName': _pharmacyNameController.text.trim(),
+            'pharmacyAddress': _pharmacyAddressController.text.trim(),
+            'pharmacyLicense': _pharmacyLicenseController.text.trim(),
+            'isAvailable': true,
+          });
+          break;
+
+        case 'مخبري':
+          userData.addAll({
+            'labName': _labNameController.text.trim(),
+            'labAddress': _labAddressController.text.trim(),
+            'labLicense': _labLicenseController.text.trim(),
+            'isAvailable': true,
+          });
+          break;
+
+        case 'بيطري':
+          userData.addAll({
+            'specialty': 'بيطري',
+            'experience': _experienceController.text.trim(),
+            'clinicName': _clinicNameController.text.trim(),
+            'clinicAddress': _clinicAddressController.text.trim(),
+            'licenseNumber': _licenseController.text.trim(),
+            'isAvailable': true,
+          });
+          break;
+
+        case 'مسعف':
+          userData.addAll({
+            'hospital': _hospitalController.text.trim(),
+            'department': _departmentController.text.trim(),
+            'isAvailable': true,
+          });
+          break;
+
+        case 'موصل طلبات':
+          userData.addAll({
+            'vehicleType': _selectedVehicleType,
+            'area': _areaController.text.trim(),
+            'isAvailable': true,
+          });
+          break;
+
+        case 'خدمي':
+          userData.addAll({
+            'company': _companyController.text.trim(),
+            'position': _positionController.text.trim(),
+            'serviceType': _selectedServiceType,
+          });
+          break;
+
+        default:
+          // مستخدم عادي - لا حقول إضافية
+          break;
+      }
+
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set(userData);
+
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -232,7 +399,6 @@ class _AuthScreenState extends State<AuthScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 30),
-                // ✅ الهيدر والترحيب
                 Text(
                   widget.isSignUp ? 'إنشاء حساب جديد' : 'مرحباً بعودتك',
                   style: theme.textTheme.headlineMedium?.copyWith(
@@ -243,236 +409,134 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  widget.isSignUp ? 'أدخل بياناتك للانضمام إلى منصتنا' : 'قم بتسجيل الدخول للمتابعة',
+                  widget.isSignUp 
+                      ? 'اختر نوع الحساب وأدخل بياناتك'
+                      : 'قم بتسجيل الدخول للمتابعة',
                   style: TextStyle(
                     fontSize: 14,
                     fontFamily: 'NotoSansArabicUI',
                     color: isDark ? Colors.white70 : const Color(0xFF64748B),
                   ),
                 ),
-                const SizedBox(height: 35),
-
-                // ✅ خانات تحديد نوع الحساب (مستخدم / طبيب)
-                Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => setState(() => _isUserSelected = true),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          decoration: BoxDecoration(
-                            color: _isUserSelected ? fieldBackgroundColor : inactiveTabColor,
-                            borderRadius: BorderRadius.circular(16),
-                            border: _isUserSelected 
-                                ? Border.all(color: primaryColor, width: 2)
-                                : Border.all(color: Colors.transparent, width: 2),
-                          ),
-                          child: Column(
-                            children: [
-                              Icon(
-                                Icons.person_outline,
-                                color: _isUserSelected ? primaryColor : Colors.grey,
-                                size: 28,
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                'مستخدم',
-                                style: TextStyle(
-                                  fontWeight: _isUserSelected ? FontWeight.bold : FontWeight.normal,
-                                  fontFamily: 'NotoSansArabicUI',
-                                  color: _isUserSelected ? (isDark ? Colors.white : const Color(0xFF1E293B)) : Colors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => setState(() => _isUserSelected = false),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          decoration: BoxDecoration(
-                            color: !_isUserSelected ? fieldBackgroundColor : inactiveTabColor,
-                            borderRadius: BorderRadius.circular(16),
-                            border: !_isUserSelected 
-                                ? Border.all(color: primaryColor, width: 2)
-                                : Border.all(color: Colors.transparent, width: 2),
-                          ),
-                          child: Column(
-                            children: [
-                              Icon(
-                                Icons.local_hospital_outlined,
-                                color: !_isUserSelected ? primaryColor : Colors.grey,
-                                size: 28,
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                'طبيب',
-                                style: TextStyle(
-                                  fontWeight: !_isUserSelected ? FontWeight.bold : FontWeight.normal,
-                                  fontFamily: 'NotoSansArabicUI',
-                                  color: !_isUserSelected ? (isDark ? Colors.white : const Color(0xFF1E293B)) : Colors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
                 const SizedBox(height: 30),
 
-                // ✅ حقل البريد الإلكتروني (أو رقم الموبايل)
+                // ✅ اختيار الدور (شبكة أفقية)
                 if (widget.isSignUp) ...[
-                  TextFormField(
-                    controller: _nameController,
-                    textAlign: TextAlign.right,
-                    style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
-                    decoration: InputDecoration(
-                      labelText: 'الاسم الكامل',
-                      labelStyle: const TextStyle(fontFamily: 'NotoSansArabicUI', fontSize: 14),
-                      filled: true,
-                      fillColor: fieldBackgroundColor,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade300),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(color: primaryColor, width: 2),
-                      ),
-                      prefixIcon: const Icon(Icons.person_outline, color: AppColors.primary),
+                  const Text(
+                    'اختر نوع الحساب',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'NotoSansArabicUI',
                     ),
                   ),
-                  const SizedBox(height: 16),
-                ],
-
-                TextFormField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  textAlign: TextAlign.right,
-                  style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
-                  decoration: InputDecoration(
-                    labelText: widget.isSignUp ? 'البريد الإلكتروني' : 'البريد الإلكتروني أو رقم الموبايل',
-                    labelStyle: const TextStyle(fontFamily: 'NotoSansArabicUI', fontSize: 14),
-                    filled: true,
-                    fillColor: fieldBackgroundColor,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade300),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(color: primaryColor, width: 2),
-                    ),
-                    prefixIcon: const Icon(Icons.email_outlined, color: AppColors.primary),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                if (widget.isSignUp) ...[
-                  TextFormField(
-                    controller: _phoneController,
-                    keyboardType: TextInputType.phone,
-                    textAlign: TextAlign.right,
-                    style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
-                    decoration: InputDecoration(
-                      labelText: 'رقم الهاتف',
-                      labelStyle: const TextStyle(fontFamily: 'NotoSansArabicUI', fontSize: 14),
-                      filled: true,
-                      fillColor: fieldBackgroundColor,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade300),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(color: primaryColor, width: 2),
-                      ),
-                      prefixIcon: const Icon(Icons.phone_android, color: AppColors.primary),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-
-                // ✅ حقل كلمة المرور مع البصمة
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: _obscureText,
-                  textAlign: TextAlign.right,
-                  style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
-                  decoration: InputDecoration(
-                    labelText: 'كلمة المرور',
-                    labelStyle: const TextStyle(fontFamily: 'NotoSansArabicUI', fontSize: 14),
-                    filled: true,
-                    fillColor: fieldBackgroundColor,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade300),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(color: primaryColor, width: 2),
-                    ),
-                    prefixIcon: const Icon(Icons.lock_outline, color: AppColors.primary),
-                    suffixIcon: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: Icon(
-                            _obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                            size: 20,
-                            color: isDark ? Colors.white70 : Colors.grey,
-                          ),
-                          onPressed: () => setState(() => _obscureText = !_obscureText),
-                        ),
-                        if (_hasBiometric)
-                          IconButton(
-                            icon: Icon(
-                              _biometricName == 'Face ID' ? Icons.face : Icons.fingerprint,
-                              color: AppColors.primary,
-                              size: 28,
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    height: 100,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _roles.length,
+                      itemBuilder: (context, index) {
+                        final role = _roles[index];
+                        final isSelected = _selectedRole == role['name'];
+                        final color = role['color'] as Color;
+                        return GestureDetector(
+                          onTap: () => setState(() => _selectedRole = role['name'] as String),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            margin: const EdgeInsets.only(right: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: isSelected ? color.withOpacity(0.15) : Colors.transparent,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isSelected ? color : Colors.grey.withOpacity(0.3),
+                                width: isSelected ? 2 : 1,
+                              ),
                             ),
-                            onPressed: _loginWithBiometric,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  role['icon'] as IconData,
+                                  color: isSelected ? color : Colors.grey,
+                                  size: 28,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  role['name'] as String,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                    color: isSelected ? color : Colors.grey,
+                                    fontFamily: 'NotoSansArabicUI',
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                      ],
+                        );
+                      },
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-
-                if (widget.isSignUp) ...[
-                  TextFormField(
-                    controller: _confirmPasswordController,
-                    obscureText: true,
-                    textAlign: TextAlign.right,
-                    style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
-                    decoration: InputDecoration(
-                      labelText: 'تأكيد كلمة المرور',
-                      labelStyle: const TextStyle(fontFamily: 'NotoSansArabicUI', fontSize: 14),
-                      filled: true,
-                      fillColor: fieldBackgroundColor,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade300),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(color: primaryColor, width: 2),
-                      ),
-                      prefixIcon: const Icon(Icons.lock_outline, color: AppColors.primary),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                 ],
 
-                // ✅ الموافقة على الشروط والأحكام (للتسجيل فقط)
+                // ✅ حقول مشتركة
+                _buildTextField(
+                  controller: _nameController,
+                  label: 'الاسم الكامل',
+                  icon: Icons.person_outline,
+                  isDark: isDark,
+                  fieldBackgroundColor: fieldBackgroundColor,
+                  primaryColor: primaryColor,
+                ),
+                const SizedBox(height: 14),
+
+                _buildTextField(
+                  controller: _emailController,
+                  label: 'البريد الإلكتروني',
+                  icon: Icons.email_outlined,
+                  isDark: isDark,
+                  fieldBackgroundColor: fieldBackgroundColor,
+                  primaryColor: primaryColor,
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 14),
+
+                _buildTextField(
+                  controller: _phoneController,
+                  label: 'رقم الهاتف',
+                  icon: Icons.phone_android,
+                  isDark: isDark,
+                  fieldBackgroundColor: fieldBackgroundColor,
+                  primaryColor: primaryColor,
+                  keyboardType: TextInputType.phone,
+                ),
+                const SizedBox(height: 14),
+
+                // ✅ حقول حسب الدور
+                if (_selectedRole == 'طبيب') ...[
+                  _buildDoctorFields(isDark, fieldBackgroundColor, primaryColor),
+                ] else if (_selectedRole == 'صيدلي') ...[
+                  _buildPharmacistFields(isDark, fieldBackgroundColor, primaryColor),
+                ] else if (_selectedRole == 'مخبري') ...[
+                  _buildLabTechFields(isDark, fieldBackgroundColor, primaryColor),
+                ] else if (_selectedRole == 'بيطري') ...[
+                  _buildVeterinarianFields(isDark, fieldBackgroundColor, primaryColor),
+                ] else if (_selectedRole == 'مسعف') ...[
+                  _buildParamedicFields(isDark, fieldBackgroundColor, primaryColor),
+                ] else if (_selectedRole == 'موصل طلبات') ...[
+                  _buildDeliveryFields(isDark, fieldBackgroundColor, primaryColor),
+                ] else if (_selectedRole == 'خدمي') ...[
+                  _buildServiceFields(isDark, fieldBackgroundColor, primaryColor),
+                ],
+
+                // ✅ كلمة المرور
+                _buildPasswordFields(isDark, fieldBackgroundColor, primaryColor),
+                const SizedBox(height: 16),
+
+                // ✅ الموافقة على الشروط
                 if (widget.isSignUp) ...[
                   Row(
                     children: [
@@ -483,7 +547,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                       const Text(
                         'أوافق على ',
-                        style: TextStyle(fontSize: 13),
+                        style: TextStyle(fontSize: 13, fontFamily: 'NotoSansArabicUI'),
                       ),
                       GestureDetector(
                         onTap: () {
@@ -499,6 +563,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
                             decoration: TextDecoration.underline,
+                            fontFamily: 'NotoSansArabicUI',
                           ),
                         ),
                       ),
@@ -507,7 +572,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 16),
                 ],
 
-                // ✅ تذكرني (للدخول فقط)
+                // ✅ تذكرني
                 if (!widget.isSignUp) ...[
                   Row(
                     children: [
@@ -518,7 +583,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                       const Text(
                         'تذكرني',
-                        style: TextStyle(fontSize: 13),
+                        style: TextStyle(fontSize: 13, fontFamily: 'NotoSansArabicUI'),
                       ),
                       const Spacer(),
                       TextButton(
@@ -528,6 +593,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           style: TextStyle(
                             color: AppColors.primary,
                             fontSize: 12,
+                            fontFamily: 'NotoSansArabicUI',
                           ),
                         ),
                       ),
@@ -536,7 +602,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 8),
                 ],
 
-                // ✅ زر الإجراء الرئيسي
+                // ✅ زر الإجراء
                 SizedBox(
                   width: double.infinity,
                   height: 56,
@@ -554,7 +620,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         ? const CircularProgressIndicator(color: Colors.white)
                         : Text(
                             widget.isSignUp 
-                                ? (_isUserSelected ? 'إنشاء حساب' : 'إنشاء حساب طبيب')
+                                ? 'إنشاء حساب $_selectedRole'
                                 : 'تسجيل الدخول',
                             style: const TextStyle(
                               fontSize: 16,
@@ -566,7 +632,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // ✅ زر تصفح كضيف (للدخول فقط)
+                // ✅ تصفح كضيف
                 if (!widget.isSignUp) ...[
                   SizedBox(
                     width: double.infinity,
@@ -623,13 +689,401 @@ class _AuthScreenState extends State<AuthScreen> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 20),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  // ✅ دوال مساعدة لبناء الحقول
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    required bool isDark,
+    required Color fieldBackgroundColor,
+    required Color primaryColor,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      textAlign: TextAlign.right,
+      style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(fontFamily: 'NotoSansArabicUI', fontSize: 14),
+        filled: true,
+        fillColor: fieldBackgroundColor,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade300),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: primaryColor, width: 2),
+        ),
+        prefixIcon: Icon(icon, color: AppColors.primary),
+      ),
+    );
+  }
+
+  // ✅ حقول الطبيب
+  Widget _buildDoctorFields(bool isDark, Color fieldBackgroundColor, Color primaryColor) {
+    return Column(
+      children: [
+        DropdownButtonFormField<String>(
+          value: _selectedSpecialty,
+          decoration: InputDecoration(
+            labelText: 'التخصص',
+            labelStyle: const TextStyle(fontFamily: 'NotoSansArabicUI', fontSize: 14),
+            filled: true,
+            fillColor: fieldBackgroundColor,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade300),
+            ),
+            prefixIcon: const Icon(Icons.medical_services_outlined, color: AppColors.primary),
+          ),
+          items: _specialties.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+          onChanged: (v) => setState(() => _selectedSpecialty = v!),
+          style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
+        ),
+        const SizedBox(height: 14),
+        _buildTextField(
+          controller: _experienceController,
+          label: 'سنوات الخبرة',
+          icon: Icons.work_outline,
+          isDark: isDark,
+          fieldBackgroundColor: fieldBackgroundColor,
+          primaryColor: primaryColor,
+          keyboardType: TextInputType.number,
+        ),
+        const SizedBox(height: 14),
+        _buildTextField(
+          controller: _clinicNameController,
+          label: 'اسم العيادة (اختياري)',
+          icon: Icons.local_hospital_outlined,
+          isDark: isDark,
+          fieldBackgroundColor: fieldBackgroundColor,
+          primaryColor: primaryColor,
+        ),
+        const SizedBox(height: 14),
+        _buildTextField(
+          controller: _clinicAddressController,
+          label: 'عنوان العيادة (اختياري)',
+          icon: Icons.location_on_outlined,
+          isDark: isDark,
+          fieldBackgroundColor: fieldBackgroundColor,
+          primaryColor: primaryColor,
+        ),
+        const SizedBox(height: 14),
+        _buildTextField(
+          controller: _licenseController,
+          label: 'رقم الترخيص',
+          icon: Icons.verified_outlined,
+          isDark: isDark,
+          fieldBackgroundColor: fieldBackgroundColor,
+          primaryColor: primaryColor,
+        ),
+        const SizedBox(height: 14),
+      ],
+    );
+  }
+
+  // ✅ حقول الصيدلي
+  Widget _buildPharmacistFields(bool isDark, Color fieldBackgroundColor, Color primaryColor) {
+    return Column(
+      children: [
+        _buildTextField(
+          controller: _pharmacyNameController,
+          label: 'اسم الصيدلية',
+          icon: Icons.local_pharmacy_outlined,
+          isDark: isDark,
+          fieldBackgroundColor: fieldBackgroundColor,
+          primaryColor: primaryColor,
+        ),
+        const SizedBox(height: 14),
+        _buildTextField(
+          controller: _pharmacyAddressController,
+          label: 'عنوان الصيدلية (اختياري)',
+          icon: Icons.location_on_outlined,
+          isDark: isDark,
+          fieldBackgroundColor: fieldBackgroundColor,
+          primaryColor: primaryColor,
+        ),
+        const SizedBox(height: 14),
+        _buildTextField(
+          controller: _pharmacyLicenseController,
+          label: 'رقم الترخيص',
+          icon: Icons.verified_outlined,
+          isDark: isDark,
+          fieldBackgroundColor: fieldBackgroundColor,
+          primaryColor: primaryColor,
+        ),
+        const SizedBox(height: 14),
+      ],
+    );
+  }
+
+  // ✅ حقول المخبري
+  Widget _buildLabTechFields(bool isDark, Color fieldBackgroundColor, Color primaryColor) {
+    return Column(
+      children: [
+        _buildTextField(
+          controller: _labNameController,
+          label: 'اسم المختبر',
+          icon: Icons.science_outlined,
+          isDark: isDark,
+          fieldBackgroundColor: fieldBackgroundColor,
+          primaryColor: primaryColor,
+        ),
+        const SizedBox(height: 14),
+        _buildTextField(
+          controller: _labAddressController,
+          label: 'عنوان المختبر (اختياري)',
+          icon: Icons.location_on_outlined,
+          isDark: isDark,
+          fieldBackgroundColor: fieldBackgroundColor,
+          primaryColor: primaryColor,
+        ),
+        const SizedBox(height: 14),
+        _buildTextField(
+          controller: _labLicenseController,
+          label: 'رقم الترخيص',
+          icon: Icons.verified_outlined,
+          isDark: isDark,
+          fieldBackgroundColor: fieldBackgroundColor,
+          primaryColor: primaryColor,
+        ),
+        const SizedBox(height: 14),
+      ],
+    );
+  }
+
+  // ✅ حقول البيطري
+  Widget _buildVeterinarianFields(bool isDark, Color fieldBackgroundColor, Color primaryColor) {
+    return Column(
+      children: [
+        _buildTextField(
+          controller: _experienceController,
+          label: 'سنوات الخبرة',
+          icon: Icons.work_outline,
+          isDark: isDark,
+          fieldBackgroundColor: fieldBackgroundColor,
+          primaryColor: primaryColor,
+          keyboardType: TextInputType.number,
+        ),
+        const SizedBox(height: 14),
+        _buildTextField(
+          controller: _clinicNameController,
+          label: 'اسم العيادة البيطرية (اختياري)',
+          icon: Icons.pets_outlined,
+          isDark: isDark,
+          fieldBackgroundColor: fieldBackgroundColor,
+          primaryColor: primaryColor,
+        ),
+        const SizedBox(height: 14),
+        _buildTextField(
+          controller: _clinicAddressController,
+          label: 'عنوان العيادة (اختياري)',
+          icon: Icons.location_on_outlined,
+          isDark: isDark,
+          fieldBackgroundColor: fieldBackgroundColor,
+          primaryColor: primaryColor,
+        ),
+        const SizedBox(height: 14),
+        _buildTextField(
+          controller: _licenseController,
+          label: 'رقم الترخيص',
+          icon: Icons.verified_outlined,
+          isDark: isDark,
+          fieldBackgroundColor: fieldBackgroundColor,
+          primaryColor: primaryColor,
+        ),
+        const SizedBox(height: 14),
+      ],
+    );
+  }
+
+  // ✅ حقول المسعف
+  Widget _buildParamedicFields(bool isDark, Color fieldBackgroundColor, Color primaryColor) {
+    return Column(
+      children: [
+        _buildTextField(
+          controller: _hospitalController,
+          label: 'اسم المستشفى أو المركز',
+          icon: Icons.local_hospital_outlined,
+          isDark: isDark,
+          fieldBackgroundColor: fieldBackgroundColor,
+          primaryColor: primaryColor,
+        ),
+        const SizedBox(height: 14),
+        _buildTextField(
+          controller: _departmentController,
+          label: 'القسم (اختياري)',
+          icon: Icons.medical_services_outlined,
+          isDark: isDark,
+          fieldBackgroundColor: fieldBackgroundColor,
+          primaryColor: primaryColor,
+        ),
+        const SizedBox(height: 14),
+      ],
+    );
+  }
+
+  // ✅ حقول الموصل
+  Widget _buildDeliveryFields(bool isDark, Color fieldBackgroundColor, Color primaryColor) {
+    return Column(
+      children: [
+        DropdownButtonFormField<String>(
+          value: _selectedVehicleType,
+          decoration: InputDecoration(
+            labelText: 'نوع المركبة',
+            labelStyle: const TextStyle(fontFamily: 'NotoSansArabicUI', fontSize: 14),
+            filled: true,
+            fillColor: fieldBackgroundColor,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade300),
+            ),
+            prefixIcon: const Icon(Icons.directions_car_outlined, color: AppColors.primary),
+          ),
+          items: _vehicleTypes.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+          onChanged: (v) => setState(() => _selectedVehicleType = v!),
+          style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
+        ),
+        const SizedBox(height: 14),
+        _buildTextField(
+          controller: _areaController,
+          label: 'منطقة التوصيل',
+          icon: Icons.map_outlined,
+          isDark: isDark,
+          fieldBackgroundColor: fieldBackgroundColor,
+          primaryColor: primaryColor,
+        ),
+        const SizedBox(height: 14),
+      ],
+    );
+  }
+
+  // ✅ حقول الخدمي
+  Widget _buildServiceFields(bool isDark, Color fieldBackgroundColor, Color primaryColor) {
+    return Column(
+      children: [
+        _buildTextField(
+          controller: _companyController,
+          label: 'اسم الشركة أو المؤسسة',
+          icon: Icons.business_outlined,
+          isDark: isDark,
+          fieldBackgroundColor: fieldBackgroundColor,
+          primaryColor: primaryColor,
+        ),
+        const SizedBox(height: 14),
+        DropdownButtonFormField<String>(
+          value: _selectedServiceType,
+          decoration: InputDecoration(
+            labelText: 'نوع الخدمة',
+            labelStyle: const TextStyle(fontFamily: 'NotoSansArabicUI', fontSize: 14),
+            filled: true,
+            fillColor: fieldBackgroundColor,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade300),
+            ),
+            prefixIcon: const Icon(Icons.support_agent_outlined, color: AppColors.primary),
+          ),
+          items: _serviceTypes.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+          onChanged: (v) => setState(() => _selectedServiceType = v!),
+          style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
+        ),
+        const SizedBox(height: 14),
+        _buildTextField(
+          controller: _positionController,
+          label: 'المسمى الوظيفي (اختياري)',
+          icon: Icons.badge_outlined,
+          isDark: isDark,
+          fieldBackgroundColor: fieldBackgroundColor,
+          primaryColor: primaryColor,
+        ),
+        const SizedBox(height: 14),
+      ],
+    );
+  }
+
+  // ✅ حقول كلمة المرور
+  Widget _buildPasswordFields(bool isDark, Color fieldBackgroundColor, Color primaryColor) {
+    return Column(
+      children: [
+        TextFormField(
+          controller: _passwordController,
+          obscureText: _obscureText,
+          textAlign: TextAlign.right,
+          style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
+          decoration: InputDecoration(
+            labelText: 'كلمة المرور',
+            labelStyle: const TextStyle(fontFamily: 'NotoSansArabicUI', fontSize: 14),
+            filled: true,
+            fillColor: fieldBackgroundColor,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade300),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: primaryColor, width: 2),
+            ),
+            prefixIcon: const Icon(Icons.lock_outline, color: AppColors.primary),
+            suffixIcon: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: Icon(
+                    _obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                    size: 20,
+                    color: isDark ? Colors.white70 : Colors.grey,
+                  ),
+                  onPressed: () => setState(() => _obscureText = !_obscureText),
+                ),
+                if (_hasBiometric)
+                  IconButton(
+                    icon: Icon(
+                      _biometricName == 'Face ID' ? Icons.face : Icons.fingerprint,
+                      color: AppColors.primary,
+                      size: 28,
+                    ),
+                    onPressed: _loginWithBiometric,
+                  ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 14),
+        TextFormField(
+          controller: _confirmPasswordController,
+          obscureText: true,
+          textAlign: TextAlign.right,
+          style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
+          decoration: InputDecoration(
+            labelText: 'تأكيد كلمة المرور',
+            labelStyle: const TextStyle(fontFamily: 'NotoSansArabicUI', fontSize: 14),
+            filled: true,
+            fillColor: fieldBackgroundColor,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade300),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: primaryColor, width: 2),
+            ),
+            prefixIcon: const Icon(Icons.lock_outline, color: AppColors.primary),
+          ),
+        ),
+      ],
     );
   }
 }
