@@ -1,3 +1,4 @@
+import package:sehatak/presentation/screens/auth/auth_screen.dart;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,7 +9,6 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/image_service.dart';
-import 'package:sehatak/presentation/screens/auth/login_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
 import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
@@ -83,7 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => const LoginScreen(),
+          builder: (_) => const AuthScreen(),
         ),
       );
     }
@@ -390,7 +390,7 @@ class _HomeTabState extends State<HomeTab> {
                       GestureDetector(
                         onTap: () {
                           if (logged) _goTo(context, const PatientProfile());
-                          else _goTo(context, const LoginScreen());
+                          else _goTo(context, const AuthScreen());
                         },
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(14),
@@ -433,7 +433,7 @@ class _HomeTabState extends State<HomeTab> {
                       ),
                       if (!logged)
                         TextButton(
-                          onPressed: () => _goTo(context, const LoginScreen()),
+                          onPressed: () => _goTo(context, const AuthScreen()),
                           child: Text('تسجيل', style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold)),
                         ),
                     ],
