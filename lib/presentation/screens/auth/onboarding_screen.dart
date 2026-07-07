@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'login_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -38,6 +38,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     },
   ];
 
+  Future<void> _finishOnboarding() async {
+    // ✅ حفظ حالة Onboarding
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('hasSeenOnboarding', true);
+
+    // ✅ الانتقال إلى LoginScreen
+    Navigator.pushReplacement(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => const LoginScreen(),
+        transitionsBuilder: (_, anim, __, child) =>
+            FadeTransition(opacity: anim, child: child),
+        transitionDuration: const Duration(milliseconds: 500),
+      ),
+    );
+  }
+
   void _next() {
     if (_page < _pages.length - 1) {
       _pageCtrl.nextPage(
@@ -45,25 +62,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         curve: Curves.easeInOut,
       );
     } else {
-      // ✅ الانتقال إلى شاشة تسجيل الدخول الأصلية
-      Navigator.pushReplacement(
-        context,
-        PageRouteBuilder(
-          pageBuilder: (_, __, ___) => const LoginScreen(),
-          transitionsBuilder: (_, anim, __, child) =>
-              FadeTransition(opacity: anim, child: child),
-          transitionDuration: const Duration(milliseconds: 500),
-        ),
-      );
+      _finishOnboarding();
     }
   }
 
   void _skip() {
-    // ✅ الانتقال إلى شاشة تسجيل الدخول الأصلية
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-    );
+    _finishOnboarding();
   }
 
   @override
@@ -88,7 +92,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              // شريط التقدم + تخطي
+              // ✅ شريط التقدم + تخطي
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
                 child: Row(
@@ -156,7 +160,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ],
                 ),
               ),
-              // المحتوى
+              // ✅ المحتوى
               Expanded(
                 child: PageView.builder(
                   controller: _pageCtrl,
@@ -168,7 +172,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     return Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // أيقونة دائرية
+                        // ✅ أيقونة دائرية
                         TweenAnimationBuilder<double>(
                           tween: Tween(begin: 0.0, end: 1.0),
                           duration: const Duration(milliseconds: 800),
@@ -231,7 +235,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           },
                         ),
                         const SizedBox(height: 60),
-                        // العنوان
+                        // ✅ العنوان
                         TweenAnimationBuilder<double>(
                           tween: Tween(begin: 20.0, end: 0.0),
                           duration: const Duration(milliseconds: 600),
@@ -256,7 +260,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           },
                         ),
                         const SizedBox(height: 20),
-                        // الوصف
+                        // ✅ الوصف
                         TweenAnimationBuilder<double>(
                           tween: Tween(begin: 30.0, end: 0.0),
                           duration: const Duration(milliseconds: 800),
@@ -284,7 +288,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   },
                 ),
               ),
-              // زر التالي/ابدأ
+              // ✅ زر التالي/ابدأ
               Padding(
                 padding: const EdgeInsets.all(32),
                 child: Column(
