@@ -6,7 +6,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:provider/provider.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/providers/font_size_provider.dart';
-import 'package:sehatak/presentation/screens/auth/login_screen.dart';
+import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
 import 'package:sehatak/presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
 import 'package:sehatak/presentation/screens/settings/settings_screen.dart';
@@ -194,7 +194,7 @@ class _MoreScreenState extends State<MoreScreen> {
                       GestureDetector(
                         onTap: () {
                           if (logged) _navigateTo(const PatientProfile());
-                          else _navigateTo(BlocProvider(create: (_) => AuthBloc(), child: const LoginScreen()));
+                          else _navigateTo(BlocProvider(create: (_) => AuthBloc(), child: const AuthScreen()));
                         },
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(14 * fontScale),
@@ -672,7 +672,7 @@ class _MoreScreenState extends State<MoreScreen> {
               Navigator.pop(context);
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                MaterialPageRoute(builder: (_) => const AuthScreen()),
               );
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),

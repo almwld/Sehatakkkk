@@ -5,7 +5,7 @@ import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/providers/font_size_provider.dart';
 import 'package:sehatak/presentation/bloc/theme_bloc/theme_bloc.dart';
 import 'package:sehatak/presentation/bloc/auth_bloc/auth_bloc.dart';
-import 'package:sehatak/presentation/screens/auth/login_screen.dart';
+import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -579,7 +579,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               context.read<AuthBloc>().add(Logout());
               Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                MaterialPageRoute(builder: (_) => const AuthScreen()),
                 (route) => false,
               );
             },

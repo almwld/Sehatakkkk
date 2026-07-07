@@ -6,7 +6,7 @@ import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/app_icons.dart';
 import 'package:sehatak/presentation/screens/edit_profile/edit_profile_screen.dart';
 import 'package:sehatak/presentation/screens/settings/settings_screen.dart';
-import 'package:sehatak/presentation/screens/auth/login_screen.dart';
+import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
 
 class PatientProfile extends StatefulWidget {
   const PatientProfile({super.key});
@@ -544,7 +544,7 @@ class _PatientProfileState extends State<PatientProfile> {
               _auth.signOut();
               Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                MaterialPageRoute(builder: (_) => const AuthScreen()),
                 (route) => false,
               );
             },
