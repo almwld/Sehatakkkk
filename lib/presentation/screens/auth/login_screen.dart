@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/presentation/bloc/auth_bloc/auth_bloc.dart';
+import 'package:sehatak/core/services/biometric_service.dart';
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
 import 'package:sehatak/presentation/screens/auth/register_screen.dart';
 
@@ -16,8 +15,29 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final BiometricService _biometricService = BiometricService();
+  
   bool _isLoading = false;
   bool _obscurePassword = true;
+  bool _hasBiometric = false;
+  String _biometricName = 'البصمة';
+
+  @override
+  void initState() {
+    super.initState();
+    _checkBiometric();
+  }
+
+  Future<void> _checkBiometric() async {
+    final available = await _biometricService.isAvailable();
+    if (available) {
+      final types = await _biometricService.getAvailableTypes();
+      setState(() {
+        _hasBiometric = true;
+        _biometricName = _biometricService.getBiometricName(types);
+      });
+    }
+  }
 
   Future<void> _login() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
@@ -26,7 +46,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     setState(() => _isLoading = true);
-
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
@@ -51,6 +70,34 @@ class _LoginScreenState extends State<LoginScreen> {
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _loginWithBiometric() async {
+    setState(() => _isLoading = true);
+    final authenticated = await _biometricService.authenticate(
+      reason: 'تسجيل الدخول باستخدام $_biometricName',
+    );
+    if (authenticated) {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
+      } else {
+        _showMessage('يرجى تسجيل الدخول أولاً', true);
+      }
+    } else {
+      _showMessage('فشل التحقق من $_biometricName', true);
+    }
+    setState(() => _isLoading = false);
+  }
+
+  void _guestLogin() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const HomeScreen()),
+    );
   }
 
   void _showMessage(String message, bool isError) {
@@ -198,6 +245,58 @@ class _LoginScreenState extends State<LoginScreen> {
                                       fontFamily: 'OpenSans',
                                     ),
                                   ),
+                          ),
+                        ),
+                        // ✅ زر البصمة
+                        if (_hasBiometric) ...[
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: OutlinedButton.icon(
+                              onPressed: _loginWithBiometric,
+                              icon: Icon(
+                                _biometricName == 'Face ID' ? Icons.face : Icons.fingerprint,
+                                color: Colors.white,
+                              ),
+                              label: Text(
+                                'تسجيل الدخول بـ $_biometricName',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontFamily: 'OpenSans',
+                                ),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(color: Colors.white.withOpacity(0.3)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                        // ✅ زر تصفح كضيف
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: OutlinedButton(
+                            onPressed: _guestLogin,
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide(color: Colors.white.withOpacity(0.3)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text(
+                              'تصفح كضيف',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontFamily: 'OpenSans',
+                              ),
+                            ),
                           ),
                         ),
                       ],
