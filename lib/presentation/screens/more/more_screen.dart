@@ -10,9 +10,6 @@ import 'package:sehatak/presentation/screens/auth/login_screen.dart';
 import 'package:sehatak/presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
 import 'package:sehatak/presentation/screens/settings/settings_screen.dart';
-import 'package:sehatak/presentation/screens/ai_diagnosis/ai_diagnosis_screen.dart';
-import 'package:sehatak/presentation/screens/permissions/permission_screen.dart';
-import 'package:sehatak/presentation/screens/export_report/export_report_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
 import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
 import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
@@ -33,11 +30,9 @@ import 'package:sehatak/presentation/screens/blood_pressure/blood_pressure_scree
 import 'package:sehatak/presentation/screens/glucose_tracker/glucose_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/weight_tracker/weight_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/medical_reports/medical_reports_screen.dart';
-import 'package:sehatak/presentation/screens/vaccinations/vaccinations_screen.dart';
 import 'package:sehatak/presentation/screens/health_community/health_community_screen.dart';
 import 'package:sehatak/presentation/screens/articles/articles_screen.dart';
 import 'package:sehatak/presentation/screens/first_aid/first_aid_screen.dart';
-import 'package:sehatak/presentation/screens/orders/orders_history_screen.dart';
 import 'package:sehatak/presentation/screens/about/about_screen.dart';
 import 'package:sehatak/presentation/screens/terms/terms_screen.dart';
 import 'package:sehatak/presentation/screens/contact_us/contact_us_screen.dart';
@@ -49,7 +44,6 @@ import 'package:sehatak/presentation/screens/font_size/font_size_screen.dart';
 import 'package:sehatak/presentation/screens/privacy/privacy_screen.dart';
 import 'package:sehatak/presentation/screens/notifications/notifications_screen.dart';
 import 'package:sehatak/presentation/screens/subscriptions/subscriptions_screen.dart';
-import 'package:sehatak/presentation/screens/orders/order_tracking_screen.dart';
 import 'package:sehatak/presentation/screens/help_center/help_center_screen.dart';
 
 class MoreScreen extends StatefulWidget {
@@ -88,20 +82,15 @@ class _MoreScreenState extends State<MoreScreen> {
       case 'رعاية عائلية':
         return [
           {'icon': Icons.woman, 'title': 'صحة المرأة', 'subtitle': 'متابعة الدورة والحمل', 'screen': const FamilyPlanningScreen()},
-          {'icon': Icons.child_care, 'title': 'نمو الطفل', 'subtitle': 'مراحل التطور والتطعيمات', 'screen': const VaccinationsScreen()},
+          {'icon': Icons.child_care, 'title': 'نمو الطفل', 'subtitle': 'مراحل التطور', 'screen': const FamilyPlanningScreen()},
           {'icon': Icons.house_rounded, 'title': 'طبيب العائلة', 'subtitle': 'رعاية منزلية متكاملة', 'screen': const DoctorsListScreen()},
           {'icon': Icons.pregnant_woman, 'title': 'متابعة الحمل', 'subtitle': 'أسابيع الحمل بدقة', 'screen': const FamilyPlanningScreen()},
           {'icon': Icons.health_and_safety, 'title': 'الصحة النفسية', 'subtitle': 'دعم الصحة النفسية', 'screen': const MentalHealthScreen()},
           {'icon': Icons.restaurant, 'title': 'نظام غذائي', 'subtitle': 'خطط غذائية صحية', 'screen': const DietPlanScreen()},
-          {'icon': Icons.fitness_center, 'title': 'تمارين رياضية', 'subtitle': 'خطط تمارين منزلية', 'screen': const SizedBox.shrink()},
           {'icon': Icons.nightlight, 'title': 'تتبع النوم', 'subtitle': 'مراقبة جودة النوم', 'screen': const SleepTrackerScreen()},
         ];
       case 'أدوات تشخيصية':
         return [
-          {'icon': Icons.psychology, 'title': 'العيادة الذكية', 'subtitle': 'فحص الأعراض بالذكاء الاصطناعي', 'screen': const AIDiagnosisScreen()},
-          {'icon': Icons.medical_services, 'title': 'حاسبة خطر الأمراض', 'subtitle': 'تقييم المخاطر الصحية', 'screen': const HealthDashboard()},
-          {'icon': Icons.healing, 'title': 'مقياس التوتر', 'subtitle': 'قياس مستوى التوتر النفسي', 'screen': const MentalHealthScreen()},
-          {'icon': Icons.search, 'title': 'قاموس الأدوية', 'subtitle': 'البحث عن الأدوية وتفاصيلها', 'screen': const MedicationReminderScreen()},
           {'icon': Icons.monitor_heart, 'title': 'ضغط الدم', 'subtitle': 'متابعة ضغط الدم', 'screen': const BloodPressureScreen()},
           {'icon': Icons.biotech, 'title': 'تتبع السكر', 'subtitle': 'مراقبة مستوى السكر', 'screen': const GlucoseTrackerScreen()},
           {'icon': Icons.monitor_weight, 'title': 'الوزن', 'subtitle': 'تتبع الوزن واللياقة', 'screen': const WeightTrackerScreen()},
@@ -117,9 +106,7 @@ class _MoreScreenState extends State<MoreScreen> {
           {'icon': Icons.shield, 'title': 'تأمين صحي', 'subtitle': 'خطط التأمين والاشتراك', 'screen': const InsuranceCompanies()},
           {'icon': Icons.map, 'title': 'خرائط المرافق', 'subtitle': 'أقرب المستشفيات والصيدليات', 'screen': const InteractiveMapScreen()},
           {'icon': Icons.local_hospital, 'title': 'المستشفيات', 'subtitle': 'أقرب المستشفيات', 'screen': const InteractiveMapScreen()},
-          {'icon': Icons.delivery_dining, 'title': 'تتبع الطلب', 'subtitle': 'تتبع طلباتك', 'screen': const OrderTrackingScreen()},
           {'icon': Icons.wallet, 'title': 'المحفظة', 'subtitle': 'إدارة محفظتك', 'screen': const WalletScreen()},
-          {'icon': Icons.history, 'title': 'سجل الطلبات', 'subtitle': 'عرض طلباتك السابقة', 'screen': const OrdersHistoryScreen()},
         ];
       case 'إعدادات':
         return [
@@ -136,9 +123,7 @@ class _MoreScreenState extends State<MoreScreen> {
           {'icon': Icons.report, 'title': 'الإبلاغ عن مشكلة', 'subtitle': 'أبلغ عن مشكلة', 'screen': const ReportIssueScreen()},
           {'icon': Icons.download, 'title': 'تحميل البيانات', 'subtitle': 'تحميل بياناتك الصحية', 'screen': const DownloadDataScreen()},
           {'icon': Icons.text_fields, 'title': 'حجم الخط', 'subtitle': 'تغيير حجم الخط', 'screen': const FontSizeScreen()},
-          {'icon': Icons.lock, 'title': 'تغيير كلمة المرور', 'subtitle': 'تحديث كلمة المرور', 'screen': const SettingsScreen()},
           {'icon': Icons.subscriptions, 'title': 'الباقات', 'subtitle': 'عرض الباقات المتاحة', 'screen': const SubscriptionsScreen()},
-          {'icon': Icons.verified, 'title': 'التحقق', 'subtitle': 'التحقق من الهوية', 'screen': const SettingsScreen()},
         ];
       default:
         return [
@@ -152,12 +137,7 @@ class _MoreScreenState extends State<MoreScreen> {
           {'icon': Icons.calendar_month, 'title': 'المواعيد', 'subtitle': 'إدارة مواعيدك', 'screen': const HealthDashboard()},
           {'icon': Icons.map, 'title': 'الخريطة', 'subtitle': 'المنشآت الصحية القريبة', 'screen': const InteractiveMapScreen()},
           {'icon': Icons.shield, 'title': 'التأمين الصحي', 'subtitle': 'خطط التأمين والاشتراكات', 'screen': const InsuranceCompanies()},
-          {'icon': Icons.health_and_safety, 'title': 'العيادة الذكية', 'subtitle': 'فحص الأعراض بالذكاء', 'screen': const AIDiagnosisScreen()},
-          {'icon': Icons.psychology, 'title': 'الصحة النفسية', 'subtitle': 'دعم الصحة النفسية', 'screen': const MentalHealthScreen()},
-          {'icon': Icons.article, 'title': 'المقالات الطبية', 'subtitle': 'أحدث المقالات الطبية', 'screen': const ArticlesScreen()},
           {'icon': Icons.bloodtype, 'title': 'التبرع بالدم', 'subtitle': 'مراكز التبرع بالدم', 'screen': const BloodDonationScreen()},
-          {'icon': Icons.vaccines, 'title': 'التطعيمات', 'subtitle': 'جدول التطعيمات', 'screen': const VaccinationsScreen()},
-          {'icon': Icons.history, 'title': 'سجل الطلبات', 'subtitle': 'عرض طلباتك السابقة', 'screen': const OrdersHistoryScreen()},
           {'icon': Icons.person, 'title': 'الملف الشخصي', 'subtitle': 'إدارة ملفك الشخصي', 'screen': const PatientProfile()},
           {'icon': Icons.settings, 'title': 'الإعدادات', 'subtitle': 'إعدادات التطبيق', 'screen': const SettingsScreen()},
           {'icon': Icons.grid_view, 'title': 'جميع الخدمات', 'subtitle': 'استعراض جميع الخدمات', 'screen': const ServicesScreen()},
@@ -285,8 +265,6 @@ class _MoreScreenState extends State<MoreScreen> {
                 SizedBox(height: 16 * fontScale),
                 ..._filteredServices.map((service) => _buildServiceCard(service, isDark, primaryColor, fontScale)),
                 SizedBox(height: 16 * fontScale),
-                _buildPrivacyVault(isDark, primaryColor, fontScale),
-                SizedBox(height: 16 * fontScale),
                 _buildPremiumFooter(isDark, primaryColor, fontScale),
                 SizedBox(height: 30 * fontScale),
               ]),
@@ -402,7 +380,14 @@ class _MoreScreenState extends State<MoreScreen> {
                 ),
                 elevation: 0,
               ),
-              onPressed: () => _navigateTo(const AIDiagnosisScreen()),
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('🔬 جاري تطوير العيادة الذكية'),
+                    backgroundColor: Colors.orange,
+                  ),
+                );
+              },
               child: Text(
                 'ابدأ الفحص الذكي الآن',
                 style: TextStyle(
@@ -610,83 +595,6 @@ class _MoreScreenState extends State<MoreScreen> {
           color: isDark ? Colors.grey[500] : Colors.grey[400],
         ),
         onTap: () => _navigateTo(screen),
-      ),
-    );
-  }
-
-  Widget _buildPrivacyVault(bool isDark, Color primaryColor, double fontScale) {
-    return Container(
-      padding: EdgeInsets.all(16 * fontScale),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2540) : Colors.white,
-        borderRadius: BorderRadius.circular(14 * fontScale),
-        border: Border.all(
-          color: isDark ? Colors.grey[700]! : Colors.grey[200]!,
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.lock_outline, color: primaryColor, size: 20 * fontScale),
-              SizedBox(width: 8 * fontScale),
-              Text(
-                'مركز الخصوصية والتحكم',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14 * fontScale,
-                  color: isDark ? Colors.white : Colors.black87,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 12 * fontScale),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryColor.withOpacity(0.08),
-                    foregroundColor: primaryColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10 * fontScale),
-                    ),
-                    elevation: 0,
-                    padding: EdgeInsets.symmetric(vertical: 10 * fontScale),
-                  ),
-                  onPressed: () => _navigateTo(const PermissionScreen()),
-                  icon: Icon(Icons.sensors, size: 16 * fontScale),
-                  label: Text(
-                    'إدارة الأذونات',
-                    style: TextStyle(fontSize: 12 * fontScale),
-                  ),
-                ),
-              ),
-              SizedBox(width: 10 * fontScale),
-              Expanded(
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryColor,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10 * fontScale),
-                    ),
-                    elevation: 0,
-                    padding: EdgeInsets.symmetric(vertical: 10 * fontScale),
-                  ),
-                  onPressed: () => _navigateTo(const ExportReportScreen()),
-                  icon: Icon(Icons.file_download, size: 16 * fontScale),
-                  label: Text(
-                    'تصدير التقرير',
-                    style: TextStyle(fontSize: 12 * fontScale),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }
