@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/biometric_service.dart';
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
 import 'package:sehatak/presentation/screens/auth/register_screen.dart';
+import 'package:sehatak/presentation/screens/terms/terms_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -20,12 +22,44 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _hasBiometric = false;
+  bool _rememberMe = false;
   String _biometricName = 'البصمة';
 
   @override
   void initState() {
     super.initState();
     _checkBiometric();
+    _loadSavedCredentials();
+  }
+
+  Future<void> _loadSavedCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    final email = prefs.getString('remember_email');
+    final password = prefs.getString('remember_password');
+    final remember = prefs.getBool('remember_me') ?? false;
+    
+    setState(() {
+      _rememberMe = remember;
+      if (remember && email != null) {
+        _emailController.text = email;
+        if (password != null) {
+          _passwordController.text = password;
+        }
+      }
+    });
+  }
+
+  Future<void> _saveCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (_rememberMe) {
+      await prefs.setString('remember_email', _emailController.text.trim());
+      await prefs.setString('remember_password', _passwordController.text.trim());
+      await prefs.setBool('remember_me', true);
+    } else {
+      await prefs.remove('remember_email');
+      await prefs.remove('remember_password');
+      await prefs.setBool('remember_me', false);
+    }
   }
 
   Future<void> _checkBiometric() async {
@@ -51,6 +85,7 @@ class _LoginScreenState extends State<LoginScreen> {
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
+      await _saveCredentials();
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -222,7 +257,43 @@ class _LoginScreenState extends State<LoginScreen> {
                             fillColor: isDark ? const Color(0xFF0B1121) : Colors.grey[100],
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 12),
+                        // ✅ تذكرني
+                        Row(
+                          children: [
+                            Checkbox(
+                              value: _rememberMe,
+                              onChanged: (value) {
+                                setState(() => _rememberMe = value ?? false);
+                              },
+                              activeColor: AppColors.primary,
+                              checkColor: Colors.white,
+                            ),
+                            const Text(
+                              'تذكرني',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 13,
+                                fontFamily: 'OpenSans',
+                              ),
+                            ),
+                            const Spacer(),
+                            TextButton(
+                              onPressed: () {
+                                // TODO: فتح شاشة نسيت كلمة المرور
+                              },
+                              child: const Text(
+                                'نسيت كلمة المرور؟',
+                                style: TextStyle(
+                                  color: AppColors.primary,
+                                  fontSize: 12,
+                                  fontFamily: 'OpenSans',
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
                         SizedBox(
                           width: double.infinity,
                           height: 50,
@@ -247,7 +318,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                           ),
                         ),
-                        // ✅ زر البصمة
                         if (_hasBiometric) ...[
                           const SizedBox(height: 12),
                           SizedBox(
@@ -276,7 +346,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                         ],
-                        // ✅ زر تصفح كضيف
                         const SizedBox(height: 12),
                         SizedBox(
                           width: double.infinity,

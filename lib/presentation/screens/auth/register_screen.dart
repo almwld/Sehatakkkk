@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
+import 'package:sehatak/presentation/screens/terms/terms_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -141,6 +142,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
+                // ✅ الموافقة على الشروط والأحكام (مثل HTML)
                 Row(
                   children: [
                     Checkbox(
@@ -150,8 +152,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     const Expanded(
                       child: Text(
-                        'أوافق على الشروط والأحكام',
+                        'أوافق على ',
                         style: TextStyle(fontSize: 11),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const TermsScreen()),
+                        );
+                      },
+                      child: Text(
+                        'الشروط والأحكام',
+                        style: TextStyle(
+                          color: AppColors.primary,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          decoration: TextDecoration.underline,
+                        ),
                       ),
                     ),
                   ],
