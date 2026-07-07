@@ -16,59 +16,47 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  // ✅ نوع الحساب
+  // ✅ الدور الافتراضي
   String _selectedRole = 'مستخدم';
   
-  // ✅ الأدوار المدعومة
+  // ✅ مصفوفة الأدوار مدعومة بـ الهوية البصرية الموحدة لصحتك
   final List<Map<String, dynamic>> _roles = [
-    {'id': 'user', 'name': 'مستخدم', 'icon': Icons.person_outline, 'color': Colors.blue},
-    {'id': 'doctor', 'name': 'طبيب', 'icon': Icons.local_hospital_outlined, 'color': Colors.teal},
-    {'id': 'pharmacist', 'name': 'صيدلي', 'icon': Icons.local_pharmacy_outlined, 'color': Colors.green},
-    {'id': 'lab_tech', 'name': 'مخبري', 'icon': Icons.science_outlined, 'color': Colors.purple},
-    {'id': 'veterinarian', 'name': 'بيطري', 'icon': Icons.pets_outlined, 'color': Colors.orange},
-    {'id': 'paramedic', 'name': 'مسعف', 'icon': Icons.health_and_safety_outlined, 'color': Colors.red},
-    {'id': 'delivery', 'name': 'موصل طلبات', 'icon': Icons.delivery_dining_outlined, 'color': Colors.amber},
-    {'id': 'service', 'name': 'خدمي', 'icon': Icons.support_agent_outlined, 'color': Colors.indigo},
-    {'id': 'other', 'name': 'أخرى', 'icon': Icons.more_horiz_outlined, 'color': Colors.grey},
+    {'id': 'user', 'name': 'مستخدم', 'icon': Icons.person_outline},
+    {'id': 'doctor', 'name': 'طبيب', 'icon': Icons.local_hospital_outlined},
+    {'id': 'pharmacist', 'name': 'صيدلي', 'icon': Icons.local_pharmacy_outlined},
+    {'id': 'lab_tech', 'name': 'مخبري', 'icon': Icons.science_outlined},
+    {'id': 'veterinarian', 'name': 'بيطري', 'icon': Icons.pets_outlined},
+    {'id': 'paramedic', 'name': 'مسعف', 'icon': Icons.health_and_safety_outlined},
+    {'id': 'delivery', 'name': 'موصل طلبات', 'icon': Icons.delivery_dining_outlined},
+    {'id': 'service', 'name': 'خدمي', 'icon': Icons.support_agent_outlined},
+    {'id': 'other', 'name': 'أخرى', 'icon': Icons.more_horiz_outlined},
   ];
 
-  // ✅ حقول مشتركة
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  // ✅ الحقول المشتركة
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
 
-  // ✅ حقول الطبيب فقط
-  final TextEditingController _specialtyController = TextEditingController();
-  final TextEditingController _experienceController = TextEditingController();
-  final TextEditingController _clinicNameController = TextEditingController();
-  final TextEditingController _clinicAddressController = TextEditingController();
-  final TextEditingController _licenseController = TextEditingController();
+  // ✅ الحقول المخصصة للأدوار الطبية والخدمية
+  final _experienceController = TextEditingController();
+  final _clinicNameController = TextEditingController();
+  final _clinicAddressController = TextEditingController();
+  final _licenseController = TextEditingController();
+  final _pharmacyNameController = TextEditingController();
+  final _pharmacyAddressController = TextEditingController();
+  final _pharmacyLicenseController = TextEditingController();
+  final _labNameController = TextEditingController();
+  final _labAddressController = TextEditingController();
+  final _labLicenseController = TextEditingController();
+  final _hospitalController = TextEditingController();
+  final _departmentController = TextEditingController();
+  final _areaController = TextEditingController();
+  final _companyController = TextEditingController();
+  final _positionController = TextEditingController();
 
-  // ✅ حقول الصيدلي
-  final TextEditingController _pharmacyNameController = TextEditingController();
-  final TextEditingController _pharmacyAddressController = TextEditingController();
-  final TextEditingController _pharmacyLicenseController = TextEditingController();
-
-  // ✅ حقول المخبري
-  final TextEditingController _labNameController = TextEditingController();
-  final TextEditingController _labAddressController = TextEditingController();
-  final TextEditingController _labLicenseController = TextEditingController();
-
-  // ✅ حقول المسعف
-  final TextEditingController _hospitalController = TextEditingController();
-  final TextEditingController _departmentController = TextEditingController();
-
-  // ✅ حقول الموصل
-  final TextEditingController _vehicleController = TextEditingController();
-  final TextEditingController _areaController = TextEditingController();
-
-  // ✅ حقول الخدمي
-  final TextEditingController _companyController = TextEditingController();
-  final TextEditingController _positionController = TextEditingController();
-
-  // ✅ القوائم المنسدلة
+  // ✅ متغيرات القوائم المنسدلة
   String _selectedSpecialty = 'باطنية';
   String _selectedGender = 'ذكر';
   String _selectedVehicleType = 'دراجة';
@@ -100,6 +88,31 @@ class _AuthScreenState extends State<AuthScreen> {
     _loadSavedCredentials();
   }
 
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    _experienceController.dispose();
+    _clinicNameController.dispose();
+    _clinicAddressController.dispose();
+    _licenseController.dispose();
+    _pharmacyNameController.dispose();
+    _pharmacyAddressController.dispose();
+    _pharmacyLicenseController.dispose();
+    _labNameController.dispose();
+    _labAddressController.dispose();
+    _labLicenseController.dispose();
+    _hospitalController.dispose();
+    _departmentController.dispose();
+    _areaController.dispose();
+    _companyController.dispose();
+    _positionController.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadSavedCredentials() async {
     final prefs = await SharedPreferences.getInstance();
     final email = prefs.getString('remember_email');
@@ -110,9 +123,7 @@ class _AuthScreenState extends State<AuthScreen> {
       _rememberMe = remember;
       if (remember && email != null) {
         _emailController.text = email;
-        if (password != null) {
-          _passwordController.text = password;
-        }
+        if (password != null) _passwordController.text = password;
       }
     });
   }
@@ -185,7 +196,6 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   Future<void> _register() async {
-    // ✅ التحقق من الحقول الأساسية
     if (_nameController.text.isEmpty || _emailController.text.isEmpty || _passwordController.text.isEmpty) {
       _showMessage('يرجى ملء جميع الحقول المطلوبة', true);
       return;
@@ -199,18 +209,9 @@ class _AuthScreenState extends State<AuthScreen> {
       return;
     }
 
-    // ✅ التحقق من حقول الأدوار المتخصصة
-    final role = _selectedRole;
-    if (role == 'طبيب' && (_specialtyController.text.isEmpty || _experienceController.text.isEmpty)) {
-      _showMessage('يرجى ملء جميع حقول الطبيب', true);
-      return;
-    }
-    if (role == 'صيدلي' && (_pharmacyNameController.text.isEmpty || _pharmacyLicenseController.text.isEmpty)) {
-      _showMessage('يرجى ملء جميع حقول الصيدلي', true);
-      return;
-    }
-    if (role == 'مخبري' && (_labNameController.text.isEmpty || _labLicenseController.text.isEmpty)) {
-      _showMessage('يرجى ملء جميع حقول المخبري', true);
+    // التحقق المخصص من الحقول المطلوبة لكل دور لمنع رفع بيانات فارغة
+    if (_selectedRole == 'طبيب' && _licenseController.text.isEmpty) {
+      _showMessage('يرجى إدخال رقم ترخيص مزاولة المهنة الطبي', true);
       return;
     }
 
@@ -223,7 +224,6 @@ class _AuthScreenState extends State<AuthScreen> {
       final user = credential.user!;
       await user.updateDisplayName(_nameController.text.trim());
 
-      // ✅ بناء بيانات المستخدم الأساسية
       final userData = {
         'uid': user.uid,
         'name': _nameController.text.trim(),
@@ -238,7 +238,7 @@ class _AuthScreenState extends State<AuthScreen> {
         'isActive': true,
       };
 
-      // ✅ إضافة حقول حسب الدور
+      // دمج الحقول الإضافية بناءً على خيار الشبكة المختار
       switch (_selectedRole) {
         case 'طبيب':
           userData.addAll({
@@ -252,7 +252,6 @@ class _AuthScreenState extends State<AuthScreen> {
             'isAvailable': true,
           });
           break;
-
         case 'صيدلي':
           userData.addAll({
             'pharmacyName': _pharmacyNameController.text.trim(),
@@ -261,7 +260,6 @@ class _AuthScreenState extends State<AuthScreen> {
             'isAvailable': true,
           });
           break;
-
         case 'مخبري':
           userData.addAll({
             'labName': _labNameController.text.trim(),
@@ -270,10 +268,8 @@ class _AuthScreenState extends State<AuthScreen> {
             'isAvailable': true,
           });
           break;
-
         case 'بيطري':
           userData.addAll({
-            'specialty': 'بيطري',
             'experience': _experienceController.text.trim(),
             'clinicName': _clinicNameController.text.trim(),
             'clinicAddress': _clinicAddressController.text.trim(),
@@ -281,7 +277,6 @@ class _AuthScreenState extends State<AuthScreen> {
             'isAvailable': true,
           });
           break;
-
         case 'مسعف':
           userData.addAll({
             'hospital': _hospitalController.text.trim(),
@@ -289,7 +284,6 @@ class _AuthScreenState extends State<AuthScreen> {
             'isAvailable': true,
           });
           break;
-
         case 'موصل طلبات':
           userData.addAll({
             'vehicleType': _selectedVehicleType,
@@ -297,17 +291,12 @@ class _AuthScreenState extends State<AuthScreen> {
             'isAvailable': true,
           });
           break;
-
         case 'خدمي':
           userData.addAll({
             'company': _companyController.text.trim(),
             'position': _positionController.text.trim(),
             'serviceType': _selectedServiceType,
           });
-          break;
-
-        default:
-          // مستخدم عادي - لا حقول إضافية
           break;
       }
 
@@ -342,7 +331,7 @@ class _AuthScreenState extends State<AuthScreen> {
           MaterialPageRoute(builder: (_) => const HomeScreen()),
         );
       } else {
-        _showMessage('يرجى تسجيل الدخول أولاً', true);
+        _showMessage('يرجى تسجيل الدخول العادي أولاً لربط الحساب الحركي', true);
       }
     } else {
       _showMessage('فشل التحقق من $_biometricName', true);
@@ -353,15 +342,15 @@ class _AuthScreenState extends State<AuthScreen> {
   void _guestLogin() {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => const HomeScreen()),
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
     );
   }
 
   void _showMessage(String message, bool isError) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? Colors.red : Colors.green,
+        content: Text(message, style: const TextStyle(fontFamily: 'NotoSansArabicUI')),
+        backgroundColor: isError ? Colors.red : AppColors.primary,
         duration: const Duration(seconds: 3),
       ),
     );
@@ -375,7 +364,6 @@ class _AuthScreenState extends State<AuthScreen> {
 
     final backgroundColor1 = isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC);
     final fieldBackgroundColor = isDark ? const Color(0xFF1A2540) : Colors.white;
-    final inactiveTabColor = isDark ? const Color(0xFF111827) : const Color(0xFFE2E8F0);
 
     return Scaffold(
       body: Container(
@@ -387,8 +375,8 @@ class _AuthScreenState extends State<AuthScreen> {
             end: Alignment.bottomCenter,
             colors: [
               backgroundColor1,
-              primaryColor.withOpacity(isDark ? 0.4 : 0.15),
-              primaryColor.withOpacity(isDark ? 0.7 : 0.4),
+              primaryColor.withOpacity(isDark ? 0.3 : 0.1),
+              primaryColor.withOpacity(isDark ? 0.6 : 0.35),
             ],
           ),
         ),
@@ -398,7 +386,7 @@ class _AuthScreenState extends State<AuthScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 30),
+                const SizedBox(height: 20),
                 Text(
                   widget.isSignUp ? 'إنشاء حساب جديد' : 'مرحباً بعودتك',
                   style: theme.textTheme.headlineMedium?.copyWith(
@@ -409,49 +397,43 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  widget.isSignUp 
-                      ? 'اختر نوع الحساب وأدخل بياناتك'
-                      : 'قم بتسجيل الدخول للمتابعة',
+                  widget.isSignUp ? 'اختر نوع الحساب وأدخل بياناتك الطبية' : 'قم بتسجيل الدخول للمتابعة',
                   style: TextStyle(
                     fontSize: 14,
                     fontFamily: 'NotoSansArabicUI',
                     color: isDark ? Colors.white70 : const Color(0xFF64748B),
                   ),
                 ),
-                const SizedBox(height: 30),
+                const SizedBox(height: 24),
 
-                // ✅ اختيار الدور (شبكة أفقية)
+                // ✅ الجزء الخاص بـ شبكة تحديد الأدوار الديناميكية (Matte Style)
                 if (widget.isSignUp) ...[
                   const Text(
-                    'اختر نوع الحساب',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'NotoSansArabicUI',
-                    ),
+                    'نوع الحساب الحالي:',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, fontFamily: 'NotoSansArabicUI'),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 10),
                   SizedBox(
-                    height: 100,
+                    height: 90,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
                       itemCount: _roles.length,
+                      physics: const BouncingScrollPhysics(),
                       itemBuilder: (context, index) {
                         final role = _roles[index];
                         final isSelected = _selectedRole == role['name'];
-                        final color = role['color'] as Color;
                         return GestureDetector(
                           onTap: () => setState(() => _selectedRole = role['name'] as String),
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
-                            margin: const EdgeInsets.only(right: 8),
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            margin: const EdgeInsets.only(left: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
                             decoration: BoxDecoration(
-                              color: isSelected ? color.withOpacity(0.15) : Colors.transparent,
-                              borderRadius: BorderRadius.circular(12),
+                              color: isSelected ? fieldBackgroundColor : fieldBackgroundColor.withOpacity(0.4),
+                              borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: isSelected ? color : Colors.grey.withOpacity(0.3),
-                                width: isSelected ? 2 : 1,
+                                color: isSelected ? primaryColor : Colors.transparent,
+                                width: 2,
                               ),
                             ),
                             child: Column(
@@ -459,16 +441,16 @@ class _AuthScreenState extends State<AuthScreen> {
                               children: [
                                 Icon(
                                   role['icon'] as IconData,
-                                  color: isSelected ? color : Colors.grey,
-                                  size: 28,
+                                  color: isSelected ? primaryColor : Colors.grey,
+                                  size: 26,
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: 6),
                                 Text(
                                   role['name'] as String,
                                   style: TextStyle(
-                                    fontSize: 10,
+                                    fontSize: 12,
                                     fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                    color: isSelected ? color : Colors.grey,
+                                    color: isSelected ? (isDark ? Colors.white : const Color(0xFF1E293B)) : Colors.grey,
                                     fontFamily: 'NotoSansArabicUI',
                                   ),
                                 ),
@@ -479,10 +461,10 @@ class _AuthScreenState extends State<AuthScreen> {
                       },
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
                 ],
 
-                // ✅ حقول مشتركة
+                // ✅ الحقول المشتركة
                 _buildTextField(
                   controller: _nameController,
                   label: 'الاسم الكامل',
@@ -506,7 +488,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
                 _buildTextField(
                   controller: _phoneController,
-                  label: 'رقم الهاتف',
+                  label: 'رقم الهاتف المتنقل',
                   icon: Icons.phone_android,
                   isDark: isDark,
                   fieldBackgroundColor: fieldBackgroundColor,
@@ -515,51 +497,47 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
                 const SizedBox(height: 14),
 
-                // ✅ حقول حسب الدور
-                if (_selectedRole == 'طبيب') ...[
-                  _buildDoctorFields(isDark, fieldBackgroundColor, primaryColor),
-                ] else if (_selectedRole == 'صيدلي') ...[
-                  _buildPharmacistFields(isDark, fieldBackgroundColor, primaryColor),
-                ] else if (_selectedRole == 'مخبري') ...[
-                  _buildLabTechFields(isDark, fieldBackgroundColor, primaryColor),
-                ] else if (_selectedRole == 'بيطري') ...[
-                  _buildVeterinarianFields(isDark, fieldBackgroundColor, primaryColor),
-                ] else if (_selectedRole == 'مسعف') ...[
-                  _buildParamedicFields(isDark, fieldBackgroundColor, primaryColor),
-                ] else if (_selectedRole == 'موصل طلبات') ...[
-                  _buildDeliveryFields(isDark, fieldBackgroundColor, primaryColor),
-                ] else if (_selectedRole == 'خدمي') ...[
-                  _buildServiceFields(isDark, fieldBackgroundColor, primaryColor),
+                // ✅ استدعاء الحقول الشرطية المخصصة حسب شبكة الأدوار المحددة
+                if (widget.isSignUp) ...[
+                  if (_selectedRole == 'طبيب') ...[
+                    _buildDoctorFields(isDark, fieldBackgroundColor, primaryColor),
+                  ] else if (_selectedRole == 'صيدلي') ...[
+                    _buildPharmacistFields(isDark, fieldBackgroundColor, primaryColor),
+                  ] else if (_selectedRole == 'مخبري') ...[
+                    _buildLabTechFields(isDark, fieldBackgroundColor, primaryColor),
+                  ] else if (_selectedRole == 'بيطري') ...[
+                    _buildVeterinarianFields(isDark, fieldBackgroundColor, primaryColor),
+                  ] else if (_selectedRole == 'مسعف') ...[
+                    _buildParamedicFields(isDark, fieldBackgroundColor, primaryColor),
+                  ] else if (_selectedRole == 'موصل طلبات') ...[
+                    _buildDeliveryFields(isDark, fieldBackgroundColor, primaryColor),
+                  ] else if (_selectedRole == 'خدمي') ...[
+                    _buildServiceFields(isDark, fieldBackgroundColor, primaryColor),
+                  ],
                 ],
 
-                // ✅ كلمة المرور
+                // ✅ حقول الحماية وكلمات المرور
                 _buildPasswordFields(isDark, fieldBackgroundColor, primaryColor),
-                const SizedBox(height: 16),
+                const SizedBox(height: 18),
 
-                // ✅ الموافقة على الشروط
+                // ✅ الشروط والأحكام
                 if (widget.isSignUp) ...[
                   Row(
                     children: [
                       Checkbox(
                         value: _agreeTerms,
-                        activeColor: AppColors.primary,
+                        activeColor: primaryColor,
                         onChanged: (v) => setState(() => _agreeTerms = v ?? false),
                       ),
-                      const Text(
-                        'أوافق على ',
-                        style: TextStyle(fontSize: 13, fontFamily: 'NotoSansArabicUI'),
-                      ),
+                      const Text('أوافق على ', style: TextStyle(fontSize: 13, fontFamily: 'NotoSansArabicUI')),
                       GestureDetector(
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const TermsScreen()),
-                          );
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => const TermsScreen()));
                         },
                         child: Text(
-                          'الشروط والأحكام',
+                          'الشروط والأحكام الطبية',
                           style: TextStyle(
-                            color: AppColors.primary,
+                            color: primaryColor,
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
                             decoration: TextDecoration.underline,
@@ -572,37 +550,27 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 16),
                 ],
 
-                // ✅ تذكرني
+                // ✅ ميزة تذكرني في وضع الدخول
                 if (!widget.isSignUp) ...[
                   Row(
                     children: [
                       Checkbox(
                         value: _rememberMe,
-                        activeColor: AppColors.primary,
+                        activeColor: primaryColor,
                         onChanged: (v) => setState(() => _rememberMe = v ?? false),
                       ),
-                      const Text(
-                        'تذكرني',
-                        style: TextStyle(fontSize: 13, fontFamily: 'NotoSansArabicUI'),
-                      ),
+                      const Text('تذكرني على هذا الجهاز', style: TextStyle(fontSize: 13, fontFamily: 'NotoSansArabicUI')),
                       const Spacer(),
                       TextButton(
                         onPressed: () {},
-                        child: const Text(
-                          'نسيت كلمة المرور؟',
-                          style: TextStyle(
-                            color: AppColors.primary,
-                            fontSize: 12,
-                            fontFamily: 'NotoSansArabicUI',
-                          ),
-                        ),
+                        child: Text('نسيت كلمة المرور؟', style: TextStyle(color: primaryColor, fontSize: 12, fontFamily: 'NotoSansArabicUI')),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
                 ],
 
-                // ✅ زر الإجراء
+                // ✅ زر الضغط الرئيسي والتنفيذي
                 SizedBox(
                   width: double.infinity,
                   height: 56,
@@ -611,85 +579,61 @@ class _AuthScreenState extends State<AuthScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryColor,
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       elevation: 0,
                     ),
                     child: _isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
                         : Text(
-                            widget.isSignUp 
-                                ? 'إنشاء حساب $_selectedRole'
-                                : 'تسجيل الدخول',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'NotoSansArabicUI',
-                            ),
+                            widget.isSignUp ? 'إنشاء حساب كـ $_selectedRole' : 'تسجيل الدخول المنظم',
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, fontFamily: 'NotoSansArabicUI'),
                           ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
 
-                // ✅ تصفح كضيف
+                // ✅ خيار تصفح كضيف خارج الحساب
                 if (!widget.isSignUp) ...[
                   SizedBox(
                     width: double.infinity,
-                    height: 50,
+                    height: 52,
                     child: OutlinedButton(
                       onPressed: _guestLogin,
                       style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Colors.white.withOpacity(0.3)),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
+                        side: BorderSide(color: primaryColor.withOpacity(0.4)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       ),
-                      child: const Text(
-                        'تصفح كضيف',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontFamily: 'NotoSansArabicUI',
-                        ),
+                      child: Text(
+                        'تصفح كضيف عابر',
+                        style: TextStyle(color: isDark ? Colors.white : primaryColor, fontSize: 15, fontFamily: 'NotoSansArabicUI'),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
                 ],
 
-                // ✅ التنقل بين الشاشتين
+                // ✅ التبديل السفلي التبادلي
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      widget.isSignUp ? 'لديك حساب بالفعل؟' : 'ليس لديك حساب؟',
-                      style: TextStyle(
-                        color: isDark ? Colors.white70 : const Color(0xFF64748B),
-                        fontFamily: 'NotoSansArabicUI',
-                      ),
+                      widget.isSignUp ? 'لديك حساب مسجل بالفعل؟' : 'ليس لديك حساب طبي؟',
+                      style: TextStyle(color: isDark ? Colors.white70 : const Color(0xFF64748B), fontFamily: 'NotoSansArabicUI'),
                     ),
                     TextButton(
                       onPressed: () {
                         Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(
-                            builder: (_) => AuthScreen(isSignUp: !widget.isSignUp),
-                          ),
+                          MaterialPageRoute(builder: (_) => AuthScreen(isSignUp: !widget.isSignUp)),
                         );
                       },
                       child: Text(
-                        widget.isSignUp ? 'تسجيل الدخول' : 'إنشاء حساب',
-                        style: TextStyle(
-                          color: isDark ? Colors.white : primaryColor,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'NotoSansArabicUI',
-                        ),
+                        widget.isSignUp ? 'سجل دخولك' : 'أنشئ حسابك الآن',
+                        style: TextStyle(color: isDark ? Colors.white : primaryColor, fontWeight: FontWeight.bold, fontFamily: 'NotoSansArabicUI'),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
               ],
             ),
           ),
@@ -698,7 +642,6 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
-  // ✅ دوال مساعدة لبناء الحقول
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -711,7 +654,6 @@ class _AuthScreenState extends State<AuthScreen> {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
-      textAlign: TextAlign.right,
       style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
       decoration: InputDecoration(
         labelText: label,
@@ -726,363 +668,188 @@ class _AuthScreenState extends State<AuthScreen> {
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(color: primaryColor, width: 2),
         ),
-        prefixIcon: Icon(icon, color: AppColors.primary),
+        prefixIcon: Icon(icon, color: primaryColor),
       ),
     );
   }
 
-  // ✅ حقول الطبيب
   Widget _buildDoctorFields(bool isDark, Color fieldBackgroundColor, Color primaryColor) {
     return Column(
       children: [
         DropdownButtonFormField<String>(
           value: _selectedSpecialty,
           decoration: InputDecoration(
-            labelText: 'التخصص',
+            labelText: 'التخصص الطبي الدقيق',
             labelStyle: const TextStyle(fontFamily: 'NotoSansArabicUI', fontSize: 14),
             filled: true,
             fillColor: fieldBackgroundColor,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade300),
-            ),
-            prefixIcon: const Icon(Icons.medical_services_outlined, color: AppColors.primary),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
           ),
           items: _specialties.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
           onChanged: (v) => setState(() => _selectedSpecialty = v!),
           style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
         ),
         const SizedBox(height: 14),
-        _buildTextField(
-          controller: _experienceController,
-          label: 'سنوات الخبرة',
-          icon: Icons.work_outline,
-          isDark: isDark,
-          fieldBackgroundColor: fieldBackgroundColor,
-          primaryColor: primaryColor,
-          keyboardType: TextInputType.number,
-        ),
+        _buildTextField(controller: _experienceController, label: 'عدد سنوات الخبرة', icon: Icons.work_outline, isDark: isDark, fieldBackgroundColor: fieldBackgroundColor, primaryColor: primaryColor, keyboardType: TextInputType.number),
         const SizedBox(height: 14),
-        _buildTextField(
-          controller: _clinicNameController,
-          label: 'اسم العيادة (اختياري)',
-          icon: Icons.local_hospital_outlined,
-          isDark: isDark,
-          fieldBackgroundColor: fieldBackgroundColor,
-          primaryColor: primaryColor,
-        ),
+        _buildTextField(controller: _clinicNameController, label: 'اسم العيادة المقر', icon: Icons.apartment_outlined, isDark: isDark, fieldBackgroundColor: fieldBackgroundColor, primaryColor: primaryColor),
         const SizedBox(height: 14),
-        _buildTextField(
-          controller: _clinicAddressController,
-          label: 'عنوان العيادة (اختياري)',
-          icon: Icons.location_on_outlined,
-          isDark: isDark,
-          fieldBackgroundColor: fieldBackgroundColor,
-          primaryColor: primaryColor,
-        ),
+        _buildTextField(controller: _clinicAddressController, label: 'عنوان وتفاصيل موقع العيادة', icon: Icons.location_on_outlined, isDark: isDark, fieldBackgroundColor: fieldBackgroundColor, primaryColor: primaryColor),
         const SizedBox(height: 14),
-        _buildTextField(
-          controller: _licenseController,
-          label: 'رقم الترخيص',
-          icon: Icons.verified_outlined,
-          isDark: isDark,
-          fieldBackgroundColor: fieldBackgroundColor,
-          primaryColor: primaryColor,
-        ),
+        _buildTextField(controller: _licenseController, label: 'رقم ترخيص مزاولة المهنة المعتمد', icon: Icons.verified_user_outlined, isDark: isDark, fieldBackgroundColor: fieldBackgroundColor, primaryColor: primaryColor),
         const SizedBox(height: 14),
       ],
     );
   }
 
-  // ✅ حقول الصيدلي
   Widget _buildPharmacistFields(bool isDark, Color fieldBackgroundColor, Color primaryColor) {
     return Column(
       children: [
-        _buildTextField(
-          controller: _pharmacyNameController,
-          label: 'اسم الصيدلية',
-          icon: Icons.local_pharmacy_outlined,
-          isDark: isDark,
-          fieldBackgroundColor: fieldBackgroundColor,
-          primaryColor: primaryColor,
-        ),
+        _buildTextField(controller: _pharmacyNameController, label: 'اسم الصيدلية التجارية', icon: Icons.local_pharmacy_outlined, isDark: isDark, fieldBackgroundColor: fieldBackgroundColor, primaryColor: primaryColor),
         const SizedBox(height: 14),
-        _buildTextField(
-          controller: _pharmacyAddressController,
-          label: 'عنوان الصيدلية (اختياري)',
-          icon: Icons.location_on_outlined,
-          isDark: isDark,
-          fieldBackgroundColor: fieldBackgroundColor,
-          primaryColor: primaryColor,
-        ),
+        _buildTextField(controller: _pharmacyAddressController, label: 'عنوان الصيدلية بالتفصيل', icon: Icons.location_on_outlined, isDark: isDark, fieldBackgroundColor: fieldBackgroundColor, primaryColor: primaryColor),
         const SizedBox(height: 14),
-        _buildTextField(
-          controller: _pharmacyLicenseController,
-          label: 'رقم الترخيص',
-          icon: Icons.verified_outlined,
-          isDark: isDark,
-          fieldBackgroundColor: fieldBackgroundColor,
-          primaryColor: primaryColor,
-        ),
+        _buildTextField(controller: _pharmacyLicenseController, label: 'رقم ترخيص المنشأة الصيدلانية', icon: Icons.card_membership_outlined, isDark: isDark, fieldBackgroundColor: fieldBackgroundColor, primaryColor: primaryColor),
         const SizedBox(height: 14),
       ],
     );
   }
 
-  // ✅ حقول المخبري
   Widget _buildLabTechFields(bool isDark, Color fieldBackgroundColor, Color primaryColor) {
     return Column(
       children: [
-        _buildTextField(
-          controller: _labNameController,
-          label: 'اسم المختبر',
-          icon: Icons.science_outlined,
-          isDark: isDark,
-          fieldBackgroundColor: fieldBackgroundColor,
-          primaryColor: primaryColor,
-        ),
+        _buildTextField(controller: _labNameController, label: 'اسم معمل التحاليل / المختبر', icon: Icons.science_outlined, isDark: isDark, fieldBackgroundColor: fieldBackgroundColor, primaryColor: primaryColor),
         const SizedBox(height: 14),
-        _buildTextField(
-          controller: _labAddressController,
-          label: 'عنوان المختبر (اختياري)',
-          icon: Icons.location_on_outlined,
-          isDark: isDark,
-          fieldBackgroundColor: fieldBackgroundColor,
-          primaryColor: primaryColor,
-        ),
+        _buildTextField(controller: _labAddressController, label: 'المقر الجغرافي للمختبر', icon: Icons.location_on_outlined, isDark: isDark, fieldBackgroundColor: fieldBackgroundColor, primaryColor: primaryColor),
         const SizedBox(height: 14),
-        _buildTextField(
-          controller: _labLicenseController,
-          label: 'رقم الترخيص',
-          icon: Icons.verified_outlined,
-          isDark: isDark,
-          fieldBackgroundColor: fieldBackgroundColor,
-          primaryColor: primaryColor,
-        ),
+        _buildTextField(controller: _labLicenseController, label: 'رقم ترخيص المختبر الطبي الوطني', icon: Icons.assignment_turned_in_outlined, isDark: isDark, fieldBackgroundColor: fieldBackgroundColor, primaryColor: primaryColor),
         const SizedBox(height: 14),
       ],
     );
   }
 
-  // ✅ حقول البيطري
   Widget _buildVeterinarianFields(bool isDark, Color fieldBackgroundColor, Color primaryColor) {
     return Column(
       children: [
-        _buildTextField(
-          controller: _experienceController,
-          label: 'سنوات الخبرة',
-          icon: Icons.work_outline,
-          isDark: isDark,
-          fieldBackgroundColor: fieldBackgroundColor,
-          primaryColor: primaryColor,
-          keyboardType: TextInputType.number,
-        ),
+        _buildTextField(controller: _experienceController, label: 'سنوات الخبرة البيطرية', icon: Icons.timeline, isDark: isDark, fieldBackgroundColor: fieldBackgroundColor, primaryColor: primaryColor, keyboardType: TextInputType.number),
         const SizedBox(height: 14),
-        _buildTextField(
-          controller: _clinicNameController,
-          label: 'اسم العيادة البيطرية (اختياري)',
-          icon: Icons.pets_outlined,
-          isDark: isDark,
-          fieldBackgroundColor: fieldBackgroundColor,
-          primaryColor: primaryColor,
-        ),
+        _buildTextField(controller: _clinicNameController, label: 'اسم المركز / العيادة البيطرية', icon: Icons.pets_outlined, isDark: isDark, fieldBackgroundColor: fieldBackgroundColor, primaryColor: primaryColor),
         const SizedBox(height: 14),
-        _buildTextField(
-          controller: _clinicAddressController,
-          label: 'عنوان العيادة (اختياري)',
-          icon: Icons.location_on_outlined,
-          isDark: isDark,
-          fieldBackgroundColor: fieldBackgroundColor,
-          primaryColor: primaryColor,
-        ),
+        _buildTextField(controller: _clinicAddressController, label: 'عنوان المركز البيطري', icon: Icons.map_outlined, isDark: isDark, fieldBackgroundColor: fieldBackgroundColor, primaryColor: primaryColor),
         const SizedBox(height: 14),
-        _buildTextField(
-          controller: _licenseController,
-          label: 'رقم الترخيص',
-          icon: Icons.verified_outlined,
-          isDark: isDark,
-          fieldBackgroundColor: fieldBackgroundColor,
-          primaryColor: primaryColor,
-        ),
+        _buildTextField(controller: _licenseController, label: 'رقم ترخيص المزاولة البيطرية', icon: Icons.gavel_outlined, isDark: isDark, fieldBackgroundColor: fieldBackgroundColor, primaryColor: primaryColor),
         const SizedBox(height: 14),
       ],
     );
   }
 
-  // ✅ حقول المسعف
   Widget _buildParamedicFields(bool isDark, Color fieldBackgroundColor, Color primaryColor) {
     return Column(
       children: [
-        _buildTextField(
-          controller: _hospitalController,
-          label: 'اسم المستشفى أو المركز',
-          icon: Icons.local_hospital_outlined,
-          isDark: isDark,
-          fieldBackgroundColor: fieldBackgroundColor,
-          primaryColor: primaryColor,
-        ),
+        _buildTextField(controller: _hospitalController, label: 'جهة العمل (المستشفى أو هيئة الإسعاف)', icon: Icons.emergency_outlined, isDark: isDark, fieldBackgroundColor: fieldBackgroundColor, primaryColor: primaryColor),
         const SizedBox(height: 14),
-        _buildTextField(
-          controller: _departmentController,
-          label: 'القسم (اختياري)',
-          icon: Icons.medical_services_outlined,
-          isDark: isDark,
-          fieldBackgroundColor: fieldBackgroundColor,
-          primaryColor: primaryColor,
-        ),
+        _buildTextField(controller: _departmentController, label: 'القسم أو الفرقة التابع لها', icon: Icons.medical_services_outlined, isDark: isDark, fieldBackgroundColor: fieldBackgroundColor, primaryColor: primaryColor),
         const SizedBox(height: 14),
       ],
     );
   }
 
-  // ✅ حقول الموصل
   Widget _buildDeliveryFields(bool isDark, Color fieldBackgroundColor, Color primaryColor) {
     return Column(
       children: [
         DropdownButtonFormField<String>(
           value: _selectedVehicleType,
           decoration: InputDecoration(
-            labelText: 'نوع المركبة',
+            labelText: 'وسيلة النقل المتاحة للتوصيل',
             labelStyle: const TextStyle(fontFamily: 'NotoSansArabicUI', fontSize: 14),
             filled: true,
             fillColor: fieldBackgroundColor,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade300),
-            ),
-            prefixIcon: const Icon(Icons.directions_car_outlined, color: AppColors.primary),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
           ),
-          items: _vehicleTypes.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+          items: _vehicleTypes.map((v) => DropdownMenuItem(value: v, child: Text(v))).toList(),
           onChanged: (v) => setState(() => _selectedVehicleType = v!),
           style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
         ),
         const SizedBox(height: 14),
-        _buildTextField(
-          controller: _areaController,
-          label: 'منطقة التوصيل',
-          icon: Icons.map_outlined,
-          isDark: isDark,
-          fieldBackgroundColor: fieldBackgroundColor,
-          primaryColor: primaryColor,
-        ),
+        _buildTextField(controller: _areaController, label: 'نطاق المربع السكني / منطقة التوصيل', icon: Icons.my_location_outlined, isDark: isDark, fieldBackgroundColor: fieldBackgroundColor, primaryColor: primaryColor),
         const SizedBox(height: 14),
       ],
     );
   }
 
-  // ✅ حقول الخدمي
   Widget _buildServiceFields(bool isDark, Color fieldBackgroundColor, Color primaryColor) {
     return Column(
       children: [
-        _buildTextField(
-          controller: _companyController,
-          label: 'اسم الشركة أو المؤسسة',
-          icon: Icons.business_outlined,
-          isDark: isDark,
-          fieldBackgroundColor: fieldBackgroundColor,
-          primaryColor: primaryColor,
-        ),
+        _buildTextField(controller: _companyController, label: 'اسم الشركة أو مؤسسة الرعاية المشغلة', icon: Icons.corporate_fare_outlined, isDark: isDark, fieldBackgroundColor: fieldBackgroundColor, primaryColor: primaryColor),
         const SizedBox(height: 14),
         DropdownButtonFormField<String>(
           value: _selectedServiceType,
           decoration: InputDecoration(
-            labelText: 'نوع الخدمة',
+            labelText: 'مجال الدعم والخدمة',
             labelStyle: const TextStyle(fontFamily: 'NotoSansArabicUI', fontSize: 14),
             filled: true,
             fillColor: fieldBackgroundColor,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade300),
-            ),
-            prefixIcon: const Icon(Icons.support_agent_outlined, color: AppColors.primary),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
           ),
           items: _serviceTypes.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
           onChanged: (v) => setState(() => _selectedServiceType = v!),
           style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
         ),
         const SizedBox(height: 14),
-        _buildTextField(
-          controller: _positionController,
-          label: 'المسمى الوظيفي (اختياري)',
-          icon: Icons.badge_outlined,
-          isDark: isDark,
-          fieldBackgroundColor: fieldBackgroundColor,
-          primaryColor: primaryColor,
-        ),
+        _buildTextField(controller: _positionController, label: 'المسمى الوظيفي الإداري الكلي', icon: Icons.badge_outlined, isDark: isDark, fieldBackgroundColor: fieldBackgroundColor, primaryColor: primaryColor),
         const SizedBox(height: 14),
       ],
     );
   }
 
-  // ✅ حقول كلمة المرور
   Widget _buildPasswordFields(bool isDark, Color fieldBackgroundColor, Color primaryColor) {
     return Column(
       children: [
         TextFormField(
           controller: _passwordController,
           obscureText: _obscureText,
-          textAlign: TextAlign.right,
           style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
           decoration: InputDecoration(
-            labelText: 'كلمة المرور',
+            labelText: 'كلمة المرور الحصينة',
             labelStyle: const TextStyle(fontFamily: 'NotoSansArabicUI', fontSize: 14),
             filled: true,
             fillColor: fieldBackgroundColor,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade300),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: primaryColor, width: 2),
-            ),
-            prefixIcon: const Icon(Icons.lock_outline, color: AppColors.primary),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: primaryColor, width: 2)),
+            prefixIcon: Icon(Icons.lock_outline, color: primaryColor),
             suffixIcon: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: Icon(
-                    _obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                    size: 20,
-                    color: isDark ? Colors.white70 : Colors.grey,
-                  ),
+                  icon: Icon(_obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined, size: 20),
                   onPressed: () => setState(() => _obscureText = !_obscureText),
                 ),
                 if (_hasBiometric)
                   IconButton(
-                    icon: Icon(
-                      _biometricName == 'Face ID' ? Icons.face : Icons.fingerprint,
-                      color: AppColors.primary,
-                      size: 28,
-                    ),
+                    icon: Icon(_biometricName == 'Face ID' ? Icons.face_retouching_natural : Icons.fingerprint, color: primaryColor, size: 26),
                     onPressed: _loginWithBiometric,
                   ),
               ],
             ),
           ),
         ),
-        const SizedBox(height: 14),
-        TextFormField(
-          controller: _confirmPasswordController,
-          obscureText: true,
-          textAlign: TextAlign.right,
-          style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
-          decoration: InputDecoration(
-            labelText: 'تأكيد كلمة المرور',
-            labelStyle: const TextStyle(fontFamily: 'NotoSansArabicUI', fontSize: 14),
-            filled: true,
-            fillColor: fieldBackgroundColor,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade300),
+        if (widget.isSignUp) ...[
+          const SizedBox(height: 14),
+          TextFormField(
+            controller: _confirmPasswordController,
+            obscureText: true,
+            style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
+            decoration: InputDecoration(
+              labelText: 'تأكيد تطابق كلمة المرور',
+              labelStyle: const TextStyle(fontFamily: 'NotoSansArabicUI', fontSize: 14),
+              filled: true,
+              fillColor: fieldBackgroundColor,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: primaryColor, width: 2)),
+              prefixIcon: Icon(Icons.lock_clock_outlined, color: primaryColor),
             ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: primaryColor, width: 2),
-            ),
-            prefixIcon: const Icon(Icons.lock_outline, color: AppColors.primary),
           ),
-        ),
+        ]
       ],
     );
   }
