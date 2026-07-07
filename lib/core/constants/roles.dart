@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class AppRoles {
   static const List<Map<String, dynamic>> all = [
     {'id': 'user', 'name': 'مستخدم', 'icon': Icons.person_outline, 'color': 0xFF0D9488},
