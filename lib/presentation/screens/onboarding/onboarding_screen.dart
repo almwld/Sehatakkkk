@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/presentation/screens/auth/login_screen.dart';
+import package:sehatak/presentation/screens/auth/auth_screen.dart;
 import 'package:sehatak/presentation/screens/auth/register_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -66,7 +66,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     if (seen) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        MaterialPageRoute(builder: (_) => const AuthScreen()),
       );
     }
   }
@@ -76,7 +76,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await prefs.setBool('onboarding_seen', true);
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      MaterialPageRoute(builder: (_) => const AuthScreen()),
     );
   }
 

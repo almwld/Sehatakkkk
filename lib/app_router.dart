@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/presentation/screens/auth/splash_screen.dart';
-import 'package:sehatak/presentation/screens/auth/login_screen.dart';
+import package:sehatak/presentation/screens/auth/auth_screen.dart;
 import 'package:sehatak/presentation/screens/auth/register_screen.dart';
 import 'package:sehatak/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:sehatak/presentation/screens/auth/otp_verification_screen.dart';
@@ -73,7 +73,7 @@ class AppRouter {
       case splash:
         return MaterialPageRoute(builder: (_) => const SplashScreen());
       case login:
-        return MaterialPageRoute(builder: (_) => const LoginScreen());
+        return MaterialPageRoute(builder: (_) => const AuthScreen());
       case register:
         return MaterialPageRoute(builder: (_) => const RegisterScreen());
       case forgotPassword:
