@@ -818,7 +818,7 @@ class _AuthScreenState extends State<AuthScreen> {
       controller: controller,
       keyboardType: keyboardType,
       obscureText: obscureText,
-      textAlign: TextAlign.right,
+      
       style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
       decoration: InputDecoration(
         labelText: label,
@@ -851,7 +851,7 @@ class _AuthScreenState extends State<AuthScreen> {
     return TextFormField(
       controller: _passwordController,
       obscureText: _obscureText,
-      textAlign: TextAlign.right,
+      
       style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
       decoration: InputDecoration(
         labelText: 'كلمة المرور',
