@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/constants/roles.dart';
 import 'package:sehatak/core/services/biometric_service.dart';
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
 import 'package:sehatak/presentation/screens/terms/terms_screen.dart';
@@ -16,10 +17,13 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  // ✅ 1. التحكم في التاب (مستخدم / طبيب)
+  // ✅ تسجيل الدخول: تبويب مستخدم / طبيب
   bool _isUserSelected = true;
   
-  // ✅ حقول الإدخال
+  // ✅ إنشاء الحساب: المهنة المختارة
+  String _selectedRole = 'user';
+  
+  // ✅ حقول مشتركة
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
@@ -30,6 +34,18 @@ class _AuthScreenState extends State<AuthScreen> {
   final TextEditingController _specialtyController = TextEditingController();
   final TextEditingController _experienceController = TextEditingController();
   final TextEditingController _licenseController = TextEditingController();
+  
+  // ✅ حقول الصيدلي
+  final TextEditingController _pharmacyNameController = TextEditingController();
+  final TextEditingController _pharmacyLicenseController = TextEditingController();
+  
+  // ✅ حقول المخبري
+  final TextEditingController _labNameController = TextEditingController();
+  final TextEditingController _labLicenseController = TextEditingController();
+  
+  // ✅ حقول الموصل
+  final TextEditingController _vehicleController = TextEditingController();
+  final TextEditingController _areaController = TextEditingController();
 
   bool _obscureText = true;
   bool _agreeTerms = false;
@@ -88,14 +104,7 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
-  Future<void> _handleAuth() async {
-    if (widget.isSignUp) {
-      await _register();
-    } else {
-      await _login();
-    }
-  }
-
+  // ✅ تسجيل الدخول
   Future<void> _login() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       _showMessage('يرجى إدخال البريد الإلكتروني وكلمة المرور', true);
@@ -126,6 +135,7 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
+  // ✅ إنشاء حساب
   Future<void> _register() async {
     if (_nameController.text.isEmpty || _emailController.text.isEmpty || _passwordController.text.isEmpty) {
       _showMessage('يرجى ملء جميع الحقول المطلوبة', true);
@@ -137,6 +147,12 @@ class _AuthScreenState extends State<AuthScreen> {
     }
     if (!_agreeTerms) {
       _showMessage('يرجى الموافقة على الشروط والأحكام', true);
+      return;
+    }
+
+    // ✅ التحقق من حقول الدور
+    if (_selectedRole == 'doctor' && _specialtyController.text.isEmpty) {
+      _showMessage('يرجى إدخال التخصص', true);
       return;
     }
 
@@ -154,21 +170,47 @@ class _AuthScreenState extends State<AuthScreen> {
         'name': _nameController.text.trim(),
         'email': _emailController.text.trim(),
         'phone': _phoneController.text.trim(),
-        'role': _isUserSelected ? 'user' : 'doctor',
+        'role': _selectedRole,
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       };
 
-      if (!_isUserSelected) {
-        userData.addAll({
-          'specialty': _specialtyController.text.trim(),
-          'experience': _experienceController.text.trim(),
-          'licenseNumber': _licenseController.text.trim(),
-          'isVerified': false,
-          'rating': 0.0,
-          'reviewCount': 0,
-          'isAvailable': true,
-        });
+      // ✅ حقول حسب الدور
+      switch (_selectedRole) {
+        case 'doctor':
+          userData.addAll({
+            'specialty': _specialtyController.text.trim(),
+            'experience': _experienceController.text.trim(),
+            'licenseNumber': _licenseController.text.trim(),
+            'isVerified': false,
+            'rating': 0.0,
+            'reviewCount': 0,
+            'isAvailable': true,
+          });
+          break;
+        case 'pharmacist':
+          userData.addAll({
+            'pharmacyName': _pharmacyNameController.text.trim(),
+            'pharmacyLicense': _pharmacyLicenseController.text.trim(),
+            'isAvailable': true,
+          });
+          break;
+        case 'lab_tech':
+          userData.addAll({
+            'labName': _labNameController.text.trim(),
+            'labLicense': _labLicenseController.text.trim(),
+            'isAvailable': true,
+          });
+          break;
+        case 'delivery':
+          userData.addAll({
+            'vehicleType': _vehicleController.text.trim(),
+            'area': _areaController.text.trim(),
+            'isAvailable': true,
+          });
+          break;
+        default:
+          break;
       }
 
       await FirebaseFirestore.instance.collection('users').doc(user.uid).set(userData);
@@ -230,8 +272,7 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = const Color(0xFF0D5257);  // ✅ اللون الرئيسي لصحتك
-    final primaryLight = const Color(0xFFE8F5E9);   // ✅ اللون الفاتح
+    final primaryColor = const Color(0xFF0D5257);
 
     return Scaffold(
       body: Container(
@@ -243,7 +284,7 @@ class _AuthScreenState extends State<AuthScreen> {
             end: Alignment.bottomCenter,
             colors: isDark
                 ? [const Color(0xFF0B1121), const Color(0xFF1A2540)]
-                : [Colors.white, primaryColor.withOpacity(0.08)],  // ✅ خلفية بيضاء مع لمسة من اللون الأساسي
+                : [const Color(0xFFF8FAFC), const Color(0xFF0D5257).withOpacity(0.15)],
           ),
         ),
         child: SafeArea(
@@ -254,45 +295,22 @@ class _AuthScreenState extends State<AuthScreen> {
               children: [
                 const SizedBox(height: 20),
                 
-                // ✅ 1. الشعار + النصوص الترحيبية
-                Center(
-                  child: Container(
-                    width: 70,
-                    height: 70,
-                    decoration: BoxDecoration(
-                      color: primaryColor,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: primaryColor.withOpacity(0.3),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.health_and_safety,
-                        size: 35,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
+                // ✅ النصوص الترحيبية
                 Text(
                   widget.isSignUp ? 'إنشاء حساب جديد' : 'مرحباً بعودتك',
                   style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : primaryColor,  // ✅ اللون الأساسي
+                    color: isDark ? Colors.white : const Color(0xFF1E293B),
                     fontFamily: 'NotoSansArabicUI',
                   ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  widget.isSignUp ? 'أدخل بياناتك للانضمام إلى منصتنا' : 'قم بتسجيل الدخول للمتابعة',
+                  widget.isSignUp 
+                      ? 'اختر مهنتك وأدخل بياناتك للانضمام'
+                      : 'قم بتسجيل الدخول للمتابعة',
                   style: TextStyle(
                     fontSize: 15,
                     color: isDark ? Colors.white70 : Colors.grey[600],
@@ -302,12 +320,14 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
                 const SizedBox(height: 30),
 
-                // ✅ 2. كبسولة الاختيار الثنائية (مستخدم / طبيب)
+                // ============================================================
+                // 🔐 تسجيل الدخول - تبويب مستخدم / طبيب
+                // ============================================================
                 if (!widget.isSignUp) ...[
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1A2540).withOpacity(0.5) : primaryLight,  // ✅ اللون الفاتح
+                      color: isDark ? const Color(0xFF1A2540).withOpacity(0.5) : Colors.grey[100],
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Row(
@@ -319,7 +339,6 @@ class _AuthScreenState extends State<AuthScreen> {
                             isSelected: _isUserSelected,
                             onTap: () => setState(() => _isUserSelected = true),
                             isDark: isDark,
-                            primaryColor: primaryColor,
                           ),
                         ),
                         Expanded(
@@ -329,7 +348,6 @@ class _AuthScreenState extends State<AuthScreen> {
                             isSelected: !_isUserSelected,
                             onTap: () => setState(() => _isUserSelected = false),
                             isDark: isDark,
-                            primaryColor: primaryColor,
                           ),
                         ),
                       ],
@@ -338,184 +356,198 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 35),
                 ],
 
-                // ✅ 3. حقول الإدخال (للتسجيل فقط)
+                // ============================================================
+                // 👤 إنشاء الحساب - اختيار المهنة
+                // ============================================================
+                if (widget.isSignUp) ...[
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1A2540).withOpacity(0.5) : Colors.grey[100],
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: AppRoles.all.map((role) {
+                          final isSelected = _selectedRole == role['id'];
+                          final color = Color(role['color'] as int);
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: GestureDetector(
+                              onTap: () => setState(() => _selectedRole = role['id'] as String),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? color.withOpacity(0.15)
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: isSelected ? color : Colors.transparent,
+                                    width: 2,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      role['icon'] as IconData,
+                                      color: isSelected ? color : Colors.grey,
+                                      size: 16,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      role['name'] as String,
+                                      style: TextStyle(
+                                        color: isSelected ? color : Colors.grey,
+                                        fontSize: 12,
+                                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                        fontFamily: 'NotoSansArabicUI',
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                ],
+
+                // ============================================================
+                // 📝 حقول الإدخال المشتركة
+                // ============================================================
                 if (widget.isSignUp) ...[
                   _buildTextField(
                     controller: _nameController,
                     label: 'الاسم الكامل',
                     icon: Icons.person_outline,
                     isDark: isDark,
-                    primaryColor: primaryColor,
                   ),
                   const SizedBox(height: 16),
+                ],
+
+                _buildTextField(
+                  controller: _emailController,
+                  label: widget.isSignUp ? 'البريد الإلكتروني' : 'رقم الموبيل أو البريد الإلكتروني',
+                  icon: Icons.alternate_email_outlined,
+                  isDark: isDark,
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 16),
+
+                if (widget.isSignUp) ...[
                   _buildTextField(
                     controller: _phoneController,
                     label: 'رقم الهاتف',
                     icon: Icons.phone_android,
                     isDark: isDark,
-                    primaryColor: primaryColor,
                     keyboardType: TextInputType.phone,
                   ),
                   const SizedBox(height: 16),
                 ],
 
-                // ✅ 4. الخانة الموحدة (رقم الموبيل أو البريد)
-                TextFormField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  textAlign: TextAlign.right,
-                  style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
-                  decoration: InputDecoration(
-                    labelText: 'رقم الموبيل — او البريد الالكتروني',
-                    labelStyle: TextStyle(
-                      color: isDark ? Colors.white70 : Colors.grey[600],
-                      fontFamily: 'NotoSansArabicUI',
-                    ),
-                    prefixIcon: Icon(
-                      Icons.alternate_email_outlined,
-                      color: primaryColor,  // ✅ اللون الأساسي
-                    ),
-                    filled: true,
-                    fillColor: isDark ? const Color(0xFF1A2540) : Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide.none,
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(color: isDark ? Colors.grey[700]! : Colors.grey[300]!),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(color: primaryColor, width: 2),  // ✅ اللون الأساسي
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // ✅ 5. حقول الطبيب (للتسجيل فقط)
-                if (widget.isSignUp && !_isUserSelected) ...[
-                  _buildTextField(
-                    controller: _specialtyController,
-                    label: 'التخصص',
-                    icon: Icons.medical_services_outlined,
-                    isDark: isDark,
-                    primaryColor: primaryColor,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    controller: _experienceController,
-                    label: 'سنوات الخبرة',
-                    icon: Icons.work_outline,
-                    isDark: isDark,
-                    primaryColor: primaryColor,
-                    keyboardType: TextInputType.number,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    controller: _licenseController,
-                    label: 'رقم الترخيص',
-                    icon: Icons.verified_outlined,
-                    isDark: isDark,
-                    primaryColor: primaryColor,
-                  ),
-                  const SizedBox(height: 16),
-                ],
-
-                // ✅ 6. حقل كلمة المرور
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: _obscureText,
-                  textAlign: TextAlign.right,
-                  style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
-                  decoration: InputDecoration(
-                    labelText: 'كلمة المرور',
-                    labelStyle: TextStyle(
-                      color: isDark ? Colors.white70 : Colors.grey[600],
-                      fontFamily: 'NotoSansArabicUI',
-                    ),
-                    prefixIcon: Icon(
-                      Icons.lock_outline,
-                      color: primaryColor,  // ✅ اللون الأساسي
-                    ),
-                    suffixIcon: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: Icon(
-                            _obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                            color: isDark ? Colors.white70 : Colors.grey[600],
-                          ),
-                          onPressed: () => setState(() => _obscureText = !_obscureText),
-                        ),
-                        if (_hasBiometric)
-                          IconButton(
-                            icon: Icon(
-                              Icons.fingerprint,
-                              color: primaryColor,  // ✅ اللون الأساسي
-                            ),
-                            onPressed: _loginWithBiometric,
-                          ),
-                      ],
-                    ),
-                    filled: true,
-                    fillColor: isDark ? const Color(0xFF1A2540) : Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide.none,
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(color: isDark ? Colors.grey[700]! : Colors.grey[300]!),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(color: primaryColor, width: 2),  // ✅ اللون الأساسي
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // ✅ 7. تأكيد كلمة المرور (للتسجيل فقط)
+                // ============================================================
+                // 🩺 حقول إضافية حسب المهنة (للتسجيل فقط)
+                // ============================================================
                 if (widget.isSignUp) ...[
-                  TextFormField(
-                    controller: _confirmPasswordController,
-                    obscureText: true,
-                    textAlign: TextAlign.right,
-                    style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
-                    decoration: InputDecoration(
-                      labelText: 'تأكيد كلمة المرور',
-                      labelStyle: TextStyle(
-                        color: isDark ? Colors.white70 : Colors.grey[600],
-                        fontFamily: 'NotoSansArabicUI',
-                      ),
-                      prefixIcon: Icon(
-                        Icons.lock_outline,
-                        color: primaryColor,  // ✅ اللون الأساسي
-                      ),
-                      filled: true,
-                      fillColor: isDark ? const Color(0xFF1A2540) : Colors.white,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide.none,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(color: isDark ? Colors.grey[700]! : Colors.grey[300]!),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(color: primaryColor, width: 2),  // ✅ اللون الأساسي
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                  if (_selectedRole == 'doctor') ...[
+                    _buildTextField(
+                      controller: _specialtyController,
+                      label: 'التخصص',
+                      icon: Icons.medical_services_outlined,
+                      isDark: isDark,
                     ),
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      controller: _experienceController,
+                      label: 'سنوات الخبرة',
+                      icon: Icons.work_outline,
+                      isDark: isDark,
+                      keyboardType: TextInputType.number,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      controller: _licenseController,
+                      label: 'رقم الترخيص',
+                      icon: Icons.verified_outlined,
+                      isDark: isDark,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  if (_selectedRole == 'pharmacist') ...[
+                    _buildTextField(
+                      controller: _pharmacyNameController,
+                      label: 'اسم الصيدلية',
+                      icon: Icons.local_pharmacy_outlined,
+                      isDark: isDark,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      controller: _pharmacyLicenseController,
+                      label: 'رقم الترخيص',
+                      icon: Icons.verified_outlined,
+                      isDark: isDark,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  if (_selectedRole == 'lab_tech') ...[
+                    _buildTextField(
+                      controller: _labNameController,
+                      label: 'اسم المختبر',
+                      icon: Icons.science_outlined,
+                      isDark: isDark,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      controller: _labLicenseController,
+                      label: 'رقم الترخيص',
+                      icon: Icons.verified_outlined,
+                      isDark: isDark,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  if (_selectedRole == 'delivery') ...[
+                    _buildTextField(
+                      controller: _vehicleController,
+                      label: 'نوع المركبة',
+                      icon: Icons.directions_car_outlined,
+                      isDark: isDark,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      controller: _areaController,
+                      label: 'منطقة التوصيل',
+                      icon: Icons.map_outlined,
+                      isDark: isDark,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ],
+
+                // ============================================================
+                // 🔑 كلمة المرور
+                // ============================================================
+                _buildPasswordField(isDark),
+                const SizedBox(height: 16),
+
+                if (widget.isSignUp) ...[
+                  _buildTextField(
+                    controller: _confirmPasswordController,
+                    label: 'تأكيد كلمة المرور',
+                    icon: Icons.lock_outline,
+                    isDark: isDark,
+                    obscureText: true,
                   ),
                   const SizedBox(height: 16),
                 ],
 
-                // ✅ 8. تذكرني / نسيت كلمة المرور (للدخول فقط)
+                // ============================================================
+                // ✅ تذكرني / نسيت كلمة المرور (للدخول فقط)
+                // ============================================================
                 if (!widget.isSignUp) ...[
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -525,7 +557,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           Checkbox(
                             value: _rememberMe,
                             onChanged: (v) => setState(() => _rememberMe = v ?? false),
-                            activeColor: primaryColor,  // ✅ اللون الأساسي
+                            activeColor: primaryColor,
                             visualDensity: VisualDensity.compact,
                           ),
                           Text(
@@ -544,7 +576,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           'نسيت كلمة المرور؟',
                           style: TextStyle(
                             fontSize: 13,
-                            color: primaryColor,  // ✅ اللون الأساسي
+                            color: primaryColor,
                             fontFamily: 'NotoSansArabicUI',
                           ),
                         ),
@@ -554,14 +586,16 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 8),
                 ],
 
-                // ✅ 9. الموافقة على الشروط (للتسجيل فقط)
+                // ============================================================
+                // 📜 الشروط والأحكام (للتسجيل فقط)
+                // ============================================================
                 if (widget.isSignUp) ...[
                   Row(
                     children: [
                       Checkbox(
                         value: _agreeTerms,
                         onChanged: (v) => setState(() => _agreeTerms = v ?? false),
-                        activeColor: primaryColor,  // ✅ اللون الأساسي
+                        activeColor: primaryColor,
                         visualDensity: VisualDensity.compact,
                       ),
                       Text(
@@ -582,7 +616,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         child: Text(
                           'الشروط والأحكام',
                           style: TextStyle(
-                            color: primaryColor,  // ✅ اللون الأساسي
+                            color: primaryColor,
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
                             decoration: TextDecoration.underline,
@@ -595,19 +629,20 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 16),
                 ],
 
-                // ✅ 10. زر الإجراء الرئيسي
+                // ============================================================
+                // 🚀 زر الإجراء الرئيسي
+                // ============================================================
                 SizedBox(
                   height: 54,
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : _handleAuth,
+                    onPressed: _isLoading ? null : (widget.isSignUp ? _register : _login),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryColor,  // ✅ اللون الأساسي
+                      backgroundColor: primaryColor,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
                       elevation: 0,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
                     child: _isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
@@ -625,18 +660,20 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                // ✅ 11. تصفح كضيف (للدخول فقط)
+                // ============================================================
+                // 👤 تصفح كضيف (للدخول فقط)
+                // ============================================================
                 if (!widget.isSignUp) ...[
                   SizedBox(
                     height: 50,
                     child: OutlinedButton(
                       onPressed: _guestLogin,
                       style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: primaryColor.withOpacity(0.3)),  // ✅ اللون الأساسي
+                        side: BorderSide(color: isDark ? Colors.white30 : Colors.grey[300]!),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        foregroundColor: isDark ? Colors.white : primaryColor,  // ✅ اللون الأساسي
+                        foregroundColor: isDark ? Colors.white : Colors.black87,
                       ),
                       child: const Text(
                         'تصفح كضيف',
@@ -646,7 +683,9 @@ class _AuthScreenState extends State<AuthScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // ✅ 12. أزرار التواصل الاجتماعي
+                  // ============================================================
+                  // 🔗 أزرار التواصل الاجتماعي
+                  // ============================================================
                   const Text(
                     'أو سجل الدخول عبر',
                     style: TextStyle(fontSize: 12, color: Colors.grey, fontFamily: 'NotoSansArabicUI'),
@@ -658,27 +697,23 @@ class _AuthScreenState extends State<AuthScreen> {
                     children: [
                       _buildSocialButton(
                         icon: Icons.g_mobiledata,
-                        onTap: () {
-                          // TODO: تسجيل الدخول بـ Google
-                        },
+                        onTap: () {},
                         isDark: isDark,
-                        primaryColor: primaryColor,
                       ),
                       const SizedBox(width: 20),
                       _buildSocialButton(
                         icon: Icons.apple,
-                        onTap: () {
-                          // TODO: تسجيل الدخول بـ Apple
-                        },
+                        onTap: () {},
                         isDark: isDark,
-                        primaryColor: primaryColor,
                       ),
                     ],
                   ),
                   const SizedBox(height: 30),
                 ],
 
-                // ✅ 13. رابط إنشاء الحساب / تسجيل الدخول
+                // ============================================================
+                // 🔄 رابط التبديل بين تسجيل الدخول وإنشاء الحساب
+                // ============================================================
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -704,7 +739,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         widget.isSignUp ? 'تسجيل الدخول' : 'أنشئ حسابك الآن',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: primaryColor,  // ✅ اللون الأساسي
+                          color: primaryColor,
                           fontFamily: 'NotoSansArabicUI',
                         ),
                       ),
@@ -727,7 +762,6 @@ class _AuthScreenState extends State<AuthScreen> {
     required bool isSelected,
     required VoidCallback onTap,
     required bool isDark,
-    required Color primaryColor,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -741,8 +775,8 @@ class _AuthScreenState extends State<AuthScreen> {
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: primaryColor.withOpacity(0.1),
-                    blurRadius: 8,
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
                 ]
@@ -752,7 +786,7 @@ class _AuthScreenState extends State<AuthScreen> {
           children: [
             Icon(
               icon,
-              color: isSelected ? primaryColor : Colors.grey,  // ✅ اللون الأساسي
+              color: isSelected ? (isDark ? Colors.white : Colors.black) : Colors.grey,
               size: 22,
             ),
             const SizedBox(height: 4),
@@ -760,7 +794,7 @@ class _AuthScreenState extends State<AuthScreen> {
               title,
               style: TextStyle(
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected ? primaryColor : Colors.grey,  // ✅ اللون الأساسي
+                color: isSelected ? (isDark ? Colors.white : Colors.black) : Colors.grey,
                 fontSize: 14,
                 fontFamily: 'NotoSansArabicUI',
               ),
@@ -777,12 +811,13 @@ class _AuthScreenState extends State<AuthScreen> {
     required String label,
     required IconData icon,
     required bool isDark,
-    required Color primaryColor,
     TextInputType keyboardType = TextInputType.text,
+    bool obscureText = false,
   }) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
+      obscureText: obscureText,
       textAlign: TextAlign.right,
       style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
       decoration: InputDecoration(
@@ -791,7 +826,7 @@ class _AuthScreenState extends State<AuthScreen> {
           color: isDark ? Colors.white70 : Colors.grey[600],
           fontFamily: 'NotoSansArabicUI',
         ),
-        prefixIcon: Icon(icon, color: primaryColor),  // ✅ اللون الأساسي
+        prefixIcon: Icon(icon, color: isDark ? Colors.white70 : Colors.grey[600]),
         filled: true,
         fillColor: isDark ? const Color(0xFF1A2540) : Colors.white,
         border: OutlineInputBorder(
@@ -804,7 +839,63 @@ class _AuthScreenState extends State<AuthScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: primaryColor, width: 2),  // ✅ اللون الأساسي
+          borderSide: BorderSide(color: const Color(0xFF0D5257), width: 2),
+        ),
+        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+      ),
+    );
+  }
+
+  // ✅ دالة بناء حقل كلمة المرور
+  Widget _buildPasswordField(bool isDark) {
+    return TextFormField(
+      controller: _passwordController,
+      obscureText: _obscureText,
+      textAlign: TextAlign.right,
+      style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
+      decoration: InputDecoration(
+        labelText: 'كلمة المرور',
+        labelStyle: TextStyle(
+          color: isDark ? Colors.white70 : Colors.grey[600],
+          fontFamily: 'NotoSansArabicUI',
+        ),
+        prefixIcon: Icon(
+          Icons.lock_outline,
+          color: isDark ? Colors.white70 : Colors.grey[600],
+        ),
+        suffixIcon: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: Icon(
+                _obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                color: isDark ? Colors.white70 : Colors.grey[600],
+              ),
+              onPressed: () => setState(() => _obscureText = !_obscureText),
+            ),
+            if (_hasBiometric)
+              IconButton(
+                icon: Icon(
+                  Icons.fingerprint,
+                  color: const Color(0xFF0D5257),
+                ),
+                onPressed: _loginWithBiometric,
+              ),
+          ],
+        ),
+        filled: true,
+        fillColor: isDark ? const Color(0xFF1A2540) : Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: isDark ? Colors.grey[700]! : Colors.grey[300]!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: const Color(0xFF0D5257), width: 2),
         ),
         contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
       ),
@@ -816,7 +907,6 @@ class _AuthScreenState extends State<AuthScreen> {
     required IconData icon,
     required VoidCallback onTap,
     required bool isDark,
-    required Color primaryColor,
   }) {
     return InkWell(
       onTap: onTap,
@@ -826,13 +916,13 @@ class _AuthScreenState extends State<AuthScreen> {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(
-            color: isDark ? Colors.white30 : primaryColor.withOpacity(0.3),  // ✅ اللون الأساسي
+            color: isDark ? Colors.white30 : Colors.grey[300]!,
           ),
         ),
         child: Icon(
           icon,
           size: 28,
-          color: isDark ? Colors.white : primaryColor,  // ✅ اللون الأساسي
+          color: isDark ? Colors.white : Colors.black87,
         ),
       ),
     );
