@@ -1,116 +1,104 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class ImageService {
   // ============================================================
-  // 📸 BASE PATH (من مجلد assets)
+  // 📁 المسارات الأساسية
   // ============================================================
-  static const String _assets = 'assets';
-  static const String _images = '$_assets/images';
-  static const String _banners = '$_images/banners';
-  static const String _icons = '$_assets/icons';
+  static const String _coreIcons = 'assets/icons/core';
+  static const String _navigationIcons = 'assets/icons/navigation';
+  static const String _specialties = 'assets/icons/specialties';
+  static const String _miniSpecialties = 'assets/icons/mini_specialties';
+  static const String _social = 'assets/icons/social';
+  static const String _banners = 'assets/images/banners';
+  static const String _images = 'assets/images';
 
   // ============================================================
-  // 🖼️ البانرات (Banners) - من مجلد assets/images/banners/
+  // 🎯 دالة واحدة موحدة لجميع الأيقونات (مثل مواعيدي)
   // ============================================================
-  static const String banner1 = '$_banners/banner_1.png';
-  static const String banner2 = '$_banners/banner_2.png';
-  static const String banner3 = '$_banners/banner_3.png';
-  static const String banner4 = '$_banners/banner_1.png';
-  static const String banner5 = '$_banners/banner_2.png';
-
-  // ============================================================
-  // 👨‍⚕️ صور الأطباء (ستضاف لاحقاً)
-  // ============================================================
-  static const String doctor1 = '$_images/placeholder.png';
-  static const String doctor2 = '$_images/placeholder.png';
-  static const String doctor3 = '$_images/placeholder.png';
-  static const String doctor4 = '$_images/placeholder.png';
-  static const String doctor5 = '$_images/placeholder.png';
-  static const String doctor6 = '$_images/placeholder.png';
-  static const String doctor7 = '$_images/placeholder.png';
-  static const String doctor8 = '$_images/placeholder.png';
-
-  // ============================================================
-  // 💊 صور المنتجات (Products)
-  // ============================================================
-  static const String medicine1 = '$_images/placeholder.png';
-  static const String medicine2 = '$_images/placeholder.png';
-  static const String medicine3 = '$_images/placeholder.png';
-  static const String medicine4 = '$_images/placeholder.png';
-  static const String medicine5 = '$_images/placeholder.png';
-  static const String medicine6 = '$_images/placeholder.png';
-  static const String medicine7 = '$_images/placeholder.png'; // ✅ تمت الإضافة
-  static const String medicine8 = '$_images/placeholder.png'; // ✅ تمت الإضافة
-  static const String medicine9 = '$_images/placeholder.png'; // ✅ تمت الإضافة
-  static const String medicine10 = '$_images/placeholder.png'; // ✅ تمت الإضافة
-
-  // ============================================================
-  // 🏥 صور الصيدليات والمختبرات
-  // ============================================================
-  static const String pharmacy1 = '$_images/placeholder.png'; // ✅ تمت الإضافة
-  static const String pharmacy2 = '$_images/placeholder.png'; // ✅ تمت الإضافة
-  static const String lab1 = '$_images/placeholder.png'; // ✅ تمت الإضافة
-
-  // ============================================================
-  // 🖼️ صور وهمية (Placeholders)
-  // ============================================================
-  static const String placeholder = '$_images/placeholder.png';
-  static const String avatarPlaceholder = '$_images/placeholder.png';
-  static const String productPlaceholder = '$_images/placeholder.png';
-
-  // ============================================================
-  // ✅ دوال مساعدة
-  // ============================================================
-  static String getDoctorImage(int index) {
-    final images = [doctor1, doctor2, doctor3, doctor4, doctor5, doctor6, doctor7, doctor8];
-    return images[index % images.length];
+  static Widget svgIcon(String path, {double width = 24, double height = 24, Color? color}) {
+    return SvgPicture.asset(
+      path,
+      width: width,
+      height: height,
+      colorFilter: color != null ? ColorFilter.mode(color, BlendMode.srcIn) : null,
+    );
   }
 
-  static String getBannerImage(int index) {
-    final images = [banner1, banner2, banner3, banner4, banner5];
-    return images[index % images.length];
+  // ============================================================
+  // 📌 أيقونات الشريط السفلي (Navigation) - نفس آلية مواعيدي
+  // ============================================================
+  static Widget navIcon(String name, {double width = 24, double height = 24, Color? color}) {
+    return svgIcon('$_navigationIcons/$name.svg', width: width, height: height, color: color);
   }
 
-  static String getMedicineImage(int index) {
-    final medicines = [medicine1, medicine2, medicine3, medicine4, medicine5, medicine6, medicine7, medicine8, medicine9, medicine10];
-    return medicines[index % medicines.length];
+  // ============================================================
+  // 📌 أيقونات الأساسية (Core) - نفس آلية مواعيدي
+  // ============================================================
+  static Widget coreIcon(String name, {double width = 24, double height = 24, Color? color}) {
+    return svgIcon('$_coreIcons/$name.svg', width: width, height: height, color: color);
   }
 
-  // ✅ أيقونات SVG من مجلد assets/icons/
-  static String svgIcon(String name) => '$_icons/$name.svg';
-  static String specialtyIcon(String name) => '$_icons/specialties/$name.svg';
-  static String navigationIcon(String name) => '$_icons/navigation/$name.svg';
-  static String socialIcon(String name) => '$_icons/social/$name.svg';
-  static String coreIcon(String name) => '$_icons/core/$name.svg';
+  // ============================================================
+  // 📌 أيقونات التخصصات - نفس آلية مواعيدي
+  // ============================================================
+  static Widget specialtyIcon(String name, {double width = 24, double height = 24, Color? color}) {
+    return svgIcon('$_specialties/$name.svg', width: width, height: height, color: color);
+  }
 
-  // ✅ تحميل الصورة مع Caching (اختياري)
-  static Widget cachedImage(String url, {double? width, double? height, BoxFit fit = BoxFit.cover}) {
-    return CachedNetworkImage(
-      imageUrl: url,
+  // ============================================================
+  // 📌 أيقونات التخصصات المصغرة - نفس آلية مواعيدي
+  // ============================================================
+  static Widget miniSpecialtyIcon(String name, {double width = 24, double height = 24, Color? color}) {
+    return svgIcon('$_miniSpecialties/$name.svg', width: width, height: height, color: color);
+  }
+
+  // ============================================================
+  // 📌 أيقونات التواصل الاجتماعي - نفس آلية مواعيدي
+  // ============================================================
+  static Widget socialIcon(String name, {double width = 24, double height = 24, Color? color}) {
+    return svgIcon('$_social/$name.svg', width: width, height: height, color: color);
+  }
+
+  // ============================================================
+  // 🖼️ البانرات (صور) - تستخدم Image.asset
+  // ============================================================
+  static Widget bannerImage(String name, {double? width, double? height, BoxFit fit = BoxFit.cover}) {
+    return Image.asset(
+      '$_banners/$name',
       width: width,
       height: height,
       fit: fit,
-      placeholder: (context, url) => _shimmerPlaceholder(width, height),
-      errorWidget: (context, url, error) => _errorPlaceholder(width, height),
+      errorBuilder: (_, __, ___) => Container(
+        color: Colors.grey[200],
+        child: const Icon(Icons.image_not_supported, color: Colors.grey, size: 30),
+      ),
     );
   }
 
-  static Widget _shimmerPlaceholder(double? width, double? height) {
-    return Container(
+  // ============================================================
+  // 🖼️ صور عامة - تستخدم Image.asset
+  // ============================================================
+  static Widget image(String path, {double? width, double? height, BoxFit fit = BoxFit.cover}) {
+    return Image.asset(
+      path,
       width: width,
       height: height,
-      color: Colors.grey[300],
-      child: const Center(child: Icon(Icons.image, color: Colors.grey, size: 30)),
+      fit: fit,
+      errorBuilder: (_, __, ___) => Container(
+        color: Colors.grey[200],
+        child: const Icon(Icons.image_not_supported, color: Colors.grey, size: 30),
+      ),
     );
   }
 
-  static Widget _errorPlaceholder(double? width, double? height) {
-    return Container(
-      width: width,
-      height: height,
-      color: Colors.grey[200],
-      child: const Center(child: Icon(Icons.broken_image, color: Colors.grey, size: 30)),
-    );
-  }
+  // ============================================================
+  // ✅ دوال مساعدة للوصول إلى المسارات (للحالات النادرة)
+  // ============================================================
+  static String coreIconPath(String name) => '$_coreIcons/$name.svg';
+  static String navIconPath(String name) => '$_navigationIcons/$name.svg';
+  static String specialtyIconPath(String name) => '$_specialties/$name.svg';
+  static String miniSpecialtyIconPath(String name) => '$_miniSpecialties/$name.svg';
+  static String socialIconPath(String name) => '$_social/$name.svg';
+  static String bannerPath(String name) => '$_banners/$name';
 }
