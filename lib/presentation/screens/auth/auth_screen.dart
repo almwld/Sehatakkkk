@@ -272,7 +272,7 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = const Color(0xFF0D5257);
+    final primaryColor = const Color(0xFF0D5257); // ✅ اللون الأساسي الأصلي
 
     return Scaffold(
       body: Container(
@@ -284,7 +284,7 @@ class _AuthScreenState extends State<AuthScreen> {
             end: Alignment.bottomCenter,
             colors: isDark
                 ? [const Color(0xFF0B1121), const Color(0xFF1A2540)]
-                : [const Color(0xFFF8FAFC), const Color(0xFF0D5257).withOpacity(0.15)],
+                : [const Color(0xFFF8FAFC), primaryColor.withOpacity(0.15)], // ✅ التدرج الأصلي
           ),
         ),
         child: SafeArea(
@@ -339,6 +339,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             isSelected: _isUserSelected,
                             onTap: () => setState(() => _isUserSelected = true),
                             isDark: isDark,
+                            primaryColor: primaryColor,
                           ),
                         ),
                         Expanded(
@@ -348,6 +349,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             isSelected: !_isUserSelected,
                             onTap: () => setState(() => _isUserSelected = false),
                             isDark: isDark,
+                            primaryColor: primaryColor,
                           ),
                         ),
                       ],
@@ -531,7 +533,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 // ============================================================
                 // 🔑 كلمة المرور
                 // ============================================================
-                _buildPasswordField(isDark),
+                _buildPasswordField(isDark, primaryColor),
                 const SizedBox(height: 16),
 
                 if (widget.isSignUp) ...[
@@ -637,7 +639,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : (widget.isSignUp ? _register : _login),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryColor,
+                      backgroundColor: primaryColor, // ✅ اللون الأساسي الأصلي
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -762,6 +764,7 @@ class _AuthScreenState extends State<AuthScreen> {
     required bool isSelected,
     required VoidCallback onTap,
     required bool isDark,
+    required Color primaryColor,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -769,13 +772,13 @@ class _AuthScreenState extends State<AuthScreen> {
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           color: isSelected
-              ? (isDark ? const Color(0xFF1A2540) : Colors.white)
+              ? primaryColor.withOpacity(0.12) // ✅ لون شفاف من الأساسي
               : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: primaryColor.withOpacity(0.1),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -786,7 +789,7 @@ class _AuthScreenState extends State<AuthScreen> {
           children: [
             Icon(
               icon,
-              color: isSelected ? (isDark ? Colors.white : Colors.black) : Colors.grey,
+              color: isSelected ? primaryColor : Colors.grey, // ✅ لون أساسي عند التحديد
               size: 22,
             ),
             const SizedBox(height: 4),
@@ -794,7 +797,7 @@ class _AuthScreenState extends State<AuthScreen> {
               title,
               style: TextStyle(
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected ? (isDark ? Colors.white : Colors.black) : Colors.grey,
+                color: isSelected ? primaryColor : Colors.grey,
                 fontSize: 14,
                 fontFamily: 'NotoSansArabicUI',
               ),
@@ -805,7 +808,7 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
-  // ✅ دالة بناء حقل الإدخال
+// ✅ دالة بناء حقل الإدخال
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -814,11 +817,12 @@ class _AuthScreenState extends State<AuthScreen> {
     TextInputType keyboardType = TextInputType.text,
     bool obscureText = false,
   }) {
+    final primaryColor = const Color(0xFF0D5257);
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       obscureText: obscureText,
-      
+      textAlign: TextAlign.right,
       style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
       decoration: InputDecoration(
         labelText: label,
@@ -826,7 +830,7 @@ class _AuthScreenState extends State<AuthScreen> {
           color: isDark ? Colors.white70 : Colors.grey[600],
           fontFamily: 'NotoSansArabicUI',
         ),
-        prefixIcon: Icon(icon, color: isDark ? Colors.white70 : Colors.grey[600]),
+        prefixIcon: Icon(icon, color: isDark ? Colors.white70 : primaryColor),
         filled: true,
         fillColor: isDark ? const Color(0xFF1A2540) : Colors.white,
         border: OutlineInputBorder(
@@ -839,7 +843,7 @@ class _AuthScreenState extends State<AuthScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: const Color(0xFF0D5257), width: 2),
+          borderSide: BorderSide(color: primaryColor, width: 2),
         ),
         contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
       ),
@@ -847,11 +851,11 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   // ✅ دالة بناء حقل كلمة المرور
-  Widget _buildPasswordField(bool isDark) {
+  Widget _buildPasswordField(bool isDark, Color primaryColor) {
     return TextFormField(
       controller: _passwordController,
       obscureText: _obscureText,
-      
+      textAlign: TextAlign.right,
       style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
       decoration: InputDecoration(
         labelText: 'كلمة المرور',
@@ -861,7 +865,7 @@ class _AuthScreenState extends State<AuthScreen> {
         ),
         prefixIcon: Icon(
           Icons.lock_outline,
-          color: isDark ? Colors.white70 : Colors.grey[600],
+          color: isDark ? Colors.white70 : primaryColor,
         ),
         suffixIcon: Row(
           mainAxisSize: MainAxisSize.min,
@@ -877,7 +881,7 @@ class _AuthScreenState extends State<AuthScreen> {
               IconButton(
                 icon: Icon(
                   Icons.fingerprint,
-                  color: const Color(0xFF0D5257),
+                  color: primaryColor,
                 ),
                 onPressed: _loginWithBiometric,
               ),
@@ -895,7 +899,7 @@ class _AuthScreenState extends State<AuthScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: const Color(0xFF0D5257), width: 2),
+          borderSide: BorderSide(color: primaryColor, width: 2),
         ),
         contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
       ),
