@@ -42,6 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _isBottomBarVisible = true;
 
+  // ✅ الترتيب السباعي الكامل للشاشات متوافق مع شريط التنقل
   final List<Widget> _screens = [
     const HomeTab(),
     const DoctorsListScreen(),
@@ -89,10 +90,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _goTo(Widget screen) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -109,6 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: BottomNavigationBar(
             currentIndex: _selectedIndex,
             onTap: (index) {
+              // ✅ حماية التبويبات الحساسة: الدردشة (3)، المواعيد (4)، صحتي (5)
               if (index == 3 || index == 4 || index == 5) {
                 _auth(() => setState(() => _selectedIndex = index));
               } else {
@@ -120,13 +118,16 @@ class _HomeScreenState extends State<HomeScreen> {
             unselectedItemColor: Colors.grey,
             type: BottomNavigationBarType.fixed,
             elevation: 8,
+            selectedLabelStyle: const TextStyle(fontSize: 11, fontFamily: 'NotoSansArabicUI', fontWeight: FontWeight.bold),
+            unselectedLabelStyle: const TextStyle(fontSize: 10, fontFamily: 'NotoSansArabicUI'),
             items: [
               _buildNavItem('home', 'الرئيسية', 0),
               _buildNavItem('doctor', 'الأطباء', 1),
               _buildNavItem('pharmacy', 'الصيدلية', 2),
-              _buildNavItem('chat', 'الدردشة', 3, isSpecial: true),
-              _buildNavItem('health_record', 'صحتي', 4),
-              _buildNavItem('more_menu', 'المزيد', 5),
+              _buildNavItem('text_chat', 'الدردشة', 3, isSpecial: true), // 👈 استخدام الاسم الصحيح text_chat
+              _buildNavItem('appointments', 'مواعيدي', 4), // 👈 إضافة الأيقونة الجديدة المرفوعة بنجاح
+              _buildNavItem('health_record', 'صحتي', 5),
+              _buildNavItem('more_menu', 'المزيد', 6),
             ],
           ),
         ),
@@ -137,30 +138,18 @@ class _HomeScreenState extends State<HomeScreen> {
   BottomNavigationBarItem _buildNavItem(String iconName, String label, int index, {bool isSpecial = false}) {
     final isSelected = _selectedIndex == index;
     final iconPath = 'assets/icons/core/$iconName.svg';
+    final iconColor = isSelected ? AppColors.primary : Colors.grey;
 
     return BottomNavigationBarItem(
-      icon: isSpecial
-          ? Container(
-              margin: const EdgeInsets.only(top: 8),
-              child: SvgPicture.asset(
-                iconPath,
-                width: 30,
-                height: 30,
-                colorFilter: ColorFilter.mode(
-                  isSelected ? AppColors.primary : Colors.grey,
-                  BlendMode.srcIn,
-                ),
-              ),
-            )
-          : SvgPicture.asset(
-              iconPath,
-              width: 24,
-              height: 24,
-              colorFilter: ColorFilter.mode(
-                isSelected ? AppColors.primary : Colors.grey,
-                BlendMode.srcIn,
-              ),
-            ),
+      icon: Container(
+        margin: EdgeInsets.only(top: isSpecial ? 6.0 : 2.0, bottom: 2.0),
+        child: SvgPicture.asset(
+          iconPath,
+          width: isSpecial ? 28 : 22,
+          height: isSpecial ? 28 : 22,
+          colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
+        ),
+      ),
       label: label,
     );
   }
@@ -211,7 +200,7 @@ class _HomeTabState extends State<HomeTab> {
     {'icon': Icons.home_work, 'label': 'خدمات منزلية', 'color': Colors.brown, 'screen': const ServicesScreen()},
   ];
 
-  List<Map<String, dynamic>> _communityPosts = [
+  final List<Map<String, dynamic>> _communityPosts = [
     {'id': 1, 'author': 'د. سارة العمري', 'avatar': ImageService.doctor2, 'image': ImageService.banner1, 'title': 'نصائح للعناية بالبشرة', 'content': 'مع حلول فصل الصيف، احرصي على ترطيب بشرتك واستخدام واقي الشمس.', 'likes': 120, 'comments': ['تعليق 1', 'تعليق 2'], 'shares': 15, 'time': 'منذ ساعة', 'liked': false, 'bookmarked': false},
     {'id': 2, 'author': 'د. خالد النخلاني', 'avatar': ImageService.doctor2, 'image': ImageService.banner2, 'title': 'أهمية الفيتامينات', 'content': 'الفيتامينات عناصر أساسية لصحة الجسم، تأكد من تناولها.', 'likes': 95, 'comments': ['تعليق 1'], 'shares': 8, 'time': 'منذ 3 ساعات', 'liked': false, 'bookmarked': false},
     {'id': 3, 'author': 'د. أحمد المولد', 'avatar': ImageService.doctor1, 'image': ImageService.banner3, 'title': 'صحة القلب', 'content': 'القلب محرك الحياة، احرص على الرياضة والأكل الصحي.', 'likes': 210, 'comments': ['تعليق 1', 'تعليق 2', 'تعليق 3'], 'shares': 22, 'time': 'منذ 5 ساعات', 'liked': true, 'bookmarked': true},
@@ -925,14 +914,14 @@ class _HomeTabState extends State<HomeTab> {
               const SizedBox(height: 8),
               Text(
                 tip['title'] as String,
-                style: TextStyle(
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 13,
                 ),
               ),
               Text(
                 tip['subtitle'] as String,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 10,
                   color: Colors.grey,
                 ),
