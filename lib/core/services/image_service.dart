@@ -14,6 +14,36 @@ class ImageService {
   static const String _images = 'assets/images';
 
   // ============================================================
+  // 📌 البانرات (مؤقتاً نستخدم ألواناً بدلاً من الصور)
+  // ============================================================
+  static final List<Map<String, dynamic>> bannerData = [
+    {
+      'title': 'رعاية صحية متميزة',
+      'sub': 'احجز موعدك الآن مع أفضل الأطباء',
+      'color': Color(0xFF0D5257),
+      'icon': Icons.health_and_safety,
+    },
+    {
+      'title': 'صيدليتك في راحة يدك',
+      'sub': 'اطلب أدويتك وتصلك في أسرع وقت',
+      'color': Color(0xFF2E7D32),
+      'icon': Icons.local_pharmacy,
+    },
+    {
+      'title': 'مختبرات متطورة',
+      'sub': 'نتائج دقيقة وسريعة',
+      'color': Color(0xFF6A1B9A),
+      'icon': Icons.science,
+    },
+    {
+      'title': 'استشارات طبية فورية',
+      'sub': 'تحدث مع طبيبك عبر الفيديو والصوت',
+      'color': Color(0xFFC62828),
+      'icon': Icons.video_call,
+    },
+  ];
+
+  // ============================================================
   // 🎯 دالة واحدة موحدة لجميع الأيقونات (مثل مواعيدي)
   // ============================================================
   static Widget svgIcon(String path, {double width = 24, double height = 24, Color? color}) {
@@ -61,33 +91,96 @@ class ImageService {
   }
 
   // ============================================================
-  // 🖼️ البانرات (صور) - تستخدم Image.asset
+  // 🎨 بناء بانر بديل (بدون صورة) - نفس شكل البانر ولكن بألوان
   // ============================================================
-  static Widget bannerImage(String name, {double? width, double? height, BoxFit fit = BoxFit.cover}) {
-    return Image.asset(
-      '$_banners/$name',
-      width: width,
-      height: height,
-      fit: fit,
-      errorBuilder: (_, __, ___) => Container(
-        color: Colors.grey[200],
-        child: const Icon(Icons.image_not_supported, color: Colors.grey, size: 30),
+  static Widget buildBannerCard(Map<String, dynamic> banner, {double? height}) {
+    return Container(
+      height: height ?? 180,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            (banner['color'] as Color).withOpacity(0.9),
+            (banner['color'] as Color).withOpacity(0.6),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: (banner['color'] as Color).withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-    );
-  }
-
-  // ============================================================
-  // 🖼️ صور عامة - تستخدم Image.asset
-  // ============================================================
-  static Widget image(String path, {double? width, double? height, BoxFit fit = BoxFit.cover}) {
-    return Image.asset(
-      path,
-      width: width,
-      height: height,
-      fit: fit,
-      errorBuilder: (_, __, ___) => Container(
-        color: Colors.grey[200],
-        child: const Icon(Icons.image_not_supported, color: Colors.grey, size: 30),
+      child: Stack(
+        children: [
+          // ✅ خلفية مزخرفة
+          Positioned(
+            right: -20,
+            bottom: -20,
+            child: Icon(
+              banner['icon'] as IconData,
+              size: 120,
+              color: Colors.white.withOpacity(0.1),
+            ),
+          ),
+          // ✅ المحتوى
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(banner['icon'] as IconData, color: Colors.white, size: 14),
+                          const SizedBox(width: 4),
+                          Text(
+                            'صحتك',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.8),
+                              fontSize: 10,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  banner['title'] as String,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.right,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  banner['sub'] as String,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 13,
+                  ),
+                  textAlign: TextAlign.right,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
