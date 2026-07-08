@@ -16,11 +16,11 @@ class ImageService {
   static const String banner1 = '$_banners/banner_1.png';
   static const String banner2 = '$_banners/banner_2.png';
   static const String banner3 = '$_banners/banner_3.png';
-  static const String banner4 = '$_banners/banner_1.png'; // استخدام نفس الصورة مؤقتاً
+  static const String banner4 = '$_banners/banner_1.png';
   static const String banner5 = '$_banners/banner_2.png';
 
   // ============================================================
-  // 👨‍⚕️ صور الأطباء - (ستضاف لاحقاً في مجلد doctors)
+  // 👨‍⚕️ صور الأطباء (ستضاف لاحقاً)
   // ============================================================
   static const String doctor1 = '$_images/placeholder.png';
   static const String doctor2 = '$_images/placeholder.png';
@@ -32,7 +32,7 @@ class ImageService {
   static const String doctor8 = '$_images/placeholder.png';
 
   // ============================================================
-  // 💊 صور المنتجات - (ستضاف لاحقاً في مجلد medications)
+  // 💊 صور المنتجات (Products)
   // ============================================================
   static const String medicine1 = '$_images/placeholder.png';
   static const String medicine2 = '$_images/placeholder.png';
@@ -40,6 +40,17 @@ class ImageService {
   static const String medicine4 = '$_images/placeholder.png';
   static const String medicine5 = '$_images/placeholder.png';
   static const String medicine6 = '$_images/placeholder.png';
+  static const String medicine7 = '$_images/placeholder.png'; // ✅ تمت الإضافة
+  static const String medicine8 = '$_images/placeholder.png'; // ✅ تمت الإضافة
+  static const String medicine9 = '$_images/placeholder.png'; // ✅ تمت الإضافة
+  static const String medicine10 = '$_images/placeholder.png'; // ✅ تمت الإضافة
+
+  // ============================================================
+  // 🏥 صور الصيدليات والمختبرات
+  // ============================================================
+  static const String pharmacy1 = '$_images/placeholder.png'; // ✅ تمت الإضافة
+  static const String pharmacy2 = '$_images/placeholder.png'; // ✅ تمت الإضافة
+  static const String lab1 = '$_images/placeholder.png'; // ✅ تمت الإضافة
 
   // ============================================================
   // 🖼️ صور وهمية (Placeholders)
@@ -62,8 +73,8 @@ class ImageService {
   }
 
   static String getMedicineImage(int index) {
-    final images = [medicine1, medicine2, medicine3, medicine4, medicine5, medicine6];
-    return images[index % images.length];
+    final medicines = [medicine1, medicine2, medicine3, medicine4, medicine5, medicine6, medicine7, medicine8, medicine9, medicine10];
+    return medicines[index % medicines.length];
   }
 
   // ✅ أيقونات SVG من مجلد assets/icons/
@@ -72,4 +83,34 @@ class ImageService {
   static String navigationIcon(String name) => '$_icons/navigation/$name.svg';
   static String socialIcon(String name) => '$_icons/social/$name.svg';
   static String coreIcon(String name) => '$_icons/core/$name.svg';
+
+  // ✅ تحميل الصورة مع Caching (اختياري)
+  static Widget cachedImage(String url, {double? width, double? height, BoxFit fit = BoxFit.cover}) {
+    return CachedNetworkImage(
+      imageUrl: url,
+      width: width,
+      height: height,
+      fit: fit,
+      placeholder: (context, url) => _shimmerPlaceholder(width, height),
+      errorWidget: (context, url, error) => _errorPlaceholder(width, height),
+    );
+  }
+
+  static Widget _shimmerPlaceholder(double? width, double? height) {
+    return Container(
+      width: width,
+      height: height,
+      color: Colors.grey[300],
+      child: const Center(child: Icon(Icons.image, color: Colors.grey, size: 30)),
+    );
+  }
+
+  static Widget _errorPlaceholder(double? width, double? height) {
+    return Container(
+      width: width,
+      height: height,
+      color: Colors.grey[200],
+      child: const Center(child: Icon(Icons.broken_image, color: Colors.grey, size: 30)),
+    );
+  }
 }
