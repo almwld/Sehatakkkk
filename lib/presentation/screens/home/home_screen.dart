@@ -94,8 +94,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   bool get _logged => FirebaseAuth.instance.currentUser != null;
 
   void _auth(VoidCallback a) {
-    if (_logged) { a(); } 
-    else {
+    if (_logged) { 
+      a(); 
+    } else {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const AuthScreen()));
     }
   }
@@ -211,9 +212,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 }
 
-// ============================================================
-// 🏠 HomeTab - الشاشة الرئيسية
-// ============================================================
 class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
 
@@ -228,7 +226,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
 
-  // ✅ البانرات - بدون نصوص (الصور تحتوي على النصوص)
   final List<String> _bannerImages = [
     'assets/images/banners/banner_1.png',
     'assets/images/banners/banner_2.png',
@@ -236,7 +233,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     'assets/images/banners/banner_4.png',
   ];
 
-  // ✅ باقي البيانات
   final List<Map<String, dynamic>> _topDoctors = [
     {'id': '1', 'name': 'د. أحمد المولد', 'specialty': 'باطنية', 'rating': 4.9, 'reviews': 328, 'image': ImageService.doctor1, 'available': true},
     {'id': '2', 'name': 'د. خالد النخلاني', 'specialty': 'قلبية', 'rating': 4.8, 'reviews': 256, 'image': ImageService.doctor2, 'available': true},
@@ -419,7 +415,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
         body: CustomScrollView(
           controller: _scrollController,
           slivers: [
-            // ✅ AppBar
             SliverAppBar(
               expandedHeight: 90,
               floating: true,
@@ -489,48 +484,32 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                 ),
               ),
             ),
-            // ✅ المحتوى
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                  // 1️⃣ شريط البحث
                   _buildSearchBar(isDark),
                   const SizedBox(height: 16),
-
-                  // 2️⃣ البانر المتحرك - بدون نصوص
                   _buildBannerCarousel(isDark, primaryColor),
                   const SizedBox(height: 20),
-
-                  // 3️⃣ الإحصائيات
                   _buildStatsRow(),
                   const SizedBox(height: 20),
-
-                  // 4️⃣ الخدمات السريعة
                   _buildSectionTitle('خدمات سريعة', isDark),
                   const SizedBox(height: 10),
                   _buildQuickServicesRow(),
                   const SizedBox(height: 24),
-
-                  // 5️⃣ أفضل الأطباء
                   _buildSectionTitle('أفضل الأطباء', isDark),
                   const SizedBox(height: 10),
                   _buildTopDoctorsRow(),
                   const SizedBox(height: 24),
-
-                  // 6️⃣ منتجات صيدلية
                   _buildSectionTitle('منتجات صيدلية', isDark),
                   const SizedBox(height: 10),
                   _buildProductsRow(),
                   const SizedBox(height: 24),
-
-                  // 7️⃣ نصائح يومية
                   _buildSectionTitle('نصائح يومية', isDark),
                   const SizedBox(height: 10),
                   _buildDailyTipsGrid(),
                   const SizedBox(height: 24),
-
-                  // 8️⃣ مجتمع صحتك
                   _buildSectionTitle('مجتمع صحتك', isDark),
                   const SizedBox(height: 10),
                   ..._communityPosts.asMap().entries.map((entry) {
@@ -548,7 +527,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  // ✅ شريط البحث
   Widget _buildSearchBar(bool isDark) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -579,7 +557,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  // ✅ البانر المتحرك - بدون نصوص، مع نقاط في اليمين
   Widget _buildBannerCarousel(bool isDark, Color primaryColor) {
     return Column(
       children: [
@@ -608,7 +585,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
           }).toList(),
         ),
         const SizedBox(height: 12),
-        // ✅ نقاط التصفح - في اليمين
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: _bannerImages.asMap().entries.map((entry) {
@@ -632,7 +608,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  // ✅ الإحصائيات
   Widget _buildStatsRow() {
     final stats = [
       {'icon': Icons.medical_services, 'value': '150+', 'label': 'أطباء', 'color': AppColors.primary},
@@ -676,7 +651,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  // ✅ عنوان القسم
   Widget _buildSectionTitle(String title, bool isDark) {
     return Text(
       title,
@@ -688,7 +662,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  // ✅ الخدمات السريعة
   Widget _buildQuickServicesRow() {
     return SizedBox(
       height: 80,
@@ -728,7 +701,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  // ✅ أفضل الأطباء
   Widget _buildTopDoctorsRow() {
     return SizedBox(
       height: 110,
@@ -822,7 +794,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                       ],
                     ),
                   ),
-                ),
+                ],
               ),
             ),
           );
@@ -830,7 +802,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
       ),
     );
   }
-  // ✅ المنتجات
+
   Widget _buildProductsRow() {
     return SizedBox(
       height: 150,
@@ -905,7 +877,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  // ✅ النصائح اليومية
   Widget _buildDailyTipsGrid() {
     return GridView.builder(
       shrinkWrap: true,
@@ -956,7 +927,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  // ✅ منشورات المجتمع
   Widget _buildCommunityPostCard(Map<String, dynamic> post, int index, bool isDark) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
