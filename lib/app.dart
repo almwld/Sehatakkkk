@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:sehatak/core/providers/user_provider.dart';
@@ -196,24 +195,14 @@ class SehatakApp extends StatelessWidget {
         return MaterialApp(
           title: 'صحتك',
           debugShowCheckedModeBanner: false,
-          
-          // ✅ إجبار التطبيق على RTL عربي
           locale: const Locale('ar', 'YE'),
-          supportedLocales: const [
-            Locale('ar', 'YE'),
-          ],
-          
-          // ✅ المفتاح السحري لـ RTL
+          supportedLocales: const [Locale('ar', 'YE')],
           localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
+            // ✅ استخدام الـ Localizations المدمجة في Flutter
           ],
-          
           localeResolutionCallback: (locale, supportedLocales) {
             return const Locale('ar', 'YE');
           },
-          
           theme: lightTheme,
           darkTheme: darkTheme,
           themeMode: themeMode,

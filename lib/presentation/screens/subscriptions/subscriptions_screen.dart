@@ -30,13 +30,11 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
   Future<void> _loadSubscription() async {
     setState(() => _isLoading = true);
     try {
-      // ✅ جلب الاشتراك النشط
-      # final doc = null;('current_user');
-      setState(() {
-        _activeSub = doc;
-        _isLoading = false;
-      });
+      // ✅ مؤقتاً: استخدام بيانات وهمية
+      _activeSub = null;
     } catch (e) {
+      // تجاهل
+    } finally {
       setState(() => _isLoading = false);
     }
   }
