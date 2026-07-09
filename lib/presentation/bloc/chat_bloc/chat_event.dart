@@ -13,6 +13,13 @@ class LoadChatMessages extends ChatEvent {
   List<Object?> get props => [chatId];
 }
 
+class ListenToMessages extends ChatEvent {
+  final String chatId;
+  const ListenToMessages(this.chatId);
+  @override
+  List<Object?> get props => [chatId];
+}
+
 class SendChatMessage extends ChatEvent {
   final String chatId;
   final String text;
@@ -26,4 +33,16 @@ class SendChatMessage extends ChatEvent {
   });
   @override
   List<Object?> get props => [chatId, text, imageUrl, audioUrl];
+}
+
+class LoadChatList extends ChatEvent {
+  final String userId;
+  final String role;
+  const LoadChatList({required this.userId, required this.role});
+  @override
+  List<Object?> get props => [userId, role];
+}
+
+class StopListening extends ChatEvent {
+  const StopListening();
 }

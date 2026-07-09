@@ -17,6 +17,13 @@ class ChatLoadedState extends ChatState {
   List<Object?> get props => [messages];
 }
 
+class ChatListLoadedState extends ChatState {
+  final List<Map<String, dynamic>> chats;
+  const ChatListLoadedState(this.chats);
+  @override
+  List<Object?> get props => [chats];
+}
+
 class ChatErrorState extends ChatState {
   final String message;
   const ChatErrorState(this.message);
