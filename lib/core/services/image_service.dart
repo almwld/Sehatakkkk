@@ -15,7 +15,7 @@ class ImageService {
   static const String _iconsSocial = 'assets/icons/social';
 
   // ============================================================
-  // 🖼️ البانرات (Banners)
+  // 🖼️ البانرات
   // ============================================================
   static const String banner1 = '$_banners/banner_1.png';
   static const String banner2 = '$_banners/banner_2.png';
@@ -62,13 +62,26 @@ class ImageService {
   static const String lab1 = '$_images/placeholder.png';
 
   // ============================================================
-  // 📌 أيقونات SVG
+  // 🖼️ أيقونات SVG مع حجم
   // ============================================================
-  static String coreIcon(String name) => '$_iconsCore/$name.svg';
-  static String navIcon(String name) => '$_iconsNav/$name.svg';
-  static String specialtyIcon(String name) => '$_iconsSpecialties/$name.svg';
-  static String miniIcon(String name) => '$_iconsMini/$name.svg';
-  static String socialIcon(String name) => '$_iconsSocial/$name.svg';
+  static Widget svgIcon(String path, {double size = 24, Color? color}) {
+    return SvgPicture.asset(
+      path,
+      width: size,
+      height: size,
+      colorFilter: color != null ? ColorFilter.mode(color, BlendMode.srcIn) : null,
+    );
+  }
+
+  // ✅ أيقونة Navigation مع حجم
+  static Widget navIcon(String name, {double size = 24, Color? color}) {
+    return svgIcon('$_iconsNav/$name.svg', size: size, color: color);
+  }
+
+  // ✅ أيقونة Core مع حجم
+  static Widget coreIcon(String name, {double size = 24, Color? color}) {
+    return svgIcon('$_iconsCore/$name.svg', size: size, color: color);
+  }
 
   // ============================================================
   // 🎯 عرض البانر
@@ -173,18 +186,6 @@ class ImageService {
           );
         },
       ),
-    );
-  }
-
-  // ============================================================
-  // 🖼️ أيقونة SVG
-  // ============================================================
-  static Widget svgIcon(String path, {double size = 24, Color? color}) {
-    return SvgPicture.asset(
-      path,
-      width: size,
-      height: size,
-      colorFilter: color != null ? ColorFilter.mode(color, BlendMode.srcIn) : null,
     );
   }
 }
