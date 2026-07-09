@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -551,7 +552,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                         if (chat['unreadCount'] != null && chat['unreadCount'] > 0)
                           Container(
                             padding: const EdgeInsets.all(6),
-                            decoration: const BoxDecoration(color: primaryColor, shape: BoxShape.circle),
+                            decoration: BoxDecoration(color: primaryColor, shape: BoxShape.circle),
                             child: Text(
                               '${chat['unreadCount']}',
                               style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),

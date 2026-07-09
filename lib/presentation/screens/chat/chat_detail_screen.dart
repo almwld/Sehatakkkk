@@ -329,7 +329,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
             child: Icon(
               Icons.chat_bubble_outline_rounded,
               size: 60,
-              color: isDark ? Colors.grey[600] : Colors.grey[300],
+              color: isDark ? Colors.grey[600]! : Colors.grey[300],
             ),
           ),
           const SizedBox(height: 16),
@@ -652,7 +652,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
                 color: isTyping ? AppColors.primary : Colors.transparent,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isTyping ? AppColors.primary : (isDark ? Colors.grey[600] : Colors.grey[300]),
+                  color: isTyping ? AppColors.primary : (isDark ? Colors.grey[600]! : Colors.grey[300]!),
                   width: 1.5,
                 ),
               ),

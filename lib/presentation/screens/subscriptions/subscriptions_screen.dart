@@ -31,7 +31,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     setState(() => _isLoading = true);
     try {
       // ✅ جلب الاشتراك النشط
-      final doc = await _paymentService.getActiveSubscription('current_user');
+      # final doc = null;('current_user');
       setState(() {
         _activeSub = doc;
         _isLoading = false;
