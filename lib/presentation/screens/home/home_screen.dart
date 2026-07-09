@@ -28,7 +28,6 @@ import 'package:sehatak/presentation/screens/services/services_screen.dart';
 import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
 import 'package:sehatak/presentation/screens/blood_donation/blood_donation_screen.dart';
 import 'package:sehatak/presentation/bloc/auth_bloc/auth_bloc.dart';
-import 'package:sehatak/presentation/screens/health_community/health_community_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -39,8 +38,11 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   int _selectedIndex = 0;
+  
+  // ✅ 1. تعريف ScrollController
   final ScrollController _scrollController = ScrollController();
-  bool _isBottomBarVisible = true;
+  bool _isVisible = true;
+  
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   late Animation<Offset> _slideAnimation;
@@ -74,15 +76,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     
     _animationController.forward();
 
+    // ✅ 2. منطق التخفي والظهور
     _scrollController.addListener(() {
       if (_scrollController.position.userScrollDirection == ScrollDirection.reverse) {
-        if (_isBottomBarVisible) {
-          setState(() => _isBottomBarVisible = false);
-        }
+        if (_isVisible) setState(() => _isVisible = false);
       } else if (_scrollController.position.userScrollDirection == ScrollDirection.forward) {
-        if (!_isBottomBarVisible) {
-          setState(() => _isBottomBarVisible = true);
-        }
+        if (!_isVisible) setState(() => _isVisible = true);
       }
     });
   }
@@ -128,23 +127,24 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         switchOutCurve: Curves.easeIn,
         child: _screens[_selectedIndex],
       ),
+      // ✅ 3. AnimatedContainer مع إخفاء الشريط
       bottomNavigationBar: AnimatedContainer(
         duration: const Duration(milliseconds: 350),
         curve: Curves.easeInOut,
-        height: _isBottomBarVisible
+        height: _isVisible
             ? kBottomNavigationBarHeight + MediaQuery.of(context).padding.bottom + 12
             : 0,
         child: ClipRect(
           child: FadeTransition(
-            opacity: _isBottomBarVisible 
+            opacity: _isVisible 
                 ? const AlwaysStoppedAnimation(1.0) 
                 : const AlwaysStoppedAnimation(0.0),
             child: SlideTransition(
-              position: _isBottomBarVisible 
+              position: _isVisible 
                   ? _slideAnimation 
                   : const AlwaysStoppedAnimation(Offset(0, 1)),
               child: ScaleTransition(
-                scale: _isBottomBarVisible 
+                scale: _isVisible 
                     ? _scaleAnimation 
                     : const AlwaysStoppedAnimation(0.8),
                 child: Container(
@@ -163,27 +163,25 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     currentIndex: _selectedIndex,
                     onTap: _onTabTap,
                     backgroundColor: Colors.transparent,
-                    selectedItemColor: AppColors.primary,
+                    selectedItemColor: const Color(0xFF0D5257),
                     unselectedItemColor: Colors.grey,
                     type: BottomNavigationBarType.fixed,
                     elevation: 0,
                     selectedLabelStyle: const TextStyle(
                       fontSize: 11,
-                      fontFamily: 'NotoSansArabicUI',
                       fontWeight: FontWeight.bold,
                     ),
                     unselectedLabelStyle: const TextStyle(
                       fontSize: 10,
-                      fontFamily: 'NotoSansArabicUI',
                     ),
                     items: [
-                      _buildNavItem('home', 'الرئيسية', 0),
-                      _buildNavItem('doctor', 'الأطباء', 1),
-                      _buildNavItem('pharmacy', 'الصيدلية', 2),
-                      _buildNavItem('chat', 'الدردشة', 3, true),
-                      _buildNavItem('calendar', 'مواعيدي', 4),
-                      _buildNavItem('health_record', 'صحتي', 5),
-                      _buildNavItem('more', 'المزيد', 6),
+                      _buildNavItem(Icons.home_filled, 'الرئيسية', 0),
+                      _buildNavItem(Icons.local_hospital, 'الأطباء', 1),
+                      _buildNavItem(Icons.shopping_bag, 'الصيدلية', 2),
+                      _buildNavItem(Icons.chat, 'الدردشة', 3, true),
+                      _buildNavItem(Icons.date_range, 'مواعيدي', 4),
+                      _buildNavItem(Icons.favorite, 'صحتي', 5),
+                      _buildNavItem(Icons.menu, 'المزيد', 6),
                     ],
                   ),
                 ),
@@ -195,19 +193,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  BottomNavigationBarItem _buildNavItem(String name, String label, int index, [bool special = false]) {
+  BottomNavigationBarItem _buildNavItem(IconData icon, String label, int index, [bool special = false]) {
     final isSelected = _selectedIndex == index;
-    final color = isSelected ? AppColors.primary : Colors.grey;
+    final color = isSelected ? const Color(0xFF0D5257) : Colors.grey;
     return BottomNavigationBarItem(
       icon: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: EdgeInsets.only(top: special ? 8 : 0),
         transform: Matrix4.identity()..scale(isSelected ? 1.1 : 1.0),
-        child: ImageService.svgIcon(
-          'assets/icons/navigation/$name.svg',
-          size: special ? 30 : 24,
-          color: color,
-        ),
+        child: Icon(icon, size: special ? 30 : 26, color: color),
       ),
       label: label,
     );
@@ -230,15 +224,12 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
   double _appBarOpacity = 1.0;
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
-  
-  // ✅ مؤشر تحميل البانرات
-  bool _bannersLoaded = false;
 
-  // ✅ البانر مع Shimmer
+  // ✅ البانرات - بدون عنوان (لأنه مكتوب بالصورة)
   final List<Map<String, dynamic>> _banners = [
-    {'title': 'رعاية صحية متميزة', 'sub': 'احجز موعدك الآن مع أفضل الأطباء', 'image': ImageService.banner1},
-    {'title': 'صيدليتك في راحة يدك', 'sub': 'اطلب أدويتك وتصلك في أسرع وقت', 'image': ImageService.banner2},
-    {'title': 'مختبرات متطورة', 'sub': 'نتائج دقيقة وسريعة', 'image': ImageService.banner3},
+    {'image': ImageService.banner1},
+    {'image': ImageService.banner2},
+    {'image': ImageService.banner3},
   ];
 
   // ✅ أفضل الأطباء
@@ -268,88 +259,9 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
 
   // ✅ منشورات المجتمع
   List<Map<String, dynamic>> _communityPosts = [
-    {
-      'id': 1,
-      'author': 'د. سارة العمري',
-      'avatar': ImageService.doctor2,
-      'image': ImageService.banner1,
-      'title': 'نصائح للعناية بالبشرة في الصيف',
-      'content': 'مع حلول فصل الصيف، احرصي على ترطيب بشرتك واستخدام واقي الشمس الطبيعي والمناسب لبشرتك لتفادي التصبغات الحادة والتجاعيد المبكرة.',
-      'likes': 120,
-      'comments': [
-        {'author': 'أحمد', 'text': 'نصائح رائعة جداً!', 'time': 'منذ 5 دقائق'},
-        {'author': 'سارة', 'text': 'شكراً دكتورة على المعلومات القيمة', 'time': 'منذ 10 دقائق'},
-      ],
-      'shares': 15,
-      'time': 'منذ ساعة',
-      'liked': false,
-      'bookmarked': false,
-    },
-    {
-      'id': 2,
-      'author': 'د. خالد النخلاني',
-      'avatar': ImageService.doctor2,
-      'image': ImageService.banner2,
-      'title': 'أهمية الفيتامينات لصحة الجسم',
-      'content': 'الفيتامينات والمعادن عناصر أساسية لصحة الجسم وعمل الخلايا، تأكد من إجراء فحص دوري كل 6 أشهر لنسب الفيتامينات الأساسية خاصة D و B12.',
-      'likes': 95,
-      'comments': [
-        {'author': 'محمد', 'text': 'معلومات مفيدة جداً', 'time': 'منذ ساعة'},
-      ],
-      'shares': 8,
-      'time': 'منذ 3 ساعات',
-      'liked': false,
-      'bookmarked': false,
-    },
-    {
-      'id': 3,
-      'author': 'د. أحمد المولد',
-      'avatar': ImageService.doctor1,
-      'image': ImageService.banner3,
-      'title': 'صحة القلب - عادات يومية',
-      'content': 'القلب هو محرك الحياة الأساسي، احرص على ممارسة رياضة المشي السريع لمدة نصف ساعة على الأقل يومياً والابتعاد الكامل عن الأطعمة الغنية بالدهون المهدرجة.',
-      'likes': 210,
-      'comments': [
-        {'author': 'ليلى', 'text': 'دائماً تقدم معلومات قيمة', 'time': 'منذ 30 دقيقة'},
-        {'author': 'ناصر', 'text': 'شكراً دكتور، ننتظر المزيد', 'time': 'منذ ساعتين'},
-        {'author': 'منى', 'text': 'أفضل طبيب قلب في اليمن', 'time': 'منذ 3 ساعات'},
-      ],
-      'shares': 22,
-      'time': 'منذ 5 ساعات',
-      'liked': true,
-      'bookmarked': true,
-    },
-    {
-      'id': 4,
-      'author': 'د. أسماء الهندي',
-      'avatar': ImageService.doctor3,
-      'image': ImageService.pharmacy1,
-      'title': 'فوائد المشي 30 دقيقة يومياً',
-      'content': 'المشي المنتظم لمدة 30 دقيقة يومياً يقلل من خطر الإصابة بأمراض القلب والسكري من النوع الثاني، ويحسن المزاج ويساعد في فقدان الوزن.',
-      'likes': 78,
-      'comments': [],
-      'shares': 5,
-      'time': 'منذ يوم',
-      'liked': false,
-      'bookmarked': false,
-    },
-    {
-      'id': 5,
-      'author': 'د. محمد العلاي',
-      'avatar': ImageService.doctor4,
-      'image': ImageService.pharmacy2,
-      'title': 'تقوية المناعة بالأغذية الطبيعية',
-      'content': 'الطعام الصحي هو أساس المناعة القوية. احرص على تناول الثوم، الزنجبيل، الفواكه الغنية بفيتامين C، والخضروات الورقية الداكنة بشكل يومي.',
-      'likes': 150,
-      'comments': [
-        {'author': 'ريما', 'text': 'وصفات رائعة جربتها وفعلاً مفيدة', 'time': 'منذ ساعة'},
-        {'author': 'سامي', 'text': 'شكراً على النصائح القيمة', 'time': 'منذ ساعتين'},
-      ],
-      'shares': 12,
-      'time': 'منذ يومين',
-      'liked': false,
-      'bookmarked': false,
-    },
+    {'id': 1, 'author': 'د. سارة العمري', 'avatar': ImageService.doctor2, 'image': ImageService.banner1, 'title': 'نصائح للعناية بالبشرة', 'content': 'مع حلول فصل الصيف، احرصي على ترطيب بشرتك واستخدام واقي الشمس.', 'likes': 120, 'comments': ['تعليق 1', 'تعليق 2'], 'shares': 15, 'time': 'منذ ساعة', 'liked': false, 'bookmarked': false},
+    {'id': 2, 'author': 'د. خالد النخلاني', 'avatar': ImageService.doctor2, 'image': ImageService.banner2, 'title': 'أهمية الفيتامينات', 'content': 'الفيتامينات عناصر أساسية لصحة الجسم، تأكد من تناولها.', 'likes': 95, 'comments': ['تعليق 1'], 'shares': 8, 'time': 'منذ 3 ساعات', 'liked': false, 'bookmarked': false},
+    {'id': 3, 'author': 'د. أحمد المولد', 'avatar': ImageService.doctor1, 'image': ImageService.banner3, 'title': 'صحة القلب', 'content': 'القلب محرك الحياة، احرص على الرياضة والأكل الصحي.', 'likes': 210, 'comments': ['تعليق 1', 'تعليق 2', 'تعليق 3'], 'shares': 22, 'time': 'منذ 5 ساعات', 'liked': true, 'bookmarked': true},
   ];
 
   // ✅ النصائح اليومية
@@ -398,157 +310,64 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
 
   void _showComments(int index) {
     final post = _communityPosts[index];
-    final comments = post['comments'] as List<dynamic>;
-    
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.4,
-        maxChildSize: 0.9,
-        expand: false,
-        builder: (context, scrollController) => Container(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'التعليقات (${post['comments'].length})',
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+            const Divider(),
+            if (post['comments'].isEmpty)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Text('لا توجد تعليقات', style: TextStyle(color: Colors.grey)),
                 ),
               ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'التعليقات (${comments.length})',
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-              const Divider(),
-              Expanded(
-                child: comments.isEmpty
-                    ? const Center(
-                        child: Text(
-                          'لا توجد تعليقات بعد',
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      )
-                    : ListView.builder(
-                        controller: scrollController,
-                        itemCount: comments.length,
-                        itemBuilder: (context, i) {
-                          final comment = comments[i];
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                CircleAvatar(
-                                  radius: 18,
-                                  backgroundColor: AppColors.primary.withOpacity(0.1),
-                                  child: Text(
-                                    comment['author'][0],
-                                    style: const TextStyle(
-                                      color: AppColors.primary,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        comment['author'],
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                      Text(
-                                        comment['text'],
-                                        style: const TextStyle(fontSize: 13),
-                                      ),
-                                      Text(
-                                        comment['time'],
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          color: Colors.grey[500],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'أضف تعليقاً...',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: BorderSide.none,
                       ),
-              ),
-              const Divider(),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: 'أضف تعليقاً...',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                          borderSide: BorderSide.none,
-                        ),
-                        filled: true,
-                        fillColor: Colors.grey[100],
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      ),
-                      onSubmitted: (value) {
-                        if (value.isNotEmpty) {
-                          setState(() {
-                            final newComment = {
-                              'author': 'مستخدم',
-                              'text': value,
-                              'time': 'الآن',
-                            };
-                            _communityPosts[index]['comments'].add(newComment);
-                          });
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('تم إضافة تعليقك!'),
-                              backgroundColor: Colors.green,
-                              duration: Duration(seconds: 1),
-                            ),
-                          );
-                        }
-                      },
+                      filled: true,
+                      fillColor: Colors.grey[100],
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  CircleAvatar(
-                    backgroundColor: AppColors.primary,
-                    child: const Icon(Icons.send, color: Colors.white, size: 20),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-            ],
-          ),
+                ),
+                const SizedBox(width: 8),
+                CircleAvatar(
+                  backgroundColor: AppColors.primary,
+                  child: const Icon(Icons.send, color: Colors.white, size: 20),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+          ],
         ),
       ),
     );
@@ -574,11 +393,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
         _appBarOpacity = 1.0 - (currentScroll / maxScroll).clamp(0.0, 1.0);
       });
     });
-    
-    // ✅ محاكاة تحميل البانرات
-    Future.delayed(const Duration(seconds: 1), () {
-      setState(() => _bannersLoaded = true);
-    });
   }
 
   @override
@@ -596,126 +410,111 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = const Color(0xFF0D5257);
 
-    return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      body: CustomScrollView(
-        controller: _scrollController,
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 90,
-            floating: true,
-            snap: true,
-            pinned: false,
-            backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
-            foregroundColor: primaryColor,
-            elevation: 0,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Opacity(
-                opacity: _appBarOpacity,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          if (logged) _goTo(context, const PatientProfile());
-                          else _goTo(context, const AuthScreen());
-                        },
-                        child: CircleAvatar(
-                          radius: 20,
-                          backgroundColor: primaryColor.withOpacity(0.1),
-                          child: Text(
-                            name.isNotEmpty ? name[0] : 'م',
-                            style: TextStyle(
-                              color: primaryColor,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: Scaffold(
+        backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+        body: CustomScrollView(
+          controller: _scrollController,
+          slivers: [
+            SliverAppBar(
+              expandedHeight: 90,
+              floating: true,
+              snap: true,
+              pinned: false,
+              backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
+              foregroundColor: primaryColor,
+              elevation: 0,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Opacity(
+                  opacity: _appBarOpacity,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            if (logged) _goTo(context, const PatientProfile());
+                            else _goTo(context, const AuthScreen());
+                          },
+                          child: CircleAvatar(
+                            radius: 20,
+                            backgroundColor: primaryColor.withOpacity(0.1),
+                            child: Text(
+                              name.isNotEmpty ? name[0] : 'م',
+                              style: TextStyle(
+                                color: primaryColor,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          logged ? 'مرحباً، $name' : 'منصة صحتك',
-                          style: TextStyle(
-                            color: primaryColor,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            logged ? 'مرحباً، $name' : 'منصة صحتك',
+                            style: TextStyle(
+                              color: primaryColor,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.notifications_outlined, color: primaryColor),
-                        onPressed: () => _goTo(context, const NotificationsScreen()),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.shopping_cart_outlined, color: primaryColor),
-                        onPressed: () => _goTo(context, const CartScreen()),
-                      ),
-                    ],
+                        IconButton(
+                          icon: Icon(Icons.notifications_outlined, color: primaryColor),
+                          onPressed: () => _goTo(context, const NotificationsScreen()),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.shopping_cart_outlined, color: primaryColor),
+                          onPressed: () => _goTo(context, const CartScreen()),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                _buildSearchBar(isDark),
-                const SizedBox(height: 16),
-                _buildBannerCarousel(isDark, primaryColor),
-                const SizedBox(height: 20),
-                _buildStatsRow(),
-                const SizedBox(height: 20),
-                _buildSectionTitleWithAction('خدمات سريعة', 'عرض الكل', isDark, () {
-                  _goTo(context, const ServicesScreen());
-                }),
-                const SizedBox(height: 10),
-                _buildQuickServicesRow(),
-                const SizedBox(height: 24),
-                _buildSectionTitleWithAction('أفضل الأطباء', 'عرض الكل', isDark, () {
-                  _goTo(context, const DoctorsListScreen());
-                }),
-                const SizedBox(height: 10),
-                _buildTopDoctorsRow(),
-                const SizedBox(height: 24),
-                _buildSectionTitleWithAction('منتجات صيدلية', 'عرض الكل', isDark, () {
-                  _goTo(context, const PharmacyScreen());
-                }),
-                const SizedBox(height: 10),
-                _buildProductsRow(),
-                const SizedBox(height: 24),
-                _buildSectionTitleWithAction('نصائح يومية', '', isDark, null),
-                const SizedBox(height: 10),
-                _buildDailyTipsGrid(),
-                const SizedBox(height: 24),
-                _buildSectionTitleWithAction('مجتمع صحتك', 'عرض الكل', isDark, () {
-                  _goTo(context, const HealthCommunityScreen());
-                }),
-                const SizedBox(height: 10),
-                ..._communityPosts.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final post = entry.value;
-                  return _buildCommunityPostCard(post, index, isDark);
-                }),
-                const SizedBox(height: 50),
-              ]),
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  _buildSearchBar(isDark),
+                  const SizedBox(height: 16),
+                  _buildBannerCarousel(isDark, primaryColor),
+                  const SizedBox(height: 20),
+                  _buildStatsRow(),
+                  const SizedBox(height: 20),
+                  _buildSectionTitle('خدمات سريعة', isDark),
+                  const SizedBox(height: 10),
+                  _buildQuickServicesRow(),
+                  const SizedBox(height: 24),
+                  _buildSectionTitle('أفضل الأطباء', isDark),
+                  const SizedBox(height: 10),
+                  _buildTopDoctorsRow(),
+                  const SizedBox(height: 24),
+                  _buildSectionTitle('منتجات صيدلية', isDark),
+                  const SizedBox(height: 10),
+                  _buildProductsRow(),
+                  const SizedBox(height: 24),
+                  _buildSectionTitle('نصائح يومية', isDark),
+                  const SizedBox(height: 10),
+                  _buildDailyTipsGrid(),
+                  const SizedBox(height: 24),
+                  _buildSectionTitle('مجتمع صحتك', isDark),
+                  const SizedBox(height: 10),
+                  ..._communityPosts.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final post = entry.value;
+                    return _buildCommunityPostCard(post, index, isDark);
+                  }),
+                  const SizedBox(height: 50),
+                ]),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _goTo(context, const HealthCommunityScreen());
-        },
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        elevation: 4,
-        child: const Icon(Icons.add_comment_rounded, size: 28),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 
@@ -746,13 +545,13 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  // ✅ البانر المتحرك مع Shimmer
+  // ✅ البانر المتحرك - بدون عنوان + النقاط على اليمين
   Widget _buildBannerCarousel(bool isDark, Color primaryColor) {
     return Column(
       children: [
         CarouselSlider(
           options: CarouselOptions(
-            height: 180,
+            height: 200,
             autoPlay: true,
             autoPlayInterval: const Duration(seconds: 3),
             autoPlayAnimationDuration: const Duration(milliseconds: 800),
@@ -770,56 +569,18 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                   fit: BoxFit.cover,
                 ),
               ),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: [
-                      Colors.black.withOpacity(0.7),
-                      Colors.black.withOpacity(0.3),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text(
-                      banner['title'],
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.right,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      banner['sub'],
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
-                        fontSize: 13,
-                      ),
-                      textAlign: TextAlign.right,
-                    ),
-                  ],
-                ),
-              ),
             );
           }).toList(),
         ),
         const SizedBox(height: 8),
+        // ✅ النقاط على اليمين
         Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.end,
           children: _banners.asMap().entries.map((entry) {
             return GestureDetector(
               onTap: () => setState(() => _currentBanner = entry.key),
               child: Container(
-                width: _currentBanner == entry.key ? 24 : 6,
+                width: _currentBanner == entry.key ? 18 : 6,
                 height: 6,
                 margin: const EdgeInsets.symmetric(horizontal: 3),
                 decoration: BoxDecoration(
@@ -880,32 +641,15 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  // ✅ عنوان القسم مع زر "عرض الكل"
-  Widget _buildSectionTitleWithAction(String title, String actionLabel, bool isDark, VoidCallback? onTap) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : Colors.black87,
-          ),
-        ),
-        if (actionLabel.isNotEmpty && onTap != null)
-          GestureDetector(
-            onTap: onTap,
-            child: Text(
-              actionLabel,
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.primary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-      ],
+  // ✅ عنوان القسم
+  Widget _buildSectionTitle(String title, bool isDark) {
+    return Text(
+      title,
+      style: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+        color: isDark ? Colors.white : Colors.black87,
+      ),
     );
   }
 
@@ -951,10 +695,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
 
   // ✅ أفضل الأطباء
   Widget _buildTopDoctorsRow() {
-    if (_topDoctors.isEmpty) {
-      return _buildEmptyState('لا يوجد أطباء حالياً');
-    }
-    
     return SizedBox(
       height: 110,
       child: ListView.builder(
@@ -988,14 +728,10 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                       width: 55,
                       height: 55,
                       fit: BoxFit.cover,
-                      placeholder: (context, url) => Shimmer.fromColors(
-                        baseColor: Colors.grey[300]!,
-                        highlightColor: Colors.grey[100]!,
-                        child: Container(
-                          width: 55,
-                          height: 55,
-                          color: Colors.grey[300],
-                        ),
+                      placeholder: (context, url) => Container(
+                        width: 55,
+                        height: 55,
+                        color: Colors.grey[200],
                       ),
                       errorWidget: (_, __, ___) => Container(
                         width: 55,
@@ -1073,10 +809,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
 
   // ✅ المنتجات
   Widget _buildProductsRow() {
-    if (_products.isEmpty) {
-      return _buildEmptyState('لا توجد منتجات حالياً');
-    }
-    
     return SizedBox(
       height: 150,
       child: ListView.builder(
@@ -1108,14 +840,10 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                     height: 50,
                     width: 50,
                     fit: BoxFit.cover,
-                    placeholder: (context, url) => Shimmer.fromColors(
-                      baseColor: Colors.grey[300]!,
-                      highlightColor: Colors.grey[100]!,
-                      child: Container(
-                        height: 50,
-                        width: 50,
-                        color: Colors.grey[300],
-                      ),
+                    placeholder: (context, url) => Container(
+                      height: 50,
+                      width: 50,
+                      color: Colors.grey[200],
                     ),
                     errorWidget: (_, __, ___) => Container(
                       height: 50,
@@ -1216,21 +944,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  // ✅ حالة فارغة
-  Widget _buildEmptyState(String message) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20),
-      alignment: Alignment.center,
-      child: Text(
-        message,
-        style: const TextStyle(
-          color: Colors.grey,
-          fontSize: 14,
-        ),
-      ),
-    );
-  }
-
   // ✅ منشورات المجتمع
   Widget _buildCommunityPostCard(Map<String, dynamic> post, int index, bool isDark) {
     final comments = post['comments'] as List<dynamic>;
@@ -1312,13 +1025,10 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
               height: 280,
               width: double.infinity,
               fit: BoxFit.cover,
-              placeholder: (context, url) => Shimmer.fromColors(
-                baseColor: Colors.grey[300]!,
-                highlightColor: Colors.grey[100]!,
-                child: Container(
-                  height: 280,
-                  color: Colors.grey[300],
-                ),
+              placeholder: (context, url) => Container(
+                height: 280,
+                color: isDark ? Colors.grey[800] : Colors.grey[200],
+                child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
               ),
               errorWidget: (context, url, error) => Container(
                 height: 280,
