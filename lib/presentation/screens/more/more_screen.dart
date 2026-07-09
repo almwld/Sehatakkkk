@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sehatak/core/services/image_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -46,6 +45,7 @@ import 'package:sehatak/presentation/screens/privacy/privacy_screen.dart';
 import 'package:sehatak/presentation/screens/notifications/notifications_screen.dart';
 import 'package:sehatak/presentation/screens/subscriptions/subscriptions_screen.dart';
 import 'package:sehatak/presentation/screens/help_center/help_center_screen.dart';
+import 'package:sehatak/presentation/screens/exercise_plan/exercise_plan_screen.dart';
 
 class MoreScreen extends StatefulWidget {
   const MoreScreen({super.key});
@@ -68,10 +68,10 @@ class _MoreScreenState extends State<MoreScreen> {
   ];
 
   final List<Map<String, dynamic>> _vitals = [
-    {'title': 'عداد الخطوات', 'value': '5,230', 'unit': 'خطوة', 'icon': ImageService.miniSpecialtyImageService.svgIcon('bone'), 'color': Colors.orange, 'status': 'طبيعي', 'statusColor': Colors.green, 'screen': const SleepTrackerScreen()},
-    {'title': 'ضغط الدم', 'value': '120/80', 'unit': 'ملم زئبق', 'icon': ImageService.coreImageService.svgIcon('health_record'), 'color': Colors.red, 'status': 'طبيعي', 'statusColor': Colors.green, 'screen': const BloodPressureScreen()},
-    {'title': 'معدل القلب', 'value': '72', 'unit': 'نبضة/د', 'icon': ImageService.coreImageService.svgIcon('health_record'), 'color': Colors.pink, 'status': 'طبيعي', 'statusColor': Colors.green, 'screen': const HealthDashboard()},
-    {'title': 'نسبة السكر', 'value': '95', 'unit': 'مغ/دسل', 'icon': ImageService.miniSpecialtyImageService.svgIcon('blood'), 'color': Colors.blue, 'status': 'مرتفع', 'statusColor': Colors.red, 'screen': const GlucoseTrackerScreen()},
+    {'title': 'عداد الخطوات', 'value': '5,230', 'unit': 'خطوة', 'icon': Icons.directions_walk, 'color': Colors.orange, 'status': 'طبيعي', 'statusColor': Colors.green, 'screen': const SleepTrackerScreen()},
+    {'title': 'ضغط الدم', 'value': '120/80', 'unit': 'ملم زئبق', 'icon': Icons.favorite, 'color': Colors.red, 'status': 'طبيعي', 'statusColor': Colors.green, 'screen': const BloodPressureScreen()},
+    {'title': 'معدل القلب', 'value': '72', 'unit': 'نبضة/د', 'icon': Icons.favorite, 'color': Colors.pink, 'status': 'طبيعي', 'statusColor': Colors.green, 'screen': const HealthDashboard()},
+    {'title': 'نسبة السكر', 'value': '95', 'unit': 'مغ/دسل', 'icon': Icons.water_drop, 'color': Colors.blue, 'status': 'مرتفع', 'statusColor': Colors.red, 'screen': const GlucoseTrackerScreen()},
   ];
 
   void _navigateTo(Widget screen) {
@@ -82,66 +82,67 @@ class _MoreScreenState extends State<MoreScreen> {
     switch (_selectedCategory) {
       case 'رعاية عائلية':
         return [
-          {'icon': ImageService.miniSpecialtyImageService.svgIcon('baby'), 'title': 'صحة المرأة', 'subtitle': 'متابعة الدورة والحمل', 'screen': const FamilyPlanningScreen()},
-          {'icon': ImageService.miniSpecialtyImageService.svgIcon('baby'), 'title': 'نمو الطفل', 'subtitle': 'مراحل التطور', 'screen': const FamilyPlanningScreen()},
-          {'icon': ImageService.coreImageService.svgIcon('home'), 'title': 'طبيب العائلة', 'subtitle': 'رعاية منزلية متكاملة', 'screen': const DoctorsListScreen()},
-          {'icon': ImageService.miniSpecialtyImageService.svgIcon('baby'), 'title': 'متابعة الحمل', 'subtitle': 'أسابيع الحمل بدقة', 'screen': const FamilyPlanningScreen()},
-          {'icon': ImageService.coreImageService.svgIcon('home'), 'title': 'الصحة النفسية', 'subtitle': 'دعم الصحة النفسية', 'screen': const MentalHealthScreen()},
-          {'icon': ImageService.miniSpecialtyImageService.svgIcon('stomach'), 'title': 'نظام غذائي', 'subtitle': 'خطط غذائية صحية', 'screen': const DietPlanScreen()},
-          {'icon': ImageService.miniSpecialtyImageService.svgIcon('brain'), 'title': 'تتبع النوم', 'subtitle': 'مراقبة جودة النوم', 'screen': const SleepTrackerScreen()},
+          {'icon': Icons.woman, 'title': 'صحة المرأة', 'subtitle': 'متابعة الدورة والحمل', 'screen': const FamilyPlanningScreen()},
+          {'icon': Icons.child_care, 'title': 'نمو الطفل', 'subtitle': 'مراحل التطور', 'screen': const FamilyPlanningScreen()},
+          {'icon': Icons.house_rounded, 'title': 'طبيب العائلة', 'subtitle': 'رعاية منزلية متكاملة', 'screen': const DoctorsListScreen()},
+          {'icon': Icons.pregnant_woman, 'title': 'متابعة الحمل', 'subtitle': 'أسابيع الحمل بدقة', 'screen': const FamilyPlanningScreen()},
+          {'icon': Icons.health_and_safety, 'title': 'الصحة النفسية', 'subtitle': 'دعم الصحة النفسية', 'screen': const MentalHealthScreen()},
+          {'icon': Icons.restaurant, 'title': 'نظام غذائي', 'subtitle': 'خطط غذائية صحية', 'screen': const DietPlanScreen()},
+          {'icon': Icons.fitness_center, 'title': 'تمارين رياضية', 'subtitle': 'خطط تمارين منزلية', 'screen': const ExercisePlanScreen()},
+          {'icon': Icons.nightlight, 'title': 'تتبع النوم', 'subtitle': 'مراقبة جودة النوم', 'screen': const SleepTrackerScreen()},
         ];
       case 'أدوات تشخيصية':
         return [
-          {'icon': ImageService.miniSpecialtyImageService.svgIcon('heart'), 'title': 'ضغط الدم', 'subtitle': 'متابعة ضغط الدم', 'screen': const BloodPressureScreen()},
-          {'icon': ImageService.miniSpecialtyImageService.svgIcon('dna'), 'title': 'تتبع السكر', 'subtitle': 'مراقبة مستوى السكر', 'screen': const GlucoseTrackerScreen()},
-          {'icon': ImageService.miniSpecialtyImageService.svgIcon('pill'), 'title': 'الوزن', 'subtitle': 'تتبع الوزن واللياقة', 'screen': const WeightTrackerScreen()},
-          {'icon': ImageService.miniSpecialtyImageService.svgIcon('pill'), 'title': 'تذكير الأدوية', 'subtitle': 'تذكير بمواعيد الأدوية', 'screen': const MedicationReminderScreen()},
-          {'icon': ImageService.miniSpecialtyImageService.svgIcon('blood'), 'title': 'التبرع بالدم', 'subtitle': 'مراكز التبرع بالدم', 'screen': const BloodDonationScreen()},
+          {'icon': Icons.monitor_heart, 'title': 'ضغط الدم', 'subtitle': 'متابعة ضغط الدم', 'screen': const BloodPressureScreen()},
+          {'icon': Icons.biotech, 'title': 'تتبع السكر', 'subtitle': 'مراقبة مستوى السكر', 'screen': const GlucoseTrackerScreen()},
+          {'icon': Icons.monitor_weight, 'title': 'الوزن', 'subtitle': 'تتبع الوزن واللياقة', 'screen': const WeightTrackerScreen()},
+          {'icon': Icons.medication, 'title': 'تذكير الأدوية', 'subtitle': 'تذكير بمواعيد الأدوية', 'screen': const MedicationReminderScreen()},
+          {'icon': Icons.bloodtype, 'title': 'التبرع بالدم', 'subtitle': 'مراكز التبرع بالدم', 'screen': const BloodDonationScreen()},
           {'icon': Icons.article, 'title': 'المقالات الطبية', 'subtitle': 'أحدث المقالات الطبية', 'screen': const ArticlesScreen()},
-          {'icon': ImageService.coreImageService.svgIcon('emergency'), 'title': 'الإسعافات الأولية', 'subtitle': 'دليل الإسعافات الأولية', 'screen': const FirstAidScreen()},
+          {'icon': Icons.emergency, 'title': 'الإسعافات الأولية', 'subtitle': 'دليل الإسعافات الأولية', 'screen': const FirstAidScreen()},
         ];
       case 'لوجستيات وتأمين':
         return [
-          {'icon': ImageService.coreImageService.svgIcon('pharmacy'), 'title': 'صيدلية', 'subtitle': 'طلب الأدوية وتوصيلها', 'screen': const PharmacyScreen()},
-          {'icon': ImageService.specialtyImageService.svgIcon('radiology'), 'title': 'مختبرات', 'subtitle': 'حجز التحاليل والفحوصات', 'screen': const LabsListScreen()},
-          {'icon': ImageService.socialImageService.svgIcon('whatsapp'), 'title': 'تأمين صحي', 'subtitle': 'خطط التأمين والاشتراك', 'screen': const InsuranceCompanies()},
-          {'icon': ImageService.navImageService.svgIcon('home'), 'title': 'خرائط المرافق', 'subtitle': 'أقرب المستشفيات والصيدليات', 'screen': const InteractiveMapScreen()},
-          {'icon': ImageService.coreImageService.svgIcon('doctor'), 'title': 'المستشفيات', 'subtitle': 'أقرب المستشفيات', 'screen': const InteractiveMapScreen()},
-          {'icon': ImageService.coreImageService.svgIcon('pharmacy'), 'title': 'المحفظة', 'subtitle': 'إدارة محفظتك', 'screen': const WalletScreen()},
+          {'icon': Icons.local_pharmacy, 'title': 'صيدلية', 'subtitle': 'طلب الأدوية وتوصيلها', 'screen': const PharmacyScreen()},
+          {'icon': Icons.science, 'title': 'مختبرات', 'subtitle': 'حجز التحاليل والفحوصات', 'screen': const LabsListScreen()},
+          {'icon': Icons.shield, 'title': 'تأمين صحي', 'subtitle': 'خطط التأمين والاشتراك', 'screen': const InsuranceCompanies()},
+          {'icon': Icons.map, 'title': 'خرائط المرافق', 'subtitle': 'أقرب المستشفيات والصيدليات', 'screen': const InteractiveMapScreen()},
+          {'icon': Icons.local_hospital, 'title': 'المستشفيات', 'subtitle': 'أقرب المستشفيات', 'screen': const InteractiveMapScreen()},
+          {'icon': Icons.wallet, 'title': 'المحفظة', 'subtitle': 'إدارة محفظتك', 'screen': const WalletScreen()},
         ];
       case 'إعدادات':
         return [
-          {'icon': ImageService.coreImageService.svgIcon('doctor'), 'title': 'الملف الشخصي', 'subtitle': 'إدارة ملفك الشخصي', 'screen': const PatientProfile()},
-          {'icon': ImageService.coreImageService.svgIcon('more_menu'), 'title': 'الإعدادات', 'subtitle': 'إعدادات التطبيق', 'screen': const SettingsScreen()},
-          {'icon': ImageService.coreImageService.svgIcon('notifications_active'), 'title': 'الإشعارات', 'subtitle': 'إدارة الإشعارات', 'screen': const NotificationsScreen()},
-          {'icon': ImageService.coreImageService.svgIcon('more_menu'), 'title': 'الخصوصية', 'subtitle': 'إعدادات الخصوصية', 'screen': const PrivacyScreen()},
-          {'icon': ImageService.coreImageService.svgIcon('more_menu'), 'title': 'الشروط والأحكام', 'subtitle': 'عرض الشروط والأحكام', 'screen': const TermsScreen()},
-          {'icon': ImageService.coreImageService.svgIcon('more_menu'), 'title': 'عن التطبيق', 'subtitle': 'معلومات عن التطبيق', 'screen': const AboutScreen()},
-          {'icon': ImageService.coreImageService.svgIcon('more_menu'), 'title': 'مركز المساعدة', 'subtitle': 'الأسئلة الشائعة والدعم', 'screen': const HelpCenterScreen()},
-          {'icon': ImageService.coreImageService.svgIcon('more_menu'), 'title': 'اتصل بنا', 'subtitle': 'تواصل مع فريق الدعم', 'screen': const ContactUsScreen()},
-          {'icon': ImageService.socialImageService.svgIcon('whatsapp'), 'title': 'مشاركة التطبيق', 'subtitle': 'شارك التطبيق مع أصدقائك', 'screen': const ShareAppScreen()},
-          {'icon': ImageService.coreImageService.svgIcon('more_menu'), 'title': 'تقييم التطبيق', 'subtitle': 'قيم التطبيق', 'screen': const RateAppScreen()},
-          {'icon': ImageService.coreImageService.svgIcon('more_menu'), 'title': 'الإبلاغ عن مشكلة', 'subtitle': 'أبلغ عن مشكلة', 'screen': const ReportIssueScreen()},
-          {'icon': ImageService.coreImageService.svgIcon('more_menu'), 'title': 'تحميل البيانات', 'subtitle': 'تحميل بياناتك الصحية', 'screen': const DownloadDataScreen()},
-          {'icon': ImageService.coreImageService.svgIcon('more_menu'), 'title': 'حجم الخط', 'subtitle': 'تغيير حجم الخط', 'screen': const FontSizeScreen()},
-          {'icon': ImageService.coreImageService.svgIcon('more_menu'), 'title': 'الباقات', 'subtitle': 'عرض الباقات المتاحة', 'screen': const SubscriptionsScreen()},
+          {'icon': Icons.person, 'title': 'الملف الشخصي', 'subtitle': 'إدارة ملفك الشخصي', 'screen': const PatientProfile()},
+          {'icon': Icons.settings, 'title': 'الإعدادات', 'subtitle': 'إعدادات التطبيق', 'screen': const SettingsScreen()},
+          {'icon': Icons.notifications, 'title': 'الإشعارات', 'subtitle': 'إدارة الإشعارات', 'screen': const NotificationsScreen()},
+          {'icon': Icons.privacy_tip, 'title': 'الخصوصية', 'subtitle': 'إعدادات الخصوصية', 'screen': const PrivacyScreen()},
+          {'icon': Icons.assignment, 'title': 'الشروط والأحكام', 'subtitle': 'عرض الشروط والأحكام', 'screen': const TermsScreen()},
+          {'icon': Icons.info, 'title': 'عن التطبيق', 'subtitle': 'معلومات عن التطبيق', 'screen': const AboutScreen()},
+          {'icon': Icons.help, 'title': 'مركز المساعدة', 'subtitle': 'الأسئلة الشائعة والدعم', 'screen': const HelpCenterScreen()},
+          {'icon': Icons.contact_support, 'title': 'اتصل بنا', 'subtitle': 'تواصل مع فريق الدعم', 'screen': const ContactUsScreen()},
+          {'icon': Icons.share, 'title': 'مشاركة التطبيق', 'subtitle': 'شارك التطبيق مع أصدقائك', 'screen': const ShareAppScreen()},
+          {'icon': Icons.star, 'title': 'تقييم التطبيق', 'subtitle': 'قيم التطبيق', 'screen': const RateAppScreen()},
+          {'icon': Icons.report, 'title': 'الإبلاغ عن مشكلة', 'subtitle': 'أبلغ عن مشكلة', 'screen': const ReportIssueScreen()},
+          {'icon': Icons.download, 'title': 'تحميل البيانات', 'subtitle': 'تحميل بياناتك الصحية', 'screen': const DownloadDataScreen()},
+          {'icon': Icons.text_fields, 'title': 'حجم الخط', 'subtitle': 'تغيير حجم الخط', 'screen': const FontSizeScreen()},
+          {'icon': Icons.subscriptions, 'title': 'الباقات', 'subtitle': 'عرض الباقات المتاحة', 'screen': const SubscriptionsScreen()},
         ];
       default:
         return [
-          {'icon': ImageService.coreImageService.svgIcon('doctor'), 'title': 'الأطباء', 'subtitle': 'استشر أفضل الأطباء', 'screen': const DoctorsListScreen()},
-          {'icon': ImageService.coreImageService.svgIcon('pharmacy'), 'title': 'الصيدلية', 'subtitle': 'طلب الأدوية وتوصيلها', 'screen': const PharmacyScreen()},
-          {'icon': ImageService.specialtyImageService.svgIcon('radiology'), 'title': 'المختبرات', 'subtitle': 'حجز التحاليل والفحوصات', 'screen': const LabsListScreen()},
-          {'icon': ImageService.coreImageService.svgIcon('emergency'), 'title': 'الطوارئ', 'subtitle': 'أرقام الطوارئ والمساعدة', 'screen': const EmergencyNumbers()},
-          {'icon': ImageService.navImageService.svgIcon('chat'), 'title': 'استشارة فورية', 'subtitle': 'تحدث مع طبيبك الآن', 'screen': const ConsultationScreen()},
-          {'icon': ImageService.coreImageService.svgIcon('health_record'), 'title': 'صحتك', 'subtitle': 'متابعة حالتك الصحية', 'screen': const HealthDashboard()},
-          {'icon': ImageService.coreImageService.svgIcon('pharmacy'), 'title': 'المحفظة', 'subtitle': 'إدارة محفظتك', 'screen': const WalletScreen()},
-          {'icon': ImageService.coreImageService.svgIcon('appointments'), 'title': 'المواعيد', 'subtitle': 'إدارة مواعيدك', 'screen': const HealthDashboard()},
-          {'icon': ImageService.navImageService.svgIcon('home'), 'title': 'الخريطة', 'subtitle': 'المنشآت الصحية القريبة', 'screen': const InteractiveMapScreen()},
-          {'icon': ImageService.socialImageService.svgIcon('whatsapp'), 'title': 'التأمين الصحي', 'subtitle': 'خطط التأمين والاشتراكات', 'screen': const InsuranceCompanies()},
-          {'icon': ImageService.miniSpecialtyImageService.svgIcon('blood'), 'title': 'التبرع بالدم', 'subtitle': 'مراكز التبرع بالدم', 'screen': const BloodDonationScreen()},
-          {'icon': ImageService.coreImageService.svgIcon('doctor'), 'title': 'الملف الشخصي', 'subtitle': 'إدارة ملفك الشخصي', 'screen': const PatientProfile()},
-          {'icon': ImageService.coreImageService.svgIcon('more_menu'), 'title': 'الإعدادات', 'subtitle': 'إعدادات التطبيق', 'screen': const SettingsScreen()},
-          {'icon': ImageService.coreImageService.svgIcon('more_menu'), 'title': 'جميع الخدمات', 'subtitle': 'استعراض جميع الخدمات', 'screen': const ServicesScreen()},
+          {'icon': Icons.medical_services, 'title': 'الأطباء', 'subtitle': 'استشر أفضل الأطباء', 'screen': const DoctorsListScreen()},
+          {'icon': Icons.local_pharmacy, 'title': 'الصيدلية', 'subtitle': 'طلب الأدوية وتوصيلها', 'screen': const PharmacyScreen()},
+          {'icon': Icons.science, 'title': 'المختبرات', 'subtitle': 'حجز التحاليل والفحوصات', 'screen': const LabsListScreen()},
+          {'icon': Icons.emergency, 'title': 'الطوارئ', 'subtitle': 'أرقام الطوارئ والمساعدة', 'screen': const EmergencyNumbers()},
+          {'icon': Icons.chat, 'title': 'استشارة فورية', 'subtitle': 'تحدث مع طبيبك الآن', 'screen': const ConsultationScreen()},
+          {'icon': Icons.favorite, 'title': 'صحتك', 'subtitle': 'متابعة حالتك الصحية', 'screen': const HealthDashboard()},
+          {'icon': Icons.wallet, 'title': 'المحفظة', 'subtitle': 'إدارة محفظتك', 'screen': const WalletScreen()},
+          {'icon': Icons.calendar_month, 'title': 'المواعيد', 'subtitle': 'إدارة مواعيدك', 'screen': const HealthDashboard()},
+          {'icon': Icons.map, 'title': 'الخريطة', 'subtitle': 'المنشآت الصحية القريبة', 'screen': const InteractiveMapScreen()},
+          {'icon': Icons.shield, 'title': 'التأمين الصحي', 'subtitle': 'خطط التأمين والاشتراكات', 'screen': const InsuranceCompanies()},
+          {'icon': Icons.bloodtype, 'title': 'التبرع بالدم', 'subtitle': 'مراكز التبرع بالدم', 'screen': const BloodDonationScreen()},
+          {'icon': Icons.person, 'title': 'الملف الشخصي', 'subtitle': 'إدارة ملفك الشخصي', 'screen': const PatientProfile()},
+          {'icon': Icons.settings, 'title': 'الإعدادات', 'subtitle': 'إعدادات التطبيق', 'screen': const SettingsScreen()},
+          {'icon': Icons.grid_view, 'title': 'جميع الخدمات', 'subtitle': 'استعراض جميع الخدمات', 'screen': const ServicesScreen()},
         ];
     }
   }
@@ -212,7 +213,7 @@ class _MoreScreenState extends State<MoreScreen> {
                                 color: primaryColor.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(14 * fontScale),
                               ),
-                              child: ImageService.svgIcon(ImageService.coreIcon('doctor'), color: primaryColor, size: 24 * fontScale),
+                              child: Icon(Icons.person, color: primaryColor, size: 24 * fontScale),
                             ),
                           ),
                         ),
@@ -242,7 +243,7 @@ class _MoreScreenState extends State<MoreScreen> {
                         ),
                       ),
                       IconButton(
-                        icon: ImageService.svgIcon(ImageService.coreIcon('more_menu')_outlined, color: primaryColor),
+                        icon: Icon(Icons.settings_outlined, color: primaryColor),
                         onPressed: () => _navigateTo(const SettingsScreen()),
                       ),
                     ],
@@ -334,7 +335,7 @@ class _MoreScreenState extends State<MoreScreen> {
                 ),
                 child: Row(
                   children: [
-                    ImageService.svgIcon(Icons.psychology, color: Colors.white, size: 18 * fontScale),
+                    Icon(Icons.psychology, color: Colors.white, size: 18 * fontScale),
                     SizedBox(width: 6 * fontScale),
                     Text(
                       'عيادة الذكاء الاصطناعي',
@@ -347,7 +348,7 @@ class _MoreScreenState extends State<MoreScreen> {
                   ],
                 ),
               ),
-              ImageService.svgIcon(Icons.blur_on, color: Colors.white54, size: 20 * fontScale),
+              Icon(Icons.blur_on, color: Colors.white54, size: 20 * fontScale),
             ],
           ),
           SizedBox(height: 16 * fontScale),
@@ -448,7 +449,7 @@ class _MoreScreenState extends State<MoreScreen> {
                         fontSize: 12 * fontScale,
                       ),
                     ),
-                    ImageService.svgIcon(vital['icon'] as IconData, color: color, size: 20 * fontScale),
+                    Icon(vital['icon'] as IconData, color: color, size: 20 * fontScale),
                   ],
                 ),
                 Column(
@@ -569,7 +570,7 @@ class _MoreScreenState extends State<MoreScreen> {
             color: primaryColor.withOpacity(0.08),
             borderRadius: BorderRadius.circular(12 * fontScale),
           ),
-          child: ImageService.svgIcon(
+          child: Icon(
             service['icon'] as IconData,
             color: primaryColor,
             size: 24 * fontScale,
@@ -590,7 +591,7 @@ class _MoreScreenState extends State<MoreScreen> {
             color: isDark ? Colors.grey[400] : Colors.grey[600],
           ),
         ),
-        trailing: ImageService.svgIcon(
+        trailing: Icon(
           Icons.arrow_forward_ios,
           size: 14 * fontScale,
           color: isDark ? Colors.grey[500] : Colors.grey[400],

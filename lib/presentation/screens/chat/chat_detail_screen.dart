@@ -1,11 +1,14 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/bloc/chat_bloc/chat_bloc.dart';
 import 'package:sehatak/presentation/bloc/chat_bloc/chat_event.dart';
 import 'package:sehatak/presentation/bloc/chat_bloc/chat_state.dart';
+import 'package:sehatak/presentation/screens/call/call_screen.dart';
 
 class ChatDetailScreen extends StatefulWidget {
   final String chatId;
@@ -25,25 +28,31 @@ class ChatDetailScreen extends StatefulWidget {
   State<ChatDetailScreen> createState() => _ChatDetailScreenState();
 }
 
-class _ChatDetailScreenState extends State<ChatDetailScreen> {
+class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBindingObserver {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
   
   bool _isTyping = false;
   bool _isRecording = false;
-  bool _isSending = false;
+  bool _showEmojiPicker = false;
+  bool _isLoading = false;
   late ChatBloc _chatBloc;
+
+  // ✅ حالة الاتصال
+  bool _isConnected = true;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _chatBloc = context.read<ChatBloc>();
     _chatBloc.add(ListenToMessages(widget.chatId));
     
     _focusNode.addListener(() {
       if (_focusNode.hasFocus) {
         _scrollToBottom();
+        setState(() => _showEmojiPicker = false);
       }
     });
   }
@@ -53,6 +62,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     _textController.dispose();
     _scrollController.dispose();
     _focusNode.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -82,18 +92,112 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     _scrollToBottom();
   }
 
-  void _startRecording() {
-    setState(() => _isRecording = true);
-    // ✅ بدء التسجيل الصوتي (سيتم ربطه لاحقاً)
+  void _sendImage(String imageUrl) {
+    _chatBloc.add(SendChatMessage(
+      chatId: widget.chatId,
+      text: '📷 صورة',
+      imageUrl: imageUrl,
+    ));
   }
 
-  void _stopRecording() {
-    setState(() => _isRecording = false);
-    // ✅ إيقاف التسجيل وإرسال الملف الصوتي (سيتم ربطه لاحقاً)
+  void _sendAudio(String audioUrl) {
+    _chatBloc.add(SendChatMessage(
+      chatId: widget.chatId,
+      text: '🎙️ رسالة صوتية',
+      audioUrl: audioUrl,
+    ));
   }
 
-  void _showImagePicker() {
-    // ✅ اختيار صورة من المعرض (سيتم ربطه لاحقاً)
+  void _startCall(bool isVideo) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CallScreen(
+          chatId: widget.chatId,
+          doctorName: widget.userName,
+          doctorId: widget.userId,
+          isVideo: isVideo,
+        ),
+      ),
+    );
+  }
+
+  void _showImagePickerOptions() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'اختر مصدر الصورة',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildPickerOption(
+                  icon: Icons.photo_library,
+                  label: 'المعرض',
+                  onTap: () {
+                    Navigator.pop(context);
+                    // ✅ فتح المعرض
+                  },
+                ),
+                _buildPickerOption(
+                  icon: Icons.camera_alt,
+                  label: 'الكاميرا',
+                  onTap: () {
+                    Navigator.pop(context);
+                    // ✅ فتح الكاميرا
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPickerOption({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(icon, color: AppColors.primary, size: 30),
+          ),
+          const SizedBox(height: 8),
+          Text(label, style: const TextStyle(fontSize: 12)),
+        ],
+      ),
+    );
   }
 
   String _formatTime(dynamic timestamp) {
@@ -124,52 +228,28 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
     return Scaffold(
       backgroundColor: bgColor,
-      appBar: AppBar(
-        backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
-        elevation: 0.5,
-        title: Row(
-          children: [
-            CircleAvatar(
-              radius: 18,
-              backgroundColor: AppColors.primary.withOpacity(0.1),
-              child: Text(
-                widget.userName.isNotEmpty ? widget.userName[0] : 'م',
-                style: TextStyle(
-                  color: AppColors.primary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                widget.userName,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF0D5257),
-                  fontSize: 16,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.videocam, color: Color(0xFF0D5257)),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.call, color: Color(0xFF0D5257)),
-            onPressed: () {},
-          ),
-        ],
-      ),
+      appBar: _buildAppBar(isDark),
       body: Column(
         children: [
-          // ✅ عرض الرسائل الحقيقية
+          // ✅ حالة الاتصال
+          if (!_isConnected)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(8),
+              color: Colors.orange,
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.wifi_off_rounded, color: Colors.white, size: 16),
+                  SizedBox(width: 8),
+                  Text(
+                    '⚠️ غير متصل بالإنترنت',
+                    style: TextStyle(color: Colors.white, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+          // ✅ الرسائل
           Expanded(
             child: BlocBuilder<ChatBloc, ChatState>(
               builder: (context, state) {
@@ -179,34 +259,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 if (state is ChatLoadedState) {
                   final messages = state.messages;
                   if (messages.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.chat_bubble_outline_rounded,
-                            size: 80,
-                            color: isDark ? Colors.grey[600] : Colors.grey[300],
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'ابدأ المحادثة الآن',
-                            style: TextStyle(
-                              color: isDark ? Colors.grey[400] : Colors.grey[600],
-                              fontSize: 16,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'أرسل رسالة لبدء التواصل',
-                            style: TextStyle(
-                              color: isDark ? Colors.grey[500] : Colors.grey[400],
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
+                    return _buildEmptyState(isDark);
                   }
                   return ListView.builder(
                     controller: _scrollController,
@@ -221,57 +274,181 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                   );
                 }
                 if (state is ChatErrorState) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          size: 60,
-                          color: Colors.red,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          state.message,
-                          style: TextStyle(
-                            color: isDark ? Colors.white : Colors.black87,
-                            fontSize: 14,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () {
-                            _chatBloc.add(ListenToMessages(widget.chatId));
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
-                          ),
-                          child: const Text('إعادة المحاولة'),
-                        ),
-                      ],
-                    ),
-                  );
+                  return _buildErrorState(state.message, isDark);
                 }
                 return const SizedBox.shrink();
               },
             ),
           ),
-          // ✅ حقل الإدخال الذكي مع التسجيل الصوتي
-          _buildSmartInputField(isDark),
+          // ✅ حقل الإدخال
+          _buildInputField(isDark),
         ],
       ),
     );
   }
 
   // ============================================================
-  // 💬 فقاعة الرسالة المتطورة
+  // 📱 AppBar
+  // ============================================================
+  PreferredSizeWidget _buildAppBar(bool isDark) {
+    return AppBar(
+      backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
+      elevation: 0.5,
+      title: Row(
+        children: [
+          CircleAvatar(
+            radius: 18,
+            backgroundColor: AppColors.primary.withOpacity(0.1),
+            child: Text(
+              widget.userName.isNotEmpty ? widget.userName[0] : 'م',
+              style: TextStyle(
+                color: AppColors.primary,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.userName,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : const Color(0xFF0D5257),
+                    fontSize: 15,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  'متصل الآن',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.green,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        IconButton(
+          icon: Icon(Icons.call, color: isDark ? Colors.white : const Color(0xFF0D5257)),
+          onPressed: () => _startCall(false),
+          tooltip: 'مكالمة صوتية',
+        ),
+        IconButton(
+          icon: Icon(Icons.videocam, color: isDark ? Colors.white : const Color(0xFF0D5257)),
+          onPressed: () => _startCall(true),
+          tooltip: 'مكالمة فيديو',
+        ),
+      ],
+    );
+  }
+
+  // ============================================================
+  // 🟡 حالة فارغة
+  // ============================================================
+  Widget _buildEmptyState(bool isDark) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1A2540) : Colors.white,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.chat_bubble_outline_rounded,
+              size: 60,
+              color: isDark ? Colors.grey[600] : Colors.grey[300],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'ابدأ المحادثة الآن',
+            style: TextStyle(
+              color: isDark ? Colors.white : Colors.black87,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'أرسل رسالة لبدء التواصل مع ${widget.userName}',
+            style: TextStyle(
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
+              fontSize: 14,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // 🔴 حالة خطأ
+  // ============================================================
+  Widget _buildErrorState(String message, bool isDark) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: 60,
+            color: Colors.red,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'حدث خطأ',
+            style: TextStyle(
+              color: isDark ? Colors.white : Colors.black87,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            message,
+            style: TextStyle(
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
+              fontSize: 14,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () {
+              _chatBloc.add(ListenToMessages(widget.chatId));
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('إعادة المحاولة'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // 💬 فقاعة الرسالة
   // ============================================================
   Widget _buildMessageBubble(Map<String, dynamic> msg, bool isMe, bool isDark) {
     final text = msg['text'] ?? '';
     final imageUrl = msg['imageUrl'];
+    final audioUrl = msg['audioUrl'];
     final time = _formatTime(msg['timestamp']);
+    final isAudio = audioUrl != null && audioUrl.isNotEmpty;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -320,12 +497,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // ✅ عرض الصورة إذا وجدت
+                  // ✅ عرض الصورة
                   if (imageUrl != null && imageUrl.isNotEmpty)
                     _buildImageMessage(imageUrl, isDark),
-                  
+                  // ✅ عرض الرسالة الصوتية
+                  if (isAudio)
+                    _buildAudioMessage(audioUrl, isDark),
                   // ✅ عرض النص
-                  if (text.isNotEmpty)
+                  if (text.isNotEmpty && !isAudio)
                     Padding(
                       padding: EdgeInsets.only(top: imageUrl != null ? 8 : 0),
                       child: Text(
@@ -336,7 +515,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                         ),
                       ),
                     ),
-                  
                   // ✅ الوقت
                   if (time.isNotEmpty)
                     Padding(
@@ -359,37 +537,63 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   }
 
   // ============================================================
-  // 🖼️ عرض الصورة مع Caching
+  // 🖼️ عرض الصورة
   // ============================================================
   Widget _buildImageMessage(String imageUrl, bool isDark) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
-      child: CachedNetworkImage(
-        imageUrl: imageUrl,
-        height: 200,
-        width: double.infinity,
-        fit: BoxFit.cover,
-        placeholder: (context, url) => Container(
-          height: 200,
-          color: isDark ? Colors.grey[800] : Colors.grey[200],
-          child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-        ),
-        errorWidget: (context, url, error) => Container(
-          height: 200,
-          color: isDark ? Colors.grey[800] : Colors.grey[200],
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.broken_image, color: Colors.grey, size: 40),
-              const SizedBox(height: 8),
-              Text(
-                'فشل تحميل الصورة',
-                style: TextStyle(
-                  color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  fontSize: 12,
+    return GestureDetector(
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (_) => Dialog(
+            backgroundColor: Colors.transparent,
+            child: InteractiveViewer(
+              child: CachedNetworkImage(
+                imageUrl: imageUrl,
+                fit: BoxFit.contain,
+                placeholder: (context, url) => Container(
+                  height: 200,
+                  color: isDark ? Colors.grey[800] : Colors.grey[200],
+                  child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                ),
+                errorWidget: (context, url, error) => Container(
+                  height: 200,
+                  color: isDark ? Colors.grey[800] : Colors.grey[200],
+                  child: const Icon(Icons.broken_image, color: Colors.grey, size: 40),
                 ),
               ),
-            ],
+            ),
+          ),
+        );
+      },
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: CachedNetworkImage(
+          imageUrl: imageUrl,
+          height: 200,
+          width: double.infinity,
+          fit: BoxFit.cover,
+          placeholder: (context, url) => Container(
+            height: 200,
+            color: isDark ? Colors.grey[800] : Colors.grey[200],
+            child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          ),
+          errorWidget: (context, url, error) => Container(
+            height: 200,
+            color: isDark ? Colors.grey[800] : Colors.grey[200],
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.broken_image, color: Colors.grey, size: 40),
+                const SizedBox(height: 8),
+                Text(
+                  'فشل تحميل الصورة',
+                  style: TextStyle(
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -397,9 +601,46 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   }
 
   // ============================================================
-  // 🎙️ حقل الإدخال الذكي مع التسجيل الصوتي
+  // 🎙️ عرض الرسالة الصوتية
   // ============================================================
-  Widget _buildSmartInputField(bool isDark) {
+  Widget _buildAudioMessage(String audioUrl, bool isDark) {
+    return Row(
+      children: [
+        IconButton(
+          icon: Icon(
+            Icons.play_circle_filled,
+            color: isMe ? Colors.white : AppColors.primary,
+            size: 32,
+          ),
+          onPressed: () {
+            // ✅ تشغيل الصوت (سيتم ربطه لاحقاً)
+          },
+        ),
+        Expanded(
+          child: Container(
+            height: 4,
+            decoration: BoxDecoration(
+              color: isMe ? Colors.white30 : (isDark ? Colors.grey[700] : Colors.grey[300]),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          '0:05',
+          style: TextStyle(
+            color: isMe ? Colors.white70 : (isDark ? Colors.grey[400] : Colors.grey[600]),
+            fontSize: 10,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ============================================================
+  // 🎙️ حقل الإدخال
+  // ============================================================
+  Widget _buildInputField(bool isDark) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
@@ -412,276 +653,93 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           ),
         ],
       ),
-      child: _isRecording
-          ? _buildRecordingWave()
-          : Row(
-              children: [
-                // ✅ زر المرفقات
-                IconButton(
-                  icon: Icon(Icons.attach_file, color: isDark ? Colors.grey[400] : Colors.grey[600]),
-                  onPressed: _showImagePicker,
-                ),
-                
-                // ✅ حقل الإدخال
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF0B1121) : Colors.grey[100],
-                      borderRadius: BorderRadius.circular(24),
+      child: Row(
+        children: [
+          // ✅ زر المرفقات
+          IconButton(
+            icon: Icon(Icons.attach_file, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+            onPressed: _showImagePickerOptions,
+          ),
+          // ✅ حقل النص
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF0B1121) : Colors.grey[100],
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: TextField(
+                  controller: _textController,
+                  focusNode: _focusNode,
+                  onChanged: (text) {
+                    setState(() => _isTyping = text.trim().isNotEmpty);
+                  },
+                  onSubmitted: (_) => _sendMessage(),
+                  style: TextStyle(
+                    color: isDark ? Colors.white : Colors.black87,
+                    fontSize: 14,
+                  ),
+                  textAlign: TextAlign.right,
+                  decoration: InputDecoration(
+                    hintText: 'اكتب رسالتك...',
+                    hintStyle: TextStyle(
+                      color: isDark ? Colors.grey[500] : Colors.grey[400],
+                      fontSize: 14,
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: TextField(
-                        controller: _textController,
-                        focusNode: _focusNode,
-                        onChanged: (text) {
-                          setState(() => _isTyping = text.trim().isNotEmpty);
-                        },
-                        onSubmitted: (_) => _sendMessage(),
-                        style: TextStyle(
-                          color: isDark ? Colors.white : Colors.black87,
-                          fontSize: 14,
-                        ),
-                        textAlign: TextAlign.right,
-                        decoration: InputDecoration(
-                          hintText: 'اكتب رسالتك...',
-                          hintStyle: TextStyle(
-                            color: isDark ? Colors.grey[500] : Colors.grey[400],
-                            fontSize: 14,
-                          ),
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                        ),
-                      ),
-                    ),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 8),
                   ),
                 ),
-                
-                // ✅ زر الرموز التعبيرية
-                IconButton(
-                  icon: Icon(Icons.emoji_emotions_outlined, color: isDark ? Colors.grey[400] : Colors.grey[600]),
-                  onPressed: () {},
+              ),
+            ),
+          ),
+          // ✅ زر الإيموجي
+          IconButton(
+            icon: Icon(Icons.emoji_emotions_outlined, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+            onPressed: () {
+              // ✅ فتح لوحة الإيموجي
+            },
+          ),
+          // ✅ زر الإرسال / الميكروفون
+          GestureDetector(
+            onLongPressStart: (_) {
+              setState(() => _isRecording = true);
+              // ✅ بدء التسجيل
+            },
+            onLongPressEnd: (_) {
+              setState(() => _isRecording = false);
+              // ✅ إيقاف التسجيل وإرساله
+            },
+            onTap: _isTyping ? _sendMessage : null,
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: _isTyping ? AppColors.primary : Colors.transparent,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: _isTyping ? AppColors.primary : (isDark ? Colors.grey[600] : Colors.grey[300]),
+                  width: 1.5,
                 ),
-                
-                // ✅ زر الإرسال / الميكروفون
-                GestureDetector(
-                  onLongPressStart: (_) => _startRecording(),
-                  onLongPressEnd: (_) => _stopRecording(),
-                  onTap: _isTyping ? _sendMessage : null,
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: _isTyping ? AppColors.primary : Colors.transparent,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: _isTyping ? AppColors.primary : (isDark ? Colors.grey[600] : Colors.grey[300]),
-                        width: 1.5,
+              ),
+              child: _isRecording
+                  ? Container(
+                      width: 12,
+                      height: 12,
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
                       ),
-                    ),
-                    child: Icon(
+                    )
+                  : Icon(
                       _isTyping ? Icons.send : Icons.mic,
                       color: _isTyping ? Colors.white : (isDark ? Colors.grey[400] : Colors.grey[600]),
                       size: 20,
                     ),
-                  ),
-                ),
-              ],
-            ),
-    );
-  }
-
-  // ============================================================
-  // 🎵 موجة التسجيل الصوتي
-  // ============================================================
-  Widget _buildRecordingWave() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.close, color: Colors.red),
-            onPressed: _stopRecording,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.06),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: Colors.red.withOpacity(0.3)),
-              ),
-              child: Row(
-                children: [
-                  // ✅ أيقونة التسجيل النابضة
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 500),
-                    width: 12,
-                    height: 12,
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  // ✅ موجة الصوت المتحركة
-                  Expanded(
-                    child: SizedBox(
-                      height: 24,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: 30,
-                        itemBuilder: (context, index) {
-                          final height = 4 + (index % 8) * 3;
-                          return AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            width: 3,
-                            height: height.toDouble(),
-                            margin: const EdgeInsets.symmetric(horizontal: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.red.withOpacity(0.6 + (index % 5) * 0.08),
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'جاري التسجيل...',
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// ✅ إضافة الاستيرادات
-import 'package:record/record.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-
-class _ChatDetailScreenState extends State<ChatDetailScreen> {
-  // ... الكود الموجود ...
-  
-  final AudioRecorder _audioRecorder = AudioRecorder();
-  String? _recordingPath;
-  bool _isRecording = false;
-  final ImagePicker _imagePicker = ImagePicker();
-
-  // ✅ بدء التسجيل الصوتي
-  Future<void> _startRecording() async {
-    try {
-      final hasPermission = await Permission.microphone.request().isGranted;
-      if (!hasPermission) {
-        _showSnackBar('يجب منح إذن الميكروفون للتسجيل');
-        return;
-      }
-      
-      setState(() => _isRecording = true);
-      
-      // ✅ بدء التسجيل
-      final path = '${DateTime.now().millisecondsSinceEpoch}.m4a';
-      await _audioRecorder.start(
-        RecordConfig(encoder: AudioEncoder.aacLc),
-        path: path,
-      );
-      _recordingPath = path;
-    } catch (e) {
-      _showSnackBar('فشل بدء التسجيل: $e');
-      setState(() => _isRecording = false);
-    }
-  }
-
-  // ✅ إيقاف التسجيل وإرساله
-  Future<void> _stopRecording() async {
-    if (!_isRecording) return;
-    
-    try {
-      final path = await _audioRecorder.stop();
-      setState(() => _isRecording = false);
-      
-      if (path != null) {
-        // ✅ رفع الملف إلى Firebase Storage
-        await _uploadFile(path, 'audio');
-        _recordingPath = null;
-      }
-    } catch (e) {
-      _showSnackBar('فشل إيقاف التسجيل: $e');
-      setState(() => _isRecording = false);
-    }
-  }
-
-  // ✅ اختيار صورة من المعرض
-  Future<void> _showImagePicker() async {
-    try {
-      final hasPermission = await Permission.photos.request().isGranted;
-      if (!hasPermission) {
-        _showSnackBar('يجب منح إذن المعرض لاختيار الصور');
-        return;
-      }
-      
-      final XFile? image = await _imagePicker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 1024,
-        maxHeight: 1024,
-        imageQuality: 80,
-      );
-      
-      if (image != null) {
-        // ✅ رفع الصورة إلى Firebase Storage
-        await _uploadFile(image.path, 'image');
-      }
-    } catch (e) {
-      _showSnackBar('فشل اختيار الصورة: $e');
-    }
-  }
-
-  // ✅ رفع الملف إلى Firebase Storage
-  Future<void> _uploadFile(String filePath, String type) async {
-    try {
-      final fileName = '${DateTime.now().millisecondsSinceEpoch}.${type == 'image' ? 'jpg' : 'm4a'}';
-      final ref = FirebaseStorage.instance
-          .ref()
-          .child('chats')
-          .child(widget.chatId)
-          .child(fileName);
-      
-      final uploadTask = await ref.putFile(File(filePath));
-      final downloadUrl = await uploadTask.ref.getDownloadURL();
-      
-      // ✅ إرسال الرسالة مع رابط الملف
-      _chatBloc.add(SendChatMessage(
-        chatId: widget.chatId,
-        text: type == 'image' ? '📷 صورة' : '🎙️ رسالة صوتية',
-        imageUrl: type == 'image' ? downloadUrl : null,
-        audioUrl: type == 'audio' ? downloadUrl : null,
-      ));
-      
-      _showSnackBar('تم رفع ${type == 'image' ? 'الصورة' : 'التسجيل'} بنجاح');
-    } catch (e) {
-      _showSnackBar('فشل رفع الملف: $e');
-    }
-  }
-
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.green,
-        duration: const Duration(seconds: 2),
       ),
     );
   }
