@@ -5,7 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/image_service.dart';
-import 'package:sehatak/presentation/screens/auth/login_screen.dart';
+import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
 import 'package:sehatak/presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
 import 'package:sehatak/presentation/screens/settings/settings_screen.dart';
@@ -136,7 +136,7 @@ class _MoreScreenState extends State<MoreScreen> {
                               MaterialPageRoute(
                                 builder: (_) => BlocProvider(
                                   create: (_) => AuthBloc(),
-                                  child: const LoginScreen(),
+                                  child: const AuthScreen(),
                                 ),
                               ),
                             );
@@ -701,7 +701,7 @@ class _MoreScreenState extends State<MoreScreen> {
               context.read<AuthBloc>().add(Logout());
               Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                MaterialPageRoute(builder: (_) => const AuthScreen()),
                 (route) => false,
               );
             },
