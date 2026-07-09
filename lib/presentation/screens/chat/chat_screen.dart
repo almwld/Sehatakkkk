@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/services/image_service.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/chat/chat_detail_screen.dart';
 import 'package:sehatak/presentation/screens/call/call_screen.dart';
@@ -59,7 +60,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
       isPinned: true,
       isVerified: true,
       color: AppColors.primary,
-      icon: Icons.person,
+      icon: ImageService.coreIcon('doctor'),
       typingStatus: 'يكتب...',
     ),
     ChatModel(
@@ -71,7 +72,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
       isOnline: false,
       isPinned: false,
       color: Colors.blue,
-      icon: Icons.person,
+      icon: ImageService.coreIcon('doctor'),
     ),
     ChatModel(
       id: '3',
@@ -242,11 +243,11 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
           onPressed: () {},
         ),
         IconButton(
-          icon: Icon(Icons.search, color: AppColors.primary),
+          icon: Icon(ImageService.coreIcon('home'), color: AppColors.primary),
           onPressed: () => setState(() => _isSearching = true),
         ),
         PopupMenuButton(
-          icon: Icon(Icons.more_vert, color: AppColors.primary),
+          icon: Icon(ImageService.coreIcon('more_menu'), color: AppColors.primary),
           color: isDark ? const Color(0xFF1A2540) : Colors.white,
           itemBuilder: (_) => [
             const PopupMenuItem(
@@ -288,7 +289,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.close, color: AppColors.primary),
+          icon: const Icon(ImageService.coreIcon('more_menu'), color: AppColors.primary),
           onPressed: () {
             setState(() {
               _isSearching = false;
@@ -363,7 +364,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                                   )
                                 : Center(
                                     child: Icon(
-                                      Icons.person,
+                                      ImageService.coreIcon('doctor'),
                                       color: s['color'] as Color,
                                       size: 30,
                                     ),
@@ -403,7 +404,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.chat_bubble_outline,
+              ImageService.navIcon('chat')_bubble_outline,
               size: 80,
               color: isDark ? Colors.grey[600] : Colors.grey[300],
             ),
@@ -470,7 +471,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                   ),
                   child: Center(
                     child: Icon(
-                      chat.icon ?? Icons.person,
+                      chat.icon ?? ImageService.coreIcon('doctor'),
                       color: chat.color ?? AppColors.primary,
                       size: 28,
                     ),
@@ -797,7 +798,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                     ),
                     child: Center(
                       child: Icon(
-                        Icons.person,
+                        ImageService.coreIcon('doctor'),
                         color: s['color'] as Color,
                         size: 26,
                       ),
@@ -873,7 +874,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
               style: TextStyle(color: isDark ? Colors.white : Colors.black87),
               decoration: InputDecoration(
                 hintText: 'ابحث عن مستخدم...',
-                prefixIcon: const Icon(Icons.search, color: AppColors.primary),
+                prefixIcon: const Icon(ImageService.coreIcon('home'), color: AppColors.primary),
                 filled: true,
                 fillColor: isDark ? const Color(0xFF0B1121) : Colors.grey[100],
                 border: OutlineInputBorder(

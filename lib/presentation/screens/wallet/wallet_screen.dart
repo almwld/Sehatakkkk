@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/services/image_service.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/wallet/wallet_service.dart';
 import 'package:sehatak/data/models/wallet_models/wallet_model.dart';
@@ -49,7 +50,7 @@ class _WalletScreenState extends State<WalletScreen> {
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded),
+            icon: const Icon(ImageService.coreIcon('more_menu')_rounded),
             onPressed: _loadWallet,
           ),
         ],
@@ -240,8 +241,8 @@ class _WalletScreenState extends State<WalletScreen> {
 
   Widget _buildQuickStats(WalletModel wallet, bool isDark) {
     final stats = [
-      {'label': 'إجمالي الصرف', 'value': '${wallet.totalSpent.toStringAsFixed(0)} ريال', 'icon': Icons.arrow_upward_rounded, 'color': Colors.red},
-      {'label': 'إجمالي الأرباح', 'value': '${wallet.totalEarned.toStringAsFixed(0)} ريال', 'icon': Icons.arrow_downward_rounded, 'color': Colors.green},
+      {'label': 'إجمالي الصرف', 'value': '${wallet.totalSpent.toStringAsFixed(0)} ريال', 'icon': ImageService.coreIcon('home')_rounded, 'color': Colors.red},
+      {'label': 'إجمالي الأرباح', 'value': '${wallet.totalEarned.toStringAsFixed(0)} ريال', 'icon': ImageService.coreIcon('home')_rounded, 'color': Colors.green},
       {'label': 'المعلق', 'value': wallet.formattedEscrow, 'icon': Icons.hourglass_top_rounded, 'color': Colors.orange},
       {'label': 'المعاملات', 'value': '${wallet.transactions.length}', 'icon': Icons.receipt_long_rounded, 'color': const Color(0xFF0D5257)},
     ];

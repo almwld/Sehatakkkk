@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sehatak/core/services/image_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -36,7 +37,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.restore_rounded),
+            icon: const Icon(ImageService.coreIcon('more_menu')_rounded),
             onPressed: () {
               fontProvider.resetToDefault();
               ScaffoldMessenger.of(context).showSnackBar(
@@ -60,7 +61,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               children: [
                 _buildSwitchTile(
-                  icon: Icons.dark_mode_rounded,
+                  icon: ImageService.coreIcon('home')_rounded,
                   title: 'الوضع المظلم',
                   subtitle: 'تفعيل الوضع المظلم للتطبيق',
                   value: isDark,
@@ -155,7 +156,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Row(
                     children: [
                       IconButton(
-                        icon: Icon(Icons.remove_circle_outline, color: primaryColor),
+                        icon: Icon(ImageService.coreIcon('more_menu'), color: primaryColor),
                         onPressed: () {
                           if (fontScale > 0.81) {
                             fontProvider.setFontScale(fontScale - 0.05);
@@ -177,7 +178,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                       ),
                       IconButton(
-                        icon: Icon(Icons.add_circle_outline, color: primaryColor),
+                        icon: Icon(ImageService.coreIcon('more_menu'), color: primaryColor),
                         onPressed: () {
                           if (fontScale < 1.59) {
                             fontProvider.setFontScale(fontScale + 0.05);
@@ -208,7 +209,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               children: [
                 _buildRadioTile(
-                  icon: Icons.language_rounded,
+                  icon: ImageService.coreIcon('home')_rounded,
                   title: 'العربية',
                   subtitle: 'اللغة الافتراضية',
                   value: 'ar',
@@ -218,7 +219,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 _buildDivider(isDark),
                 _buildRadioTile(
-                  icon: Icons.language_rounded,
+                  icon: ImageService.coreIcon('home')_rounded,
                   title: 'English',
                   subtitle: 'Default language',
                   value: 'en',
@@ -238,7 +239,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               children: [
                 _buildSwitchTile(
-                  icon: Icons.notifications_rounded,
+                  icon: ImageService.coreIcon('notifications_active')_rounded,
                   title: 'الإشعارات',
                   subtitle: 'تلقي إشعارات التطبيق',
                   value: _notificationsEnabled,
@@ -275,7 +276,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               children: [
                 _buildListTile(
-                  icon: Icons.lock_rounded,
+                  icon: ImageService.coreIcon('home')_rounded,
                   title: 'تغيير كلمة المرور',
                   subtitle: 'تحديث كلمة المرور الخاصة بك',
                   onTap: () {},
@@ -311,7 +312,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               children: [
                 _buildListTile(
-                  icon: Icons.help_rounded,
+                  icon: ImageService.coreIcon('more_menu')_rounded,
                   title: 'مركز المساعدة',
                   subtitle: 'الأسئلة الشائعة والدعم',
                   onTap: () {},
@@ -319,7 +320,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 _buildDivider(isDark),
                 _buildListTile(
-                  icon: Icons.feedback_rounded,
+                  icon: ImageService.coreIcon('more_menu')_rounded,
                   title: 'إرسال ملاحظات',
                   subtitle: 'شاركنا رأيك في التطبيق',
                   onTap: () {},
@@ -327,7 +328,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 _buildDivider(isDark),
                 _buildListTile(
-                  icon: Icons.share_rounded,
+                  icon: ImageService.socialIcon('whatsapp')_rounded,
                   title: 'مشاركة التطبيق',
                   subtitle: 'دعوة الأصدقاء لاستخدام التطبيق',
                   onTap: () {},
@@ -344,7 +345,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  Icon(Icons.health_and_safety, size: 48, color: primaryColor),
+                  Icon(ImageService.coreIcon('home'), size: 48, color: primaryColor),
                   const SizedBox(height: 8),
                   Text(
                     'صحتك',
@@ -387,12 +388,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // ✅ 8. تسجيل الخروج
           _buildCard(
             child: ListTile(
-              leading: const Icon(Icons.logout_rounded, color: Colors.red),
+              leading: const Icon(ImageService.coreIcon('home')_rounded, color: Colors.red),
               title: const Text(
                 'تسجيل الخروج',
                 style: TextStyle(color: Colors.red),
               ),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.red),
+              trailing: const Icon(ImageService.coreIcon('more_menu'), size: 16, color: Colors.red),
               onTap: () {
                 _showLogoutDialog(context);
               },
@@ -527,7 +528,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           color: isDark ? Colors.grey[400] : Colors.grey[600],
         ),
       ),
-      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+      trailing: const Icon(ImageService.coreIcon('more_menu'), size: 16),
       onTap: onTap,
     );
   }
