@@ -4,7 +4,7 @@ import 'package:shimmer/shimmer.dart';
 
 class ImageService {
   // ============================================================
-  // 📁 المسارات الأساسية للمجلدات
+  // 📁 المسارات الأساسية
   // ============================================================
   static const String _banners = 'assets/images/banners';
   static const String _images = 'assets/images';
@@ -15,7 +15,7 @@ class ImageService {
   static const String _iconsSocial = 'assets/icons/social';
 
   // ============================================================
-  // 🖼️ البانرات (Banners) - الصور الموجودة
+  // 🖼️ البانرات (Banners)
   // ============================================================
   static const String banner1 = '$_banners/banner_1.png';
   static const String banner2 = '$_banners/banner_2.png';
@@ -29,42 +29,37 @@ class ImageService {
   ];
 
   // ============================================================
-  // 👨‍⚕️ صور الأطباء (Doctor Avatars)
+  // 👨‍⚕️ صور الأطباء
   // ============================================================
-  static const String doctor1 = '$_images/doctors/doctor1.jpg';
-  static const String doctor2 = '$_images/doctors/doctor2.jpg';
-  static const String doctor3 = '$_images/doctors/doctor3.jpg';
-  static const String doctor4 = '$_images/doctors/doctor4.jpg';
-  static const String doctor5 = '$_images/doctors/doctor5.jpg';
-  static const String doctor6 = '$_images/doctors/doctor6.jpg';
-  static const String doctor7 = '$_images/doctors/doctor7.jpg';
-  static const String doctor8 = '$_images/doctors/doctor8.jpg';
-
-  static List<String> get doctorImages => [
-    doctor1, doctor2, doctor3, doctor4,
-    doctor5, doctor6, doctor7, doctor8
-  ];
+  static const String doctor1 = '$_images/placeholder.png';
+  static const String doctor2 = '$_images/placeholder.png';
+  static const String doctor3 = '$_images/placeholder.png';
+  static const String doctor4 = '$_images/placeholder.png';
+  static const String doctor5 = '$_images/placeholder.png';
+  static const String doctor6 = '$_images/placeholder.png';
+  static const String doctor7 = '$_images/placeholder.png';
+  static const String doctor8 = '$_images/placeholder.png';
 
   // ============================================================
-  // 💊 صور الأدوية والمنتجات
+  // 💊 صور الأدوية
   // ============================================================
-  static const String medicine1 = '$_images/medications/medicine1.jpg';
-  static const String medicine2 = '$_images/medications/medicine2.jpg';
-  static const String medicine3 = '$_images/medications/medicine3.jpg';
-  static const String medicine4 = '$_images/medications/medicine4.jpg';
-  static const String medicine5 = '$_images/medications/medicine5.jpg';
-  static const String medicine6 = '$_images/medications/medicine6.jpg';
-  static const String medicine7 = '$_images/medications/medicine7.jpg';
-  static const String medicine8 = '$_images/medications/medicine8.jpg';
-  static const String medicine9 = '$_images/medications/medicine9.jpg';
-  static const String medicine10 = '$_images/medications/medicine10.jpg';
+  static const String medicine1 = '$_images/placeholder.png';
+  static const String medicine2 = '$_images/placeholder.png';
+  static const String medicine3 = '$_images/placeholder.png';
+  static const String medicine4 = '$_images/placeholder.png';
+  static const String medicine5 = '$_images/placeholder.png';
+  static const String medicine6 = '$_images/placeholder.png';
+  static const String medicine7 = '$_images/placeholder.png';
+  static const String medicine8 = '$_images/placeholder.png';
+  static const String medicine9 = '$_images/placeholder.png';
+  static const String medicine10 = '$_images/placeholder.png';
 
   // ============================================================
   // 🏥 الصيدليات والمختبرات
   // ============================================================
-  static const String pharmacy1 = '$_images/pharmacies/pharmacy1.jpg';
-  static const String pharmacy2 = '$_images/pharmacies/pharmacy2.jpg';
-  static const String lab1 = '$_images/labs/lab1.jpg';
+  static const String pharmacy1 = '$_images/placeholder.png';
+  static const String pharmacy2 = '$_images/placeholder.png';
+  static const String lab1 = '$_images/placeholder.png';
 
   // ============================================================
   // 📌 أيقونات SVG
@@ -76,7 +71,7 @@ class ImageService {
   static String socialIcon(String name) => '$_iconsSocial/$name.svg';
 
   // ============================================================
-  // 🎯 عرض البانر مع Shimmer
+  // 🎯 عرض البانر
   // ============================================================
   static Widget buildBanner(Map<String, dynamic> banner, {double? height}) {
     return Container(
@@ -84,11 +79,7 @@ class ImageService {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
+          BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 10, offset: const Offset(0, 4)),
         ],
       ),
       child: ClipRRect(
@@ -111,10 +102,7 @@ class ImageService {
                       ? Shimmer.fromColors(
                           baseColor: Colors.grey.shade300,
                           highlightColor: Colors.grey.shade100,
-                          child: Container(
-                            height: height ?? 180,
-                            color: Colors.grey.shade300,
-                          ),
+                          child: Container(height: height ?? 180, color: Colors.grey.shade300),
                         )
                       : child,
                 );
@@ -130,10 +118,7 @@ class ImageService {
                   gradient: LinearGradient(
                     begin: Alignment.bottomCenter,
                     end: Alignment.topCenter,
-                    colors: [
-                      Colors.black.withOpacity(0.4),
-                      Colors.transparent,
-                    ],
+                    colors: [Colors.black.withOpacity(0.4), Colors.transparent],
                   ),
                 ),
               ),
@@ -145,7 +130,7 @@ class ImageService {
   }
 
   // ============================================================
-  // 📸 صورة مع Shimmer (للاستخدام العام)
+  // 📸 صورة مع Shimmer
   // ============================================================
   static Widget imageWithShimmer(
     String path, {
@@ -192,7 +177,7 @@ class ImageService {
   }
 
   // ============================================================
-  // 🖼️ أيقونة SVG مع لون
+  // 🖼️ أيقونة SVG
   // ============================================================
   static Widget svgIcon(String path, {double size = 24, Color? color}) {
     return SvgPicture.asset(
@@ -201,19 +186,5 @@ class ImageService {
       height: size,
       colorFilter: color != null ? ColorFilter.mode(color, BlendMode.srcIn) : null,
     );
-  }
-
-  // ============================================================
-  // 🖼️ أيقونة Navigation (للشريط السفلي)
-  // ============================================================
-  static Widget navIcon(String name, {double size = 24, Color? color}) {
-    return svgIcon('$_iconsNav/$name.svg', size: size, color: color);
-  }
-
-  // ============================================================
-  // 🖼️ أيقونة Core
-  // ============================================================
-  static Widget coreIcon(String name, {double size = 24, Color? color}) {
-    return svgIcon('$_iconsCore/$name.svg', size: size, color: color);
   }
 }
