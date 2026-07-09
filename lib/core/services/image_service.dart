@@ -8,22 +8,10 @@ class ImageService {
   // ============================================================
   static const String _baseIcons = 'assets/icons';
   static const String _baseImages = 'assets/images';
-
-  static const String _consultations = '$_baseIcons/consultations';
-  static const String _core = '$_baseIcons/core';
-  static const String _miniSpecialties = '$_baseIcons/mini_specialties';
-  static const String _navigation = '$_baseIcons/navigation';
-  static const String _offers = '$_baseIcons/offers';
-  static const String _payment = '$_baseIcons/payment';
-  static const String _plans = '$_baseIcons/plans';
-  static const String _pngCore = '$_baseIcons/png_core';
-  static const String _pngSpecialties = '$_baseIcons/png_specialties';
-  static const String _social = '$_baseIcons/social';
-  static const String _specialties = '$_baseIcons/specialties';
   static const String _banners = '$_baseImages/banners';
 
   // ============================================================
-  // 🖼️ البانرات (Banners) - ✅ مطابقة لأسماء الملفات
+  // 🖼️ البانرات
   // ============================================================
   static const String banner1 = '$_banners/banner_1.png';
   static const String banner2 = '$_banners/banner_2.png';
@@ -39,17 +27,17 @@ class ImageService {
   // 🧭 الشريط السفلي - 7 أيقونات
   // ============================================================
   static final List<Map<String, dynamic>> navItems = [
-    {'icon': '$_navigation/home.svg', 'label': 'الرئيسية'},
-    {'icon': '$_navigation/doctor.svg', 'label': 'الأطباء'},
-    {'icon': '$_navigation/pharmacy.svg', 'label': 'الصيدلية'},
-    {'icon': '$_navigation/chat.svg', 'label': 'الدردشة'},
-    {'icon': '$_navigation/calendar.svg', 'label': 'مواعيدي'},
-    {'icon': '$_navigation/health_record.svg', 'label': 'صحتي'},
-    {'icon': '$_navigation/more.svg', 'label': 'المزيد'},
+    {'icon': 'assets/icons/navigation/home.svg', 'label': 'الرئيسية'},
+    {'icon': 'assets/icons/navigation/doctor.svg', 'label': 'الأطباء'},
+    {'icon': 'assets/icons/navigation/pharmacy.svg', 'label': 'الصيدلية'},
+    {'icon': 'assets/icons/navigation/chat.svg', 'label': 'الدردشة'},
+    {'icon': 'assets/icons/navigation/calendar.svg', 'label': 'مواعيدي'},
+    {'icon': 'assets/icons/navigation/health_record.svg', 'label': 'صحتي'},
+    {'icon': 'assets/icons/navigation/more.svg', 'label': 'المزيد'},
   ];
 
   // ============================================================
-  // 👨‍⚕️ صور الأطباء (Placeholder مؤقتاً)
+  // 👨‍⚕️ صور الأطباء (Placeholder)
   // ============================================================
   static const String doctor1 = '$_baseImages/placeholder.png';
   static const String doctor2 = '$_baseImages/placeholder.png';
@@ -61,7 +49,7 @@ class ImageService {
   static const String doctor8 = '$_baseImages/placeholder.png';
 
   // ============================================================
-  // 💊 صور الأدوية (Placeholder مؤقتاً)
+  // 💊 صور الأدوية (Placeholder)
   // ============================================================
   static const String medicine1 = '$_baseImages/placeholder.png';
   static const String medicine2 = '$_baseImages/placeholder.png';
@@ -75,25 +63,35 @@ class ImageService {
   static const String medicine10 = '$_baseImages/placeholder.png';
 
   // ============================================================
-  // 🏥 الصيدليات والمختبرات (Placeholder مؤقتاً)
+  // 🏥 الصيدليات والمختبرات (Placeholder)
   // ============================================================
   static const String pharmacy1 = '$_baseImages/placeholder.png';
   static const String pharmacy2 = '$_baseImages/placeholder.png';
   static const String lab1 = '$_baseImages/placeholder.png';
 
   // ============================================================
-  // 📌 أيقونات SVG
+  // 💳 أيقونات الدفع (Payment Icons)
   // ============================================================
-  static String coreIcon(String name) => '$_core/$name.svg';
-  static String navIcon(String name) => '$_navigation/$name.svg';
-  static String specialtyIcon(String name) => '$_specialties/$name.svg';
-  static String miniIcon(String name) => '$_miniSpecialties/$name.svg';
-  static String socialIcon(String name) => '$_social/$name.svg';
+  static const String payJawaliSvg = 'assets/icons/payment/jawali.svg';
+  static const String payFloosakSvg = 'assets/icons/payment/floosak.svg';
+  static const String payJeebSvg = 'assets/icons/payment/jeeb.svg';
+  static const String payKashSvg = 'assets/icons/payment/kash.svg';
+  static const String payEasySvg = 'assets/icons/payment/easy.svg';
+  
+  // ✅ PNG icons - إضافة الثوابت المفقودة
+  static const String iconJawaliPng = 'assets/icons/payment/Jawali_icon.png';
+  static const String iconYemenWalletPng = 'assets/icons/payment/Yemen Wallet_icon.png';
+  static const String iconFloosakPng = 'assets/icons/payment/floosak_icon.png';
+  static const String iconKuraimiPng = 'assets/icons/payment/الكريمي جوال_icon.png';
+  static const String iconEasyPng = 'assets/icons/payment/ايزي_icon.png';
+  static const String iconJeebPng = 'assets/icons/payment/جيب_icon.png';
+  static const String iconKashOnePng = 'assets/icons/payment/كاش ONE_icon.png';
+  static const String iconKashPng = 'assets/icons/payment/كاش_icon.png';
+  static const String iconMobileMoneyPng = 'assets/icons/payment/موبايل موني انترنت_icon.png';
 
   // ============================================================
   // 🛠️ دوال البناء
   // ============================================================
-
   static Widget svgIcon(String path, {double size = 24, Color? color}) {
     return SvgPicture.asset(
       path,
@@ -147,5 +145,26 @@ class ImageService {
       height: height ?? 180,
       borderRadius: 16,
     );
+  }
+
+  // ✅ دالة مساعدة للأيقونات
+  static Widget coreIcon(String name) {
+    return svgIcon('assets/icons/core/$name.svg');
+  }
+
+  static Widget navIcon(String name) {
+    return svgIcon('assets/icons/navigation/$name.svg');
+  }
+
+  static Widget specialtyIcon(String name) {
+    return svgIcon('assets/icons/specialties/$name.svg');
+  }
+
+  static Widget miniSpecialtyIcon(String name) {
+    return svgIcon('assets/icons/mini_specialties/$name.svg');
+  }
+
+  static Widget socialIcon(String name) {
+    return svgIcon('assets/icons/social/$name.svg');
   }
 }
