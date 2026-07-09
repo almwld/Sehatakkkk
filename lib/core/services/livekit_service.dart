@@ -56,7 +56,6 @@ class LiveKitService {
       final options = RoomOptions(
         adaptiveStream: true,
         dynacast: true,
-        videoCodec: VideoCodec.vp8,
         defaultVideoPublishOptions: const VideoPublishOptions(
           simulcast: false,
         ),

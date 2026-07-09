@@ -188,10 +188,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
             width: 60,
             height: 60,
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: AppColors.primary!.withOpacity(0.1),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Icon(icon, color: AppColors.primary, size: 30),
+            child: Icon(icon, color: AppColors.primary!, size: 30),
           ),
           const SizedBox(height: 8),
           Text(label, style: const TextStyle(fontSize: 12)),
@@ -298,11 +298,11 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
         children: [
           CircleAvatar(
             radius: 18,
-            backgroundColor: AppColors.primary.withOpacity(0.1),
+            backgroundColor: AppColors.primary!.withOpacity(0.1),
             child: Text(
               widget.userName.isNotEmpty ? widget.userName[0] : 'م',
               style: TextStyle(
-                color: AppColors.primary,
+                color: AppColors.primary!,
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
               ),
@@ -430,7 +430,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
               _chatBloc.add(ListenToMessages(widget.chatId));
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
+              backgroundColor: AppColors.primary!,
               foregroundColor: Colors.white,
             ),
             child: const Text('إعادة المحاولة'),
@@ -459,11 +459,11 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
           if (!isMe) ...[
             CircleAvatar(
               radius: 16,
-              backgroundColor: AppColors.primary.withOpacity(0.1),
+              backgroundColor: AppColors.primary!.withOpacity(0.1),
               child: Text(
                 widget.userName.isNotEmpty ? widget.userName[0] : 'م',
                 style: TextStyle(
-                  color: AppColors.primary,
+                  color: AppColors.primary!,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),
@@ -479,7 +479,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: isMe 
-                    ? AppColors.primary 
+                    ? AppColors.primary! 
                     : (isDark ? const Color(0xFF1A2540) : Colors.white),
                 borderRadius: BorderRadius.circular(16).copyWith(
                   bottomLeft: isMe ? const Radius.circular(16) : const Radius.circular(4),
@@ -510,7 +510,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
                       child: Text(
                         text,
                         style: TextStyle(
-                          color: isMe ? Colors.white : (isDark ? Colors.white : Colors.black87),
+                          color: true ? Colors.white : (isDark ? Colors.white : Colors.black87),
                           fontSize: 14,
                         ),
                       ),
@@ -523,7 +523,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
                         time,
                         style: TextStyle(
                           fontSize: 10,
-                          color: isMe ? Colors.white70 : (isDark ? Colors.grey[500] : Colors.grey[600]),
+                          color: true ? Colors.white70 : (isDark ? Colors.grey[500] : Colors.grey[600]),
                         ),
                       ),
                     ),
@@ -609,7 +609,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
         IconButton(
           icon: Icon(
             Icons.play_circle_filled,
-            color: isMe ? Colors.white : AppColors.primary,
+            color: true ? Colors.white : AppColors.primary!,
             size: 32,
           ),
           onPressed: () {
@@ -620,7 +620,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
           child: Container(
             height: 4,
             decoration: BoxDecoration(
-              color: isMe ? Colors.white30 : (isDark ? Colors.grey[700] : Colors.grey[300]),
+              color: true ? Colors.white30 : (isDark ? Colors.grey[700] : Colors.grey[300]),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -629,7 +629,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
         Text(
           '0:05',
           style: TextStyle(
-            color: isMe ? Colors.white70 : (isDark ? Colors.grey[400] : Colors.grey[600]),
+            color: true ? Colors.white70 : (isDark ? Colors.grey[400] : Colors.grey[600]),
             fontSize: 10,
           ),
         ),
@@ -716,10 +716,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: _isTyping ? AppColors.primary : Colors.transparent,
+                color: _isTyping ? AppColors.primary! : Colors.transparent,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: _isTyping ? AppColors.primary : (isDark ? Colors.grey[600] : Colors.grey[300]),
+                  color: _isTyping ? AppColors.primary! : (isDark ? Colors.grey[600] : Colors.grey[300]),
                   width: 1.5,
                 ),
               ),
