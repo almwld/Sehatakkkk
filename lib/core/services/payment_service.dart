@@ -1,102 +1,83 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PaymentService {
-  static const String _baseUrl = 'https://api.sehatak.com/payment';
-  
-  // المحافظ اليمنية المدعومة
-  static const List<String> supportedWallets = [
-    'فلوسك',
-    'جوالي',
-    'جيب',
-    'كاش',
-    'إيزي',
-    'كريمي جوال',
-    'كاش ONE',
-    'موبايل موني',
-  ];
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // توزيع الأرباح
-  static const Map<String, double> profitDistribution = {
-    'platform': 0.15,  // 15%
-    'doctor': 0.60,    // 60%
-    'employee': 0.25,  // 25%
-  };
+  static const String merchantCode = '536398';
+  static const double platformFee = 0.15;
 
   Future<Map<String, dynamic>> processPayment({
     required String userId,
     required double amount,
-    required String serviceType,
-    required String serviceId,
+    required String planId,
+    required String planName,
     required String paymentMethod,
     required String walletNumber,
   }) async {
     try {
-      final response = await http.post(
-        Uri.parse('$_baseUrl/process'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'userId': userId,
-          'amount': amount,
-          'serviceType': serviceType,
-          'serviceId': serviceId,
-          'paymentMethod': paymentMethod,
-          'walletNumber': walletNumber,
-        }),
-      );
+      final paymentId = _firestore.collection('payments').doc().id;
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        // حساب التوزيع
-        final distribution = _calculateDistribution(amount);
-        await _saveTransaction(data['transactionId'], {
-          'amount': amount,
-          'distribution': distribution,
-          'status': 'completed',
-        });
-        return {'success': true, 'data': data};
-      } else {
-        return {'success': false, 'error': 'فشل الدفع'};
-      }
+      // ✅ التحقق من الرصيد (سيتم تفعيله مع المحفظة)
+      // final balance = await getWalletBalance(userId);
+      // if (balance < amount) {
+      //   return {'success': false, 'error': 'الرصيد غير كافٍ'};
+      // }
+
+      final fee = amount * platformFee;
+      final netAmount = amount - fee;
+
+      final paymentData = {
+        'id': paymentId,
+        'userId': userId,
+        'amount': amount,
+        'fee': fee,
+        'netAmount': netAmount,
+        'planId': planId,
+        'planName': planName,
+        'paymentMethod': paymentMethod,
+        'walletNumber': walletNumber,
+        'merchantCode': merchantCode,
+        'status': 'completed',
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+
+      await _firestore.collection('payments').doc(paymentId).set(paymentData);
+
+      return {
+        'success': true,
+        'paymentId': paymentId,
+        'amount': amount,
+        'fee': fee,
+        'netAmount': netAmount,
+      };
     } catch (e) {
-      return {'success': false, 'error': e.toString()};
+      return {
+        'success': false,
+        'error': e.toString(),
+      };
     }
   }
 
-  Map<String, double> _calculateDistribution(double amount) {
-    return {
-      'platform': amount * profitDistribution['platform']!,
-      'doctor': amount * profitDistribution['doctor']!,
-      'employee': amount * profitDistribution['employee']!,
-    };
-  }
-
-  Future<void> _saveTransaction(String id, Map<String, dynamic> data) async {
-    final prefs = await SharedPreferences.getInstance();
-    final transactions = prefs.getStringList('transactions') ?? [];
-    transactions.add(jsonEncode({'id': id, ...data, 'date': DateTime.now().toIso8601String()}));
-    await prefs.setStringList('transactions', transactions);
-  }
-
-  Future<List<Map<String, dynamic>>> getTransactions() async {
-    final prefs = await SharedPreferences.getInstance();
-    final transactions = prefs.getStringList('transactions') ?? [];
-    return transactions.map((e) => jsonDecode(e) as Map<String, dynamic>).toList();
-  }
-
-  Future<double> getWalletBalance(String userId) async {
+  Future<List<Map<String, dynamic>>> getPaymentHistory(String userId) async {
     try {
-      final response = await http.get(
-        Uri.parse('$_baseUrl/wallet/$userId'),
-      );
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return data['balance'] ?? 0.0;
-      }
-      return 0.0;
+      final snapshot = await _firestore
+          .collection('payments')
+          .where('userId', isEqualTo: userId)
+          .orderBy('createdAt', descending: true)
+          .limit(50)
+          .get();
+
+      return snapshot.docs.map((doc) => doc.data()).toList();
     } catch (e) {
-      return 0.0;
+      return [];
     }
+  }
+
+  Future<void> updatePaymentStatus(String paymentId, String status) async {
+    await _firestore.collection('payments').doc(paymentId).update({
+      'status': status,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
   }
 }
