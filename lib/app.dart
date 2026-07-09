@@ -1,3 +1,4 @@
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
@@ -198,6 +199,9 @@ class SehatakApp extends StatelessWidget {
           locale: const Locale('ar', 'YE'),
           supportedLocales: const [Locale('ar', 'YE')],
           localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
             // ✅ استخدام الـ Localizations المدمجة في Flutter
           ],
           localeResolutionCallback: (locale, supportedLocales) {
