@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sehatak/core/services/image_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -16,34 +15,31 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool _notificationsEnabled = true;
-  bool _soundEnabled = true;
-  bool _vibrationEnabled = true;
-  bool _locationEnabled = false;
+  bool _isDark = false;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = const Color(0xFF0D5257);
-    final fontProvider = context.watch<FontSizeProvider>();
-    final fontScale = fontProvider.fontScale;
+    final theme = Theme.of(context);
+    final fontSizeProvider = context.watch<FontSizeProvider>();
+    final fontScale = fontSizeProvider.fontScale;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
       appBar: AppBar(
         title: const Text('الإعدادات'),
-        backgroundColor: primaryColor,
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(ImageService.coreIcon('more_menu')_rounded),
+            icon: const Icon(Icons.restore_rounded),
             onPressed: () {
-              fontProvider.resetToDefault();
+              fontSizeProvider.resetToDefault();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('✅ تم إعادة حجم الخط إلى الافتراضي'),
-                  backgroundColor: Colors.green,
+                  backgroundColor: AppColors.success,
                 ),
               );
             },
@@ -54,14 +50,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // ✅ 1. المظهر
           _buildSectionHeader('المظهر', isDark),
           const SizedBox(height: 8),
           _buildCard(
             child: Column(
               children: [
                 _buildSwitchTile(
-                  icon: ImageService.coreIcon('home')_rounded,
+                  icon: Icons.dark_mode_rounded,
                   title: 'الوضع المظلم',
                   subtitle: 'تفعيل الوضع المظلم للتطبيق',
                   value: isDark,
@@ -73,12 +68,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   isDark: isDark,
                 ),
                 _buildDivider(isDark),
+                _buildSwitchTile(
+                  icon: Icons.brightness_auto_rounded,
+                  title: 'الوضع التلقائي',
+                  subtitle: 'متابعة إعدادات النظام',
+                  value: context.read<ThemeBloc>().state.themeMode == ThemeMode.system,
+                  onChanged: (value) {
+                    context.read<ThemeBloc>().add(SetSystemTheme());
+                  },
+                  isDark: isDark,
+                ),
               ],
             ),
           ),
           const SizedBox(height: 16),
-
-          // ✅ 2. حجم الخط
           _buildSectionHeader('حجم الخط', isDark),
           const SizedBox(height: 8),
           _buildCard(
@@ -91,13 +94,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: fontProvider.getScaleColor().withOpacity(0.1),
+                          color: fontSizeProvider.getScaleColor().withOpacity(0.1),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Icon(
-                          fontProvider.getScaleIcon(),
-                          color: fontProvider.getScaleColor(),
-                          size: 22,
+                          fontSizeProvider.getScaleIcon(),
+                          color: fontSizeProvider.getScaleColor(),
+                          size: 24,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -117,13 +120,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                   decoration: BoxDecoration(
-                                    color: fontProvider.getScaleColor().withOpacity(0.15),
+                                    color: fontSizeProvider.getScaleColor().withOpacity(0.15),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
-                                    '${fontProvider.fontSizePercent}%',
+                                    '${fontSizeProvider.fontSizePercent}%',
                                     style: TextStyle(
-                                      color: fontProvider.getScaleColor(),
+                                      color: fontSizeProvider.getScaleColor(),
                                       fontWeight: FontWeight.bold,
                                       fontSize: 12,
                                     ),
@@ -131,7 +134,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  fontProvider.getScaleLabel(),
+                                  fontSizeProvider.getScaleLabel(),
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -145,9 +148,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Text(
                         'نص',
                         style: TextStyle(
-                          fontSize: 16 * fontScale,
+                          fontSize: 14 * fontScale,
                           fontWeight: FontWeight.bold,
-                          color: primaryColor,
+                          color: AppColors.primary,
                         ),
                       ),
                     ],
@@ -156,10 +159,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Row(
                     children: [
                       IconButton(
-                        icon: Icon(ImageService.coreIcon('more_menu'), color: primaryColor),
+                        icon: const Icon(Icons.remove_circle_outline, color: AppColors.primary),
                         onPressed: () {
                           if (fontScale > 0.81) {
-                            fontProvider.setFontScale(fontScale - 0.05);
+                            fontSizeProvider.setFontScale(fontScale - 0.05);
                           }
                         },
                       ),
@@ -171,17 +174,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           divisions: 16,
                           label: '${(fontScale * 100).round()}%',
                           onChanged: (value) {
-                            fontProvider.setFontScale(value);
+                            fontSizeProvider.setFontScale(value);
                           },
-                          activeColor: primaryColor,
+                          activeColor: AppColors.primary,
                           inactiveColor: isDark ? Colors.grey[700] : Colors.grey[300],
                         ),
                       ),
                       IconButton(
-                        icon: Icon(ImageService.coreIcon('more_menu'), color: primaryColor),
+                        icon: const Icon(Icons.add_circle_outline, color: AppColors.primary),
                         onPressed: () {
                           if (fontScale < 1.59) {
-                            fontProvider.setFontScale(fontScale + 0.05);
+                            fontSizeProvider.setFontScale(fontScale + 0.05);
                           }
                         },
                       ),
@@ -190,10 +193,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _buildQuickSizeButton('صغير', 0.8, fontProvider, isDark),
-                      _buildQuickSizeButton('متوسط', 1.0, fontProvider, isDark),
-                      _buildQuickSizeButton('كبير', 1.3, fontProvider, isDark),
-                      _buildQuickSizeButton('كبير جداً', 1.6, fontProvider, isDark),
+                      _buildQuickSizeButton('صغير', 0.8, fontSizeProvider, isDark),
+                      _buildQuickSizeButton('متوسط', 1.0, fontSizeProvider, isDark),
+                      _buildQuickSizeButton('كبير', 1.3, fontSizeProvider, isDark),
+                      _buildQuickSizeButton('كبير جداً', 1.6, fontSizeProvider, isDark),
                     ],
                   ),
                 ],
@@ -201,15 +204,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           const SizedBox(height: 16),
-
-          // ✅ 3. اللغة
           _buildSectionHeader('اللغة', isDark),
           const SizedBox(height: 8),
           _buildCard(
             child: Column(
               children: [
                 _buildRadioTile(
-                  icon: ImageService.coreIcon('home')_rounded,
+                  icon: Icons.language_rounded,
                   title: 'العربية',
                   subtitle: 'اللغة الافتراضية',
                   value: 'ar',
@@ -219,7 +220,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 _buildDivider(isDark),
                 _buildRadioTile(
-                  icon: ImageService.coreIcon('home')_rounded,
+                  icon: Icons.language_rounded,
                   title: 'English',
                   subtitle: 'Default language',
                   value: 'en',
@@ -231,88 +232,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           const SizedBox(height: 16),
-
-          // ✅ 4. الإشعارات
-          _buildSectionHeader('الإشعارات', isDark),
-          const SizedBox(height: 8),
-          _buildCard(
-            child: Column(
-              children: [
-                _buildSwitchTile(
-                  icon: ImageService.coreIcon('notifications_active')_rounded,
-                  title: 'الإشعارات',
-                  subtitle: 'تلقي إشعارات التطبيق',
-                  value: _notificationsEnabled,
-                  onChanged: (value) => setState(() => _notificationsEnabled = value),
-                  isDark: isDark,
-                ),
-                _buildDivider(isDark),
-                _buildSwitchTile(
-                  icon: Icons.volume_up_rounded,
-                  title: 'الصوت',
-                  subtitle: 'تشغيل صوت الإشعارات',
-                  value: _soundEnabled,
-                  onChanged: (value) => setState(() => _soundEnabled = value),
-                  isDark: isDark,
-                ),
-                _buildDivider(isDark),
-                _buildSwitchTile(
-                  icon: Icons.vibration_rounded,
-                  title: 'الاهتزاز',
-                  subtitle: 'تفعيل الاهتزاز عند الإشعارات',
-                  value: _vibrationEnabled,
-                  onChanged: (value) => setState(() => _vibrationEnabled = value),
-                  isDark: isDark,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // ✅ 5. الخصوصية والأمان
-          _buildSectionHeader('الخصوصية والأمان', isDark),
+          _buildSectionHeader('الحساب', isDark),
           const SizedBox(height: 8),
           _buildCard(
             child: Column(
               children: [
                 _buildListTile(
-                  icon: ImageService.coreIcon('home')_rounded,
+                  icon: Icons.person_rounded,
+                  title: 'الملف الشخصي',
+                  subtitle: 'تعديل بياناتك الشخصية',
+                  onTap: () {},
+                  isDark: isDark,
+                ),
+                _buildDivider(isDark),
+                _buildListTile(
+                  icon: Icons.lock_rounded,
                   title: 'تغيير كلمة المرور',
                   subtitle: 'تحديث كلمة المرور الخاصة بك',
                   onTap: () {},
                   isDark: isDark,
                 ),
                 _buildDivider(isDark),
-                _buildSwitchTile(
-                  icon: Icons.fingerprint_rounded,
-                  title: 'البصمة',
-                  subtitle: 'تفعيل تسجيل الدخول بالبصمة',
-                  value: _locationEnabled,
-                  onChanged: (value) => setState(() => _locationEnabled = value),
-                  isDark: isDark,
-                ),
-                _buildDivider(isDark),
-                _buildSwitchTile(
-                  icon: Icons.location_on_rounded,
-                  title: 'الموقع',
-                  subtitle: 'السماح للتطبيق بالوصول إلى موقعك',
-                  value: _locationEnabled,
-                  onChanged: (value) => setState(() => _locationEnabled = value),
+                _buildListTile(
+                  icon: Icons.notifications_rounded,
+                  title: 'الإشعارات',
+                  subtitle: 'إدارة إعدادات الإشعارات',
+                  onTap: () {},
                   isDark: isDark,
                 ),
               ],
             ),
           ),
           const SizedBox(height: 16),
-
-          // ✅ 6. الدعم
           _buildSectionHeader('الدعم', isDark),
           const SizedBox(height: 8),
           _buildCard(
             child: Column(
               children: [
                 _buildListTile(
-                  icon: ImageService.coreIcon('more_menu')_rounded,
+                  icon: Icons.help_rounded,
                   title: 'مركز المساعدة',
                   subtitle: 'الأسئلة الشائعة والدعم',
                   onTap: () {},
@@ -320,7 +278,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 _buildDivider(isDark),
                 _buildListTile(
-                  icon: ImageService.coreIcon('more_menu')_rounded,
+                  icon: Icons.feedback_rounded,
                   title: 'إرسال ملاحظات',
                   subtitle: 'شاركنا رأيك في التطبيق',
                   onTap: () {},
@@ -328,7 +286,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 _buildDivider(isDark),
                 _buildListTile(
-                  icon: ImageService.socialIcon('whatsapp')_rounded,
+                  icon: Icons.share_rounded,
                   title: 'مشاركة التطبيق',
                   subtitle: 'دعوة الأصدقاء لاستخدام التطبيق',
                   onTap: () {},
@@ -338,45 +296,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           const SizedBox(height: 16),
-
-          // ✅ 7. معلومات التطبيق
           _buildCard(
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  Icon(ImageService.coreIcon('home'), size: 48, color: primaryColor),
+                  Icon(
+                    Icons.health_and_safety,
+                    size: 48,
+                    color: isDark ? Colors.white : AppColors.primary,
+                  ),
                   const SizedBox(height: 8),
                   Text(
                     'صحتك',
                     style: TextStyle(
-                      fontSize: 20 * fontScale,
+                      fontSize: 18 * fontScale,
                       fontWeight: FontWeight.bold,
                       color: isDark ? Colors.white : Colors.black87,
                     ),
                   ),
-                  const SizedBox(height: 4),
                   Text(
                     'الإصدار 1.1.0',
                     style: TextStyle(
-                      fontSize: 14 * fontScale,
-                      color: isDark ? Colors.grey[400] : Colors.grey[600],
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'منصة صحتك الشاملة',
-                    style: TextStyle(
-                      fontSize: 13 * fontScale,
+                      fontSize: 12 * fontScale,
                       color: isDark ? Colors.grey[400] : Colors.grey[600],
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '© 2026 Sehatak Platform. All rights reserved.',
+                    'منصة صحتك الشاملة',
                     style: TextStyle(
-                      fontSize: 10 * fontScale,
-                      color: isDark ? Colors.grey[600] : Colors.grey[400],
+                      fontSize: 12 * fontScale,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
                     ),
                   ),
                 ],
@@ -384,16 +335,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           const SizedBox(height: 16),
-
-          // ✅ 8. تسجيل الخروج
           _buildCard(
             child: ListTile(
-              leading: const Icon(ImageService.coreIcon('home')_rounded, color: Colors.red),
+              leading: const Icon(Icons.logout_rounded, color: Colors.red),
               title: const Text(
                 'تسجيل الخروج',
                 style: TextStyle(color: Colors.red),
               ),
-              trailing: const Icon(ImageService.coreIcon('more_menu'), size: 16, color: Colors.red),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.red),
               onTap: () {
                 _showLogoutDialog(context);
               },
@@ -405,9 +354,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // ============================================================
-  // 🧩 Widgets مساعدة
-  // ============================================================
+  Widget _buildQuickSizeButton(String label, double size, FontSizeProvider provider, bool isDark) {
+    final isSelected = (provider.fontScale - size).abs() < 0.02;
+    return GestureDetector(
+      onTap: () => provider.setFontScale(size),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary : (isDark ? const Color(0xFF1A2540) : Colors.grey[200]),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : Colors.transparent,
+            width: 1.5,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 10 * (size / 1.0),
+            color: isSelected ? Colors.white : (isDark ? Colors.grey[400] : Colors.grey[600]),
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+      ),
+    );
+  }
 
   Widget _buildSectionHeader(String title, bool isDark) {
     return Padding(
@@ -464,10 +435,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           color: isDark ? Colors.grey[400] : Colors.grey[600],
         ),
       ),
-      secondary: Icon(icon, color: const Color(0xFF0D5257)),
+      secondary: Icon(icon, color: AppColors.primary),
       value: value,
       onChanged: onChanged,
-      activeColor: const Color(0xFF0D5257),
+      activeColor: AppColors.primary,
     );
   }
 
@@ -482,7 +453,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-      leading: Icon(icon, color: const Color(0xFF0D5257)),
+      leading: Icon(icon, color: AppColors.primary),
       title: Text(
         title,
         style: TextStyle(
@@ -500,7 +471,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         value: value,
         groupValue: groupValue,
         onChanged: onChanged,
-        activeColor: const Color(0xFF0D5257),
+        activeColor: AppColors.primary,
       ),
     );
   }
@@ -514,7 +485,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-      leading: Icon(icon, color: const Color(0xFF0D5257)),
+      leading: Icon(icon, color: AppColors.primary),
       title: Text(
         title,
         style: TextStyle(
@@ -528,39 +499,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           color: isDark ? Colors.grey[400] : Colors.grey[600],
         ),
       ),
-      trailing: const Icon(ImageService.coreIcon('more_menu'), size: 16),
+      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
       onTap: onTap,
-    );
-  }
-
-  Widget _buildQuickSizeButton(
-    String label,
-    double size,
-    FontSizeProvider provider,
-    bool isDark,
-  ) {
-    final isSelected = (provider.fontScale - size).abs() < 0.02;
-    return GestureDetector(
-      onTap: () => provider.setFontScale(size),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF0D5257) : (isDark ? const Color(0xFF1A2540) : Colors.grey[200]),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected ? const Color(0xFF0D5257) : Colors.transparent,
-            width: 1.5,
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 10 * (size / 1.0),
-            color: isSelected ? Colors.white : (isDark ? Colors.grey[400] : Colors.grey[600]),
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
-      ),
     );
   }
 

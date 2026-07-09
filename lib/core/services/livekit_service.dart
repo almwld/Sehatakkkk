@@ -53,13 +53,12 @@ class LiveKitService {
         participantName: participantName ?? 'مستخدم',
       );
 
-      // ✅ إعدادات متوافقة مع LiveKit 1.5.6
       final options = RoomOptions(
         adaptiveStream: true,
         dynacast: true,
         videoCodec: VideoCodec.vp8,
         defaultVideoPublishOptions: const VideoPublishOptions(
-          source: TrackSource.Camera,
+          simulcast: false,
         ),
         defaultAudioPublishOptions: const AudioPublishOptions(),
       );
@@ -71,8 +70,6 @@ class LiveKitService {
       );
 
       print('✅ Connected to room: $roomName');
-      
-      // ✅ تمكين الميكروفون تلقائياً
       await _room!.localParticipant?.setMicrophoneEnabled(true);
       
       return _room!;
@@ -88,12 +85,6 @@ class LiveKitService {
         await _room!.localParticipant!.setCameraEnabled(true);
         _isCameraEnabled = true;
         print('✅ Camera enabled');
-        
-        // ✅ التحقق من وجود فيديو
-        final tracks = _room!.localParticipant!.videoTracks;
-        if (tracks.isNotEmpty) {
-          print('✅ Video track available');
-        }
       }
     } catch (e) {
       print('❌ Camera error: $e');

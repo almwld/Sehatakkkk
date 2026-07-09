@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/services/image_service.dart';
 import 'package:sehatak/core/services/payment_service.dart';
 import 'package:sehatak/presentation/screens/payment/payment_screen.dart';
 
@@ -30,8 +29,16 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
 
   Future<void> _loadSubscription() async {
     setState(() => _isLoading = true);
-    _activeSub = await _paymentService.getActiveSubscription('current_user');
-    setState(() => _isLoading = false);
+    try {
+      // ✅ جلب الاشتراك النشط
+      final doc = await _paymentService.getActiveSubscription('current_user');
+      setState(() {
+        _activeSub = doc;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -116,11 +123,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Row(
                     children: [
-                      ImageService.svgIcon(
-                        ImageService.coreIconPath('home'),
-                        size: 16,
-                        color: AppColors.success,
-                      ),
+                      const Icon(Icons.check_circle, color: AppColors.success, size: 16),
                       const SizedBox(width: 8),
                       Text(
                         plan['features'][i],
