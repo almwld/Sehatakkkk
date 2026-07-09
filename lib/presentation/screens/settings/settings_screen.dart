@@ -15,12 +15,9 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool _isDark = false;
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final theme = Theme.of(context);
     final fontSizeProvider = context.watch<FontSizeProvider>();
     final fontScale = fontSizeProvider.fontScale;
 
@@ -31,21 +28,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.restore_rounded),
-            onPressed: () {
-              fontSizeProvider.resetToDefault();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('✅ تم إعادة حجم الخط إلى الافتراضي'),
-                  backgroundColor: AppColors.success,
-                ),
-              );
-            },
-            tooltip: 'إعادة تعيين حجم الخط',
-          ),
-        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -73,9 +55,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: 'الوضع التلقائي',
                   subtitle: 'متابعة إعدادات النظام',
                   value: context.read<ThemeBloc>().state.themeMode == ThemeMode.system,
-                  onChanged: (value) {
-                    context.read<ThemeBloc>().add(SetSystemTheme());
-                  },
+                  onChanged: (_) {},
                   isDark: isDark,
                 ),
               ],
@@ -204,34 +184,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          _buildSectionHeader('اللغة', isDark),
-          const SizedBox(height: 8),
-          _buildCard(
-            child: Column(
-              children: [
-                _buildRadioTile(
-                  icon: Icons.language_rounded,
-                  title: 'العربية',
-                  subtitle: 'اللغة الافتراضية',
-                  value: 'ar',
-                  groupValue: 'ar',
-                  onChanged: (_) {},
-                  isDark: isDark,
-                ),
-                _buildDivider(isDark),
-                _buildRadioTile(
-                  icon: Icons.language_rounded,
-                  title: 'English',
-                  subtitle: 'Default language',
-                  value: 'en',
-                  groupValue: 'ar',
-                  onChanged: (_) {},
-                  isDark: isDark,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
           _buildSectionHeader('الحساب', isDark),
           const SizedBox(height: 8),
           _buildCard(
@@ -257,38 +209,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   icon: Icons.notifications_rounded,
                   title: 'الإشعارات',
                   subtitle: 'إدارة إعدادات الإشعارات',
-                  onTap: () {},
-                  isDark: isDark,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildSectionHeader('الدعم', isDark),
-          const SizedBox(height: 8),
-          _buildCard(
-            child: Column(
-              children: [
-                _buildListTile(
-                  icon: Icons.help_rounded,
-                  title: 'مركز المساعدة',
-                  subtitle: 'الأسئلة الشائعة والدعم',
-                  onTap: () {},
-                  isDark: isDark,
-                ),
-                _buildDivider(isDark),
-                _buildListTile(
-                  icon: Icons.feedback_rounded,
-                  title: 'إرسال ملاحظات',
-                  subtitle: 'شاركنا رأيك في التطبيق',
-                  onTap: () {},
-                  isDark: isDark,
-                ),
-                _buildDivider(isDark),
-                _buildListTile(
-                  icon: Icons.share_rounded,
-                  title: 'مشاركة التطبيق',
-                  subtitle: 'دعوة الأصدقاء لاستخدام التطبيق',
                   onTap: () {},
                   isDark: isDark,
                 ),
@@ -439,40 +359,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       value: value,
       onChanged: onChanged,
       activeColor: AppColors.primary,
-    );
-  }
-
-  Widget _buildRadioTile({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required String value,
-    required String groupValue,
-    required ValueChanged<String?> onChanged,
-    required bool isDark,
-  }) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-      leading: Icon(icon, color: AppColors.primary),
-      title: Text(
-        title,
-        style: TextStyle(
-          color: isDark ? Colors.white : Colors.black87,
-        ),
-      ),
-      subtitle: Text(
-        subtitle,
-        style: TextStyle(
-          fontSize: 12,
-          color: isDark ? Colors.grey[400] : Colors.grey[600],
-        ),
-      ),
-      trailing: Radio<String>(
-        value: value,
-        groupValue: groupValue,
-        onChanged: onChanged,
-        activeColor: AppColors.primary,
-      ),
     );
   }
 

@@ -38,8 +38,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
   bool _showEmojiPicker = false;
   bool _isLoading = false;
   late ChatBloc _chatBloc;
-
-  // ✅ حالة الاتصال
   bool _isConnected = true;
 
   @override
@@ -81,31 +79,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
   void _sendMessage() {
     final text = _textController.text.trim();
     if (text.isEmpty) return;
-    
-    _chatBloc.add(SendChatMessage(
-      chatId: widget.chatId,
-      text: text,
-    ));
-    
+    _chatBloc.add(SendChatMessage(chatId: widget.chatId, text: text));
     _textController.clear();
     setState(() => _isTyping = false);
     _scrollToBottom();
-  }
-
-  void _sendImage(String imageUrl) {
-    _chatBloc.add(SendChatMessage(
-      chatId: widget.chatId,
-      text: '📷 صورة',
-      imageUrl: imageUrl,
-    ));
-  }
-
-  void _sendAudio(String audioUrl) {
-    _chatBloc.add(SendChatMessage(
-      chatId: widget.chatId,
-      text: '🎙️ رسالة صوتية',
-      audioUrl: audioUrl,
-    ));
   }
 
   void _startCall(bool isVideo) {
@@ -153,18 +130,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
                 _buildPickerOption(
                   icon: Icons.photo_library,
                   label: 'المعرض',
-                  onTap: () {
-                    Navigator.pop(context);
-                    // ✅ فتح المعرض
-                  },
+                  onTap: () => Navigator.pop(context),
                 ),
                 _buildPickerOption(
                   icon: Icons.camera_alt,
                   label: 'الكاميرا',
-                  onTap: () {
-                    Navigator.pop(context);
-                    // ✅ فتح الكاميرا
-                  },
+                  onTap: () => Navigator.pop(context),
                 ),
               ],
             ),
@@ -188,10 +159,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
             width: 60,
             height: 60,
             decoration: BoxDecoration(
-              color: AppColors.primary!.withOpacity(0.1),
+              color: AppColors.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Icon(icon, color: AppColors.primary!, size: 30),
+            child: Icon(icon, color: AppColors.primary, size: 30),
           ),
           const SizedBox(height: 8),
           Text(label, style: const TextStyle(fontSize: 12)),
@@ -231,7 +202,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
       appBar: _buildAppBar(isDark),
       body: Column(
         children: [
-          // ✅ حالة الاتصال
           if (!_isConnected)
             Container(
               width: double.infinity,
@@ -249,7 +219,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
                 ],
               ),
             ),
-          // ✅ الرسائل
           Expanded(
             child: BlocBuilder<ChatBloc, ChatState>(
               builder: (context, state) {
@@ -280,16 +249,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
               },
             ),
           ),
-          // ✅ حقل الإدخال
           _buildInputField(isDark),
         ],
       ),
     );
   }
 
-  // ============================================================
-  // 📱 AppBar
-  // ============================================================
   PreferredSizeWidget _buildAppBar(bool isDark) {
     return AppBar(
       backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
@@ -298,11 +263,11 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
         children: [
           CircleAvatar(
             radius: 18,
-            backgroundColor: AppColors.primary!.withOpacity(0.1),
+            backgroundColor: AppColors.primary.withOpacity(0.1),
             child: Text(
               widget.userName.isNotEmpty ? widget.userName[0] : 'م',
               style: TextStyle(
-                color: AppColors.primary!,
+                color: AppColors.primary,
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
               ),
@@ -350,9 +315,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
     );
   }
 
-  // ============================================================
-  // 🟡 حالة فارغة
-  // ============================================================
   Widget _buildEmptyState(bool isDark) {
     return Center(
       child: Column(
@@ -393,9 +355,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
     );
   }
 
-  // ============================================================
-  // 🔴 حالة خطأ
-  // ============================================================
   Widget _buildErrorState(String message, bool isDark) {
     return Center(
       child: Column(
@@ -430,7 +389,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
               _chatBloc.add(ListenToMessages(widget.chatId));
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary!,
+              backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
             ),
             child: const Text('إعادة المحاولة'),
@@ -440,9 +399,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
     );
   }
 
-  // ============================================================
-  // 💬 فقاعة الرسالة
-  // ============================================================
   Widget _buildMessageBubble(Map<String, dynamic> msg, bool isMe, bool isDark) {
     final text = msg['text'] ?? '';
     final imageUrl = msg['imageUrl'];
@@ -459,11 +415,11 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
           if (!isMe) ...[
             CircleAvatar(
               radius: 16,
-              backgroundColor: AppColors.primary!.withOpacity(0.1),
+              backgroundColor: AppColors.primary.withOpacity(0.1),
               child: Text(
                 widget.userName.isNotEmpty ? widget.userName[0] : 'م',
                 style: TextStyle(
-                  color: AppColors.primary!,
+                  color: AppColors.primary,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),
@@ -478,9 +434,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
               ),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: isMe 
-                    ? AppColors.primary! 
-                    : (isDark ? const Color(0xFF1A2540) : Colors.white),
+                color: isMe ? AppColors.primary : (isDark ? const Color(0xFF1A2540) : Colors.white),
                 borderRadius: BorderRadius.circular(16).copyWith(
                   bottomLeft: isMe ? const Radius.circular(16) : const Radius.circular(4),
                   bottomRight: isMe ? const Radius.circular(4) : const Radius.circular(16),
@@ -497,25 +451,21 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // ✅ عرض الصورة
                   if (imageUrl != null && imageUrl.isNotEmpty)
                     _buildImageMessage(imageUrl, isDark),
-                  // ✅ عرض الرسالة الصوتية
                   if (isAudio)
-                    _buildAudioMessage(audioUrl, isDark),
-                  // ✅ عرض النص
+                    _buildAudioMessage(isDark),
                   if (text.isNotEmpty && !isAudio)
                     Padding(
                       padding: EdgeInsets.only(top: imageUrl != null ? 8 : 0),
                       child: Text(
                         text,
                         style: TextStyle(
-                          color: true ? Colors.white : (isDark ? Colors.white : Colors.black87),
+                          color: isMe ? Colors.white : (isDark ? Colors.white : Colors.black87),
                           fontSize: 14,
                         ),
                       ),
                     ),
-                  // ✅ الوقت
                   if (time.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
@@ -523,7 +473,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
                         time,
                         style: TextStyle(
                           fontSize: 10,
-                          color: true ? Colors.white70 : (isDark ? Colors.grey[500] : Colors.grey[600]),
+                          color: isMe ? Colors.white70 : (isDark ? Colors.grey[500] : Colors.grey[600]),
                         ),
                       ),
                     ),
@@ -536,9 +486,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
     );
   }
 
-  // ============================================================
-  // 🖼️ عرض الصورة
-  // ============================================================
   Widget _buildImageMessage(String imageUrl, bool isDark) {
     return GestureDetector(
       onTap: () {
@@ -600,27 +547,22 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
     );
   }
 
-  // ============================================================
-  // 🎙️ عرض الرسالة الصوتية
-  // ============================================================
-  Widget _buildAudioMessage(String audioUrl, bool isDark) {
+  Widget _buildAudioMessage(bool isDark) {
     return Row(
       children: [
         IconButton(
           icon: Icon(
             Icons.play_circle_filled,
-            color: true ? Colors.white : AppColors.primary!,
+            color: AppColors.primary,
             size: 32,
           ),
-          onPressed: () {
-            // ✅ تشغيل الصوت (سيتم ربطه لاحقاً)
-          },
+          onPressed: () {},
         ),
         Expanded(
           child: Container(
             height: 4,
             decoration: BoxDecoration(
-              color: true ? Colors.white30 : (isDark ? Colors.grey[700] : Colors.grey[300]),
+              color: isDark ? Colors.grey[700] : Colors.grey[300],
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -629,7 +571,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
         Text(
           '0:05',
           style: TextStyle(
-            color: true ? Colors.white70 : (isDark ? Colors.grey[400] : Colors.grey[600]),
+            color: isDark ? Colors.grey[400] : Colors.grey[600],
             fontSize: 10,
           ),
         ),
@@ -637,10 +579,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
     );
   }
 
-  // ============================================================
-  // 🎙️ حقل الإدخال
-  // ============================================================
   Widget _buildInputField(bool isDark) {
+    final bool isTyping = _isTyping;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
@@ -655,12 +596,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
       ),
       child: Row(
         children: [
-          // ✅ زر المرفقات
           IconButton(
             icon: Icon(Icons.attach_file, color: isDark ? Colors.grey[400] : Colors.grey[600]),
             onPressed: _showImagePickerOptions,
           ),
-          // ✅ حقل النص
           Expanded(
             child: Container(
               decoration: BoxDecoration(
@@ -694,32 +633,26 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
               ),
             ),
           ),
-          // ✅ زر الإيموجي
           IconButton(
             icon: Icon(Icons.emoji_emotions_outlined, color: isDark ? Colors.grey[400] : Colors.grey[600]),
-            onPressed: () {
-              // ✅ فتح لوحة الإيموجي
-            },
+            onPressed: () {},
           ),
-          // ✅ زر الإرسال / الميكروفون
           GestureDetector(
             onLongPressStart: (_) {
               setState(() => _isRecording = true);
-              // ✅ بدء التسجيل
             },
             onLongPressEnd: (_) {
               setState(() => _isRecording = false);
-              // ✅ إيقاف التسجيل وإرساله
             },
-            onTap: _isTyping ? _sendMessage : null,
+            onTap: isTyping ? _sendMessage : null,
             child: Container(
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: _isTyping ? AppColors.primary! : Colors.transparent,
+                color: isTyping ? AppColors.primary : Colors.transparent,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: _isTyping ? AppColors.primary! : (isDark ? Colors.grey[600] : Colors.grey[300]),
+                  color: isTyping ? AppColors.primary : (isDark ? Colors.grey[600] : Colors.grey[300]),
                   width: 1.5,
                 ),
               ),
@@ -733,8 +666,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
                       ),
                     )
                   : Icon(
-                      _isTyping ? Icons.send : Icons.mic,
-                      color: _isTyping ? Colors.white : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                      isTyping ? Icons.send : Icons.mic,
+                      color: isTyping ? Colors.white : (isDark ? Colors.grey[400] : Colors.grey[600]),
                       size: 20,
                     ),
             ),
