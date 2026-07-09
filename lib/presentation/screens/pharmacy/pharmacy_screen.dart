@@ -36,7 +36,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> {
       'deliveryFree': true,
       'open24': true,
       'distance': '1.2 كم',
-      'image': ImageService.pharmacy1,
+      'image': ImageService.pharmacy,
       'categories': ['أدوية', 'مستلزمات', 'عناية'],
     },
     {
@@ -49,7 +49,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> {
       'deliveryFree': false,
       'open24': false,
       'distance': '2.5 كم',
-      'image': ImageService.pharmacy2,
+      'image': ImageService.pharmacy,
       'categories': ['أدوية', 'فيتامينات'],
     },
     {
@@ -62,7 +62,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> {
       'deliveryFree': true,
       'open24': true,
       'distance': '0.8 كم',
-      'image': ImageService.pharmacy1,
+      'image': ImageService.pharmacy,
       'categories': ['أدوية', 'مستلزمات', 'عناية', 'فيتامينات'],
     },
     {
@@ -75,7 +75,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> {
       'deliveryFree': false,
       'open24': false,
       'distance': '3.1 كم',
-      'image': ImageService.pharmacy2,
+      'image': ImageService.pharmacy,
       'categories': ['أدوية'],
     },
     {
@@ -88,7 +88,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> {
       'deliveryFree': false,
       'open24': true,
       'distance': '1.8 كم',
-      'image': ImageService.pharmacy1,
+      'image': ImageService.pharmacy,
       'categories': ['أدوية', 'مستلزمات'],
     },
     {
@@ -101,7 +101,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> {
       'deliveryFree': true,
       'open24': false,
       'distance': '2.0 كم',
-      'image': ImageService.pharmacy2,
+      'image': ImageService.pharmacy,
       'categories': ['أدوية', 'فيتامينات', 'عناية'],
     },
   ];

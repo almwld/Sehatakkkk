@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:carousel_slider/carousel_slider.dart';
-import 'package:shimmer/shimmer.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/image_service.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
@@ -114,7 +110,7 @@ class _HomeScreenState extends State<HomeScreen> {
               _buildNavItem('home', 'الرئيسية', 0),
               _buildNavItem('doctor', 'الأطباء', 1),
               _buildNavItem('pharmacy', 'الصيدلية', 2),
-              _buildNavItem('chat', 'الدردشة', 3, isSpecial: true),
+              _buildNavItem('chat', 'الدردشة', 3, true),
               _buildNavItem('calendar', 'المواعيد', 4),
               _buildNavItem('health_record', 'صحتي', 5),
               _buildNavItem('more', 'المزيد', 6),
@@ -125,28 +121,18 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  BottomNavigationBarItem _buildNavItem(String iconName, String label, int index, {bool isSpecial = false}) {
-    final isSelected = _selectedIndex == index;
-    final iconPath = 'assets/icons/navigation/$iconName.svg';
-
+  BottomNavigationBarItem _buildNavItem(String name, String label, int index, [bool special = false]) {
+    final selected = _selectedIndex == index;
+    final color = selected ? AppColors.primary : Colors.grey;
     return BottomNavigationBarItem(
-      icon: isSpecial
-          ? Container(
-              margin: const EdgeInsets.only(top: 8),
-              child: SvgPicture.asset(iconPath, width: 30, height: 30,
-                colorFilter: ColorFilter.mode(isSelected ? AppColors.primary : Colors.grey, BlendMode.srcIn),
-              ),
-            )
-          : SvgPicture.asset(iconPath, width: 24, height: 24,
-              colorFilter: ColorFilter.mode(isSelected ? AppColors.primary : Colors.grey, BlendMode.srcIn),
-            ),
+      icon: ImageService.navIcon(name, size: special ? 30 : 24, color: color),
       label: label,
     );
   }
 }
 
 // ============================================================
-// 🏠 HomeTab - الشاشة الرئيسية
+// 🏠 HomeTab
 // ============================================================
 class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
@@ -160,19 +146,16 @@ class _HomeTabState extends State<HomeTab> {
   final ScrollController _scrollController = ScrollController();
   double _appBarOpacity = 1.0;
 
-  // ✅ البانرات من ImageService
   final List<Map<String, dynamic>> _banners = ImageService.bannerData;
 
-  // ✅ أفضل الأطباء
   final List<Map<String, dynamic>> _topDoctors = [
-    {'id': '1', 'name': 'د. أحمد المولد', 'specialty': 'باطنية', 'rating': 4.9, 'reviews': 328, 'image': ImageService.banner1, 'available': true},
-    {'id': '2', 'name': 'د. خالد النخلاني', 'specialty': 'قلبية', 'rating': 4.8, 'reviews': 256, 'image': ImageService.banner2, 'available': true},
-    {'id': '3', 'name': 'د. أسماء الهندي', 'specialty': 'أطفال', 'rating': 4.7, 'reviews': 189, 'image': ImageService.banner3, 'available': true},
-    {'id': '4', 'name': 'د. محمد العلاي', 'specialty': 'أنف وأذن', 'rating': 4.6, 'reviews': 89, 'image': ImageService.banner1, 'available': false},
-    {'id': '5', 'name': 'د. فاطمة صديقي', 'specialty': 'نساء وولادة', 'rating': 4.8, 'reviews': 210, 'image': ImageService.banner2, 'available': true},
+    {'id': '1', 'name': 'د. أحمد المولد', 'specialty': 'باطنية', 'rating': 4.9, 'reviews': 328, 'image': ImageService.doctor1, 'available': true},
+    {'id': '2', 'name': 'د. خالد النخلاني', 'specialty': 'قلبية', 'rating': 4.8, 'reviews': 256, 'image': ImageService.doctor2, 'available': true},
+    {'id': '3', 'name': 'د. أسماء الهندي', 'specialty': 'أطفال', 'rating': 4.7, 'reviews': 189, 'image': ImageService.doctor3, 'available': true},
+    {'id': '4', 'name': 'د. محمد العلاي', 'specialty': 'أنف وأذن', 'rating': 4.6, 'reviews': 89, 'image': ImageService.doctor4, 'available': false},
+    {'id': '5', 'name': 'د. فاطمة صديقي', 'specialty': 'نساء وولادة', 'rating': 4.8, 'reviews': 210, 'image': ImageService.doctor5, 'available': true},
   ];
 
-  // ✅ الخدمات السريعة
   final List<Map<String, dynamic>> _quickServices = [
     {'icon': Icons.medical_services, 'label': 'أطباء', 'color': AppColors.primary, 'screen': const DoctorsListScreen()},
     {'icon': Icons.local_pharmacy, 'label': 'صيدلية', 'color': AppColors.success, 'screen': const PharmacyScreen()},
@@ -188,14 +171,12 @@ class _HomeTabState extends State<HomeTab> {
     {'icon': Icons.home_work, 'label': 'خدمات منزلية', 'color': Colors.brown, 'screen': const ServicesScreen()},
   ];
 
-  // ✅ منشورات المجتمع
-  List<Map<String, dynamic>> _communityPosts = [
-    {'id': 1, 'author': 'د. سارة العمري', 'avatar': ImageService.banner1, 'image': ImageService.banner1, 'title': 'نصائح للعناية بالبشرة', 'content': 'مع حلول فصل الصيف، احرصي على ترطيب بشرتك.', 'likes': 120, 'comments': ['تعليق 1', 'تعليق 2'], 'shares': 15, 'time': 'منذ ساعة', 'liked': false, 'bookmarked': false},
-    {'id': 2, 'author': 'د. خالد النخلاني', 'avatar': ImageService.banner2, 'image': ImageService.banner2, 'title': 'أهمية الفيتامينات', 'content': 'الفيتامينات عناصر أساسية لصحة الجسم.', 'likes': 95, 'comments': ['تعليق 1'], 'shares': 8, 'time': 'منذ 3 ساعات', 'liked': false, 'bookmarked': false},
-    {'id': 3, 'author': 'د. أحمد المولد', 'avatar': ImageService.banner3, 'image': ImageService.banner3, 'title': 'صحة القلب', 'content': 'القلب محرك الحياة، احرص على الرياضة والأكل الصحي.', 'likes': 210, 'comments': ['تعليق 1', 'تعليق 2', 'تعليق 3'], 'shares': 22, 'time': 'منذ 5 ساعات', 'liked': true, 'bookmarked': true},
+  final List<Map<String, dynamic>> _communityPosts = [
+    {'id': 1, 'author': 'د. سارة العمري', 'avatar': ImageService.doctor2, 'image': ImageService.banner1, 'title': 'نصائح للعناية بالبشرة', 'content': 'مع حلول فصل الصيف، احرصي على ترطيب بشرتك واستخدام واقي الشمس.', 'likes': 120, 'comments': ['تعليق 1', 'تعليق 2'], 'shares': 15, 'time': 'منذ ساعة', 'liked': false, 'bookmarked': false},
+    {'id': 2, 'author': 'د. خالد النخلاني', 'avatar': ImageService.doctor2, 'image': ImageService.banner2, 'title': 'أهمية الفيتامينات', 'content': 'الفيتامينات عناصر أساسية لصحة الجسم، تأكد من تناولها.', 'likes': 95, 'comments': ['تعليق 1'], 'shares': 8, 'time': 'منذ 3 ساعات', 'liked': false, 'bookmarked': false},
+    {'id': 3, 'author': 'د. أحمد المولد', 'avatar': ImageService.doctor1, 'image': ImageService.banner3, 'title': 'صحة القلب', 'content': 'القلب محرك الحياة، احرص على الرياضة والأكل الصحي.', 'likes': 210, 'comments': ['تعليق 1', 'تعليق 2', 'تعليق 3'], 'shares': 22, 'time': 'منذ 5 ساعات', 'liked': true, 'bookmarked': true},
   ];
 
-  // ✅ النصائح اليومية
   final List<Map<String, dynamic>> _dailyTips = [
     {'title': 'شرب الماء', 'subtitle': '8 أكواب يومياً', 'icon': Icons.water_drop, 'color': AppColors.info},
     {'title': 'المشي', 'subtitle': '30 دقيقة يومياً', 'icon': Icons.directions_walk, 'color': AppColors.success},
@@ -203,12 +184,11 @@ class _HomeTabState extends State<HomeTab> {
     {'title': 'الفواكه', 'subtitle': '5 حصص يومياً', 'icon': Icons.apple, 'color': AppColors.warning},
   ];
 
-  // ✅ المنتجات
   final List<Map<String, dynamic>> _products = [
-    {'name': 'باراسيتامول 500mg', 'price': 500, 'image': ImageService.banner1, 'category': 'مسكنات'},
-    {'name': 'فيتامين د 1000IU', 'price': 1200, 'image': ImageService.banner2, 'category': 'فيتامينات'},
-    {'name': 'جهاز قياس ضغط', 'price': 8500, 'image': ImageService.banner3, 'category': 'أجهزة طبية'},
-    {'name': 'أموكسيسيلين 500mg', 'price': 1500, 'image': ImageService.banner1, 'category': 'مضادات حيوية'},
+    {'name': 'باراسيتامول 500mg', 'price': 500, 'image': ImageService.medicine1, 'category': 'مسكنات'},
+    {'name': 'فيتامين د 1000IU', 'price': 1200, 'image': ImageService.medicine2, 'category': 'فيتامينات'},
+    {'name': 'جهاز قياس ضغط', 'price': 8500, 'image': ImageService.medicine3, 'category': 'أجهزة طبية'},
+    {'name': 'أموكسيسيلين 500mg', 'price': 1500, 'image': ImageService.medicine4, 'category': 'مضادات حيوية'},
   ];
 
   void _goTo(BuildContext context, Widget screen) {
@@ -333,22 +313,12 @@ class _HomeTabState extends State<HomeTab> {
                           if (logged) _goTo(context, const PatientProfile());
                           else _goTo(context, const AuthScreen());
                         },
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(14),
-                          child: Image.asset(
-                            ImageService.banner1,
-                            width: 40,
-                            height: 40,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: primaryColor.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: Icon(Icons.person, color: primaryColor, size: 22),
-                            ),
+                        child: CircleAvatar(
+                          radius: 20,
+                          backgroundColor: primaryColor.withOpacity(0.1),
+                          child: Text(
+                            name.isNotEmpty ? name[0] : 'م',
+                            style: TextStyle(color: primaryColor, fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                         ),
                       ),
@@ -367,11 +337,6 @@ class _HomeTabState extends State<HomeTab> {
                         icon: Icon(Icons.shopping_cart_outlined, color: primaryColor),
                         onPressed: () => _goTo(context, const CartScreen()),
                       ),
-                      if (!logged)
-                        TextButton(
-                          onPressed: () => _goTo(context, const AuthScreen()),
-                          child: Text('تسجيل', style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold)),
-                        ),
                     ],
                   ),
                 ),
@@ -461,7 +426,7 @@ class _HomeTabState extends State<HomeTab> {
             onPageChanged: (index, reason) => setState(() => _currentBanner = index),
           ),
           items: _banners.map((banner) {
-            return ImageService.buildBannerCard(banner);
+            return ImageService.buildBanner(banner);
           }).toList(),
         ),
         const SizedBox(height: 8),
@@ -579,20 +544,11 @@ class _HomeTabState extends State<HomeTab> {
               ),
               child: Row(
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.asset(
-                      doctor['image'],
-                      width: 55,
-                      height: 55,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        width: 55,
-                        height: 55,
-                        color: Colors.grey[200],
-                        child: const Icon(Icons.person, color: Colors.grey),
-                      ),
-                    ),
+                  ImageService.imageWithShimmer(
+                    doctor['image'],
+                    width: 55,
+                    height: 55,
+                    borderRadius: 12,
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -645,20 +601,11 @@ class _HomeTabState extends State<HomeTab> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.asset(
-                    product['image'],
-                    height: 50,
-                    width: 50,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      height: 50,
-                      width: 50,
-                      color: Colors.grey[200],
-                      child: const Icon(Icons.medication, color: Colors.grey),
-                    ),
-                  ),
+                ImageService.imageWithShimmer(
+                  product['image'],
+                  width: 50,
+                  height: 50,
+                  borderRadius: 12,
                 ),
                 const SizedBox(height: 6),
                 Text(product['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
@@ -728,10 +675,11 @@ class _HomeTabState extends State<HomeTab> {
             padding: const EdgeInsets.all(12),
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundImage: AssetImage(post['avatar']),
-                  child: const Icon(Icons.person, size: 20),
+                ImageService.imageWithShimmer(
+                  post['avatar'],
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -747,18 +695,11 @@ class _HomeTabState extends State<HomeTab> {
               ],
             ),
           ),
-          ClipRRect(
-            child: Image.asset(
-              post['image'],
-              height: 200,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (context, url, error) => Container(
-                height: 200,
-                color: isDark ? Colors.grey[800] : Colors.grey[200],
-                child: const Icon(Icons.image, color: Colors.grey, size: 40),
-              ),
-            ),
+          ImageService.imageWithShimmer(
+            post['image'],
+            height: 200,
+            width: double.infinity,
+            borderRadius: 0,
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),

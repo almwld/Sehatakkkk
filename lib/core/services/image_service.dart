@@ -4,26 +4,23 @@ import 'package:shimmer/shimmer.dart';
 
 class ImageService {
   // ============================================================
-  // 📁 المسارات الأساسية
+  // 📁 المسارات الأساسية للمجلدات
   // ============================================================
-  static const String _coreIcons = 'assets/icons/core';
-  static const String _navigationIcons = 'assets/icons/navigation';
-  static const String _specialties = 'assets/icons/specialties';
-  static const String _miniSpecialties = 'assets/icons/mini_specialties';
-  static const String _social = 'assets/icons/social';
   static const String _banners = 'assets/images/banners';
   static const String _images = 'assets/images';
+  static const String _iconsCore = 'assets/icons/core';
+  static const String _iconsNav = 'assets/icons/navigation';
+  static const String _iconsSpecialties = 'assets/icons/specialties';
+  static const String _iconsMini = 'assets/icons/mini_specialties';
+  static const String _iconsSocial = 'assets/icons/social';
 
   // ============================================================
-  // 🖼️ البانرات (الصور الموجودة)
+  // 🖼️ البانرات (Banners) - الصور الموجودة
   // ============================================================
   static const String banner1 = '$_banners/banner_1.png';
   static const String banner2 = '$_banners/banner_2.png';
   static const String banner3 = '$_banners/banner_3.png';
-  static const String banner4 = '$_banners/banner_1.png';
-  static const String banner5 = '$_banners/banner_2.png';
 
-  // ✅ بيانات البانرات (بدون title لأنها مكتوبة في الصورة)
   static final List<Map<String, dynamic>> bannerData = [
     {'image': banner1},
     {'image': banner2},
@@ -32,61 +29,56 @@ class ImageService {
   ];
 
   // ============================================================
-  // 👨‍⚕️ صور الأطباء
+  // 👨‍⚕️ صور الأطباء (Doctor Avatars)
   // ============================================================
-  static const String doctor1 = '$_images/placeholder.png';
-  static const String doctor2 = '$_images/placeholder.png';
-  static const String doctor3 = '$_images/placeholder.png';
-  static const String doctor4 = '$_images/placeholder.png';
-  static const String doctor5 = '$_images/placeholder.png';
-  static const String doctor6 = '$_images/placeholder.png';
-  static const String doctor7 = '$_images/placeholder.png';
-  static const String doctor8 = '$_images/placeholder.png';
+  static const String doctor1 = '$_images/doctors/doctor1.jpg';
+  static const String doctor2 = '$_images/doctors/doctor2.jpg';
+  static const String doctor3 = '$_images/doctors/doctor3.jpg';
+  static const String doctor4 = '$_images/doctors/doctor4.jpg';
+  static const String doctor5 = '$_images/doctors/doctor5.jpg';
+  static const String doctor6 = '$_images/doctors/doctor6.jpg';
+  static const String doctor7 = '$_images/doctors/doctor7.jpg';
+  static const String doctor8 = '$_images/doctors/doctor8.jpg';
+
+  static List<String> get doctorImages => [
+    doctor1, doctor2, doctor3, doctor4,
+    doctor5, doctor6, doctor7, doctor8
+  ];
 
   // ============================================================
-  // 💊 صور المنتجات
+  // 💊 صور الأدوية والمنتجات
   // ============================================================
-  static const String medicine1 = '$_images/placeholder.png';
-  static const String medicine2 = '$_images/placeholder.png';
-  static const String medicine3 = '$_images/placeholder.png';
-  static const String medicine4 = '$_images/placeholder.png';
-  static const String medicine5 = '$_images/placeholder.png';
-  static const String medicine6 = '$_images/placeholder.png';
-  static const String medicine7 = '$_images/placeholder.png';
-  static const String medicine8 = '$_images/placeholder.png';
-  static const String medicine9 = '$_images/placeholder.png';
-  static const String medicine10 = '$_images/placeholder.png';
+  static const String medicine1 = '$_images/medications/medicine1.jpg';
+  static const String medicine2 = '$_images/medications/medicine2.jpg';
+  static const String medicine3 = '$_images/medications/medicine3.jpg';
+  static const String medicine4 = '$_images/medications/medicine4.jpg';
+  static const String medicine5 = '$_images/medications/medicine5.jpg';
+  static const String medicine6 = '$_images/medications/medicine6.jpg';
+  static const String medicine7 = '$_images/medications/medicine7.jpg';
+  static const String medicine8 = '$_images/medications/medicine8.jpg';
+  static const String medicine9 = '$_images/medications/medicine9.jpg';
+  static const String medicine10 = '$_images/medications/medicine10.jpg';
 
   // ============================================================
-  // 🏥 صور الصيدليات والمختبرات
+  // 🏥 الصيدليات والمختبرات
   // ============================================================
-  static const String pharmacy1 = '$_images/placeholder.png';
-  static const String pharmacy2 = '$_images/placeholder.png';
-  static const String lab1 = '$_images/placeholder.png';
+  static const String pharmacy1 = '$_images/pharmacies/pharmacy1.jpg';
+  static const String pharmacy2 = '$_images/pharmacies/pharmacy2.jpg';
+  static const String lab1 = '$_images/labs/lab1.jpg';
 
   // ============================================================
-  // ✨ دالة Shimmer احترافية
+  // 📌 أيقونات SVG
   // ============================================================
-  static Widget shimmerEffect({double? width, double? height, double borderRadius = 12}) {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey.shade300,
-      highlightColor: Colors.grey.shade100,
-      period: const Duration(milliseconds: 1500),
-      child: Container(
-        width: width,
-        height: height,
-        decoration: BoxDecoration(
-          color: Colors.grey.shade300,
-          borderRadius: BorderRadius.circular(borderRadius),
-        ),
-      ),
-    );
-  }
+  static String coreIcon(String name) => '$_iconsCore/$name.svg';
+  static String navIcon(String name) => '$_iconsNav/$name.svg';
+  static String specialtyIcon(String name) => '$_iconsSpecialties/$name.svg';
+  static String miniIcon(String name) => '$_iconsMini/$name.svg';
+  static String socialIcon(String name) => '$_iconsSocial/$name.svg';
 
   // ============================================================
-  // 🖼️ عرض البانر (بدون تيتل - الصورة فقط مع تأثير شفاف)
+  // 🎯 عرض البانر مع Shimmer
   // ============================================================
-  static Widget buildBannerCard(Map<String, dynamic> banner, {double? height}) {
+  static Widget buildBanner(Map<String, dynamic> banner, {double? height}) {
     return Container(
       height: height ?? 180,
       decoration: BoxDecoration(
@@ -104,7 +96,6 @@ class ImageService {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // ✅ الصورة فقط (بدون نص إضافي)
             Image.asset(
               banner['image'] as String,
               fit: BoxFit.cover,
@@ -117,24 +108,30 @@ class ImageService {
                 return AnimatedSwitcher(
                   duration: const Duration(milliseconds: 500),
                   child: frame == null
-                      ? shimmerEffect(height: height ?? 180)
+                      ? Shimmer.fromColors(
+                          baseColor: Colors.grey.shade300,
+                          highlightColor: Colors.grey.shade100,
+                          child: Container(
+                            height: height ?? 180,
+                            color: Colors.grey.shade300,
+                          ),
+                        )
                       : child,
                 );
               },
             ),
-            // ✅ تدرج خفيف في الأسفل للجمالية فقط
             Positioned(
               bottom: 0,
               left: 0,
               right: 0,
               child: Container(
-                height: 40,
+                height: 60,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.bottomCenter,
                     end: Alignment.topCenter,
                     colors: [
-                      Colors.black.withOpacity(0.3),
+                      Colors.black.withOpacity(0.4),
                       Colors.transparent,
                     ],
                   ),
@@ -148,7 +145,7 @@ class ImageService {
   }
 
   // ============================================================
-  // 📸 صورة مع Shimmer
+  // 📸 صورة مع Shimmer (للاستخدام العام)
   // ============================================================
   static Widget imageWithShimmer(
     String path, {
@@ -175,7 +172,18 @@ class ImageService {
           return AnimatedSwitcher(
             duration: const Duration(milliseconds: 500),
             child: frame == null
-                ? shimmerEffect(width: width, height: height, borderRadius: borderRadius)
+                ? Shimmer.fromColors(
+                    baseColor: Colors.grey.shade300,
+                    highlightColor: Colors.grey.shade100,
+                    child: Container(
+                      width: width,
+                      height: height,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(borderRadius),
+                      ),
+                    ),
+                  )
                 : child,
           );
         },
@@ -184,75 +192,28 @@ class ImageService {
   }
 
   // ============================================================
-  // 🖼️ صورة دائرية مع Shimmer
+  // 🖼️ أيقونة SVG مع لون
   // ============================================================
-  static Widget avatarWithShimmer(
-    String path, {
-    double size = 50,
-  }) {
-    return ClipOval(
-      child: Image.asset(
-        path,
-        width: size,
-        height: size,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Container(
-          width: size,
-          height: size,
-          color: Colors.grey.shade200,
-          child: const Icon(Icons.person, color: Colors.grey, size: 30),
-        ),
-        frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-          if (wasSynchronouslyLoaded) return child;
-          return AnimatedSwitcher(
-            duration: const Duration(milliseconds: 500),
-            child: frame == null
-                ? shimmerEffect(width: size, height: size, borderRadius: size / 2)
-                : child,
-          );
-        },
-      ),
-    );
-  }
-
-  // ============================================================
-  // 🎯 أيقونات SVG
-  // ============================================================
-  static Widget svgIcon(String path, {double width = 24, double height = 24, Color? color}) {
+  static Widget svgIcon(String path, {double size = 24, Color? color}) {
     return SvgPicture.asset(
       path,
-      width: width,
-      height: height,
+      width: size,
+      height: size,
       colorFilter: color != null ? ColorFilter.mode(color, BlendMode.srcIn) : null,
     );
   }
 
-  static Widget navIcon(String name, {double width = 24, double height = 24, Color? color}) {
-    return svgIcon('$_navigationIcons/$name.svg', width: width, height: height, color: color);
-  }
-
-  static Widget coreIcon(String name, {double width = 24, double height = 24, Color? color}) {
-    return svgIcon('$_coreIcons/$name.svg', width: width, height: height, color: color);
-  }
-
-  static Widget specialtyIcon(String name, {double width = 24, double height = 24, Color? color}) {
-    return svgIcon('$_specialties/$name.svg', width: width, height: height, color: color);
-  }
-
-  static Widget miniSpecialtyIcon(String name, {double width = 24, double height = 24, Color? color}) {
-    return svgIcon('$_miniSpecialties/$name.svg', width: width, height: height, color: color);
-  }
-
-  static Widget socialIcon(String name, {double width = 24, double height = 24, Color? color}) {
-    return svgIcon('$_social/$name.svg', width: width, height: height, color: color);
+  // ============================================================
+  // 🖼️ أيقونة Navigation (للشريط السفلي)
+  // ============================================================
+  static Widget navIcon(String name, {double size = 24, Color? color}) {
+    return svgIcon('$_iconsNav/$name.svg', size: size, color: color);
   }
 
   // ============================================================
-  // ✅ مسارات للملفات
+  // 🖼️ أيقونة Core
   // ============================================================
-  static String coreIconPath(String name) => '$_coreIcons/$name.svg';
-  static String navIconPath(String name) => '$_navigationIcons/$name.svg';
-  static String specialtyIconPath(String name) => '$_specialties/$name.svg';
-  static String miniSpecialtyIconPath(String name) => '$_miniSpecialties/$name.svg';
-  static String socialIconPath(String name) => '$_social/$name.svg';
+  static Widget coreIcon(String name, {double size = 24, Color? color}) {
+    return svgIcon('$_iconsCore/$name.svg', size: size, color: color);
+  }
 }

@@ -24,16 +24,16 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
   final List<String> _sortOptions = ['التقييم', 'السعر (منخفض)', 'السعر (مرتفع)', 'الأكثر خبرة'];
 
   final List<Map<String, dynamic>> _allDoctors = [
-    {'id': '1', 'name': 'د. أحمد المولد', 'specialty': 'باطنية', 'experience': '20+ سنة', 'rating': 4.9, 'reviews': 328, 'price': 500, 'available': true, 'image': ImageService.doctor1, 'hospital': 'مستشفى الثورة العام', 'online': true},
-    {'id': '2', 'name': 'د. خالد النخلاني', 'specialty': 'قلبية', 'experience': '15 سنة', 'rating': 4.8, 'reviews': 256, 'price': 600, 'available': true, 'image': ImageService.doctor2, 'hospital': 'مركز قلب العاصمة', 'online': false},
-    {'id': '3', 'name': 'د. أسماء الهندي', 'specialty': 'أطفال', 'experience': '12 سنة', 'rating': 4.9, 'reviews': 189, 'price': 450, 'available': true, 'image': ImageService.doctor3, 'hospital': 'مستشفى السبعين', 'online': true},
-    {'id': '4', 'name': 'د. محمد العلاي', 'specialty': 'أنف وأذن وحنجرة', 'experience': '8 سنوات', 'rating': 4.7, 'reviews': 89, 'price': 400, 'available': false, 'image': ImageService.doctor4, 'hospital': 'مستشفى الأنف والأذن', 'online': false},
-    {'id': '5', 'name': 'د. فاطمة صديقي', 'specialty': 'نساء وولادة', 'experience': '18 سنة', 'rating': 4.8, 'reviews': 210, 'price': 550, 'available': true, 'image': ImageService.doctor1, 'hospital': 'مستشفى الولادة', 'online': true},
-    {'id': '6', 'name': 'د. عمر الجابري', 'specialty': 'عظام', 'experience': '10 سنوات', 'rating': 4.6, 'reviews': 145, 'price': 520, 'available': true, 'image': ImageService.doctor2, 'hospital': 'مركز العظام', 'online': false},
-    {'id': '7', 'name': 'د. ليلى الكبسي', 'specialty': 'جلدية', 'experience': '14 سنة', 'rating': 4.7, 'reviews': 178, 'price': 480, 'available': true, 'image': ImageService.doctor3, 'hospital': 'مركز الجلدية', 'online': true},
-    {'id': '8', 'name': 'د. ناصر الحمزي', 'specialty': 'عيون', 'experience': '22 سنة', 'rating': 4.9, 'reviews': 312, 'price': 580, 'available': true, 'image': ImageService.doctor4, 'hospital': 'مركز العيون', 'online': false},
-    {'id': '9', 'name': 'د. رنا الحوثي', 'specialty': 'نفسية', 'experience': '9 سنوات', 'rating': 4.5, 'reviews': 98, 'price': 420, 'available': true, 'image': ImageService.doctor1, 'hospital': 'مركز الصحة النفسية', 'online': true},
-    {'id': '10', 'name': 'د. ياسر القبلي', 'specialty': 'قلبية', 'experience': '25 سنة', 'rating': 4.9, 'reviews': 456, 'price': 650, 'available': true, 'image': ImageService.doctor2, 'hospital': 'مركز قلب العاصمة', 'online': false},
+    {'id': '1', 'name': 'د. أحمد المولد', 'specialty': 'باطنية', 'experience': '20+ سنة', 'rating': 4.9, 'reviews': 328, 'price': 500, 'available': true, 'image': ImageService.doctor, 'hospital': 'مستشفى الثورة العام', 'online': true},
+    {'id': '2', 'name': 'د. خالد النخلاني', 'specialty': 'قلبية', 'experience': '15 سنة', 'rating': 4.8, 'reviews': 256, 'price': 600, 'available': true, 'image': ImageService.doctor, 'hospital': 'مركز قلب العاصمة', 'online': false},
+    {'id': '3', 'name': 'د. أسماء الهندي', 'specialty': 'أطفال', 'experience': '12 سنة', 'rating': 4.9, 'reviews': 189, 'price': 450, 'available': true, 'image': ImageService.doctor, 'hospital': 'مستشفى السبعين', 'online': true},
+    {'id': '4', 'name': 'د. محمد العلاي', 'specialty': 'أنف وأذن وحنجرة', 'experience': '8 سنوات', 'rating': 4.7, 'reviews': 89, 'price': 400, 'available': false, 'image': ImageService.doctor, 'hospital': 'مستشفى الأنف والأذن', 'online': false},
+    {'id': '5', 'name': 'د. فاطمة صديقي', 'specialty': 'نساء وولادة', 'experience': '18 سنة', 'rating': 4.8, 'reviews': 210, 'price': 550, 'available': true, 'image': ImageService.doctor, 'hospital': 'مستشفى الولادة', 'online': true},
+    {'id': '6', 'name': 'د. عمر الجابري', 'specialty': 'عظام', 'experience': '10 سنوات', 'rating': 4.6, 'reviews': 145, 'price': 520, 'available': true, 'image': ImageService.doctor, 'hospital': 'مركز العظام', 'online': false},
+    {'id': '7', 'name': 'د. ليلى الكبسي', 'specialty': 'جلدية', 'experience': '14 سنة', 'rating': 4.7, 'reviews': 178, 'price': 480, 'available': true, 'image': ImageService.doctor, 'hospital': 'مركز الجلدية', 'online': true},
+    {'id': '8', 'name': 'د. ناصر الحمزي', 'specialty': 'عيون', 'experience': '22 سنة', 'rating': 4.9, 'reviews': 312, 'price': 580, 'available': true, 'image': ImageService.doctor, 'hospital': 'مركز العيون', 'online': false},
+    {'id': '9', 'name': 'د. رنا الحوثي', 'specialty': 'نفسية', 'experience': '9 سنوات', 'rating': 4.5, 'reviews': 98, 'price': 420, 'available': true, 'image': ImageService.doctor, 'hospital': 'مركز الصحة النفسية', 'online': true},
+    {'id': '10', 'name': 'د. ياسر القبلي', 'specialty': 'قلبية', 'experience': '25 سنة', 'rating': 4.9, 'reviews': 456, 'price': 650, 'available': true, 'image': ImageService.doctor, 'hospital': 'مركز قلب العاصمة', 'online': false},
   ];
 
   List<Map<String, dynamic>> get _filteredDoctors {
