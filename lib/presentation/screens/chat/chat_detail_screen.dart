@@ -566,3 +566,123 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     );
   }
 }
+
+// ✅ إضافة الاستيرادات
+import 'package:record/record.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+
+class _ChatDetailScreenState extends State<ChatDetailScreen> {
+  // ... الكود الموجود ...
+  
+  final AudioRecorder _audioRecorder = AudioRecorder();
+  String? _recordingPath;
+  bool _isRecording = false;
+  final ImagePicker _imagePicker = ImagePicker();
+
+  // ✅ بدء التسجيل الصوتي
+  Future<void> _startRecording() async {
+    try {
+      final hasPermission = await Permission.microphone.request().isGranted;
+      if (!hasPermission) {
+        _showSnackBar('يجب منح إذن الميكروفون للتسجيل');
+        return;
+      }
+      
+      setState(() => _isRecording = true);
+      
+      // ✅ بدء التسجيل
+      final path = '${DateTime.now().millisecondsSinceEpoch}.m4a';
+      await _audioRecorder.start(
+        RecordConfig(encoder: AudioEncoder.aacLc),
+        path: path,
+      );
+      _recordingPath = path;
+    } catch (e) {
+      _showSnackBar('فشل بدء التسجيل: $e');
+      setState(() => _isRecording = false);
+    }
+  }
+
+  // ✅ إيقاف التسجيل وإرساله
+  Future<void> _stopRecording() async {
+    if (!_isRecording) return;
+    
+    try {
+      final path = await _audioRecorder.stop();
+      setState(() => _isRecording = false);
+      
+      if (path != null) {
+        // ✅ رفع الملف إلى Firebase Storage
+        await _uploadFile(path, 'audio');
+        _recordingPath = null;
+      }
+    } catch (e) {
+      _showSnackBar('فشل إيقاف التسجيل: $e');
+      setState(() => _isRecording = false);
+    }
+  }
+
+  // ✅ اختيار صورة من المعرض
+  Future<void> _showImagePicker() async {
+    try {
+      final hasPermission = await Permission.photos.request().isGranted;
+      if (!hasPermission) {
+        _showSnackBar('يجب منح إذن المعرض لاختيار الصور');
+        return;
+      }
+      
+      final XFile? image = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 80,
+      );
+      
+      if (image != null) {
+        // ✅ رفع الصورة إلى Firebase Storage
+        await _uploadFile(image.path, 'image');
+      }
+    } catch (e) {
+      _showSnackBar('فشل اختيار الصورة: $e');
+    }
+  }
+
+  // ✅ رفع الملف إلى Firebase Storage
+  Future<void> _uploadFile(String filePath, String type) async {
+    try {
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}.${type == 'image' ? 'jpg' : 'm4a'}';
+      final ref = FirebaseStorage.instance
+          .ref()
+          .child('chats')
+          .child(widget.chatId)
+          .child(fileName);
+      
+      final uploadTask = await ref.putFile(File(filePath));
+      final downloadUrl = await uploadTask.ref.getDownloadURL();
+      
+      // ✅ إرسال الرسالة مع رابط الملف
+      _chatBloc.add(SendChatMessage(
+        chatId: widget.chatId,
+        text: type == 'image' ? '📷 صورة' : '🎙️ رسالة صوتية',
+        imageUrl: type == 'image' ? downloadUrl : null,
+        audioUrl: type == 'audio' ? downloadUrl : null,
+      ));
+      
+      _showSnackBar('تم رفع ${type == 'image' ? 'الصورة' : 'التسجيل'} بنجاح');
+    } catch (e) {
+      _showSnackBar('فشل رفع الملف: $e');
+    }
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+}

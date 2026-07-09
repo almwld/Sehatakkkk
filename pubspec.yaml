@@ -57,3 +57,11 @@ flutter:
           weight: 600
         - asset: assets/fonts/NotoSansArabicUI-Black.ttf
           weight: 900
+
+  # ============================================================
+  # 🎙️ Voice & Image
+  # ============================================================
+  record: ^5.0.0
+  image_picker: ^1.0.7
+  file_picker: ^6.1.1
+  permission_handler: ^11.1.0

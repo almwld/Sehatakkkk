@@ -11,6 +11,7 @@ class LiveKitService {
   Room? _room;
   bool _isCameraEnabled = false;
   bool _isMicrophoneEnabled = false;
+  bool _isSpeakerOn = false;
 
   Room? get room => _room;
   bool get isConnected => _room?.connectionState == ConnectionState.connected;
@@ -20,21 +21,19 @@ class LiveKitService {
     required String participantName,
   }) {
     try {
-      final jwt = JWT(
-        {
-          'iss': LiveKitConfig.apiKey,
-          'sub': participantName,
-          'name': participantName,
-          'video': {
-            'room': roomName,
-            'roomJoin': true,
-            'canPublish': true,
-            'canSubscribe': true,
-          },
-          'exp': DateTime.now().add(const Duration(minutes: 10)).millisecondsSinceEpoch ~/ 1000,
-          'nbf': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      final jwt = JWT({
+        'iss': LiveKitConfig.apiKey,
+        'sub': participantName,
+        'name': participantName,
+        'video': {
+          'room': roomName,
+          'roomJoin': true,
+          'canPublish': true,
+          'canSubscribe': true,
         },
-      );
+        'exp': DateTime.now().add(const Duration(minutes: 10)).millisecondsSinceEpoch ~/ 1000,
+        'nbf': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      });
       return jwt.sign(SecretKey(LiveKitConfig.apiSecret));
     } catch (e) {
       print('❌ Token generation error: $e');
@@ -48,23 +47,32 @@ class LiveKitService {
   }) async {
     try {
       _room = Room();
+
       final token = _generateToken(
         roomName: roomName,
         participantName: participantName ?? 'مستخدم',
       );
+
+      // ✅ إعدادات متوافقة مع LiveKit 1.5.6
       final options = RoomOptions(
+        adaptiveStream: true,
+        dynacast: true,
+        videoCodec: VideoCodec.vp8,
         defaultVideoPublishOptions: const VideoPublishOptions(
-          simulcast: false,
+          source: TrackSource.Camera,
         ),
         defaultAudioPublishOptions: const AudioPublishOptions(),
       );
+
       await _room!.connect(
         LiveKitConfig.serverUrl,
         token,
         roomOptions: options,
       );
+
       print('✅ Connected to room: $roomName');
       
+      // ✅ تمكين الميكروفون تلقائياً
       await _room!.localParticipant?.setMicrophoneEnabled(true);
       
       return _room!;
@@ -74,7 +82,6 @@ class LiveKitService {
     }
   }
 
-  // ✅ الدالة المحدثة - خالية من الأخطاء
   Future<void> enableCamera() async {
     try {
       if (_room?.localParticipant != null) {
@@ -82,24 +89,14 @@ class LiveKitService {
         _isCameraEnabled = true;
         print('✅ Camera enabled');
         
-        // ✅ الطريقة الصحيحة للوصول إلى Tracks في الإصدار 1.5.6
+        // ✅ التحقق من وجود فيديو
         final tracks = _room!.localParticipant!.videoTracks;
         if (tracks.isNotEmpty) {
-          final publication = tracks.first;
-          final track = publication.track;
-          if (track != null && track is VideoTrack) {
-            // ✅ استخدام .sid بدلاً من .id
-            print('✅ VideoTrack available: ${track.sid}');
-          }
+          print('✅ Video track available');
         }
       }
     } catch (e) {
       print('❌ Camera error: $e');
-      await Future.delayed(const Duration(milliseconds: 500));
-      try {
-        await _room!.localParticipant!.setCameraEnabled(true);
-        _isCameraEnabled = true;
-      } catch (_) {}
     }
   }
 
@@ -150,8 +147,20 @@ class LiveKitService {
     _room = null;
     _isCameraEnabled = false;
     _isMicrophoneEnabled = false;
+    _isSpeakerOn = false;
     print('✅ Call ended');
   }
+
+  void setSpeakerphone(bool on) {
+    _isSpeakerOn = on;
+    try {
+      print('🔊 Speakerphone: $on');
+    } catch (e) {
+      print('❌ Speaker error: $e');
+    }
+  }
+
+  bool get isSpeakerOn => _isSpeakerOn;
 
   void dispose() {
     _room?.disconnect();
