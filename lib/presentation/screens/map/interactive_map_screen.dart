@@ -8,7 +8,7 @@ import 'package:sehatak/core/constants/app_colors.dart';
 class InteractiveMapScreen extends StatefulWidget {
   final String type;
   final String? orderId;
-  const InteractiveMapScreen({super.key, this.type = 'hospitals', this.orderId});
+  const InteractiveMapScreen({super.key, this.type = 'all', this.orderId});
 
   @override
   State<InteractiveMapScreen> createState() => _InteractiveMapScreenState();
@@ -367,7 +367,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen> {
       case 'others': return _others;
       case 'all': return [..._hospitals, ..._pharmacies, ..._labs, ..._facilities, ..._others];
       case 'tracking': return _hospitals;
-      default: return _hospitals;
+      default: return [..._hospitals, ..._pharmacies, ..._labs, ..._facilities, ..._others];
     }
   }
 
