@@ -359,7 +359,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen> {
   // ✅ GETTERS
   // ============================================================
   List<Map<String, dynamic>> get _currentLocations {
-    switch (widget.type) {
+    switch (category ?? widget.type) {
       case 'hospitals': return _hospitals;
       case 'pharmacies': return _pharmacies;
       case 'labs': return _labs;
@@ -373,7 +373,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen> {
 
   String get _title {
     final count = _currentLocations.length;
-    switch (widget.type) {
+    switch (category ?? widget.type) {
       case 'hospitals': return 'المستشفيات ($count)';
       case 'pharmacies': return 'الصيدليات ($count)';
       case 'labs': return 'المختبرات ($count)';
@@ -386,7 +386,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen> {
   }
 
   IconData get _icon {
-    switch (widget.type) {
+    switch (category ?? widget.type) {
       case 'hospitals': return Icons.local_hospital;
       case 'pharmacies': return Icons.local_pharmacy;
       case 'labs': return Icons.science;
@@ -398,8 +398,8 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen> {
     }
   }
 
-  Color _getMarkerColor() {
-    switch (widget.type) {
+  Color _getMarkerColor(String? category) {
+    switch (category ?? widget.type) {
       case 'hospitals': return AppColors.error;
       case 'pharmacies': return AppColors.success;
       case 'labs': return AppColors.info;
@@ -602,7 +602,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen> {
     final layerKey = isDark ? 'خريطة داكنة' : _selectedLayer;
     final layerUrl = _mapLayers[layerKey]!['url']!;
     final locations = _filteredLocations;
-    final markerColor = _getMarkerColor();
+    final markerColor = _getMarkerColor(loc['category']);
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFF0A0A0A),
@@ -866,7 +866,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen> {
 
   Widget _buildLocationsList() {
     final locations = _filteredLocations;
-    final markerColor = _getMarkerColor();
+    final markerColor = _getMarkerColor(loc['category']);
 
     return Container(
       height: 150,
