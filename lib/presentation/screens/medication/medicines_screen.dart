@@ -112,7 +112,7 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
       'category': 'مكملات غذائية',
       'price': 110,
       'description': 'مقوي للمناعة وصحة الجلد',
-      'image': "assets/images/medicines/medicine_1.png"0,
+      'image': "assets/images/medicines/medicine_1.png",
       'inStock': true,
     },
   ];

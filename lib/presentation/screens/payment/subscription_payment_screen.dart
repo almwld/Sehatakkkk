@@ -6,7 +6,6 @@ class SubscriptionPaymentScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ مسارات مباشرة
     final List<Map<String, dynamic>> _paymentMethods = [
       {'id': 'floosak', 'name': 'فلوسك', 'icon': 'assets/icons/payment/floosak_icon.png', 'color': AppColors.primary},
       {'id': 'cash', 'name': 'كاش', 'icon': 'assets/icons/payment/كاش_icon.png', 'color': AppColors.success},
@@ -20,13 +19,14 @@ class SubscriptionPaymentScreen extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('اختر طريقة الدفع', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text(
+              'اختر طريقة الدفع',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 16),
-            ..._paymentMethods.map((method) => RadioListTile(
-              value: method['id'],
-              groupValue: 'floosak',
-              onChanged: (_) {},
+            ..._paymentMethods.map((method) => RadioListTile<String>(
               title: Row(
                 children: [
                   Image.asset(
@@ -39,14 +39,23 @@ class SubscriptionPaymentScreen extends StatelessWidget {
                   Text(method['name'] as String),
                 ],
               ),
+              value: method['id'] as String,
+              groupValue: 'floosak',
+              onChanged: (_) {},
             )),
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {},
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, padding: const EdgeInsets.symmetric(vertical: 14)),
-                child: const Text('اشتراك الآن', style: TextStyle(fontSize: 16, color: Colors.white)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                child: const Text(
+                  'اشتراك الآن',
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                ),
               ),
             ),
           ],
