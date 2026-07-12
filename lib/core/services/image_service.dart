@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:sehatak/core/constants/app_colors.dart';
 
 class ImageService {
   // ============================================================
-  // 📁 المسارات الأساسية للمجلدات
+  // 📁 المسارات الأساسية
   // ============================================================
   static const String _baseIcons = 'assets/icons';
   static const String _baseImages = 'assets/images';
 
   // ============================================================
-  // 🖼️ البانرات (Banners) - 8 صور
+  // 🖼️ البانرات (Banners) - 4 صور
   // ============================================================
   static const String banner1 = '$_baseImages/banners/banner_1.png';
   static const String banner2 = '$_baseImages/banners/banner_2.png';
@@ -27,23 +28,20 @@ class ImageService {
   ];
 
   // ============================================================
-  // 👨‍⚕️ صور الأطباء (Doctors) - 5 صور + Placeholder
+  // 👨‍⚕️ صور الأطباء (Doctors)
   // ============================================================
   static const String doctor1 = '$_baseImages/doctors/doctor_1.png';
   static const String doctor2 = '$_baseImages/doctors/doctor_2.png';
   static const String doctor3 = '$_baseImages/doctors/doctor_3.png';
   static const String doctor4 = '$_baseImages/doctors/doctor_4.png';
   static const String doctor5 = '$_baseImages/doctors/doctor_5.png';
-
   static const String doctorPlaceholder = '$_baseImages/doctors/doctor_placeholder.svg';
   static const String doctorFemalePlaceholder = '$_baseImages/doctors/doctor_female_placeholder.svg';
 
-  static final List<String> doctorList = [
-    doctor1, doctor2, doctor3, doctor4, doctor5,
-  ];
+  static final List<String> doctorList = [doctor1, doctor2, doctor3, doctor4, doctor5];
 
   // ============================================================
-  // 💊 صور الأدوية (Medicines) - 10 صور
+  // 💊 صور الأدوية (Medicines)
   // ============================================================
   static const String medicine1 = '$_baseImages/medicines/medicine_1.png';
   static const String medicine2 = '$_baseImages/medicines/medicine_2.png';
@@ -63,29 +61,23 @@ class ImageService {
   ];
 
   // ============================================================
-  // 💊 صور الصيدليات (Pharmacies) - 3 صور
+  // 💊 صور الصيدليات (Pharmacies)
   // ============================================================
   static const String pharmacy1 = '$_baseImages/pharmacies/pharmacy_1.png';
   static const String pharmacy2 = '$_baseImages/pharmacies/pharmacy_2.png';
   static const String pharmacy3 = '$_baseImages/pharmacies/pharmacy_3.png';
-
-  static final List<String> pharmacyList = [
-    pharmacy1, pharmacy2, pharmacy3,
-  ];
+  static final List<String> pharmacyList = [pharmacy1, pharmacy2, pharmacy3];
 
   // ============================================================
-  // 🔬 صور المختبرات (Labs) - 3 صور
+  // 🔬 صور المختبرات (Labs)
   // ============================================================
   static const String lab1 = '$_baseImages/labs/lab_1.png';
   static const String lab2 = '$_baseImages/labs/lab_2.png';
   static const String lab3 = '$_baseImages/labs/lab_3.png';
-
-  static final List<String> labList = [
-    lab1, lab2, lab3,
-  ];
+  static final List<String> labList = [lab1, lab2, lab3];
 
   // ============================================================
-  // 🏥 صور المستشفيات (Hospitals) - 9 صور
+  // 🏥 صور المستشفيات (Hospitals)
   // ============================================================
   static const String hospital1 = '$_baseImages/hospitals/hospital_1.png';
   static const String hospital2 = '$_baseImages/hospitals/hospital_2.png';
@@ -96,36 +88,29 @@ class ImageService {
   static const String hospital7 = '$_baseImages/hospitals/hospital_7.png';
   static const String hospital8 = '$_baseImages/hospitals/hospital_8.png';
   static const String hospital9 = '$_baseImages/hospitals/hospital_9.png';
-
   static final List<String> hospitalList = [
     hospital1, hospital2, hospital3, hospital4, hospital5,
     hospital6, hospital7, hospital8, hospital9,
   ];
 
   // ============================================================
-  // 🚚 صور التوصيل (Delivery) - 4 صور
+  // 🚚 صور التوصيل (Delivery)
   // ============================================================
   static const String delivery1 = '$_baseImages/delivery/delivery_1.png';
   static const String delivery2 = '$_baseImages/delivery/delivery_2.png';
   static const String delivery3 = '$_baseImages/delivery/delivery_3.png';
   static const String delivery4 = '$_baseImages/delivery/delivery_4.png';
-
-  static final List<String> deliveryList = [
-    delivery1, delivery2, delivery3, delivery4,
-  ];
+  static final List<String> deliveryList = [delivery1, delivery2, delivery3, delivery4];
 
   // ============================================================
-  // 📝 منشورات الأطباء (Posts) - 5 صور
+  // 📝 منشورات الأطباء (Posts)
   // ============================================================
   static const String post1 = '$_baseImages/posts/post_1.png';
   static const String post2 = '$_baseImages/posts/post_2.png';
   static const String post3 = '$_baseImages/posts/post_3.png';
   static const String post4 = '$_baseImages/posts/post_4.png';
   static const String post5 = '$_baseImages/posts/post_5.png';
-
-  static final List<String> postList = [
-    post1, post2, post3, post4, post5,
-  ];
+  static final List<String> postList = [post1, post2, post3, post4, post5];
 
   // ============================================================
   // 🎨 أيقونات الخدمات (Services Icons) - 12 أيقونة
@@ -137,7 +122,7 @@ class ImageService {
   static const String iconRating = '$_baseIcons/services/تقييم.png';
   static const String iconHeartHealth = '$_baseIcons/services/صحةالقلب.png';
   static const String iconYourDoctor = '$_baseIcons/services/طبيبك.png';
-  static const String iconVideoChat = '$_baseIcons/services/محادثات مرئيه.png';
+  static const String iconVideoChat = '$_baseIcons/services/محادثات للمعارف.png';
   static const String iconWallet = '$_baseIcons/services/محفظ.png';
   static const String iconLabs = '$_baseIcons/services/مخابر.png';
   static const String iconMessages = '$_baseIcons/services/مراسلات.png';
@@ -168,6 +153,9 @@ class ImageService {
   static const String navCalendar = '$_baseIcons/navigation/calendar.svg';
   static const String navHealthRecord = '$_baseIcons/navigation/health_record.svg';
   static const String navMore = '$_baseIcons/navigation/more.svg';
+  static const String navBlood = '$_baseIcons/navigation/blood.svg';
+  static const String navEmergency = '$_baseIcons/navigation/emergency.svg';
+  static const String navVideoCall = '$_baseIcons/navigation/video_call.svg';
 
   static final List<Map<String, dynamic>> navItems = [
     {'icon': navHome, 'label': 'الرئيسية'},
@@ -180,35 +168,7 @@ class ImageService {
   ];
 
   // ============================================================
-  // 💳 أيقونات الدفع (Payment Icons)
-  // ============================================================
-  static const String payJawaliSvg = '$_baseIcons/payment/jawali.svg';
-  static const String payFloosakSvg = '$_baseIcons/payment/floosak.svg';
-  static const String payJeebSvg = '$_baseIcons/payment/jeeb.svg';
-  static const String payKashSvg = '$_baseIcons/payment/kash.svg';
-  static const String payEasySvg = '$_baseIcons/payment/easy.svg';
-
-  static const String iconJawaliPng = '$_baseIcons/payment/Jawali_icon.png';
-  static const String iconYemenWalletPng = '$_baseIcons/payment/Yemen Wallet_icon.png';
-  static const String iconFloosakPng = '$_baseIcons/payment/floosak_icon.png';
-  static const String iconKuraimiPng = '$_baseIcons/payment/الكريمي جوال_icon.png';
-  static const String iconEasyPng = '$_baseIcons/payment/ايزي_icon.png';
-  static const String iconJeebPng = '$_baseIcons/payment/جيب_icon.png';
-  static const String iconKashOnePng = '$_baseIcons/payment/كاش ONE_icon.png';
-  static const String iconKashPng = '$_baseIcons/payment/كاش_icon.png';
-  static const String iconMobileMoneyPng = '$_baseIcons/payment/موبايل موني انترنت_icon.png';
-
-  // ============================================================
-  // 🏷️ أيقونات الخطط (Plans)
-  // ============================================================
-  static const String planFree = '$_baseIcons/plans/free.svg';
-  static const String planSilver = '$_baseIcons/plans/silver.svg';
-  static const String planGold = '$_baseIcons/plans/gold.svg';
-  static const String planPlatinum = '$_baseIcons/plans/platinum.svg';
-  static const String planFamily = '$_baseIcons/plans/family.svg';
-
-  // ============================================================
-  // 🎨 أيقونات النواة (Core)
+  // ⚡ أيقونات النواة (Core) - جميع الأيقونات
   // ============================================================
   static const String coreHome = '$_baseIcons/core/home.svg';
   static const String coreDoctor = '$_baseIcons/core/doctor.svg';
@@ -274,6 +234,52 @@ class ImageService {
   static const String offerDiscount = '$_baseIcons/offers/discount.svg';
   static const String offerFamily = '$_baseIcons/offers/family_offer.svg';
   static const String offerHealthCheck = '$_baseIcons/offers/health_check.svg';
+
+  // ============================================================
+  // 🏷️ أيقونات الخطط (Plans)
+  // ============================================================
+  static const String planFree = '$_baseIcons/plans/free.svg';
+  static const String planSilver = '$_baseIcons/plans/silver.svg';
+  static const String planGold = '$_baseIcons/plans/gold.svg';
+  static const String planPlatinum = '$_baseIcons/plans/platinum.svg';
+  static const String planFamily = '$_baseIcons/plans/family.svg';
+
+  // ============================================================
+  // 💳 أيقونات الدفع (Payment) - SVG
+  // ============================================================
+  static const String payJawaliSvg = '$_baseIcons/payment/jawali.svg';
+  static const String payFloosakSvg = '$_baseIcons/payment/floosak.svg';
+  static const String payJeebSvg = '$_baseIcons/payment/jeeb.svg';
+  static const String payKashSvg = '$_baseIcons/payment/kash.svg';
+  static const String payEasySvg = '$_baseIcons/payment/easy.svg';
+
+  // ============================================================
+  // 💳 أيقونات الدفع (Payment) - PNG
+  // ============================================================
+  static const String iconJawaliPng = '$_baseIcons/payment/Jawali_icon.png';
+  static const String iconYemenWalletPng = '$_baseIcons/payment/Yemen Wallet_icon.png';
+  static const String iconFloosakPng = '$_baseIcons/payment/floosak_icon.png';
+  static const String iconKuraimiPng = '$_baseIcons/payment/الكريمي جوال_icon.png';
+  static const String iconEasyPng = '$_baseIcons/payment/ايزي_icon.png';
+  static const String iconJeebPng = '$_baseIcons/payment/جيب_icon.png';
+  static const String iconKashOnePng = '$_baseIcons/payment/كاش ONE_icon.png';
+  static const String iconKashPng = '$_baseIcons/payment/كاش_icon.png';
+  static const String iconMobileMoneyPng = '$_baseIcons/payment/موبايل موني انترنت_icon.png';
+
+  // ============================================================
+  // 📋 قائمة الدفع الكاملة (للأستخدام المباشر)
+  // ============================================================
+  static final List<Map<String, dynamic>> payments = [
+    {'id': 'floosak', 'name': 'فلوسك', 'icon': iconFloosakPng, 'color': AppColors.primary},
+    {'id': 'jawali', 'name': 'جوالي', 'icon': iconJawaliPng, 'color': AppColors.teal},
+    {'id': 'cash', 'name': 'كاش', 'icon': iconKashPng, 'color': AppColors.warning},
+    {'id': 'jeeb', 'name': 'جيب', 'icon': iconJeebPng, 'color': AppColors.purple},
+    {'id': 'easy', 'name': 'إيزي', 'icon': iconEasyPng, 'color': AppColors.info},
+    {'id': 'yemen_wallet', 'name': 'يمن وولت', 'icon': iconYemenWalletPng, 'color': AppColors.success},
+    {'id': 'mobile_money', 'name': 'موبايل موني', 'icon': iconMobileMoneyPng, 'color': AppColors.orange},
+    {'id': 'cash_one', 'name': 'كاش ONE', 'icon': iconKashOnePng, 'color': AppColors.indigo},
+    {'id': 'alkarimi', 'name': 'الكريمي', 'icon': iconKuraimiPng, 'color': AppColors.pink},
+  ];
 
   // ============================================================
   // 🛠️ دوال البناء (Builders)
@@ -366,5 +372,9 @@ class ImageService {
 
   static Widget paymentIcon(String name) {
     return svgIcon('$_baseIcons/payment/$name.svg');
+  }
+
+  static Widget paymentImage(String name) {
+    return Image.asset('$_baseIcons/payment/$name', width: 40, height: 40);
   }
 }
