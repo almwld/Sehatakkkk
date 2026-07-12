@@ -51,7 +51,7 @@ dependencies:
   flutter_svg: ^2.0.9
   shimmer: ^3.0.0
   cached_network_image: ^3.3.1
-  lottie: ^2.7.0
+  lottie: ^3.1.0
   confetti: ^0.7.0
   flutter_staggered_grid_view: ^0.7.0
   pull_to_refresh: ^2.0.0
@@ -108,7 +108,6 @@ flutter:
     - assets/icons/app_icon.png
     - assets/icons/consultations/
     - assets/icons/core/
-    - assets/icons/lab/
     - assets/icons/mini_specialties/
     - assets/icons/navigation/
     - assets/icons/offers/
@@ -119,11 +118,15 @@ flutter:
     - assets/icons/services/
     - assets/icons/social/
     - assets/icons/specialties/
-    - assets/icons/svg/
     - assets/images/
     - assets/images/banners/
-    - assets/images/medications/
+    - assets/images/doctors/
+    - assets/images/medicines/
     - assets/images/pharmacies/
+    - assets/images/labs/
+    - assets/images/hospitals/
+    - assets/images/delivery/
+    - assets/images/posts/
     - assets/audio/
     - assets/animations/
 
