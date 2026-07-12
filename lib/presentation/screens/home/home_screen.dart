@@ -337,10 +337,10 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
   ];
 
   final List<Map<String, dynamic>> _products = [
-    {'name': 'باراسيتامول 500mg', 'price': 500, 'image': ImageService.medicine1, 'category': 'مسكنات'},
-    {'name': 'فيتامين د 1000IU', 'price': 1200, 'image': ImageService.medicine2, 'category': 'فيتامينات'},
-    {'name': 'جهاز قياس ضغط', 'price': 8500, 'image': ImageService.medicine3, 'category': 'أجهزة طبية'},
-    {'name': 'أموكسيسيلين 500mg', 'price': 1500, 'image': ImageService.medicine4, 'category': 'مضادات حيوية'},
+    {'name': 'باراسيتامول 500mg', 'price': 500, 'image': "assets/images/medicines/medicine_1.png", 'category': 'مسكنات'},
+    {'name': 'فيتامين د 1000IU', 'price': 1200, 'image': "assets/images/medicines/medicine_2.png", 'category': 'فيتامينات'},
+    {'name': 'جهاز قياس ضغط', 'price': 8500, 'image': "assets/images/medicines/medicine_3.png", 'category': 'أجهزة طبية'},
+    {'name': 'أموكسيسيلين 500mg', 'price': 1500, 'image': "assets/images/medicines/medicine_4.png", 'category': 'مضادات حيوية'},
   ];
 
   // ============================================================

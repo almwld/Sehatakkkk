@@ -31,7 +31,7 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
       'category': 'مسكنات',
       'price': 150,
       'description': 'مسكن للألم وخافض للحرارة',
-      'image': ImageService.medicine1,
+      'image': "assets/images/medicines/medicine_1.png",
       'inStock': true,
     },
     {
@@ -40,7 +40,7 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
       'category': 'مضادات حيوية',
       'price': 250,
       'description': 'مضاد حيوي واسع المجال',
-      'image': ImageService.medicine2,
+      'image': "assets/images/medicines/medicine_2.png",
       'inStock': true,
     },
     {
@@ -49,7 +49,7 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
       'category': 'أدوية ضغط',
       'price': 180,
       'description': 'لعلاج ارتفاع ضغط الدم',
-      'image': ImageService.medicine3,
+      'image': "assets/images/medicines/medicine_3.png",
       'inStock': true,
     },
     {
@@ -58,7 +58,7 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
       'category': 'أدوية سكر',
       'price': 200,
       'description': 'لعلاج السكري من النوع الثاني',
-      'image': ImageService.medicine4,
+      'image': "assets/images/medicines/medicine_4.png",
       'inStock': false,
     },
     {
@@ -67,7 +67,7 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
       'category': 'فيتامينات',
       'price': 120,
       'description': 'مقوي للمناعة ومضاد للأكسدة',
-      'image': ImageService.medicine5,
+      'image': "assets/images/medicines/medicine_1.png",
       'inStock': true,
     },
     {
@@ -76,7 +76,7 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
       'category': 'مكملات غذائية',
       'price': 300,
       'description': 'مكمل غذائي لصحة القلب والدماغ',
-      'image': ImageService.medicine6,
+      'image': "assets/images/medicines/medicine_2.png",
       'inStock': true,
     },
     {
@@ -85,7 +85,7 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
       'category': 'مسكنات',
       'price': 170,
       'description': 'مسكن للآلام ومضاد للالتهابات',
-      'image': ImageService.medicine7,
+      'image': "assets/images/medicines/medicine_3.png",
       'inStock': true,
     },
     {
@@ -94,7 +94,7 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
       'category': 'مضادات حيوية',
       'price': 280,
       'description': 'مضاد حيوي لعلاج الالتهابات',
-      'image': ImageService.medicine8,
+      'image': "assets/images/medicines/medicine_4.png",
       'inStock': true,
     },
     {
@@ -103,7 +103,7 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
       'category': 'فيتامينات',
       'price': 140,
       'description': 'مقوي للعظام والمناعة',
-      'image': ImageService.medicine9,
+      'image': "assets/images/medicines/medicine_1.png",
       'inStock': true,
     },
     {
@@ -112,7 +112,7 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
       'category': 'مكملات غذائية',
       'price': 110,
       'description': 'مقوي للمناعة وصحة الجلد',
-      'image': ImageService.medicine10,
+      'image': "assets/images/medicines/medicine_1.png"0,
       'inStock': true,
     },
   ];

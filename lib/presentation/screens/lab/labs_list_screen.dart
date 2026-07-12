@@ -19,9 +19,9 @@ class _LabsListScreenState extends State<LabsListScreen> {
   final List<String> _filters = ['الكل', 'معتمد', 'خدمة منزلية', 'نتائج سريعة', 'أسعار منخفضة'];
 
   final List<Map<String, dynamic>> _allLabs = [
-    {'id': '1', 'name': 'المختبر الوطني', 'address': 'شارع الستين، أمام المستشفى العسكري', 'rating': 4.8, 'reviews': 328, 'tests': '650+', 'price': 250, 'accredited': true, 'homeService': true, 'quickResults': true, 'image': ImageService.lab1, 'categories': ['دم', 'بول', 'أشعة'], 'phone': '01-012345', 'workingHours': '8 ص - 10 م'},
+    {'id': '1', 'name': 'المختبر الوطني', 'address': 'شارع الستين، أمام المستشفى العسكري', 'rating': 4.8, 'reviews': 328, 'tests': '650+', 'price': 250, 'accredited': true, 'homeService': true, 'quickResults': true, 'image': "assets/images/labs/lab_1.png", 'categories': ['دم', 'بول', 'أشعة'], 'phone': '01-012345', 'workingHours': '8 ص - 10 م'},
     {'id': '2', 'name': 'مختبر الثقة', 'address': 'شارع الزبيري، عمارة النعمان', 'rating': 4.6, 'reviews': 256, 'tests': '520+', 'price': 200, 'accredited': true, 'homeService': true, 'quickResults': false, 'image': ImageService.pharmacy1, 'categories': ['دم', 'هرمونات'], 'phone': '01-123456', 'workingHours': '8 ص - 11 م'},
-    {'id': '3', 'name': 'مختبر البرج', 'address': 'شارع هائل، جولة كنتاكي', 'rating': 4.4, 'reviews': 189, 'tests': '480+', 'price': 280, 'accredited': true, 'homeService': false, 'quickResults': true, 'image': ImageService.lab1, 'categories': ['دم', 'أشعة', 'ميكروبيولوجي'], 'phone': '01-234567', 'workingHours': '9 ص - 10 م'},
+    {'id': '3', 'name': 'مختبر البرج', 'address': 'شارع هائل، جولة كنتاكي', 'rating': 4.4, 'reviews': 189, 'tests': '480+', 'price': 280, 'accredited': true, 'homeService': false, 'quickResults': true, 'image': "assets/images/labs/lab_1.png", 'categories': ['دم', 'أشعة', 'ميكروبيولوجي'], 'phone': '01-234567', 'workingHours': '9 ص - 10 م'},
   ];
 
   List<Map<String, dynamic>> get _filteredLabs {

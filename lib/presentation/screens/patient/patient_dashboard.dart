@@ -52,9 +52,9 @@ class _PatientDashboardState extends State<PatientDashboard> {
 
   // ✅ آخر المواعيد
   final List<Map<String, dynamic>> _recentAppointments = [
-    {'doctor': 'د. أحمد المولد', 'date': '2024-01-15', 'time': '10:00 ص', 'status': 'قادم', 'image': ImageService.doctor1},
-    {'doctor': 'د. خالد النخلاني', 'date': '2024-01-10', 'time': '02:30 م', 'status': 'منتهي', 'image': ImageService.doctor2},
-    {'doctor': 'د. أسماء الهندي', 'date': '2024-01-05', 'time': '09:00 ص', 'status': 'منتهي', 'image': ImageService.doctor3},
+    {'doctor': 'د. أحمد المولد', 'date': '2024-01-15', 'time': '10:00 ص', 'status': 'قادم', 'image': "assets/images/doctors/doctor_1.png"},
+    {'doctor': 'د. خالد النخلاني', 'date': '2024-01-10', 'time': '02:30 م', 'status': 'منتهي', 'image': "assets/images/doctors/doctor_2.png"},
+    {'doctor': 'د. أسماء الهندي', 'date': '2024-01-05', 'time': '09:00 ص', 'status': 'منتهي', 'image': "assets/images/doctors/doctor_3.png"},
   ];
 
   // ✅ آخر النتائج

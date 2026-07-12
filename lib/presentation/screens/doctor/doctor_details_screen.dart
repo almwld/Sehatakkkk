@@ -31,7 +31,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
           'about': 'استشاري باطنية وأطفال مع خبرة واسعة',
           'hospital': 'مستشفى الثورة العام',
           'availability': ['السبت - الأربعاء: 9 ص - 5 م'],
-          'image': ImageService.doctor1,
+          'image': "assets/images/doctors/doctor_1.png",
         };
       case '2':
         return {
@@ -45,7 +45,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
           'about': 'أخصائي أمراض القلب والقسطرة',
           'hospital': 'مركز قلب العاصمة',
           'availability': ['الأحد - الخميس: 10 ص - 6 م'],
-          'image': ImageService.doctor2,
+          'image': "assets/images/doctors/doctor_2.png",
         };
       case '3':
         return {
@@ -59,7 +59,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
           'about': 'أخصائية أطفال وحديثي الولادة',
           'hospital': 'مستشفى السبعين',
           'availability': ['السبت - الخميس: 8 ص - 2 م'],
-          'image': ImageService.doctor3,
+          'image': "assets/images/doctors/doctor_3.png",
         };
       default:
         return {
@@ -73,7 +73,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
           'about': 'أخصائي أنف وأذن وحنجرة',
           'hospital': 'مستشفى الأنف والأذن',
           'availability': ['الأحد - الخميس: 9 ص - 3 م'],
-          'image': ImageService.doctor4,
+          'image': "assets/images/doctors/doctor_4.png",
         };
     }
   }
