@@ -832,7 +832,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
   // ============================================================
   // 📋 عرض تفاصيل المرفق
   // ============================================================
-  void _showFacilityDetails(Map<Stringhg, dynamic> item) {
+  void _showFacilityDetails(Map<String, dynamic> item) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor = isDark ? const Color(0xFF1A2540) : Colors.white;
     final textColor = isDark ? Colors.white : Colors.black87;
