@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/services/payment_service.dart';
-import 'package:sehatak/presentation/screens/payment/payment_screen.dart';
 
 class SubscriptionsScreen extends StatefulWidget {
   const SubscriptionsScreen({super.key});
@@ -11,159 +9,81 @@ class SubscriptionsScreen extends StatefulWidget {
 }
 
 class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
-  final PaymentService _paymentService = PaymentService();
-  Map<String, dynamic>? _activeSub;
-  bool _isLoading = true;
+  int _selectedTab = 0;
+  final List<String> _tabs = ['باقات', 'استشارات', 'عروض', 'حسابي'];
 
   final List<Map<String, dynamic>> _plans = [
-    {'id': 'basic', 'name': 'أساسي', 'price': 0, 'features': ['استشارات محدودة', 'دردشة نصية', 'متابعة صحية']},
-    {'id': 'premium', 'name': 'مميز', 'price': 99, 'features': ['استشارات غير محدودة', 'دردشة + مكالمات', 'متابعة صحية متقدمة', 'تذكير الأدوية']},
-    {'id': 'family', 'name': 'عائلي', 'price': 199, 'features': ['كل ميزات المميز', '5 حسابات', 'استشارات عائلية']},
+    {'id': 'free', 'name': 'مجانية', 'price': 0, 'color': AppColors.grey, 'icon': '🆓', 'features': ['استشارات محدودة', 'مواعيد أساسية', 'دعم فني']},
+    {'id': 'silver', 'name': 'فضية', 'price': 2499, 'color': Colors.grey.shade400, 'icon': '🥈', 'features': ['استشارات غير محدودة', 'مواعيد متقدمة', 'دعم فني 24/7', 'خصم 10% على الصيدلية']},
+    {'id': 'gold', 'name': 'ذهبية', 'price': 4999, 'color': AppColors.gold, 'icon': '🥇', 'features': ['استشارات غير محدودة', 'مواعيد متقدمة', 'دعم فني 24/7', 'خصم 20% على الصيدلية', 'تحاليل مجانية']},
+    {'id': 'platinum', 'name': 'بلاتينية', 'price': 9999, 'color': Colors.blueGrey, 'icon': '💎', 'features': ['جميع مزايا الذهبية', 'استشارات منزلية', 'طبيب خاص', 'خصم 30% على الصيدلية']},
   ];
 
   @override
-  void initState() {
-    super.initState();
-    _loadSubscription();
-  }
-
-  Future<void> _loadSubscription() async {
-    setState(() => _isLoading = true);
-    try {
-      // ✅ مؤقتاً: استخدام بيانات وهمية
-      _activeSub = null;
-    } catch (e) {
-      // تجاهل
-    } finally {
-      setState(() => _isLoading = false);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('الباقات والاشتراكات'),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        elevation: 0,
+        title: const Text('الاشتراكات'),
+        bottom: TabBar(
+          tabs: _tabs.map((tab) => Tab(text: tab)).toList(),
+          onTap: (index) => setState(() => _selectedTab = index),
+        ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _plans.length,
-              itemBuilder: (context, index) {
-                final plan = _plans[index];
-                final isActive = _activeSub != null && _activeSub!['planId'] == plan['id'];
-                return _buildPlanCard(plan, isActive, isDark);
-              },
-            ),
+      body: _selectedTab == 0
+          ? _buildPlansTab()
+          : Center(child: Text(_tabs[_selectedTab], style: const TextStyle(fontSize: 18))),
     );
   }
 
-  Widget _buildPlanCard(Map<String, dynamic> plan, bool isActive, bool isDark) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: isActive ? 4 : 1,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          border: isActive ? Border.all(color: AppColors.primary, width: 2) : null,
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      plan['name'],
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black87,
-                      ),
-                    ),
-                  ),
-                  if (isActive)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.success.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Text(
-                        'نشط',
-                        style: TextStyle(color: AppColors.success, fontWeight: FontWeight.bold, fontSize: 12),
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                plan['price'] == 0 ? 'مجاني' : '${plan['price']} ريال / شهرياً',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primary,
+  Widget _buildPlansTab() {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: _plans.length,
+      itemBuilder: (context, index) {
+        final plan = _plans[index];
+        final isFree = plan['price'] == 0;
+        return Card(
+          margin: const EdgeInsets.only(bottom: 12),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(plan['icon'], style: const TextStyle(fontSize: 28)),
+                    const SizedBox(width: 12),
+                    Expanded(child: Text(plan['name'], style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
+                    if (!isFree)
+                      Text('${plan['price']} ر.ي/شهر', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: plan['color'] as Color))
+                    else
+                      const Text('مجاناً', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green)),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 12),
-              ...List.generate(plan['features'].length, (i) {
-                return Padding(
+                const SizedBox(height: 12),
+                ...(plan['features'] as List<String>).map((feature) => Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.check_circle, color: AppColors.success, size: 16),
-                      const SizedBox(width: 8),
-                      Text(
-                        plan['features'][i],
-                        style: TextStyle(
-                          color: isDark ? Colors.grey[300] : Colors.grey[700],
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
+                  child: Row(children: [const Icon(Icons.check_circle, color: AppColors.primary, size: 18), const SizedBox(width: 8), Text(feature)]),
+                )),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isFree ? Colors.grey : AppColors.primary,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    child: Text(isFree ? 'الاشتراك الحالي' : 'اشترك الآن', style: const TextStyle(color: Colors.white)),
                   ),
-                );
-              }),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: isActive
-                      ? null
-                      : () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => PaymentScreen(
-                                amount: plan['price'].toDouble(),
-                                serviceType: plan['name'],
-                              ),
-                            ),
-                          );
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isActive ? Colors.grey : AppColors.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: Text(isActive ? 'مفعل حالياً' : 'اشتراك'),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

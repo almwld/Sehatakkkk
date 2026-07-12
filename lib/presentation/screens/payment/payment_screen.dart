@@ -6,7 +6,6 @@ class PaymentScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ مسارات مباشرة لجميع المحافظ
     final List<Map<String, dynamic>> _payments = [
       {'id': 'jawali', 'name': 'جوالي', 'icon': 'assets/icons/payment/Jawali_icon.png', 'color': 0xFF1A73E8},
       {'id': 'floosak', 'name': 'فلوسك', 'icon': 'assets/icons/payment/floosak_icon.png', 'color': 0xFFF9A825},
@@ -20,7 +19,7 @@ class PaymentScreen extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('الدفع')),
+      appBar: AppBar(title: const Text('طرق الدفع')),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: _payments.length,
@@ -28,6 +27,7 @@ class PaymentScreen extends StatelessWidget {
           final payment = _payments[index];
           return Card(
             margin: const EdgeInsets.only(bottom: 10),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: ListTile(
               leading: Image.asset(
                 payment['icon'] as String,
@@ -35,9 +35,13 @@ class PaymentScreen extends StatelessWidget {
                 height: 40,
                 errorBuilder: (_, __, ___) => Icon(Icons.payment, color: Color(payment['color'] as int)),
               ),
-              title: Text(payment['name'] as String),
+              title: Text(payment['name'] as String, style: const TextStyle(fontWeight: FontWeight.bold)),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () {},
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('تم اختيار ${payment['name']}'), backgroundColor: Color(payment['color'] as int)),
+                );
+              },
             ),
           );
         },
