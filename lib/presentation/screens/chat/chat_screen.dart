@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/utils/icon_helper.dart';
 import 'package:sehatak/presentation/bloc/chat_bloc/chat_bloc.dart';
 import 'package:sehatak/presentation/bloc/chat_bloc/chat_event.dart';
 import 'package:sehatak/presentation/bloc/chat_bloc/chat_state.dart';
@@ -44,13 +43,15 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     super.dispose();
   }
 
-  void _navigateToChat(String chatId, String userName) {
+  // ✅ التنقل إلى شاشة المحادثة مع userId
+  void _navigateToChat(String chatId, String userName, String userId) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => ChatDetailScreen(
           chatId: chatId,
           userName: userName,
+          userId: userId,
         ),
       ),
     );
@@ -454,14 +455,16 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
         itemCount: chats.length,
         itemBuilder: (context, index) {
           final chat = chats[index];
-          final isDoctor = chat['doctorId'] == FirebaseAuth.instance.currentUser?.uid;
+          final currentUser = FirebaseAuth.instance.currentUser;
+          final isDoctor = chat['doctorId'] == currentUser?.uid;
           final otherName = isDoctor ? chat['patientName'] : chat['doctorName'];
+          final otherId = isDoctor ? chat['patientId'] : chat['doctorId'];
           final lastMessage = chat['lastMessage'] ?? 'ابدأ المحادثة';
           final lastTime = _formatTime(chat['lastMessageTime']);
           final unreadCount = chat['unreadCount'] ?? 0;
           
           return GestureDetector(
-            onTap: () => _navigateToChat(chat['id'], otherName ?? 'مستخدم'),
+            onTap: () => _navigateToChat(chat['id'], otherName ?? 'مستخدم', otherId ?? ''),
             child: Container(
               margin: const EdgeInsets.only(bottom: 10),
               decoration: BoxDecoration(
