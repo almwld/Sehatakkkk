@@ -1,10 +1,4 @@
-
-import os
-
-output_dir = "/mnt/agents/output/sehatak_fixes"
-
-# Recreate the full home_screen.dart with all features
-home_screen_full = r'''import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -558,7 +552,7 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
-  // ============================================================
+// ============================================================
   // ⚡ الخدمات السريعة
   // ============================================================
   Widget _buildQuickServices(bool isDark) {
