@@ -18,7 +18,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<StopListening>(_onStopListening);
   }
 
-  // ✅ تحميل الرسائل
+  // ✅ تحميل الرسائل - استخدام getMessages مباشرة
   Future<void> _onLoadMessages(
     LoadChatMessages event,
     Emitter<ChatState> emit,
@@ -26,24 +26,32 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     emit(ChatLoadingState());
     try {
       final messages = <Map<String, dynamic>>[];
-      final snapshot = await _chatService.getMessagesOnce(event.chatId);
-      for (final doc in snapshot.docs) {
-        final data = doc.data() as Map<String, dynamic>;
-        messages.add({
-          'id': doc.id,
-          ...data,
-        });
-      }
-      // ترتيب حسب الوقت
-      messages.sort((a, b) {
-        final timeA = a['timestamp'] as Timestamp?;
-        final timeB = b['timestamp'] as Timestamp?;
-        if (timeA == null && timeB == null) return 0;
-        if (timeA == null) return 1;
-        if (timeB == null) return -1;
-        return timeA.toDate().compareTo(timeB.toDate());
-      });
-      emit(ChatLoadedState(messages));
+      // ✅ استخدام getMessages مع أول قيمة
+      final subscription = _chatService.getMessages(event.chatId).listen(
+        (snapshot) {
+          for (final doc in snapshot.docs) {
+            final data = doc.data() as Map<String, dynamic>;
+            messages.add({
+              'id': doc.id,
+              ...data,
+            });
+          }
+          messages.sort((a, b) {
+            final timeA = a['timestamp'] as Timestamp?;
+            final timeB = b['timestamp'] as Timestamp?;
+            if (timeA == null && timeB == null) return 0;
+            if (timeA == null) return 1;
+            if (timeB == null) return -1;
+            return timeA.toDate().compareTo(timeB.toDate());
+          });
+          emit(ChatLoadedState(messages));
+        },
+        onError: (error) {
+          emit(ChatErrorState('فشل تحميل الرسائل: $error'));
+        },
+      );
+      // ✅ إلغاء الاشتراك بعد أول قيمة
+      await subscription.asFuture().then((_) => subscription.cancel());
     } catch (e) {
       emit(ChatErrorState('فشل تحميل الرسائل: $e'));
     }
