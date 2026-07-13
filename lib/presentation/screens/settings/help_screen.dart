@@ -7,19 +7,20 @@ class HelpScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
     final faqs = [
-      {'q': 'كيف يمكنني حجز موعد؟', 'a': 'يمكنك حجز موعد من خلال شاشة الأطباء أو شاشة الحجز المخصصة.'},
-      {'q': 'كيف يمكنني التواصل مع الطبيب؟', 'a': 'يمكنك التواصل مع الطبيب عبر الدردشة أو المكالمات الصوتية والمرئية.'},
-      {'q': 'كيف يمكنني شراء الأدوية؟', 'a': 'يمكنك شراء الأدوية من خلال شاشة الصيدلية وإضافة المنتجات للسلة.'},
-      {'q': 'كيف يمكنني تتبع طلبي؟', 'a': 'يمكنك تتبع طلبك من خلال شاشة تتبع الطلب.'},
-      {'q': 'كيف يمكنني تغيير كلمة المرور؟', 'a': 'يمكنك تغيير كلمة المرور من خلال الإعدادات > الحساب.'},
+      {'q': 'كيف يمكنني حجز موعد مع طبيب؟', 'a': 'يمكنك حجز موعد من خلال شاشة الأطباء أو من خلال شاشة المواعيد.'},
+      {'q': 'كيف يمكنني التواصل مع الطبيب؟', 'a': 'يمكنك التواصل عبر الدردشة أو المكالمة الصوتية أو المرئية من خلال شاشة الطبيب.'},
+      {'q': 'كيف يمكنني شراء أدوية؟', 'a': 'يمكنك شراء الأدوية من خلال شاشة الصيدلية وإضافتها إلى سلة المشتريات.'},
+      {'q': 'كيف يمكنني متابعة حالتي الصحية؟', 'a': 'يمكنك متابعة حالتك الصحية من خلال شاشة صحتي التي تحتوي على جميع المؤشرات الحيوية.'},
+      {'q': 'التطبيق مجاني؟', 'a': 'نعم، التطبيق مجاني للاستخدام الأساسي. هناك باقات مدفوعة للخدمات المتقدمة.'},
     ];
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: const Text('مركز المساعدة'),
-        backgroundColor: const Color(0xFF0D5257),
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -28,28 +29,24 @@ class HelpScreen extends StatelessWidget {
         itemCount: faqs.length,
         itemBuilder: (context, index) {
           final faq = faqs[index];
-          return Card(
-            color: isDark ? const Color(0xFF1A2540) : Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            margin: const EdgeInsets.only(bottom: 8),
-            child: ExpansionTile(
-              leading: CircleAvatar(
-                backgroundColor: const Color(0xFF0D5257).withOpacity(0.1),
-                child: Text(
-                  '${index + 1}',
-                  style: const TextStyle(
-                    color: Color(0xFF0D5257),
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1A2540) : Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
                 ),
-              ),
+              ],
+            ),
+            child: ExpansionTile(
               title: Text(
-                faq['q'] as String,
+                faq['q']!,
                 style: TextStyle(
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
                   color: isDark ? Colors.white : Colors.black87,
                 ),
               ),
@@ -57,10 +54,9 @@ class HelpScreen extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: Text(
-                    faq['a'] as String,
+                    faq['a']!,
                     style: TextStyle(
                       fontSize: 14,
-                      height: 1.5,
                       color: isDark ? Colors.grey[400] : Colors.grey[600],
                     ),
                   ),

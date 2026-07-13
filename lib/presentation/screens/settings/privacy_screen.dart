@@ -11,48 +11,29 @@ class PrivacyScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('سياسة الخصوصية'),
-        backgroundColor: const Color(0xFF0D5257),
+        title: const Text('الخصوصية والأمان'),
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'سياسة الخصوصية لتطبيق صحتك',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'نحن في تطبيق صحتك نلتزم بحماية خصوصيتك. هذه السياسة تشرح كيفية جمع واستخدام وحماية بياناتك الشخصية.',
-              style: TextStyle(
-                fontSize: 14,
-                height: 1.6,
-                color: isDark ? Colors.grey[300] : Colors.grey[700],
-              ),
-            ),
-            const SizedBox(height: 16),
-            _buildSection('١. المعلومات التي نجمعها', isDark),
-            _buildSection('٢. كيفية استخدام معلوماتك', isDark),
-            _buildSection('٣. مشاركة المعلومات', isDark),
-            _buildSection('٤. حماية المعلومات', isDark),
-            _buildSection('٥. حقوقك', isDark),
-            _buildSection('٦. التغييرات على السياسة', isDark),
-            const SizedBox(height: 20),
-            Text(
-              'آخر تحديث: 4 يوليو 2026',
-              style: TextStyle(
-                fontSize: 12,
-                color: isDark ? Colors.grey[500] : Colors.grey[400],
-              ),
-            ),
+            _buildSection('معلومات التطبيق', isDark),
+            _buildItem('نوع التطبيق', 'صحي شامل', isDark),
+            _buildItem('النسخة الحالية', '1.1.0', isDark),
+            const SizedBox(height: 24),
+            _buildSection('الخصوصية', isDark),
+            _buildItem('جمع البيانات', 'نعم - بيانات صحية أساسية', isDark),
+            _buildItem('مشاركة البيانات', 'لا - خاصة بالكامل', isDark),
+            _buildItem('التشفير', 'نعم - تشفير كامل', isDark),
+            const SizedBox(height: 24),
+            _buildSection('الأمان', isDark),
+            _buildItem('المصادقة', 'بريد إلكتروني + كلمة مرور', isDark),
+            _buildItem('المصادقة الثنائية', 'قريباً', isDark),
+            _buildItem('البصمة', 'مدعومة', isDark),
           ],
         ),
       ),
@@ -62,24 +43,46 @@ class PrivacyScreen extends StatelessWidget {
   Widget _buildSection(String title, bool isDark) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: isDark ? Colors.white : Colors.black87,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildItem(String label, String value, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2540) : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            title,
+            label,
             style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: const Color(0xFF0D5257),
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
             ),
           ),
-          const SizedBox(height: 4),
           Text(
-            'هذا هو نص السياسة الخاص بـ $title. يتم تحديد التفاصيل الكاملة في الوثيقة الرسمية.',
+            value,
             style: TextStyle(
-              fontSize: 13,
-              height: 1.5,
-              color: isDark ? Colors.grey[400] : Colors.grey[600],
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white : Colors.black87,
             ),
           ),
         ],

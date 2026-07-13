@@ -1,54 +1,83 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
-class LanguageScreen extends StatelessWidget {
+class LanguageScreen extends StatefulWidget {
   const LanguageScreen({super.key});
+
+  @override
+  State<LanguageScreen> createState() => _LanguageScreenState();
+}
+
+class _LanguageScreenState extends State<LanguageScreen> {
+  String _selectedLanguage = 'ar';
+
+  final List<Map<String, dynamic>> _languages = [
+    {'code': 'ar', 'name': 'العربية',  'native': 'العربية'},
+    {'code': 'en', 'name': 'English',  'native': 'English'},
+    {'code': 'fr', 'name': 'Français', 'native': 'Français'},
+  ];
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final languages = [
-      {'name': 'العربية', 'code': 'ar', 'flag': '🇸🇦', 'selected': true},
-      {'name': 'English', 'code': 'en', 'flag': '🇬🇧', 'selected': false},
-    ];
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: const Text('اللغة'),
-        backgroundColor: const Color(0xFF0D5257),
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
-        itemCount: languages.length,
+        itemCount: _languages.length,
         itemBuilder: (context, index) {
-          final lang = languages[index];
-          return Card(
-            color: isDark ? const Color(0xFF1A2540) : Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(
-                color: lang['selected'] as bool ? const Color(0xFF0D5257) : Colors.transparent,
+          final lang = _languages[index];
+          final isSelected = _selectedLanguage == lang['code'];
+          return Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1A2540) : Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isSelected ? AppColors.primary : Colors.transparent,
                 width: 2,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: ListTile(
-              leading: Text(lang['flag'] as String, style: const TextStyle(fontSize: 32)),
+              leading: Text(
+                lang['flag'] as String,
+                style: const TextStyle(fontSize: 32),
+              ),
               title: Text(
                 lang['name'] as String,
                 style: TextStyle(
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   color: isDark ? Colors.white : Colors.black87,
                 ),
               ),
-              trailing: lang['selected'] as bool
-                  ? const Icon(Icons.check_circle, color: Color(0xFF0D5257))
+              subtitle: Text(
+                lang['native'] as String,
+                style: TextStyle(
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                ),
+              ),
+              trailing: isSelected
+                  ? const Icon(Icons.check_circle, color: AppColors.primary)
                   : null,
               onTap: () {
+                setState(() => _selectedLanguage = lang['code'] as String);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('✅ تم تغيير اللغة'),
+                  SnackBar(
+                    content: Text('تم تغيير اللغة إلى ${lang['name']}'),
                     backgroundColor: Colors.green,
                   ),
                 );
