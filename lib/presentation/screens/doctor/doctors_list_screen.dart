@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/services/image_service.dart';
+import 'package:sehatak/core/utils/icon_helper.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
 
 class DoctorsListScreen extends StatefulWidget {
@@ -28,12 +28,12 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
     {'id': '2', 'name': 'د. خالد النخلاني', 'specialty': 'قلبية', 'experience': '15 سنة', 'rating': 4.8, 'reviews': 256, 'price': 600, 'available': true, 'image': "assets/images/doctors/doctor_2.png", 'hospital': 'مركز قلب العاصمة', 'online': false},
     {'id': '3', 'name': 'د. أسماء الهندي', 'specialty': 'أطفال', 'experience': '12 سنة', 'rating': 4.9, 'reviews': 189, 'price': 450, 'available': true, 'image': "assets/images/doctors/doctor_3.png", 'hospital': 'مستشفى السبعين', 'online': true},
     {'id': '4', 'name': 'د. محمد العلاي', 'specialty': 'أنف وأذن وحنجرة', 'experience': '8 سنوات', 'rating': 4.7, 'reviews': 89, 'price': 400, 'available': false, 'image': "assets/images/doctors/doctor_4.png", 'hospital': 'مستشفى الأنف والأذن', 'online': false},
-    {'id': '5', 'name': 'د. فاطمة صديقي', 'specialty': 'نساء وولادة', 'experience': '18 سنة', 'rating': 4.8, 'reviews': 210, 'price': 550, 'available': true, 'image': "assets/images/doctors/doctor_1.png", 'hospital': 'مستشفى الولادة', 'online': true},
-    {'id': '6', 'name': 'د. عمر الجابري', 'specialty': 'عظام', 'experience': '10 سنوات', 'rating': 4.6, 'reviews': 145, 'price': 520, 'available': true, 'image': "assets/images/doctors/doctor_2.png", 'hospital': 'مركز العظام', 'online': false},
-    {'id': '7', 'name': 'د. ليلى الكبسي', 'specialty': 'جلدية', 'experience': '14 سنة', 'rating': 4.7, 'reviews': 178, 'price': 480, 'available': true, 'image': "assets/images/doctors/doctor_3.png", 'hospital': 'مركز الجلدية', 'online': true},
-    {'id': '8', 'name': 'د. ناصر الحمزي', 'specialty': 'عيون', 'experience': '22 سنة', 'rating': 4.9, 'reviews': 312, 'price': 580, 'available': true, 'image': "assets/images/doctors/doctor_4.png", 'hospital': 'مركز العيون', 'online': false},
-    {'id': '9', 'name': 'د. رنا الحوثي', 'specialty': 'نفسية', 'experience': '9 سنوات', 'rating': 4.5, 'reviews': 98, 'price': 420, 'available': true, 'image': "assets/images/doctors/doctor_1.png", 'hospital': 'مركز الصحة النفسية', 'online': true},
-    {'id': '10', 'name': 'د. ياسر القبلي', 'specialty': 'قلبية', 'experience': '25 سنة', 'rating': 4.9, 'reviews': 456, 'price': 650, 'available': true, 'image': "assets/images/doctors/doctor_2.png", 'hospital': 'مركز قلب العاصمة', 'online': false},
+    {'id': '5', 'name': 'د. فاطمة صديقي', 'specialty': 'نساء وولادة', 'experience': '18 سنة', 'rating': 4.8, 'reviews': 210, 'price': 550, 'available': true, 'image': "assets/images/doctors/doctor_5.png", 'hospital': 'مستشفى الولادة', 'online': true},
+    {'id': '6', 'name': 'د. عمر الجابري', 'specialty': 'عظام', 'experience': '10 سنوات', 'rating': 4.6, 'reviews': 145, 'price': 520, 'available': true, 'image': "assets/images/doctors/doctor_1.png", 'hospital': 'مركز العظام', 'online': false},
+    {'id': '7', 'name': 'د. ليلى الكبسي', 'specialty': 'جلدية', 'experience': '14 سنة', 'rating': 4.7, 'reviews': 178, 'price': 480, 'available': true, 'image': "assets/images/doctors/doctor_2.png", 'hospital': 'مركز الجلدية', 'online': true},
+    {'id': '8', 'name': 'د. ناصر الحمزي', 'specialty': 'عيون', 'experience': '22 سنة', 'rating': 4.9, 'reviews': 312, 'price': 580, 'available': true, 'image': "assets/images/doctors/doctor_3.png", 'hospital': 'مركز العيون', 'online': false},
+    {'id': '9', 'name': 'د. رنا الحوثي', 'specialty': 'نفسية', 'experience': '9 سنوات', 'rating': 4.5, 'reviews': 98, 'price': 420, 'available': true, 'image': "assets/images/doctors/doctor_4.png", 'hospital': 'مركز الصحة النفسية', 'online': true},
+    {'id': '10', 'name': 'د. ياسر القبلي', 'specialty': 'قلبية', 'experience': '25 سنة', 'rating': 4.9, 'reviews': 456, 'price': 650, 'available': true, 'image': "assets/images/doctors/doctor_5.png", 'hospital': 'مركز قلب العاصمة', 'online': false},
   ];
 
   List<Map<String, dynamic>> get _filteredDoctors {

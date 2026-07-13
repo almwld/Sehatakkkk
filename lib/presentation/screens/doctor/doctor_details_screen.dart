@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/services/image_service.dart';
+import 'package:sehatak/core/utils/icon_helper.dart';
 import 'package:sehatak/presentation/screens/shared/chat_navigation.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_booking_screen.dart';
 
@@ -28,9 +28,9 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
           'reviews': 328,
           'fee': '500',
           'available': true,
-          'about': 'استشاري باطنية وأطفال مع خبرة واسعة',
+          'about': 'استشاري باطنية وأطفال مع خبرة واسعة في تشخيص وعلاج الأمراض الباطنية وأطفال. حاصل على شهادة البورد العربي في الباطنية والأطفال.',
           'hospital': 'مستشفى الثورة العام',
-          'availability': ['السبت - الأربعاء: 9 ص - 5 م'],
+          'availability': ['السبت - الأربعاء: 9 ص - 5 م', 'الخميس: 9 ص - 2 م'],
           'image': "assets/images/doctors/doctor_1.png",
         };
       case '2':
@@ -38,13 +38,13 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
           'name': 'د. خالد النخلاني',
           'specialty': 'أمراض قلبية',
           'experience': '15 سنة',
-          'rating': 4.7,
+          'rating': 4.8,
           'reviews': 256,
           'fee': '600',
           'available': true,
-          'about': 'أخصائي أمراض القلب والقسطرة',
+          'about': 'أخصائي أمراض القلب والقسطرة. خبرة واسعة في علاج حالات القلب المعقدة والقسطرة التداخلية.',
           'hospital': 'مركز قلب العاصمة',
-          'availability': ['الأحد - الخميس: 10 ص - 6 م'],
+          'availability': ['الأحد - الخميس: 10 ص - 6 م', 'السبت: 10 ص - 2 م'],
           'image': "assets/images/doctors/doctor_2.png",
         };
       case '3':
@@ -52,11 +52,11 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
           'name': 'د. أسماء الهندي',
           'specialty': 'أطفال وحديثي الولادة',
           'experience': '12 سنة',
-          'rating': 4.8,
+          'rating': 4.9,
           'reviews': 189,
           'fee': '450',
           'available': true,
-          'about': 'أخصائية أطفال وحديثي الولادة',
+          'about': 'أخصائية أطفال وحديثي الولادة. خبرة في رعاية الأطفال المبتسرين وحديثي الولادة.',
           'hospital': 'مستشفى السبعين',
           'availability': ['السبت - الخميس: 8 ص - 2 م'],
           'image': "assets/images/doctors/doctor_3.png",
@@ -66,11 +66,11 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
           'name': 'د. محمد العلاي',
           'specialty': 'أنف وأذن وحنجرة',
           'experience': '8 سنوات',
-          'rating': 4.5,
+          'rating': 4.7,
           'reviews': 89,
           'fee': '400',
           'available': true,
-          'about': 'أخصائي أنف وأذن وحنجرة',
+          'about': 'أخصائي أنف وأذن وحنجرة. خبرة في جراحات الأنف والأذن والحنجرة لدى الأطفال والبالغين.',
           'hospital': 'مستشفى الأنف والأذن',
           'availability': ['الأحد - الخميس: 9 ص - 3 م'],
           'image': "assets/images/doctors/doctor_4.png",
@@ -82,6 +82,12 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
   void initState() {
     super.initState();
     _tab = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tab.dispose();
+    super.dispose();
   }
 
   @override
@@ -105,6 +111,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
       ),
       body: Column(
         children: [
+          // ✅ Header
           Container(
             padding: const EdgeInsets.all(16),
             color: AppColors.primary,
@@ -160,57 +167,55 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
               ],
             ),
           ),
+          // ✅ أزرار الإجراءات - باستخدام IconHelper
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             color: AppColors.primary,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _actionBtn(Icons.chat, 'محادثة', AppColors.info, () => ChatNavigation.openChat(context, doctorName: doc['name'], doctorId: widget.doctorId ?? '1')),
-                _actionBtn(Icons.call, 'اتصال', AppColors.success, () => ChatNavigation.openCall(
+                _actionBtn('assets/icons/core/text_chat.svg', 'محادثة', AppColors.info, () => ChatNavigation.openChat(context, doctorName: doc['name'], doctorId: widget.doctorId ?? '1')),
+                _actionBtn('assets/icons/core/video_call.svg', 'اتصال', AppColors.success, () => ChatNavigation.openCall(
                   context,
                   chatId: 'call_${widget.doctorId ?? "1"}_${DateTime.now().millisecondsSinceEpoch}',
                   doctorName: doc['name'],
                   doctorId: widget.doctorId ?? '1',
                   isVideo: false,
                 )),
-                _actionBtn(Icons.videocam, 'فيديو', AppColors.primary, () => ChatNavigation.openCall(
+                _actionBtn('assets/icons/core/video_call.svg', 'فيديو', AppColors.primary, () => ChatNavigation.openCall(
                   context,
                   chatId: 'call_${widget.doctorId ?? "1"}_${DateTime.now().millisecondsSinceEpoch}',
                   doctorName: doc['name'],
                   doctorId: widget.doctorId ?? '1',
                   isVideo: true,
                 )),
-                _actionBtn(Icons.calendar_today, 'حجز', AppColors.teal, () => Navigator.push(context, MaterialPageRoute(builder: (_) => DoctorBookingScreen(doctorId: widget.doctorId ?? '1')))),
+                _actionBtn('assets/icons/core/appointments.svg', 'حجز', AppColors.teal, () => Navigator.push(context, MaterialPageRoute(builder: (_) => DoctorBookingScreen(doctorId: widget.doctorId ?? '1')))),
               ],
             ),
           ),
           Expanded(
-            child: DefaultTabController(
-              length: 2,
-              child: Column(
-                children: [
-                  TabBar(
+            child: Column(
+              children: [
+                TabBar(
+                  controller: _tab,
+                  indicatorColor: AppColors.primary,
+                  labelColor: AppColors.primary,
+                  unselectedLabelColor: AppColors.grey,
+                  tabs: const [
+                    Tab(text: 'نبذة'),
+                    Tab(text: 'مواعيد'),
+                  ],
+                ),
+                Expanded(
+                  child: TabBarView(
                     controller: _tab,
-                    indicatorColor: AppColors.primary,
-                    labelColor: AppColors.primary,
-                    unselectedLabelColor: AppColors.grey,
-                    tabs: const [
-                      Tab(text: 'نبذة'),
-                      Tab(text: 'مواعيد'),
+                    children: [
+                      _aboutTab(doc),
+                      _appointmentsTab(doc),
                     ],
                   ),
-                  Expanded(
-                    child: TabBarView(
-                      controller: _tab,
-                      children: [
-                        _aboutTab(doc),
-                        _appointmentsTab(doc),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ],
@@ -218,7 +223,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
     );
   }
 
-  Widget _actionBtn(IconData icon, String label, Color color, VoidCallback onTap) {
+  Widget _actionBtn(String iconPath, String label, Color color, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -230,7 +235,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
               color: color.withOpacity(0.2),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: Colors.white, size: 22),
+            child: IconHelper.svgIcon(iconPath, size: 22, color: Colors.white),
           ),
           const SizedBox(height: 4),
           Text(label, style: const TextStyle(color: Colors.white70, fontSize: 10)),
@@ -251,19 +256,55 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
           const SizedBox(height: 8),
           Text(doc['about'], style: TextStyle(fontSize: 14, color: isDark ? Colors.grey[300] : Colors.grey[700])),
           const SizedBox(height: 16),
-          const Text('المستشفى', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 4),
-          Text(doc['hospital'], style: TextStyle(fontSize: 14, color: isDark ? Colors.grey[300] : Colors.grey[700])),
+          _infoRow('المستشفى', doc['hospital'], isDark),
+          _infoRow('الخبرة', doc['experience'], isDark),
+          _infoRow('رسوم الكشف', '${doc['fee']} ريال', isDark),
           const SizedBox(height: 16),
-          const Text('الخبرة', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 4),
-          Text(doc['experience'], style: TextStyle(fontSize: 14, color: isDark ? Colors.grey[300] : Colors.grey[700])),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.info_outline, color: AppColors.primary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'يمكنك التواصل مع الطبيب عبر المحادثة أو المكالمة',
+                    style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[300] : Colors.grey[700]),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _infoRow(String label, String value, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(label, style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[400] : Colors.grey[600], fontWeight: FontWeight.w500)),
+          ),
+          Expanded(
+            child: Text(value, style: TextStyle(fontSize: 13, color: isDark ? Colors.white : Colors.black87)),
+          ),
         ],
       ),
     );
   }
 
   Widget _appointmentsTab(Map<String, dynamic> doc) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -275,10 +316,17 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
             padding: const EdgeInsets.all(12),
             margin: const EdgeInsets.only(bottom: 8),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.05),
+              color: isDark ? const Color(0xFF1A2540) : AppColors.primary.withOpacity(0.05),
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: isDark ? Colors.grey[800]! : AppColors.primary.withOpacity(0.1)),
             ),
-            child: Text(a, style: const TextStyle(fontSize: 14)),
+            child: Row(
+              children: [
+                Icon(Icons.access_time, color: AppColors.primary, size: 18),
+                const SizedBox(width: 10),
+                Text(a, style: TextStyle(fontSize: 14, color: isDark ? Colors.white : Colors.black87)),
+              ],
+            ),
           )),
           const SizedBox(height: 20),
           SizedBox(
@@ -297,11 +345,5 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
         ],
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _tab.dispose();
-    super.dispose();
   }
 }

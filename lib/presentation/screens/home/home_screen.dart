@@ -6,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/image_service.dart';
+import 'package:sehatak/core/utils/icon_helper.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
@@ -26,6 +27,7 @@ import 'package:sehatak/presentation/screens/consultation/consultation_screen.da
 import 'package:sehatak/presentation/screens/services/services_screen.dart';
 import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
 import 'package:sehatak/presentation/screens/blood_donation/blood_donation_screen.dart';
+import 'package:sehatak/presentation/screens/medication/medicines_screen.dart';
 
 // ============================================================
 // 📱 HomeScreen - الشاشة الرئيسية مع شريط سفلي متحرك
@@ -49,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   void initState() {
     super.initState();
     _screens = [
-      HomeTab(bottomBarVisibility: _isBottomBarVisible),
+      const HomeTab(),
       const DoctorsListScreen(),
       const PharmacyScreen(),
       const ChatScreen(),
@@ -105,14 +107,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     return Scaffold(
       body: Stack(
         children: [
-          // ✅ المحتوى الرئيسي
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
             switchInCurve: Curves.easeOut,
             switchOutCurve: Curves.easeIn,
             child: _screens[_currentIndex],
           ),
-          // ✅ الشريط السفلي العائم - يختفي/يظهر عند التمرير
           Positioned(
             bottom: 0,
             left: 0,
@@ -157,7 +157,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                 _buildNavItem(0, Icons.home_rounded, 'الرئيسية'),
                                 _buildNavItem(1, Icons.person_search_rounded, 'الأطباء'),
                                 _buildNavItem(2, Icons.local_pharmacy_rounded, 'الصيدلية'),
-                                _buildChatButton(), // ✅ مرتفعة للأعلى بدون قص
+                                _buildChatButton(),
                                 _buildNavItem(4, Icons.science_rounded, 'مختبرات'),
                                 _buildNavItem(5, Icons.folder_rounded, 'صحتي'),
                                 _buildNavItem(6, Icons.grid_view_rounded, 'المزيد'),
@@ -177,11 +177,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  // ✅ الخط الأخضر تحت الأيقونة (معدل)
   Widget _buildNavItem(int index, IconData icon, String label) {
     final selected = _currentIndex == index;
     final color = selected ? AppColors.primary : Colors.grey;
-
     return GestureDetector(
       onTap: () => _onTabTap(index),
       child: SizedBox(
@@ -201,7 +199,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 color: color,
               ),
             ),
-            // ✅ الخط الأخضر تحت النص مباشرة
             if (selected)
               Container(
                 width: 32,
@@ -220,7 +217,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  // ✅ أيقونة الدردشة مرتفعة للأعلى بدون قص
   Widget _buildChatButton() {
     final selected = _currentIndex == 3;
     return GestureDetector(
@@ -273,8 +269,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 // 🏠 HomeTab - المحتوى الرئيسي للصفحة
 // ============================================================
 class HomeTab extends StatefulWidget {
-  final ValueNotifier<bool> bottomBarVisibility;
-  const HomeTab({super.key, required this.bottomBarVisibility});
+  const HomeTab({super.key});
 
   @override
   State<HomeTab> createState() => _HomeTabState();
@@ -286,10 +281,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
   bool _isLoading = false;
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
-
-  // ============================================================
-  // 📊 البيانات
-  // ============================================================
 
   final List<String> _bannerImages = [
     'assets/images/banners/banner_1.png',
@@ -307,18 +298,18 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
   ];
 
   final List<Map<String, dynamic>> _quickServices = [
-    {'icon': Icons.medical_services, 'label': 'أطباء', 'color': AppColors.primary, 'screen': const DoctorsListScreen()},
-    {'icon': Icons.local_pharmacy, 'label': 'صيدلية', 'color': AppColors.success, 'screen': const PharmacyScreen()},
-    {'icon': Icons.science, 'label': 'مختبرات', 'color': AppColors.purple, 'screen': const LabsListScreen()},
-    {'icon': Icons.emergency, 'label': 'طوارئ', 'color': AppColors.error, 'screen': const EmergencyNumbers()},
-    {'icon': Icons.favorite, 'label': 'صحة', 'color': AppColors.pink, 'screen': const HealthDashboard()},
-    {'icon': Icons.wallet, 'label': 'محفظة', 'color': AppColors.amber, 'screen': const WalletScreen()},
-    {'icon': Icons.chat, 'label': 'استشارة', 'color': AppColors.teal, 'screen': const ConsultationScreen()},
-    {'icon': Icons.calendar_month, 'label': 'مواعيد', 'color': AppColors.primaryDark, 'screen': const PatientAppointments()},
-    {'icon': Icons.map, 'label': 'بالقرب منك', 'color': Colors.orange, 'screen': const InteractiveMapScreen()},
-    {'icon': Icons.shield, 'label': 'تأمين', 'color': Colors.blue, 'screen': const InsuranceCompanies()},
-    {'icon': Icons.bloodtype, 'label': 'تبرع بالدم', 'color': Colors.red, 'screen': const BloodDonationScreen()},
-    {'icon': Icons.home_work, 'label': 'خدمات منزلية', 'color': Colors.brown, 'screen': const ServicesScreen()},
+    {'icon': 'assets/icons/services/أطباء.png', 'label': 'أطباء', 'color': AppColors.primary, 'screen': const DoctorsListScreen()},
+    {'icon': 'assets/icons/services/ادويه.png', 'label': 'صيدلية', 'color': AppColors.success, 'screen': const PharmacyScreen()},
+    {'icon': 'assets/icons/services/مخابر.png', 'label': 'مختبرات', 'color': AppColors.purple, 'screen': const LabsListScreen()},
+    {'icon': 'assets/icons/services/بالقرب مني .png', 'label': 'طوارئ', 'color': AppColors.error, 'screen': const EmergencyNumbers()},
+    {'icon': 'assets/icons/services/صحةالقلب.png', 'label': 'صحة', 'color': AppColors.pink, 'screen': const HealthDashboard()},
+    {'icon': 'assets/icons/services/محفظ.png', 'label': 'محفظة', 'color': AppColors.amber, 'screen': const WalletScreen()},
+    {'icon': 'assets/icons/services/محادثات للمعارف.png', 'label': 'استشارة', 'color': AppColors.teal, 'screen': const ConsultationScreen()},
+    {'icon': 'assets/icons/services/مواعيد.png', 'label': 'مواعيد', 'color': AppColors.primaryDark, 'screen': const PatientAppointments()},
+    {'icon': 'assets/icons/services/بالقرب مني .png', 'label': 'بالقرب منك', 'color': Colors.orange, 'screen': const InteractiveMapScreen()},
+    {'icon': 'assets/icons/services/تامين.png', 'label': 'تأمين', 'color': Colors.blue, 'screen': const InsuranceCompanies()},
+    {'icon': 'assets/icons/services/تقييم.png', 'label': 'تبرع بالدم', 'color': Colors.red, 'screen': const BloodDonationScreen()},
+    {'icon': 'assets/icons/services/مراسلات.png', 'label': 'خدمات منزلية', 'color': Colors.brown, 'screen': const ServicesScreen()},
   ];
 
   List<Map<String, dynamic>> _communityPosts = [
@@ -341,11 +332,12 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     {'name': 'فيتامين د 1000IU', 'price': 1200, 'image': "assets/images/medicines/medicine_2.png", 'category': 'فيتامينات'},
     {'name': 'جهاز قياس ضغط', 'price': 8500, 'image': "assets/images/medicines/medicine_3.png", 'category': 'أجهزة طبية'},
     {'name': 'أموكسيسيلين 500mg', 'price': 1500, 'image': "assets/images/medicines/medicine_4.png", 'category': 'مضادات حيوية'},
+    {'name': 'أسبرين 100mg', 'price': 800, 'image': "assets/images/medicines/medicine_1.png", 'category': 'مسكنات'},
+    {'name': 'أوميغا 3 1000mg', 'price': 2500, 'image': "assets/images/medicines/medicine_2.png", 'category': 'مكملات غذائية'},
   ];
 
-  // ============================================================
-  // 🔧 دوال المساعدة
-  // ============================================================
+  // ✅ العدد الافتراضي للإشعارات
+  int _notificationCount = 5;
 
   void _goTo(BuildContext context, Widget screen) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
@@ -462,10 +454,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  // ============================================================
-  // 🏗️ دورة الحياة
-  // ============================================================
-
   @override
   void initState() {
     super.initState();
@@ -478,15 +466,12 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
     _fadeController.forward();
 
-    // ✅ منطق إخفاء/إظهار الشريط السفلي مثل Twitter
     _scrollController.addListener(() {
       if (_scrollController.position.userScrollDirection == ScrollDirection.reverse) {
-        if (widget.bottomBarVisibility.value != false) {
-          widget.bottomBarVisibility.value = false;
+        if (true != false) {
         }
       } else if (_scrollController.position.userScrollDirection == ScrollDirection.forward) {
-        if (widget.bottomBarVisibility.value != true) {
-          widget.bottomBarVisibility.value = true;
+        if (true != true) {
         }
       }
     });
@@ -498,10 +483,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     _fadeController.dispose();
     super.dispose();
   }
-
-  // ============================================================
-  // 🎨 بناء الواجهة
-  // ============================================================
 
   @override
   Widget build(BuildContext context) {
@@ -520,7 +501,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
           body: CustomScrollView(
             controller: _scrollController,
             slivers: [
-              // ✅ AppBar - يختفي/يظهر تلقائياً عند التمرير (مثل Twitter)
               SliverAppBar(
                 expandedHeight: 90,
                 floating: true,
@@ -563,13 +543,80 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                             ),
                           ),
                         ),
-                        IconButton(
-                          icon: Icon(Icons.notifications_outlined, color: primaryColor),
-                          onPressed: () => _goTo(context, const NotificationsScreen()),
+                        // ✅ زر الإشعارات مع عداد - باستخدام IconHelper
+                        Stack(
+                          children: [
+                            IconButton(
+                              icon: IconHelper.svgIcon(
+                                'assets/icons/core/notifications_active.svg',
+                                size: 24,
+                                color: primaryColor,
+                              ),
+                              onPressed: () => _goTo(context, const NotificationsScreen()),
+                            ),
+                            if (_notificationCount > 0)
+                              Positioned(
+                                right: 4,
+                                top: 4,
+                                child: Container(
+                                  padding: const EdgeInsets.all(2),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.red,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  constraints: const BoxConstraints(
+                                    minWidth: 18,
+                                    minHeight: 18,
+                                  ),
+                                  child: Text(
+                                    '$_notificationCount',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
-                        IconButton(
-                          icon: Icon(Icons.shopping_cart_outlined, color: primaryColor),
-                          onPressed: () => _goTo(context, const CartScreen()),
+                        // ✅ زر السلة - باستخدام IconHelper
+                        Stack(
+                          children: [
+                            IconButton(
+                              icon: IconHelper.svgIcon(
+                                'assets/icons/core/pharmacy.svg',
+                                size: 24,
+                                color: primaryColor,
+                              ),
+                              onPressed: () => _goTo(context, const CartScreen()),
+                            ),
+                            Positioned(
+                              right: 4,
+                              top: 4,
+                              child: Container(
+                                padding: const EdgeInsets.all(2),
+                                decoration: const BoxDecoration(
+                                  color: Colors.red,
+                                  shape: BoxShape.circle,
+                                ),
+                                constraints: const BoxConstraints(
+                                  minWidth: 18,
+                                  minHeight: 18,
+                                ),
+                                child: const Text(
+                                  '3',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                         if (!logged)
                           TextButton(
@@ -587,48 +634,32 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                   ),
                 ),
               ),
-              // ✅ المحتوى
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
-                    // 1️⃣ شريط البحث
                     _buildSearchBar(isDark),
                     const SizedBox(height: 16),
-
-                    // 2️⃣ البانر المتحرك مع النقاط داخله في اليمين
                     _buildBannerCarousel(isDark, primaryColor),
                     const SizedBox(height: 20),
-
-                    // 3️⃣ الإحصائيات
                     _buildStatsRow(),
                     const SizedBox(height: 20),
-
-                    // 4️⃣ الخدمات السريعة
                     _buildSectionTitle('خدمات سريعة', isDark),
                     const SizedBox(height: 10),
                     _buildQuickServicesRow(),
                     const SizedBox(height: 24),
-
-                    // 5️⃣ أفضل الأطباء
                     _buildSectionTitle('أفضل الأطباء', isDark),
                     const SizedBox(height: 10),
                     _buildTopDoctorsRow(),
                     const SizedBox(height: 24),
-
-                    // 6️⃣ منتجات صيدلية
                     _buildSectionTitle('منتجات صيدلية', isDark),
                     const SizedBox(height: 10),
-                    _buildProductsRow(),
+                    _buildProductsGrid(),
                     const SizedBox(height: 24),
-
-                    // 7️⃣ نصائح يومية
                     _buildSectionTitle('نصائح يومية', isDark),
                     const SizedBox(height: 10),
                     _buildDailyTipsGrid(),
                     const SizedBox(height: 24),
-
-                    // 8️⃣ مجتمع صحتك
                     _buildSectionTitle('مجتمع صحتك', isDark),
                     const SizedBox(height: 10),
                     ..._communityPosts.asMap().entries.map((entry) {
@@ -646,10 +677,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
       ),
     );
   }
-
-  // ============================================================
-  // 🔧 أجزاء الواجهة
-  // ============================================================
 
   Widget _buildSearchBar(bool isDark) {
     return Container(
@@ -681,7 +708,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  // ✅ البانر مع النقاط داخله في الجزء الأيمن
   Widget _buildBannerCarousel(bool isDark, Color primaryColor) {
     return Stack(
       children: [
@@ -710,10 +736,9 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
             );
           }).toList(),
         ),
-        // ✅ النقاط داخل البانر في الجزء الأيمن
         Positioned(
           bottom: 12,
-          left: 16, // محاذاة لليمين
+          right: 16,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: _bannerImages.asMap().entries.map((entry) {
@@ -812,7 +837,11 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                       color: color.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Icon(service['icon'] as IconData, color: color, size: 26),
+                    child: IconHelper.serviceIcon(
+                      service['icon'] as String,
+                      size: 26,
+                      color: color,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -929,84 +958,95 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget _buildProductsRow() {
-    return SizedBox(
-      height: 150,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: _products.length,
-        itemBuilder: (context, index) {
-          final product = _products[index];
-          return Container(
-            width: 120,
-            margin: const EdgeInsets.only(right: 10),
-            padding: const EdgeInsets.all(10),
+  Widget _buildProductsGrid() {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+        childAspectRatio: 0.85,
+      ),
+      itemCount: _products.length,
+      itemBuilder: (context, index) {
+        final product = _products[index];
+        return GestureDetector(
+          onTap: () => _goTo(context, const MedicinesScreen()),
+          child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 8,
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: CachedNetworkImage(
-                    imageUrl: product['image'],
-                    height: 50,
-                    width: 50,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => _buildShimmerEffect(width: 50, height: 50),
-                    errorWidget: (context, url, error) => Container(
-                      height: 50,
-                      width: 50,
-                      color: Colors.grey[200],
-                      child: const Icon(Icons.medication, color: Colors.grey),
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                    child: CachedNetworkImage(
+                      imageUrl: product['image'],
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => _buildShimmerEffect(height: 80),
+                      errorWidget: (context, url, error) => Container(
+                        color: Colors.grey[200],
+                        child: const Icon(Icons.medication, color: Colors.grey, size: 32),
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  product['name'],
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 11,
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    product['category'],
-                    style: const TextStyle(fontSize: 8, color: Colors.grey),
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  '${product['price']} ر.ي',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                    color: Color(0xFF0D5257),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        product['name'],
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10,
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${product['price']} ر.ي',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
+                          color: Color(0xFF0D5257),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          product['category'],
+                          style: const TextStyle(fontSize: 7, color: Colors.grey),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -1061,6 +1101,11 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
   }
 
   Widget _buildCommunityPostCard(Map<String, dynamic> post, int index, bool isDark) {
+    final isLiked = post['liked'] ?? false;
+    final likes = post['likes'] ?? 0;
+    final comments = post['comments'] ?? 0;
+    final shares = post['shares'] ?? 0;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -1125,12 +1170,12 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
           ClipRRect(
             child: CachedNetworkImage(
               imageUrl: post['image'],
-              height: 200,
+              height: 300,
               width: double.infinity,
               fit: BoxFit.cover,
-              placeholder: (context, url) => _buildShimmerEffect(height: 200),
+              placeholder: (context, url) => _buildShimmerEffect(height: 300),
               errorWidget: (context, url, error) => Container(
-                height: 200,
+                height: 300,
                 color: isDark ? Colors.grey[800] : Colors.grey[200],
                 child: const Icon(Icons.image, color: Colors.grey, size: 40),
               ),
@@ -1143,17 +1188,18 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                 GestureDetector(
                   onTap: () => _toggleLike(index),
                   child: Icon(
-                    post['liked'] ? Icons.favorite : Icons.favorite_border,
-                    color: post['liked'] ? Colors.red : (isDark ? Colors.grey[400] : Colors.grey[600]),
-                    size: 26,
+                    isLiked ? Icons.favorite : Icons.favorite_border,
+                    color: isLiked ? Colors.red : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                    size: 28,
                   ),
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  '${post['likes']}',
+                  '$likes',
                   style: TextStyle(
-                    fontSize: 12,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -1162,15 +1208,16 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                   child: Icon(
                     Icons.chat_bubble_outline,
                     color: isDark ? Colors.grey[400] : Colors.grey[600],
-                    size: 24,
+                    size: 26,
                   ),
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  '${post['comments']}',
+                  '$comments',
                   style: TextStyle(
-                    fontSize: 12,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -1179,22 +1226,23 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                   child: Icon(
                     Icons.repeat,
                     color: isDark ? Colors.grey[400] : Colors.grey[600],
-                    size: 24,
+                    size: 26,
                   ),
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  '${post['shares']}',
+                  '$shares',
                   style: TextStyle(
-                    fontSize: 12,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
                   ),
                 ),
                 const Spacer(),
                 Icon(
                   Icons.bookmark_border,
                   color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  size: 24,
+                  size: 26,
                 ),
               ],
             ),
@@ -1208,7 +1256,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                   post['title'],
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                    fontSize: 15,
                     color: isDark ? Colors.white : Colors.black87,
                   ),
                 ),
@@ -1216,10 +1264,10 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                 Text(
                   post['content'],
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 14,
                     color: isDark ? Colors.grey[300] : Colors.grey[700],
                   ),
-                  maxLines: 2,
+                  maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
@@ -1230,12 +1278,54 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
             child: GestureDetector(
               onTap: () => _showComments(index),
               child: Text(
-                'عرض جميع التعليقات (${post['comments']})',
+                'عرض جميع التعليقات ($comments)',
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 13,
                   color: isDark ? Colors.grey[500] : Colors.grey[400],
+                  fontWeight: FontWeight.w500,
                 ),
               ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'أضف تعليقاً...',
+                      border: InputBorder.none,
+                      hintStyle: TextStyle(
+                        color: isDark ? Colors.grey[500] : Colors.grey[400],
+                        fontSize: 13,
+                      ),
+                    ),
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Colors.black87,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('تم إرسال تعليقك!'),
+                        backgroundColor: Colors.green,
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    'نشر',
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -1243,4 +1333,3 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 }
-

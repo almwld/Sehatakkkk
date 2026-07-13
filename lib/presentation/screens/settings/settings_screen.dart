@@ -1,11 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
+import 'package:local_auth/local_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/providers/font_size_provider.dart';
+import 'package:sehatak/core/utils/icon_helper.dart';
 import 'package:sehatak/presentation/bloc/theme_bloc/theme_bloc.dart';
 import 'package:sehatak/presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
+import 'package:sehatak/presentation/screens/profile/profile_screen.dart';
+import 'package:sehatak/presentation/screens/shared/notifications_screen.dart';
+import 'package:sehatak/presentation/screens/settings/change_password_screen.dart';
+import 'package:sehatak/presentation/screens/settings/language_screen.dart';
+import 'package:sehatak/presentation/screens/settings/privacy_screen.dart';
+import 'package:sehatak/presentation/screens/settings/about_screen.dart';
+import 'package:sehatak/presentation/screens/settings/help_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -15,6 +25,112 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  final LocalAuthentication _localAuth = LocalAuthentication();
+  bool _isBiometricSupported = false;
+  bool _isBiometricEnabled = false;
+  bool _isDarkMode = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkBiometricSupport();
+    _loadBiometricPrefs();
+    _loadThemeMode();
+  }
+
+  Future<void> _checkBiometricSupport() async {
+    try {
+      final isAvailable = await _localAuth.canCheckBiometrics;
+      final isDeviceSupported = await _localAuth.isDeviceSupported();
+      setState(() {
+        _isBiometricSupported = isAvailable && isDeviceSupported;
+      });
+    } catch (e) {
+      print('Biometric check error: $e');
+      setState(() {
+        _isBiometricSupported = false;
+      });
+    }
+  }
+
+  Future<void> _loadBiometricPrefs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      setState(() {
+        _isBiometricEnabled = prefs.getBool('biometric_enabled') ?? false;
+      });
+    } catch (e) {
+      print('Error loading biometric prefs: $e');
+    }
+  }
+
+  void _loadThemeMode() {
+    final state = context.read<ThemeBloc>().state;
+    setState(() {
+      _isDarkMode = state.themeMode == ThemeMode.dark;
+    });
+  }
+
+  Future<void> _toggleBiometric(bool value) async {
+    try {
+      if (value) {
+        final isAuthenticated = await _localAuth.authenticate(
+          localizedReason: 'سجل باستخدام بصمة الإصبع لتأكيد الهوية',
+          options: const AuthenticationOptions(
+            stickyAuth: true,
+            biometricOnly: true,
+          ),
+        );
+
+        if (!isAuthenticated) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('❌ فشل التحقق من البصمة، حاول مرة أخرى'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          setState(() {
+            _isBiometricEnabled = false;
+          });
+          return;
+        }
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('biometric_enabled', true);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ تم تفعيل تسجيل الدخول بالبصمة بنجاح'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('biometric_enabled', false);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('❌ تم إلغاء تفعيل تسجيل الدخول بالبصمة'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+
+      setState(() {
+        _isBiometricEnabled = value;
+      });
+    } catch (e) {
+      print('Error toggling biometric: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ حدث خطأ: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      await _loadBiometricPrefs();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -28,13 +144,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded),
+            onPressed: () {
+              setState(() {});
+              _loadThemeMode();
+            },
+          ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // ✅ قسم المظهر
           _buildSectionHeader('المظهر', isDark),
           const SizedBox(height: 8),
           _buildCard(
+            isDark: isDark,
             child: Column(
               children: [
                 _buildSwitchTile(
@@ -46,6 +173,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     context.read<ThemeBloc>().add(
                       value ? SetDarkTheme() : SetLightTheme(),
                     );
+                    setState(() {
+                      _isDarkMode = value;
+                    });
                   },
                   isDark: isDark,
                 ),
@@ -55,16 +185,69 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: 'الوضع التلقائي',
                   subtitle: 'متابعة إعدادات النظام',
                   value: context.read<ThemeBloc>().state.themeMode == ThemeMode.system,
-                  onChanged: (_) {},
+                  onChanged: (_) {
+                    // تبديل إلى الوضع التلقائي
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('🔄 سيتم تفعيل الوضع التلقائي قريباً'),
+                        backgroundColor: Colors.blue,
+                      ),
+                    );
+                  },
                   isDark: isDark,
                 ),
               ],
             ),
           ),
           const SizedBox(height: 16),
+
+          // ✅ قسم البصمة (بيومترية)
+          if (_isBiometricSupported)
+            Column(
+              children: [
+                _buildSectionHeader('الأمان', isDark),
+                const SizedBox(height: 8),
+                _buildCard(
+                  isDark: isDark,
+                  child: Column(
+                    children: [
+                      _buildSwitchTile(
+                        icon: Icons.fingerprint_rounded,
+                        title: 'تسجيل الدخول بالبصمة',
+                        subtitle: _isBiometricEnabled
+                            ? '✅ تم التفعيل - استخدم بصمتك للدخول'
+                            : 'تفعيل تسجيل الدخول باستخدام بصمة الإصبع',
+                        value: _isBiometricEnabled,
+                        onChanged: _toggleBiometric,
+                        isDark: isDark,
+                      ),
+                      _buildDivider(isDark),
+                      _buildListTile(
+                        icon: Icons.security_rounded,
+                        title: 'المصادقة الثنائية',
+                        subtitle: 'تفعيل المصادقة الثنائية لمزيد من الأمان',
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('🔐 سيتم تفعيل المصادقة الثنائية قريباً'),
+                              backgroundColor: Colors.blue,
+                            ),
+                          );
+                        },
+                        isDark: isDark,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+
+          // ✅ قسم حجم الخط
           _buildSectionHeader('حجم الخط', isDark),
           const SizedBox(height: 8),
           _buildCard(
+            isDark: isDark,
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -184,16 +367,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           const SizedBox(height: 16),
+
+          // ✅ قسم الحساب
           _buildSectionHeader('الحساب', isDark),
           const SizedBox(height: 8),
           _buildCard(
+            isDark: isDark,
             child: Column(
               children: [
                 _buildListTile(
                   icon: Icons.person_rounded,
                   title: 'الملف الشخصي',
                   subtitle: 'تعديل بياناتك الشخصية',
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                    );
+                  },
                   isDark: isDark,
                 ),
                 _buildDivider(isDark),
@@ -201,7 +392,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   icon: Icons.lock_rounded,
                   title: 'تغيير كلمة المرور',
                   subtitle: 'تحديث كلمة المرور الخاصة بك',
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ChangePasswordScreen()),
+                    );
+                  },
                   isDark: isDark,
                 ),
                 _buildDivider(isDark),
@@ -209,53 +405,85 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   icon: Icons.notifications_rounded,
                   title: 'الإشعارات',
                   subtitle: 'إدارة إعدادات الإشعارات',
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+                    );
+                  },
                   isDark: isDark,
                 ),
               ],
             ),
           ),
           const SizedBox(height: 16),
+
+          // ✅ قسم التطبيق
+          _buildSectionHeader('التطبيق', isDark),
+          const SizedBox(height: 8),
           _buildCard(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.health_and_safety,
-                    size: 48,
-                    color: isDark ? Colors.white : AppColors.primary,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'صحتك',
-                    style: TextStyle(
-                      fontSize: 18 * fontScale,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
-                  ),
-                  Text(
-                    'الإصدار 1.1.0',
-                    style: TextStyle(
-                      fontSize: 12 * fontScale,
-                      color: isDark ? Colors.grey[400] : Colors.grey[600],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'منصة صحتك الشاملة',
-                    style: TextStyle(
-                      fontSize: 12 * fontScale,
-                      color: isDark ? Colors.grey[400] : Colors.grey[600],
-                    ),
-                  ),
-                ],
-              ),
+            isDark: isDark,
+            child: Column(
+              children: [
+                _buildListTile(
+                  icon: Icons.language_rounded,
+                  title: 'اللغة',
+                  subtitle: 'تغيير لغة التطبيق',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LanguageScreen()),
+                    );
+                  },
+                  isDark: isDark,
+                ),
+                _buildDivider(isDark),
+                _buildListTile(
+                  icon: Icons.help_outline_rounded,
+                  title: 'المساعدة والدعم',
+                  subtitle: 'الأسئلة الشائعة والدعم الفني',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const HelpScreen()),
+                    );
+                  },
+                  isDark: isDark,
+                ),
+                _buildDivider(isDark),
+                _buildListTile(
+                  icon: Icons.privacy_tip_rounded,
+                  title: 'الخصوصية',
+                  subtitle: 'سياسة الخصوصية والأمان',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const PrivacyScreen()),
+                    );
+                  },
+                  isDark: isDark,
+                ),
+                _buildDivider(isDark),
+                _buildListTile(
+                  icon: Icons.info_outline_rounded,
+                  title: 'عن التطبيق',
+                  subtitle: 'الإصدار 1.1.0',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const AboutScreen()),
+                    );
+                  },
+                  isDark: isDark,
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 16),
+
+          // ✅ قسم تسجيل الخروج
           _buildCard(
+            isDark: isDark,
             child: ListTile(
               leading: const Icon(Icons.logout_rounded, color: Colors.red),
               title: const Text(
@@ -269,6 +497,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           const SizedBox(height: 20),
+
+          // ✅ نسخة التطبيق
+          Center(
+            child: Text(
+              'صحتك - الإصدار 1.1.0',
+              style: TextStyle(
+                fontSize: 12,
+                color: isDark ? Colors.grey[500] : Colors.grey[400],
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
         ],
       ),
     );
@@ -314,10 +554,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildCard({required Widget child}) {
+  Widget _buildCard({
+    required Widget child,
+    required bool isDark,
+  }) {
     return Card(
+      color: isDark ? const Color(0xFF1A2540) : Colors.white,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
       ),
       elevation: 0,
       child: child,
@@ -329,6 +573,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       height: 1,
       thickness: 1,
       color: isDark ? Colors.grey[800] : Colors.grey[200],
+      indent: 16,
+      endIndent: 16,
     );
   }
 
@@ -346,6 +592,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title,
         style: TextStyle(
           color: isDark ? Colors.white : Colors.black87,
+          fontWeight: FontWeight.w500,
         ),
       ),
       subtitle: Text(
@@ -376,6 +623,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title,
         style: TextStyle(
           color: isDark ? Colors.white : Colors.black87,
+          fontWeight: FontWeight.w500,
         ),
       ),
       subtitle: Text(
@@ -394,6 +642,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
         title: const Text('تسجيل الخروج'),
         content: const Text('هل أنت متأكد من رغبتك في تسجيل الخروج؟'),
         actions: [
@@ -410,7 +661,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 (route) => false,
               );
             },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
             child: const Text('تسجيل الخروج'),
           ),
         ],
