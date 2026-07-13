@@ -1,9 +1,9 @@
-import package:firebase_auth/firebase_auth.dart;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/providers/font_size_provider.dart';
 import 'package:sehatak/core/utils/icon_helper.dart';
@@ -187,7 +187,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   subtitle: 'متابعة إعدادات النظام',
                   value: context.read<ThemeBloc>().state.themeMode == ThemeMode.system,
                   onChanged: (_) {
-                    // تبديل إلى الوضع التلقائي
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('🔄 سيتم تفعيل الوضع التلقائي قريباً'),
@@ -202,7 +201,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 16),
 
-          // ✅ قسم البصمة (بيومترية)
+          // ✅ قسم البصمة
           if (_isBiometricSupported)
             Column(
               children: [
@@ -499,7 +498,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 20),
 
-          // ✅ نسخة التطبيق
           Center(
             child: Text(
               'صحتك - الإصدار 1.1.0',
@@ -654,13 +652,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: const Text('إلغاء'),
           ),
           TextButton(
-            onPressed: () {
-              FirebaseAuth.instance.signOut();
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (_) => const AuthScreen()),
-                (route) => false,
-              );
+            onPressed: () async {
+              try {
+                await FirebaseAuth.instance.signOut();
+                if (context.mounted) {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AuthScreen()),
+                  );
+                }
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('خطأ في تسجيل الخروج: $e'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
             },
             style: TextButton.styleFrom(
               foregroundColor: Colors.red,
