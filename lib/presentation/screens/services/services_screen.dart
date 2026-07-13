@@ -23,6 +23,9 @@ import 'package:sehatak/presentation/screens/first_aid/first_aid_screen.dart';
 import 'package:sehatak/presentation/screens/articles/articles_screen.dart';
 import 'package:sehatak/presentation/screens/home_services/home_services_screen.dart';
 
+// ============================================================
+// 📱 ServicesScreen - جميع الخدمات
+// ============================================================
 class ServicesScreen extends StatefulWidget {
   const ServicesScreen({super.key});
 
@@ -34,9 +37,19 @@ class _ServicesScreenState extends State<ServicesScreen> {
   String _searchQuery = '';
   String _selectedCategory = 'الكل';
 
-  final List<String> _categories = ['الكل', 'طبية', 'صحية', 'لوجستية', 'توعوية'];
+  final List<String> _categories = [
+    'الكل',
+    'طبية',
+    'صحية',
+    'لوجستية',
+    'توعوية',
+  ];
 
+  // ============================================================
+  // 📋 قائمة الخدمات (23 خدمة)
+  // ============================================================
   final List<Map<String, dynamic>> _allServices = [
+    // 🔹 الخدمات الطبية (10)
     {
       'id': '1',
       'icon': Icons.medical_services,
@@ -44,7 +57,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
       'color': AppColors.primary,
       'category': 'طبية',
       'screen': const DoctorsListScreen(),
-      'description': 'استشر أفضل الأطباء في مختلف التخصصات'
+      'description': 'استشر أفضل الأطباء في مختلف التخصصات',
     },
     {
       'id': '2',
@@ -53,7 +66,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
       'color': AppColors.success,
       'category': 'طبية',
       'screen': const PharmacyScreen(),
-      'description': 'اطلب أدويتك واستلمها في منزلك'
+      'description': 'اطلب أدويتك واستلمها في منزلك',
     },
     {
       'id': '3',
@@ -62,7 +75,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
       'color': AppColors.purple,
       'category': 'طبية',
       'screen': const LabsListScreen(),
-      'description': 'احجز تحاليلك في أفضل المختبرات'
+      'description': 'احجز تحاليلك في أفضل المختبرات',
     },
     {
       'id': '4',
@@ -71,7 +84,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
       'color': AppColors.error,
       'category': 'طبية',
       'screen': const EmergencyNumbers(),
-      'description': 'أرقام الطوارئ والمساعدة الفورية'
+      'description': 'أرقام الطوارئ والمساعدة الفورية',
     },
     {
       'id': '5',
@@ -80,7 +93,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
       'color': AppColors.teal,
       'category': 'طبية',
       'screen': const ConsultationScreen(),
-      'description': 'تحدث مع طبيبك عبر الفيديو والصوت'
+      'description': 'تحدث مع طبيبك عبر الفيديو والصوت',
     },
     {
       'id': '6',
@@ -89,7 +102,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
       'color': AppColors.primaryDark,
       'category': 'طبية',
       'screen': const PatientAppointments(),
-      'description': 'إدارة مواعيدك الطبية بكل سهولة'
+      'description': 'إدارة مواعيدك الطبية بكل سهولة',
     },
     {
       'id': '7',
@@ -98,7 +111,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
       'color': AppColors.info,
       'category': 'طبية',
       'screen': const ChatScreen(),
-      'description': 'تواصل مع الأطباء والصيدليات'
+      'description': 'تواصل مع الأطباء والصيدليات',
     },
     {
       'id': '8',
@@ -107,7 +120,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
       'color': Colors.orange,
       'category': 'طبية',
       'screen': const InteractiveMapScreen(),
-      'description': 'ابحث عن أقرب المنشآت الصحية'
+      'description': 'ابحث عن أقرب المنشآت الصحية',
     },
     {
       'id': '9',
@@ -116,7 +129,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
       'color': Colors.red,
       'category': 'طبية',
       'screen': const BloodDonationScreen(),
-      'description': 'أنقذ حياة بتبرعك بالدم'
+      'description': 'أنقذ حياة بتبرعك بالدم',
     },
     {
       'id': '10',
@@ -125,8 +138,10 @@ class _ServicesScreenState extends State<ServicesScreen> {
       'color': Colors.blue,
       'category': 'طبية',
       'screen': const InsuranceCompanies(),
-      'description': 'خطط تأمين تناسب احتياجاتك'
+      'description': 'خطط تأمين تناسب احتياجاتك',
     },
+
+    // 🔹 الخدمات الصحية (8)
     {
       'id': '11',
       'icon': Icons.favorite,
@@ -134,7 +149,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
       'color': AppColors.pink,
       'category': 'صحية',
       'screen': const HealthDashboard(),
-      'description': 'متابعة حالتك الصحية بشكل شامل'
+      'description': 'متابعة حالتك الصحية بشكل شامل',
     },
     {
       'id': '12',
@@ -143,7 +158,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
       'color': AppColors.error,
       'category': 'صحية',
       'screen': const BloodPressureScreen(),
-      'description': 'تتبع ومراقبة ضغط الدم'
+      'description': 'تتبع ومراقبة ضغط الدم',
     },
     {
       'id': '13',
@@ -152,7 +167,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
       'color': AppColors.warning,
       'category': 'صحية',
       'screen': const GlucoseTrackerScreen(),
-      'description': 'مراقبة مستوى السكر في الدم'
+      'description': 'مراقبة مستوى السكر في الدم',
     },
     {
       'id': '14',
@@ -161,7 +176,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
       'color': AppColors.info,
       'category': 'صحية',
       'screen': const WeightTrackerScreen(),
-      'description': 'تتبع وزنك وحافظ على لياقتك'
+      'description': 'تتبع وزنك وحافظ على لياقتك',
     },
     {
       'id': '15',
@@ -170,7 +185,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
       'color': AppColors.success,
       'category': 'صحية',
       'screen': const MedicinesScreen(),
-      'description': 'إدارة أدويتك وتذكيرك بها'
+      'description': 'إدارة أدويتك وتذكيرك بها',
     },
     {
       'id': '16',
@@ -179,7 +194,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
       'color': Colors.orange,
       'category': 'صحية',
       'screen': const FirstAidScreen(),
-      'description': 'تعلم أساسيات الإسعافات الأولية'
+      'description': 'تعلم أساسيات الإسعافات الأولية',
     },
     {
       'id': '17',
@@ -188,7 +203,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
       'color': Colors.blueGrey,
       'category': 'صحية',
       'screen': const ArticlesScreen(),
-      'description': 'اقرأ أحدث المقالات الطبية'
+      'description': 'اقرأ أحدث المقالات الطبية',
     },
     {
       'id': '18',
@@ -197,8 +212,10 @@ class _ServicesScreenState extends State<ServicesScreen> {
       'color': Colors.teal,
       'category': 'صحية',
       'screen': const HealthCommunityScreen(),
-      'description': 'انضم لمجتمع صحي تفاعلي'
+      'description': 'انضم لمجتمع صحي تفاعلي',
     },
+
+    // 🔹 الخدمات اللوجستية (3)
     {
       'id': '19',
       'icon': Icons.wallet,
@@ -206,50 +223,70 @@ class _ServicesScreenState extends State<ServicesScreen> {
       'color': AppColors.amber,
       'category': 'لوجستية',
       'screen': const WalletScreen(),
-      'description': 'إدارة محفظتك الإلكترونية'
+      'description': 'إدارة محفظتك الإلكترونية',
     },
     {
-      'id': '21',
+      'id': '20',
       'icon': Icons.local_shipping,
       'label': 'تتبع الطلب',
       'color': Colors.purple,
       'category': 'لوجستية',
       'screen': const OrderTrackingScreen(),
-      'description': 'تتبع طلباتك في الوقت الفعلي'
+      'description': 'تتبع طلباتك في الوقت الفعلي',
     },
     {
-      'id': '22',
+      'id': '21',
       'icon': Icons.home_work,
       'label': 'خدمات منزلية',
       'color': Colors.brown,
       'category': 'لوجستية',
       'screen': const HomeServicesScreen(),
-      'description': 'خدمات طبية في منزلك'
+      'description': 'خدمات طبية متكاملة في منزلك',
     },
+
+    // 🔹 الخدمات التوعوية (2)
     {
-      'id': '23',
+      'id': '22',
       'icon': Icons.lightbulb,
       'label': 'نصائح صحية',
       'color': Colors.amber,
       'category': 'توعوية',
       'screen': const HealthDashboard(),
-      'description': 'نصائح يومية للحفاظ على صحتك'
+      'description': 'نصائح يومية للحفاظ على صحتك',
+    },
+    {
+      'id': '23',
+      'icon': Icons.school,
+      'label': 'التثقيف الصحي',
+      'color': Colors.indigo,
+      'category': 'توعوية',
+      'screen': const ArticlesScreen(),
+      'description': 'معلومات صحية مفيدة لك ولعائلتك',
     },
   ];
 
+  // ============================================================
+  // 🔍 فلترة الخدمات
+  // ============================================================
   List<Map<String, dynamic>> get _filteredServices {
     var list = _allServices;
+
     if (_searchQuery.isNotEmpty) {
       list = list.where((s) =>
           s['label'].toString().contains(_searchQuery) ||
           s['description'].toString().contains(_searchQuery)).toList();
     }
+
     if (_selectedCategory != 'الكل') {
       list = list.where((s) => s['category'] == _selectedCategory).toList();
     }
+
     return list;
   }
 
+  // ============================================================
+  // 🎨 بناء الواجهة
+  // ============================================================
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -264,17 +301,21 @@ class _ServicesScreenState extends State<ServicesScreen> {
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
-          // ✅ أيقونة البحث الصحيحة
           IconButton(
             icon: const Icon(Icons.search_rounded),
-            onPressed: () => _showSearchBar(context),
+            onPressed: () => _showSearchDialog(),
           ),
         ],
       ),
       body: Column(
         children: [
+          // ✅ شريط البحث (يظهر عند البحث)
           if (_searchQuery.isNotEmpty) _buildSearchBar(isDark),
-          _buildCategoryChips(),
+
+          // ✅ فلاتر التصنيفات
+          _buildCategoryChips(isDark),
+
+          // ✅ قائمة الخدمات
           Expanded(
             child: filtered.isEmpty
                 ? _buildEmptyState(isDark)
@@ -282,7 +323,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
                     padding: const EdgeInsets.all(16),
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
-                      childAspectRatio: 1.3,
+                      childAspectRatio: 1.2,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
                     ),
@@ -297,6 +338,10 @@ class _ServicesScreenState extends State<ServicesScreen> {
       ),
     );
   }
+
+  // ============================================================
+  // 🔧 أجزاء الواجهة
+  // ============================================================
 
   Widget _buildSearchBar(bool isDark) {
     return Container(
@@ -323,6 +368,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
               child: TextField(
                 textAlign: TextAlign.right,
                 autofocus: true,
+                style: TextStyle(color: isDark ? Colors.white : Colors.black87),
                 decoration: const InputDecoration(
                   hintText: 'ابحث عن خدمة...',
                   border: InputBorder.none,
@@ -342,11 +388,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
     );
   }
 
-  void _showSearchBar(BuildContext context) {
-    setState(() => _searchQuery = ' ');
-  }
-
-  Widget _buildCategoryChips() {
+  Widget _buildCategoryChips(bool isDark) {
     return Container(
       height: 50,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -363,11 +405,19 @@ class _ServicesScreenState extends State<ServicesScreen> {
               selected: isSelected,
               selectedColor: const Color(0xFF0D5257),
               labelStyle: TextStyle(
-                color: isSelected ? Colors.white : Colors.grey[700],
+                color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.grey[700]),
                 fontSize: 12,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
-              backgroundColor: Colors.grey[200],
+              backgroundColor: isDark ? const Color(0xFF1A2540) : Colors.grey[200],
               onSelected: (_) => setState(() => _selectedCategory = category),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: BorderSide(
+                  color: isSelected ? const Color(0xFF0D5257) : Colors.transparent,
+                  width: 1,
+                ),
+              ),
             ),
           );
         },
@@ -376,6 +426,8 @@ class _ServicesScreenState extends State<ServicesScreen> {
   }
 
   Widget _buildServiceCard(Map<String, dynamic> service, bool isDark) {
+    final color = service['color'] as Color;
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -395,6 +447,10 @@ class _ServicesScreenState extends State<ServicesScreen> {
               offset: const Offset(0, 2),
             ),
           ],
+          border: Border.all(
+            color: isDark ? Colors.grey[800]! : Colors.grey[100]!,
+            width: 1,
+          ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -403,12 +459,12 @@ class _ServicesScreenState extends State<ServicesScreen> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: (service['color'] as Color).withOpacity(0.1),
+                color: color.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 service['icon'] as IconData,
-                color: service['color'] as Color,
+                color: color,
                 size: 24,
               ),
             ),
@@ -420,6 +476,9 @@ class _ServicesScreenState extends State<ServicesScreen> {
                 fontSize: 13,
                 color: isDark ? Colors.white : Colors.black87,
               ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 4),
             Text(
@@ -456,8 +515,63 @@ class _ServicesScreenState extends State<ServicesScreen> {
               color: isDark ? Colors.grey[400] : Colors.grey[600],
             ),
           ),
+          const SizedBox(height: 8),
+          Text(
+            'جرب تغيير كلمة البحث أو التصنيف',
+            style: TextStyle(
+              fontSize: 13,
+              color: isDark ? Colors.grey[500] : Colors.grey[400],
+            ),
+          ),
         ],
       ),
+    );
+  }
+
+  // ============================================================
+  // 🔍 نافذة البحث المنبثقة
+  // ============================================================
+  void _showSearchDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        String tempSearch = '';
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+
+        return AlertDialog(
+          backgroundColor: isDark ? const Color(0xFF1A2540) : Colors.white,
+          title: const Text('بحث عن خدمة'),
+          content: TextField(
+            textAlign: TextAlign.right,
+            autofocus: true,
+            style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+            decoration: const InputDecoration(
+              hintText: 'ابحث عن خدمة...',
+              prefixIcon: Icon(Icons.search),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.all(Radius.circular(12)),
+              ),
+            ),
+            onChanged: (value) => tempSearch = value,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('إلغاء'),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() => _searchQuery = tempSearch);
+                Navigator.pop(context);
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFF0D5257),
+              ),
+              child: const Text('بحث'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
