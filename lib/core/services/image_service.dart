@@ -86,3 +86,13 @@ class ImageService {
     return '$_baseImages/medicines/medicine_$index.png';
   }
 }
+
+// ============================================================
+// 📋 قائمة البانرات
+// ============================================================
+static final List<String> bannerList = [
+  banner1,
+  banner2,
+  banner3,
+  banner4,
+];

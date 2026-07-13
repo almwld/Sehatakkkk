@@ -213,7 +213,7 @@ class _ChatScreenState extends State<ChatScreen>
                 context,
                 MaterialPageRoute(
                   builder: (_) => CallScreen(
-                    receiverName: call['name'] as String,
+                    doctorName: call['name'] as String,
                     receiverImage: call['image'] as String,
                     isVideo: call['isVideo'] as bool,
                   ),
@@ -616,9 +616,9 @@ class _ChatScreenState extends State<ChatScreen>
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => ChatDetailScreen(
+            builder: (_) => ChatScreen(
               chatId: chat['id'] ?? 'default',
-              receiverName: chat['name'] ?? 'مستخدم',
+              doctorName: chat['name'] ?? 'مستخدم',
               receiverImage: chat['image'],
             ),
           ),
@@ -749,9 +749,9 @@ class _ChatScreenState extends State<ChatScreen>
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const ChatDetailScreen(
+                      builder: (_) => const ChatScreen(
                         chatId: 'doc_1',
-                        receiverName: 'د. أحمد المولد',
+                        doctorName: 'د. أحمد المولد',
                         receiverImage: 'assets/images/doctors/doctor_1.png',
                       ),
                     ),
@@ -780,9 +780,9 @@ class _ChatScreenState extends State<ChatScreen>
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const ChatDetailScreen(
+                      builder: (_) => const ChatScreen(
                         chatId: 'pharmacy_1',
-                        receiverName: 'صيدلية الشفاء',
+                        doctorName: 'صيدلية الشفاء',
                         receiverImage: 'assets/images/pharmacies/pharmacy_1.png',
                       ),
                     ),
