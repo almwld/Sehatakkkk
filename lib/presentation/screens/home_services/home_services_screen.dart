@@ -15,7 +15,7 @@ class HomeServicesScreen extends StatelessWidget {
       {'icon': Icons.health_and_safety, 'title': 'تمريض منزلي', 'subtitle': 'رعاية تمريضية في منزلك', 'color': Colors.blue, 'screen': const ChatScreen()},
       {'icon': Icons.medical_services, 'title': 'زيارات طبية', 'subtitle': 'طبيب يزورك في منزلك', 'color': Colors.teal, 'screen': const DoctorsListScreen()},
       {'icon': Icons.fitness_center, 'title': 'علاج طبيعي', 'subtitle': 'جلسات علاج طبيعي', 'color': Colors.orange, 'screen': const ChatScreen()},
-      {'icon': Icons.local_hospital, 'title': 'سيارة إسعاف', 'subtitle': 'طلب سيارة إسعاف', 'color': Colors.red, 'screen': const CallScreen()},
+      {'icon': Icons.local_hospital, 'title': 'سيارة إسعاف', 'subtitle': 'طلب سيارة إسعاف', 'color': Colors.red, 'screen': const ChatScreen()},
       {'icon': Icons.healing, 'title': 'إسعافات أولية', 'subtitle': 'دليل الإسعافات الأولية', 'color': Colors.deepOrange, 'screen': const ChatScreen()},
       {'icon': Icons.science, 'title': 'فحص عينة سريع', 'subtitle': 'فحص مخبري في منزلك', 'color': Colors.purple, 'screen': const ChatScreen()},
       {'icon': Icons.monitor_heart, 'title': 'قياس ضغط الدم', 'subtitle': 'مراقبة ضغط الدم', 'color': Colors.pink, 'screen': const ChatScreen()},
