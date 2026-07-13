@@ -654,7 +654,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           TextButton(
             onPressed: () {
-              context.read<AuthBloc>().add(Logout());
+              FirebaseAuth.instance.signOut();
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (_) => const AuthScreen()),

@@ -668,7 +668,7 @@ class _MoreScreenState extends State<MoreScreen> {
           ),
           TextButton(
             onPressed: () {
-              context.read<AuthBloc>().add(Logout());
+              FirebaseAuth.instance.signOut();
               Navigator.pop(context);
               Navigator.pushReplacement(
                 context,
