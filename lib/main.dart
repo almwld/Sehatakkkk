@@ -4,19 +4,18 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'core/providers/user_provider.dart';
 import 'core/providers/font_size_provider.dart';
-import 'core/services/firebase_service.dart';
+import 'core/providers/user_provider.dart';
 import 'core/themes/theme_manager.dart';
 import 'presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'presentation/bloc/theme_bloc/theme_bloc.dart';
 import 'presentation/bloc/chat_bloc/chat_bloc.dart';
 import 'presentation/bloc/doctor_bloc/doctor_bloc.dart';
-import 'app.dart';
+import 'presentation/screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -50,4 +49,38 @@ void main() async {
       child: const SehatakApp(),
     ),
   );
+}
+
+class SehatakApp extends StatelessWidget {
+  const SehatakApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ThemeBloc, ThemeState>(
+      builder: (context, themeState) {
+        return Consumer<FontSizeProvider>(
+          builder: (context, fontProvider, child) {
+            return MaterialApp(
+              title: 'صحتك',
+              debugShowCheckedModeBanner: false,
+              locale: const Locale('ar', 'SA'),
+              theme: ThemeManager.lightTheme,
+              darkTheme: ThemeManager.darkTheme,
+              themeMode: themeState.themeMode,
+              // ✅ تطبيق حجم الخط على التطبيق كامل
+              builder: (context, child) {
+                return MediaQuery(
+                  data: MediaQuery.of(context).copyWith(
+                    textScaleFactor: fontProvider.fontScale,
+                  ),
+                  child: child!,
+                );
+              },
+              home: const SplashScreen(),
+            );
+          },
+        );
+      },
+    );
+  }
 }

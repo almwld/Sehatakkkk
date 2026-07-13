@@ -15,7 +15,6 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
   String _searchQuery = '';
   String _selectedCategory = 'الكل';
   String _selectedSort = 'الاسم';
-
   final List<String> _sortOptions = ['الاسم', 'السعر (منخفض)', 'السعر (مرتفع)'];
 
   List<String> get _categories => MedicinesData.getCategories();
@@ -73,7 +72,7 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
                     padding: const EdgeInsets.all(12),
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
-                      childAspectRatio: 0.75,
+                      childAspectRatio: 0.70,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
                     ),
@@ -100,7 +99,7 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
           borderRadius: BorderRadius.circular(25),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withOpacity(0.05),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -108,25 +107,19 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
         ),
         child: Row(
           children: [
-            Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey),
-            const SizedBox(width: 10),
+            const Icon(Icons.search, color: Colors.grey),
+            const SizedBox(width: 8),
             Expanded(
               child: TextField(
-                onChanged: (v) => setState(() => _searchQuery = v),
-                style: TextStyle(color: isDark ? Colors.white : Colors.black87),
-                decoration: InputDecoration(
+                textAlign: TextAlign.right,
+                decoration: const InputDecoration(
                   hintText: 'ابحث عن دواء...',
-                  hintStyle: TextStyle(color: isDark ? Colors.grey[500] : Colors.grey[400]),
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                  contentPadding: EdgeInsets.symmetric(vertical: 14),
                 ),
+                onChanged: (value) => setState(() => _searchQuery = value),
               ),
             ),
-            if (_searchQuery.isNotEmpty)
-              IconButton(
-                icon: Icon(Icons.close, size: 18, color: isDark ? Colors.grey[400] : Colors.grey),
-                onPressed: () => setState(() => _searchQuery = ''),
-              ),
           ],
         ),
       ),
@@ -134,38 +127,28 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
   }
 
   Widget _buildCategoryChips(bool isDark) {
-    return SizedBox(
-      height: 45,
+    final categories = ['الكل', ..._categories];
+    return Container(
+      height: 50,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        itemCount: _categories.length,
+        itemCount: categories.length,
         itemBuilder: (context, index) {
-          final category = _categories[index];
+          final category = categories[index];
           final isSelected = _selectedCategory == category;
           return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: FilterChip(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: ChoiceChip(
               label: Text(category),
               selected: isSelected,
-              onSelected: (selected) {
-                setState(() {
-                  _selectedCategory = selected ? category : 'الكل';
-                });
-              },
-              backgroundColor: isDark ? const Color(0xFF1A2540) : Colors.white,
               selectedColor: AppColors.primary,
               labelStyle: TextStyle(
-                color: isSelected ? Colors.white : (isDark ? Colors.white : AppColors.primary),
-                fontSize: 11,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
+                fontSize: 12,
               ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-                side: BorderSide(
-                  color: isSelected ? AppColors.primary : (isDark ? Colors.grey[700]! : Colors.grey.shade300),
-                ),
-              ),
+              backgroundColor: isDark ? const Color(0xFF1A2540) : Colors.grey[200],
+              onSelected: (_) => setState(() => _selectedCategory = category),
             ),
           );
         },
@@ -173,33 +156,10 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
     );
   }
 
-  Widget _buildEmptyState(bool isDark) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.medication_outlined, size: 64, color: isDark ? Colors.grey[600] : Colors.grey[300]),
-          const SizedBox(height: 16),
-          Text(
-            'لا توجد أدوية',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'جرب تغيير البحث أو التصنيف',
-            style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[400] : Colors.grey[600]),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildMedicineCard(Map<String, dynamic> medicine, bool isDark) {
-    final inStock = medicine['inStock'] ?? true;
-    final price = medicine['price'] ?? 0;
-    final name = medicine['name'] ?? '';
-    final category = medicine['category'] ?? '';
-    final image = medicine['image'] as String?;
+    final requiresPrescription = medicine['requiresPrescription'] as bool;
+    final inStock = medicine['inStock'] as bool;
+    final price = medicine['price'] as int;
 
     return Container(
       decoration: BoxDecoration(
@@ -207,7 +167,7 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -216,61 +176,72 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ✅ صورة الدواء
+          // ✅ صورة الدواء مع معالجة الأخطاء
           Expanded(
-            flex: 2,
+            flex: 3,
             child: ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-              child: image != null
-                  ? CachedNetworkImage(
-                      imageUrl: image,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      placeholder: (_, __) => Container(
-                        color: isDark ? Colors.grey[800] : Colors.grey[200],
-                        child: Icon(Icons.medication, size: 40, color: isDark ? Colors.grey[600] : Colors.grey[400]),
+              child: Container(
+                width: double.infinity,
+                color: Colors.grey[100],
+                child: Image.asset(
+                  medicine['image'] as String,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: Colors.grey[200],
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.medication,
+                            size: 40,
+                            color: AppColors.primary.withOpacity(0.5),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'صورة غير متوفرة',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                        ],
                       ),
-                      errorWidget: (_, __, ___) => Container(
-                        color: isDark ? Colors.grey[800] : Colors.grey[200],
-                        child: Icon(Icons.broken_image, size: 40, color: isDark ? Colors.grey[600] : Colors.grey[400]),
-                      ),
-                    )
-                  : Container(
-                      color: isDark ? Colors.grey[800] : Colors.grey[200],
-                      child: Icon(Icons.medication, size: 40, color: isDark ? Colors.grey[600] : Colors.grey[400]),
-                    ),
+                    );
+                  },
+                ),
+              ),
             ),
           ),
-          // ✅ معلومات الدواء
           Expanded(
-            flex: 1,
+            flex: 2,
             child: Padding(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    name,
+                    medicine['name'] as String,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 12,
+                      fontSize: 13,
                       color: isDark ? Colors.white : Colors.black87,
                     ),
-                    maxLines: 2,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(4),
+                  const SizedBox(height: 4),
+                  Text(
+                    medicine['description'] as String,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
                     ),
-                    child: Text(
-                      category,
-                      style: TextStyle(fontSize: 8, color: AppColors.primary),
-                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
+                  const Spacer(),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -278,16 +249,41 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
                         '$price ر.ي',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 13,
+                          fontSize: 14,
                           color: AppColors.primary,
                         ),
                       ),
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
+                      if (requiresPrescription)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text(
+                            'وصفة',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.orange,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        inStock ? Icons.check_circle : Icons.cancel,
+                        size: 14,
+                        color: inStock ? Colors.green : Colors.red,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        inStock ? 'متوفر' : 'غير متوفر',
+                        style: TextStyle(
+                          fontSize: 11,
                           color: inStock ? Colors.green : Colors.red,
-                          shape: BoxShape.circle,
                         ),
                       ),
                     ],
@@ -301,43 +297,78 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
     );
   }
 
+  Widget _buildEmptyState(bool isDark) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.medication_outlined,
+            size: 64,
+            color: isDark ? Colors.grey[700] : Colors.grey[400],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'لا توجد أدوية مطابقة',
+            style: TextStyle(
+              fontSize: 16,
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showFilterDialog(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setStateSheet) {
-            return Container(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'ترتيب حسب',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return Container(
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1A2540) : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 50,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
                   ),
-                  const SizedBox(height: 12),
-                  ..._sortOptions.map((option) {
-                    return RadioListTile<String>(
-                      title: Text(option),
-                      value: option,
-                      groupValue: _selectedSort,
-                      onChanged: (value) {
-                        setStateSheet(() => _selectedSort = value!);
-                        setState(() {});
-                        Navigator.pop(context);
-                      },
-                      activeColor: AppColors.primary,
-                    );
-                  }).toList(),
-                ],
+                ),
               ),
-            );
-          },
+              const SizedBox(height: 20),
+              const Text(
+                'ترتيب حسب',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              ..._sortOptions.map((option) {
+                return RadioListTile<String>(
+                  title: Text(option),
+                  value: option,
+                  groupValue: _selectedSort,
+                  activeColor: AppColors.primary,
+                  onChanged: (value) {
+                    setState(() => _selectedSort = value!);
+                    Navigator.pop(context);
+                  },
+                );
+              }).toList(),
+            ],
+          ),
         );
       },
     );
