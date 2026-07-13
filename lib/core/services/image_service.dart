@@ -5,6 +5,7 @@ class ImageService {
   // 📁 المسارات الأساسية
   // ============================================================
   static const String _baseImages = 'assets/images';
+  static const String _baseIcons = 'assets/icons';
   
   // ============================================================
   // 🖼️ البانرات (Banners) - 4 صور
@@ -13,6 +14,14 @@ class ImageService {
   static const String banner2 = '$_baseImages/banners/banner_2.png';
   static const String banner3 = '$_baseImages/banners/banner_3.png';
   static const String banner4 = '$_baseImages/banners/banner_4.png';
+  
+  // ✅ قائمة البانرات
+  static final List<String> bannerList = [
+    banner1,
+    banner2,
+    banner3,
+    banner4,
+  ];
   
   // ============================================================
   // 👨‍⚕️ صور الأطباء (Doctors)
@@ -61,38 +70,8 @@ class ImageService {
   // ============================================================
   // 📦 أيقونات SVG (للـ HomeScreen)
   // ============================================================
-  static const String iconNotifications = 'assets/icons/core/notifications_active.svg';
-  static const String iconCart = 'assets/icons/core/pharmacy.svg';
-  static const String iconSearch = 'assets/icons/core/search.svg';
-  static const String iconBroadcast = 'assets/icons/core/broadcast.svg';
-  
-  // ============================================================
-  // 📊 دوال مساعدة
-  // ============================================================
-  static String getDoctorImage(String doctorId) {
-    switch (doctorId) {
-      case '1': return doctor1;
-      case '2': return doctor2;
-      case '3': return doctor3;
-      case '4': return doctor4;
-      case '5': return doctor5;
-      default: return doctor1;
-    }
-  }
-  
-  static String getMedicineImage(String medicineId) {
-    final int id = int.tryParse(medicineId.replaceAll(RegExp(r'[^0-9]'), '')) ?? 1;
-    final index = ((id - 1) % 4) + 1;
-    return '$_baseImages/medicines/medicine_$index.png';
-  }
+  static const String iconNotifications = '$_baseIcons/core/notifications_active.svg';
+  static const String iconCart = '$_baseIcons/core/pharmacy.svg';
+  static const String iconSearch = '$_baseIcons/core/search.svg';
+  static const String iconBroadcast = '$_baseIcons/core/broadcast.svg';
 }
-
-// ============================================================
-// 📋 قائمة البانرات
-// ============================================================
-static final List<String> bannerList = [
-  banner1,
-  banner2,
-  banner3,
-  banner4,
-];

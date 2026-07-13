@@ -214,7 +214,7 @@ class _ChatScreenState extends State<ChatScreen>
                 MaterialPageRoute(
                   builder: (_) => CallScreen(
                     doctorName: call['name'] as String,
-                    receiverImage: call['image'] as String,
+                     call['image'] as String,
                     isVideo: call['isVideo'] as bool,
                   ),
                 ),
@@ -617,9 +617,9 @@ class _ChatScreenState extends State<ChatScreen>
           context,
           MaterialPageRoute(
             builder: (_) => ChatScreen(
-              chatId: chat['id'] ?? 'default',
+               chat['id'] ?? 'default',
               doctorName: chat['name'] ?? 'مستخدم',
-              receiverImage: chat['image'],
+               chat['image'],
             ),
           ),
         );
@@ -750,9 +750,9 @@ class _ChatScreenState extends State<ChatScreen>
                     context,
                     MaterialPageRoute(
                       builder: (_) => const ChatScreen(
-                        chatId: 'doc_1',
+                         'doc_1',
                         doctorName: 'د. أحمد المولد',
-                        receiverImage: 'assets/images/doctors/doctor_1.png',
+                         'assets/images/doctors/doctor_1.png',
                       ),
                     ),
                   );
@@ -781,9 +781,9 @@ class _ChatScreenState extends State<ChatScreen>
                     context,
                     MaterialPageRoute(
                       builder: (_) => const ChatScreen(
-                        chatId: 'pharmacy_1',
+                         'pharmacy_1',
                         doctorName: 'صيدلية الشفاء',
-                        receiverImage: 'assets/images/pharmacies/pharmacy_1.png',
+                         'assets/images/pharmacies/pharmacy_1.png',
                       ),
                     ),
                   );

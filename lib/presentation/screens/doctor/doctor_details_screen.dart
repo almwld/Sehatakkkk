@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
-import 'package:sehatak/presentation/screens/call/call_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_booking_screen.dart';
 
 class DoctorDetailsScreen extends StatefulWidget {
@@ -147,11 +146,15 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
                 _actionBtn(Icons.chat, 'محادثة', AppColors.info, () {
                   Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatScreen()));
                 }),
-                _actionBtn(Icons.call, 'اتصال', AppColors.success, () {
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => const CallScreen()));
+                _actionBtn(Icons.phone, 'اتصال', AppColors.success, () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('جاري الاتصال...'), backgroundColor: Colors.green),
+                  );
                 }),
                 _actionBtn(Icons.videocam, 'فيديو', AppColors.primary, () {
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => const CallScreen()));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('جاري فتح مكالمة فيديو...'), backgroundColor: Colors.blue),
+                  );
                 }),
                 _actionBtn(Icons.calendar_today, 'حجز', AppColors.teal, () {
                   Navigator.push(context, MaterialPageRoute(builder: (_) => DoctorBookingScreen(doctorId: widget.doctorId ?? '1')));
