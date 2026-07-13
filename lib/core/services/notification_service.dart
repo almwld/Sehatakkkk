@@ -66,7 +66,6 @@ class NotificationService {
   @pragma('vm:entry-point')
   static Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     print('📩 Background message: ${message.messageId}');
-    SoundManager().playNotification();
   }
 
   void _handleForegroundMessage(RemoteMessage message) {
@@ -76,7 +75,6 @@ class NotificationService {
       body: message.notification?.body ?? 'لديك إشعار جديد',
       payload: message.data.toString(),
     );
-    SoundManager().playNotification();
   }
 
   void _handleMessageOpen(RemoteMessage message) {

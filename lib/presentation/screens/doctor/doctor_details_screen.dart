@@ -235,7 +235,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
               color: color.withOpacity(0.2),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: IconHelper.svgIcon(iconPath, size: 22, color: Colors.white),
+            child: Icon(iconPath, size: 22, color: Colors.white),
           ),
           const SizedBox(height: 4),
           Text(label, style: const TextStyle(color: Colors.white70, fontSize: 10)),
