@@ -43,8 +43,8 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     super.dispose();
   }
 
-  // ✅ التنقل إلى شاشة المحادثة مع userId
-  void _navigateToChat(String chatId, String userName, String userId) {
+  // ✅ التنقل إلى شاشة المحادثة مع userId و isDoctor
+  void _navigateToChat(String chatId, String userName, String userId, bool isDoctor) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -52,6 +52,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
           chatId: chatId,
           userName: userName,
           userId: userId,
+          isDoctor: isDoctor,
         ),
       ),
     );
@@ -464,7 +465,12 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
           final unreadCount = chat['unreadCount'] ?? 0;
           
           return GestureDetector(
-            onTap: () => _navigateToChat(chat['id'], otherName ?? 'مستخدم', otherId ?? ''),
+            onTap: () => _navigateToChat(
+              chat['id'], 
+              otherName ?? 'مستخدم', 
+              otherId ?? '',
+              isDoctor,
+            ),
             child: Container(
               margin: const EdgeInsets.only(bottom: 10),
               decoration: BoxDecoration(

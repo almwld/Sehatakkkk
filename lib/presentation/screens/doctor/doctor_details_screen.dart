@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
+import 'package:sehatak/presentation/screens/chat/chat_detail_screen.dart';
+import 'package:sehatak/presentation/screens/call/call_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_booking_screen.dart';
 
 class DoctorDetailsScreen extends StatefulWidget {
@@ -31,6 +33,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
           'hospital': 'مستشفى الثورة العام',
           'availability': ['السبت - الأربعاء: 9 ص - 5 م'],
           'image': "assets/images/doctors/doctor_1.png",
+          'doctorId': 'doc_1',
         };
       default:
         return {
@@ -45,6 +48,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
           'hospital': 'مستشفى الأنف والأذن',
           'availability': ['الأحد - الخميس: 9 ص - 3 م'],
           'image': "assets/images/doctors/doctor_4.png",
+          'doctorId': 'doc_4',
         };
     }
   }
@@ -59,6 +63,102 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
   void dispose() {
     _tab.dispose();
     super.dispose();
+  }
+
+  // ✅ دالة فتح الدردشة مع الطبيب
+  void _openChat() {
+    final doc = _doctor;
+    final user = FirebaseAuth.instance.currentUser;
+    
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('يرجى تسجيل الدخول أولاً'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    final chatId = 'chat_${user.uid}_${doc['doctorId']}_${DateTime.now().millisecondsSinceEpoch}';
+    
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ChatDetailScreen(
+          chatId: chatId,
+          userName: doc['name'],
+          userId: doc['doctorId'],
+          isDoctor: true, // ✅ الطبيب
+        ),
+      ),
+    );
+  }
+
+  // ✅ دالة الاتصال بالطبيب
+  void _callDoctor() {
+    final doc = _doctor;
+    final user = FirebaseAuth.instance.currentUser;
+    
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('يرجى تسجيل الدخول أولاً'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CallScreen(
+          chatId: 'call_${user.uid}_${doc['doctorId']}_${DateTime.now().millisecondsSinceEpoch}',
+          doctorName: doc['name'],
+          doctorId: doc['doctorId'],
+          isVideo: false,
+        ),
+      ),
+    );
+  }
+
+  // ✅ دالة مكالمة فيديو
+  void _videoCallDoctor() {
+    final doc = _doctor;
+    final user = FirebaseAuth.instance.currentUser;
+    
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('يرجى تسجيل الدخول أولاً'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CallScreen(
+          chatId: 'video_${user.uid}_${doc['doctorId']}_${DateTime.now().millisecondsSinceEpoch}',
+          doctorName: doc['name'],
+          doctorId: doc['doctorId'],
+          isVideo: true,
+        ),
+      ),
+    );
+  }
+
+  // ✅ دالة حجز موعد
+  void _bookAppointment() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => DoctorBookingScreen(doctorId: widget.doctorId ?? '1'),
+      ),
+    );
   }
 
   @override
@@ -143,22 +243,10 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _actionBtn(Icons.chat, 'محادثة', AppColors.info, () {
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatScreen()));
-                }),
-                _actionBtn(Icons.phone, 'اتصال', AppColors.success, () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('جاري الاتصال...'), backgroundColor: Colors.green),
-                  );
-                }),
-                _actionBtn(Icons.videocam, 'فيديو', AppColors.primary, () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('جاري فتح مكالمة فيديو...'), backgroundColor: Colors.blue),
-                  );
-                }),
-                _actionBtn(Icons.calendar_today, 'حجز', AppColors.teal, () {
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => DoctorBookingScreen(doctorId: widget.doctorId ?? '1')));
-                }),
+                _actionBtn(Icons.chat, 'محادثة', AppColors.info, _openChat),
+                _actionBtn(Icons.phone, 'اتصال', AppColors.success, _callDoctor),
+                _actionBtn(Icons.videocam, 'فيديو', AppColors.primary, _videoCallDoctor),
+                _actionBtn(Icons.calendar_today, 'حجز', AppColors.teal, _bookAppointment),
               ],
             ),
           ),
@@ -261,7 +349,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DoctorBookingScreen(doctorId: widget.doctorId ?? '1'))),
+              onPressed: _bookAppointment,
               icon: const Icon(Icons.calendar_month),
               label: const Text('حجز موعد'),
               style: ElevatedButton.styleFrom(
