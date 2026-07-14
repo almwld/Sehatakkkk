@@ -200,7 +200,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 // // تم إزالتها لعرض الأيقونة بألوانها الأصلية
               ),
             ),
-            if (selected)
+            if (selected) Container(
               Container(
                 width: 32,
                 height: 3,
