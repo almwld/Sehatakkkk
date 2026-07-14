@@ -17,43 +17,24 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  // ✅ تسجيل الدخول: تبويب مستخدم / طبيب
   bool _isUserSelected = true;
-  
-  // ✅ إنشاء الحساب: المهنة المختارة
   String _selectedRole = 'user';
-  
-  // ✅ حقول مشتركة
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
-  
-  // ✅ حقول الطبيب
-  final TextEditingController _specialtyController = TextEditingController();
-  final TextEditingController _experienceController = TextEditingController();
-  final TextEditingController _licenseController = TextEditingController();
-  
-  // ✅ حقول الصيدلي
-  final TextEditingController _pharmacyNameController = TextEditingController();
-  final TextEditingController _pharmacyLicenseController = TextEditingController();
-  
-  // ✅ حقول المخبري
-  final TextEditingController _labNameController = TextEditingController();
-  final TextEditingController _labLicenseController = TextEditingController();
-  
-  // ✅ حقول الموصل
-  final TextEditingController _vehicleController = TextEditingController();
-  final TextEditingController _areaController = TextEditingController();
-
   bool _obscureText = true;
   bool _agreeTerms = false;
   bool _rememberMe = false;
   bool _isLoading = false;
   bool _hasBiometric = false;
   String _biometricName = 'البصمة';
-  
+
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _specialtyController = TextEditingController();
+  final TextEditingController _experienceController = TextEditingController();
+  final TextEditingController _licenseController = TextEditingController();
+
   final BiometricService _biometricService = BiometricService();
 
   @override
@@ -68,7 +49,7 @@ class _AuthScreenState extends State<AuthScreen> {
     final email = prefs.getString('remember_email');
     final password = prefs.getString('remember_password');
     final remember = prefs.getBool('remember_me') ?? false;
-    
+
     setState(() {
       _rememberMe = remember;
       if (remember && email != null) {
@@ -104,7 +85,6 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
-  // ✅ تسجيل الدخول
   Future<void> _login() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       _showMessage('يرجى إدخال البريد الإلكتروني وكلمة المرور', true);
@@ -135,7 +115,6 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
-  // ✅ إنشاء حساب
   Future<void> _register() async {
     if (_nameController.text.isEmpty || _emailController.text.isEmpty || _passwordController.text.isEmpty) {
       _showMessage('يرجى ملء جميع الحقول المطلوبة', true);
@@ -150,7 +129,6 @@ class _AuthScreenState extends State<AuthScreen> {
       return;
     }
 
-    // ✅ التحقق من حقول الدور
     if (_selectedRole == 'doctor' && _specialtyController.text.isEmpty) {
       _showMessage('يرجى إدخال التخصص', true);
       return;
@@ -175,7 +153,6 @@ class _AuthScreenState extends State<AuthScreen> {
         'updatedAt': FieldValue.serverTimestamp(),
       };
 
-      // ✅ حقول حسب الدور
       switch (_selectedRole) {
         case 'doctor':
           userData.addAll({
@@ -185,27 +162,6 @@ class _AuthScreenState extends State<AuthScreen> {
             'isVerified': false,
             'rating': 0.0,
             'reviewCount': 0,
-            'isAvailable': true,
-          });
-          break;
-        case 'pharmacist':
-          userData.addAll({
-            'pharmacyName': _pharmacyNameController.text.trim(),
-            'pharmacyLicense': _pharmacyLicenseController.text.trim(),
-            'isAvailable': true,
-          });
-          break;
-        case 'lab_tech':
-          userData.addAll({
-            'labName': _labNameController.text.trim(),
-            'labLicense': _labLicenseController.text.trim(),
-            'isAvailable': true,
-          });
-          break;
-        case 'delivery':
-          userData.addAll({
-            'vehicleType': _vehicleController.text.trim(),
-            'area': _areaController.text.trim(),
             'isAvailable': true,
           });
           break;
@@ -294,8 +250,7 @@ class _AuthScreenState extends State<AuthScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 20),
-                
-                // ✅ النصوص الترحيبية
+
                 Text(
                   widget.isSignUp ? 'إنشاء حساب جديد' : 'مرحباً بعودتك',
                   style: TextStyle(
@@ -308,7 +263,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  widget.isSignUp 
+                  widget.isSignUp
                       ? 'اختر مهنتك وأدخل بياناتك للانضمام'
                       : 'قم بتسجيل الدخول للمتابعة',
                   style: TextStyle(
@@ -320,9 +275,6 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
                 const SizedBox(height: 30),
 
-                // ============================================================
-                // 🔐 تسجيل الدخول - تبويب مستخدم / طبيب
-                // ============================================================
                 if (!widget.isSignUp) ...[
                   Container(
                     padding: const EdgeInsets.all(6),
@@ -358,9 +310,6 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 35),
                 ],
 
-                // ============================================================
-                // 👤 إنشاء الحساب - اختيار المهنة
-                // ============================================================
                 if (widget.isSignUp) ...[
                   Container(
                     padding: const EdgeInsets.all(6),
@@ -381,22 +330,13 @@ class _AuthScreenState extends State<AuthScreen> {
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                 decoration: BoxDecoration(
-                                  color: isSelected
-                                      ? color.withOpacity(0.15)
-                                      : Colors.transparent,
+                                  color: isSelected ? color.withOpacity(0.15) : Colors.transparent,
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: isSelected ? color : Colors.transparent,
-                                    width: 2,
-                                  ),
+                                  border: Border.all(color: isSelected ? color : Colors.transparent, width: 2),
                                 ),
                                 child: Row(
                                   children: [
-                                    Icon(
-                                      role['icon'] as IconData,
-                                      color: isSelected ? color : Colors.grey,
-                                      size: 16,
-                                    ),
+                                    Icon(role['icon'] as IconData, color: isSelected ? color : Colors.grey, size: 16),
                                     const SizedBox(width: 4),
                                     Text(
                                       role['name'] as String,
@@ -419,9 +359,6 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 30),
                 ],
 
-                // ============================================================
-                // 📝 حقول الإدخال المشتركة
-                // ============================================================
                 if (widget.isSignUp) ...[
                   _buildTextField(
                     controller: _nameController,
@@ -452,87 +389,32 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 16),
                 ],
 
-                // ============================================================
-                // 🩺 حقول إضافية حسب المهنة (للتسجيل فقط)
-                // ============================================================
-                if (widget.isSignUp) ...[
-                  if (_selectedRole == 'doctor') ...[
-                    _buildTextField(
-                      controller: _specialtyController,
-                      label: 'التخصص',
-                      icon: Icons.medical_services_outlined,
-                      isDark: isDark,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildTextField(
-                      controller: _experienceController,
-                      label: 'سنوات الخبرة',
-                      icon: Icons.work_outline,
-                      isDark: isDark,
-                      keyboardType: TextInputType.number,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildTextField(
-                      controller: _licenseController,
-                      label: 'رقم الترخيص',
-                      icon: Icons.verified_outlined,
-                      isDark: isDark,
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                  if (_selectedRole == 'pharmacist') ...[
-                    _buildTextField(
-                      controller: _pharmacyNameController,
-                      label: 'اسم الصيدلية',
-                      icon: Icons.local_pharmacy_outlined,
-                      isDark: isDark,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildTextField(
-                      controller: _pharmacyLicenseController,
-                      label: 'رقم الترخيص',
-                      icon: Icons.verified_outlined,
-                      isDark: isDark,
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                  if (_selectedRole == 'lab_tech') ...[
-                    _buildTextField(
-                      controller: _labNameController,
-                      label: 'اسم المختبر',
-                      icon: Icons.science_outlined,
-                      isDark: isDark,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildTextField(
-                      controller: _labLicenseController,
-                      label: 'رقم الترخيص',
-                      icon: Icons.verified_outlined,
-                      isDark: isDark,
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                  if (_selectedRole == 'delivery') ...[
-                    _buildTextField(
-                      controller: _vehicleController,
-                      label: 'نوع المركبة',
-                      icon: Icons.directions_car_outlined,
-                      isDark: isDark,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildTextField(
-                      controller: _areaController,
-                      label: 'منطقة التوصيل',
-                      icon: Icons.map_outlined,
-                      isDark: isDark,
-                    ),
-                    const SizedBox(height: 16),
-                  ],
+                if (widget.isSignUp && _selectedRole == 'doctor') ...[
+                  _buildTextField(
+                    controller: _specialtyController,
+                    label: 'التخصص',
+                    icon: Icons.medical_services_outlined,
+                    isDark: isDark,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    controller: _experienceController,
+                    label: 'سنوات الخبرة',
+                    icon: Icons.work_outline,
+                    isDark: isDark,
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    controller: _licenseController,
+                    label: 'رقم الترخيص',
+                    icon: Icons.verified_outlined,
+                    isDark: isDark,
+                  ),
+                  const SizedBox(height: 16),
                 ],
 
-                // ============================================================
-                // 🔑 كلمة المرور
-                // ============================================================
+                // ✅ حقل كلمة المرور - بدون البصمة في إنشاء الحساب
                 _buildPasswordField(isDark, primaryColor),
                 const SizedBox(height: 16),
 
@@ -547,9 +429,6 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 16),
                 ],
 
-                // ============================================================
-                // ✅ تذكرني / نسيت كلمة المرور (للدخول فقط)
-                // ============================================================
                 if (!widget.isSignUp) ...[
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -573,9 +452,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         ],
                       ),
                       TextButton(
-                        onPressed: () {
-                          _showForgotPasswordDialog();
-                        },
+                        onPressed: () {},
                         child: Text(
                           'نسيت كلمة المرور؟',
                           style: TextStyle(
@@ -590,9 +467,6 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 8),
                 ],
 
-                // ============================================================
-                // 📜 الشروط والأحكام (للتسجيل فقط)
-                // ============================================================
                 if (widget.isSignUp) ...[
                   Row(
                     children: [
@@ -633,9 +507,6 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 16),
                 ],
 
-                // ============================================================
-                // 🚀 زر الإجراء الرئيسي
-                // ============================================================
                 SizedBox(
                   height: 54,
                   child: ElevatedButton(
@@ -664,9 +535,6 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                // ============================================================
-                // 👤 تصفح كضيف (للدخول فقط)
-                // ============================================================
                 if (!widget.isSignUp) ...[
                   SizedBox(
                     height: 50,
@@ -687,9 +555,6 @@ class _AuthScreenState extends State<AuthScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // ============================================================
-                  // 🔗 أزرار التواصل الاجتماعي
-                  // ============================================================
                   const Text(
                     'أو سجل الدخول عبر',
                     style: TextStyle(fontSize: 12, color: Colors.grey, fontFamily: 'NotoSansArabicUI'),
@@ -715,9 +580,6 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 30),
                 ],
 
-                // ============================================================
-                // 🔄 رابط التبديل بين تسجيل الدخول وإنشاء الحساب
-                // ============================================================
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -759,7 +621,6 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
-  // ✅ دالة بناء التاب العلوي
   Widget _buildSegmentTab({
     required String title,
     required IconData icon,
@@ -773,9 +634,7 @@ class _AuthScreenState extends State<AuthScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected
-              ? primaryColor.withOpacity(0.12)
-              : Colors.transparent,
+          color: isSelected ? primaryColor.withOpacity(0.12) : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
           boxShadow: isSelected
               ? [
@@ -789,11 +648,7 @@ class _AuthScreenState extends State<AuthScreen> {
         ),
         child: Column(
           children: [
-            Icon(
-              icon,
-              color: isSelected ? primaryColor : Colors.grey,
-              size: 22,
-            ),
+            Icon(icon, color: isSelected ? primaryColor : Colors.grey, size: 22),
             const SizedBox(height: 4),
             Text(
               title,
@@ -810,7 +665,6 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
-  // ✅ دالة بناء حقل الإدخال
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -852,7 +706,6 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
-  // ✅ دالة بناء حقل كلمة المرور
   Widget _buildPasswordField(bool isDark, Color primaryColor) {
     return TextFormField(
       controller: _passwordController,
@@ -865,10 +718,7 @@ class _AuthScreenState extends State<AuthScreen> {
           color: isDark ? Colors.white70 : Colors.grey[600],
           fontFamily: 'NotoSansArabicUI',
         ),
-        prefixIcon: Icon(
-          Icons.lock_outline,
-          color: isDark ? Colors.white70 : primaryColor,
-        ),
+        prefixIcon: Icon(Icons.lock_outline, color: isDark ? Colors.white70 : primaryColor),
         suffixIcon: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -879,12 +729,10 @@ class _AuthScreenState extends State<AuthScreen> {
               ),
               onPressed: () => setState(() => _obscureText = !_obscureText),
             ),
-            if (_hasBiometric if (_hasBiometric if (_hasBiometric if (_hasBiometric)if (_hasBiometric) !widget.isSignUp)if (_hasBiometric if (_hasBiometric)if (_hasBiometric) !widget.isSignUp) !widget.isSignUp)if (_hasBiometric if (_hasBiometric if (_hasBiometric)if (_hasBiometric) !widget.isSignUp)if (_hasBiometric if (_hasBiometric)if (_hasBiometric) !widget.isSignUp) !widget.isSignUp) !widget.isSignUp)
+            // ✅ زر البصمة يظهر فقط في تسجيل الدخول (ليس في إنشاء الحساب)
+            if (_hasBiometric && !widget.isSignUp)
               IconButton(
-                icon: Icon(
-                  Icons.fingerprint,
-                  color: primaryColor,
-                ),
+                icon: Icon(Icons.fingerprint, color: primaryColor),
                 onPressed: _loginWithBiometric,
               ),
           ],
@@ -908,7 +756,6 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
-  // ✅ دالة بناء زر التواصل الاجتماعي
   Widget _buildSocialButton({
     required IconData icon,
     required VoidCallback onTap,
@@ -932,67 +779,5 @@ class _AuthScreenState extends State<AuthScreen> {
         ),
       ),
     );
-  }
-
-  // ✅ شاشة نسيت كلمة المرور
-  void _showForgotPasswordDialog() {
-    final TextEditingController emailController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('نسيت كلمة المرور'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة تعيين كلمة المرور',
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: emailController,
-              decoration: InputDecoration(
-                labelText: 'البريد الإلكتروني',
-                hintText: 'example@email.com',
-                prefixIcon: const Icon(Icons.email),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              keyboardType: TextInputType.emailAddress,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
-          ElevatedButton(
-            onPressed: () {
-              _sendPasswordResetEmail(emailController.text.trim());
-              Navigator.pop(context);
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-            child: const Text('إرسال'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _sendPasswordResetEmail(String email) async {
-    if (email.isEmpty) {
-      _showMessage('يرجى إدخال البريد الإلكتروني', true);
-      return;
-    }
-    try {
-      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
-      _showMessage('✅ تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني', false);
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found') {
-        _showMessage('❌ هذا البريد الإلكتروني غير مسجل', true);
-      } else {
-        _showMessage('❌ حدث خطأ: ${e.message}', true);
-      }
-    } catch (e) {
-      _showMessage('❌ حدث خطأ: $e', true);
-    }
   }
 }
