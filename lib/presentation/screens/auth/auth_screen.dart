@@ -992,3 +992,49 @@ class _AuthScreenState extends State<AuthScreen> {
       ),
     );
   }
+
+  Widget _buildSocialButtonDisabled({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    required bool isDark,
+  }) {
+    return Opacity(
+      opacity: 0.5,
+      child: InkWell(
+        onTap: null, // ❌ غير مفعل
+        borderRadius: BorderRadius.circular(30),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isDark ? Colors.white30 : Colors.grey[300]!,
+                ),
+              ),
+              child: Icon(icon, size: 28, color: isDark ? Colors.white54 : Colors.grey[400]),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                color: isDark ? Colors.grey[500] : Colors.grey[400],
+                fontFamily: 'NotoSansArabicUI',
+              ),
+            ),
+            Text(
+              'قريباً',
+              style: TextStyle(
+                fontSize: 9,
+                color: isDark ? Colors.grey[600] : Colors.grey[500],
+                fontFamily: 'NotoSansArabicUI',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
