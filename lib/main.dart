@@ -67,13 +67,17 @@ class SehatakApp extends StatelessWidget {
               theme: ThemeManager.lightTheme,
               darkTheme: ThemeManager.darkTheme,
               themeMode: themeState.themeMode,
+              
               // ✅ تطبيق حجم الخط على التطبيق كامل
               builder: (context, child) {
                 return MediaQuery(
                   data: MediaQuery.of(context).copyWith(
                     textScaleFactor: fontProvider.fontScale,
                   ),
-                  child: child!,
+                  child: Directionality(
+                    textDirection: TextDirection.rtl,
+                    child: child!,
+                  ),
                 );
               },
               home: const SplashScreen(),

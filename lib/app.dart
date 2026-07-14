@@ -1,4 +1,3 @@
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
@@ -6,7 +5,7 @@ import 'package:sehatak/core/providers/user_provider.dart';
 import 'package:sehatak/core/providers/font_size_provider.dart';
 import 'package:sehatak/presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'package:sehatak/presentation/bloc/theme_bloc/theme_bloc.dart';
-import 'package:sehatak/presentation/screens/auth/splash_screen.dart';
+import 'package:sehatak/presentation/screens/splash_screen.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -26,6 +25,7 @@ class SehatakApp extends StatelessWidget {
           brightness: Brightness.light,
           primaryColor: const Color(0xFF0D9488),
           scaffoldBackgroundColor: const Color(0xFFF8FAFC),
+          fontFamily: 'NotoSansArabicUI',
           colorScheme: const ColorScheme.light(
             primary: Color(0xFF0D9488),
             secondary: Color(0xFF0D9488),
@@ -38,7 +38,6 @@ class SehatakApp extends StatelessWidget {
             onBackground: Color(0xFF1E293B),
             onError: Colors.white,
           ),
-          fontFamily: 'NotoSansArabicUI',
           textTheme: TextTheme(
             displayLarge: TextStyle(fontSize: 57 * fontScale, fontWeight: FontWeight.bold, color: const Color(0xFF1E293B)),
             displayMedium: TextStyle(fontSize: 45 * fontScale, fontWeight: FontWeight.bold, color: const Color(0xFF1E293B)),
@@ -59,51 +58,14 @@ class SehatakApp extends StatelessWidget {
             elevation: 0,
             centerTitle: true,
           ),
-          cardTheme: CardTheme(
-            color: Colors.white,
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            margin: const EdgeInsets.all(8),
-          ),
-          inputDecorationTheme: InputDecorationTheme(
-            filled: true,
-            fillColor: Colors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade200),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF0D9488), width: 2),
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            labelStyle: const TextStyle(color: Color(0xFF475569)),
-            hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
-          ),
           elevatedButtonTheme: ElevatedButtonThemeData(
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF0D9488),
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               elevation: 0,
               padding: const EdgeInsets.symmetric(vertical: 14),
             ),
-          ),
-          bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-            backgroundColor: Colors.white,
-            selectedItemColor: Color(0xFF0D9488),
-            unselectedItemColor: Color(0xFF94A3B8),
-            selectedLabelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-            unselectedLabelStyle: TextStyle(fontSize: 12),
-            elevation: 8,
           ),
         );
 
@@ -112,6 +74,7 @@ class SehatakApp extends StatelessWidget {
           brightness: Brightness.dark,
           primaryColor: const Color(0xFF0D9488),
           scaffoldBackgroundColor: const Color(0xFF0B1121),
+          fontFamily: 'NotoSansArabicUI',
           colorScheme: const ColorScheme.dark(
             primary: Color(0xFF0D9488),
             secondary: Color(0xFF0D9488),
@@ -124,7 +87,6 @@ class SehatakApp extends StatelessWidget {
             onBackground: Colors.white,
             onError: Colors.white,
           ),
-          fontFamily: 'NotoSansArabicUI',
           textTheme: TextTheme(
             displayLarge: TextStyle(fontSize: 57 * fontScale, fontWeight: FontWeight.bold, color: Colors.white),
             displayMedium: TextStyle(fontSize: 45 * fontScale, fontWeight: FontWeight.bold, color: Colors.white),
@@ -145,51 +107,14 @@ class SehatakApp extends StatelessWidget {
             elevation: 0,
             centerTitle: true,
           ),
-          cardTheme: CardTheme(
-            color: const Color(0xFF1A2540),
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            margin: const EdgeInsets.all(8),
-          ),
-          inputDecorationTheme: InputDecorationTheme(
-            filled: true,
-            fillColor: const Color(0xFF1A2540),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey[700]!),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF0D9488), width: 2),
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            labelStyle: const TextStyle(color: Colors.grey),
-            hintStyle: const TextStyle(color: Colors.grey),
-          ),
           elevatedButtonTheme: ElevatedButtonThemeData(
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF0D9488),
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               elevation: 0,
               padding: const EdgeInsets.symmetric(vertical: 14),
             ),
-          ),
-          bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-            backgroundColor: Color(0xFF0B1121),
-            selectedItemColor: Color(0xFF0D9488),
-            unselectedItemColor: Colors.grey,
-            selectedLabelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-            unselectedLabelStyle: TextStyle(fontSize: 12),
-            elevation: 8,
           ),
         );
 
@@ -202,7 +127,6 @@ class SehatakApp extends StatelessWidget {
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
-            // ✅ استخدام الـ Localizations المدمجة في Flutter
           ],
           localeResolutionCallback: (locale, supportedLocales) {
             return const Locale('ar', 'YE');
@@ -210,6 +134,15 @@ class SehatakApp extends StatelessWidget {
           theme: lightTheme,
           darkTheme: darkTheme,
           themeMode: themeMode,
+          
+          // ✅ إضافة Directionality لإجبار RTL
+          builder: (context, child) {
+            return Directionality(
+              textDirection: TextDirection.rtl,
+              child: child!,
+            );
+          },
+          
           home: const SplashScreen(),
           routes: {
             '/home': (context) => const HomeScreen(),
