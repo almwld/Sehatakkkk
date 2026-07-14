@@ -30,7 +30,7 @@ import 'package:sehatak/presentation/screens/medication/medicines_screen.dart';
 import 'package:sehatak/presentation/screens/hospital/hospital_screen.dart';
 
 // ============================================================
-// 📱 HomeScreen - الشاشة الرئيسية مع شريط سفلي متحرك
+// 📱 HomeScreen - الشاشة الرئيسية
 // ============================================================
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -42,16 +42,13 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   int _currentIndex = 0;
   final ValueNotifier<bool> _isBottomBarVisible = ValueNotifier<bool>(true);
-  late AnimationController _animationController;
-  late Animation<double> _scaleAnimation;
-  late Animation<Offset> _slideAnimation;
   late final List<Widget> _screens;
 
   @override
   void initState() {
     super.initState();
     _screens = [
-      HomeTab(bottomBarVisibility: _isBottomBarVisible),
+      const HomeTab(),
       const DoctorsListScreen(),
       const PharmacyScreen(),
       const ChatScreen(),
@@ -59,22 +56,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       const PatientDashboard(),
       const MoreScreen(),
     ];
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 400),
-    );
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack),
-    );
-    _slideAnimation = Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
-    );
-    _animationController.forward();
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
     _isBottomBarVisible.dispose();
     super.dispose();
   }
@@ -95,8 +80,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     } else {
       setState(() => _currentIndex = index);
     }
-    _animationController.reset();
-    _animationController.forward();
   }
 
   @override
@@ -107,12 +90,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     return Scaffold(
       body: Stack(
         children: [
+          // ✅ المحتوى الرئيسي
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
             switchInCurve: Curves.easeOut,
             switchOutCurve: Curves.easeIn,
             child: _screens[_currentIndex],
           ),
+          // ✅ الشريط السفلي - يختفي عند التمرير فقط
           Positioned(
             bottom: 0,
             left: 0,
@@ -121,50 +106,35 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               valueListenable: _isBottomBarVisible,
               builder: (context, isVisible, child) {
                 return AnimatedContainer(
-                  duration: const Duration(milliseconds: 350),
+                  duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
                   height: isVisible ? 68 : 0,
-                  child: FadeTransition(
-                    opacity: isVisible
-                        ? const AlwaysStoppedAnimation(1.0)
-                        : const AlwaysStoppedAnimation(0.0),
-                    child: SlideTransition(
-                      position: isVisible
-                          ? _slideAnimation
-                          : const AlwaysStoppedAnimation(Offset(0, 1)),
-                      child: ScaleTransition(
-                        scale: isVisible
-                            ? _scaleAnimation
-                            : const AlwaysStoppedAnimation(0.8),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: bgColor,
-                            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.12),
-                                blurRadius: 12,
-                                offset: const Offset(0, -4),
-                              ),
-                            ],
-                          ),
-                          child: SafeArea(
-                            top: false,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                _buildNavItem(0, Icons.home_rounded, 'الرئيسية'),
-                                _buildNavItem(1, Icons.person_search_rounded, 'الأطباء'),
-                                _buildNavItem(2, Icons.local_pharmacy_rounded, 'الصيدلية'),
-                                _buildChatButton(),
-                                _buildNavItem(4, Icons.science_rounded, 'مختبرات'),
-                                _buildNavItem(5, Icons.folder_rounded, 'صحتي'),
-                                _buildNavItem(6, Icons.grid_view_rounded, 'المزيد'),
-                              ],
-                            ),
-                          ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: bgColor,
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.12),
+                          blurRadius: 12,
+                          offset: const Offset(0, -4),
                         ),
+                      ],
+                    ),
+                    child: SafeArea(
+                      top: false,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          _buildNavItem(0, Icons.home_rounded, 'الرئيسية'),
+                          _buildNavItem(1, Icons.person_search_rounded, 'الأطباء'),
+                          _buildNavItem(2, Icons.local_pharmacy_rounded, 'الصيدلية'),
+                          _buildChatButton(),
+                          _buildNavItem(4, Icons.science_rounded, 'مختبرات'),
+                          _buildNavItem(5, Icons.folder_rounded, 'صحتي'),
+                          _buildNavItem(6, Icons.grid_view_rounded, 'المزيد'),
+                        ],
                       ),
                     ),
                   ),
@@ -218,22 +188,23 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
+  // ✅ زر الدردشة - أكبر قليلاً
   Widget _buildChatButton() {
     final selected = _currentIndex == 3;
-    return SizedBox(
-      width: 48,
-      height: 60,
-      child: GestureDetector(
-        onTap: () => _onTabTap(3),
+    return GestureDetector(
+      onTap: () => _onTabTap(3),
+      child: SizedBox(
+        width: 56,
+        height: 60,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             Transform.translate(
-              offset: const Offset(0, -28),
+              offset: const Offset(0, -22),
               child: Container(
-                width: 64,
-                height: 64,
+                width: 60,
+                height: 60,
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [AppColors.primary, AppColors.primaryDark],
@@ -250,7 +221,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 child: const Icon(
                   Icons.chat_rounded,
                   color: Colors.white,
-                  size: 32,
+                  size: 30,
                 ),
               ),
             ),
@@ -272,11 +243,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 }
 
 // ============================================================
-// 🏠 HomeTab - المحتوى الرئيسي للصفحة
+// 🏠 HomeTab - المحتوى الرئيسي
 // ============================================================
 class HomeTab extends StatefulWidget {
-  final ValueNotifier<bool> bottomBarVisibility;
-  const HomeTab({super.key, required this.bottomBarVisibility});
+  const HomeTab({super.key});
 
   @override
   State<HomeTab> createState() => _HomeTabState();
@@ -308,7 +278,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     {'id': '5', 'name': 'د. فاطمة صديقي', 'specialty': 'نساء وولادة', 'rating': 4.8, 'reviews': 210, 'image': ImageService.doctor5},
   ];
 
-  // ✅ الخدمات السريعة - باستخدام ImageService
+  // ✅ الخدمات السريعة - أيقونات ملونة
   final List<Map<String, dynamic>> _quickServices = [
     {'icon': ImageService.serviceDoctors, 'label': 'أطباء', 'color': AppColors.primary, 'screen': const DoctorsListScreen()},
     {'icon': ImageService.servicePharmacy, 'label': 'صيدلية', 'color': AppColors.success, 'screen': const MedicinesScreen()},
@@ -339,7 +309,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     {'title': 'الفواكه', 'subtitle': '5 حصص يومياً', 'icon': Icons.apple, 'color': AppColors.warning},
   ];
 
-  // ✅ الأدوية المميزة (8 منتجات)
   final List<Map<String, dynamic>> _products = [
     {'name': 'باراسيتامول 500mg', 'price': 500, 'image': ImageService.medicine1, 'category': 'مسكنات'},
     {'name': 'فيتامين د 1000IU', 'price': 1200, 'image': ImageService.medicine2, 'category': 'فيتامينات'},
@@ -351,7 +320,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     {'name': 'إيبوبروفين 400mg', 'price': 750, 'image': ImageService.medicine4, 'category': 'مسكنات'},
   ];
 
-  // ✅ المختبرات المميزة (4 مختبرات)
   final List<Map<String, dynamic>> _featuredLabs = [
     {'id': '1', 'name': 'مختبرات الزارزي', 'location': 'صنعاء - شارع الزبيري', 'image': ImageService.lab1, 'rating': 4.9, 'phone': '01-234567', 'open': true},
     {'id': '2', 'name': 'مختبرات العولقي', 'location': 'صنعاء - شارع الستين', 'image': ImageService.lab2, 'rating': 4.8, 'phone': '01-234568', 'open': true},
@@ -359,7 +327,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     {'id': '4', 'name': 'مختبر الرازي', 'location': 'صنعاء - التحرير', 'image': ImageService.lab1, 'rating': 4.6, 'phone': '01-234570', 'open': false},
   ];
 
-  // ✅ المستشفيات المميزة (3 مستشفيات)
   final List<Map<String, dynamic>> _featuredHospitals = [
     {'id': '1', 'name': 'مستشفى 22 مايو', 'location': 'صنعاء', 'image': ImageService.hospital1, 'rating': 4.9, 'phone': '01-234571', 'specialty': 'عام'},
     {'id': '2', 'name': 'مستشفى الجمهورية', 'location': 'صنعاء', 'image': ImageService.hospital2, 'rating': 4.8, 'phone': '01-234572', 'specialty': 'عام'},
@@ -485,6 +452,55 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
+  // ✅ شيمر Instagram
+  Widget _buildInstagramShimmer() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(width: 40, height: 40, decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(width: 120, height: 14, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
+                  const SizedBox(height: 4),
+                  Container(width: 80, height: 10, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
+                ],
+              ),
+              const Spacer(),
+              Container(width: 20, height: 20, decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Container(width: double.infinity, height: 300, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8))),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Container(width: 30, height: 30, decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
+              const SizedBox(width: 12),
+              Container(width: 30, height: 30, decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
+              const SizedBox(width: 12),
+              Container(width: 30, height: 30, decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
+              const Spacer(),
+              Container(width: 30, height: 30, decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Container(width: 100, height: 12, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
+          const SizedBox(height: 4),
+          Container(width: double.infinity, height: 12, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
+          const SizedBox(height: 4),
+          Container(width: 200, height: 12, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
+        ],
+      ),
+    );
+  }
+
   // ============================================================
   // 🏗️ دورة الحياة
   // ============================================================
@@ -501,14 +517,19 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
     _fadeController.forward();
 
+    // ✅ إخفاء/إظهار الشريط السفلي عند التمرير
     _scrollController.addListener(() {
       if (_scrollController.position.userScrollDirection == ScrollDirection.reverse) {
-        if (widget.bottomBarVisibility.value != false) {
-          widget.bottomBarVisibility.value = false;
+        // ✅ إخفاء الشريط عند التمرير للأسفل
+        _HomeScreenState? homeState = context.findAncestorStateOfType<_HomeScreenState>();
+        if (homeState != null && homeState._isBottomBarVisible.value != false) {
+          homeState._isBottomBarVisible.value = false;
         }
       } else if (_scrollController.position.userScrollDirection == ScrollDirection.forward) {
-        if (widget.bottomBarVisibility.value != true) {
-          widget.bottomBarVisibility.value = true;
+        // ✅ إظهار الشريط عند التمرير للأعلى
+        _HomeScreenState? homeState = context.findAncestorStateOfType<_HomeScreenState>();
+        if (homeState != null && homeState._isBottomBarVisible.value != true) {
+          homeState._isBottomBarVisible.value = true;
         }
       }
     });
@@ -533,128 +554,134 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = const Color(0xFF0D5257);
 
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: RefreshIndicator(
-        onRefresh: _refreshData,
-        child: Scaffold(
-          backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-          body: CustomScrollView(
-            controller: _scrollController,
-            slivers: [
-              SliverAppBar(
-                expandedHeight: 90,
-                floating: true,
-                snap: true,
-                pinned: false,
-                backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
-                foregroundColor: primaryColor,
-                elevation: 0,
-                flexibleSpace: FlexibleSpaceBar(
-                  background: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            if (logged) _goTo(context, const PatientProfile());
-                            else _goTo(context, const AuthScreen());
-                          },
-                          child: CircleAvatar(
-                            radius: 20,
-                            backgroundColor: primaryColor.withOpacity(0.1),
-                            child: Text(
-                              name.isNotEmpty ? name[0] : 'م',
-                              style: TextStyle(
-                                color: primaryColor,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+        body: _buildInstagramShimmer(),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _refreshData,
+      child: Scaffold(
+        backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+        body: CustomScrollView(
+          controller: _scrollController,
+          slivers: [
+            // ✅ AppBar
+            SliverAppBar(
+              expandedHeight: 90,
+              floating: true,
+              snap: true,
+              pinned: false,
+              backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
+              foregroundColor: primaryColor,
+              elevation: 0,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          if (logged) _goTo(context, const PatientProfile());
+                          else _goTo(context, const AuthScreen());
+                        },
+                        child: CircleAvatar(
+                          radius: 20,
+                          backgroundColor: primaryColor.withOpacity(0.1),
                           child: Text(
-                            logged ? 'مرحباً، $name' : 'منصة صحتك',
+                            name.isNotEmpty ? name[0] : 'م',
                             style: TextStyle(
                               color: primaryColor,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
-                        IconButton(
-                          icon: Icon(Icons.notifications_outlined, color: primaryColor),
-                          onPressed: () => _goTo(context, const NotificationsScreen()),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          logged ? 'مرحباً، $name' : 'منصة صحتك',
+                          style: TextStyle(
+                            color: primaryColor,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                        IconButton(
-                          icon: Icon(Icons.shopping_cart_outlined, color: primaryColor),
-                          onPressed: () => _goTo(context, const CartScreen()),
-                        ),
-                        if (!logged)
-                          TextButton(
-                            onPressed: () => _goTo(context, const AuthScreen()),
-                            child: Text(
-                              'تسجيل',
-                              style: TextStyle(
-                                color: primaryColor,
-                                fontWeight: FontWeight.bold,
-                              ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.notifications_outlined, color: primaryColor),
+                        onPressed: () => _goTo(context, const NotificationsScreen()),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.shopping_cart_outlined, color: primaryColor),
+                        onPressed: () => _goTo(context, const CartScreen()),
+                      ),
+                      if (!logged)
+                        TextButton(
+                          onPressed: () => _goTo(context, const AuthScreen()),
+                          child: Text(
+                            'تسجيل',
+                            style: TextStyle(
+                              color: primaryColor,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                      ],
-                    ),
+                        ),
+                    ],
                   ),
                 ),
               ),
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    _buildSearchBar(isDark),
-                    const SizedBox(height: 16),
-                    _buildBannerCarousel(isDark, primaryColor),
-                    const SizedBox(height: 20),
-                    _buildStatsRow(),
-                    const SizedBox(height: 20),
-                    _buildSectionTitleWithAction('خدمات سريعة', isDark, 'عرض الكل', () => _goTo(context, const ServicesScreen())),
-                    const SizedBox(height: 10),
-                    _buildQuickServicesRow(),
-                    const SizedBox(height: 24),
-                    _buildSectionTitleWithAction('أفضل الأطباء', isDark, 'عرض الكل', () => _goTo(context, const DoctorsListScreen())),
-                    const SizedBox(height: 10),
-                    _buildTopDoctorsRow(),
-                    const SizedBox(height: 24),
-                    _buildSectionTitleWithAction('منتجات صيدلية', isDark, 'عرض الكل', () => _goTo(context, const MedicinesScreen())),
-                    const SizedBox(height: 10),
-                    _buildProductsRow(),
-                    const SizedBox(height: 24),
-                    _buildSectionTitle('نصائح يومية', isDark),
-                    const SizedBox(height: 10),
-                    _buildDailyTipsGrid(),
-                    const SizedBox(height: 24),
-                    _buildSectionTitleWithAction('مختبرات مميزة', isDark, 'عرض الكل', () => _goTo(context, const LabsListScreen())),
-                    const SizedBox(height: 10),
-                    _buildFeaturedLabsRow(isDark),
-                    const SizedBox(height: 24),
-                    _buildSectionTitleWithAction('مستشفيات مميزة', isDark, 'عرض الكل', () => _goTo(context, const HospitalScreen())),
-                    const SizedBox(height: 10),
-                    _buildFeaturedHospitalsRow(isDark),
-                    const SizedBox(height: 24),
-                    _buildSectionTitle('مجتمع صحتك', isDark),
-                    const SizedBox(height: 10),
-                    ..._communityPosts.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final post = entry.value;
-                      return _buildCommunityPostCard(post, index, isDark);
-                    }),
-                    const SizedBox(height: 50),
-                  ]),
-                ),
+            ),
+            // ✅ المحتوى
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  _buildSearchBar(isDark),
+                  const SizedBox(height: 16),
+                  _buildBannerCarousel(isDark, primaryColor),
+                  const SizedBox(height: 20),
+                  _buildStatsRow(),
+                  const SizedBox(height: 20),
+                  _buildSectionTitleWithAction('خدمات سريعة', isDark, 'عرض الكل', () => _goTo(context, const ServicesScreen())),
+                  const SizedBox(height: 10),
+                  _buildQuickServicesRow(),
+                  const SizedBox(height: 24),
+                  _buildSectionTitleWithAction('أفضل الأطباء', isDark, 'عرض الكل', () => _goTo(context, const DoctorsListScreen())),
+                  const SizedBox(height: 10),
+                  _buildTopDoctorsRow(),
+                  const SizedBox(height: 24),
+                  _buildSectionTitleWithAction('منتجات صيدلية', isDark, 'عرض الكل', () => _goTo(context, const MedicinesScreen())),
+                  const SizedBox(height: 10),
+                  _buildProductsRow(),
+                  const SizedBox(height: 24),
+                  _buildSectionTitle('نصائح يومية', isDark),
+                  const SizedBox(height: 10),
+                  _buildDailyTipsGrid(),
+                  const SizedBox(height: 24),
+                  _buildSectionTitleWithAction('مختبرات مميزة', isDark, 'عرض الكل', () => _goTo(context, const LabsListScreen())),
+                  const SizedBox(height: 10),
+                  _buildFeaturedLabsRow(isDark),
+                  const SizedBox(height: 24),
+                  _buildSectionTitleWithAction('مستشفيات مميزة', isDark, 'عرض الكل', () => _goTo(context, const HospitalScreen())),
+                  const SizedBox(height: 10),
+                  _buildFeaturedHospitalsRow(isDark),
+                  const SizedBox(height: 24),
+                  _buildSectionTitle('مجتمع صحتك', isDark),
+                  const SizedBox(height: 10),
+                  ..._communityPosts.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final post = entry.value;
+                    return _buildCommunityPostCard(post, index, isDark);
+                  }),
+                  const SizedBox(height: 50),
+                ]),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -829,7 +856,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  // ✅ الخدمات السريعة - باستخدام Image.asset
+  // ✅ الخدمات السريعة - أيقونات ملونة
   Widget _buildQuickServicesRow() {
     return SizedBox(
       height: 80,
@@ -856,7 +883,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                       service['icon'],
                       width: 26,
                       height: 26,
-                      color: color,
                       errorBuilder: (context, error, stackTrace) {
                         return Icon(Icons.circle, color: color, size: 26);
                       },
@@ -1110,7 +1136,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  // ✅ عرض المختبرات المميزة مع تفاصيلها
+  // ✅ عرض المختبرات المميزة
   Widget _buildFeaturedLabsRow(bool isDark) {
     return SizedBox(
       height: 120,
@@ -1233,7 +1259,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  // ✅ عرض المستشفيات المميزة مع تفاصيلها
+  // ✅ عرض المستشفيات المميزة
   Widget _buildFeaturedHospitalsRow(bool isDark) {
     return SizedBox(
       height: 160,
@@ -1628,7 +1654,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  // ✅ عرض منشورات المجتمع
+  // ✅ عرض منشورات المجتمع - حجم مناسب
   Widget _buildCommunityPostCard(Map<String, dynamic> post, int index, bool isDark) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -1691,15 +1717,19 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
               ],
             ),
           ),
-          ClipRRect(
+          // ✅ صورة المنشور - حجم مناسب غير مقصوص
+          Container(
+            height: 250,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: isDark ? Colors.grey[800] : Colors.grey[200],
+            ),
             child: Image.asset(
               post['image'],
-              height: 200,
-              width: double.infinity,
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
                 return Container(
-                  height: 200,
+                  height: 250,
                   color: isDark ? Colors.grey[800] : Colors.grey[200],
                   child: const Icon(Icons.image, color: Colors.grey, size: 40),
                 );
@@ -1906,143 +1936,3 @@ class AppSearchDelegate extends SearchDelegate {
     );
   }
 }
-
-  // ============================================================
-  // 📱 شيمر مثل Instagram
-  // ============================================================
-  Widget _buildInstagramShimmer() {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ✅ Header مثل Instagram (صورة + اسم + وقت)
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 120,
-                    height: 14,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Container(
-                    width: 80,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                ],
-              ),
-              const Spacer(),
-              Container(
-                width: 20,
-                height: 20,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          // ✅ صورة المنشور (مربعة)
-          Container(
-            width: double.infinity,
-            height: 300,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-          const SizedBox(height: 8),
-          // ✅ أزرار التفاعل
-          Row(
-            children: [
-              Container(
-                width: 30,
-                height: 30,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Container(
-                width: 30,
-                height: 30,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Container(
-                width: 30,
-                height: 30,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const Spacer(),
-              Container(
-                width: 30,
-                height: 30,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          // ✅ عدد الإعجابات
-          Container(
-            width: 100,
-            height: 12,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-          const SizedBox(height: 4),
-          // ✅ نص المنشور
-          Container(
-            width: double.infinity,
-            height: 12,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Container(
-            width: 200,
-            height: 12,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
