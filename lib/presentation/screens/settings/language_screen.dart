@@ -12,8 +12,8 @@ class _LanguageScreenState extends State<LanguageScreen> {
   String _selectedLanguage = 'ar';
 
   final List<Map<String, dynamic>> _languages = [
-    {'code': 'ar', 'name': 'العربية',  'native': 'العربية'},
-    {'code': 'en', 'name': 'English',  'native': 'English'},
+    {'code': 'ar', 'name': 'العربية', 'native': 'العربية'},
+    {'code': 'en', 'name': 'English', 'native': 'English'},
     {'code': 'fr', 'name': 'Français', 'native': 'Français'},
   ];
 
@@ -53,10 +53,6 @@ class _LanguageScreenState extends State<LanguageScreen> {
               ],
             ),
             child: ListTile(
-              leading: Text(
-                lang['flag'] as String,
-                style: const TextStyle(fontSize: 32),
-              ),
               title: Text(
                 lang['name'] as String,
                 style: TextStyle(
