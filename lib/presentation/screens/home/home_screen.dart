@@ -227,10 +227,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           Transform.translate(
-            offset: const Offset(0, -20),
+            offset: const Offset(0, -28),
             child: Container(
-              width: 52,
-              height: 52,
+              width: 64,
+              height: 64,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   colors: [AppColors.primary, AppColors.primaryDark],
@@ -247,7 +247,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               child: const Icon(
                 Icons.chat_rounded,
                 color: Colors.white,
-                size: 28,
+                size: 32,
               ),
             ),
           ),
