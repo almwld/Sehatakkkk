@@ -27,6 +27,7 @@ import 'package:sehatak/presentation/screens/services/services_screen.dart';
 import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
 import 'package:sehatak/presentation/screens/blood_donation/blood_donation_screen.dart';
 import 'package:sehatak/presentation/screens/medication/medicines_screen.dart';
+import 'package:sehatak/presentation/screens/hospital/hospital_screen.dart';
 
 // ============================================================
 // 📱 HomeScreen - الشاشة الرئيسية مع شريط سفلي متحرك
@@ -158,7 +159,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                 _buildNavItem(0, Icons.home_rounded, 'الرئيسية'),
                                 _buildNavItem(1, Icons.person_search_rounded, 'الأطباء'),
                                 _buildNavItem(2, Icons.local_pharmacy_rounded, 'الصيدلية'),
-                                _buildChatButton(),
+                                _buildChatButton(), // ✅ مرتفعة للأعلى بدون قص
                                 _buildNavItem(4, Icons.science_rounded, 'مختبرات'),
                                 _buildNavItem(5, Icons.folder_rounded, 'صحتي'),
                                 _buildNavItem(6, Icons.grid_view_rounded, 'المزيد'),
@@ -178,7 +179,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  // ✅ الخط الأخضر تحت الأيقونة
+  // ✅ الخط الأخضر تحت الأيقونة (معدل)
   Widget _buildNavItem(int index, IconData icon, String label) {
     final selected = _currentIndex == index;
     final color = selected ? AppColors.primary : Colors.grey;
@@ -202,6 +203,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 color: color,
               ),
             ),
+            // ✅ الخط الأخضر تحت النص مباشرة
             if (selected)
               Container(
                 width: 32,
@@ -220,7 +222,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  // ✅ أيقونة الدردشة مرتفعة للأعلى
+  // ✅ أيقونة الدردشة مرتفعة للأعلى بدون قص
   Widget _buildChatButton() {
     final selected = _currentIndex == 3;
     return GestureDetector(
@@ -322,11 +324,11 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
   ];
 
   List<Map<String, dynamic>> _communityPosts = [
-    {'id': 1, 'author': 'د. سارة العمري', 'image': "assets/images/posts/skin_care.png", 'title': 'نصائح للعناية بالبشرة', 'content': 'مع حلول فصل الصيف، احرصي على ترطيب بشرتك واستخدام واقي الشمس.', 'likes': 120, 'comments': 15, 'shares': 8, 'time': 'منذ ساعة', 'liked': false},
-    {'id': 2, 'author': 'د. خالد النخلاني', 'image': "assets/images/posts/morning_walk.png", 'title': 'أهمية الفيتامينات', 'content': 'الفيتامينات عناصر أساسية لصحة الجسم، تأكد من تناولها.', 'likes': 95, 'comments': 8, 'shares': 5, 'time': 'منذ 3 ساعات', 'liked': false},
-    {'id': 3, 'author': 'د. أحمد المولد', 'image': "assets/images/posts/nutrition_tips.png", 'title': 'صحة القلب', 'content': 'القلب محرك الحياة، احرص على الرياضة والأكل الصحي.', 'likes': 210, 'comments': 22, 'shares': 12, 'time': 'منذ 5 ساعات', 'liked': true},
-    {'id': 4, 'author': 'د. أسماء الهندي', 'image': "assets/images/posts/immune_boost.png", 'title': 'فوائد المشي', 'content': 'المشي 30 دقيقة يومياً يقلل خطر أمراض القلب والسكري.', 'likes': 78, 'comments': 5, 'shares': 3, 'time': 'منذ يوم', 'liked': false},
-    {'id': 5, 'author': 'د. محمد العلاي', 'image': "assets/images/posts/sleep_tips.png", 'title': 'تقوية المناعة', 'content': 'الطعام الصحي هو أساس المناعة القوية.', 'likes': 150, 'comments': 12, 'shares': 7, 'time': 'منذ يومين', 'liked': false},
+    {'id': 1, 'author': 'د. سارة العمري', 'image': ImageService.banner1, 'title': 'نصائح للعناية بالبشرة', 'content': 'مع حلول فصل الصيف، احرصي على ترطيب بشرتك واستخدام واقي الشمس.', 'likes': 120, 'comments': 15, 'shares': 8, 'time': 'منذ ساعة', 'liked': false},
+    {'id': 2, 'author': 'د. خالد النخلاني', 'image': ImageService.banner2, 'title': 'أهمية الفيتامينات', 'content': 'الفيتامينات عناصر أساسية لصحة الجسم، تأكد من تناولها.', 'likes': 95, 'comments': 8, 'shares': 5, 'time': 'منذ 3 ساعات', 'liked': false},
+    {'id': 3, 'author': 'د. أحمد المولد', 'image': ImageService.banner3, 'title': 'صحة القلب', 'content': 'القلب محرك الحياة، احرص على الرياضة والأكل الصحي.', 'likes': 210, 'comments': 22, 'shares': 12, 'time': 'منذ 5 ساعات', 'liked': true},
+    {'id': 4, 'author': 'د. أسماء الهندي', 'image': ImageService.pharmacy1, 'title': 'فوائد المشي', 'content': 'المشي 30 دقيقة يومياً يقلل خطر أمراض القلب والسكري.', 'likes': 78, 'comments': 5, 'shares': 3, 'time': 'منذ يوم', 'liked': false},
+    {'id': 5, 'author': 'د. محمد العلاي', 'image': ImageService.pharmacy2, 'title': 'تقوية المناعة', 'content': 'الطعام الصحي هو أساس المناعة القوية.', 'likes': 150, 'comments': 12, 'shares': 7, 'time': 'منذ يومين', 'liked': false},
   ];
 
   final List<Map<String, dynamic>> _dailyTips = [
@@ -347,14 +349,14 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     {'name': 'إيبوبروفين 400mg', 'price': 750, 'image': ImageService.medicine4, 'category': 'مسكنات'},
   ];
 
-  // ✅ المختبرات المميزة (محدّثة)
+  // ✅ المختبرات المميزة
   final List<Map<String, dynamic>> _featuredLabs = [
-    {'name': 'مختبرات الزازي', 'location': 'صنعاء - شارع الستين', 'image': ImageService.lab1},
-    {'name': 'مختبر العولقي', 'location': 'صنعاء - حدة', 'image': ImageService.lab2},
-    {'name': 'مختبر المأمون', 'location': 'صنعاء - التحرير', 'image': ImageService.lab3},
+    {'name': 'مختبرات الزارزي', 'location': 'صنعاء - شارع الزبيري', 'image': ImageService.lab1},
+    {'name': 'مختبرات العولقي', 'location': 'صنعاء - شارع الستين', 'image': ImageService.lab2},
+    {'name': 'مختبرات المأمون', 'location': 'صنعاء - حدة', 'image': ImageService.lab3},
   ];
 
-  // ✅ المستشفيات المميزة (محدّثة)
+  // ✅ المستشفيات المميزة
   final List<Map<String, dynamic>> _featuredHospitals = [
     {'name': 'مستشفى 22 مايو', 'location': 'صنعاء', 'image': ImageService.hospital1},
     {'name': 'مستشفى الجمهورية', 'location': 'صنعاء', 'image': ImageService.hospital2},
@@ -538,7 +540,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
           body: CustomScrollView(
             controller: _scrollController,
             slivers: [
-              // ✅ AppBar - يختفي/يظهر تلقائياً عند التمرير
+              // ✅ AppBar - يختفي/يظهر تلقائياً عند التمرير (مثل Twitter)
               SliverAppBar(
                 expandedHeight: 90,
                 floating: true,
@@ -614,7 +616,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                     _buildSearchBar(isDark),
                     const SizedBox(height: 16),
 
-                    // 2️⃣ البانر المتحرك مع النقاط
+                    // 2️⃣ البانر المتحرك مع النقاط داخله في اليمين
                     _buildBannerCarousel(isDark, primaryColor),
                     const SizedBox(height: 20),
 
@@ -635,19 +637,19 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                     const SizedBox(height: 24),
 
                     // 6️⃣ منتجات صيدلية
-                    _buildSectionTitleWithAction('منتجات صيدلية', isDark, 'عرض الكل', () => _goTo(context, const MedicinesScreen())),
+                    _buildSectionTitleWithAction('منتجات صيدلية', isDark, 'عرض الكل', () => _goTo(context, const PharmacyScreen())),
                     const SizedBox(height: 10),
                     _buildProductsRow(),
                     const SizedBox(height: 24),
 
-                    // 7️⃣ مختبرات مميزة
+                    // 7️⃣ المختبرات المميزة
                     _buildSectionTitleWithAction('مختبرات مميزة', isDark, 'عرض الكل', () => _goTo(context, const LabsListScreen())),
                     const SizedBox(height: 10),
                     _buildFeaturedLabsRow(isDark),
                     const SizedBox(height: 24),
 
-                    // 8️⃣ مستشفيات مميزة
-                    _buildSectionTitle('مستشفيات مميزة', isDark),
+                    // 8️⃣ المستشفيات المميزة
+                    _buildSectionTitleWithAction('مستشفيات مميزة', isDark, 'عرض الكل', () => _goTo(context, const HospitalScreen())),
                     const SizedBox(height: 10),
                     _buildFeaturedHospitalsRow(),
                     const SizedBox(height: 24),
@@ -659,7 +661,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                     const SizedBox(height: 24),
 
                     // 🔟 مجتمع صحتك
-                    _buildSectionTitleWithAction('مجتمع صحتك', isDark, 'عرض الكل', () {}),
+                    _buildSectionTitle('مجتمع صحتك', isDark),
                     const SizedBox(height: 10),
                     ..._communityPosts.asMap().entries.map((entry) {
                       final index = entry.key;
@@ -713,7 +715,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  // ✅ البانر مع النقاط داخله في الجزء الأيمن
+  // ✅ البانر مع النقاط داخله في الجزء الأيسر
   Widget _buildBannerCarousel(bool isDark, Color primaryColor) {
     return Stack(
       children: [
@@ -739,36 +741,13 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                   fit: BoxFit.cover,
                 ),
               ),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: [
-                      Colors.black.withOpacity(0.6),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-                padding: const EdgeInsets.all(16),
-                alignment: Alignment.bottomRight,
-                child: const Text(
-                  'اكتشف خدماتنا الطبية',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
             );
           }).toList(),
         ),
-        // ✅ النقاط داخل البانر في الجزء الأيمن
+        // ✅ النقاط داخل البانر في الجزء الأيسر
         Positioned(
           bottom: 12,
-          right: 16,
+          left: 16,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: _bannerImages.asMap().entries.map((entry) {
@@ -834,17 +813,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget _buildSectionTitle(String title, bool isDark) {
-    return Text(
-      title,
-      style: TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
-        color: isDark ? Colors.white : Colors.black87,
-      ),
-    );
-  }
-
+  // ✅ عنوان القسم مع زر "عرض الكل"
   Widget _buildSectionTitleWithAction(String title, bool isDark, String action, VoidCallback onTap) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -859,9 +828,26 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
         ),
         TextButton(
           onPressed: onTap,
-          child: Text(action),
+          child: Text(
+            action,
+            style: TextStyle(
+              color: AppColors.primary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
       ],
+    );
+  }
+
+  Widget _buildSectionTitle(String title, bool isDark) {
+    return Text(
+      title,
+      style: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+        color: isDark ? Colors.white : Colors.black87,
+      ),
     );
   }
 
@@ -1022,10 +1008,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(14),
                 boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 8,
-                  ),
+                  BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8),
                 ],
               ),
               child: Column(
@@ -1050,10 +1033,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                   const SizedBox(height: 8),
                   Text(
                     product['name'],
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                     textAlign: TextAlign.center,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -1088,10 +1068,10 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  // ✅ المختبرات المميزة - أفقي
+  // ✅ دالة عرض المختبرات المميزة
   Widget _buildFeaturedLabsRow(bool isDark) {
     return SizedBox(
-      height: 180,
+      height: 120,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: _featuredLabs.length,
@@ -1100,11 +1080,12 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
           return GestureDetector(
             onTap: () => _goTo(context, const LabsListScreen()),
             child: Container(
-              width: 260,
+              width: 250,
               margin: const EdgeInsets.only(right: 12),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: isDark ? const Color(0xFF1A2540) : Colors.white,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(14),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.05),
@@ -1116,71 +1097,56 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
               child: Row(
                 children: [
                   ClipRRect(
-                    borderRadius: const BorderRadius.horizontal(right: Radius.circular(16)),
+                    borderRadius: BorderRadius.circular(10),
                     child: CachedNetworkImage(
                       imageUrl: lab['image'],
-                      width: 100,
-                      height: double.infinity,
+                      width: 50,
+                      height: 50,
                       fit: BoxFit.cover,
-                      placeholder: (context, url) => _buildShimmerEffect(width: 100, height: 180),
+                      placeholder: (context, url) => _buildShimmerEffect(width: 50, height: 50),
                       errorWidget: (context, url, error) => Container(
-                        width: 100,
-                        color: Colors.grey[300],
-                        child: const Icon(Icons.science, color: Colors.grey, size: 40),
+                        width: 50,
+                        height: 50,
+                        color: Colors.grey[200],
+                        child: const Icon(Icons.science, color: Colors.grey, size: 25),
                       ),
                     ),
                   ),
+                  const SizedBox(width: 12),
                   Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            lab['name'] as String,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                              color: isDark ? Colors.white : Colors.black87,
-                            ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          lab['name'],
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: isDark ? Colors.white : Colors.black87,
                           ),
-                          const SizedBox(height: 6),
-                          Row(
-                            children: [
-                              Icon(Icons.location_on, size: 14, color: Colors.grey[500]),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: Text(
-                                  lab['location'] as String,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            Icon(Icons.location_on, size: 12, color: Colors.grey[500]),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                lab['location'],
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: isDark ? Colors.grey[400] : Colors.grey[600],
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          ElevatedButton(
-                            onPressed: () => _goTo(context, const LabsListScreen()),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            child: const Text(
-                              'احجز الآن',
-                              style: TextStyle(fontSize: 12),
-                            ),
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -1192,7 +1158,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  // ✅ المستشفيات المميزة - أفقي
+  // ✅ دالة عرض المستشفيات المميزة
   Widget _buildFeaturedHospitalsRow() {
     return SizedBox(
       height: 160,
@@ -1496,17 +1462,11 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
 }
 
 // ============================================================
-// 🔍 AppSearchDelegate - البحث المتقدم في التطبيق
+// 🔍 AppSearchDelegate - البحث المتقدم
 // ============================================================
 class AppSearchDelegate extends SearchDelegate {
   @override
   String get searchFieldLabel => 'ابحث عن طبيب، دواء، خدمة...';
-
-  @override
-  TextStyle get searchFieldStyle => const TextStyle(
-        fontFamily: 'NotoSansArabicUI',
-        fontSize: 16,
-      );
 
   @override
   List<Widget>? buildActions(BuildContext context) {
@@ -1514,9 +1474,7 @@ class AppSearchDelegate extends SearchDelegate {
       if (query.isNotEmpty)
         IconButton(
           icon: const Icon(Icons.clear),
-          onPressed: () {
-            query = '';
-          },
+          onPressed: () => query = '',
         ),
     ];
   }
@@ -1525,47 +1483,34 @@ class AppSearchDelegate extends SearchDelegate {
   Widget? buildLeading(BuildContext context) {
     return IconButton(
       icon: const Icon(Icons.arrow_back),
-      onPressed: () {
-        close(context, null);
-      },
+      onPressed: () => close(context, null),
     );
   }
 
   @override
-  Widget buildResults(BuildContext context) {
-    return _buildSearchResults();
-  }
+  Widget buildResults(BuildContext context) => _buildSearchResults();
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    if (query.isEmpty) {
-      return _buildRecentSearches();
-    }
+    if (query.isEmpty) return _buildRecentSearches();
     return _buildSearchResults();
   }
 
   Widget _buildRecentSearches() {
     final recentSearches = [
-      'طبيب باطنية',
-      'باراسيتامول',
-      'مختبر تحاليل',
-      'صيدلية 24 ساعة',
-      'استشارة قلبية',
-      'تحليل دم شامل',
+      'طبيب باطنية', 'باراسيتامول', 'مختبر تحاليل',
+      'صيدلية 24 ساعة', 'استشارة قلبية', 'تحليل دم شامل'
     ];
-
     return ListView.builder(
       itemCount: recentSearches.length,
-      itemBuilder: (context, index) {
-        return ListTile(
-          leading: const Icon(Icons.history, color: Colors.grey),
-          title: Text(recentSearches[index]),
-          onTap: () {
-            query = recentSearches[index];
-            showResults(context);
-          },
-        );
-      },
+      itemBuilder: (context, index) => ListTile(
+        leading: const Icon(Icons.history, color: Colors.grey),
+        title: Text(recentSearches[index]),
+        onTap: () {
+          query = recentSearches[index];
+          showResults(context);
+        },
+      ),
     );
   }
 
@@ -1576,16 +1521,11 @@ class AppSearchDelegate extends SearchDelegate {
         children: [
           Icon(Icons.search, size: 64, color: Colors.grey[400]),
           const SizedBox(height: 16),
-          Text(
-            'جاري البحث عن "$query"...',
-            style: TextStyle(color: Colors.grey[600]),
-          ),
+          Text('جاري البحث عن "$query"...', style: TextStyle(color: Colors.grey[600])),
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () {},
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
             child: const Text('بحث متقدم'),
           ),
         ],

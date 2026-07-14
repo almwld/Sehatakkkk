@@ -75,3 +75,7 @@ class ImageService {
   static const String iconSearch = '$_baseIcons/core/search.svg';
   static const String iconBroadcast = '$_baseIcons/core/broadcast.svg';
 }
+
+// ============================================================
+// 🏥 صور المستشفيات (Hospitals)
+// ============================================================

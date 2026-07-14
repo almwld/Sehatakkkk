@@ -54,7 +54,6 @@ class _AuthScreenState extends State<AuthScreen> {
   bool _hasBiometric = false;
   String _biometricName = 'البصمة';
   
-  final BiometricService _biometricService = BiometricService();
 
   @override
   void initState() {
@@ -231,7 +230,6 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
-  Future<void> _loginWithBiometric() async {
     setState(() => _isLoading = true);
     final authenticated = await _biometricService.authenticate(
       reason: 'تسجيل الدخول باستخدام $_biometricName',
@@ -434,7 +432,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
                 _buildTextField(
                   controller: _emailController,
-                  label: widget.isSignUp ? 'البريد الإلكتروني' : 'رقم الموبيل أو البريد الإلكتروني',
+                  label: widget.isSignUp ? 'البريد الإلكتروني' : 'رقم الموبايل أو البريد الإلكتروني',
                   icon: Icons.alternate_email_outlined,
                   isDark: isDark,
                   keyboardType: TextInputType.emailAddress,
@@ -883,7 +881,6 @@ class _AuthScreenState extends State<AuthScreen> {
                   Icons.fingerprint,
                   color: primaryColor,
                 ),
-                onPressed: _loginWithBiometric,
               ),
           ],
         ),
@@ -932,3 +929,87 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 }
+
+  // ============================================================
+  // 🔑 شاشة "نسيت كلمة المرور"
+  // ============================================================
+  void _showForgotPasswordDialog() {
+    final TextEditingController emailController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('نسيت كلمة المرور'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة تعيين كلمة المرور',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: emailController,
+              decoration: InputDecoration(
+                labelText: 'البريد الإلكتروني',
+                hintText: 'example@email.com',
+                prefixIcon: const Icon(Icons.email),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              keyboardType: TextInputType.emailAddress,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('إلغاء'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              _sendPasswordResetEmail(emailController.text.trim());
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('إرسال'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _sendPasswordResetEmail(String email) async {
+    if (email.isEmpty) {
+      _showMessage('يرجى إدخال البريد الإلكتروني', true);
+      return;
+    }
+    
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      _showMessage('✅ تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني', false);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        _showMessage('❌ هذا البريد الإلكتروني غير مسجل', true);
+      } else {
+        _showMessage('❌ حدث خطأ: ${e.message}', true);
+      }
+    } catch (e) {
+      _showMessage('❌ حدث خطأ: $e', true);
+    }
+  }
+
+  void _showMessage(String message, bool isError) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : Colors.green,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
