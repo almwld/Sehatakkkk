@@ -185,7 +185,7 @@ class _MoreScreenState extends State<MoreScreen> {
             foregroundColor: primaryColor,
             elevation: 0,
             flexibleSpace: FlexibleSpaceBar(
-              background: Opacity(
+              background: const Opacity(
                 opacity: _appBarOpacity,
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16 * fontScale, vertical: 8 * fontScale),

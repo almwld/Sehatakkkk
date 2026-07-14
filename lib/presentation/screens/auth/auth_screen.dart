@@ -775,6 +775,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                       const SizedBox(width: 20),
 
+
                       _buildSocialButtonDisabled(
                         icon: Icons.apple,
                         label: 'Apple',
@@ -1017,6 +1018,42 @@ class _AuthScreenState extends State<AuthScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildSocialButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    required bool isDark,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(30),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: isDark ? Colors.white30 : Colors.grey[300]!,
+              ),
+            ),
+            child: Icon(icon, size: 28, color: isDark ? Colors.white : Colors.black87),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
+              fontFamily: 'NotoSansArabicUI',
+            ),
+          ),
+        ],
       ),
     );
   }
