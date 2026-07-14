@@ -7,6 +7,7 @@ import 'package:sehatak/core/constants/roles.dart';
 import 'package:sehatak/core/services/biometric_service.dart';
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
 import 'package:sehatak/presentation/screens/terms/terms_screen.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthScreen extends StatefulWidget {
   final bool isSignUp;
@@ -55,6 +56,7 @@ class _AuthScreenState extends State<AuthScreen> {
   String _biometricName = 'البصمة';
   
   final BiometricService _biometricService = BiometricService();
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   @override
   void initState() {
@@ -573,7 +575,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         ],
                       ),
                       TextButton(
-                        onPressed: () {},
+                        onPressed: _showForgotPasswordDialog,
                         child: Text(
                           'نسيت كلمة المرور؟',
                           style: TextStyle(
@@ -690,6 +692,18 @@ class _AuthScreenState extends State<AuthScreen> {
                   // ============================================================
                   const Text(
                     'أو سجل الدخول عبر',
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildSocialButton(
+                        icon: Icons.g_mobiledata,
+                        label: Google,
+                        onTap: _loginWithGoogle,
+                        isDark: isDark,
+                      ),
+                    ],
+                  ),
                     style: TextStyle(fontSize: 12, color: Colors.grey, fontFamily: 'NotoSansArabicUI'),
                     textAlign: TextAlign.center,
                   ),
@@ -932,3 +946,94 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 }
+
+  // ============================================================
+  // 🔐 تسجيل الدخول بـ Google
+  // ============================================================
+  Future<void> _loginWithGoogle() async {
+    setState(() => _isLoading = true);
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        setState(() => _isLoading = false);
+        return;
+      }
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      await FirebaseAuth.instance.signInWithCredential(credential);
+      if (mounted) {
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
+      }
+    } catch (e) {
+      _showMessage('حدث خطأ في تسجيل الدخول بـ Google', true);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  // ============================================================
+  // 🔑 شاشة "نسيت كلمة المرور"
+  // ============================================================
+  void _showForgotPasswordDialog() {
+    final TextEditingController emailController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('نسيت كلمة المرور'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة تعيين كلمة المرور',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: emailController,
+              decoration: InputDecoration(
+                labelText: 'البريد الإلكتروني',
+                hintText: 'example@email.com',
+                prefixIcon: const Icon(Icons.email),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              keyboardType: TextInputType.emailAddress,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
+          ElevatedButton(
+            onPressed: () {
+              _sendPasswordResetEmail(emailController.text.trim());
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+            child: const Text('إرسال'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _sendPasswordResetEmail(String email) async {
+    if (email.isEmpty) {
+      _showMessage('يرجى إدخال البريد الإلكتروني', true);
+      return;
+    }
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      _showMessage('✅ تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني', false);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        _showMessage('❌ هذا البريد الإلكتروني غير مسجل', true);
+      } else {
+        _showMessage('❌ حدث خطأ: ${e.message}', true);
+      }
+    } catch (e) {
+      _showMessage('❌ حدث خطأ: $e', true);
+    }
+  }
