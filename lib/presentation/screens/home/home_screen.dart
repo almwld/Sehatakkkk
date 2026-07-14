@@ -1,311 +1,546 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:carousel_slider/carousel_slider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:shimmer/shimmer.dart';
-import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/services/image_service.dart';
-import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
-import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
-import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
-import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
-import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
-import 'package:sehatak/presentation/screens/patient/patient_appointments.dart';
-import 'package:sehatak/presentation/screens/patient/patient_dashboard.dart';
-import 'package:sehatak/presentation/screens/more/more_screen.dart';
-import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
-import 'package:sehatak/presentation/screens/shared/notifications_screen.dart';
-import 'package:sehatak/presentation/screens/pharmacy/cart_screen.dart';
-import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart';
-import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
-import 'package:sehatak/presentation/screens/insurance/insurance_companies.dart';
-import 'package:sehatak/presentation/screens/health/health_dashboard.dart';
-import 'package:sehatak/presentation/screens/payment/wallet_screen.dart';
-import 'package:sehatak/presentation/screens/consultation/consultation_screen.dart';
-import 'package:sehatak/presentation/screens/services/services_screen.dart';
-import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
-import 'package:sehatak/presentation/screens/blood_donation/blood_donation_screen.dart';
-import 'package:sehatak/presentation/screens/medication/medicines_screen.dart';
-import 'package:sehatak/presentation/screens/medication/medicines_screen.dart';
+// ... الكود السابق ...
 
+  // ============================================================
+  // 🔬 المختبرات المميزة
+  // ============================================================
+  final List<Map<String, dynamic>> _featuredLabs = [
+    {'id': '1', 'name': 'مختبرات الزارزي', 'location': 'صنعاء - شارع الزبيري', 'image': ImageService.lab1, 'rating': 4.9, 'phone': '01-234567', 'open': true},
+    {'id': '2', 'name': 'مختبرات العولقي', 'location': 'صنعاء - شارع الستين', 'image': ImageService.lab2, 'rating': 4.8, 'phone': '01-234568', 'open': true},
+    {'id': '3', 'name': 'مختبرات المأمون', 'location': 'صنعاء - حدة', 'image': ImageService.lab3, 'rating': 4.7, 'phone': '01-234569', 'open': true},
+    {'id': '4', 'name': 'مختبر الرازي', 'location': 'صنعاء - التحرير', 'image': ImageService.lab1, 'rating': 4.6, 'phone': '01-234570', 'open': false},
+  ];
 
-// ============================================================
-// 📱 HomeScreen - الشاشة الرئيسية مع شريط سفلي متحرك
-// ============================================================
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  // ============================================================
+  // 🏥 المستشفيات المميزة
+  // ============================================================
+  final List<Map<String, dynamic>> _featuredHospitals = [
+    {'id': '1', 'name': 'مستشفى 22 مايو', 'location': 'صنعاء', 'image': ImageService.hospital1, 'rating': 4.9, 'phone': '01-234571', 'specialty': 'عام'},
+    {'id': '2', 'name': 'مستشفى الجمهورية', 'location': 'صنعاء', 'image': ImageService.hospital2, 'rating': 4.8, 'phone': '01-234572', 'specialty': 'عام'},
+    {'id': '3', 'name': 'مستشفى السبعين', 'location': 'صنعاء', 'image': ImageService.hospital3, 'rating': 4.7, 'phone': '01-234573', 'specialty': 'أطفال وولادة'},
+  ];
 
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
-  int _currentIndex = 0;
-  final ValueNotifier<bool> _isBottomBarVisible = ValueNotifier<bool>(true);
-  late AnimationController _animationController;
-  late Animation<double> _scaleAnimation;
-  late Animation<Offset> _slideAnimation;
-  late final List<Widget> _screens;
-
-  @override
-  void initState() {
-    super.initState();
-    _screens = [
-      HomeTab(bottomBarVisibility: _isBottomBarVisible),
-      const DoctorsListScreen(),
-      const MedicinesScreen(),
-      const ChatScreen(),
-      const LabsListScreen(),
-      const PatientDashboard(),
-      const MoreScreen(),
-    ];
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 400),
-    );
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack),
-    );
-    _slideAnimation = Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
-    );
-    _animationController.forward();
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    _isBottomBarVisible.dispose();
-    super.dispose();
-  }
-
-  bool get _isLoggedIn => FirebaseAuth.instance.currentUser != null;
-
-  void _navigateWithAuth(VoidCallback action) {
-    if (_isLoggedIn) {
-      action();
-    } else {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const AuthScreen()));
-    }
-  }
-
-  void _onTabTap(int index) {
-    if (index == 3 || index == 4 || index == 5) {
-      _navigateWithAuth(() => setState(() => _currentIndex = index));
-    } else {
-      setState(() => _currentIndex = index);
-    }
-    _animationController.reset();
-    _animationController.forward();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? const Color(0xFF1E293B) : Colors.white;
-
-    return Scaffold(
-      body: Stack(
-        children: [
-          // ✅ المحتوى الرئيسي
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            switchInCurve: Curves.easeOut,
-            switchOutCurve: Curves.easeIn,
-            child: _screens[_currentIndex],
-          ),
-          // ✅ الشريط السفلي العائم - يختفي/يظهر عند التمرير
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: ValueListenableBuilder<bool>(
-              valueListenable: _isBottomBarVisible,
-              builder: (context, isVisible, child) {
-                return AnimatedContainer(
-                  duration: const Duration(milliseconds: 350),
-                  curve: Curves.easeInOut,
-                  height: isVisible ? 68 : 0,
-                  child: FadeTransition(
-                    opacity: isVisible
-                        ? const AlwaysStoppedAnimation(1.0)
-                        : const AlwaysStoppedAnimation(0.0),
-                    child: SlideTransition(
-                      position: isVisible
-                          ? _slideAnimation
-                          : const AlwaysStoppedAnimation(Offset(0, 1)),
-                      child: ScaleTransition(
-                        scale: isVisible
-                            ? _scaleAnimation
-                            : const AlwaysStoppedAnimation(0.8),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: bgColor,
-                            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.12),
-                                blurRadius: 12,
-                                offset: const Offset(0, -4),
-                              ),
-                            ],
-                          ),
-                          child: SafeArea(
-                            top: false,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                _buildNavItem(0, Icons.home_rounded, 'الرئيسية'),
-                                _buildNavItem(1, Icons.person_search_rounded, 'الأطباء'),
-                                _buildNavItem(2, Icons.local_pharmacy_rounded, 'الصيدلية'),
-                                _buildChatButton(), // ✅ مرتفعة للأعلى بدون قص
-                                _buildNavItem(4, Icons.science_rounded, 'مختبرات'),
-                                _buildNavItem(5, Icons.folder_rounded, 'صحتي'),
-                                _buildNavItem(6, Icons.grid_view_rounded, 'المزيد'),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
+  // ============================================================
+  // 🔬 دالة عرض المختبرات المميزة - تفتح تفاصيل المختبر
+  // ============================================================
+  Widget _buildFeaturedLabsRow(bool isDark) {
+    return SizedBox(
+      height: 120,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: _featuredLabs.length,
+        itemBuilder: (context, index) {
+          final lab = _featuredLabs[index];
+          return GestureDetector(
+            onTap: () => _goToLabDetails(context, lab),
+            child: Container(
+              width: 250,
+              margin: const EdgeInsets.only(right: 12),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+                border: Border.all(
+                  color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.asset(
+                      lab['image'] as String,
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          width: 50,
+                          height: 50,
+                          color: Colors.purple.withOpacity(0.1),
+                          child: const Icon(Icons.science, color: Colors.purple, size: 25),
+                        );
+                      },
                     ),
                   ),
-                );
-              },
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          lab['name'] as String,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            Icon(Icons.location_on, size: 12, color: Colors.grey[500]),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                lab['location'] as String,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Icon(Icons.star, size: 12, color: Colors.amber),
+                            const SizedBox(width: 2),
+                            Text(
+                              '${lab['rating']}',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: isDark ? Colors.white : Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: (lab['open'] as bool) ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                (lab['open'] as bool) ? 'مفتوح' : 'مغلق',
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  color: (lab['open'] as bool) ? Colors.green : Colors.red,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 
-  // ✅ الخط الأخضر تحت الأيقونة (معدل)
-  Widget _buildNavItem(int index, IconData icon, String label) {
-    final selected = _currentIndex == index;
-    final color = selected ? AppColors.primary : Colors.grey;
-
-    return GestureDetector(
-      onTap: () => _onTabTap(index),
-      child: SizedBox(
-        width: 48,
-        height: 60,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: color, size: 22),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 9,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                color: color,
+  // ============================================================
+  // 🏥 دالة عرض المستشفيات المميزة - تفتح تفاصيل المستشفى
+  // ============================================================
+  Widget _buildFeaturedHospitalsRow(bool isDark) {
+    return SizedBox(
+      height: 160,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: _featuredHospitals.length,
+        itemBuilder: (context, index) {
+          final hospital = _featuredHospitals[index];
+          return GestureDetector(
+            onTap: () => _goToHospitalDetails(context, hospital),
+            child: Container(
+              width: 200,
+              margin: const EdgeInsets.only(right: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                image: DecorationImage(
+                  image: AssetImage(hospital['image'] as String),
+                  fit: BoxFit.cover,
+                  onError: (exception, stackTrace) {},
+                ),
+              ),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [
+                      Colors.black.withOpacity(0.7),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+                padding: const EdgeInsets.all(12),
+                alignment: Alignment.bottomRight,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      hospital['name'] as String,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(Icons.location_on, color: Colors.white70, size: 14),
+                        const SizedBox(width: 4),
+                        Text(
+                          hospital['location'] as String,
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        const Icon(Icons.star, color: Colors.amber, size: 12),
+                        const SizedBox(width: 2),
+                        Text(
+                          '${hospital['rating']}',
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-            // ✅ الخط الأخضر تحت النص مباشرة
-            if (selected)
-              Container(
-                width: 32,
-                height: 3,
-                margin: const EdgeInsets.only(top: 4),
+          );
+        },
+      ),
+    );
+  }
+
+  // ============================================================
+  // 🔬 الانتقال إلى تفاصيل المختبر
+  // ============================================================
+  void _goToLabDetails(BuildContext context, Map<String, dynamic> lab) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Center(
+              child: Container(
+                width: 50,
+                height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.primary,
+                  color: Colors.grey[300],
                   borderRadius: BorderRadius.circular(2),
                 ),
-              )
-            else
-              const SizedBox(height: 7),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.asset(
+                    lab['image'] as String,
+                    width: 60,
+                    height: 60,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        width: 60,
+                        height: 60,
+                        color: Colors.purple.withOpacity(0.1),
+                        child: const Icon(Icons.science, color: Colors.purple, size: 30),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        lab['name'] as String,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(Icons.location_on, size: 14, color: Colors.grey[600]),
+                          const SizedBox(width: 4),
+                          Text(
+                            lab['location'] as String,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Icon(Icons.star, size: 14, color: Colors.amber),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${lab['rating']}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: (lab['open'] as bool) ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              (lab['open'] as bool) ? 'مفتوح' : 'مغلق',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: (lab['open'] as bool) ? Colors.green : Colors.red,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(Icons.phone, size: 16, color: Colors.grey),
+                const SizedBox(width: 8),
+                Text(
+                  lab['phone'] as String,
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const LabsListScreen(),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text('عرض جميع المختبرات'),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  // ✅ أيقونة الدردشة مرتفعة للأعلى بدون قص
-  Widget _buildChatButton() {
-    final selected = _currentIndex == 3;
-    return GestureDetector(
-      onTap: () => _onTabTap(3),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          Transform.translate(
-            offset: const Offset(0, -20),
-            child: Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppColors.primary, AppColors.primaryDark],
+  // ============================================================
+  // 🏥 الانتقال إلى تفاصيل المستشفى
+  // ============================================================
+  void _goToHospitalDetails(BuildContext context, Map<String, dynamic> hospital) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Center(
+              child: Container(
+                width: 50,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
                 ),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withOpacity(0.45),
-                    blurRadius: 14,
-                    offset: const Offset(0, 4),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.asset(
+                    hospital['image'] as String,
+                    width: 60,
+                    height: 60,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        width: 60,
+                        height: 60,
+                        color: Colors.red.withOpacity(0.1),
+                        child: const Icon(Icons.local_hospital, color: Colors.red, size: 30),
+                      );
+                    },
                   ),
-                ],
-              ),
-              child: const Icon(
-                Icons.chat_rounded,
-                color: Colors.white,
-                size: 28,
-              ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        hospital['name'] as String,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(Icons.location_on, size: 14, color: Colors.grey[600]),
+                          const SizedBox(width: 4),
+                          Text(
+                            hospital['location'] as String,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Icon(Icons.star, size: 14, color: Colors.amber),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${hospital['rating']}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              hospital['specialty'] as String,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            'الدردشة',
-            style: TextStyle(
-              fontSize: 9,
-              fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-              color: selected ? AppColors.primary : Colors.grey,
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(Icons.phone, size: 16, color: Colors.grey),
+                const SizedBox(width: 8),
+                Text(
+                  hospital['phone'] as String,
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('جاري حجز موعد...'),
+                          backgroundColor: AppColors.primary,
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text('حجز موعد'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const HospitalScreen(),
+                        ),
+                      );
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text('عرض الكل'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
-}
-
-// ============================================================
-// 🏠 HomeTab - المحتوى الرئيسي للصفحة
-// ============================================================
-class HomeTab extends StatefulWidget {
-  final ValueNotifier<bool> bottomBarVisibility;
-  const HomeTab({super.key, required this.bottomBarVisibility});
-
-  @override
-  State<HomeTab> createState() => _HomeTabState();
-}
-
-class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
-  int _currentBanner = 0;
-  final ScrollController _scrollController = ScrollController();
-  bool _isLoading = false;
-  late AnimationController _fadeController;
-  late Animation<double> _fadeAnimation;
-
-  // ============================================================
-  // 📊 البيانات
-  // ============================================================
-
-  final List<String> _bannerImages = [
-    'assets/images/banners/banner_1.png',
-    'assets/images/banners/banner_2.png',
-    'assets/images/banners/banner_3.png',
-    'assets/images/banners/banner_4.png',
-  ];
-
-  final List<Map<String, dynamic>> _topDoctors = [
-    {'id': '1', 'name': 'د. أحمد المولد', 'specialty': 'باطنية', 'rating': 4.9, 'reviews': 328, 'image': ImageService.doctor1},
-    {'id': '2', 'name': 'د. خالد النخلاني', 'specialty': 'قلبية', 'rating': 4.8, 'reviews': 256, 'image': ImageService.doctor2},
-    {'id': '3', 'name': 'د. أسماء الهندي', 'specialty': 'أطفال', 'rating': 4.7, 'reviews': 189, 'image': ImageService.doctor3},
-    {'id': '4', 'name': 'د. محمد العلاي', 'specialty': 'أنف وأذن وحنجرة', 'rating': 4.6, 'reviews': 89, 'image': ImageService.doctor4},
-    {'id': '5', 'name': 'د. فاطمة صديقي', 'specialty': 'نساء وولادة', 'rating': 4.8, 'reviews': 210, 'image': ImageService.doctor5},
-  ];
-
