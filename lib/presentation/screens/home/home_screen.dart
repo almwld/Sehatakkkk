@@ -60,6 +60,7 @@ Widget _buildProductsRow() {
       },
     ),
   );
+
 }
 
 // ✅ دالة عرض المختبرات - باستخدام Image.asset بدلاً من CachedNetworkImage
@@ -131,4 +132,5 @@ Widget _buildFeaturedLabsRow(bool isDark) {
       },
     ),
   );
+
 }
