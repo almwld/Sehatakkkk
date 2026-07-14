@@ -69,8 +69,3 @@ class AppColors {
   // ============================================================
   // 🎨 ألوان SnackBar - رمادي فاخر
   // ============================================================
-  static const Color successSnackBar = Color(0xFF2D2D2D); // رمادي غامق فاخر
-  static const Color errorSnackBar = Color(0xFF2D2D2D);   // رمادي غامق فاخر
-  static const Color warningSnackBar = Color(0xFF2D2D2D); // رمادي غامق فاخر
-  static const Color infoSnackBar = Color(0xFF2D2D2D);    // رمادي غامق فاخر
-  static const Color primarySnackBar = Color(0xFF2D2D2D); // رمادي غامق فاخر
