@@ -879,7 +879,7 @@ class _AuthScreenState extends State<AuthScreen> {
               ),
               onPressed: () => setState(() => _obscureText = !_obscureText),
             ),
-            if (_hasBiometric if (_hasBiometric if (_hasBiometric)if (_hasBiometric) !widget.isSignUp)if (_hasBiometric if (_hasBiometric)if (_hasBiometric) !widget.isSignUp) !widget.isSignUp)
+            if (_hasBiometric if (_hasBiometric if (_hasBiometric if (_hasBiometric)if (_hasBiometric) !widget.isSignUp)if (_hasBiometric if (_hasBiometric)if (_hasBiometric) !widget.isSignUp) !widget.isSignUp)if (_hasBiometric if (_hasBiometric if (_hasBiometric)if (_hasBiometric) !widget.isSignUp)if (_hasBiometric if (_hasBiometric)if (_hasBiometric) !widget.isSignUp) !widget.isSignUp) !widget.isSignUp)
               IconButton(
                 icon: Icon(
                   Icons.fingerprint,
