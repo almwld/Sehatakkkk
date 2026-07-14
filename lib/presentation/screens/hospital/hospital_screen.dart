@@ -2,87 +2,92 @@ import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/image_service.dart';
 
-class HospitalScreen extends StatelessWidget {
+class HospitalScreen extends StatefulWidget {
   const HospitalScreen({super.key});
+
+  @override
+  State<HospitalScreen> createState() => _HospitalScreenState();
+}
+
+class _HospitalScreenState extends State<HospitalScreen> {
+  final List<Map<String, dynamic>> hospitals = [
+    {
+      'name': 'مستشفى الثورة العام',
+      'location': 'صنعاء',
+      'specialty': 'عام',
+      'rating': 4.8,
+      'image': ImageService.hospital1,
+      'phone': '01-234567',
+    },
+    {
+      'name': 'المستشفى الجمهوري',
+      'location': 'صنعاء',
+      'specialty': 'عام',
+      'rating': 4.7,
+      'image': ImageService.hospital2,
+      'phone': '01-234568',
+    },
+    {
+      'name': 'مستشفى الكويت الجامعي',
+      'location': 'صنعاء',
+      'specialty': 'تعليمي',
+      'rating': 4.9,
+      'image': ImageService.hospital3,
+      'phone': '01-234569',
+    },
+    {
+      'name': 'مستشفى السبعين للأمومة والطفولة',
+      'location': 'صنعاء',
+      'specialty': 'أطفال وولادة',
+      'rating': 4.6,
+      'image': ImageService.hospital4,
+      'phone': '01-234570',
+    },
+    {
+      'name': 'المستشفى العسكري',
+      'location': 'صنعاء',
+      'specialty': 'عام',
+      'rating': 4.5,
+      'image': ImageService.hospital5,
+      'phone': '01-234571',
+    },
+    {
+      'name': 'مستشفى آزال',
+      'location': 'صنعاء',
+      'specialty': 'عام',
+      'rating': 4.4,
+      'image': ImageService.hospital6,
+      'phone': '01-234572',
+    },
+    {
+      'name': 'مستشفى اليمن الألماني',
+      'location': 'صنعاء',
+      'specialty': 'متخصص',
+      'rating': 4.8,
+      'image': ImageService.hospital7,
+      'phone': '01-234573',
+    },
+    {
+      'name': 'مستشفى النقيب',
+      'location': 'صنعاء',
+      'specialty': 'عام',
+      'rating': 4.3,
+      'image': ImageService.hospital8,
+      'phone': '01-234574',
+    },
+    {
+      'name': 'مستشفى العلوم والتكنولوجيا',
+      'location': 'صنعاء',
+      'specialty': 'تعليمي',
+      'rating': 4.6,
+      'image': ImageService.hospital9,
+      'phone': '01-234575',
+    },
+  ];
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    final List<Map<String, dynamic>> hospitals = [
-      {
-        'name': 'مستشفى الثورة العام',
-        'location': 'صنعاء',
-        'specialty': 'عام',
-        'rating': 4.8,
-        'image': ImageService.hospital1,
-        'phone': '01-234567',
-      },
-      {
-        'name': 'المستشفى الجمهوري',
-        'location': 'صنعاء',
-        'specialty': 'عام',
-        'rating': 4.7,
-        'image': ImageService.hospital2,
-        'phone': '01-234568',
-      },
-      {
-        'name': 'مستشفى الكويت الجامعي',
-        'location': 'صنعاء',
-        'specialty': 'تعليمي',
-        'rating': 4.9,
-        'image': ImageService.hospital3,
-        'phone': '01-234569',
-      },
-      {
-        'name': 'مستشفى السبعين للأمومة والطفولة',
-        'location': 'صنعاء',
-        'specialty': 'أطفال وولادة',
-        'rating': 4.6,
-        'image': ImageService.hospital4,
-        'phone': '01-234570',
-      },
-      {
-        'name': 'المستشفى العسكري',
-        'location': 'صنعاء',
-        'specialty': 'عام',
-        'rating': 4.5,
-        'image': ImageService.hospital5,
-        'phone': '01-234571',
-      },
-      {
-        'name': 'مستشفى آزال',
-        'location': 'صنعاء',
-        'specialty': 'عام',
-        'rating': 4.4,
-        'image': ImageService.hospital6,
-        'phone': '01-234572',
-      },
-      {
-        'name': 'مستشفى اليمن الألماني',
-        'location': 'صنعاء',
-        'specialty': 'متخصص',
-        'rating': 4.8,
-        'image': ImageService.hospital7,
-        'phone': '01-234573',
-      },
-      {
-        'name': 'مستشفى النقيب',
-        'location': 'صنعاء',
-        'specialty': 'عام',
-        'rating': 4.3,
-        'image': ImageService.hospital8,
-        'phone': '01-234574',
-      },
-      {
-        'name': 'مستشفى العلوم والتكنولوجيا',
-        'location': 'صنعاء',
-        'specialty': 'تعليمي',
-        'rating': 4.6,
-        'image': ImageService.hospital9,
-        'phone': '01-234575',
-      },
-    ];
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),

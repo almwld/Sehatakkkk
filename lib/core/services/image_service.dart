@@ -79,3 +79,19 @@ class ImageService {
 // ============================================================
 // 🏥 صور المستشفيات (Hospitals)
 // ============================================================
+
+// ============================================================
+// 📦 أيقونات الخدمات السريعة (Quick Services)
+// ============================================================
+static const String serviceDoctors = '$_baseIcons/services/أطباء.png';
+static const String servicePharmacy = '$_baseIcons/services/ادويه.png';
+static const String serviceLabs = '$_baseIcons/services/مخابر.png';
+static const String serviceEmergency = '$_baseIcons/services/بالقرب مني .png';
+static const String serviceHealth = '$_baseIcons/services/صحةالقلب.png';
+static const String serviceWallet = '$_baseIcons/services/محفظ.png';
+static const String serviceConsultation = '$_baseIcons/services/محادثات للمعارف.png';
+static const String serviceAppointments = '$_baseIcons/services/مواعيد.png';
+static const String serviceNearby = '$_baseIcons/services/بالقرب مني .png';
+static const String serviceInsurance = '$_baseIcons/services/تامين.png';
+static const String serviceBloodDonation = '$_baseIcons/services/تقييم.png';
+static const String serviceHomeServices = '$_baseIcons/services/مراسلات.png';
