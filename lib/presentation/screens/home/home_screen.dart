@@ -190,7 +190,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, // // تم إزالتها لعرض الأيقونة بألوانها الأصلية size: 22),
+            Icon(icon, size: 22),
             const SizedBox(height: 2),
             Text(
               label,
@@ -771,7 +771,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
             ),
             child: Column(
               children: [
-                Icon(stat['icon'] as IconData, // // تم إزالتها لعرض الأيقونة بألوانها الأصلية size: 22),
+                Icon(stat["icon"] as IconData, size: 22),
                 const SizedBox(height: 4),
                 Text(
                   stat['value'] as String,
@@ -859,7 +859,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                       height: 26,
                       // // تم إزالتها لعرض الأيقونة بألوانها الأصلية
                       errorBuilder: (context, error, stackTrace) {
-                        return Icon(Icons.circle, // // تم إزالتها لعرض الأيقونة بألوانها الأصلية size: 26);
+                        return Icon(Icons.circle, size: 26);
                       },
                     ),
                   ),
@@ -1085,7 +1085,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(tip['icon'] as IconData, // // تم إزالتها لعرض الأيقونة بألوانها الأصلية size: 28),
+              Icon(tip["icon"] as IconData, size: 28),
               const SizedBox(height: 8),
               Text(
                 tip['title'] as String,
