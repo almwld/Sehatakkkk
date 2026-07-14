@@ -262,8 +262,8 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   void _showMessage(String message, bool isError) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+    SnackBarHelper.showError(context, 
+      SnackBarHelper.showSuccess(context, 
         content: Text(message),
         backgroundColor: isError ? Colors.red : Colors.green,
         duration: const Duration(seconds: 3),
