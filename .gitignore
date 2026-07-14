@@ -4,3 +4,4 @@ build/
 *.apk
 *.aab
 *.zip
+assets/images/posts/*.png

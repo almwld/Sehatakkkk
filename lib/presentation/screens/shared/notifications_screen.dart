@@ -53,7 +53,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     setState(() => _isLoading = false);
 
     // ✅ تشغيل نغمة الإشعار
-    SoundManager().playNotification();
   }
 
   void _loadMockNotifications() {
