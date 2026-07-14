@@ -27,6 +27,7 @@ import 'package:sehatak/presentation/screens/services/services_screen.dart';
 import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
 import 'package:sehatak/presentation/screens/blood_donation/blood_donation_screen.dart';
 import 'package:sehatak/presentation/screens/medication/medicines_screen.dart';
+import 'package:sehatak/presentation/screens/medication/medicines_screen.dart';
 import 'package:sehatak/presentation/screens/hospital/hospital_screen.dart';
 
 // ============================================================
@@ -53,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     _screens = [
       HomeTab(bottomBarVisibility: _isBottomBarVisible),
       const DoctorsListScreen(),
-      const PharmacyScreen(),
+      const MedicinesScreen(),
       const ChatScreen(),
       const LabsListScreen(),
       const PatientDashboard(),
@@ -310,7 +311,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
 
   final List<Map<String, dynamic>> _quickServices = [
     {'icon': Icons.medical_services, 'label': 'أطباء', 'color': AppColors.primary, 'screen': const DoctorsListScreen()},
-    {'icon': Icons.local_pharmacy, 'label': 'صيدلية', 'color': AppColors.success, 'screen': const PharmacyScreen()},
+    {'icon': Icons.local_pharmacy, 'label': 'صيدلية', 'color': AppColors.success, 'screen': const MedicinesScreen()},
     {'icon': Icons.science, 'label': 'مختبرات', 'color': AppColors.purple, 'screen': const LabsListScreen()},
     {'icon': Icons.emergency, 'label': 'طوارئ', 'color': AppColors.error, 'screen': const EmergencyNumbers()},
     {'icon': Icons.favorite, 'label': 'صحة', 'color': AppColors.pink, 'screen': const HealthDashboard()},
@@ -637,7 +638,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                     const SizedBox(height: 24),
 
                     // 6️⃣ منتجات صيدلية
-                    _buildSectionTitleWithAction('منتجات صيدلية', isDark, 'عرض الكل', () => _goTo(context, const PharmacyScreen())),
+                    _buildSectionTitleWithAction('منتجات صيدلية', isDark, 'عرض الكل', () => _goTo(context, const MedicinesScreen())),
                     const SizedBox(height: 10),
                     _buildProductsRow(),
                     const SizedBox(height: 24),
