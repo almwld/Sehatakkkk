@@ -185,10 +185,10 @@ class _MoreScreenState extends State<MoreScreen> {
             foregroundColor: primaryColor,
             elevation: 0,
             flexibleSpace: FlexibleSpaceBar(
-              background: const Opacity(
+              background: Opacity(
                 opacity: _appBarOpacity,
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16 * fontScale, vertical: 8 * fontScale),
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Row(
                     children: [
                       GestureDetector(
@@ -197,21 +197,21 @@ class _MoreScreenState extends State<MoreScreen> {
                           else _navigateTo(BlocProvider(create: (_) => AuthBloc(), child: const AuthScreen()));
                         },
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(14 * fontScale),
+                          borderRadius: BorderRadius.circular(14),
                           child: CachedNetworkImage(
                             imageUrl: user?.photoURL ?? '',
-                            width: 45 * fontScale,
-                            height: 45 * fontScale,
+                            width: 45,
+                            height: 45,
                             fit: BoxFit.cover,
-                            placeholder: (context, url) => _shimmerPlaceholder(45 * fontScale, 45 * fontScale, 14 * fontScale),
+                            placeholder: (context, url) => _shimmerPlaceholder(45, 45, 14 * fontScale),
                             errorWidget: (_, __, ___) => Container(
-                              width: 45 * fontScale,
-                              height: 45 * fontScale,
+                              width: 45,
+                              height: 45,
                               decoration: BoxDecoration(
                                 color: primaryColor.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(14 * fontScale),
+                                borderRadius: BorderRadius.circular(14),
                               ),
-                              child: Icon(Icons.person, color: primaryColor, size: 24 * fontScale),
+                              child: Icon(Icons.person, color: primaryColor, size: 24),
                             ),
                           ),
                         ),
@@ -226,7 +226,7 @@ class _MoreScreenState extends State<MoreScreen> {
                               logged ? name : 'زائر',
                               style: TextStyle(
                                 color: primaryColor,
-                                fontSize: 16 * fontScale,
+                                fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -234,7 +234,7 @@ class _MoreScreenState extends State<MoreScreen> {
                               logged ? 'رقم الملف: #${user?.uid.substring(0, 8) ?? '00000000'}' : 'تسجيل الدخول للمزيد',
                               style: TextStyle(
                                 color: isDark ? Colors.grey[400] : Colors.grey[600],
-                                fontSize: 11 * fontScale,
+                                fontSize: 11,
                               ),
                             ),
                           ],
@@ -251,7 +251,7 @@ class _MoreScreenState extends State<MoreScreen> {
             ),
           ),
           SliverPadding(
-            padding: EdgeInsets.symmetric(horizontal: 16 * fontScale),
+            padding: EdgeInsets.symmetric(horizontal: 16),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 SizedBox(height: 8 * fontScale),
@@ -262,9 +262,9 @@ class _MoreScreenState extends State<MoreScreen> {
                 _buildVitalsGrid(fontScale),
                 SizedBox(height: 20 * fontScale),
                 _buildFilterChips(primaryColor, fontScale),
-                SizedBox(height: 16 * fontScale),
+                SizedBox(height: 16),
                 ..._filteredServices.map((service) => _buildServiceCard(service, isDark, primaryColor, fontScale)),
-                SizedBox(height: 16 * fontScale),
+                SizedBox(height: 16),
                 _buildPremiumFooter(isDark, primaryColor, fontScale),
                 SizedBox(height: 30 * fontScale),
               ]),
@@ -294,7 +294,7 @@ class _MoreScreenState extends State<MoreScreen> {
     return Text(
       title,
       style: TextStyle(
-        fontSize: 16 * fontScale,
+        fontSize: 16,
         fontWeight: FontWeight.bold,
         color: isDark ? Colors.white : Colors.black87,
       ),
@@ -329,7 +329,7 @@ class _MoreScreenState extends State<MoreScreen> {
                 padding: EdgeInsets.symmetric(horizontal: 12 * fontScale, vertical: 6 * fontScale),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(12 * fontScale),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   children: [
@@ -349,7 +349,7 @@ class _MoreScreenState extends State<MoreScreen> {
               Icon(Icons.blur_on, color: Colors.white54, size: 20 * fontScale),
             ],
           ),
-          SizedBox(height: 16 * fontScale),
+          SizedBox(height: 16),
           Text(
             'هل تشعر بأي أعراض صحية حالياً؟',
             style: TextStyle(
@@ -367,7 +367,7 @@ class _MoreScreenState extends State<MoreScreen> {
               height: 1.4,
             ),
           ),
-          SizedBox(height: 16 * fontScale),
+          SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
             height: 48 * fontScale,
@@ -376,7 +376,7 @@ class _MoreScreenState extends State<MoreScreen> {
                 backgroundColor: Colors.white,
                 foregroundColor: primaryColor,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14 * fontScale),
+                  borderRadius: BorderRadius.circular(14),
                 ),
                 elevation: 0,
               ),
@@ -424,7 +424,7 @@ class _MoreScreenState extends State<MoreScreen> {
             padding: EdgeInsets.all(14 * fontScale),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(16 * fontScale),
+              borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.03),
@@ -531,7 +531,7 @@ class _MoreScreenState extends State<MoreScreen> {
                 fontSize: 13 * fontScale,
               ),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12 * fontScale),
+                borderRadius: BorderRadius.circular(12),
                 side: BorderSide(
                   color: isSelected ? Colors.transparent : primaryColor.withOpacity(0.2),
                 ),
@@ -551,7 +551,7 @@ class _MoreScreenState extends State<MoreScreen> {
       padding: EdgeInsets.all(12 * fontScale),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1A2540) : Colors.white,
-        borderRadius: BorderRadius.circular(14 * fontScale),
+        borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.02),
@@ -566,12 +566,12 @@ class _MoreScreenState extends State<MoreScreen> {
           padding: EdgeInsets.all(10 * fontScale),
           decoration: BoxDecoration(
             color: primaryColor.withOpacity(0.08),
-            borderRadius: BorderRadius.circular(12 * fontScale),
+            borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
             service['icon'] as IconData,
             color: primaryColor,
-            size: 24 * fontScale,
+            size: 24,
           ),
         ),
         title: Text(
@@ -585,7 +585,7 @@ class _MoreScreenState extends State<MoreScreen> {
         subtitle: Text(
           service['subtitle'] as String,
           style: TextStyle(
-            fontSize: 11 * fontScale,
+            fontSize: 11,
             color: isDark ? Colors.grey[400] : Colors.grey[600],
           ),
         ),
@@ -610,7 +610,7 @@ class _MoreScreenState extends State<MoreScreen> {
             padding: EdgeInsets.symmetric(vertical: 12 * fontScale),
             decoration: BoxDecoration(
               color: Colors.red.withOpacity(0.06),
-              borderRadius: BorderRadius.circular(12 * fontScale),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
               child: Text(
@@ -629,7 +629,7 @@ class _MoreScreenState extends State<MoreScreen> {
           'صحتك - v1.0.0 (Build 240)',
           style: TextStyle(
             color: isDark ? Colors.grey[600] : Colors.grey[400],
-            fontSize: 11 * fontScale,
+            fontSize: 11,
           ),
         ),
         SizedBox(height: 8 * fontScale),
@@ -676,7 +676,7 @@ class _MoreScreenState extends State<MoreScreen> {
               );
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('تسجيل الخروج'),
+            child: Text('تسجيل الخروج'),
           ),
         ],
       ),
