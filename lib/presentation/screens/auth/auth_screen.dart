@@ -8,7 +8,6 @@ import 'package:sehatak/core/services/biometric_service.dart';
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
 import 'package:sehatak/presentation/screens/terms/terms_screen.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 class AuthScreen extends StatefulWidget {
   final bool isSignUp;
@@ -228,29 +227,6 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   // ✅ تسجيل الدخول بـ Apple
-  Future<void> _loginWithApple() async {
-    setState(() => _isLoading = true);
-    try {
-      final appleCredential = await SignInWithApple.getAppleIDCredential(
-        scopes: [
-          AppleIDAuthorizationScopes.email,
-          AppleIDAuthorizationScopes.fullName,
-        ],
-      );
-      final credential = OAuthProvider("apple.com").credential(
-        idToken: appleCredential.identityToken,
-        accessToken: appleCredential.authorizationCode,
-      );
-      await FirebaseAuth.instance.signInWithCredential(credential);
-      if (mounted) {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
-      }
-    } catch (e) {
-      _showMessage('حدث خطأ في تسجيل الدخول بـ Apple', true);
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
 
   // ✅ نسيت كلمة المرور
   void _showForgotPasswordDialog() {
@@ -791,14 +767,14 @@ class _AuthScreenState extends State<AuthScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _buildSocialButton(
+                      _buildSocialButtonDisabled(
                         icon: Icons.g_mobiledata,
                         label: 'Google',
                         onTap: _loginWithGoogle,
                         isDark: isDark,
                       ),
                       const SizedBox(width: 20),
-                      _buildSocialButton(
+                      _buildSocialButtonDisabled(
                         icon: Icons.apple,
                         label: 'Apple',
                         onTap: _loginWithApple,
@@ -935,7 +911,7 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
-  Widget _buildSocialButton({
+  Widget _buildSocialButtonDisabled({
     required IconData icon,
     required String label,
     required VoidCallback onTap,
@@ -970,3 +946,49 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 }
+
+  Widget _buildSocialButtonDisabled({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    required bool isDark,
+  }) {
+    return Opacity(
+      opacity: 0.5,
+      child: InkWell(
+        onTap: null, // ❌ غير مفعل
+        borderRadius: BorderRadius.circular(30),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isDark ? Colors.white30 : Colors.grey[300]!,
+                ),
+              ),
+              child: Icon(icon, size: 28, color: isDark ? Colors.white54 : Colors.grey[400]),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                color: isDark ? Colors.grey[500] : Colors.grey[400],
+                fontFamily: 'NotoSansArabicUI',
+              ),
+            ),
+            Text(
+              'قريباً',
+              style: TextStyle(
+                fontSize: 9,
+                color: isDark ? Colors.grey[600] : Colors.grey[500],
+                fontFamily: 'NotoSansArabicUI',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
