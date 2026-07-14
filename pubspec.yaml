@@ -159,3 +159,4 @@ flutter_native_splash:
   image: assets/icons/app_icon.png
   android: true
   ios: false
+  sensors_plus: ^6.1.0
