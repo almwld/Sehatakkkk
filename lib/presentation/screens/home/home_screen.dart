@@ -324,11 +324,11 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
   ];
 
   List<Map<String, dynamic>> _communityPosts = [
-    {'id': 1, 'author': 'د. سارة العمري', 'image': ImageService.banner1, 'title': 'نصائح للعناية بالبشرة', 'content': 'مع حلول فصل الصيف، احرصي على ترطيب بشرتك واستخدام واقي الشمس.', 'likes': 120, 'comments': 15, 'shares': 8, 'time': 'منذ ساعة', 'liked': false},
-    {'id': 2, 'author': 'د. خالد النخلاني', 'image': ImageService.banner2, 'title': 'أهمية الفيتامينات', 'content': 'الفيتامينات عناصر أساسية لصحة الجسم، تأكد من تناولها.', 'likes': 95, 'comments': 8, 'shares': 5, 'time': 'منذ 3 ساعات', 'liked': false},
-    {'id': 3, 'author': 'د. أحمد المولد', 'image': ImageService.banner3, 'title': 'صحة القلب', 'content': 'القلب محرك الحياة، احرص على الرياضة والأكل الصحي.', 'likes': 210, 'comments': 22, 'shares': 12, 'time': 'منذ 5 ساعات', 'liked': true},
-    {'id': 4, 'author': 'د. أسماء الهندي', 'image': ImageService.pharmacy1, 'title': 'فوائد المشي', 'content': 'المشي 30 دقيقة يومياً يقلل خطر أمراض القلب والسكري.', 'likes': 78, 'comments': 5, 'shares': 3, 'time': 'منذ يوم', 'liked': false},
-    {'id': 5, 'author': 'د. محمد العلاي', 'image': ImageService.pharmacy2, 'title': 'تقوية المناعة', 'content': 'الطعام الصحي هو أساس المناعة القوية.', 'likes': 150, 'comments': 12, 'shares': 7, 'time': 'منذ يومين', 'liked': false},
+    {'id': 1, 'author': 'د. سارة العمري', 'image': "assets/images/posts/skin_care.png", 'title': 'نصائح للعناية بالبشرة', 'content': 'مع حلول فصل الصيف، احرصي على ترطيب بشرتك واستخدام واقي الشمس.', 'likes': 120, 'comments': 15, 'shares': 8, 'time': 'منذ ساعة', 'liked': false},
+    {'id': 2, 'author': 'د. خالد النخلاني', 'image': "assets/images/posts/morning_walk.png", 'title': 'أهمية الفيتامينات', 'content': 'الفيتامينات عناصر أساسية لصحة الجسم، تأكد من تناولها.', 'likes': 95, 'comments': 8, 'shares': 5, 'time': 'منذ 3 ساعات', 'liked': false},
+    {'id': 3, 'author': 'د. أحمد المولد', 'image': "assets/images/posts/nutrition_tips.png", 'title': 'صحة القلب', 'content': 'القلب محرك الحياة، احرص على الرياضة والأكل الصحي.', 'likes': 210, 'comments': 22, 'shares': 12, 'time': 'منذ 5 ساعات', 'liked': true},
+    {'id': 4, 'author': 'د. أسماء الهندي', 'image': "assets/images/posts/immune_boost.png", 'title': 'فوائد المشي', 'content': 'المشي 30 دقيقة يومياً يقلل خطر أمراض القلب والسكري.', 'likes': 78, 'comments': 5, 'shares': 3, 'time': 'منذ يوم', 'liked': false},
+    {'id': 5, 'author': 'د. محمد العلاي', 'image': "assets/images/posts/sleep_tips.png", 'title': 'تقوية المناعة', 'content': 'الطعام الصحي هو أساس المناعة القوية.', 'likes': 150, 'comments': 12, 'shares': 7, 'time': 'منذ يومين', 'liked': false},
   ];
 
   final List<Map<String, dynamic>> _dailyTips = [
