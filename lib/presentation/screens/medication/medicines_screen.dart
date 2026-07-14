@@ -18,29 +18,54 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
   final List<String> _categories = ['الكل', 'مسكنات', 'مضادات حيوية', 'أدوية ضغط', 'أدوية سكر', 'فيتامينات', 'مكملات غذائية'];
   final List<String> _sortOptions = ['الاسم', 'السعر (منخفض)', 'السعر (مرتفع)'];
 
+  // ✅ دالة آمنة للحصول على الأدوية المفلترة
   List<Map<String, dynamic>> get _filteredMedicines {
-    var filtered = MedicinesData.getByCategory(_selectedCategory);
-    
-    if (_searchQuery.isNotEmpty) {
-      filtered = filtered.where((med) =>
-        med['name'].toString().contains(_searchQuery) ||
-        med['description'].toString().contains(_searchQuery)
-      ).toList();
+    try {
+      var filtered = MedicinesData.getByCategory(_selectedCategory);
+
+      if (_searchQuery.isNotEmpty) {
+        filtered = filtered.where((med) {
+          final name = (med['name'] as String?)?.toLowerCase() ?? '';
+          final desc = (med['description'] as String?)?.toLowerCase() ?? '';
+          final query = _searchQuery.toLowerCase();
+          return name.contains(query) || desc.contains(query);
+        }).toList();
+      }
+
+      // ✅ ترتيب آمن
+      try {
+        switch (_selectedSort) {
+          case 'السعر (منخفض)':
+            filtered.sort((a, b) {
+              final priceA = (a['price'] as num?)?.toDouble() ?? 0;
+              final priceB = (b['price'] as num?)?.toDouble() ?? 0;
+              return priceA.compareTo(priceB);
+            });
+            break;
+          case 'السعر (مرتفع)':
+            filtered.sort((a, b) {
+              final priceA = (a['price'] as num?)?.toDouble() ?? 0;
+              final priceB = (b['price'] as num?)?.toDouble() ?? 0;
+              return priceB.compareTo(priceA);
+            });
+            break;
+          default:
+            filtered.sort((a, b) {
+              final nameA = (a['name'] as String?)?.toLowerCase() ?? '';
+              final nameB = (b['name'] as String?)?.toLowerCase() ?? '';
+              return nameA.compareTo(nameB);
+            });
+            break;
+        }
+      } catch (e) {
+        // في حال حدوث خطأ في الترتيب، نعرض القائمة كما هي
+      }
+
+      return filtered;
+    } catch (e) {
+      // في حال حدوث خطأ في التصفية، نرجع قائمة فارغة
+      return [];
     }
-    
-    switch (_selectedSort) {
-      case 'السعر (منخفض)':
-        filtered.sort((a, b) => (a['price'] as int).compareTo(b['price'] as int));
-        break;
-      case 'السعر (مرتفع)':
-        filtered.sort((a, b) => (b['price'] as int).compareTo(a['price'] as int));
-        break;
-      default:
-        filtered.sort((a, b) => (a['name'] as String).compareTo(b['name'] as String));
-        break;
-    }
-    
-    return filtered;
   }
 
   @override
@@ -159,9 +184,12 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
   }
 
   Widget _buildMedicineCard(Map<String, dynamic> medicine, bool isDark) {
+    // ✅ استخراج القيم بأمان مع افتراضيات
+    final name = (medicine['name'] as String?) ?? 'دواء';
+    final category = (medicine['category'] as String?) ?? 'عام';
+    final price = (medicine['price'] as num?)?.toDouble() ?? 0;
+    final image = (medicine['image'] as String?) ?? ImageService.medicine1;
     final inStock = medicine['inStock'] ?? true;
-    final requiresPrescription = medicine['requiresPrescription'] ?? false;
-    final image = medicine['image'] as String? ?? ImageService.medicine1;
 
     return Container(
       decoration: BoxDecoration(
@@ -210,7 +238,7 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    medicine['name'] as String,
+                    name,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
@@ -228,30 +256,17 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
-                          medicine['category'] as String,
+                          category,
                           style: const TextStyle(fontSize: 8, color: AppColors.primary),
                         ),
                       ),
-                      const SizedBox(width: 4),
-                      if (requiresPrescription)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                          decoration: BoxDecoration(
-                            color: Colors.orange.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            'وصفة',
-                            style: TextStyle(fontSize: 7, color: Colors.orange),
-                          ),
-                        ),
                     ],
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '${medicine['price'] as int} ر.ي',
+                        '${price.toStringAsFixed(0)} ر.ي',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 13,
