@@ -7,7 +7,6 @@ import 'package:sehatak/core/constants/roles.dart';
 import 'package:sehatak/core/services/biometric_service.dart';
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
 import 'package:sehatak/presentation/screens/terms/terms_screen.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthScreen extends StatefulWidget {
   final bool isSignUp;
@@ -18,27 +17,44 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
+  // ✅ تسجيل الدخول: تبويب مستخدم / طبيب
   bool _isUserSelected = true;
+  
+  // ✅ إنشاء الحساب: المهنة المختارة
   String _selectedRole = 'user';
+  
+  // ✅ حقول مشتركة
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
+  
+  // ✅ حقول الطبيب
+  final TextEditingController _specialtyController = TextEditingController();
+  final TextEditingController _experienceController = TextEditingController();
+  final TextEditingController _licenseController = TextEditingController();
+  
+  // ✅ حقول الصيدلي
+  final TextEditingController _pharmacyNameController = TextEditingController();
+  final TextEditingController _pharmacyLicenseController = TextEditingController();
+  
+  // ✅ حقول المخبري
+  final TextEditingController _labNameController = TextEditingController();
+  final TextEditingController _labLicenseController = TextEditingController();
+  
+  // ✅ حقول الموصل
+  final TextEditingController _vehicleController = TextEditingController();
+  final TextEditingController _areaController = TextEditingController();
+
   bool _obscureText = true;
   bool _agreeTerms = false;
   bool _rememberMe = false;
   bool _isLoading = false;
   bool _hasBiometric = false;
   String _biometricName = 'البصمة';
-  String _passwordStrength = '';
-
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
-  final TextEditingController _specialtyController = TextEditingController();
-  final TextEditingController _experienceController = TextEditingController();
-  final TextEditingController _licenseController = TextEditingController();
-
+  
   final BiometricService _biometricService = BiometricService();
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   @override
   void initState() {
@@ -52,11 +68,14 @@ class _AuthScreenState extends State<AuthScreen> {
     final email = prefs.getString('remember_email');
     final password = prefs.getString('remember_password');
     final remember = prefs.getBool('remember_me') ?? false;
+    
     setState(() {
       _rememberMe = remember;
       if (remember && email != null) {
         _emailController.text = email;
-        if (password != null) _passwordController.text = password;
+        if (password != null) {
+          _passwordController.text = password;
+        }
       }
     });
   }
@@ -85,42 +104,13 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
-  // ✅ التحقق من قوة كلمة المرور
-  void _checkPasswordStrength(String password) {
-    if (password.isEmpty) {
-      setState(() => _passwordStrength = '');
-      return;
-    }
-    final hasLength = password.length >= 8;
-    final hasUpperCase = password.contains(RegExp(r'[A-Z]'));
-    final hasLowerCase = password.contains(RegExp(r'[a-z]'));
-    final hasNumber = password.contains(RegExp(r'[0-9]'));
-    final hasSpecial = password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
-
-    final strength = [hasLength, hasUpperCase, hasLowerCase, hasNumber, hasSpecial].where((e) => e).length;
-    setState(() {
-      if (strength <= 2) _passwordStrength = 'ضعيفة';
-      else if (strength <= 3) _passwordStrength = 'متوسطة';
-      else if (strength <= 4) _passwordStrength = 'قوية';
-      else _passwordStrength = 'قوية جداً';
-    });
-  }
-
-  Color _getStrengthColor() {
-    switch (_passwordStrength) {
-      case 'ضعيفة': return Colors.red;
-      case 'متوسطة': return Colors.orange;
-      case 'قوية': return Colors.blue;
-      case 'قوية جداً': return Colors.green;
-      default: return Colors.grey;
-    }
-  }
-
+  // ✅ تسجيل الدخول
   Future<void> _login() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       _showMessage('يرجى إدخال البريد الإلكتروني وكلمة المرور', true);
       return;
     }
+
     setState(() => _isLoading = true);
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
@@ -129,7 +119,10 @@ class _AuthScreenState extends State<AuthScreen> {
       );
       await _saveCredentials();
       if (mounted) {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
       }
     } on FirebaseAuthException catch (e) {
       String message = 'حدث خطأ في تسجيل الدخول';
@@ -142,6 +135,7 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
+  // ✅ إنشاء حساب
   Future<void> _register() async {
     if (_nameController.text.isEmpty || _emailController.text.isEmpty || _passwordController.text.isEmpty) {
       _showMessage('يرجى ملء جميع الحقول المطلوبة', true);
@@ -153,6 +147,12 @@ class _AuthScreenState extends State<AuthScreen> {
     }
     if (!_agreeTerms) {
       _showMessage('يرجى الموافقة على الشروط والأحكام', true);
+      return;
+    }
+
+    // ✅ التحقق من حقول الدور
+    if (_selectedRole == 'doctor' && _specialtyController.text.isEmpty) {
+      _showMessage('يرجى إدخال التخصص', true);
       return;
     }
 
@@ -175,21 +175,51 @@ class _AuthScreenState extends State<AuthScreen> {
         'updatedAt': FieldValue.serverTimestamp(),
       };
 
-      if (_selectedRole == 'doctor') {
-        userData.addAll({
-          'specialty': _specialtyController.text.trim(),
-          'experience': _experienceController.text.trim(),
-          'licenseNumber': _licenseController.text.trim(),
-          'isVerified': false,
-          'rating': 0.0,
-          'reviewCount': 0,
-          'isAvailable': true,
-        });
+      // ✅ حقول حسب الدور
+      switch (_selectedRole) {
+        case 'doctor':
+          userData.addAll({
+            'specialty': _specialtyController.text.trim(),
+            'experience': _experienceController.text.trim(),
+            'licenseNumber': _licenseController.text.trim(),
+            'isVerified': false,
+            'rating': 0.0,
+            'reviewCount': 0,
+            'isAvailable': true,
+          });
+          break;
+        case 'pharmacist':
+          userData.addAll({
+            'pharmacyName': _pharmacyNameController.text.trim(),
+            'pharmacyLicense': _pharmacyLicenseController.text.trim(),
+            'isAvailable': true,
+          });
+          break;
+        case 'lab_tech':
+          userData.addAll({
+            'labName': _labNameController.text.trim(),
+            'labLicense': _labLicenseController.text.trim(),
+            'isAvailable': true,
+          });
+          break;
+        case 'delivery':
+          userData.addAll({
+            'vehicleType': _vehicleController.text.trim(),
+            'area': _areaController.text.trim(),
+            'isAvailable': true,
+          });
+          break;
+        default:
+          break;
       }
 
       await FirebaseFirestore.instance.collection('users').doc(user.uid).set(userData);
+
       if (mounted) {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
       }
     } on FirebaseAuthException catch (e) {
       String message = 'حدث خطأ في إنشاء الحساب';
@@ -201,93 +231,32 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
-  // ✅ تسجيل الدخول بـ Google
-  Future<void> _loginWithGoogle() async {
+  Future<void> _loginWithBiometric() async {
     setState(() => _isLoading = true);
-    try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) {
-        setState(() => _isLoading = false);
-        return;
-      }
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-      await FirebaseAuth.instance.signInWithCredential(credential);
-      if (mounted) {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
-      }
-    } catch (e) {
-      _showMessage('حدث خطأ في تسجيل الدخول بـ Google', true);
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  // ✅ تسجيل الدخول بـ Apple
-
-  // ✅ نسيت كلمة المرور
-  void _showForgotPasswordDialog() {
-    final TextEditingController emailController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('نسيت كلمة المرور'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة تعيين كلمة المرور',
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: emailController,
-              decoration: InputDecoration(
-                labelText: 'البريد الإلكتروني',
-                hintText: 'example@email.com',
-                prefixIcon: const Icon(Icons.email),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              keyboardType: TextInputType.emailAddress,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
-          ElevatedButton(
-            onPressed: () {
-              _sendPasswordResetEmail(emailController.text.trim());
-              Navigator.pop(context);
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-            child: const Text('إرسال'),
-          ),
-        ],
-      ),
+    final authenticated = await _biometricService.authenticate(
+      reason: 'تسجيل الدخول باستخدام $_biometricName',
     );
+    if (authenticated) {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
+      } else {
+        _showMessage('يرجى تسجيل الدخول أولاً', true);
+      }
+    } else {
+      _showMessage('فشل التحقق من $_biometricName', true);
+    }
+    setState(() => _isLoading = false);
   }
 
-  Future<void> _sendPasswordResetEmail(String email) async {
-    if (email.isEmpty) {
-      _showMessage('يرجى إدخال البريد الإلكتروني', true);
-      return;
-    }
-    try {
-      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
-      _showMessage('✅ تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني', false);
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found') {
-        _showMessage('❌ هذا البريد الإلكتروني غير مسجل', true);
-      } else {
-        _showMessage('❌ حدث خطأ: ${e.message}', true);
-      }
-    } catch (e) {
-      _showMessage('❌ حدث خطأ: $e', true);
-    }
+  void _guestLogin() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const HomeScreen()),
+    );
   }
 
   void _showMessage(String message, bool isError) {
@@ -300,142 +269,10 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
-  // ✅ دالة بناء حقل كلمة المرور مع رسالة القوة
-  Widget _buildPasswordField(bool isDark, Color primaryColor) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TextFormField(
-          controller: _passwordController,
-          obscureText: _obscureText,
-          textAlign: TextAlign.right,
-          style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
-          onChanged: _checkPasswordStrength,
-          decoration: InputDecoration(
-            labelText: 'كلمة المرور',
-            labelStyle: TextStyle(
-              color: isDark ? Colors.white70 : Colors.grey[600],
-              fontFamily: 'NotoSansArabicUI',
-            ),
-            prefixIcon: Icon(Icons.lock_outline, color: isDark ? Colors.white70 : primaryColor),
-            suffixIcon: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: Icon(
-                    _obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                    color: isDark ? Colors.white70 : Colors.grey[600],
-                  ),
-                  onPressed: () => setState(() => _obscureText = !_obscureText),
-                ),
-                // ❌ حذف زر البصمة من إنشاء الحساب
-                if (_hasBiometric && !widget.isSignUp)
-                  IconButton(
-                    icon: Icon(Icons.fingerprint, color: primaryColor),
-                    onPressed: _loginWithBiometric,
-                  ),
-              ],
-            ),
-            filled: true,
-            fillColor: isDark ? const Color(0xFF1A2540) : Colors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide.none,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: isDark ? Colors.grey[700]! : Colors.grey[300]!),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: primaryColor, width: 2),
-            ),
-            contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-          ),
-        ),
-        if (_passwordStrength.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 8, right: 16),
-            child: Row(
-              children: [
-                Container(
-                  width: 10,
-                  height: 10,
-                  decoration: BoxDecoration(
-                    color: _getStrengthColor(),
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'قوة كلمة المرور: $_passwordStrength',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: _getStrengthColor(),
-                    fontWeight: FontWeight.w500,
-                    fontFamily: 'NotoSansArabicUI',
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: _passwordStrength == 'ضعيفة' ? 0.2 :
-                             _passwordStrength == 'متوسطة' ? 0.4 :
-                             _passwordStrength == 'قوية' ? 0.7 : 1.0,
-                      backgroundColor: Colors.grey[300],
-                      color: _getStrengthColor(),
-                      minHeight: 4,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        if (_passwordStrength.isEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 8, right: 16),
-            child: Text(
-              'يرجى تعيين كلمة مرور قوية (8 أحرف على الأقل، حرف كبير، رقم)',
-              style: TextStyle(
-                fontSize: 11,
-                color: isDark ? Colors.grey[500] : Colors.grey[600],
-                fontFamily: 'NotoSansArabicUI',
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Future<void> _loginWithBiometric() async {
-    setState(() => _isLoading = true);
-    final authenticated = await _biometricService.authenticate(
-      reason: 'تسجيل الدخول باستخدام $_biometricName',
-    );
-    if (authenticated) {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
-      } else {
-        _showMessage('يرجى تسجيل الدخول أولاً', true);
-      }
-    } else {
-      _showMessage('فشل التحقق من $_biometricName', true);
-    }
-    setState(() => _isLoading = false);
-  }
-
-  void _guestLogin() {
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = const Color(0xFF0D5257);
+    final primaryColor = const Color(0xFF0D5257); // ✅ اللون الأساسي الأصلي
 
     return Scaffold(
       body: Container(
@@ -447,7 +284,7 @@ class _AuthScreenState extends State<AuthScreen> {
             end: Alignment.bottomCenter,
             colors: isDark
                 ? [const Color(0xFF0B1121), const Color(0xFF1A2540)]
-                : [const Color(0xFFF8FAFC), primaryColor.withOpacity(0.15)],
+                : [const Color(0xFFF8FAFC), primaryColor.withOpacity(0.15)], // ✅ التدرج الأصلي
           ),
         ),
         child: SafeArea(
@@ -457,6 +294,8 @@ class _AuthScreenState extends State<AuthScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 20),
+                
+                // ✅ النصوص الترحيبية
                 Text(
                   widget.isSignUp ? 'إنشاء حساب جديد' : 'مرحباً بعودتك',
                   style: TextStyle(
@@ -469,7 +308,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  widget.isSignUp
+                  widget.isSignUp 
                       ? 'اختر مهنتك وأدخل بياناتك للانضمام'
                       : 'قم بتسجيل الدخول للمتابعة',
                   style: TextStyle(
@@ -481,6 +320,9 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
                 const SizedBox(height: 30),
 
+                // ============================================================
+                // 🔐 تسجيل الدخول - تبويب مستخدم / طبيب
+                // ============================================================
                 if (!widget.isSignUp) ...[
                   Container(
                     padding: const EdgeInsets.all(6),
@@ -516,6 +358,9 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 35),
                 ],
 
+                // ============================================================
+                // 👤 إنشاء الحساب - اختيار المهنة
+                // ============================================================
                 if (widget.isSignUp) ...[
                   Container(
                     padding: const EdgeInsets.all(6),
@@ -536,13 +381,22 @@ class _AuthScreenState extends State<AuthScreen> {
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                 decoration: BoxDecoration(
-                                  color: isSelected ? color.withOpacity(0.15) : Colors.transparent,
+                                  color: isSelected
+                                      ? color.withOpacity(0.15)
+                                      : Colors.transparent,
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: isSelected ? color : Colors.transparent, width: 2),
+                                  border: Border.all(
+                                    color: isSelected ? color : Colors.transparent,
+                                    width: 2,
+                                  ),
                                 ),
                                 child: Row(
                                   children: [
-                                    Icon(role['icon'] as IconData, color: isSelected ? color : Colors.grey, size: 16),
+                                    Icon(
+                                      role['icon'] as IconData,
+                                      color: isSelected ? color : Colors.grey,
+                                      size: 16,
+                                    ),
                                     const SizedBox(width: 4),
                                     Text(
                                       role['name'] as String,
@@ -565,6 +419,9 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 30),
                 ],
 
+                // ============================================================
+                // 📝 حقول الإدخال المشتركة
+                // ============================================================
                 if (widget.isSignUp) ...[
                   _buildTextField(
                     controller: _nameController,
@@ -577,7 +434,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
                 _buildTextField(
                   controller: _emailController,
-                  label: widget.isSignUp ? 'البريد الإلكتروني' : 'رقم الموبايل أو البريد الإلكتروني',
+                  label: widget.isSignUp ? 'البريد الإلكتروني' : 'رقم الموبيل أو البريد الإلكتروني',
                   icon: Icons.alternate_email_outlined,
                   isDark: isDark,
                   keyboardType: TextInputType.emailAddress,
@@ -595,31 +452,87 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 16),
                 ],
 
-                if (widget.isSignUp && _selectedRole == 'doctor') ...[
-                  _buildTextField(
-                    controller: _specialtyController,
-                    label: 'التخصص',
-                    icon: Icons.medical_services_outlined,
-                    isDark: isDark,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    controller: _experienceController,
-                    label: 'سنوات الخبرة',
-                    icon: Icons.work_outline,
-                    isDark: isDark,
-                    keyboardType: TextInputType.number,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    controller: _licenseController,
-                    label: 'رقم الترخيص',
-                    icon: Icons.verified_outlined,
-                    isDark: isDark,
-                  ),
-                  const SizedBox(height: 16),
+                // ============================================================
+                // 🩺 حقول إضافية حسب المهنة (للتسجيل فقط)
+                // ============================================================
+                if (widget.isSignUp) ...[
+                  if (_selectedRole == 'doctor') ...[
+                    _buildTextField(
+                      controller: _specialtyController,
+                      label: 'التخصص',
+                      icon: Icons.medical_services_outlined,
+                      isDark: isDark,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      controller: _experienceController,
+                      label: 'سنوات الخبرة',
+                      icon: Icons.work_outline,
+                      isDark: isDark,
+                      keyboardType: TextInputType.number,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      controller: _licenseController,
+                      label: 'رقم الترخيص',
+                      icon: Icons.verified_outlined,
+                      isDark: isDark,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  if (_selectedRole == 'pharmacist') ...[
+                    _buildTextField(
+                      controller: _pharmacyNameController,
+                      label: 'اسم الصيدلية',
+                      icon: Icons.local_pharmacy_outlined,
+                      isDark: isDark,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      controller: _pharmacyLicenseController,
+                      label: 'رقم الترخيص',
+                      icon: Icons.verified_outlined,
+                      isDark: isDark,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  if (_selectedRole == 'lab_tech') ...[
+                    _buildTextField(
+                      controller: _labNameController,
+                      label: 'اسم المختبر',
+                      icon: Icons.science_outlined,
+                      isDark: isDark,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      controller: _labLicenseController,
+                      label: 'رقم الترخيص',
+                      icon: Icons.verified_outlined,
+                      isDark: isDark,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  if (_selectedRole == 'delivery') ...[
+                    _buildTextField(
+                      controller: _vehicleController,
+                      label: 'نوع المركبة',
+                      icon: Icons.directions_car_outlined,
+                      isDark: isDark,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      controller: _areaController,
+                      label: 'منطقة التوصيل',
+                      icon: Icons.map_outlined,
+                      isDark: isDark,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                 ],
 
+                // ============================================================
+                // 🔑 كلمة المرور
+                // ============================================================
                 _buildPasswordField(isDark, primaryColor),
                 const SizedBox(height: 16),
 
@@ -634,6 +547,9 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 16),
                 ],
 
+                // ============================================================
+                // ✅ تذكرني / نسيت كلمة المرور (للدخول فقط)
+                // ============================================================
                 if (!widget.isSignUp) ...[
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -657,7 +573,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         ],
                       ),
                       TextButton(
-                        onPressed: _showForgotPasswordDialog,
+                        onPressed: () {},
                         child: Text(
                           'نسيت كلمة المرور؟',
                           style: TextStyle(
@@ -672,6 +588,9 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 8),
                 ],
 
+                // ============================================================
+                // 📜 الشروط والأحكام (للتسجيل فقط)
+                // ============================================================
                 if (widget.isSignUp) ...[
                   Row(
                     children: [
@@ -691,7 +610,10 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                       GestureDetector(
                         onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => const TermsScreen()));
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const TermsScreen()),
+                          );
                         },
                         child: Text(
                           'الشروط والأحكام',
@@ -709,12 +631,15 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 16),
                 ],
 
+                // ============================================================
+                // 🚀 زر الإجراء الرئيسي
+                // ============================================================
                 SizedBox(
                   height: 54,
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : (widget.isSignUp ? _register : _login),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryColor,
+                      backgroundColor: primaryColor, // ✅ اللون الأساسي الأصلي
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -737,6 +662,9 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
                 const SizedBox(height: 12),
 
+                // ============================================================
+                // 👤 تصفح كضيف (للدخول فقط)
+                // ============================================================
                 if (!widget.isSignUp) ...[
                   SizedBox(
                     height: 50,
@@ -757,7 +685,9 @@ class _AuthScreenState extends State<AuthScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // ✅ أزرار Google و Apple
+                  // ============================================================
+                  // 🔗 أزرار التواصل الاجتماعي
+                  // ============================================================
                   const Text(
                     'أو سجل الدخول عبر',
                     style: TextStyle(fontSize: 12, color: Colors.grey, fontFamily: 'NotoSansArabicUI'),
@@ -767,18 +697,15 @@ class _AuthScreenState extends State<AuthScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _buildSocialButtonDisabled(
+                      _buildSocialButton(
                         icon: Icons.g_mobiledata,
-                        label: 'Google',
-                        onTap: _loginWithGoogle,
+                        onTap: () {},
                         isDark: isDark,
                       ),
                       const SizedBox(width: 20),
-
-
-                      _buildSocialButtonDisabled(
+                      _buildSocialButton(
                         icon: Icons.apple,
-                        label: 'Apple',
+                        onTap: () {},
                         isDark: isDark,
                       ),
                     ],
@@ -786,6 +713,9 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 30),
                 ],
 
+                // ============================================================
+                // 🔄 رابط التبديل بين تسجيل الدخول وإنشاء الحساب
+                // ============================================================
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -827,6 +757,7 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
+  // ✅ دالة بناء التاب العلوي
   Widget _buildSegmentTab({
     required String title,
     required IconData icon,
@@ -840,7 +771,9 @@ class _AuthScreenState extends State<AuthScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? primaryColor.withOpacity(0.12) : Colors.transparent,
+          color: isSelected
+              ? primaryColor.withOpacity(0.12) // ✅ لون شفاف من الأساسي
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
           boxShadow: isSelected
               ? [
@@ -854,7 +787,11 @@ class _AuthScreenState extends State<AuthScreen> {
         ),
         child: Column(
           children: [
-            Icon(icon, color: isSelected ? primaryColor : Colors.grey, size: 22),
+            Icon(
+              icon,
+              color: isSelected ? primaryColor : Colors.grey, // ✅ لون أساسي عند التحديد
+              size: 22,
+            ),
             const SizedBox(height: 4),
             Text(
               title,
@@ -871,6 +808,7 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
+// ✅ دالة بناء حقل الإدخال
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -912,148 +850,85 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(30),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: isDark ? Colors.white30 : Colors.grey[300]!,
-              ),
-            ),
-            child: Icon(icon, size: 28, color: isDark ? Colors.white : Colors.black87),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              color: isDark ? Colors.grey[400] : Colors.grey[600],
-              fontFamily: 'NotoSansArabicUI',
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-    return Opacity(
-      opacity: 0.5,
-      child: InkWell(
-        onTap: null, // ❌ غير مفعل
-        borderRadius: BorderRadius.circular(30),
-        child: Column(
+  // ✅ دالة بناء حقل كلمة المرور
+  Widget _buildPasswordField(bool isDark, Color primaryColor) {
+    return TextFormField(
+      controller: _passwordController,
+      obscureText: _obscureText,
+      textAlign: TextAlign.right,
+      style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
+      decoration: InputDecoration(
+        labelText: 'كلمة المرور',
+        labelStyle: TextStyle(
+          color: isDark ? Colors.white70 : Colors.grey[600],
+          fontFamily: 'NotoSansArabicUI',
+        ),
+        prefixIcon: Icon(
+          Icons.lock_outline,
+          color: isDark ? Colors.white70 : primaryColor,
+        ),
+        suffixIcon: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isDark ? Colors.white30 : Colors.grey[300]!,
+            IconButton(
+              icon: Icon(
+                _obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                color: isDark ? Colors.white70 : Colors.grey[600],
+              ),
+              onPressed: () => setState(() => _obscureText = !_obscureText),
+            ),
+            if (_hasBiometric)
+              IconButton(
+                icon: Icon(
+                  Icons.fingerprint,
+                  color: primaryColor,
                 ),
+                onPressed: _loginWithBiometric,
               ),
-              child: Icon(icon, size: 28, color: isDark ? Colors.white54 : Colors.grey[400]),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                color: isDark ? Colors.grey[500] : Colors.grey[400],
-                fontFamily: 'NotoSansArabicUI',
-              ),
-            ),
-            Text(
-              'قريباً',
-              style: TextStyle(
-                fontSize: 9,
-                color: isDark ? Colors.grey[600] : Colors.grey[500],
-                fontFamily: 'NotoSansArabicUI',
-              ),
-            ),
           ],
         ),
-      ),
-    );
-  }
-
-    return Opacity(
-      opacity: 0.5,
-      child: InkWell(
-        onTap: null, // ❌ غير مفعل
-        borderRadius: BorderRadius.circular(30),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isDark ? Colors.white30 : Colors.grey[300]!,
-                ),
-              ),
-              child: Icon(icon, size: 28, color: isDark ? Colors.white54 : Colors.grey[400]),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                color: isDark ? Colors.grey[500] : Colors.grey[400],
-                fontFamily: 'NotoSansArabicUI',
-              ),
-            ),
-            Text(
-              'قريباً',
-              style: TextStyle(
-                fontSize: 9,
-                color: isDark ? Colors.grey[600] : Colors.grey[500],
-                fontFamily: 'NotoSansArabicUI',
-              ),
-            ),
-          ],
+        filled: true,
+        fillColor: isDark ? const Color(0xFF1A2540) : Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
         ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: isDark ? Colors.grey[700]! : Colors.grey[300]!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: primaryColor, width: 2),
+        ),
+        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
       ),
     );
   }
 
+  // ✅ دالة بناء زر التواصل الاجتماعي
   Widget _buildSocialButton({
     required IconData icon,
-    required String label,
     required VoidCallback onTap,
     required bool isDark,
   }) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(30),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: isDark ? Colors.white30 : Colors.grey[300]!,
-              ),
-            ),
-            child: Icon(icon, size: 28, color: isDark ? Colors.white : Colors.black87),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: isDark ? Colors.white30 : Colors.grey[300]!,
           ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              color: isDark ? Colors.grey[400] : Colors.grey[600],
-              fontFamily: 'NotoSansArabicUI',
-            ),
-          ),
-        ],
+        ),
+        child: Icon(
+          icon,
+          size: 28,
+          color: isDark ? Colors.white : Colors.black87,
+        ),
       ),
     );
   }
+}
