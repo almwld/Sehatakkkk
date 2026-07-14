@@ -774,6 +774,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         isDark: isDark,
                       ),
                       const SizedBox(width: 20),
+
                       _buildSocialButtonDisabled(
                         icon: Icons.apple,
                         label: 'Apple',
