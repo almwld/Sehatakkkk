@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/services/image_service.dart';
 
 class LabsListScreen extends StatelessWidget {
   const LabsListScreen({super.key});
@@ -9,10 +10,10 @@ class LabsListScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final labs = [
-      {'name': 'مختبرات الزارزي', 'address': 'صنعاء - شارع الزبيري', 'rating': 4.9, 'open': true},
-      {'name': 'مختبرات العولقي', 'address': 'صنعاء - شارع الستين', 'rating': 4.8, 'open': true},
-      {'name': 'مختبرات المأمون', 'address': 'صنعاء - حدة', 'rating': 4.7, 'open': true},
-      {'name': 'مختبرات الرازي', 'address': 'صنعاء - التحرير', 'rating': 4.6, 'open': false},
+      {'name': 'مختبرات الزارزي', 'address': 'صنعاء - شارع الزبيري', 'rating': 4.9, 'open': true, 'image': ImageService.lab1},
+      {'name': 'مختبرات العولقي', 'address': 'صنعاء - شارع الستين', 'rating': 4.8, 'open': true, 'image': ImageService.lab2},
+      {'name': 'مختبرات المأمون', 'address': 'صنعاء - حدة', 'rating': 4.7, 'open': true, 'image': ImageService.lab3},
+      {'name': 'مختبرات الرازي', 'address': 'صنعاء - التحرير', 'rating': 4.6, 'open': false, 'image': ImageService.lab1},
     ];
 
     return Scaffold(
@@ -22,6 +23,14 @@ class LabsListScreen extends StatelessWidget {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search_rounded),
+            onPressed: () {
+              // TODO: فتح شاشة البحث
+            },
+          ),
+        ],
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
@@ -30,7 +39,7 @@ class LabsListScreen extends StatelessWidget {
           final lab = labs[index];
           return Container(
             margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1A2540) : Colors.white,
               borderRadius: BorderRadius.circular(16),
@@ -41,17 +50,30 @@ class LabsListScreen extends StatelessWidget {
                   offset: const Offset(0, 2),
                 ),
               ],
+              border: Border.all(
+                color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
+                width: 1,
+              ),
             ),
             child: Row(
               children: [
-                Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: Colors.purple.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
+                // ✅ صورة المختبر
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.asset(
+                    lab['image'] as String,
+                    width: 70,
+                    height: 70,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        width: 70,
+                        height: 70,
+                        color: Colors.purple.withOpacity(0.1),
+                        child: Icon(Icons.science, color: Colors.purple, size: 35),
+                      );
+                    },
                   ),
-                  child: Icon(Icons.science, color: Colors.purple, size: 28),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -79,8 +101,15 @@ class LabsListScreen extends StatelessWidget {
                         children: [
                           Icon(Icons.star, size: 16, color: Colors.amber),
                           const SizedBox(width: 4),
-                          Text('${lab['rating']}'),
-                          const SizedBox(width: 16),
+                          Text(
+                            '${lab['rating']}',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
@@ -94,6 +123,7 @@ class LabsListScreen extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 11,
                                 color: (lab['open'] as bool) ? Colors.green : Colors.red,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
