@@ -777,7 +777,6 @@ class _AuthScreenState extends State<AuthScreen> {
                       _buildSocialButtonDisabled(
                         icon: Icons.apple,
                         label: 'Apple',
-                        onTap: _loginWithApple,
                         isDark: isDark,
                       ),
                     ],
@@ -911,12 +910,6 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
-  Widget _buildSocialButtonDisabled({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-    required bool isDark,
-  }) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(30),
@@ -947,12 +940,6 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 }
 
-  Widget _buildSocialButtonDisabled({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-    required bool isDark,
-  }) {
     return Opacity(
       opacity: 0.5,
       child: InkWell(
@@ -993,12 +980,6 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
-  Widget _buildSocialButtonDisabled({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-    required bool isDark,
-  }) {
     return Opacity(
       opacity: 0.5,
       child: InkWell(
