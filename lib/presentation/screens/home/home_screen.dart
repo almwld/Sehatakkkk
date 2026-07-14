@@ -190,17 +190,17 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 22),
+            Icon(icon, color: color, size: 22),
             const SizedBox(height: 2),
             Text(
               label,
               style: TextStyle(
                 fontSize: 9,
                 fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                // // تم إزالتها لعرض الأيقونة بألوانها الأصلية
+                color: color,
               ),
             ),
-            if (selected) Container(
+            if (selected)
               Container(
                 width: 32,
                 height: 3,
@@ -633,7 +633,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                     _buildSectionTitle('نصائح يومية', isDark),
                     const SizedBox(height: 10),
                     _buildDailyTipsGrid(),
-
                     const SizedBox(height: 24),
                     _buildSectionTitleWithAction('مختبرات مميزة', isDark, 'عرض الكل', () => _goTo(context, const LabsListScreen())),
                     const SizedBox(height: 10),
@@ -771,14 +770,14 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
             ),
             child: Column(
               children: [
-                Icon(stat["icon"] as IconData, size: 22),
+                Icon(stat['icon'] as IconData, color: color, size: 22),
                 const SizedBox(height: 4),
                 Text(
                   stat['value'] as String,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
-                    // // تم إزالتها لعرض الأيقونة بألوانها الأصلية
+                    color: color,
                   ),
                 ),
                 Text(
@@ -857,9 +856,9 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                       service['icon'],
                       width: 26,
                       height: 26,
-                      // // تم إزالتها لعرض الأيقونة بألوانها الأصلية
+                      color: color,
                       errorBuilder: (context, error, stackTrace) {
-                        return Icon(Icons.circle, size: 26);
+                        return Icon(Icons.circle, color: color, size: 26);
                       },
                     ),
                   ),
@@ -1085,7 +1084,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(tip["icon"] as IconData, size: 28),
+              Icon(tip['icon'] as IconData, color: color, size: 28),
               const SizedBox(height: 8),
               Text(
                 tip['title'] as String,
@@ -1630,6 +1629,189 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
   }
 
   // ✅ عرض منشورات المجتمع
+  Widget _buildCommunityPostCard(Map<String, dynamic> post, int index, bool isDark) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2540) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: AppColors.primary.withOpacity(0.1),
+                  child: Text(
+                    post['author'][0],
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        post['author'],
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                      Text(
+                        post['time'],
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.more_horiz, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                  onPressed: () {},
+                ),
+              ],
+            ),
+          ),
+          ClipRRect(
+            child: Image.asset(
+              post['image'],
+              height: 200,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  height: 200,
+                  color: isDark ? Colors.grey[800] : Colors.grey[200],
+                  child: const Icon(Icons.image, color: Colors.grey, size: 40),
+                );
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: () => _toggleLike(index),
+                  child: Icon(
+                    post['liked'] ? Icons.favorite : Icons.favorite_border,
+                    color: post['liked'] ? Colors.red : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                    size: 26,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '${post['likes']}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                GestureDetector(
+                  onTap: () => _showComments(index),
+                  child: Icon(
+                    Icons.chat_bubble_outline,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '${post['comments']}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                GestureDetector(
+                  onTap: () => _sharePost(index),
+                  child: Icon(
+                    Icons.repeat,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '${post['shares']}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                ),
+                const Spacer(),
+                Icon(
+                  Icons.bookmark_border,
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  size: 24,
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  post['title'],
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  post['content'],
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: isDark ? Colors.grey[300] : Colors.grey[700],
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: GestureDetector(
+              onTap: () => _showComments(index),
+              child: Text(
+                'عرض جميع التعليقات (${post['comments']})',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? Colors.grey[500] : Colors.grey[400],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 // ============================================================
@@ -1864,1528 +2046,3 @@ class AppSearchDelegate extends SearchDelegate {
       ),
     );
   }
-
-// ============================================================
-// 🏠 HomeTab - المحتوى الرئيسي للصفحة
-// ============================================================
-class HomeTab extends StatefulWidget {
-  final ValueNotifier<bool> bottomBarVisibility;
-  const HomeTab({super.key, required this.bottomBarVisibility});
-
-  @override
-  State<HomeTab> createState() => _HomeTabState();
-}
-
-class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
-  int _currentBanner = 0;
-  final ScrollController _scrollController = ScrollController();
-  bool _isLoading = false;
-  late AnimationController _fadeController;
-  late Animation<double> _fadeAnimation;
-
-  // ============================================================
-  // 📊 البيانات
-  // ============================================================
-
-  final List<String> _bannerImages = [
-    'assets/images/banners/banner_1.png',
-    'assets/images/banners/banner_2.png',
-    'assets/images/banners/banner_3.png',
-    'assets/images/banners/banner_4.png',
-  ];
-
-  final List<Map<String, dynamic>> _topDoctors = [
-    {'id': '1', 'name': 'د. أحمد المولد', 'specialty': 'باطنية', 'rating': 4.9, 'reviews': 328, 'image': ImageService.doctor1},
-    {'id': '2', 'name': 'د. خالد النخلاني', 'specialty': 'قلبية', 'rating': 4.8, 'reviews': 256, 'image': ImageService.doctor2},
-    {'id': '3', 'name': 'د. أسماء الهندي', 'specialty': 'أطفال', 'rating': 4.7, 'reviews': 189, 'image': ImageService.doctor3},
-    {'id': '4', 'name': 'د. محمد العلاي', 'specialty': 'أنف وأذن وحنجرة', 'rating': 4.6, 'reviews': 89, 'image': ImageService.doctor4},
-    {'id': '5', 'name': 'د. فاطمة صديقي', 'specialty': 'نساء وولادة', 'rating': 4.8, 'reviews': 210, 'image': ImageService.doctor5},
-  ];
-
-  final List<Map<String, dynamic>> _quickServices = [
-    {'icon': ImageService.serviceDoctors, 'label': 'أطباء', 'color': AppColors.primary, 'screen': const DoctorsListScreen()},
-    {'icon': ImageService.servicePharmacy, 'label': 'صيدلية', 'color': AppColors.success, 'screen': const MedicinesScreen()},
-    {'icon': ImageService.serviceLabs, 'label': 'مختبرات', 'color': AppColors.purple, 'screen': const LabsListScreen()},
-    {'icon': ImageService.serviceEmergency, 'label': 'طوارئ', 'color': AppColors.error, 'screen': const EmergencyNumbers()},
-    {'icon': ImageService.serviceHealth, 'label': 'صحة', 'color': AppColors.pink, 'screen': const HealthDashboard()},
-    {'icon': ImageService.serviceWallet, 'label': 'محفظة', 'color': AppColors.amber, 'screen': const WalletScreen()},
-    {'icon': ImageService.serviceConsultation, 'label': 'استشارة', 'color': AppColors.teal, 'screen': const ConsultationScreen()},
-    {'icon': ImageService.serviceAppointments, 'label': 'مواعيد', 'color': AppColors.primaryDark, 'screen': const PatientAppointments()},
-    {'icon': ImageService.serviceNearby, 'label': 'بالقرب منك', 'color': Colors.orange, 'screen': const InteractiveMapScreen()},
-    {'icon': ImageService.serviceInsurance, 'label': 'تأمين', 'color': Colors.blue, 'screen': const InsuranceCompanies()},
-    {'icon': ImageService.serviceBloodDonation, 'label': 'تبرع بالدم', 'color': Colors.red, 'screen': const BloodDonationScreen()},
-    {'icon': ImageService.serviceHomeServices, 'label': 'خدمات منزلية', 'color': Colors.brown, 'screen': const ServicesScreen()},
-  ];
-
-  List<Map<String, dynamic>> _communityPosts = [
-    {'id': 1, 'author': 'د. سارة العمري', 'image': 'assets/images/posts/skin_care.png', 'title': 'نصائح للعناية بالبشرة', 'content': 'مع حلول فصل الصيف، احرصي على ترطيب بشرتك واستخدام واقي الشمس.', 'likes': 120, 'comments': 15, 'shares': 8, 'time': 'منذ ساعة', 'liked': false},
-    {'id': 2, 'author': 'د. خالد النخلاني', 'image': 'assets/images/posts/morning_walk.png', 'title': 'فوائد المشي الصباحي', 'content': 'المشي 30 دقيقة يومياً يقلل خطر أمراض القلب والسكري.', 'likes': 95, 'comments': 8, 'shares': 5, 'time': 'منذ 3 ساعات', 'liked': false},
-    {'id': 3, 'author': 'د. أحمد المولد', 'image': 'assets/images/posts/nutrition_tips.png', 'title': 'تغذيتك سر صحتك', 'content': 'الطعام الصحي هو أساس المناعة القوية والجسم السليم.', 'likes': 210, 'comments': 22, 'shares': 12, 'time': 'منذ 5 ساعات', 'liked': true},
-    {'id': 4, 'author': 'د. أسماء الهندي', 'image': 'assets/images/posts/immune_boost.png', 'title': 'قوة المناعة', 'content': 'الفيتامينات والمعادن تلعب دوراً كبيراً في تقوية المناعة.', 'likes': 78, 'comments': 5, 'shares': 3, 'time': 'منذ يوم', 'liked': false},
-    {'id': 5, 'author': 'د. محمد العلاي', 'image': 'assets/images/posts/sleep_tips.png', 'title': 'نصائح النوم الصحي', 'content': 'النوم 7-8 ساعات يومياً يحسن الصحة النفسية والجسدية.', 'likes': 150, 'comments': 12, 'shares': 7, 'time': 'منذ يومين', 'liked': false},
-  ];
-
-  final List<Map<String, dynamic>> _dailyTips = [
-    {'title': 'شرب الماء', 'subtitle': '8 أكواب يومياً', 'icon': Icons.water_drop, 'color': AppColors.info},
-    {'title': 'المشي', 'subtitle': '30 دقيقة يومياً', 'icon': Icons.directions_walk, 'color': AppColors.success},
-    {'title': 'النوم', 'subtitle': '7-8 ساعات ليلاً', 'icon': Icons.nights_stay, 'color': AppColors.purple},
-    {'title': 'الفواكه', 'subtitle': '5 حصص يومياً', 'icon': Icons.apple, 'color': AppColors.warning},
-  ];
-
-  final List<Map<String, dynamic>> _products = [
-    {'name': 'باراسيتامول 500mg', 'price': 500, 'image': ImageService.medicine1, 'category': 'مسكنات'},
-    {'name': 'فيتامين د 1000IU', 'price': 1200, 'image': ImageService.medicine2, 'category': 'فيتامينات'},
-    {'name': 'جهاز قياس ضغط', 'price': 8500, 'image': ImageService.medicine3, 'category': 'أجهزة طبية'},
-    {'name': 'أموكسيسيلين 500mg', 'price': 1500, 'image': ImageService.medicine4, 'category': 'مضادات حيوية'},
-    {'name': 'ديكلوفيناك 50mg', 'price': 650, 'image': ImageService.medicine1, 'category': 'مسكنات'},
-    {'name': 'نابروكسين 250mg', 'price': 550, 'image': ImageService.medicine2, 'category': 'مضادات التهابية'},
-    {'name': 'أسبرين 100mg', 'price': 300, 'image': ImageService.medicine3, 'category': 'مسكنات'},
-    {'name': 'إيبوبروفين 400mg', 'price': 750, 'image': ImageService.medicine4, 'category': 'مسكنات'},
-  ];
-
-  // ============================================================
-  // 🔧 دوال المساعدة
-  // ============================================================
-
-  void _goTo(BuildContext context, Widget screen) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
-  }
-
-  void _toggleLike(int index) {
-    setState(() {
-      _communityPosts[index]['liked'] = !_communityPosts[index]['liked'];
-      _communityPosts[index]['likes'] += _communityPosts[index]['liked'] ? 1 : -1;
-    });
-  }
-
-  void _sharePost(int index) {
-    final post = _communityPosts[index];
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('تم مشاركة: ${post['title']}'),
-        backgroundColor: Colors.green,
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
-  void _showComments(int index) {
-    final post = _communityPosts[index];
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'التعليقات (${post['comments']})',
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-            const Divider(),
-            Expanded(
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: 3,
-                itemBuilder: (context, i) => ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: AppColors.primary.withOpacity(0.1),
-                    child: Text('${i + 1}', style: const TextStyle(color: AppColors.primary)),
-                  ),
-                  title: Text('تعليق ${i + 1}'),
-                  subtitle: const Text('منذ دقيقة'),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: 'أضف تعليقاً...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(24),
-                        borderSide: BorderSide.none,
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[100],
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                CircleAvatar(
-                  backgroundColor: AppColors.primary,
-                  child: const Icon(Icons.send, color: Colors.white, size: 20),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _refreshData() async {
-    setState(() => _isLoading = true);
-    await Future.delayed(const Duration(seconds: 1));
-    setState(() => _isLoading = false);
-  }
-
-  Widget _buildShimmerEffect({double width = double.infinity, double height = 200}) {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
-      child: Container(
-        width: width,
-        height: height,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-        ),
-      ),
-    );
-  }
-
-  // ============================================================
-  // 🏗️ دورة الحياة
-  // ============================================================
-
-  @override
-  void initState() {
-    super.initState();
-    _fadeController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
-    );
-    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _fadeController, curve: Curves.easeOut),
-    );
-    _fadeController.forward();
-
-    _scrollController.addListener(() {
-      if (_scrollController.position.userScrollDirection == ScrollDirection.reverse) {
-        if (widget.bottomBarVisibility.value != false) {
-          widget.bottomBarVisibility.value = false;
-        }
-      } else if (_scrollController.position.userScrollDirection == ScrollDirection.forward) {
-        if (widget.bottomBarVisibility.value != true) {
-          widget.bottomBarVisibility.value = true;
-        }
-      }
-    });
-  }
-
-  @Override
-  void dispose() {
-    _scrollController.dispose();
-    _fadeController.dispose();
-    super.dispose();
-  }
-
-  // ============================================================
-  // 🎨 بناء الواجهة
-  // ============================================================
-
-  @Override
-  Widget build(BuildContext context) {
-    final logged = FirebaseAuth.instance.currentUser != null;
-    final user = FirebaseAuth.instance.currentUser;
-    final name = user?.displayName ?? user?.email?.split('@')[0] ?? 'مستخدم';
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = const Color(0xFF0D5257);
-
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: RefreshIndicator(
-        onRefresh: _refreshData,
-        child: Scaffold(
-          backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-          body: CustomScrollView(
-            controller: _scrollController,
-            slivers: [
-              SliverAppBar(
-                expandedHeight: 90,
-                floating: true,
-                snap: true,
-                pinned: false,
-                backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
-                foregroundColor: primaryColor,
-                elevation: 0,
-                flexibleSpace: FlexibleSpaceBar(
-                  background: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            if (logged) _goTo(context, const PatientProfile());
-                            else _goTo(context, const AuthScreen());
-                          },
-                          child: CircleAvatar(
-                            radius: 20,
-                            backgroundColor: primaryColor.withOpacity(0.1),
-                            child: Text(
-                              name.isNotEmpty ? name[0] : 'م',
-                              style: TextStyle(
-                                color: primaryColor,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            logged ? 'مرحباً، $name' : 'منصة صحتك',
-                            style: TextStyle(
-                              color: primaryColor,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.notifications_outlined, color: primaryColor),
-                          onPressed: () => _goTo(context, const NotificationsScreen()),
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.shopping_cart_outlined, color: primaryColor),
-                          onPressed: () => _goTo(context, const CartScreen()),
-                        ),
-                        if (!logged)
-                          TextButton(
-                            onPressed: () => _goTo(context, const AuthScreen()),
-                            child: Text(
-                              'تسجيل',
-                              style: TextStyle(
-                                color: primaryColor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    _buildSearchBar(isDark),
-                    const SizedBox(height: 16),
-                    _buildBannerCarousel(isDark, primaryColor),
-                    const SizedBox(height: 20),
-                    _buildStatsRow(),
-                    const SizedBox(height: 20),
-                    _buildSectionTitleWithAction('خدمات سريعة', isDark, 'عرض الكل', () => _goTo(context, const ServicesScreen())),
-                    const SizedBox(height: 10),
-                    _buildQuickServicesRow(),
-                    const SizedBox(height: 24),
-                    _buildSectionTitleWithAction('أفضل الأطباء', isDark, 'عرض الكل', () => _goTo(context, const DoctorsListScreen())),
-                    const SizedBox(height: 10),
-                    _buildTopDoctorsRow(),
-                    const SizedBox(height: 24),
-                    _buildSectionTitleWithAction('منتجات صيدلية', isDark, 'عرض الكل', () => _goTo(context, const MedicinesScreen())),
-                    const SizedBox(height: 10),
-                    _buildProductsRow(),
-                    const SizedBox(height: 24),
-                    _buildSectionTitle('نصائح يومية', isDark),
-                    const SizedBox(height: 10),
-                    _buildDailyTipsGrid(),
-                    const SizedBox(height: 24),
-                    _buildSectionTitleWithAction('مختبرات مميزة', isDark, 'عرض الكل', () => _goTo(context, const LabsListScreen())),
-                    const SizedBox(height: 10),
-                    _buildFeaturedLabsRow(isDark),
-                    const SizedBox(height: 24),
-                    _buildSectionTitleWithAction('مستشفيات مميزة', isDark, 'عرض الكل', () => _goTo(context, const HospitalScreen())),
-                    const SizedBox(height: 10),
-                    _buildFeaturedHospitalsRow(isDark),
-                    const SizedBox(height: 24),
-                    _buildSectionTitle('مجتمع صحتك', isDark),
-                    const SizedBox(height: 10),
-                    ..._communityPosts.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final post = entry.value;
-                      return _buildCommunityPostCard(post, index, isDark);
-                    }),
-                    const SizedBox(height: 50),
-                  ]),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ============================================================
-  // 🔧 أجزاء الواجهة
-  // ============================================================
-
-  Widget _buildSearchBar(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2540) : Colors.grey[100],
-        borderRadius: BorderRadius.circular(25),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey),
-          const SizedBox(width: 10),
-          Expanded(
-            child: TextField(
-              decoration: InputDecoration(
-                border: InputBorder.none,
-                hintText: 'ابحث عن طبيب، دواء، أو خدمة...',
-                hintStyle: TextStyle(
-                  color: isDark ? Colors.grey[500] : Colors.grey[400],
-                ),
-              ),
-              style: TextStyle(
-                color: isDark ? Colors.white : Colors.black87,
-              ),
-              onTap: () => showSearch(context: context, delegate: AppSearchDelegate()),
-              readOnly: true,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBannerCarousel(bool isDark, Color primaryColor) {
-    return Stack(
-      children: [
-        CarouselSlider(
-          options: CarouselOptions(
-            height: 180,
-            autoPlay: true,
-            autoPlayInterval: const Duration(seconds: 4),
-            autoPlayAnimationDuration: const Duration(milliseconds: 800),
-            autoPlayCurve: Curves.fastOutSlowIn,
-            enlargeCenterPage: true,
-            viewportFraction: 0.95,
-            onPageChanged: (index, reason) => setState(() => _currentBanner = index),
-          ),
-          items: _bannerImages.map((imagePath) {
-            return Container(
-              width: double.infinity,
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                image: DecorationImage(
-                  image: AssetImage(imagePath),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-        Positioned(
-          bottom: 12,
-          right: 16,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: _bannerImages.asMap().entries.map((entry) {
-              final index = entry.key;
-              final isActive = _currentBanner == index;
-              return AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                width: isActive ? 20 : 8,
-                height: 8,
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                decoration: BoxDecoration(
-                  color: isActive ? Colors.white : Colors.white.withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              );
-            }).toList(),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatsRow() {
-    final stats = [
-      {'icon': Icons.medical_services, 'value': '150+', 'label': 'أطباء', 'color': AppColors.primary},
-      {'icon': Icons.people, 'value': '10K+', 'label': 'مرضى', 'color': AppColors.success},
-      {'icon': Icons.chat, 'value': '5K+', 'label': 'استشارات', 'color': AppColors.info},
-      {'icon': Icons.star, 'value': '4.8', 'label': 'تقييم', 'color': Colors.amber},
-    ];
-
-    return Row(
-      children: stats.map((stat) {
-        final color = stat['color'] as Color;
-        return Expanded(
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.06),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              children: [
-                Icon(stat['icon'] as IconData, color: color, size: 22),
-                const SizedBox(height: 4),
-                Text(
-                  stat['value'] as String,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    color: color,
-                  ),
-                ),
-                Text(
-                  stat['label'] as String,
-                  style: const TextStyle(fontSize: 9, color: Colors.grey),
-                ),
-              ],
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildSectionTitle(String title, bool isDark) {
-    return Text(
-      title,
-      style: TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
-        color: isDark ? Colors.white : Colors.black87,
-      ),
-    );
-  }
-
-  Widget _buildSectionTitleWithAction(String title, bool isDark, String action, VoidCallback onTap) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : Colors.black87,
-          ),
-        ),
-        TextButton(
-          onPressed: onTap,
-          child: Text(
-            action,
-            style: TextStyle(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ✅ الخدمات السريعة
-  Widget _buildQuickServicesRow() {
-    return SizedBox(
-      height: 80,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: _quickServices.length,
-        itemBuilder: (context, index) {
-          final service = _quickServices[index];
-          final color = service['color'] as Color;
-          return GestureDetector(
-            onTap: () => _goTo(context, service['screen'] as Widget),
-            child: Container(
-              width: 60,
-              margin: const EdgeInsets.only(right: 12),
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: color.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Image.asset(
-                      service['icon'],
-                      width: 26,
-                      height: 26,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Icon(Icons.circle, color: color, size: 26);
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    service['label'] as String,
-                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  // ✅ عرض الأطباء المميزين
-  Widget _buildTopDoctorsRow() {
-    return SizedBox(
-      height: 110,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: _topDoctors.length,
-        itemBuilder: (context, index) {
-          final doctor = _topDoctors[index];
-          return GestureDetector(
-            onTap: () => _goTo(context, DoctorDetailsScreen(doctorId: doctor['id'] as String)),
-            child: Container(
-              width: 200,
-              margin: const EdgeInsets.only(right: 12),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.asset(
-                      doctor['image'],
-                      width: 55,
-                      height: 55,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          width: 55,
-                          height: 55,
-                          color: Colors.grey[200],
-                          child: const Icon(Icons.person, color: Colors.grey),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          doctor['name'],
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          doctor['specialty'],
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Row(
-                          children: [
-                            const Icon(Icons.star, color: Colors.amber, size: 14),
-                            const SizedBox(width: 2),
-                            Text(
-                              '${doctor['rating']}',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '(${doctor['reviews']})',
-                              style: const TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  // ✅ عرض منتجات الصيدلية
-  Widget _buildProductsRow() {
-    return SizedBox(
-      height: 200,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: _products.length,
-        itemBuilder: (context, index) {
-          final product = _products[index];
-          return GestureDetector(
-            onTap: () => _goTo(context, const MedicinesScreen()),
-            child: Container(
-              width: 150,
-              margin: const EdgeInsets.only(right: 10),
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.asset(
-                      product['image'],
-                      height: 80,
-                      width: 80,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          height: 80,
-                          width: 80,
-                          color: Colors.grey[200],
-                          child: const Icon(Icons.medication, color: Colors.grey),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    product['name'],
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      product['category'],
-                      style: const TextStyle(fontSize: 9, color: Colors.grey),
-                    ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    '${product['price']} ر.ي',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: Color(0xFF0D5257),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  // ✅ عرض النصائح اليومية
-  Widget _buildDailyTipsGrid() {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        childAspectRatio: 1.2,
-      ),
-      itemCount: _dailyTips.length,
-      itemBuilder: (context, index) {
-        final tip = _dailyTips[index];
-        final color = tip['color'] as Color;
-        return Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.08),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: color.withOpacity(0.2)),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(tip['icon'] as IconData, color: color, size: 28),
-              const SizedBox(height: 8),
-              Text(
-                tip['title'] as String,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                ),
-              ),
-              Text(
-                tip['subtitle'] as String,
-                style: const TextStyle(
-                  fontSize: 10,
-                  color: Colors.grey,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  // ✅ عرض المختبرات المميزة
-  Widget _buildFeaturedLabsRow(bool isDark) {
-    return SizedBox(
-      height: 120,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: _featuredLabs.length,
-        itemBuilder: (context, index) {
-          final lab = _featuredLabs[index];
-          return GestureDetector(
-            onTap: () => _goToLabDetails(context, lab),
-            child: Container(
-              width: 250,
-              margin: const EdgeInsets.only(right: 12),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1A2540) : Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-                border: Border.all(
-                  color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Image.asset(
-                      lab['image'] as String,
-                      width: 50,
-                      height: 50,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          width: 50,
-                          height: 50,
-                          color: Colors.purple.withOpacity(0.1),
-                          child: const Icon(Icons.science, color: Colors.purple, size: 25),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          lab['name'] as String,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: isDark ? Colors.white : Colors.black87,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 2),
-                        Row(
-                          children: [
-                            Icon(Icons.location_on, size: 12, color: Colors.grey[500]),
-                            const SizedBox(width: 4),
-                            Expanded(
-                              child: Text(
-                                lab['location'] as String,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: isDark ? Colors.grey[400] : Colors.grey[600],
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            Icon(Icons.star, size: 12, color: Colors.amber),
-                            const SizedBox(width: 2),
-                            Text(
-                              '${lab['rating']}',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: isDark ? Colors.white : Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                              decoration: BoxDecoration(
-                                color: (lab['open'] as bool) ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                (lab['open'] as bool) ? 'مفتوح' : 'مغلق',
-                                style: TextStyle(
-                                  fontSize: 9,
-                                  color: (lab['open'] as bool) ? Colors.green : Colors.red,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  // ✅ عرض المستشفيات المميزة
-  Widget _buildFeaturedHospitalsRow(bool isDark) {
-    return SizedBox(
-      height: 160,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: _featuredHospitals.length,
-        itemBuilder: (context, index) {
-          final hospital = _featuredHospitals[index];
-          return GestureDetector(
-            onTap: () => _goToHospitalDetails(context, hospital),
-            child: Container(
-              width: 200,
-              margin: const EdgeInsets.only(right: 12),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                image: DecorationImage(
-                  image: AssetImage(hospital['image'] as String),
-                  fit: BoxFit.cover,
-                  onError: (exception, stackTrace) {},
-                ),
-              ),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: [
-                      Colors.black.withOpacity(0.7),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-                padding: const EdgeInsets.all(12),
-                alignment: Alignment.bottomRight,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      hospital['name'] as String,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(Icons.location_on, color: Colors.white70, size: 14),
-                        const SizedBox(width: 4),
-                        Text(
-                          hospital['location'] as String,
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        const Icon(Icons.star, color: Colors.amber, size: 12),
-                        const SizedBox(width: 2),
-                        Text(
-                          '${hospital['rating']}',
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  // ✅ تفاصيل المختبر
-  void _goToLabDetails(BuildContext context, Map<String, dynamic> lab) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Center(
-              child: Container(
-                width: 50,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.asset(
-                    lab['image'] as String,
-                    width: 60,
-                    height: 60,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        width: 60,
-                        height: 60,
-                        color: Colors.purple.withOpacity(0.1),
-                        child: const Icon(Icons.science, color: Colors.purple, size: 30),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        lab['name'] as String,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(Icons.location_on, size: 14, color: Colors.grey[600]),
-                          const SizedBox(width: 4),
-                          Text(
-                            lab['location'] as String,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Icon(Icons.star, size: 14, color: Colors.amber),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${lab['rating']}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: (lab['open'] as bool) ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              (lab['open'] as bool) ? 'مفتوح' : 'مغلق',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: (lab['open'] as bool) ? Colors.green : Colors.red,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const Divider(),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                const Icon(Icons.phone, size: 16, color: Colors.grey),
-                const SizedBox(width: 8),
-                Text(
-                  lab['phone'] as String,
-                  style: const TextStyle(fontSize: 14),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const LabsListScreen(),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text('عرض جميع المختبرات'),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ✅ تفاصيل المستشفى
-  void _goToHospitalDetails(BuildContext context, Map<String, dynamic> hospital) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Center(
-              child: Container(
-                width: 50,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.asset(
-                    hospital['image'] as String,
-                    width: 60,
-                    height: 60,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        width: 60,
-                        height: 60,
-                        color: Colors.red.withOpacity(0.1),
-                        child: const Icon(Icons.local_hospital, color: Colors.red, size: 30),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        hospital['name'] as String,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(Icons.location_on, size: 14, color: Colors.grey[600]),
-                          const SizedBox(width: 4),
-                          Text(
-                            hospital['location'] as String,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Icon(Icons.star, size: 14, color: Colors.amber),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${hospital['rating']}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: AppColors.primary.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              hospital['specialty'] as String,
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const Divider(),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                const Icon(Icons.phone, size: 16, color: Colors.grey),
-                const SizedBox(width: 8),
-                Text(
-                  hospital['phone'] as String,
-                  style: const TextStyle(fontSize: 14),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('جاري حجز موعد...'),
-                          backgroundColor: AppColors.primary,
-                        ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text('حجز موعد'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const HospitalScreen(),
-                        ),
-                      );
-                    },
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text('عرض الكل'),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ✅ عرض منشورات المجتمع
-  Widget _buildCommunityPostCard(Map<String, dynamic> post, int index, bool isDark) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2540) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundColor: AppColors.primary.withOpacity(0.1),
-                  child: Text(
-                    post['author'][0],
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        post['author'],
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                      ),
-                      Text(
-                        post['time'],
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: isDark ? Colors.grey[400] : Colors.grey[600],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  icon: Icon(Icons.more_horiz, color: isDark ? Colors.grey[400] : Colors.grey[600]),
-                  onPressed: () {},
-                ),
-              ],
-            ),
-          ),
-          ClipRRect(
-            child: Image.asset(
-              post['image'],
-              height: 200,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 200,
-                  color: isDark ? Colors.grey[800] : Colors.grey[200],
-                  child: const Icon(Icons.image, color: Colors.grey, size: 40),
-                );
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () => _toggleLike(index),
-                  child: Icon(
-                    post['liked'] ? Icons.favorite : Icons.favorite_border,
-                    color: post['liked'] ? Colors.red : (isDark ? Colors.grey[400] : Colors.grey[600]),
-                    size: 26,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  '${post['likes']}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(width: 16),
-                GestureDetector(
-                  onTap: () => _showComments(index),
-                  child: Icon(
-                    Icons.chat_bubble_outline,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  '${post['comments']}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(width: 16),
-                GestureDetector(
-                  onTap: () => _sharePost(index),
-                  child: Icon(
-                    Icons.repeat,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  '${post['shares']}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  ),
-                ),
-                const Spacer(),
-                Icon(
-                  Icons.bookmark_border,
-                  color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  size: 24,
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  post['title'],
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  post['content'],
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: isDark ? Colors.grey[300] : Colors.grey[700],
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: GestureDetector(
-              onTap: () => _showComments(index),
-              child: Text(
-                'عرض جميع التعليقات (${post['comments']})',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: isDark ? Colors.grey[500] : Colors.grey[400],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
