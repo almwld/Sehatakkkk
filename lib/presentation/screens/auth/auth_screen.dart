@@ -262,8 +262,8 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   void _showMessage(String message, bool isError) {
-    SnackBarHelper.showError(context, 
-      SnackBarHelper.showSuccess(context, 
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
         content: Text(message),
         backgroundColor: isError ? Colors.red : Colors.green,
         duration: const Duration(seconds: 3),
@@ -295,7 +295,7 @@ class _AuthScreenState extends State<AuthScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
                 
                 // ✅ النصوص الترحيبية
                 Text(
@@ -308,7 +308,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 6),
+                SizedBox(height: 6),
                 Text(
                   widget.isSignUp 
                       ? 'اختر مهنتك وأدخل بياناتك للانضمام'
@@ -320,7 +320,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 30),
+                SizedBox(height: 30),
 
                 // ============================================================
                 // 🔐 تسجيل الدخول - تبويب مستخدم / طبيب
@@ -357,7 +357,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 35),
+                  SizedBox(height: 35),
                 ],
 
                 // ============================================================
@@ -399,7 +399,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                       color: isSelected ? color : Colors.grey,
                                       size: 16,
                                     ),
-                                    const SizedBox(width: 4),
+                                    SizedBox(width: 4),
                                     Text(
                                       role['name'] as String,
                                       style: TextStyle(
@@ -418,7 +418,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 30),
+                  SizedBox(height: 30),
                 ],
 
                 // ============================================================
@@ -431,7 +431,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     icon: Icons.person_outline,
                     isDark: isDark,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                 ],
 
                 _buildTextField(
@@ -441,7 +441,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   isDark: isDark,
                   keyboardType: TextInputType.emailAddress,
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
 
                 if (widget.isSignUp) ...[
                   _buildTextField(
@@ -451,7 +451,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     isDark: isDark,
                     keyboardType: TextInputType.phone,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                 ],
 
                 // ============================================================
@@ -465,7 +465,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       icon: Icons.medical_services_outlined,
                       isDark: isDark,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     _buildTextField(
                       controller: _experienceController,
                       label: 'سنوات الخبرة',
@@ -473,14 +473,14 @@ class _AuthScreenState extends State<AuthScreen> {
                       isDark: isDark,
                       keyboardType: TextInputType.number,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     _buildTextField(
                       controller: _licenseController,
                       label: 'رقم الترخيص',
                       icon: Icons.verified_outlined,
                       isDark: isDark,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                   ],
                   if (_selectedRole == 'pharmacist') ...[
                     _buildTextField(
@@ -489,14 +489,14 @@ class _AuthScreenState extends State<AuthScreen> {
                       icon: Icons.local_pharmacy_outlined,
                       isDark: isDark,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     _buildTextField(
                       controller: _pharmacyLicenseController,
                       label: 'رقم الترخيص',
                       icon: Icons.verified_outlined,
                       isDark: isDark,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                   ],
                   if (_selectedRole == 'lab_tech') ...[
                     _buildTextField(
@@ -505,14 +505,14 @@ class _AuthScreenState extends State<AuthScreen> {
                       icon: Icons.science_outlined,
                       isDark: isDark,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     _buildTextField(
                       controller: _labLicenseController,
                       label: 'رقم الترخيص',
                       icon: Icons.verified_outlined,
                       isDark: isDark,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                   ],
                   if (_selectedRole == 'delivery') ...[
                     _buildTextField(
@@ -521,14 +521,14 @@ class _AuthScreenState extends State<AuthScreen> {
                       icon: Icons.directions_car_outlined,
                       isDark: isDark,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     _buildTextField(
                       controller: _areaController,
                       label: 'منطقة التوصيل',
                       icon: Icons.map_outlined,
                       isDark: isDark,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                   ],
                 ],
 
@@ -536,7 +536,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 // 🔑 كلمة المرور
                 // ============================================================
                 _buildPasswordField(isDark, primaryColor),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
 
                 if (widget.isSignUp) ...[
                   _buildTextField(
@@ -546,7 +546,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     isDark: isDark,
                     obscureText: true,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                 ],
 
                 // ============================================================
@@ -575,7 +575,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         ],
                       ),
                       TextButton(
-                        onPressed: _showForgotPasswordDialog,
+                        onPressed: () {},
                         child: Text(
                           'نسيت كلمة المرور؟',
                           style: TextStyle(
@@ -587,7 +587,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                 ],
 
                 // ============================================================
@@ -630,7 +630,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                 ],
 
                 // ============================================================
@@ -662,7 +662,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           ),
                   ),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
 
                 // ============================================================
                 // 👤 تصفح كضيف (للدخول فقط)
@@ -679,35 +679,23 @@ class _AuthScreenState extends State<AuthScreen> {
                         ),
                         foregroundColor: isDark ? Colors.white : Colors.black87,
                       ),
-                      child: const Text(
+                      child: Text(
                         'تصفح كضيف',
                         style: TextStyle(fontSize: 15, fontFamily: 'NotoSansArabicUI'),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
 
                   // ============================================================
                   // 🔗 أزرار التواصل الاجتماعي
                   // ============================================================
-                  const Text(
+                  Text(
                     'أو سجل الدخول عبر',
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildSocialButton(
-                        icon: Icons.g_mobiledata,
-                        label: Google,
-                        onTap: _loginWithGoogle,
-                        isDark: isDark,
-                      ),
-                    ],
-                  ),
                     style: TextStyle(fontSize: 12, color: Colors.grey, fontFamily: 'NotoSansArabicUI'),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -716,7 +704,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         onTap: () {},
                         isDark: isDark,
                       ),
-                      const SizedBox(width: 20),
+                      SizedBox(width: 20),
                       _buildSocialButton(
                         icon: Icons.apple,
                         onTap: () {},
@@ -724,7 +712,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 30),
+                  SizedBox(height: 30),
                 ],
 
                 // ============================================================
@@ -741,7 +729,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         fontFamily: 'NotoSansArabicUI',
                       ),
                     ),
-                    const SizedBox(width: 4),
+                    SizedBox(width: 4),
                     GestureDetector(
                       onTap: () {
                         Navigator.pushReplacement(
@@ -762,7 +750,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
               ],
             ),
           ),
@@ -806,7 +794,7 @@ class _AuthScreenState extends State<AuthScreen> {
               color: isSelected ? primaryColor : Colors.grey, // ✅ لون أساسي عند التحديد
               size: 22,
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: 4),
             Text(
               title,
               style: TextStyle(
@@ -947,9 +935,17 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 }
 
-  // ============================================================
-  // 🔐 تسجيل الدخول بـ Google
-  // ============================================================
+  void _showMessage(String message, bool isError) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : Colors.green,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+  // ✅ تسجيل الدخول بـ Google
   Future<void> _loginWithGoogle() async {
     setState(() => _isLoading = true);
     try {
@@ -971,69 +967,5 @@ class _AuthScreenState extends State<AuthScreen> {
       _showMessage('حدث خطأ في تسجيل الدخول بـ Google', true);
     } finally {
       if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  // ============================================================
-  // 🔑 شاشة "نسيت كلمة المرور"
-  // ============================================================
-  void _showForgotPasswordDialog() {
-    final TextEditingController emailController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('نسيت كلمة المرور'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة تعيين كلمة المرور',
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: emailController,
-              decoration: InputDecoration(
-                labelText: 'البريد الإلكتروني',
-                hintText: 'example@email.com',
-                prefixIcon: const Icon(Icons.email),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              keyboardType: TextInputType.emailAddress,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
-          ElevatedButton(
-            onPressed: () {
-              _sendPasswordResetEmail(emailController.text.trim());
-              Navigator.pop(context);
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-            child: const Text('إرسال'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _sendPasswordResetEmail(String email) async {
-    if (email.isEmpty) {
-      _showMessage('يرجى إدخال البريد الإلكتروني', true);
-      return;
-    }
-    try {
-      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
-      _showMessage('✅ تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني', false);
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found') {
-        _showMessage('❌ هذا البريد الإلكتروني غير مسجل', true);
-      } else {
-        _showMessage('❌ حدث خطأ: ${e.message}', true);
-      }
-    } catch (e) {
-      _showMessage('❌ حدث خطأ: $e', true);
     }
   }
