@@ -23,7 +23,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
   final ScrollController _scrollController = ScrollController();
   double _appBarOpacity = 1.0;
 
-  // ✅ بيانات المريض (مؤقتة - سيتم جلبها من Firebase لاحقاً)
+  // ✅ بيانات المريض
   final Map<String, dynamic> _patientData = {
     'name': 'أحمد محمد',
     'age': 35,
@@ -95,7 +95,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
       body: CustomScrollView(
         controller: _scrollController,
         slivers: [
-          // ✅ AppBar يختفي تدريجياً
+          // ✅ AppBar
           SliverAppBar(
             expandedHeight: 120,
             floating: true,
@@ -114,7 +114,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
                     children: [
                       Row(
                         children: [
-                          // ✅ صورة الملف الشخصي
                           GestureDetector(
                             onTap: () {
                               Navigator.push(
@@ -208,19 +207,23 @@ class _PatientDashboardState extends State<PatientDashboard> {
                 _vitalsGrid(),
                 const SizedBox(height: 20),
 
-                // 3️⃣ الخدمات الصحية
+                // ✅ ✅ ✅ 3️⃣ قسم الباقات والاشتراكات (الجديد)
+                _buildPackagesSection(isDark),
+                const SizedBox(height: 20),
+
+                // 4️⃣ الخدمات الصحية
                 _sectionTitle('خدمات صحية', isDark),
                 const SizedBox(height: 10),
                 _healthServices(),
                 const SizedBox(height: 20),
 
-                // 4️⃣ آخر المواعيد
+                // 5️⃣ آخر المواعيد
                 _sectionTitle('آخر المواعيد', isDark),
                 const SizedBox(height: 10),
                 _buildAppointmentsList(isDark),
                 const SizedBox(height: 20),
 
-                // 5️⃣ آخر النتائج
+                // 6️⃣ آخر النتائج
                 _sectionTitle('آخر النتائج', isDark),
                 const SizedBox(height: 10),
                 _buildResultsList(isDark),
@@ -283,6 +286,166 @@ class _PatientDashboardState extends State<PatientDashboard> {
           child: const Text('عرض الكل'),
         ),
       ],
+    );
+  }
+
+  // ✅ 3️⃣ قسم الباقات والاشتراكات
+  Widget _buildPackagesSection(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [AppColors.primary, AppColors.primaryDark],
+        ),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.card_membership,
+                  color: Colors.white,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'اشترك في الباقات',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      'احصل على مميزات حصرية',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_left, color: Colors.white),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Column(
+                    children: [
+                      Text(
+                        'الباقة الفضية',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        '4,900 ريال',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        'شهرياً',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.amber.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: AppColors.amber,
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.amber,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'الأكثر شيوعاً',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 8,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'الباقة الذهبية',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        '7,900 ريال',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const Text(
+                        'شهرياً',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
