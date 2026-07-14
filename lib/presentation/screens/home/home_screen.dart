@@ -28,7 +28,7 @@ import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
 import 'package:sehatak/presentation/screens/blood_donation/blood_donation_screen.dart';
 import 'package:sehatak/presentation/screens/medication/medicines_screen.dart';
 import 'package:sehatak/presentation/screens/medication/medicines_screen.dart';
-import 'package:sehatak/presentation/screens/hospital/hospital_screen.dart';
+
 
 // ============================================================
 // 📱 HomeScreen - الشاشة الرئيسية مع شريط سفلي متحرك
@@ -650,7 +650,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                     const SizedBox(height: 24),
 
                     // 8️⃣ المستشفيات المميزة
-                    _buildSectionTitleWithAction('مستشفيات مميزة', isDark, 'عرض الكل', () => _goTo(context, const HospitalScreen())),
+                    _buildSectionTitleWithAction('مستشفيات مميزة', isDark, 'عرض الكل', () => _goTo(context, const EmergencyNumbers())),
                     const SizedBox(height: 10),
                     _buildFeaturedHospitalsRow(),
                     const SizedBox(height: 24),
