@@ -220,47 +220,52 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   Widget _buildChatButton() {
     final selected = _currentIndex == 3;
-    return GestureDetector(
-      onTap: () => _onTabTap(3),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          Transform.translate(
-            offset: const Offset(0, -28),
-            child: Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppColors.primary, AppColors.primaryDark],
-                ),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withOpacity(0.45),
-                    blurRadius: 14,
-                    offset: const Offset(0, 4),
+    return SizedBox(
+      width: 48,
+      height: 60,
+      child: GestureDetector(
+        onTap: () => _onTabTap(3),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Transform.translate(
+              offset: const Offset(0, -28),
+              child: Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppColors.primary, AppColors.primaryDark],
                   ),
-                ],
-              ),
-              child: const Icon(
-                Icons.chat_rounded,
-                color: Colors.white,
-                size: 32,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.45),
+                      blurRadius: 14,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.chat_rounded,
+                  color: Colors.white,
+                  size: 32,
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            'الدردشة',
-            style: TextStyle(
-              fontSize: 9,
-              fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-              color: selected ? AppColors.primary : Colors.grey,
+            const SizedBox(height: 2),
+            Text(
+              'الدردشة',
+              style: TextStyle(
+                fontSize: 9,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                color: selected ? AppColors.primary : Colors.grey,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 7),
+          ],
+        ),
       ),
     );
   }
