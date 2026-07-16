@@ -382,10 +382,10 @@ class _MoreScreenState extends State<MoreScreen> {
                 elevation: 0,
               ),
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('🔬 جاري تطوير العيادة الذكية'),
-                    backgroundColor: Colors.orange,
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AIChatbotScreen(),
                   ),
                 );
               },
@@ -661,28 +661,28 @@ class _MoreScreenState extends State<MoreScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AIChatbotScreen(),
-                      ),
-                    );
-                  },
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AIChatbotScreen(),
+                  ),
+                );
+              },
             child: Text(
               'إلغاء',
               style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[700]),
             ),
           ),
           TextButton(
-            onPressed: () {
-              FirebaseAuth.instance.signOut();
-              Navigator.pop(context);
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (_) => const AuthScreen()),
-              );
-            },
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AIChatbotScreen(),
+                  ),
+                );
+              },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: Text('تسجيل الخروج'),
           ),
