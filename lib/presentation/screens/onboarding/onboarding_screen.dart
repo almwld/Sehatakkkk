@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:lottie/lottie.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import package:sehatak/presentation/screens/auth/auth_screen.dart;
-import 'package:sehatak/presentation/screens/auth/register_screen.dart';
+import 'auth_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -12,246 +12,295 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  final PageController _pageController = PageController();
-  int _currentPage = 0;
-  bool _isLastPage = false;
+  final PageController _pageCtrl = PageController();
+  int _page = 0;
 
-  final List<Map<String, dynamic>> _onboardingData = [
+  final List<Map<String, dynamic>> _pages = [
     {
-      'title': 'مرحباً بك في صحتك',
-      'subtitle': 'منصتك الصحية الشاملة للرعاية الطبية المتكاملة',
-      'icon': '🏥',
-      'color': AppColors.primary,
-      'description': 'احصل على أفضل الخدمات الصحية في مكان واحد',
+      'lottie': 'assets/animations/sehatak_animation.json',
+      'title': 'صحتك أولاً',
+      'desc': 'منصة الرعاية الصحية الشاملة\nاستشر الأطباء واحجز مواعيدك بسهولة\nمن أي مكان وفي أي وقت',
+      'gradient': AppColors.primaryGradient,
     },
     {
-      'title': 'استشارات طبية',
-      'subtitle': 'تواصل مع أفضل الأطباء عن بُعد',
-      'icon': '👨‍⚕️',
-      'color': AppColors.info,
-      'description': 'استشارات فورية عبر الفيديو والصوت والنص',
+      'lottie': 'assets/animations/sehatak_animation.json',
+      'title': 'صيدلية متكاملة',
+      'desc': 'اطلب أدويتك واستلمها لمنزلك\nمع توصيل سريع وآمن\nخصومات وعروض يومية',
+      'gradient': AppColors.secondaryGradient,
     },
     {
-      'title': 'صيدلية رقمية',
-      'subtitle': 'اطلب أدويتك أونلاين ووصلها لبابك',
-      'icon': '💊',
-      'color': AppColors.success,
-      'description': 'أكثر من 100 دواء ومستلزمات صحية',
-    },
-    {
-      'title': 'ملف صحي متكامل',
-      'subtitle': 'تتبع صحتك وسجلها في مكان آمن',
-      'icon': '📋',
-      'color': AppColors.purple,
-      'description': 'سجلك الطبي، التحاليل، التطعيمات، والأدوية',
-    },
-    {
-      'title': 'جاهز للانطلاق!',
-      'subtitle': 'انضم إلى مجتمع صحتك الآن',
-      'icon': '🚀',
-      'color': AppColors.amber,
-      'description': 'ابدأ رحلتك الصحية معنا اليوم',
+      'lottie': 'assets/animations/sehatak_animation.json',
+      'title': 'رعاية متواصلة',
+      'desc': 'متابعة صحية شاملة وتحاليل مخبرية\nوخدمات طوارئ على مدار الساعة\nملف طبي متكامل لتاريخك الصحي',
+      'gradient': AppColors.medicalGradient,
     },
   ];
 
-  @override
-  void initState() {
-    super.initState();
-    _checkOnboardingStatus();
+  Future<void> _finishOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('hasSeenOnboarding', true);
+    Navigator.pushReplacement(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => const AuthScreen(),
+        transitionsBuilder: (_, anim, __, child) =>
+            FadeTransition(opacity: anim, child: child),
+        transitionDuration: const Duration(milliseconds: 500),
+      ),
+    );
   }
 
-  Future<void> _checkOnboardingStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    final seen = prefs.getBool('onboarding_seen') ?? false;
-    if (seen) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const AuthScreen()),
+  void _next() {
+    if (_page < _pages.length - 1) {
+      _pageCtrl.nextPage(
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeInOut,
       );
+    } else {
+      _finishOnboarding();
     }
   }
 
-  Future<void> _completeOnboarding() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('onboarding_seen', true);
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const AuthScreen()),
-    );
+  void _skip() {
+    _finishOnboarding();
+  }
+
+  @override
+  void dispose() {
+    _pageCtrl.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final colors = _pages[_page]['gradient'] as List<Color>;
     return Scaffold(
-      body: Stack(
-        children: [
-          // ✅ الخلفية
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  (_onboardingData[_currentPage]['color'] as Color).withOpacity(0.1),
-                  Colors.white,
-                ],
-              ),
-            ),
+      body: AnimatedContainer(
+        duration: const Duration(milliseconds: 600),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: colors,
           ),
-          // ✅ محتوى Onboarding
-          Column(
+        ),
+        child: SafeArea(
+          child: Column(
             children: [
+              // ✅ شريط التقدم + تخطي
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: List.generate(
+                          _pages.length,
+                          (i) => Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 3),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 300),
+                                height: 4,
+                                decoration: BoxDecoration(
+                                  color: _page == i
+                                      ? Colors.white
+                                      : Colors.white.withOpacity(0.3),
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${_page + 1}/${_pages.length}',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.8),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    GestureDetector(
+                      onTap: _skip,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.2),
+                          ),
+                        ),
+                        child: const Text(
+                          'تخطي',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // ✅ المحتوى مع Lottie
               Expanded(
                 child: PageView.builder(
-                  controller: _pageController,
-                  onPageChanged: (index) {
-                    setState(() {
-                      _currentPage = index;
-                      _isLastPage = index == _onboardingData.length - 1;
-                    });
+                  controller: _pageCtrl,
+                  onPageChanged: (i) => setState(() => _page = i),
+                  itemCount: _pages.length,
+                  itemBuilder: (_, i) {
+                    final p = _pages[i];
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // ✅ Lottie Animation
+                        TweenAnimationBuilder<double>(
+                          tween: Tween(begin: 0.0, end: 1.0),
+                          duration: const Duration(milliseconds: 800),
+                          builder: (_, v, __) {
+                            return Transform.scale(
+                              scale: v,
+                              child: Container(
+                                width: 200,
+                                height: 200,
+                                child: Lottie.asset(
+                                  p['lottie'] as String,
+                                  fit: BoxFit.contain,
+                                  repeat: true,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      width: 150,
+                                      height: 150,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.1),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.health_and_safety,
+                                        size: 60,
+                                        color: Colors.white,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 40),
+                        // ✅ العنوان
+                        TweenAnimationBuilder<double>(
+                          tween: Tween(begin: 20.0, end: 0.0),
+                          duration: const Duration(milliseconds: 600),
+                          builder: (_, v, __) {
+                            return Transform.translate(
+                              offset: Offset(0, v),
+                              child: Opacity(
+                                opacity: 1 - (v / 20),
+                                child: Text(
+                                  p['title'] as String,
+                                  style: const TextStyle(
+                                    fontSize: 34,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    fontFamily: 'Cairo',
+                                    letterSpacing: 1,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 20),
+                        // ✅ الوصف
+                        TweenAnimationBuilder<double>(
+                          tween: Tween(begin: 30.0, end: 0.0),
+                          duration: const Duration(milliseconds: 800),
+                          builder: (_, v, __) {
+                            return Transform.translate(
+                              offset: Offset(0, v),
+                              child: Opacity(
+                                opacity: 1 - (v / 30),
+                                child: Text(
+                                  p['desc'] as String,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.white.withOpacity(0.8),
+                                    height: 1.8,
+                                    fontFamily: 'Cairo',
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    );
                   },
-                  itemCount: _onboardingData.length,
-                  itemBuilder: (context, index) {
-                    final data = _onboardingData[index];
-                    return _buildOnboardingPage(data, index);
-                  },
                 ),
               ),
-              // ✅ أزرار التنقل
-              _buildBottomNavigation(),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildOnboardingPage(Map<String, dynamic> data, int index) {
-    final color = data['color'] as Color;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // ✅ أيقونة كبيرة
-          Container(
-            width: 120,
-            height: 120,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: color.withOpacity(0.2),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Center(
-              child: Text(
-                data['icon'],
-                style: const TextStyle(fontSize: 60),
-              ),
-            ),
-          ),
-          const SizedBox(height: 40),
-          // ✅ العنوان
-          Text(
-            data['title'],
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 12),
-          // ✅ النص الفرعي
-          Text(
-            data['subtitle'],
-            style: const TextStyle(
-              fontSize: 16,
-              color: AppColors.grey,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 20),
-          // ✅ الوصف
-          Text(
-            data['description'],
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppColors.darkGrey,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBottomNavigation() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // ✅ نقاط التقدم
-          Row(
-            children: List.generate(
-              _onboardingData.length,
-              (index) => AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                width: _currentPage == index ? 24 : 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: _currentPage == index
-                      ? AppColors.primary
-                      : AppColors.grey.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-            ),
-          ),
-          // ✅ أزرار التنقل
-          Row(
-            children: [
-              if (!_isLastPage)
-                TextButton(
-                  onPressed: _completeOnboarding,
-                  child: const Text(
-                    'تخطي',
-                    style: TextStyle(color: AppColors.grey),
-                  ),
-                ),
-              const SizedBox(width: 8),
-              ElevatedButton(
-                onPressed: _isLastPage
-                    ? _completeOnboarding
-                    : () {
-                        _pageController.nextPage(
-                          duration: const Duration(milliseconds: 400),
-                          curve: Curves.easeInOut,
-                        );
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _isLastPage ? AppColors.success : AppColors.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                ),
-                child: Text(
-                  _isLastPage ? 'ابدأ' : 'التالي',
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              // ✅ زر التالي/ابدأ
+              Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: ElevatedButton(
+                        onPressed: _next,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: colors[0],
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              _page == _pages.length - 1 ? 'ابدأ الآن' : 'التالي',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Cairo',
+                              ),
+                            ),
+                            if (_page < _pages.length - 1) ...[
+                              const SizedBox(width: 8),
+                              Icon(
+                                Icons.arrow_forward_ios,
+                                size: 16,
+                                color: colors[0],
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
