@@ -17,7 +17,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
-  late Animation<double> _rotateAnimation;
 
   @override
   void initState() {
@@ -29,10 +28,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeIn),
     );
-    _scaleAnimation = Tween<double>(begin: 0.3, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
-    );
-    _rotateAnimation = Tween<double>(begin: -0.5, end: 0).animate(
+    _scaleAnimation = Tween<double>(begin: 0.5, end: 1).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
     );
     _controller.forward();
@@ -83,41 +79,38 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               return Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // ✅ شعار متحرك مع Lottie
+                  // ✅ الشعار المتحرك (Lottie)
                   Opacity(
                     opacity: _fadeAnimation.value,
                     child: Transform.scale(
                       scale: _scaleAnimation.value,
-                      child: Transform.rotate(
-                        angle: _rotateAnimation.value,
-                        child: Container(
-                          width: 140,
-                          height: 140,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(40),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.white.withOpacity(0.3),
-                                blurRadius: 30,
-                                spreadRadius: 10,
-                              ),
-                            ],
-                          ),
-                          child: Lottie.asset(
-                            'assets/animations/health_animation.json',
-                            width: 100,
-                            height: 100,
-                            fit: BoxFit.contain,
-                            repeat: true,
-                            errorBuilder: (context, error, stackTrace) {
-                              return const Icon(
-                                Icons.health_and_safety,
-                                size: 60,
-                                color: Color(0xFF00796B),
-                              );
-                            },
-                          ),
+                      child: Container(
+                        width: 200,
+                        height: 200,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(40),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.white.withOpacity(0.3),
+                              blurRadius: 30,
+                              spreadRadius: 10,
+                            ),
+                          ],
+                        ),
+                        child: Lottie.asset(
+                          'assets/animations/sehatak_animation.json',
+                          width: 180,
+                          height: 180,
+                          fit: BoxFit.contain,
+                          repeat: true,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(
+                              Icons.health_and_safety,
+                              size: 80,
+                              color: Color(0xFF00796B),
+                            );
+                          },
                         ),
                       ),
                     ),
