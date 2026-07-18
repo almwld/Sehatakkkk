@@ -9,7 +9,8 @@ mixin BottomBarVisibilityMixin<T extends StatefulWidget> on State<T> {
     scrollController = ScrollController();
 
     scrollController.addListener(() {
-      final homeState = context.findAncestorStateOfType<_HomeScreenState>();
+      // البحث عن الـ HomeScreenState
+      final homeState = context.findAncestorStateOfType<HomeScreenState>();
       if (homeState == null) return;
 
       if (scrollController.position.userScrollDirection == ScrollDirection.reverse) {

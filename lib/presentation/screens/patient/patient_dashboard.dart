@@ -1,4 +1,3 @@
-import "package:sehatak/utils/bottom_bar_visibility_mixin.dart";
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -17,7 +16,7 @@ class PatientDashboard extends StatefulWidget {
   const PatientDashboard({super.key});
 
   @override
-  State<PatientDashboard> with BottomBarVisibilityMixin createState() => _PatientDashboardState();
+  State<PatientDashboard> createState() => _PatientDashboardState();
 }
 
 class _PatientDashboardState extends State<PatientDashboard> with BottomBarVisibilityMixin {
@@ -100,7 +99,6 @@ class _PatientDashboardState extends State<PatientDashboard> with BottomBarVisib
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       body: CustomScrollView(
         controller: scrollController,
-        controller: _scrollController,
         slivers: [
           // ✅ AppBar
           SliverAppBar(

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/image_service.dart';
 import 'package:sehatak/utils/image_utils.dart';
-import 'package:sehatak/utils/bottom_bar_visibility_mixin.dart';
 
 class LabsListScreen extends StatefulWidget {
   const LabsListScreen({super.key});

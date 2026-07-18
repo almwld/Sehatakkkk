@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sehatak/utils/bottom_bar_visibility_mixin.dart';
 
 class PharmacyScreen extends StatefulWidget {
   const PharmacyScreen({super.key});

@@ -1,4 +1,3 @@
-import "package:sehatak/utils/bottom_bar_visibility_mixin.dart";
 import 'package:sehatak/presentation/screens/ai/ai_chatbot_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -52,7 +51,7 @@ class MoreScreen extends StatefulWidget {
   const MoreScreen({super.key});
 
   @override
-  State<MoreScreen> with BottomBarVisibilityMixin createState() => _MoreScreenState();
+  State<MoreScreen> createState() => _MoreScreenState();
 }
 
 class _MoreScreenState extends State<MoreScreen> with BottomBarVisibilityMixin {
@@ -183,7 +182,6 @@ class _MoreScreenState extends State<MoreScreen> with BottomBarVisibilityMixin {
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       body: CustomScrollView(
         controller: scrollController,
-        controller: _scrollController,
         slivers: [
           SliverAppBar(
             expandedHeight: 100 * fontScale,
