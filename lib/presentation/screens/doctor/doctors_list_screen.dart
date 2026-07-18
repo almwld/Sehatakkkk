@@ -1,3 +1,4 @@
+import "package:sehatak/utils/bottom_bar_visibility_mixin.dart";
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
@@ -9,10 +10,10 @@ class DoctorsListScreen extends StatefulWidget {
   const DoctorsListScreen({super.key});
 
   @override
-  State<DoctorsListScreen> createState() => _DoctorsListScreenState();
+  State<DoctorsListScreen> with BottomBarVisibilityMixin createState() => _DoctorsListScreenState();
 }
 
-class _DoctorsListScreenState extends State<DoctorsListScreen> {
+class _DoctorsListScreenState extends State<DoctorsListScreen> with BottomBarVisibilityMixin {
   String _searchQuery = '';
   String _selectedSpecialty = 'الكل';
   String _selectedSort = 'التقييم';

@@ -1,3 +1,4 @@
+import "package:sehatak/utils/bottom_bar_visibility_mixin.dart";
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -16,10 +17,10 @@ class PatientDashboard extends StatefulWidget {
   const PatientDashboard({super.key});
 
   @override
-  State<PatientDashboard> createState() => _PatientDashboardState();
+  State<PatientDashboard> with BottomBarVisibilityMixin createState() => _PatientDashboardState();
 }
 
-class _PatientDashboardState extends State<PatientDashboard> {
+class _PatientDashboardState extends State<PatientDashboard> with BottomBarVisibilityMixin {
   final ScrollController _scrollController = ScrollController();
   double _appBarOpacity = 1.0;
 
@@ -66,6 +67,10 @@ class _PatientDashboardState extends State<PatientDashboard> {
 
   @override
   void initState() {
+    final homeState = context.findAncestorStateOfType<_HomeScreenState>();
+    if (homeState != null) {
+      initBottomBarVisibility(homeState._isBottomBarVisible);
+    }
     super.initState();
     _scrollController.addListener(() {
       final maxScroll = _scrollController.position.maxScrollExtent;
@@ -78,6 +83,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
 
   @override
   void dispose() {
+    disposeBottomBarVisibility();
     _scrollController.dispose();
     super.dispose();
   }
@@ -93,6 +99,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       body: CustomScrollView(
+        controller: scrollController,
         controller: _scrollController,
         slivers: [
           // ✅ AppBar
