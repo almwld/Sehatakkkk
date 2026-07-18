@@ -199,16 +199,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
     return GestureDetector(
       onTap: () => _onTabTap(index),
-      SizedBox(
-  Container(
-    width: 32,
-    height: 3,
-    margin: const EdgeInsets.only(top: 4),
-    decoration: BoxDecoration(
-      color: AppColors.primary,
-      borderRadius: BorderRadius.circular(2),
-    ),
-  )
+      child: SizedBox(
+        width: 48,
         height: 60,
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -246,7 +238,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     final selected = _currentIndex == 3;
     return GestureDetector(
       onTap: () => _onTabTap(3),
-      SizedBox(
+      child: SizedBox(
         width: 56,
         height: 60,
         child: Column(
@@ -326,7 +318,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     {'id': '5', 'name': 'د. فاطمة صديقي', 'specialty': 'نساء وولادة', 'rating': 4.8, 'reviews': 210, 'image': ImageService.doctor5},
   ];
 
-  // ✅ الخدمات السريعة - أيقونات جديدة
   final List<Map<String, dynamic>> _quickServices = [
     {'icon': ImageService.fastPharmacy, 'label': 'صيدلية', 'color': AppColors.success, 'screen': const MedicinesScreen()},
     {'icon': ImageService.fastEmergency, 'label': 'طوارئ', 'color': AppColors.error, 'screen': const EmergencyNumbers()},
@@ -612,7 +603,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
         body: CustomScrollView(
           controller: _scrollController,
           slivers: [
-            // ✅ AppBar
             SliverAppBar(
               expandedHeight: 90,
               floating: true,
@@ -657,11 +647,11 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                         ),
                       ),
                       IconButton(
-                        icon: Image.asset(ImageService.notificationIcon, width: 28, height: 28, errorBuilder: (context, error, stackTrace) => Image.asset(ImageService.notificationIcon, width: 28, height: 28, errorBuilder: (context, error, stackTrace) => Icon(Icons.notifications_outlined, color: primaryColor))),
+                        icon: Image.asset(ImageService.notificationIcon, width: 28, height: 28, errorBuilder: (context, error, stackTrace) => Icon(Icons.notifications_outlined, color: primaryColor)),
                         onPressed: () => _goTo(context, const NotificationsScreen()),
                       ),
                       IconButton(
-                        icon: Image.asset(ImageService.cartIcon, width: 28, height: 28, errorBuilder: (context, error, stackTrace) => Image.asset(ImageService.cartIcon, width: 28, height: 28, errorBuilder: (context, error, stackTrace) => Icon(Icons.shopping_cart_outlined, color: primaryColor))),
+                        icon: Image.asset(ImageService.cartIcon, width: 28, height: 28, errorBuilder: (context, error, stackTrace) => Icon(Icons.shopping_cart_outlined, color: primaryColor)),
                         onPressed: () => _goTo(context, const CartScreen()),
                       ),
                       if (!logged)
@@ -680,7 +670,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                 ),
               ),
             ),
-            // ✅ المحتوى
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               sliver: SliverList(
@@ -745,7 +734,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
       ),
       child: Row(
         children: [
-          Image.asset(ImageService.searchIcon, width: 24, height: 24, errorBuilder: (context, error, stackTrace) => Image.asset(ImageService.searchIcon, width: 24, height: 24, errorBuilder: (context, error, stackTrace) => Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey))),
+          Image.asset(ImageService.searchIcon, width: 24, height: 24, errorBuilder: (context, error, stackTrace) => Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey)),
           const SizedBox(width: 10),
           Expanded(
             child: TextField(
