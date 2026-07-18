@@ -648,11 +648,11 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                         ),
                       ),
                       IconButton(
-                        icon: Icon(Icons.notifications_outlined, color: primaryColor),
+                        icon: Image.asset(ImageService.notificationIcon, width: 28, height: 28, errorBuilder: (context, error, stackTrace) => Icon(Icons.notifications_outlined, color: primaryColor)),
                         onPressed: () => _goTo(context, const NotificationsScreen()),
                       ),
                       IconButton(
-                        icon: Icon(Icons.shopping_cart_outlined, color: primaryColor),
+                        icon: Image.asset(ImageService.cartIcon, width: 28, height: 28, errorBuilder: (context, error, stackTrace) => Icon(Icons.shopping_cart_outlined, color: primaryColor)),
                         onPressed: () => _goTo(context, const CartScreen()),
                       ),
                       if (!logged)
@@ -736,7 +736,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
       ),
       child: Row(
         children: [
-          Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey),
+          Image.asset(ImageService.searchIcon, width: 24, height: 24, errorBuilder: (context, error, stackTrace) => Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey)),
           const SizedBox(width: 10),
           Expanded(
             child: TextField(
