@@ -1,3 +1,4 @@
+import "package:sehatak/utils/image_utils.dart";
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 
