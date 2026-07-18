@@ -108,7 +108,7 @@ class _SplashScreenState extends State<SplashScreen>
                               'assets/animations/sehatak_animation.json',
                               fit: BoxFit.contain,
                               repeat: true,
-                              cacheComposition: true,
+                              
                               errorBuilder: (context, error, stackTrace) {
                                 debugPrint('❌ Lottie Error: $error');
                                 return Icon(
