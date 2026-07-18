@@ -29,15 +29,6 @@ import 'package:sehatak/presentation/screens/blood_donation/blood_donation_scree
 import 'package:sehatak/presentation/screens/medication/medicines_screen.dart';
 import 'package:sehatak/presentation/screens/hospital/hospital_screen.dart';
 import 'package:sehatak/presentation/screens/ai/ai_chatbot_screen.dart';
-import 'package:sehatak/presentation/screens/consultation/consultation_history_screen.dart';
-import 'package:sehatak/presentation/screens/patient/medical_history_screen.dart';
-import 'package:sehatak/presentation/screens/patient/prescriptions_screen.dart';
-import 'package:sehatak/presentation/screens/shared/settings_screen.dart';
-import 'package:sehatak/presentation/screens/shared/about_screen.dart';
-import 'package:sehatak/presentation/screens/shared/contact_screen.dart';
-import 'package:sehatak/presentation/screens/shared/privacy_policy_screen.dart';
-import 'package:sehatak/presentation/screens/shared/terms_screen.dart';
-import 'package:sehatak/presentation/screens/shared/help_center_screen.dart';
 import 'package:sehatak/presentation/screens/vaccination/vaccination_screen.dart';
 import 'package:sehatak/presentation/screens/diet/diet_plan_screen.dart';
 import 'package:sehatak/presentation/screens/exercise/exercise_plan_screen.dart';
@@ -45,10 +36,7 @@ import 'package:sehatak/presentation/screens/mental_health/mental_health_screen.
 import 'package:sehatak/presentation/screens/first_aid/first_aid_screen.dart';
 import 'package:sehatak/presentation/screens/pregnancy/pregnancy_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/child_growth/child_growth_screen.dart';
-import 'package:sehatak/presentation/screens/period_tracker/period_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/blood_pressure/blood_pressure_screen.dart';
-import 'package:sehatak/presentation/screens/glucose/glucose_tracker_screen.dart';
-import 'package:sehatak/presentation/screens/weight/weight_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/heart_rate/heart_rate_screen.dart';
 import 'package:sehatak/presentation/screens/sleep/sleep_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/step_counter/step_counter_screen.dart';
@@ -1959,3 +1947,15 @@ class AppSearchDelegate extends SearchDelegate {
     );
   }
 }
+
+import "package:sehatak/presentation/screens/settings/settings_screen.dart";
+import "package:sehatak/presentation/screens/settings/about_screen.dart";
+import "package:sehatak/presentation/screens/terms/terms_screen.dart";
+import "package:sehatak/presentation/screens/help_center/help_center_screen.dart";
+import "package:sehatak/presentation/screens/women_health/period_tracker_screen.dart";
+import "package:sehatak/presentation/screens/glucose_tracker/glucose_tracker_screen.dart";
+import "package:sehatak/presentation/screens/weight_tracker/weight_tracker_screen.dart";
+import "package:sehatak/presentation/screens/patient/patient_medical_history.dart";
+import "package:sehatak/presentation/screens/patient/patient_prescriptions.dart";
+import "package:sehatak/presentation/screens/contact_us/contact_us_screen.dart";
+import "package:sehatak/presentation/screens/settings/privacy_screen.dart";
