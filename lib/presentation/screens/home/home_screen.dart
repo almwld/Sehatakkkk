@@ -200,7 +200,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     return GestureDetector(
       onTap: () => _onTabTap(index),
       child: SizedBox(
-        width: 48,
+  Container(
+    width: 32,
+    height: 3,
+    margin: const EdgeInsets.only(top: 4),
+    decoration: BoxDecoration(
+      color: AppColors.primary,
+      borderRadius: BorderRadius.circular(2),
+    ),
+  )
         height: 60,
         child: Column(
           mainAxisSize: MainAxisSize.min,
