@@ -108,6 +108,10 @@ flutter:
   uses-material-design: true
 
   assets:
+  - assets/images/icons/doctors/
+  - assets/images/icons/fast_services/
+  - assets/images/icons/search/
+  - assets/images/icons/top_bar/
     - assets/icons/app_icon.png
     - assets/icons/consultations/
     - assets/icons/core/
