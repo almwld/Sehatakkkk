@@ -292,3 +292,22 @@ class MoreScreen extends StatelessWidget {
     );
   }
 }
+
+            setting['label'] as String,
+            style: TextStyle(
+              fontSize: 14 * fontScale,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+          ),
+          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+          onTap: () {
+            if (setting['action'] == 'logout') {
+              _showLogoutDialog(context);
+            } else if (setting['screen'] != null) {
+              _goTo(context, setting['screen'] as Widget);
+            }
+          },
+        );
+      }).toList(),
+    );
+  }
