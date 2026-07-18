@@ -48,13 +48,11 @@ import 'package:sehatak/presentation/screens/subscriptions/subscriptions_screen.
 import 'package:sehatak/presentation/screens/help_center/help_center_screen.dart';
 
 class MoreScreen extends StatefulWidget {
-  const MoreScreen({super.key});
 
   @override
   State<MoreScreen> createState() => _MoreScreenState();
-}
 
-class _MoreScreenState extends State<MoreScreen> with BottomBarVisibilityMixin {
+class _MoreScreenState extends State<MoreScreen> {
   String _selectedCategory = 'الكل';
   final ScrollController _scrollController = ScrollController();
   double _appBarOpacity = 1.0;
@@ -68,106 +66,42 @@ class _MoreScreenState extends State<MoreScreen> with BottomBarVisibilityMixin {
   ];
 
   final List<Map<String, dynamic>> _vitals = [
-    {'title': 'عداد الخطوات', 'value': '5,230', 'unit': 'خطوة', 'icon': Icons.directions_walk, 'color': Colors.orange, 'status': 'طبيعي', 'statusColor': Colors.green, 'screen': const SleepTrackerScreen()},
-    {'title': 'ضغط الدم', 'value': '120/80', 'unit': 'ملم زئبق', 'icon': Icons.favorite, 'color': Colors.red, 'status': 'طبيعي', 'statusColor': Colors.green, 'screen': const BloodPressureScreen()},
-    {'title': 'معدل القلب', 'value': '72', 'unit': 'نبضة/د', 'icon': Icons.favorite, 'color': Colors.pink, 'status': 'طبيعي', 'statusColor': Colors.green, 'screen': const HealthDashboard()},
-    {'title': 'نسبة السكر', 'value': '95', 'unit': 'مغ/دسل', 'icon': Icons.water_drop, 'color': Colors.blue, 'status': 'مرتفع', 'statusColor': Colors.red, 'screen': const GlucoseTrackerScreen()},
   ];
 
   void _navigateTo(Widget screen) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
-  }
 
   List<Map<String, dynamic>> get _filteredServices {
     switch (_selectedCategory) {
       case 'رعاية عائلية':
         return [
-          {'icon': Icons.woman, 'title': 'صحة المرأة', 'subtitle': 'متابعة الدورة والحمل', 'screen': const FamilyPlanningScreen()},
-          {'icon': Icons.child_care, 'title': 'نمو الطفل', 'subtitle': 'مراحل التطور', 'screen': const FamilyPlanningScreen()},
-          {'icon': Icons.house_rounded, 'title': 'طبيب العائلة', 'subtitle': 'رعاية منزلية متكاملة', 'screen': const DoctorsListScreen()},
-          {'icon': Icons.pregnant_woman, 'title': 'متابعة الحمل', 'subtitle': 'أسابيع الحمل بدقة', 'screen': const FamilyPlanningScreen()},
-          {'icon': Icons.health_and_safety, 'title': 'الصحة النفسية', 'subtitle': 'دعم الصحة النفسية', 'screen': const MentalHealthScreen()},
-          {'icon': Icons.restaurant, 'title': 'نظام غذائي', 'subtitle': 'خطط غذائية صحية', 'screen': const DietPlanScreen()},
-          {'icon': Icons.nightlight, 'title': 'تتبع النوم', 'subtitle': 'مراقبة جودة النوم', 'screen': const SleepTrackerScreen()},
         ];
       case 'أدوات تشخيصية':
         return [
-          {'icon': Icons.monitor_heart, 'title': 'ضغط الدم', 'subtitle': 'متابعة ضغط الدم', 'screen': const BloodPressureScreen()},
-          {'icon': Icons.biotech, 'title': 'تتبع السكر', 'subtitle': 'مراقبة مستوى السكر', 'screen': const GlucoseTrackerScreen()},
-          {'icon': Icons.monitor_weight, 'title': 'الوزن', 'subtitle': 'تتبع الوزن واللياقة', 'screen': const WeightTrackerScreen()},
-          {'icon': Icons.medication, 'title': 'تذكير الأدوية', 'subtitle': 'تذكير بمواعيد الأدوية', 'screen': const MedicationReminderScreen()},
-          {'icon': Icons.bloodtype, 'title': 'التبرع بالدم', 'subtitle': 'مراكز التبرع بالدم', 'screen': const BloodDonationScreen()},
-          {'icon': Icons.article, 'title': 'المقالات الطبية', 'subtitle': 'أحدث المقالات الطبية', 'screen': const ArticlesScreen()},
-          {'icon': Icons.emergency, 'title': 'الإسعافات الأولية', 'subtitle': 'دليل الإسعافات الأولية', 'screen': const FirstAidScreen()},
         ];
       case 'لوجستيات وتأمين':
         return [
-          {'icon': Icons.local_pharmacy, 'title': 'صيدلية', 'subtitle': 'طلب الأدوية وتوصيلها', 'screen': const PharmacyScreen()},
-          {'icon': Icons.science, 'title': 'مختبرات', 'subtitle': 'حجز التحاليل والفحوصات', 'screen': const LabsListScreen()},
-          {'icon': Icons.shield, 'title': 'تأمين صحي', 'subtitle': 'خطط التأمين والاشتراك', 'screen': const InsuranceCompanies()},
-          {'icon': Icons.map, 'title': 'خرائط المرافق', 'subtitle': 'أقرب المستشفيات والصيدليات', 'screen': const InteractiveMapScreen()},
-          {'icon': Icons.local_hospital, 'title': 'المستشفيات', 'subtitle': 'أقرب المستشفيات', 'screen': const InteractiveMapScreen()},
-          {'icon': Icons.wallet, 'title': 'المحفظة', 'subtitle': 'إدارة محفظتك', 'screen': const WalletScreen()},
         ];
       case 'إعدادات':
         return [
-          {'icon': Icons.person, 'title': 'الملف الشخصي', 'subtitle': 'إدارة ملفك الشخصي', 'screen': const PatientProfile()},
-          {'icon': Icons.settings, 'title': 'الإعدادات', 'subtitle': 'إعدادات التطبيق', 'screen': const SettingsScreen()},
-          {'icon': Icons.notifications, 'title': 'الإشعارات', 'subtitle': 'إدارة الإشعارات', 'screen': const NotificationsScreen()},
-          {'icon': Icons.privacy_tip, 'title': 'الخصوصية', 'subtitle': 'إعدادات الخصوصية', 'screen': const PrivacyScreen()},
-          {'icon': Icons.assignment, 'title': 'الشروط والأحكام', 'subtitle': 'عرض الشروط والأحكام', 'screen': const TermsScreen()},
-          {'icon': Icons.info, 'title': 'عن التطبيق', 'subtitle': 'معلومات عن التطبيق', 'screen': const AboutScreen()},
-          {'icon': Icons.help, 'title': 'مركز المساعدة', 'subtitle': 'الأسئلة الشائعة والدعم', 'screen': const HelpCenterScreen()},
-          {'icon': Icons.contact_support, 'title': 'اتصل بنا', 'subtitle': 'تواصل مع فريق الدعم', 'screen': const ContactUsScreen()},
-          {'icon': Icons.share, 'title': 'مشاركة التطبيق', 'subtitle': 'شارك التطبيق مع أصدقائك', 'screen': const ShareAppScreen()},
-          {'icon': Icons.star, 'title': 'تقييم التطبيق', 'subtitle': 'قيم التطبيق', 'screen': const RateAppScreen()},
-          {'icon': Icons.report, 'title': 'الإبلاغ عن مشكلة', 'subtitle': 'أبلغ عن مشكلة', 'screen': const ReportIssueScreen()},
-          {'icon': Icons.download, 'title': 'تحميل البيانات', 'subtitle': 'تحميل بياناتك الصحية', 'screen': const DownloadDataScreen()},
-          {'icon': Icons.text_fields, 'title': 'حجم الخط', 'subtitle': 'تغيير حجم الخط', 'screen': const FontSizeScreen()},
-          {'icon': Icons.subscriptions, 'title': 'الباقات', 'subtitle': 'عرض الباقات المتاحة', 'screen': const SubscriptionsScreen()},
         ];
       default:
         return [
-          {'icon': Icons.medical_services, 'title': 'الأطباء', 'subtitle': 'استشر أفضل الأطباء', 'screen': const DoctorsListScreen()},
-          {'icon': Icons.local_pharmacy, 'title': 'الصيدلية', 'subtitle': 'طلب الأدوية وتوصيلها', 'screen': const PharmacyScreen()},
-          {'icon': Icons.science, 'title': 'المختبرات', 'subtitle': 'حجز التحاليل والفحوصات', 'screen': const LabsListScreen()},
-          {'icon': Icons.emergency, 'title': 'الطوارئ', 'subtitle': 'أرقام الطوارئ والمساعدة', 'screen': const EmergencyNumbers()},
-          {'icon': Icons.chat, 'title': 'استشارة فورية', 'subtitle': 'تحدث مع طبيبك الآن', 'screen': const ConsultationScreen()},
-          {'icon': Icons.favorite, 'title': 'صحتك', 'subtitle': 'متابعة حالتك الصحية', 'screen': const HealthDashboard()},
-          {'icon': Icons.wallet, 'title': 'المحفظة', 'subtitle': 'إدارة محفظتك', 'screen': const WalletScreen()},
-          {'icon': Icons.calendar_month, 'title': 'المواعيد', 'subtitle': 'إدارة مواعيدك', 'screen': const HealthDashboard()},
-          {'icon': Icons.map, 'title': 'الخريطة', 'subtitle': 'المنشآت الصحية القريبة', 'screen': const InteractiveMapScreen()},
-          {'icon': Icons.shield, 'title': 'التأمين الصحي', 'subtitle': 'خطط التأمين والاشتراكات', 'screen': const InsuranceCompanies()},
-          {'icon': Icons.bloodtype, 'title': 'التبرع بالدم', 'subtitle': 'مراكز التبرع بالدم', 'screen': const BloodDonationScreen()},
-          {'icon': Icons.person, 'title': 'الملف الشخصي', 'subtitle': 'إدارة ملفك الشخصي', 'screen': const PatientProfile()},
-          {'icon': Icons.settings, 'title': 'الإعدادات', 'subtitle': 'إعدادات التطبيق', 'screen': const SettingsScreen()},
-          {'icon': Icons.grid_view, 'title': 'جميع الخدمات', 'subtitle': 'استعراض جميع الخدمات', 'screen': const ServicesScreen()},
         ];
-    }
-  }
 
   @override
   void initState() {
-    final homeState = context.findAncestorStateOfType<_HomeScreenState>();
-    if (homeState != null) {
-      initBottomBarVisibility(homeState._isBottomBarVisible);
-    }
     super.initState();
     _scrollController.addListener(() {
       final maxScroll = _scrollController.position.maxScrollExtent;
       final currentScroll = _scrollController.position.pixels;
       setState(() {
         _appBarOpacity = 1.0 - (currentScroll / maxScroll).clamp(0.0, 1.0);
-      });
-    });
-  }
 
   @override
   void dispose() {
-    disposeBottomBarVisibility();
     _scrollController.dispose();
     super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -181,7 +115,6 @@ class _MoreScreenState extends State<MoreScreen> with BottomBarVisibilityMixin {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       body: CustomScrollView(
-        controller: scrollController,
         slivers: [
           SliverAppBar(
             expandedHeight: 100 * fontScale,
@@ -201,7 +134,6 @@ class _MoreScreenState extends State<MoreScreen> with BottomBarVisibilityMixin {
                         onTap: () {
                           if (logged) _navigateTo(const PatientProfile());
                           else _navigateTo(BlocProvider(create: (_) => AuthBloc(), child: const AuthScreen()));
-                        },
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(14),
                           child: CachedNetworkImage(
@@ -237,7 +169,6 @@ class _MoreScreenState extends State<MoreScreen> with BottomBarVisibilityMixin {
                               ),
                             ),
                             Text(
-                              logged ? 'رقم الملف: #${user?.uid.substring(0, 8) ?? '00000000'}' : 'تسجيل الدخول للمزيد',
                               style: TextStyle(
                                 color: isDark ? Colors.grey[400] : Colors.grey[600],
                                 fontSize: 11,
@@ -279,7 +210,6 @@ class _MoreScreenState extends State<MoreScreen> with BottomBarVisibilityMixin {
         ],
       ),
     );
-  }
 
   Widget _shimmerPlaceholder(double width, double height, double radius) {
     return Shimmer.fromColors(
@@ -294,7 +224,6 @@ class _MoreScreenState extends State<MoreScreen> with BottomBarVisibilityMixin {
         ),
       ),
     );
-  }
 
   Widget _sectionTitle(String title, bool isDark, double fontScale) {
     return Text(
@@ -305,7 +234,6 @@ class _MoreScreenState extends State<MoreScreen> with BottomBarVisibilityMixin {
         color: isDark ? Colors.white : Colors.black87,
       ),
     );
-  }
 
   Widget _buildAISmartSuite(Color primaryColor, double fontScale) {
     return Container(
@@ -393,7 +321,6 @@ class _MoreScreenState extends State<MoreScreen> with BottomBarVisibilityMixin {
                     builder: (context) => const AIChatbotScreen(),
                   ),
                 );
-              },
               child: Text(
                 'ابدأ الفحص الذكي الآن',
                 style: TextStyle(
@@ -406,7 +333,6 @@ class _MoreScreenState extends State<MoreScreen> with BottomBarVisibilityMixin {
         ],
       ),
     );
-  }
 
   Widget _buildVitalsGrid(double fontScale) {
     return GridView.builder(
@@ -503,9 +429,7 @@ class _MoreScreenState extends State<MoreScreen> with BottomBarVisibilityMixin {
             ),
           ),
         );
-      },
     );
-  }
 
   Widget _buildFilterChips(Color primaryColor, double fontScale) {
     return SizedBox(
@@ -527,8 +451,6 @@ class _MoreScreenState extends State<MoreScreen> with BottomBarVisibilityMixin {
               onSelected: (val) {
                 setState(() {
                   _selectedCategory = category;
-                });
-              },
               selectedColor: primaryColor,
               backgroundColor: Colors.white,
               labelStyle: TextStyle(
@@ -545,10 +467,8 @@ class _MoreScreenState extends State<MoreScreen> with BottomBarVisibilityMixin {
               elevation: 0,
             ),
           );
-        },
       ),
     );
-  }
 
   Widget _buildServiceCard(Map<String, dynamic> service, bool isDark, Color primaryColor, double fontScale) {
     final screen = service['screen'] as Widget;
@@ -603,7 +523,6 @@ class _MoreScreenState extends State<MoreScreen> with BottomBarVisibilityMixin {
         onTap: () => _navigateTo(screen),
       ),
     );
-  }
 
   Widget _buildPremiumFooter(bool isDark, Color primaryColor, double fontScale) {
     return Column(
@@ -611,7 +530,6 @@ class _MoreScreenState extends State<MoreScreen> with BottomBarVisibilityMixin {
         GestureDetector(
           onTap: () {
             _showLogoutDialog();
-          },
           child: Container(
             padding: EdgeInsets.symmetric(vertical: 12 * fontScale),
             decoration: BoxDecoration(
@@ -648,7 +566,6 @@ class _MoreScreenState extends State<MoreScreen> with BottomBarVisibilityMixin {
         ),
       ],
     );
-  }
 
   void _showLogoutDialog() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -673,7 +590,6 @@ class _MoreScreenState extends State<MoreScreen> with BottomBarVisibilityMixin {
                     builder: (context) => const AIChatbotScreen(),
                   ),
                 );
-              },
             child: Text(
               'إلغاء',
               style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[700]),
@@ -687,12 +603,9 @@ class _MoreScreenState extends State<MoreScreen> with BottomBarVisibilityMixin {
                     builder: (context) => const AIChatbotScreen(),
                   ),
                 );
-              },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: Text('تسجيل الخروج'),
           ),
         ],
       ),
     );
-  }
-}

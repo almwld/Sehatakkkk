@@ -13,13 +13,11 @@ import 'package:sehatak/presentation/screens/patient/patient_appointments.dart';
 import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
 
 class PatientDashboard extends StatefulWidget {
-  const PatientDashboard({super.key});
 
   @override
   State<PatientDashboard> createState() => _PatientDashboardState();
-}
 
-class _PatientDashboardState extends State<PatientDashboard> with BottomBarVisibilityMixin {
+class _PatientDashboardState extends State<PatientDashboard> {
   final ScrollController _scrollController = ScrollController();
   double _appBarOpacity = 1.0;
 
@@ -32,60 +30,36 @@ class _PatientDashboardState extends State<PatientDashboard> with BottomBarVisib
     'weight': 75,
     'emergencyContact': 'خالد أحمد',
     'emergencyPhone': '777888999',
-  };
 
   // ✅ الإحصائيات
   final List<Map<String, dynamic>> _stats = [
-    {'label': 'الزيارات', 'value': '12', 'icon': Icons.calendar_month, 'color': AppColors.primary},
-    {'label': 'الأدوية', 'value': '5', 'icon': Icons.medication, 'color': AppColors.success},
-    {'label': 'التحاليل', 'value': '8', 'icon': Icons.science, 'color': AppColors.purple},
-    {'label': 'التقارير', 'value': '6', 'icon': Icons.description, 'color': AppColors.info},
   ];
 
   // ✅ المؤشرات الحيوية
   final List<Map<String, dynamic>> _vitals = [
-    {'title': 'ضغط الدم', 'value': '120/80', 'status': 'طبيعي', 'icon': Icons.favorite, 'color': AppColors.error, 'screen': const BloodPressureScreen()},
-    {'title': 'معدل السكر', 'value': '95 mg/dL', 'status': 'طبيعي', 'icon': Icons.biotech, 'color': AppColors.warning, 'screen': const GlucoseTrackerScreen()},
-    {'title': 'الوزن', 'value': '75 kg', 'status': 'مثالي', 'icon': Icons.monitor_weight, 'color': AppColors.info, 'screen': const WeightTrackerScreen()},
-    {'title': 'الأدوية', 'value': '3', 'status': 'نشط', 'icon': Icons.medication, 'color': AppColors.success, 'screen': const MedicationReminderScreen()},
   ];
 
   // ✅ آخر المواعيد
   final List<Map<String, dynamic>> _recentAppointments = [
-    {'doctor': 'د. أحمد المولد', 'date': '2024-01-15', 'time': '10:00 ص', 'status': 'قادم', 'image': "assets/images/doctors/doctor_1.png"},
-    {'doctor': 'د. خالد النخلاني', 'date': '2024-01-10', 'time': '02:30 م', 'status': 'منتهي', 'image': "assets/images/doctors/doctor_2.png"},
-    {'doctor': 'د. أسماء الهندي', 'date': '2024-01-05', 'time': '09:00 ص', 'status': 'منتهي', 'image': "assets/images/doctors/doctor_3.png"},
   ];
 
   // ✅ آخر النتائج
   final List<Map<String, dynamic>> _recentResults = [
-    {'title': 'فحص الدم الشامل', 'date': '2024-01-10', 'status': 'طبيعي', 'color': Colors.green, 'icon': Icons.science},
-    {'title': 'فحص السكر التراكمي', 'date': '2024-01-05', 'status': 'مرتفع قليلاً', 'color': Colors.orange, 'icon': Icons.biotech},
-    {'title': 'فحص الدهون', 'date': '2024-01-01', 'status': 'طبيعي', 'color': Colors.green, 'icon': Icons.medical_services},
   ];
 
   @override
   void initState() {
-    final homeState = context.findAncestorStateOfType<_HomeScreenState>();
-    if (homeState != null) {
-      initBottomBarVisibility(homeState._isBottomBarVisible);
-    }
     super.initState();
     _scrollController.addListener(() {
       final maxScroll = _scrollController.position.maxScrollExtent;
       final currentScroll = _scrollController.position.pixels;
       setState(() {
         _appBarOpacity = 1.0 - (currentScroll / maxScroll).clamp(0.0, 1.0);
-      });
-    });
-  }
 
   @override
   void dispose() {
-    disposeBottomBarVisibility();
     _scrollController.dispose();
     super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +72,6 @@ class _PatientDashboardState extends State<PatientDashboard> with BottomBarVisib
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       body: CustomScrollView(
-        controller: scrollController,
         slivers: [
           // ✅ AppBar
           SliverAppBar(
@@ -125,7 +98,6 @@ class _PatientDashboardState extends State<PatientDashboard> with BottomBarVisib
                                 context,
                                 MaterialPageRoute(builder: (_) => const PatientProfile()),
                               );
-                            },
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(16),
                               child: CachedNetworkImage(
@@ -171,9 +143,7 @@ class _PatientDashboardState extends State<PatientDashboard> with BottomBarVisib
                                 Wrap(
                                   spacing: 6,
                                   children: [
-                                    _buildInfoChip('${_patientData['age']} سنة', isDark),
                                     _buildInfoChip(_patientData['bloodType'], isDark),
-                                    _buildInfoChip('${_patientData['weight']} كجم', isDark),
                                   ],
                                 ),
                               ],
@@ -186,7 +156,6 @@ class _PatientDashboardState extends State<PatientDashboard> with BottomBarVisib
                                 context,
                                 MaterialPageRoute(builder: (_) => const PatientProfile()),
                               );
-                            },
                           ),
                         ],
                       ),
@@ -239,7 +208,6 @@ class _PatientDashboardState extends State<PatientDashboard> with BottomBarVisib
         ],
       ),
     );
-  }
 
   // ✅ Shimmer
   Widget _shimmerPlaceholder(double width, double height, double radius) {
@@ -255,7 +223,6 @@ class _PatientDashboardState extends State<PatientDashboard> with BottomBarVisib
         ),
       ),
     );
-  }
 
   Widget _buildInfoChip(String label, bool isDark) {
     return Container(
@@ -272,7 +239,6 @@ class _PatientDashboardState extends State<PatientDashboard> with BottomBarVisib
         ),
       ),
     );
-  }
 
   Widget _sectionTitle(String title, bool isDark) {
     return Row(
@@ -287,12 +253,10 @@ class _PatientDashboardState extends State<PatientDashboard> with BottomBarVisib
           ),
         ),
         TextButton(
-          onPressed: () {},
           child: const Text('عرض الكل'),
         ),
       ],
     );
-  }
 
   // ✅ 3️⃣ قسم الباقات والاشتراكات
   Widget _buildPackagesSection(bool isDark) {
@@ -452,7 +416,6 @@ class _PatientDashboardState extends State<PatientDashboard> with BottomBarVisib
         ],
       ),
     );
-  }
 
   // ✅ الإحصائيات
   Widget _statsRow() {
@@ -487,9 +450,7 @@ class _PatientDashboardState extends State<PatientDashboard> with BottomBarVisib
             ),
           ),
         );
-      }).toList(),
     );
-  }
 
   // ✅ المؤشرات الحيوية
   Widget _vitalsGrid() {
@@ -515,7 +476,6 @@ class _PatientDashboardState extends State<PatientDashboard> with BottomBarVisib
               context,
               MaterialPageRoute(builder: (_) => vital['screen'] as Widget),
             );
-          },
           child: Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
@@ -581,19 +541,11 @@ class _PatientDashboardState extends State<PatientDashboard> with BottomBarVisib
             ),
           ),
         );
-      },
     );
-  }
 
   // ✅ الخدمات الصحية
   Widget _healthServices() {
     final services = [
-      {'icon': Icons.monitor_heart, 'label': 'ضغط الدم', 'color': AppColors.error, 'screen': const BloodPressureScreen()},
-      {'icon': Icons.biotech, 'label': 'تتبع السكر', 'color': AppColors.warning, 'screen': const GlucoseTrackerScreen()},
-      {'icon': Icons.monitor_weight, 'label': 'الوزن', 'color': AppColors.info, 'screen': const WeightTrackerScreen()},
-      {'icon': Icons.medication, 'label': 'الأدوية', 'color': AppColors.success, 'screen': const MedicationReminderScreen()},
-      {'icon': Icons.description, 'label': 'التقارير', 'color': AppColors.primary, 'screen': const MedicalReportsScreen()},
-      {'icon': Icons.calendar_month, 'label': 'المواعيد', 'color': AppColors.purple, 'screen': const PatientAppointments()},
     ];
 
     return GridView.builder(
@@ -615,7 +567,6 @@ class _PatientDashboardState extends State<PatientDashboard> with BottomBarVisib
               context,
               MaterialPageRoute(builder: (_) => service['screen'] as Widget),
             );
-          },
           child: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
@@ -640,9 +591,7 @@ class _PatientDashboardState extends State<PatientDashboard> with BottomBarVisib
             ),
           ),
         );
-      },
     );
-  }
 
   // ✅ آخر المواعيد
   Widget _buildAppointmentsList(bool isDark) {
@@ -703,7 +652,6 @@ class _PatientDashboardState extends State<PatientDashboard> with BottomBarVisib
                       ),
                     ),
                     Text(
-                      '${appointment['date']} • ${appointment['time']}',
                       style: TextStyle(
                         fontSize: 11,
                         color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -732,9 +680,7 @@ class _PatientDashboardState extends State<PatientDashboard> with BottomBarVisib
             ],
           ),
         );
-      },
     );
-  }
 
   // ✅ آخر النتائج
   Widget _buildResultsList(bool isDark) {
@@ -810,7 +756,4 @@ class _PatientDashboardState extends State<PatientDashboard> with BottomBarVisib
             ],
           ),
         );
-      },
     );
-  }
-}
