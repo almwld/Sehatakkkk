@@ -28,6 +28,54 @@ import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
 import 'package:sehatak/presentation/screens/blood_donation/blood_donation_screen.dart';
 import 'package:sehatak/presentation/screens/medication/medicines_screen.dart';
 import 'package:sehatak/presentation/screens/hospital/hospital_screen.dart';
+import 'package:sehatak/presentation/screens/ai/ai_chatbot_screen.dart';
+import 'package:sehatak/presentation/screens/consultation/consultation_history_screen.dart';
+import 'package:sehatak/presentation/screens/patient/medical_history_screen.dart';
+import 'package:sehatak/presentation/screens/patient/prescriptions_screen.dart';
+import 'package:sehatak/presentation/screens/shared/settings_screen.dart';
+import 'package:sehatak/presentation/screens/shared/about_screen.dart';
+import 'package:sehatak/presentation/screens/shared/contact_screen.dart';
+import 'package:sehatak/presentation/screens/shared/privacy_policy_screen.dart';
+import 'package:sehatak/presentation/screens/shared/terms_screen.dart';
+import 'package:sehatak/presentation/screens/shared/help_center_screen.dart';
+import 'package:sehatak/presentation/screens/vaccination/vaccination_screen.dart';
+import 'package:sehatak/presentation/screens/diet/diet_plan_screen.dart';
+import 'package:sehatak/presentation/screens/exercise/exercise_plan_screen.dart';
+import 'package:sehatak/presentation/screens/mental_health/mental_health_screen.dart';
+import 'package:sehatak/presentation/screens/first_aid/first_aid_screen.dart';
+import 'package:sehatak/presentation/screens/pregnancy/pregnancy_tracker_screen.dart';
+import 'package:sehatak/presentation/screens/child_growth/child_growth_screen.dart';
+import 'package:sehatak/presentation/screens/period_tracker/period_tracker_screen.dart';
+import 'package:sehatak/presentation/screens/blood_pressure/blood_pressure_screen.dart';
+import 'package:sehatak/presentation/screens/glucose/glucose_tracker_screen.dart';
+import 'package:sehatak/presentation/screens/weight/weight_tracker_screen.dart';
+import 'package:sehatak/presentation/screens/heart_rate/heart_rate_screen.dart';
+import 'package:sehatak/presentation/screens/sleep/sleep_tracker_screen.dart';
+import 'package:sehatak/presentation/screens/step_counter/step_counter_screen.dart';
+import 'package:sehatak/presentation/screens/bmi/bmi_calculator_screen.dart';
+import 'package:sehatak/presentation/screens/calorie/calorie_calculator_screen.dart';
+import 'package:sehatak/presentation/screens/stress/stress_meter_screen.dart';
+import 'package:sehatak/presentation/screens/medication_reminder/medication_reminder_screen.dart';
+import 'package:sehatak/presentation/screens/drug_dictionary/drug_dictionary_screen.dart';
+import 'package:sehatak/presentation/screens/drug_compare/drug_compare_screen.dart';
+import 'package:sehatak/presentation/screens/pediatric_dose/pediatric_dose_screen.dart';
+import 'package:sehatak/presentation/screens/vision_test/vision_test_screen.dart';
+import 'package:sehatak/presentation/screens/dental_care/dental_care_screen.dart';
+import 'package:sehatak/presentation/screens/eye_care/eye_care_screen.dart';
+import 'package:sehatak/presentation/screens/health_challenges/health_challenges_screen.dart';
+import 'package:sehatak/presentation/screens/health_community/health_community_screen.dart';
+import 'package:sehatak/presentation/screens/articles/articles_screen.dart';
+import 'package:sehatak/presentation/screens/health_education/health_education_screen.dart';
+import 'package:sehatak/presentation/screens/health_tips/health_tips_screen.dart';
+import 'package:sehatak/presentation/screens/health_news/health_news_screen.dart';
+import 'package:sehatak/presentation/screens/nearby_clinics/nearby_clinics_screen.dart';
+import 'package:sehatak/presentation/screens/hospital_booking/hospital_booking_screen.dart';
+import 'package:sehatak/presentation/screens/hospital_compare/hospital_compare_screen.dart';
+import 'package:sehatak/presentation/screens/physiotherapy/physiotherapy_screen.dart';
+import 'package:sehatak/presentation/screens/family_planning/family_planning_screen.dart';
+import 'package:sehatak/presentation/screens/genetic_counseling/genetic_counseling_screen.dart';
+import 'package:sehatak/presentation/screens/alternative_medicine/alternative_medicine_screen.dart';
+import 'package:sehatak/presentation/screens/voice_search/voice_search_screen.dart';
 
 // ============================================================
 // 📱 HomeScreen - الشاشة الرئيسية
@@ -90,14 +138,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     return Scaffold(
       body: Stack(
         children: [
-          // ✅ المحتوى الرئيسي
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
             switchInCurve: Curves.easeOut,
             switchOutCurve: Curves.easeIn,
             child: _screens[_currentIndex],
           ),
-          // ✅ الشريط السفلي - يختفي عند التمرير فقط
           Positioned(
             bottom: 0,
             left: 0,
@@ -188,7 +234,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  // ✅ زر الدردشة - أكبر قليلاً
   Widget _buildChatButton() {
     final selected = _currentIndex == 3;
     return GestureDetector(
@@ -263,12 +308,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
   // 📊 البيانات
   // ============================================================
 
-  final List<String> _bannerImages = [
-    'assets/images/banners/banner_1.png',
-    'assets/images/banners/banner_2.png',
-    'assets/images/banners/banner_3.png',
-    'assets/images/banners/banner_4.png',
-  ];
+  final List<String> _bannerImages = ImageService.bannerList;
 
   final List<Map<String, dynamic>> _topDoctors = [
     {'id': '1', 'name': 'د. أحمد المولد', 'specialty': 'باطنية', 'rating': 4.9, 'reviews': 328, 'image': ImageService.doctor1},
@@ -278,28 +318,28 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     {'id': '5', 'name': 'د. فاطمة صديقي', 'specialty': 'نساء وولادة', 'rating': 4.8, 'reviews': 210, 'image': ImageService.doctor5},
   ];
 
-  // ✅ الخدمات السريعة - أيقونات ملونة
+  // ✅ الخدمات السريعة - أيقونات جديدة
   final List<Map<String, dynamic>> _quickServices = [
+    {'icon': ImageService.fastPharmacy, 'label': 'صيدلية', 'color': AppColors.success, 'screen': const MedicinesScreen()},
+    {'icon': ImageService.fastEmergency, 'label': 'طوارئ', 'color': AppColors.error, 'screen': const EmergencyNumbers()},
+    {'icon': ImageService.fastHomeServices, 'label': 'خدمات منزلية', 'color': Colors.brown, 'screen': const ServicesScreen()},
+    {'icon': ImageService.fastDonateBlood, 'label': 'تبرع بالدم', 'color': Colors.red, 'screen': const BloodDonationScreen()},
     {'icon': ImageService.serviceDoctors, 'label': 'أطباء', 'color': AppColors.primary, 'screen': const DoctorsListScreen()},
-    {'icon': ImageService.servicePharmacy, 'label': 'صيدلية', 'color': AppColors.success, 'screen': const MedicinesScreen()},
     {'icon': ImageService.serviceLabs, 'label': 'مختبرات', 'color': AppColors.purple, 'screen': const LabsListScreen()},
-    {'icon': ImageService.serviceEmergency, 'label': 'طوارئ', 'color': AppColors.error, 'screen': const EmergencyNumbers()},
     {'icon': ImageService.serviceHealth, 'label': 'صحة', 'color': AppColors.pink, 'screen': const HealthDashboard()},
     {'icon': ImageService.serviceWallet, 'label': 'محفظة', 'color': AppColors.amber, 'screen': const WalletScreen()},
     {'icon': ImageService.serviceConsultation, 'label': 'استشارة', 'color': AppColors.teal, 'screen': const ConsultationScreen()},
     {'icon': ImageService.serviceAppointments, 'label': 'مواعيد', 'color': AppColors.primaryDark, 'screen': const PatientAppointments()},
     {'icon': ImageService.serviceNearby, 'label': 'بالقرب منك', 'color': Colors.orange, 'screen': const InteractiveMapScreen()},
     {'icon': ImageService.serviceInsurance, 'label': 'تأمين', 'color': Colors.blue, 'screen': const InsuranceCompanies()},
-    {'icon': ImageService.serviceBloodDonation, 'label': 'تبرع بالدم', 'color': Colors.red, 'screen': const BloodDonationScreen()},
-    {'icon': ImageService.serviceHomeServices, 'label': 'خدمات منزلية', 'color': Colors.brown, 'screen': const ServicesScreen()},
   ];
 
   List<Map<String, dynamic>> _communityPosts = [
-    {'id': 1, 'author': 'د. سارة العمري', 'image': 'assets/images/posts/skin_care.png', 'title': 'نصائح للعناية بالبشرة', 'content': 'مع حلول فصل الصيف، احرصي على ترطيب بشرتك واستخدام واقي الشمس.', 'likes': 120, 'comments': 15, 'shares': 8, 'time': 'منذ ساعة', 'liked': false},
-    {'id': 2, 'author': 'د. خالد النخلاني', 'image': 'assets/images/posts/morning_walk.png', 'title': 'فوائد المشي الصباحي', 'content': 'المشي 30 دقيقة يومياً يقلل خطر أمراض القلب والسكري.', 'likes': 95, 'comments': 8, 'shares': 5, 'time': 'منذ 3 ساعات', 'liked': false},
-    {'id': 3, 'author': 'د. أحمد المولد', 'image': 'assets/images/posts/nutrition_tips.png', 'title': 'تغذيتك سر صحتك', 'content': 'الطعام الصحي هو أساس المناعة القوية والجسم السليم.', 'likes': 210, 'comments': 22, 'shares': 12, 'time': 'منذ 5 ساعات', 'liked': true},
-    {'id': 4, 'author': 'د. أسماء الهندي', 'image': 'assets/images/posts/immune_boost.png', 'title': 'قوة المناعة', 'content': 'الفيتامينات والمعادن تلعب دوراً كبيراً في تقوية المناعة.', 'likes': 78, 'comments': 5, 'shares': 3, 'time': 'منذ يوم', 'liked': false},
-    {'id': 5, 'author': 'د. محمد العلاي', 'image': 'assets/images/posts/sleep_tips.png', 'title': 'نصائح النوم الصحي', 'content': 'النوم 7-8 ساعات يومياً يحسن الصحة النفسية والجسدية.', 'likes': 150, 'comments': 12, 'shares': 7, 'time': 'منذ يومين', 'liked': false},
+    {'id': 1, 'author': 'د. سارة العمري', 'avatar': 'assets/images/posts/avatar1.png', 'image': 'assets/images/posts/skin_care.png', 'title': 'نصائح للعناية بالبشرة', 'content': 'مع حلول فصل الصيف، احرصي على ترطيب بشرتك واستخدام واقي الشمس.', 'likes': 120, 'comments': 15, 'shares': 8, 'time': 'منذ ساعة', 'liked': false},
+    {'id': 2, 'author': 'د. خالد النخلاني', 'avatar': 'assets/images/posts/avatar2.png', 'image': 'assets/images/posts/morning_walk.png', 'title': 'فوائد المشي الصباحي', 'content': 'المشي 30 دقيقة يومياً يقلل خطر أمراض القلب والسكري.', 'likes': 95, 'comments': 8, 'shares': 5, 'time': 'منذ 3 ساعات', 'liked': false},
+    {'id': 3, 'author': 'د. أحمد المولد', 'avatar': 'assets/images/posts/avatar3.png', 'image': 'assets/images/posts/nutrition_tips.png', 'title': 'تغذيتك سر صحتك', 'content': 'الطعام الصحي هو أساس المناعة القوية والجسم السليم.', 'likes': 210, 'comments': 22, 'shares': 12, 'time': 'منذ 5 ساعات', 'liked': true},
+    {'id': 4, 'author': 'د. أسماء الهندي', 'avatar': 'assets/images/posts/avatar4.png', 'image': 'assets/images/posts/immune_boost.png', 'title': 'قوة المناعة', 'content': 'الفيتامينات والمعادن تلعب دوراً كبيراً في تقوية المناعة.', 'likes': 78, 'comments': 5, 'shares': 3, 'time': 'منذ يوم', 'liked': false},
+    {'id': 5, 'author': 'د. محمد العلاي', 'avatar': 'assets/images/posts/avatar5.png', 'image': 'assets/images/posts/sleep_tips.png', 'title': 'نصائح النوم الصحي', 'content': 'النوم 7-8 ساعات يومياً يحسن الصحة النفسية والجسدية.', 'likes': 150, 'comments': 12, 'shares': 7, 'time': 'منذ يومين', 'liked': false},
   ];
 
   final List<Map<String, dynamic>> _dailyTips = [
@@ -321,10 +361,10 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
   ];
 
   final List<Map<String, dynamic>> _featuredLabs = [
-    {'id': '1', 'name': 'مختبرات الزارزي', 'location': 'صنعاء - شارع الزبيري', 'image': ImageService.lab1, 'rating': 4.9, 'phone': '01-234567', 'open': true},
+    {'id': '1', 'name': 'مختبرات الذبحاني', 'location': 'صنعاء - شارع الأصبحي', 'image': ImageService.lab1, 'rating': 4.9, 'phone': '01-234567', 'open': true},
     {'id': '2', 'name': 'مختبرات العولقي', 'location': 'صنعاء - شارع الستين', 'image': ImageService.lab2, 'rating': 4.8, 'phone': '01-234568', 'open': true},
     {'id': '3', 'name': 'مختبرات المأمون', 'location': 'صنعاء - حدة', 'image': ImageService.lab3, 'rating': 4.7, 'phone': '01-234569', 'open': true},
-    {'id': '4', 'name': 'مختبر الرازي', 'location': 'صنعاء - التحرير', 'image': ImageService.lab1, 'rating': 4.6, 'phone': '01-234570', 'open': false},
+    {'id': '4', 'name': 'مختبر الرازي', 'location': 'صنعاء - باب اليمن ', 'image': ImageService.lab1, 'rating': 4.6, 'phone': '01-234570', 'open': false},
   ];
 
   final List<Map<String, dynamic>> _featuredHospitals = [
@@ -452,7 +492,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  // ✅ شيمر Instagram
   Widget _buildInstagramShimmer() {
     return Shimmer.fromColors(
       baseColor: Colors.grey[300]!,
@@ -517,16 +556,13 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
     _fadeController.forward();
 
-    // ✅ إخفاء/إظهار الشريط السفلي عند التمرير
     _scrollController.addListener(() {
       if (_scrollController.position.userScrollDirection == ScrollDirection.reverse) {
-        // ✅ إخفاء الشريط عند التمرير للأسفل
         _HomeScreenState? homeState = context.findAncestorStateOfType<_HomeScreenState>();
         if (homeState != null && homeState._isBottomBarVisible.value != false) {
           homeState._isBottomBarVisible.value = false;
         }
       } else if (_scrollController.position.userScrollDirection == ScrollDirection.forward) {
-        // ✅ إظهار الشريط عند التمرير للأعلى
         _HomeScreenState? homeState = context.findAncestorStateOfType<_HomeScreenState>();
         if (homeState != null && homeState._isBottomBarVisible.value != true) {
           homeState._isBottomBarVisible.value = true;
@@ -577,6 +613,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
               backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
               foregroundColor: primaryColor,
               elevation: 0,
+              automaticallyImplyLeading: false,
               flexibleSpace: FlexibleSpaceBar(
                 background: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -753,7 +790,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
         ),
         Positioned(
           bottom: 12,
-          right: 16,
+          left: 16,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: _bannerImages.asMap().entries.map((entry) {
@@ -856,10 +893,9 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  // ✅ الخدمات السريعة - أيقونات ملونة
   Widget _buildQuickServicesRow() {
     return SizedBox(
-      height: 80,
+      height: 90,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: _quickServices.length,
@@ -869,30 +905,32 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
           return GestureDetector(
             onTap: () => _goTo(context, service['screen'] as Widget),
             child: Container(
-              width: 60,
+              width: 70,
               margin: const EdgeInsets.only(right: 12),
               child: Column(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
                       color: color.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Image.asset(
                       service['icon'],
-                      width: 26,
-                      height: 26,
+                      width: 32,
+                      height: 32,
                       errorBuilder: (context, error, stackTrace) {
-                        return Icon(Icons.circle, color: color, size: 26);
+                        return Icon(Icons.circle, color: color, size: 32);
                       },
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Text(
                     service['label'] as String,
                     style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
                     textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
@@ -903,7 +941,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  // ✅ عرض الأطباء المميزين
   Widget _buildTopDoctorsRow() {
     return SizedBox(
       height: 110,
@@ -1005,7 +1042,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  // ✅ عرض منتجات الصيدلية
   Widget _buildProductsRow() {
     return SizedBox(
       height: 200,
@@ -1085,7 +1121,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  // ✅ عرض النصائح اليومية
   Widget _buildDailyTipsGrid() {
     return GridView.builder(
       shrinkWrap: true,
@@ -1136,7 +1171,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  // ✅ عرض المختبرات المميزة
   Widget _buildFeaturedLabsRow(bool isDark) {
     return SizedBox(
       height: 120,
@@ -1146,7 +1180,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
         itemBuilder: (context, index) {
           final lab = _featuredLabs[index];
           return GestureDetector(
-            onTap: () => _goToLabDetails(context, lab),
+            onTap: () => _showLabDetails(lab),
             child: Container(
               width: 250,
               margin: const EdgeInsets.only(right: 12),
@@ -1259,7 +1293,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  // ✅ عرض المستشفيات المميزة
   Widget _buildFeaturedHospitalsRow(bool isDark) {
     return SizedBox(
       height: 160,
@@ -1269,7 +1302,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
         itemBuilder: (context, index) {
           final hospital = _featuredHospitals[index];
           return GestureDetector(
-            onTap: () => _goToHospitalDetails(context, hospital),
+            onTap: () => _showHospitalDetails(hospital),
             child: Container(
               width: 200,
               margin: const EdgeInsets.only(right: 12),
@@ -1344,8 +1377,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  // ✅ تفاصيل المختبر (BottomSheet)
-  void _goToLabDetails(BuildContext context, Map<String, dynamic> lab) {
+  void _showLabDetails(Map<String, dynamic> lab) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -1487,8 +1519,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  // ✅ تفاصيل المستشفى (BottomSheet)
-  void _goToHospitalDetails(BuildContext context, Map<String, dynamic> hospital) {
+  void _showHospitalDetails(Map<String, dynamic> hospital) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -1654,7 +1685,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  // ✅ عرض منشورات المجتمع - حجم مناسب
   Widget _buildCommunityPostCard(Map<String, dynamic> post, int index, bool isDark) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -1678,14 +1708,8 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
               children: [
                 CircleAvatar(
                   radius: 20,
-                  backgroundColor: AppColors.primary.withOpacity(0.1),
-                  child: Text(
-                    post['author'][0],
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  backgroundImage: AssetImage(post['avatar']),
+                  child: const Icon(Icons.person, size: 20),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -1717,7 +1741,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
               ],
             ),
           ),
-          // ✅ صورة المنشور - حجم مناسب غير مقصوص
           Container(
             height: 250,
             width: double.infinity,

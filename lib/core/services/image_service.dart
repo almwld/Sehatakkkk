@@ -15,7 +15,6 @@ class ImageService {
   static const String banner3 = '$_baseImages/banners/banner_3.png';
   static const String banner4 = '$_baseImages/banners/banner_4.png';
 
-  // ✅ قائمة البانرات
   static final List<String> bannerList = [
     banner1,
     banner2,
@@ -76,7 +75,33 @@ class ImageService {
   static const String delivery4 = '$_baseImages/delivery/delivery_4.png';
 
   // ============================================================
-  // 📦 أيقونات الخدمات السريعة (Quick Services) - ✅ NEW
+  // 🎨 أيقونات الخدمات السريعة (Quick Services) - ✅ NEW ASSETS
+  // تم تحديثها بأيقونات من مجلد newassets
+  // ============================================================
+  static const String fastDonateBlood = 'assets/images/icons/fast_services/Donate blood.png';
+  static const String fastEmergency = 'assets/images/icons/fast_services/Emergency.png';
+  static const String fastHomeServices = 'assets/images/icons/fast_services/Home medical services.png';
+  static const String fastPharmacy = 'assets/images/icons/fast_services/Pharmacy.png';
+
+  // ============================================================
+  // 🔍 أيقونة البحث (Search) - ✅ NEW
+  // ============================================================
+  static const String searchIcon = 'assets/images/icons/search/Search button.png';
+
+  // ============================================================
+  // 🔔 أيقونات الشريط العلوي (Top Bar) - ✅ NEW
+  // ============================================================
+  static const String cartIcon = 'assets/images/icons/top_bar/Shopping cart.png';
+  static const String notificationIcon = 'assets/images/icons/top_bar/notifications.png';
+
+  // ============================================================
+  // 👨‍⚕️ أيقونات الأطباء (Doctors Icons) - ✅ NEW
+  // ============================================================
+  static const String maleDoctorIcon = 'assets/images/icons/doctors/Male doctor.png';
+  static const String femaleDoctorIcon = 'assets/images/icons/doctors/female doctor.png';
+
+  // ============================================================
+  // 📦 أيقونات الخدمات السريعة (OLD - للتوافق مع الكود القديم)
   // ============================================================
   static const String serviceDoctors = '$_baseIcons/services/أطباء.png';
   static const String servicePharmacy = '$_baseIcons/services/ادويه.png';
