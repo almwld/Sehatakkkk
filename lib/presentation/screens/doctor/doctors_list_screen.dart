@@ -6,9 +6,11 @@ import 'package:sehatak/core/utils/icon_helper.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
 
 class DoctorsListScreen extends StatefulWidget {
+  const DoctorsListScreen({super.key});
 
   @override
   State<DoctorsListScreen> createState() => _DoctorsListScreenState();
+}
 
 class _DoctorsListScreenState extends State<DoctorsListScreen> {
   String _searchQuery = '';
@@ -22,6 +24,16 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
   final List<String> _sortOptions = ['التقييم', 'السعر (منخفض)', 'السعر (مرتفع)', 'الأكثر خبرة'];
 
   final List<Map<String, dynamic>> _allDoctors = [
+    {'id': '1', 'name': 'د. أحمد المولد', 'specialty': 'باطنية', 'experience': '20+ سنة', 'rating': 4.9, 'reviews': 328, 'price': 500, 'available': true, 'image': "assets/images/doctors/doctor_1.png", 'hospital': 'مستشفى الثورة العام', 'online': true},
+    {'id': '2', 'name': 'د. خالد النخلاني', 'specialty': 'قلبية', 'experience': '15 سنة', 'rating': 4.8, 'reviews': 256, 'price': 600, 'available': true, 'image': "assets/images/doctors/doctor_2.png", 'hospital': 'مركز قلب العاصمة', 'online': false},
+    {'id': '3', 'name': 'د. أسماء الهندي', 'specialty': 'أطفال', 'experience': '12 سنة', 'rating': 4.9, 'reviews': 189, 'price': 450, 'available': true, 'image': "assets/images/doctors/doctor_3.png", 'hospital': 'مستشفى السبعين', 'online': true},
+    {'id': '4', 'name': 'د. محمد العلاي', 'specialty': 'أنف وأذن وحنجرة', 'experience': '8 سنوات', 'rating': 4.7, 'reviews': 89, 'price': 400, 'available': false, 'image': "assets/images/doctors/doctor_4.png", 'hospital': 'مستشفى الأنف والأذن', 'online': false},
+    {'id': '5', 'name': 'د. فاطمة صديقي', 'specialty': 'نساء وولادة', 'experience': '18 سنة', 'rating': 4.8, 'reviews': 210, 'price': 550, 'available': true, 'image': "assets/images/doctors/doctor_5.png", 'hospital': 'مستشفى الولادة', 'online': true},
+    {'id': '6', 'name': 'د. عمر الجابري', 'specialty': 'عظام', 'experience': '10 سنوات', 'rating': 4.6, 'reviews': 145, 'price': 520, 'available': true, 'image': "assets/images/doctors/doctor_1.png", 'hospital': 'مركز العظام', 'online': false},
+    {'id': '7', 'name': 'د. ليلى الكبسي', 'specialty': 'جلدية', 'experience': '14 سنة', 'rating': 4.7, 'reviews': 178, 'price': 480, 'available': true, 'image': "assets/images/doctors/doctor_2.png", 'hospital': 'مركز الجلدية', 'online': true},
+    {'id': '8', 'name': 'د. ناصر الحمزي', 'specialty': 'عيون', 'experience': '22 سنة', 'rating': 4.9, 'reviews': 312, 'price': 580, 'available': true, 'image': "assets/images/doctors/doctor_3.png", 'hospital': 'مركز العيون', 'online': false},
+    {'id': '9', 'name': 'د. رنا الحوثي', 'specialty': 'نفسية', 'experience': '9 سنوات', 'rating': 4.5, 'reviews': 98, 'price': 420, 'available': true, 'image': "assets/images/doctors/doctor_4.png", 'hospital': 'مركز الصحة النفسية', 'online': true},
+    {'id': '10', 'name': 'د. ياسر القبلي', 'specialty': 'قلبية', 'experience': '25 سنة', 'rating': 4.9, 'reviews': 456, 'price': 650, 'available': true, 'image': "assets/images/doctors/doctor_5.png", 'hospital': 'مركز قلب العاصمة', 'online': false},
   ];
 
   List<Map<String, dynamic>> get _filteredDoctors {
@@ -32,9 +44,12 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
         d['specialty'].toString().contains(_searchQuery) ||
         d['hospital'].toString().contains(_searchQuery)
       ).toList();
+    }
     if (_selectedSpecialty != 'الكل') {
       list = list.where((d) => d['specialty'] == _selectedSpecialty).toList();
+    }
     return list;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,11 +88,13 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                     itemBuilder: (context, index) {
                       final doctor = filtered[index];
                       return _buildDoctorCard(doctor, isDark, primaryColor);
+                    },
                   ),
           ),
         ],
       ),
     );
+  }
 
   Widget _buildSearchBar(bool isDark) {
     return Padding(
@@ -120,6 +137,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
         ),
       ),
     );
+  }
 
   Widget _buildSpecialtyChips() {
     return SizedBox(
@@ -139,6 +157,8 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
               onSelected: (selected) {
                 setState(() {
                   _selectedSpecialty = selected ? specialty : 'الكل';
+                });
+              },
               backgroundColor: Colors.white,
               selectedColor: const Color(0xFF0D5257),
               labelStyle: TextStyle(
@@ -154,8 +174,10 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
               ),
             ),
           );
+        },
       ),
     );
+  }
 
   Widget _buildEmptyState(bool isDark) {
     return Center(
@@ -170,6 +192,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
         ],
       ),
     );
+  }
 
   Widget _buildDoctorCard(Map<String, dynamic> doctor, bool isDark, Color primaryColor) {
     return GestureDetector(
@@ -180,6 +203,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
             builder: (_) => DoctorDetailsScreen(doctorId: doctor['id']),
           ),
         );
+      },
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(14),
@@ -237,6 +261,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                           const SizedBox(width: 2),
                           Text(doctor['rating'].toString(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: isDark ? Colors.white : Colors.black87)),
                           const SizedBox(width: 2),
+                          Text('(${doctor['reviews']})', style: TextStyle(fontSize: 10, color: isDark ? Colors.grey[400] : Colors.grey[600])),
                         ],
                       ),
                     ],
@@ -289,6 +314,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                           color: primaryColor.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
+                        child: Text('${doctor['price']} ر.ي', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: primaryColor)),
                       ),
                     ],
                   ),
@@ -300,6 +326,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
         ),
       ),
     );
+  }
 
   void _showSearchBar(BuildContext context) {
     showDialog(
@@ -325,11 +352,14 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
               onPressed: () {
                 setState(() => _searchQuery = tempSearch);
                 Navigator.pop(context);
+              },
               child: const Text('بحث'),
             ),
           ],
         );
+      },
     );
+  }
 
   void _showFilterDialog(BuildContext context) {
     showModalBottomSheet(
@@ -355,11 +385,18 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                       groupValue: _selectedSort,
                       onChanged: (value) {
                         setStateSheet(() => _selectedSort = value!);
+                        setState(() {});
                         Navigator.pop(context);
+                      },
                       activeColor: const Color(0xFF0D5257),
                     );
+                  }).toList(),
                 ],
               ),
             );
+          },
         );
+      },
     );
+  }
+}

@@ -1,15 +1,3 @@
-import "package:sehatak/utils/image_utils.dart";
-import "package:sehatak/presentation/screens/settings/privacy_screen.dart";
-import "package:sehatak/presentation/screens/contact_us/contact_us_screen.dart";
-import "package:sehatak/presentation/screens/patient/patient_prescriptions.dart";
-import "package:sehatak/presentation/screens/patient/patient_medical_history.dart";
-import "package:sehatak/presentation/screens/weight_tracker/weight_tracker_screen.dart";
-import "package:sehatak/presentation/screens/glucose_tracker/glucose_tracker_screen.dart";
-import "package:sehatak/presentation/screens/women_health/period_tracker_screen.dart";
-import "package:sehatak/presentation/screens/help_center/help_center_screen.dart";
-import "package:sehatak/presentation/screens/terms/terms_screen.dart";
-import "package:sehatak/presentation/screens/settings/about_screen.dart";
-import "package:sehatak/presentation/screens/settings/settings_screen.dart";
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -41,6 +29,15 @@ import 'package:sehatak/presentation/screens/blood_donation/blood_donation_scree
 import 'package:sehatak/presentation/screens/medication/medicines_screen.dart';
 import 'package:sehatak/presentation/screens/hospital/hospital_screen.dart';
 import 'package:sehatak/presentation/screens/ai/ai_chatbot_screen.dart';
+import 'package:sehatak/presentation/screens/consultation/consultation_history_screen.dart';
+import 'package:sehatak/presentation/screens/patient/medical_history_screen.dart';
+import 'package:sehatak/presentation/screens/patient/prescriptions_screen.dart';
+import 'package:sehatak/presentation/screens/shared/settings_screen.dart';
+import 'package:sehatak/presentation/screens/shared/about_screen.dart';
+import 'package:sehatak/presentation/screens/shared/contact_screen.dart';
+import 'package:sehatak/presentation/screens/shared/privacy_policy_screen.dart';
+import 'package:sehatak/presentation/screens/shared/terms_screen.dart';
+import 'package:sehatak/presentation/screens/shared/help_center_screen.dart';
 import 'package:sehatak/presentation/screens/vaccination/vaccination_screen.dart';
 import 'package:sehatak/presentation/screens/diet/diet_plan_screen.dart';
 import 'package:sehatak/presentation/screens/exercise/exercise_plan_screen.dart';
@@ -48,14 +45,17 @@ import 'package:sehatak/presentation/screens/mental_health/mental_health_screen.
 import 'package:sehatak/presentation/screens/first_aid/first_aid_screen.dart';
 import 'package:sehatak/presentation/screens/pregnancy/pregnancy_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/child_growth/child_growth_screen.dart';
+import 'package:sehatak/presentation/screens/period_tracker/period_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/blood_pressure/blood_pressure_screen.dart';
+import 'package:sehatak/presentation/screens/glucose/glucose_tracker_screen.dart';
+import 'package:sehatak/presentation/screens/weight/weight_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/heart_rate/heart_rate_screen.dart';
-import 'package:sehatak/presentation/screens/sleep_tracker/sleep_tracker_screen.dart';
+import 'package:sehatak/presentation/screens/sleep/sleep_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/step_counter/step_counter_screen.dart';
-import 'package:sehatak/presentation/screens/health_tools/bmi_calculator_screen.dart';
-import 'package:sehatak/presentation/screens/health_tools/calorie_calculator_screen.dart';
-import 'package:sehatak/presentation/screens/health_tools/stress_meter_screen.dart';
-import 'package:sehatak/presentation/screens/medication/medication_reminder_screen.dart';
+import 'package:sehatak/presentation/screens/bmi/bmi_calculator_screen.dart';
+import 'package:sehatak/presentation/screens/calorie/calorie_calculator_screen.dart';
+import 'package:sehatak/presentation/screens/stress/stress_meter_screen.dart';
+import 'package:sehatak/presentation/screens/medication_reminder/medication_reminder_screen.dart';
 import 'package:sehatak/presentation/screens/drug_dictionary/drug_dictionary_screen.dart';
 import 'package:sehatak/presentation/screens/drug_compare/drug_compare_screen.dart';
 import 'package:sehatak/presentation/screens/pediatric_dose/pediatric_dose_screen.dart';
@@ -318,6 +318,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     {'id': '5', 'name': 'د. فاطمة صديقي', 'specialty': 'نساء وولادة', 'rating': 4.8, 'reviews': 210, 'image': ImageService.doctor5},
   ];
 
+  // ✅ الخدمات السريعة - أيقونات جديدة
   final List<Map<String, dynamic>> _quickServices = [
     {'icon': ImageService.fastPharmacy, 'label': 'صيدلية', 'color': AppColors.success, 'screen': const MedicinesScreen()},
     {'icon': ImageService.fastEmergency, 'label': 'طوارئ', 'color': AppColors.error, 'screen': const EmergencyNumbers()},
@@ -603,6 +604,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
         body: CustomScrollView(
           controller: _scrollController,
           slivers: [
+            // ✅ AppBar
             SliverAppBar(
               expandedHeight: 90,
               floating: true,
@@ -647,11 +649,11 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                         ),
                       ),
                       IconButton(
-                        icon: Image.asset(ImageService.notificationIcon, width: 28, height: 28, errorBuilder: (context, error, stackTrace) => Icon(Icons.notifications_outlined, color: primaryColor)),
+                        icon: Icon(Icons.notifications_outlined, color: primaryColor),
                         onPressed: () => _goTo(context, const NotificationsScreen()),
                       ),
                       IconButton(
-                        icon: Image.asset(ImageService.cartIcon, width: 28, height: 28, errorBuilder: (context, error, stackTrace) => Icon(Icons.shopping_cart_outlined, color: primaryColor)),
+                        icon: Icon(Icons.shopping_cart_outlined, color: primaryColor),
                         onPressed: () => _goTo(context, const CartScreen()),
                       ),
                       if (!logged)
@@ -670,6 +672,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                 ),
               ),
             ),
+            // ✅ المحتوى
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               sliver: SliverList(
@@ -734,7 +737,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
       ),
       child: Row(
         children: [
-          Image.asset(ImageService.searchIcon, width: 24, height: 24, errorBuilder: (context, error, stackTrace) => Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey)),
+          Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey),
           const SizedBox(width: 10),
           Expanded(
             child: TextField(

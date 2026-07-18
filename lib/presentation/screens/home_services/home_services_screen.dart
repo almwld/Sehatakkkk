@@ -13,7 +13,7 @@ class HomeServicesScreen extends StatelessWidget {
 
     final services = [
       {'icon': Icons.health_and_safety, 'title': 'تمريض منزلي', 'subtitle': 'رعاية تمريضية في منزلك', 'color': Colors.blue, 'screen': const ChatScreen()},
-      {'icon': Icons.medical_services, 'title': 'زيارات طبية', 'subtitle': 'طبيب يزورك في منزلك', 'color': Colors.teal, 'screen': DoctorsListScreen()},
+      {'icon': Icons.medical_services, 'title': 'زيارات طبية', 'subtitle': 'طبيب يزورك في منزلك', 'color': Colors.teal, 'screen': const DoctorsListScreen()},
       {'icon': Icons.fitness_center, 'title': 'علاج طبيعي', 'subtitle': 'جلسات علاج طبيعي', 'color': Colors.orange, 'screen': const ChatScreen()},
       {'icon': Icons.local_hospital, 'title': 'سيارة إسعاف', 'subtitle': 'طلب سيارة إسعاف', 'color': Colors.red, 'screen': const ChatScreen()},
       {'icon': Icons.healing, 'title': 'إسعافات أولية', 'subtitle': 'دليل الإسعافات الأولية', 'color': Colors.deepOrange, 'screen': const ChatScreen()},
