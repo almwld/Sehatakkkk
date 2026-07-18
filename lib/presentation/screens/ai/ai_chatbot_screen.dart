@@ -12,14 +12,14 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
   final TextEditingController _messageController = TextEditingController();
   final List<ChatMessage> _messages = [];
   final ScrollController _scrollController = ScrollController();
-  final LocalMedicalAI _ai = LocalMedicalAI();
+  final ChatBot _chatBot = ChatBot();  // ✅ استخدام ChatBot بدلاً من LocalMedicalAI
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
     _messages.add(ChatMessage(
-      text: _ai.chatbotRespond('مرحباً'),
+      text: _chatBot.respond('مرحباً')['response'] as String,
       isUser: false,
       timestamp: DateTime.now(),
     ));
@@ -240,11 +240,12 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
 
     await Future.delayed(Duration(milliseconds: 800));
 
-    final response = _ai.chatbotRespond(text);
+    final response = _chatBot.respond(text);
+    final reply = response['response'] as String;
 
     setState(() {
       _messages.add(ChatMessage(
-        text: response,
+        text: reply,
         isUser: false,
         timestamp: DateTime.now(),
       ));
