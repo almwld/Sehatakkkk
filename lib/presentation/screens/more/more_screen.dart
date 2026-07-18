@@ -1,611 +1,294 @@
-import 'package:sehatak/presentation/screens/ai/ai_chatbot_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:shimmer/shimmer.dart';
-import 'package:provider/provider.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/providers/font_size_provider.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
-import 'package:sehatak/presentation/bloc/auth_bloc/auth_bloc.dart';
-import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
-import 'package:sehatak/presentation/screens/settings/settings_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
 import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
-import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
-import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart';
+import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
+import 'package:sehatak/presentation/screens/patient/patient_appointments.dart';
+import 'package:sehatak/presentation/screens/patient/patient_dashboard.dart';
+import 'package:sehatak/presentation/screens/settings/settings_screen.dart';
+import 'package:sehatak/presentation/screens/ai/ai_chatbot_screen.dart';
 import 'package:sehatak/presentation/screens/health/health_dashboard.dart';
 import 'package:sehatak/presentation/screens/payment/wallet_screen.dart';
 import 'package:sehatak/presentation/screens/consultation/consultation_screen.dart';
 import 'package:sehatak/presentation/screens/services/services_screen.dart';
-import 'package:sehatak/presentation/screens/insurance/insurance_companies.dart';
 import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
 import 'package:sehatak/presentation/screens/blood_donation/blood_donation_screen.dart';
-import 'package:sehatak/presentation/screens/family_planning/family_planning_screen.dart';
-import 'package:sehatak/presentation/screens/mental_health/mental_health_screen.dart';
-import 'package:sehatak/presentation/screens/diet_plan/diet_plan_screen.dart';
-import 'package:sehatak/presentation/screens/sleep_tracker/sleep_tracker_screen.dart';
-import 'package:sehatak/presentation/screens/medication/medication_reminder_screen.dart';
-import 'package:sehatak/presentation/screens/blood_pressure/blood_pressure_screen.dart';
-import 'package:sehatak/presentation/screens/glucose_tracker/glucose_tracker_screen.dart';
-import 'package:sehatak/presentation/screens/weight_tracker/weight_tracker_screen.dart';
-import 'package:sehatak/presentation/screens/medical_reports/medical_reports_screen.dart';
-import 'package:sehatak/presentation/screens/health_community/health_community_screen.dart';
-import 'package:sehatak/presentation/screens/articles/articles_screen.dart';
-import 'package:sehatak/presentation/screens/first_aid/first_aid_screen.dart';
-import 'package:sehatak/presentation/screens/about/about_screen.dart';
-import 'package:sehatak/presentation/screens/terms/terms_screen.dart';
-import 'package:sehatak/presentation/screens/contact_us/contact_us_screen.dart';
-import 'package:sehatak/presentation/screens/share_app/share_app_screen.dart';
-import 'package:sehatak/presentation/screens/rate_app/rate_app_screen.dart';
-import 'package:sehatak/presentation/screens/report_issue/report_issue_screen.dart';
-import 'package:sehatak/presentation/screens/download_data/download_data_screen.dart';
-import 'package:sehatak/presentation/screens/font_size/font_size_screen.dart';
-import 'package:sehatak/presentation/screens/privacy/privacy_screen.dart';
-import 'package:sehatak/presentation/screens/notifications/notifications_screen.dart';
-import 'package:sehatak/presentation/screens/subscriptions/subscriptions_screen.dart';
-import 'package:sehatak/presentation/screens/help_center/help_center_screen.dart';
+import 'package:sehatak/presentation/screens/medication/medicines_screen.dart';
+import 'package:sehatak/presentation/screens/hospital/hospital_screen.dart';
+import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
+import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart';
+import 'package:sehatak/presentation/screens/insurance/insurance_companies.dart';
+import 'package:sehatak/presentation/screens/shared/notifications_screen.dart';
 
-class MoreScreen extends StatefulWidget {
+class MoreScreen extends StatelessWidget {
+  const MoreScreen({super.key});
 
-  @override
-  State<MoreScreen> createState() => _MoreScreenState();
-
-class _MoreScreenState extends State<MoreScreen> {
-  String _selectedCategory = 'الكل';
-  final ScrollController _scrollController = ScrollController();
-  double _appBarOpacity = 1.0;
-
-  final List<String> _categories = [
-    'الكل',
-    'رعاية عائلية',
-    'أدوات تشخيصية',
-    'لوجستيات وتأمين',
-    'إعدادات',
-  ];
-
-  final List<Map<String, dynamic>> _vitals = [
-  ];
-
-  void _navigateTo(Widget screen) {
+  void _goTo(BuildContext context, Widget screen) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
-
-  List<Map<String, dynamic>> get _filteredServices {
-    switch (_selectedCategory) {
-      case 'رعاية عائلية':
-        return [
-        ];
-      case 'أدوات تشخيصية':
-        return [
-        ];
-      case 'لوجستيات وتأمين':
-        return [
-        ];
-      case 'إعدادات':
-        return [
-        ];
-      default:
-        return [
-        ];
-
-  @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(() {
-      final maxScroll = _scrollController.position.maxScrollExtent;
-      final currentScroll = _scrollController.position.pixels;
-      setState(() {
-        _appBarOpacity = 1.0 - (currentScroll / maxScroll).clamp(0.0, 1.0);
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = const Color(0xFF0D5257);
-    final user = FirebaseAuth.instance.currentUser;
-    final logged = user != null;
-    final name = user?.displayName ?? user?.email?.split('@')[0] ?? 'مستخدم';
-    final fontScale = context.watch<FontSizeProvider>().fontScale;
+    final primaryColor = AppColors.primary;
+    final fontScale = MediaQuery.of(context).textScaleFactor;
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 100 * fontScale,
-            floating: true,
-            pinned: true,
-            backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
-            foregroundColor: primaryColor,
-            elevation: 0,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Opacity(
-                opacity: _appBarOpacity,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          if (logged) _navigateTo(const PatientProfile());
-                          else _navigateTo(BlocProvider(create: (_) => AuthBloc(), child: const AuthScreen()));
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(14),
-                          child: CachedNetworkImage(
-                            imageUrl: user?.photoURL ?? '',
-                            width: 45,
-                            height: 45,
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) => _shimmerPlaceholder(45, 45, 14 * fontScale),
-                            errorWidget: (_, __, ___) => Container(
-                              width: 45,
-                              height: 45,
-                              decoration: BoxDecoration(
-                                color: primaryColor.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: Icon(Icons.person, color: primaryColor, size: 24),
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 12 * fontScale),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              logged ? name : 'زائر',
-                              style: TextStyle(
-                                color: primaryColor,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              style: TextStyle(
-                                color: isDark ? Colors.grey[400] : Colors.grey[600],
-                                fontSize: 11,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.settings_outlined, color: primaryColor),
-                        onPressed: () => _navigateTo(const SettingsScreen()),
-                      ),
-                    ],
+      appBar: AppBar(
+        title: const Text('المزيد'),
+        backgroundColor: primaryColor,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ✅ زر العيادة الذكية
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.teal,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
                   ),
+                ),
+                onPressed: () => _goTo(context, const AIChatbotScreen()),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.medical_services, size: 24),
+                    const SizedBox(width: 10),
+                    Text(
+                      'العيادة الذكية - ابدأ الفحص الآن',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16 * fontScale,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    const Icon(Icons.arrow_forward_ios, size: 16),
+                  ],
                 ),
               ),
             ),
-          ),
-          SliverPadding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                SizedBox(height: 8 * fontScale),
-                _buildAISmartSuite(primaryColor, fontScale),
-                SizedBox(height: 20 * fontScale),
-                _sectionTitle('المؤشرات الحيوية', isDark, fontScale),
-                SizedBox(height: 10 * fontScale),
-                _buildVitalsGrid(fontScale),
-                SizedBox(height: 20 * fontScale),
-                _buildFilterChips(primaryColor, fontScale),
-                SizedBox(height: 16),
-                ..._filteredServices.map((service) => _buildServiceCard(service, isDark, primaryColor, fontScale)),
-                SizedBox(height: 16),
-                _buildPremiumFooter(isDark, primaryColor, fontScale),
-                SizedBox(height: 30 * fontScale),
-              ]),
-            ),
-          ),
-        ],
-      ),
-    );
+            const SizedBox(height: 20),
 
-  Widget _shimmerPlaceholder(double width, double height, double radius) {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
-      child: Container(
-        width: width,
-        height: height,
-        decoration: BoxDecoration(
-          color: Colors.grey[300],
-          borderRadius: BorderRadius.circular(radius),
+            // ✅ قسم الخدمات السريعة
+            _sectionTitle('خدمات سريعة', isDark, fontScale),
+            const SizedBox(height: 12),
+            _buildServicesGrid(isDark, primaryColor, fontScale),
+
+            const SizedBox(height: 24),
+
+            // ✅ قسم المؤشرات الحيوية
+            _sectionTitle('المؤشرات الحيوية', isDark, fontScale),
+            const SizedBox(height: 12),
+            _buildVitalsGrid(fontScale),
+
+            const SizedBox(height: 24),
+
+            // ✅ قسم الإعدادات
+            _sectionTitle('الإعدادات', isDark, fontScale),
+            const SizedBox(height: 12),
+            _buildSettingsList(isDark, primaryColor, fontScale),
+          ],
         ),
       ),
     );
+  }
 
   Widget _sectionTitle(String title, bool isDark, double fontScale) {
     return Text(
       title,
       style: TextStyle(
-        fontSize: 16,
+        fontSize: 18 * fontScale,
         fontWeight: FontWeight.bold,
         color: isDark ? Colors.white : Colors.black87,
       ),
     );
+  }
 
-  Widget _buildAISmartSuite(Color primaryColor, double fontScale) {
-    return Container(
-      padding: EdgeInsets.all(20 * fontScale),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [primaryColor, primaryColor.withOpacity(0.85)],
-          begin: Alignment.topRight,
-          end: Alignment.bottomLeft,
-        ),
-        borderRadius: BorderRadius.circular(20 * fontScale),
-        boxShadow: [
-          BoxShadow(
-            color: primaryColor.withOpacity(0.3),
-            blurRadius: 15 * fontScale,
-            offset: Offset(0, 8 * fontScale),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 12 * fontScale, vertical: 6 * fontScale),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.psychology, color: Colors.white, size: 18 * fontScale),
-                    SizedBox(width: 6 * fontScale),
-                    Text(
-                      'عيادة الذكاء الاصطناعي',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12 * fontScale,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(Icons.blur_on, color: Colors.white54, size: 20 * fontScale),
-            ],
-          ),
-          SizedBox(height: 16),
-          Text(
-            'هل تشعر بأي أعراض صحية حالياً؟',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18 * fontScale,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          SizedBox(height: 6 * fontScale),
-          Text(
-            'ابدأ فحصاً فورياً مدعوماً بالذكاء الاصطناعي لتحليل حالتك وتوجيهك للطبيب المناسب.',
-            style: TextStyle(
-              color: Colors.white70,
-              fontSize: 13 * fontScale,
-              height: 1.4,
-            ),
-          ),
-          SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            height: 48 * fontScale,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: primaryColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                elevation: 0,
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AIChatbotScreen(),
-                  ),
-                );
-              child: Text(
-                'ابدأ الفحص الذكي الآن',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14 * fontScale,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+  Widget _buildServicesGrid(bool isDark, Color primaryColor, double fontScale) {
+    final services = [
+      {'icon': Icons.person_search, 'label': 'أطباء', 'screen': DoctorsListScreen()},
+      {'icon': Icons.local_pharmacy, 'label': 'صيدلية', 'screen': MedicinesScreen()},
+      {'icon': Icons.science, 'label': 'مختبرات', 'screen': LabsListScreen()},
+      {'icon': Icons.emergency, 'label': 'طوارئ', 'screen': EmergencyNumbers()},
+      {'icon': Icons.favorite, 'label': 'صحة', 'screen': HealthDashboard()},
+      {'icon': Icons.wallet, 'label': 'محفظة', 'screen': WalletScreen()},
+      {'icon': Icons.chat, 'label': 'استشارة', 'screen': ConsultationScreen()},
+      {'icon': Icons.calendar_today, 'label': 'مواعيد', 'screen': PatientAppointments()},
+      {'icon': Icons.location_on, 'label': 'بالقرب منك', 'screen': InteractiveMapScreen()},
+      {'icon': Icons.health_and_safety, 'label': 'تأمين', 'screen': InsuranceCompanies()},
+      {'icon': Icons.bloodtype, 'label': 'تبرع بالدم', 'screen': BloodDonationScreen()},
+      {'icon': Icons.medication, 'label': 'خدمات منزلية', 'screen': ServicesScreen()},
+    ];
 
-  Widget _buildVitalsGrid(double fontScale) {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 12 * fontScale,
-        crossAxisSpacing: 12 * fontScale,
-        childAspectRatio: 1.4,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 1,
       ),
-      itemCount: _vitals.length,
+      itemCount: services.length,
       itemBuilder: (context, index) {
-        final vital = _vitals[index];
-        final color = vital['color'] as Color;
-        final statusColor = vital['statusColor'] as Color;
-        final screen = vital['screen'] as Widget;
+        final service = services[index];
         return GestureDetector(
-          onTap: () => _navigateTo(screen),
+          onTap: () => _goTo(context, service['screen'] as Widget),
           child: Container(
-            padding: EdgeInsets.all(14 * fontScale),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              color: isDark ? const Color(0xFF1A2540) : Colors.white,
+              borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
-                  blurRadius: 10 * fontScale,
-                  offset: Offset(0, 4 * fontScale),
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      vital['title'] as String,
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 12 * fontScale,
-                      ),
-                    ),
-                    Icon(vital['icon'] as IconData, color: color, size: 20 * fontScale),
-                  ],
+                Icon(
+                  service['icon'] as IconData,
+                  color: primaryColor,
+                  size: 28,
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      vital['value'] as String,
-                      style: TextStyle(
-                        fontSize: 20 * fontScale,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF0D5257),
-                      ),
-                    ),
-                    SizedBox(height: 2 * fontScale),
-                    Row(
-                      children: [
-                        Container(
-                          width: 6 * fontScale,
-                          height: 6 * fontScale,
-                          decoration: BoxDecoration(
-                            color: statusColor,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        SizedBox(width: 4 * fontScale),
-                        Text(
-                          vital['status'] as String,
-                          style: TextStyle(
-                            color: statusColor,
-                            fontSize: 10 * fontScale,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        SizedBox(width: 4 * fontScale),
-                        Text(
-                          vital['unit'] as String,
-                          style: TextStyle(
-                            color: Colors.grey[400],
-                            fontSize: 9 * fontScale,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                const SizedBox(height: 6),
+                Text(
+                  service['label'] as String,
+                  style: TextStyle(
+                    fontSize: 11 * fontScale,
+                    fontWeight: FontWeight.w500,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),
           ),
         );
+      },
     );
+  }
 
-  Widget _buildFilterChips(Color primaryColor, double fontScale) {
-    return SizedBox(
-      height: 40 * fontScale,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: _categories.length,
-        itemBuilder: (context, index) {
-          final category = _categories[index];
-          final isSelected = _selectedCategory == category;
-          return Padding(
-            padding: EdgeInsets.only(
-              right: index == 0 ? 0 : 8 * fontScale,
-              left: index == _categories.length - 1 ? 0 : 0,
-            ),
-            child: ChoiceChip(
-              label: Text(category),
-              selected: isSelected,
-              onSelected: (val) {
-                setState(() {
-                  _selectedCategory = category;
-              selectedColor: primaryColor,
-              backgroundColor: Colors.white,
-              labelStyle: TextStyle(
-                color: isSelected ? Colors.white : primaryColor,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                fontSize: 13 * fontScale,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: BorderSide(
-                  color: isSelected ? Colors.transparent : primaryColor.withOpacity(0.2),
-                ),
-              ),
-              elevation: 0,
-            ),
-          );
-      ),
-    );
+  Widget _buildVitalsGrid(double fontScale) {
+    final vitals = [
+      {'icon': Icons.favorite, 'label': 'ضغط الدم', 'color': Colors.red},
+      {'icon': Icons.bloodtype, 'label': 'السكر', 'color': Colors.blue},
+      {'icon': Icons.monitor_weight, 'label': 'الوزن', 'color': Colors.green},
+      {'icon': Icons.favorite_border, 'label': 'النبض', 'color': Colors.purple},
+    ];
 
-  Widget _buildServiceCard(Map<String, dynamic> service, bool isDark, Color primaryColor, double fontScale) {
-    final screen = service['screen'] as Widget;
-    return Container(
-      margin: EdgeInsets.only(bottom: 8 * fontScale),
-      padding: EdgeInsets.all(12 * fontScale),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2540) : Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 4 * fontScale,
-            offset: Offset(0, 2 * fontScale),
-          ),
-        ],
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 1.5,
       ),
-      child: ListTile(
-        contentPadding: EdgeInsets.zero,
-        leading: Container(
-          padding: EdgeInsets.all(10 * fontScale),
+      itemCount: vitals.length,
+      itemBuilder: (context, index) {
+        final vital = vitals[index];
+        final color = vital['color'] as Color;
+        return Container(
           decoration: BoxDecoration(
-            color: primaryColor.withOpacity(0.08),
+            color: color.withOpacity(0.08),
             borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: color.withOpacity(0.2)),
           ),
-          child: Icon(
-            service['icon'] as IconData,
-            color: primaryColor,
-            size: 24,
-          ),
-        ),
-        title: Text(
-          service['title'] as String,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 14 * fontScale,
-            color: isDark ? Colors.white : Colors.black87,
-          ),
-        ),
-        subtitle: Text(
-          service['subtitle'] as String,
-          style: TextStyle(
-            fontSize: 11,
-            color: isDark ? Colors.grey[400] : Colors.grey[600],
-          ),
-        ),
-        trailing: Icon(
-          Icons.arrow_forward_ios,
-          size: 14 * fontScale,
-          color: isDark ? Colors.grey[500] : Colors.grey[400],
-        ),
-        onTap: () => _navigateTo(screen),
-      ),
-    );
-
-  Widget _buildPremiumFooter(bool isDark, Color primaryColor, double fontScale) {
-    return Column(
-      children: [
-        GestureDetector(
-          onTap: () {
-            _showLogoutDialog();
-          child: Container(
-            padding: EdgeInsets.symmetric(vertical: 12 * fontScale),
-            decoration: BoxDecoration(
-              color: Colors.red.withOpacity(0.06),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Center(
-              child: Text(
-                'تسجيل الخروج',
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(vital['icon'] as IconData, color: color, size: 24),
+              const SizedBox(width: 8),
+              Text(
+                vital['label'] as String,
                 style: TextStyle(
-                  color: Colors.red.withOpacity(0.7),
-                  fontWeight: FontWeight.w600,
                   fontSize: 14 * fontScale,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSettingsList(bool isDark, Color primaryColor, double fontScale) {
+    final settings = [
+      {'icon': Icons.notifications, 'label': 'الإشعارات', 'screen': NotificationsScreen()},
+      {'icon': Icons.settings, 'label': 'الإعدادات', 'screen': SettingsScreen()},
+      {'icon': Icons.logout, 'label': 'تسجيل الخروج', 'action': 'logout'},
+    ];
+
+    return Column(
+      children: settings.map((setting) {
+        return ListTile(
+          leading: Icon(
+            setting['icon'] as IconData,
+            color: primaryColor,
+          ),
+          title: Text(
+            setting['label'] as String,
+            style: TextStyle(
+              fontSize: 14 * fontScale,
+              color: isDark ? Colors.white : Colors.black87,
             ),
           ),
-        ),
-        SizedBox(height: 12 * fontScale),
-        Text(
-          'صحتك - v1.0.0 (Build 240)',
-          style: TextStyle(
-            color: isDark ? Colors.grey[600] : Colors.grey[400],
-            fontSize: 11,
-          ),
-        ),
-        SizedBox(height: 8 * fontScale),
-        Text(
-          '© 2026 Sehatak Platform. All rights reserved.',
-          style: TextStyle(
-            color: isDark ? Colors.grey[700] : Colors.grey[400],
-            fontSize: 10 * fontScale,
-          ),
-        ),
-      ],
+          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+          onTap: () {
+            if (setting['action'] == 'logout') {
+              _showLogoutDialog(context);
+            } else if (setting['screen'] != null) {
+              _goTo(context, setting['screen'] as Widget);
+            }
+          },
+        );
+      }).toList(),
     );
+  }
 
-  void _showLogoutDialog() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: isDark ? const Color(0xFF1A2540) : Colors.white,
-        title: Text(
-          'تسجيل الخروج',
-          style: TextStyle(color: isDark ? Colors.white : Colors.black87),
-        ),
-        content: Text(
-          'هل أنت متأكد من رغبتك في تسجيل الخروج؟',
-          style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[700]),
-        ),
+      builder: (context) => AlertDialog(
+        title: const Text('تسجيل الخروج'),
+        content: const Text('هل أنت متأكد من رغبتك في تسجيل الخروج؟'),
         actions: [
           TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AIChatbotScreen(),
-                  ),
-                );
-            child: Text(
-              'إلغاء',
-              style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[700]),
-            ),
+            onPressed: () => Navigator.pop(context),
+            child: const Text('إلغاء'),
           ),
           TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AIChatbotScreen(),
-                  ),
-                );
+            onPressed: () {
+              FirebaseAuth.instance.signOut();
+              Navigator.pop(context);
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const AuthScreen()),
+              );
+            },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text('تسجيل الخروج'),
+            child: const Text('تسجيل الخروج'),
           ),
         ],
       ),
     );
+  }
+}

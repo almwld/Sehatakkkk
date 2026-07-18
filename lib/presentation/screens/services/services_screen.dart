@@ -56,7 +56,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
       'label': 'الأطباء',
       'color': AppColors.primary,
       'category': 'طبية',
-      'screen': const DoctorsListScreen(),
+      'screen': DoctorsListScreen(),
       'description': 'استشر أفضل الأطباء في مختلف التخصصات',
     },
     {
