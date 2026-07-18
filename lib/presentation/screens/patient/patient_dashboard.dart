@@ -32,6 +32,12 @@ class _PatientDashboardState extends State<PatientDashboard> {
     'weight': 75,
     'emergencyContact': 'خالد أحمد',
     'emergencyPhone': '777888999',
+  };
+
+  // ✅ الإحصائيات
+  final List<Map<String, dynamic>> _stats = [
+    {'label': 'الزيارات', 'value': '12', 'icon': Icons.calendar_month, 'color': AppColors.primary},
+    {'label': 'الأدوية', 'value': '5', 'icon': Icons.medication, 'color': AppColors.success},
     {'label': 'التحاليل', 'value': '8', 'icon': Icons.science, 'color': AppColors.purple},
     {'label': 'التقارير', 'value': '6', 'icon': Icons.description, 'color': AppColors.info},
   ];
@@ -803,10 +809,3 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 }
-
-  final List<Map<String, dynamic>> _stats = [
-    {'icon': Icons.favorite, 'label': 'ضغط الدم', 'value': '120/80', 'color': Colors.red},
-    {'icon': Icons.bloodtype, 'label': 'السكر', 'value': '95', 'color': Colors.blue},
-    {'icon': Icons.monitor_weight, 'label': 'الوزن', 'value': '75 كجم', 'color': Colors.green},
-    {'icon': Icons.favorite_border, 'label': 'النبض', 'value': '72', 'color': Colors.purple},
-  ];

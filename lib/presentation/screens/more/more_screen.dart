@@ -1,105 +1,291 @@
+import 'package:sehatak/presentation/screens/ai/ai_chatbot_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:provider/provider.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/providers/font_size_provider.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
+import 'package:sehatak/presentation/bloc/auth_bloc/auth_bloc.dart';
+import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
+import 'package:sehatak/presentation/screens/settings/settings_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
 import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
-import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
-import 'package:sehatak/presentation/screens/patient/patient_appointments.dart';
-import 'package:sehatak/presentation/screens/patient/patient_dashboard.dart';
-import 'package:sehatak/presentation/screens/settings/settings_screen.dart';
-import 'package:sehatak/presentation/screens/ai/ai_chatbot_screen.dart';
+import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
+import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart';
 import 'package:sehatak/presentation/screens/health/health_dashboard.dart';
 import 'package:sehatak/presentation/screens/payment/wallet_screen.dart';
 import 'package:sehatak/presentation/screens/consultation/consultation_screen.dart';
 import 'package:sehatak/presentation/screens/services/services_screen.dart';
+import 'package:sehatak/presentation/screens/insurance/insurance_companies.dart';
 import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
 import 'package:sehatak/presentation/screens/blood_donation/blood_donation_screen.dart';
-import 'package:sehatak/presentation/screens/medication/medicines_screen.dart';
-import 'package:sehatak/presentation/screens/hospital/hospital_screen.dart';
-import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
-import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart';
-import 'package:sehatak/presentation/screens/insurance/insurance_companies.dart';
-import 'package:sehatak/presentation/screens/shared/notifications_screen.dart';
+import 'package:sehatak/presentation/screens/family_planning/family_planning_screen.dart';
+import 'package:sehatak/presentation/screens/mental_health/mental_health_screen.dart';
+import 'package:sehatak/presentation/screens/diet_plan/diet_plan_screen.dart';
+import 'package:sehatak/presentation/screens/sleep_tracker/sleep_tracker_screen.dart';
+import 'package:sehatak/presentation/screens/medication/medication_reminder_screen.dart';
+import 'package:sehatak/presentation/screens/blood_pressure/blood_pressure_screen.dart';
+import 'package:sehatak/presentation/screens/glucose_tracker/glucose_tracker_screen.dart';
+import 'package:sehatak/presentation/screens/weight_tracker/weight_tracker_screen.dart';
+import 'package:sehatak/presentation/screens/medical_reports/medical_reports_screen.dart';
+import 'package:sehatak/presentation/screens/health_community/health_community_screen.dart';
+import 'package:sehatak/presentation/screens/articles/articles_screen.dart';
+import 'package:sehatak/presentation/screens/first_aid/first_aid_screen.dart';
+import 'package:sehatak/presentation/screens/about/about_screen.dart';
+import 'package:sehatak/presentation/screens/terms/terms_screen.dart';
+import 'package:sehatak/presentation/screens/contact_us/contact_us_screen.dart';
+import 'package:sehatak/presentation/screens/share_app/share_app_screen.dart';
+import 'package:sehatak/presentation/screens/rate_app/rate_app_screen.dart';
+import 'package:sehatak/presentation/screens/report_issue/report_issue_screen.dart';
+import 'package:sehatak/presentation/screens/download_data/download_data_screen.dart';
+import 'package:sehatak/presentation/screens/font_size/font_size_screen.dart';
+import 'package:sehatak/presentation/screens/privacy/privacy_screen.dart';
+import 'package:sehatak/presentation/screens/notifications/notifications_screen.dart';
+import 'package:sehatak/presentation/screens/subscriptions/subscriptions_screen.dart';
+import 'package:sehatak/presentation/screens/help_center/help_center_screen.dart';
 
-class MoreScreen extends StatelessWidget {
+class MoreScreen extends StatefulWidget {
   const MoreScreen({super.key});
 
-  void _goTo(BuildContext context, Widget screen) {
+  @override
+  State<MoreScreen> createState() => _MoreScreenState();
+}
+
+class _MoreScreenState extends State<MoreScreen> {
+  String _selectedCategory = 'الكل';
+  final ScrollController _scrollController = ScrollController();
+  double _appBarOpacity = 1.0;
+
+  final List<String> _categories = [
+    'الكل',
+    'رعاية عائلية',
+    'أدوات تشخيصية',
+    'لوجستيات وتأمين',
+    'إعدادات',
+  ];
+
+  final List<Map<String, dynamic>> _vitals = [
+    {'title': 'عداد الخطوات', 'value': '5,230', 'unit': 'خطوة', 'icon': Icons.directions_walk, 'color': Colors.orange, 'status': 'طبيعي', 'statusColor': Colors.green, 'screen': const SleepTrackerScreen()},
+    {'title': 'ضغط الدم', 'value': '120/80', 'unit': 'ملم زئبق', 'icon': Icons.favorite, 'color': Colors.red, 'status': 'طبيعي', 'statusColor': Colors.green, 'screen': const BloodPressureScreen()},
+    {'title': 'معدل القلب', 'value': '72', 'unit': 'نبضة/د', 'icon': Icons.favorite, 'color': Colors.pink, 'status': 'طبيعي', 'statusColor': Colors.green, 'screen': const HealthDashboard()},
+    {'title': 'نسبة السكر', 'value': '95', 'unit': 'مغ/دسل', 'icon': Icons.water_drop, 'color': Colors.blue, 'status': 'مرتفع', 'statusColor': Colors.red, 'screen': const GlucoseTrackerScreen()},
+  ];
+
+  void _navigateTo(Widget screen) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
+  }
+
+  List<Map<String, dynamic>> get _filteredServices {
+    switch (_selectedCategory) {
+      case 'رعاية عائلية':
+        return [
+          {'icon': Icons.woman, 'title': 'صحة المرأة', 'subtitle': 'متابعة الدورة والحمل', 'screen': const FamilyPlanningScreen()},
+          {'icon': Icons.child_care, 'title': 'نمو الطفل', 'subtitle': 'مراحل التطور', 'screen': const FamilyPlanningScreen()},
+          {'icon': Icons.house_rounded, 'title': 'طبيب العائلة', 'subtitle': 'رعاية منزلية متكاملة', 'screen': const DoctorsListScreen()},
+          {'icon': Icons.pregnant_woman, 'title': 'متابعة الحمل', 'subtitle': 'أسابيع الحمل بدقة', 'screen': const FamilyPlanningScreen()},
+          {'icon': Icons.health_and_safety, 'title': 'الصحة النفسية', 'subtitle': 'دعم الصحة النفسية', 'screen': const MentalHealthScreen()},
+          {'icon': Icons.restaurant, 'title': 'نظام غذائي', 'subtitle': 'خطط غذائية صحية', 'screen': const DietPlanScreen()},
+          {'icon': Icons.nightlight, 'title': 'تتبع النوم', 'subtitle': 'مراقبة جودة النوم', 'screen': const SleepTrackerScreen()},
+        ];
+      case 'أدوات تشخيصية':
+        return [
+          {'icon': Icons.monitor_heart, 'title': 'ضغط الدم', 'subtitle': 'متابعة ضغط الدم', 'screen': const BloodPressureScreen()},
+          {'icon': Icons.biotech, 'title': 'تتبع السكر', 'subtitle': 'مراقبة مستوى السكر', 'screen': const GlucoseTrackerScreen()},
+          {'icon': Icons.monitor_weight, 'title': 'الوزن', 'subtitle': 'تتبع الوزن واللياقة', 'screen': const WeightTrackerScreen()},
+          {'icon': Icons.medication, 'title': 'تذكير الأدوية', 'subtitle': 'تذكير بمواعيد الأدوية', 'screen': const MedicationReminderScreen()},
+          {'icon': Icons.bloodtype, 'title': 'التبرع بالدم', 'subtitle': 'مراكز التبرع بالدم', 'screen': const BloodDonationScreen()},
+          {'icon': Icons.article, 'title': 'المقالات الطبية', 'subtitle': 'أحدث المقالات الطبية', 'screen': const ArticlesScreen()},
+          {'icon': Icons.emergency, 'title': 'الإسعافات الأولية', 'subtitle': 'دليل الإسعافات الأولية', 'screen': const FirstAidScreen()},
+        ];
+      case 'لوجستيات وتأمين':
+        return [
+          {'icon': Icons.local_pharmacy, 'title': 'صيدلية', 'subtitle': 'طلب الأدوية وتوصيلها', 'screen': const PharmacyScreen()},
+          {'icon': Icons.science, 'title': 'مختبرات', 'subtitle': 'حجز التحاليل والفحوصات', 'screen': const LabsListScreen()},
+          {'icon': Icons.shield, 'title': 'تأمين صحي', 'subtitle': 'خطط التأمين والاشتراك', 'screen': const InsuranceCompanies()},
+          {'icon': Icons.map, 'title': 'خرائط المرافق', 'subtitle': 'أقرب المستشفيات والصيدليات', 'screen': const InteractiveMapScreen()},
+          {'icon': Icons.local_hospital, 'title': 'المستشفيات', 'subtitle': 'أقرب المستشفيات', 'screen': const InteractiveMapScreen()},
+          {'icon': Icons.wallet, 'title': 'المحفظة', 'subtitle': 'إدارة محفظتك', 'screen': const WalletScreen()},
+        ];
+      case 'إعدادات':
+        return [
+          {'icon': Icons.person, 'title': 'الملف الشخصي', 'subtitle': 'إدارة ملفك الشخصي', 'screen': const PatientProfile()},
+          {'icon': Icons.settings, 'title': 'الإعدادات', 'subtitle': 'إعدادات التطبيق', 'screen': const SettingsScreen()},
+          {'icon': Icons.notifications, 'title': 'الإشعارات', 'subtitle': 'إدارة الإشعارات', 'screen': const NotificationsScreen()},
+          {'icon': Icons.privacy_tip, 'title': 'الخصوصية', 'subtitle': 'إعدادات الخصوصية', 'screen': const PrivacyScreen()},
+          {'icon': Icons.assignment, 'title': 'الشروط والأحكام', 'subtitle': 'عرض الشروط والأحكام', 'screen': const TermsScreen()},
+          {'icon': Icons.info, 'title': 'عن التطبيق', 'subtitle': 'معلومات عن التطبيق', 'screen': const AboutScreen()},
+          {'icon': Icons.help, 'title': 'مركز المساعدة', 'subtitle': 'الأسئلة الشائعة والدعم', 'screen': const HelpCenterScreen()},
+          {'icon': Icons.contact_support, 'title': 'اتصل بنا', 'subtitle': 'تواصل مع فريق الدعم', 'screen': const ContactUsScreen()},
+          {'icon': Icons.share, 'title': 'مشاركة التطبيق', 'subtitle': 'شارك التطبيق مع أصدقائك', 'screen': const ShareAppScreen()},
+          {'icon': Icons.star, 'title': 'تقييم التطبيق', 'subtitle': 'قيم التطبيق', 'screen': const RateAppScreen()},
+          {'icon': Icons.report, 'title': 'الإبلاغ عن مشكلة', 'subtitle': 'أبلغ عن مشكلة', 'screen': const ReportIssueScreen()},
+          {'icon': Icons.download, 'title': 'تحميل البيانات', 'subtitle': 'تحميل بياناتك الصحية', 'screen': const DownloadDataScreen()},
+          {'icon': Icons.text_fields, 'title': 'حجم الخط', 'subtitle': 'تغيير حجم الخط', 'screen': const FontSizeScreen()},
+          {'icon': Icons.subscriptions, 'title': 'الباقات', 'subtitle': 'عرض الباقات المتاحة', 'screen': const SubscriptionsScreen()},
+        ];
+      default:
+        return [
+          {'icon': Icons.medical_services, 'title': 'الأطباء', 'subtitle': 'استشر أفضل الأطباء', 'screen': const DoctorsListScreen()},
+          {'icon': Icons.local_pharmacy, 'title': 'الصيدلية', 'subtitle': 'طلب الأدوية وتوصيلها', 'screen': const PharmacyScreen()},
+          {'icon': Icons.science, 'title': 'المختبرات', 'subtitle': 'حجز التحاليل والفحوصات', 'screen': const LabsListScreen()},
+          {'icon': Icons.emergency, 'title': 'الطوارئ', 'subtitle': 'أرقام الطوارئ والمساعدة', 'screen': const EmergencyNumbers()},
+          {'icon': Icons.chat, 'title': 'استشارة فورية', 'subtitle': 'تحدث مع طبيبك الآن', 'screen': const ConsultationScreen()},
+          {'icon': Icons.favorite, 'title': 'صحتك', 'subtitle': 'متابعة حالتك الصحية', 'screen': const HealthDashboard()},
+          {'icon': Icons.wallet, 'title': 'المحفظة', 'subtitle': 'إدارة محفظتك', 'screen': const WalletScreen()},
+          {'icon': Icons.calendar_month, 'title': 'المواعيد', 'subtitle': 'إدارة مواعيدك', 'screen': const HealthDashboard()},
+          {'icon': Icons.map, 'title': 'الخريطة', 'subtitle': 'المنشآت الصحية القريبة', 'screen': const InteractiveMapScreen()},
+          {'icon': Icons.shield, 'title': 'التأمين الصحي', 'subtitle': 'خطط التأمين والاشتراكات', 'screen': const InsuranceCompanies()},
+          {'icon': Icons.bloodtype, 'title': 'التبرع بالدم', 'subtitle': 'مراكز التبرع بالدم', 'screen': const BloodDonationScreen()},
+          {'icon': Icons.person, 'title': 'الملف الشخصي', 'subtitle': 'إدارة ملفك الشخصي', 'screen': const PatientProfile()},
+          {'icon': Icons.settings, 'title': 'الإعدادات', 'subtitle': 'إعدادات التطبيق', 'screen': const SettingsScreen()},
+          {'icon': Icons.grid_view, 'title': 'جميع الخدمات', 'subtitle': 'استعراض جميع الخدمات', 'screen': const ServicesScreen()},
+        ];
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(() {
+      final maxScroll = _scrollController.position.maxScrollExtent;
+      final currentScroll = _scrollController.position.pixels;
+      setState(() {
+        _appBarOpacity = 1.0 - (currentScroll / maxScroll).clamp(0.0, 1.0);
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = AppColors.primary;
-    final fontScale = MediaQuery.of(context).textScaleFactor;
+    final primaryColor = const Color(0xFF0D5257);
+    final user = FirebaseAuth.instance.currentUser;
+    final logged = user != null;
+    final name = user?.displayName ?? user?.email?.split('@')[0] ?? 'مستخدم';
+    final fontScale = context.watch<FontSizeProvider>().fontScale;
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text('المزيد'),
-        backgroundColor: primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ✅ زر العيادة الذكية
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                onPressed: () => _goTo(context, const AIChatbotScreen()),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.medical_services, size: 24),
-                    const SizedBox(width: 10),
-                    Text(
-                      'العيادة الذكية - ابدأ الفحص الآن',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16 * fontScale,
+      body: CustomScrollView(
+        controller: _scrollController,
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 100 * fontScale,
+            floating: true,
+            pinned: true,
+            backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
+            foregroundColor: primaryColor,
+            elevation: 0,
+            flexibleSpace: FlexibleSpaceBar(
+              background: Opacity(
+                opacity: _appBarOpacity,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          if (logged) _navigateTo(const PatientProfile());
+                          else _navigateTo(BlocProvider(create: (_) => AuthBloc(), child: const AuthScreen()));
+                        },
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(14),
+                          child: CachedNetworkImage(
+                            imageUrl: user?.photoURL ?? '',
+                            width: 45,
+                            height: 45,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => _shimmerPlaceholder(45, 45, 14 * fontScale),
+                            errorWidget: (_, __, ___) => Container(
+                              width: 45,
+                              height: 45,
+                              decoration: BoxDecoration(
+                                color: primaryColor.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Icon(Icons.person, color: primaryColor, size: 24),
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 10),
-                    const Icon(Icons.arrow_forward_ios, size: 16),
-                  ],
+                      SizedBox(width: 12 * fontScale),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              logged ? name : 'زائر',
+                              style: TextStyle(
+                                color: primaryColor,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              logged ? 'رقم الملف: #${user?.uid.substring(0, 8) ?? '00000000'}' : 'تسجيل الدخول للمزيد',
+                              style: TextStyle(
+                                color: isDark ? Colors.grey[400] : Colors.grey[600],
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.settings_outlined, color: primaryColor),
+                        onPressed: () => _navigateTo(const SettingsScreen()),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+          ),
+          SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                SizedBox(height: 8 * fontScale),
+                _buildAISmartSuite(primaryColor, fontScale),
+                SizedBox(height: 20 * fontScale),
+                _sectionTitle('المؤشرات الحيوية', isDark, fontScale),
+                SizedBox(height: 10 * fontScale),
+                _buildVitalsGrid(fontScale),
+                SizedBox(height: 20 * fontScale),
+                _buildFilterChips(primaryColor, fontScale),
+                SizedBox(height: 16),
+                ..._filteredServices.map((service) => _buildServiceCard(service, isDark, primaryColor, fontScale)),
+                SizedBox(height: 16),
+                _buildPremiumFooter(isDark, primaryColor, fontScale),
+                SizedBox(height: 30 * fontScale),
+              ]),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-            // ✅ قسم الخدمات السريعة
-            _sectionTitle('خدمات سريعة', isDark, fontScale),
-            const SizedBox(height: 12),
-            _buildServicesGrid(isDark, primaryColor, fontScale),
-
-            const SizedBox(height: 24),
-
-            // ✅ قسم المؤشرات الحيوية
-            _sectionTitle('المؤشرات الحيوية', isDark, fontScale),
-            const SizedBox(height: 12),
-            _buildVitalsGrid(fontScale),
-
-            const SizedBox(height: 24),
-
-            // ✅ قسم الإعدادات
-            _sectionTitle('الإعدادات', isDark, fontScale),
-            const SizedBox(height: 12),
-            _buildSettingsList(isDark, primaryColor, fontScale),
-          ],
+  Widget _shimmerPlaceholder(double width, double height, double radius) {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: Container(
+        width: width,
+        height: height,
+        decoration: BoxDecoration(
+          color: Colors.grey[300],
+          borderRadius: BorderRadius.circular(radius),
         ),
       ),
     );
@@ -109,205 +295,399 @@ class MoreScreen extends StatelessWidget {
     return Text(
       title,
       style: TextStyle(
-        fontSize: 18 * fontScale,
+        fontSize: 16,
         fontWeight: FontWeight.bold,
         color: isDark ? Colors.white : Colors.black87,
       ),
     );
   }
 
-  Widget _buildServicesGrid(bool isDark, Color primaryColor, double fontScale) {
-    final services = [
-      {'icon': Icons.person_search, 'label': 'أطباء', 'screen': DoctorsListScreen()},
-      {'icon': Icons.local_pharmacy, 'label': 'صيدلية', 'screen': MedicinesScreen()},
-      {'icon': Icons.science, 'label': 'مختبرات', 'screen': LabsListScreen()},
-      {'icon': Icons.emergency, 'label': 'طوارئ', 'screen': EmergencyNumbers()},
-      {'icon': Icons.favorite, 'label': 'صحة', 'screen': HealthDashboard()},
-      {'icon': Icons.wallet, 'label': 'محفظة', 'screen': WalletScreen()},
-      {'icon': Icons.chat, 'label': 'استشارة', 'screen': ConsultationScreen()},
-      {'icon': Icons.calendar_today, 'label': 'مواعيد', 'screen': PatientAppointments()},
-      {'icon': Icons.location_on, 'label': 'بالقرب منك', 'screen': InteractiveMapScreen()},
-      {'icon': Icons.health_and_safety, 'label': 'تأمين', 'screen': InsuranceCompanies()},
-      {'icon': Icons.bloodtype, 'label': 'تبرع بالدم', 'screen': BloodDonationScreen()},
-      {'icon': Icons.medication, 'label': 'خدمات منزلية', 'screen': ServicesScreen()},
-    ];
-
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        childAspectRatio: 1,
+  Widget _buildAISmartSuite(Color primaryColor, double fontScale) {
+    return Container(
+      padding: EdgeInsets.all(20 * fontScale),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [primaryColor, primaryColor.withOpacity(0.85)],
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
+        ),
+        borderRadius: BorderRadius.circular(20 * fontScale),
+        boxShadow: [
+          BoxShadow(
+            color: primaryColor.withOpacity(0.3),
+            blurRadius: 15 * fontScale,
+            offset: Offset(0, 8 * fontScale),
+          ),
+        ],
       ),
-      itemCount: services.length,
-      itemBuilder: (context, index) {
-        final service = services[index];
-        return GestureDetector(
-          onTap: () => _goTo(context, service['screen'] as Widget),
-          child: Container(
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1A2540) : Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 12 * fontScale, vertical: 6 * fontScale),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-              ],
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  service['icon'] as IconData,
-                  color: primaryColor,
-                  size: 28,
+                child: Row(
+                  children: [
+                    Icon(Icons.psychology, color: Colors.white, size: 18 * fontScale),
+                    SizedBox(width: 6 * fontScale),
+                    Text(
+                      'عيادة الذكاء الاصطناعي',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12 * fontScale,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  service['label'] as String,
-                  style: TextStyle(
-                    fontSize: 11 * fontScale,
-                    fontWeight: FontWeight.w500,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
+              ),
+              Icon(Icons.blur_on, color: Colors.white54, size: 20 * fontScale),
+            ],
+          ),
+          SizedBox(height: 16),
+          Text(
+            'هل تشعر بأي أعراض صحية حالياً؟',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18 * fontScale,
+              fontWeight: FontWeight.bold,
             ),
           ),
-        );
-      },
+          SizedBox(height: 6 * fontScale),
+          Text(
+            'ابدأ فحصاً فورياً مدعوماً بالذكاء الاصطناعي لتحليل حالتك وتوجيهك للطبيب المناسب.',
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: 13 * fontScale,
+              height: 1.4,
+            ),
+          ),
+          SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            height: 48 * fontScale,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: primaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                elevation: 0,
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AIChatbotScreen(),
+                  ),
+                );
+              },
+              child: Text(
+                'ابدأ الفحص الذكي الآن',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14 * fontScale,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildVitalsGrid(double fontScale) {
-    final vitals = [
-      {'icon': Icons.favorite, 'label': 'ضغط الدم', 'color': Colors.red},
-      {'icon': Icons.bloodtype, 'label': 'السكر', 'color': Colors.blue},
-      {'icon': Icons.monitor_weight, 'label': 'الوزن', 'color': Colors.green},
-      {'icon': Icons.favorite_border, 'label': 'النبض', 'color': Colors.purple},
-    ];
-
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        childAspectRatio: 1.5,
+        mainAxisSpacing: 12 * fontScale,
+        crossAxisSpacing: 12 * fontScale,
+        childAspectRatio: 1.4,
       ),
-      itemCount: vitals.length,
+      itemCount: _vitals.length,
       itemBuilder: (context, index) {
-        final vital = vitals[index];
+        final vital = _vitals[index];
         final color = vital['color'] as Color;
-        return Container(
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.08),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: color.withOpacity(0.2)),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(vital['icon'] as IconData, color: color, size: 24),
-              const SizedBox(width: 8),
-              Text(
-                vital['label'] as String,
-                style: TextStyle(
-                  fontSize: 14 * fontScale,
-                  fontWeight: FontWeight.w500,
+        final statusColor = vital['statusColor'] as Color;
+        final screen = vital['screen'] as Widget;
+        return GestureDetector(
+          onTap: () => _navigateTo(screen),
+          child: Container(
+            padding: EdgeInsets.all(14 * fontScale),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.03),
+                  blurRadius: 10 * fontScale,
+                  offset: Offset(0, 4 * fontScale),
                 ),
-              ),
-            ],
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      vital['title'] as String,
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 12 * fontScale,
+                      ),
+                    ),
+                    Icon(vital['icon'] as IconData, color: color, size: 20 * fontScale),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      vital['value'] as String,
+                      style: TextStyle(
+                        fontSize: 20 * fontScale,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF0D5257),
+                      ),
+                    ),
+                    SizedBox(height: 2 * fontScale),
+                    Row(
+                      children: [
+                        Container(
+                          width: 6 * fontScale,
+                          height: 6 * fontScale,
+                          decoration: BoxDecoration(
+                            color: statusColor,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        SizedBox(width: 4 * fontScale),
+                        Text(
+                          vital['status'] as String,
+                          style: TextStyle(
+                            color: statusColor,
+                            fontSize: 10 * fontScale,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(width: 4 * fontScale),
+                        Text(
+                          vital['unit'] as String,
+                          style: TextStyle(
+                            color: Colors.grey[400],
+                            fontSize: 9 * fontScale,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         );
       },
     );
   }
 
-  Widget _buildSettingsList(bool isDark, Color primaryColor, double fontScale) {
-    final settings = [
-      {'icon': Icons.notifications, 'label': 'الإشعارات', 'screen': NotificationsScreen()},
-      {'icon': Icons.settings, 'label': 'الإعدادات', 'screen': SettingsScreen()},
-      {'icon': Icons.logout, 'label': 'تسجيل الخروج', 'action': 'logout'},
-    ];
-
-    return Column(
-      children: settings.map((setting) {
-        return ListTile(
-          leading: Icon(
-            setting['icon'] as IconData,
-            color: primaryColor,
-          ),
-          title: Text(
-            setting['label'] as String,
-            style: TextStyle(
-              fontSize: 14 * fontScale,
-              color: isDark ? Colors.white : Colors.black87,
+  Widget _buildFilterChips(Color primaryColor, double fontScale) {
+    return SizedBox(
+      height: 40 * fontScale,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: _categories.length,
+        itemBuilder: (context, index) {
+          final category = _categories[index];
+          final isSelected = _selectedCategory == category;
+          return Padding(
+            padding: EdgeInsets.only(
+              right: index == 0 ? 0 : 8 * fontScale,
+              left: index == _categories.length - 1 ? 0 : 0,
             ),
-          ),
-          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-          onTap: () {
-            if (setting['action'] == 'logout') {
-              _showLogoutDialog(context);
-            } else if (setting['screen'] != null) {
-              _goTo(context, setting['screen'] as Widget);
-            }
-          },
-        );
-      }).toList(),
+            child: ChoiceChip(
+              label: Text(category),
+              selected: isSelected,
+              onSelected: (val) {
+                setState(() {
+                  _selectedCategory = category;
+                });
+              },
+              selectedColor: primaryColor,
+              backgroundColor: Colors.white,
+              labelStyle: TextStyle(
+                color: isSelected ? Colors.white : primaryColor,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                fontSize: 13 * fontScale,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(
+                  color: isSelected ? Colors.transparent : primaryColor.withOpacity(0.2),
+                ),
+              ),
+              elevation: 0,
+            ),
+          );
+        },
+      ),
     );
   }
 
-  void _showLogoutDialog(BuildContext context) {
+  Widget _buildServiceCard(Map<String, dynamic> service, bool isDark, Color primaryColor, double fontScale) {
+    final screen = service['screen'] as Widget;
+    return Container(
+      margin: EdgeInsets.only(bottom: 8 * fontScale),
+      padding: EdgeInsets.all(12 * fontScale),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2540) : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 4 * fontScale,
+            offset: Offset(0, 2 * fontScale),
+          ),
+        ],
+      ),
+      child: ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: Container(
+          padding: EdgeInsets.all(10 * fontScale),
+          decoration: BoxDecoration(
+            color: primaryColor.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(
+            service['icon'] as IconData,
+            color: primaryColor,
+            size: 24,
+          ),
+        ),
+        title: Text(
+          service['title'] as String,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 14 * fontScale,
+            color: isDark ? Colors.white : Colors.black87,
+          ),
+        ),
+        subtitle: Text(
+          service['subtitle'] as String,
+          style: TextStyle(
+            fontSize: 11,
+            color: isDark ? Colors.grey[400] : Colors.grey[600],
+          ),
+        ),
+        trailing: Icon(
+          Icons.arrow_forward_ios,
+          size: 14 * fontScale,
+          color: isDark ? Colors.grey[500] : Colors.grey[400],
+        ),
+        onTap: () => _navigateTo(screen),
+      ),
+    );
+  }
+
+  Widget _buildPremiumFooter(bool isDark, Color primaryColor, double fontScale) {
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: () {
+            _showLogoutDialog();
+          },
+          child: Container(
+            padding: EdgeInsets.symmetric(vertical: 12 * fontScale),
+            decoration: BoxDecoration(
+              color: Colors.red.withOpacity(0.06),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Center(
+              child: Text(
+                'تسجيل الخروج',
+                style: TextStyle(
+                  color: Colors.red.withOpacity(0.7),
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14 * fontScale,
+                ),
+              ),
+            ),
+          ),
+        ),
+        SizedBox(height: 12 * fontScale),
+        Text(
+          'صحتك - v1.0.0 (Build 240)',
+          style: TextStyle(
+            color: isDark ? Colors.grey[600] : Colors.grey[400],
+            fontSize: 11,
+          ),
+        ),
+        SizedBox(height: 8 * fontScale),
+        Text(
+          '© 2026 Sehatak Platform. All rights reserved.',
+          style: TextStyle(
+            color: isDark ? Colors.grey[700] : Colors.grey[400],
+            fontSize: 10 * fontScale,
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showLogoutDialog() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('تسجيل الخروج'),
-        content: const Text('هل أنت متأكد من رغبتك في تسجيل الخروج؟'),
+      builder: (_) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1A2540) : Colors.white,
+        title: Text(
+          'تسجيل الخروج',
+          style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+        ),
+        content: Text(
+          'هل أنت متأكد من رغبتك في تسجيل الخروج؟',
+          style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[700]),
+        ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AIChatbotScreen(),
+                  ),
+                );
+              },
+            child: Text(
+              'إلغاء',
+              style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[700]),
+            ),
           ),
           TextButton(
-            onPressed: () {
-              FirebaseAuth.instance.signOut();
-              Navigator.pop(context);
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (_) => const AuthScreen()),
-              );
-            },
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AIChatbotScreen(),
+                  ),
+                );
+              },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('تسجيل الخروج'),
+            child: Text('تسجيل الخروج'),
           ),
         ],
       ),
     );
   }
 }
-
-            setting['label'] as String,
-            style: TextStyle(
-              fontSize: 14 * fontScale,
-              color: isDark ? Colors.white : Colors.black87,
-            ),
-          ),
-          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-          onTap: () {
-            if (setting['action'] == 'logout') {
-              _showLogoutDialog(context);
-            } else if (setting['screen'] != null) {
-              _goTo(context, setting['screen'] as Widget);
-            }
-          },
-        );
-      }).toList(),
-    );
-  }
