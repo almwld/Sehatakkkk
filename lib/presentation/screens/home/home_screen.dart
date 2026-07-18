@@ -38,12 +38,12 @@ import 'package:sehatak/presentation/screens/pregnancy/pregnancy_tracker_screen.
 import 'package:sehatak/presentation/screens/child_growth/child_growth_screen.dart';
 import 'package:sehatak/presentation/screens/blood_pressure/blood_pressure_screen.dart';
 import 'package:sehatak/presentation/screens/heart_rate/heart_rate_screen.dart';
-import 'package:sehatak/presentation/screens/sleep/sleep_tracker_screen.dart';
+import 'package:sehatak/presentation/screens/sleep_tracker/sleep_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/step_counter/step_counter_screen.dart';
-import 'package:sehatak/presentation/screens/bmi/bmi_calculator_screen.dart';
-import 'package:sehatak/presentation/screens/calorie/calorie_calculator_screen.dart';
-import 'package:sehatak/presentation/screens/stress/stress_meter_screen.dart';
-import 'package:sehatak/presentation/screens/medication_reminder/medication_reminder_screen.dart';
+import 'package:sehatak/presentation/screens/health_tools/bmi_calculator_screen.dart';
+import 'package:sehatak/presentation/screens/health_tools/calorie_calculator_screen.dart';
+import 'package:sehatak/presentation/screens/health_tools/stress_meter_screen.dart';
+import 'package:sehatak/presentation/screens/medication/medication_reminder_screen.dart';
 import 'package:sehatak/presentation/screens/drug_dictionary/drug_dictionary_screen.dart';
 import 'package:sehatak/presentation/screens/drug_compare/drug_compare_screen.dart';
 import 'package:sehatak/presentation/screens/pediatric_dose/pediatric_dose_screen.dart';
@@ -1947,15 +1947,3 @@ class AppSearchDelegate extends SearchDelegate {
     );
   }
 }
-
-import "package:sehatak/presentation/screens/settings/settings_screen.dart";
-import "package:sehatak/presentation/screens/settings/about_screen.dart";
-import "package:sehatak/presentation/screens/terms/terms_screen.dart";
-import "package:sehatak/presentation/screens/help_center/help_center_screen.dart";
-import "package:sehatak/presentation/screens/women_health/period_tracker_screen.dart";
-import "package:sehatak/presentation/screens/glucose_tracker/glucose_tracker_screen.dart";
-import "package:sehatak/presentation/screens/weight_tracker/weight_tracker_screen.dart";
-import "package:sehatak/presentation/screens/patient/patient_medical_history.dart";
-import "package:sehatak/presentation/screens/patient/patient_prescriptions.dart";
-import "package:sehatak/presentation/screens/contact_us/contact_us_screen.dart";
-import "package:sehatak/presentation/screens/settings/privacy_screen.dart";
