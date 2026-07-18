@@ -199,7 +199,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
     return GestureDetector(
       onTap: () => _onTabTap(index),
-      child: SizedBox(
+      SizedBox(
   Container(
     width: 32,
     height: 3,
@@ -246,7 +246,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     final selected = _currentIndex == 3;
     return GestureDetector(
       onTap: () => _onTabTap(3),
-      child: SizedBox(
+      SizedBox(
         width: 56,
         height: 60,
         child: Column(
