@@ -18,7 +18,7 @@ class ImageService {
   static final List<String> bannerList = [banner1, banner2, banner3, banner4];
 
   // ============================================================
-  // 👨‍⚕️ صور الأطباء (مع fallback إلى placeholder)
+  // 👨‍⚕️ صور الأطباء (Doctors)
   // ============================================================
   static const String doctor1 = 'assets/images/doctors/doctor_1.png';
   static const String doctor2 = 'assets/images/doctors/doctor_2.png';
@@ -36,7 +36,7 @@ class ImageService {
   static const String avatar5 = 'assets/images/posts/avatar5.png';
 
   // ============================================================
-  // 📷 صور المنشورات
+  // 📷 صور المنشورات (Posts)
   // ============================================================
   static const String post1 = 'assets/images/posts/post1.png';
   static const String post2 = 'assets/images/posts/post2.png';
@@ -45,7 +45,7 @@ class ImageService {
   static const String post5 = 'assets/images/posts/post5.png';
 
   // ============================================================
-  // 💊 صور الأدوية
+  // 💊 صور الأدوية (Medicines)
   // ============================================================
   static const String medicine1 = '$_baseImages/medicines/medicine_1.png';
   static const String medicine2 = '$_baseImages/medicines/medicine_2.png';
@@ -53,7 +53,17 @@ class ImageService {
   static const String medicine4 = '$_baseImages/medicines/medicine_4.png';
 
   // ============================================================
-  // 🏥 صور المستشفيات
+  // 🏪 صور الصيدليات (Pharmacies)
+  // ============================================================
+  static const String pharmacy1 = '$_baseImages/pharmacies/pharmacy_1.png';
+  static const String pharmacy2 = '$_baseImages/pharmacies/pharmacy_2.png';
+  static const String pharmacy3 = '$_baseImages/pharmacies/pharmacy_3.png';
+  static const String pharmacyIbnHayyan = '$_baseImages/pharmacies/صيدليات ابن حيان.png';
+  static const String pharmacyAlShifa = '$_baseImages/pharmacies/صيدلية الشفاء.png';
+  static const String pharmacyAlamAlSaidala = '$_baseImages/pharmacies/عالم الصيدله.png';
+
+  // ============================================================
+  // 🏥 صور المستشفيات (Hospitals)
   // ============================================================
   static const String hospital1 = '$_baseImages/hospitals/hospital_1.png';
   static const String hospital2 = '$_baseImages/hospitals/hospital_2.png';
@@ -66,14 +76,22 @@ class ImageService {
   static const String hospital9 = '$_baseImages/hospitals/hospital_9.png';
 
   // ============================================================
-  // 🔬 صور المختبرات
+  // 🔬 صور المختبرات (Labs)
   // ============================================================
   static const String lab1 = '$_baseImages/labs/lab_1.png';
   static const String lab2 = '$_baseImages/labs/lab_2.png';
   static const String lab3 = '$_baseImages/labs/lab_3.png';
 
   // ============================================================
-  // 🎨 أيقونات الخدمات السريعة (NEW)
+  // 🚚 صور التوصيل (Delivery)
+  // ============================================================
+  static const String delivery1 = '$_baseImages/delivery/delivery_1.png';
+  static const String delivery2 = '$_baseImages/delivery/delivery_2.png';
+  static const String delivery3 = '$_baseImages/delivery/delivery_3.png';
+  static const String delivery4 = '$_baseImages/delivery/delivery_4.png';
+
+  // ============================================================
+  // 🎨 أيقونات الخدمات السريعة (Quick Services)
   // ============================================================
   static const String fastDonateBlood = 'assets/images/icons/fast_services/Donate blood.png';
   static const String fastEmergency = 'assets/images/icons/fast_services/Emergency.png';
@@ -81,24 +99,24 @@ class ImageService {
   static const String fastPharmacy = 'assets/images/icons/fast_services/Pharmacy.png';
 
   // ============================================================
-  // 🔍 أيقونة البحث (NEW)
+  // 🔍 أيقونة البحث (Search)
   // ============================================================
   static const String searchIcon = 'assets/images/icons/search/Search button.png';
 
   // ============================================================
-  // 🔔 أيقونات الشريط العلوي (NEW)
+  // 🔔 أيقونات الشريط العلوي (Top Bar)
   // ============================================================
   static const String cartIcon = 'assets/images/icons/top_bar/Shopping cart.png';
   static const String notificationIcon = 'assets/images/icons/top_bar/notifications.png';
 
   // ============================================================
-  // 👨‍⚕️ أيقونات الأطباء (NEW)
+  // 👨‍⚕️ أيقونات الأطباء (Doctors Icons)
   // ============================================================
   static const String maleDoctorIcon = 'assets/images/icons/doctors/Male doctor.png';
   static const String femaleDoctorIcon = 'assets/images/icons/doctors/female doctor.png';
 
   // ============================================================
-  // 🏷️ أيقونات الخدمات السريعة (OLD)
+  // 🏷️ أيقونات الخدمات (Services Icons)
   // ============================================================
   static const String serviceDoctors = '$_baseIcons/services/أطباء.png';
   static const String servicePharmacy = '$_baseIcons/services/ادويه.png';
@@ -111,7 +129,7 @@ class ImageService {
   static const String serviceNearby = '$_baseIcons/services/بالقرب مني .png';
   static const String serviceInsurance = '$_baseIcons/services/تامين.png';
   static const String serviceBloodDonation = '$_baseIcons/services/تقييم.png';
-  static const String serviceHomeServices = '$_baseIcons/services/مر.يلات.png';
+  static const String serviceHomeServices = '$_baseIcons/services/مراسلات.png';
 
   // ============================================================
   // 📦 أيقونات SVG - النواة (Core)
@@ -143,11 +161,3 @@ class ImageService {
   static const String navEmergency = '$_baseIcons/navigation/emergency.svg';
   static const String navVideoCall = '$_baseIcons/navigation/video_call.svg';
 }
-
-  // ===== صور الصيدليات =====
-  const String pharmacy1 = 'assets/images/pharmacies/pharmacy_1.png';
-  const String pharmacy2 = 'assets/images/pharmacies/pharmacy_2.png';
-  const String pharmacy3 = 'assets/images/pharmacies/pharmacy_3.png';
-  const String pharmacyIbnHayyan = 'assets/images/pharmacies/صيدليات ابن حيان.png';
-  const String pharmacyAlShifa = 'assets/images/pharmacies/صيدلية الشفاء.png';
-  const String pharmacyAlamAlSaidala = 'assets/images/pharmacies/عالم الصيدله.png';
