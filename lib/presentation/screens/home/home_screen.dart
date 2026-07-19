@@ -2195,3 +2195,183 @@ class AppSearchDelegate extends SearchDelegate {
     );
   }
 }
+
+// ============================================================
+// 🔍 AppSearchDelegate - البحث المتقدم والشامل
+// ============================================================
+class AppSearchDelegate extends SearchDelegate {
+  final BuildContext? searchContext;
+  
+  AppSearchDelegate({this.searchContext});
+
+  @override
+  String get searchFieldLabel => 'ابحث عن طبيب، دواء، خدمة، مستشفى، مختبر...';
+
+  @override
+  TextStyle get searchFieldStyle => const TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontSize: 16,
+      );
+
+  @override
+  List<Widget>? buildActions(BuildContext context) {
+    return [
+      if (query.isNotEmpty)
+        IconButton(
+          icon: const Icon(Icons.clear),
+          onPressed: () {
+            query = '';
+          },
+        ),
+    ];
+  }
+
+  @override
+  Widget? buildLeading(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.arrow_back),
+      onPressed: () {
+        close(context, null);
+      },
+    );
+  }
+
+  @override
+  Widget buildResults(BuildContext context) => _buildSearchResults(context);
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    if (query.isEmpty) return _buildRecentSearches(context);
+    return _buildSearchResults(context);
+  }
+
+  Widget _buildRecentSearches(BuildContext context) {
+    final recentSearches = [
+      'طبيب باطنية',
+      'باراسيتامول',
+      'مختبر تحاليل',
+      'صيدلية 24 ساعة',
+      'استشارة قلبية',
+      'تحليل دم شامل',
+      'مستشفى 22 مايو',
+      'د. أحمد المولد',
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(
+            'عمليات البحث الأخيرة',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[700],
+            ),
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: recentSearches.length,
+            itemBuilder: (context, index) => ListTile(
+              leading: const Icon(Icons.history, color: Colors.grey),
+              title: Text(recentSearches[index]),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+              onTap: () {
+                query = recentSearches[index];
+                showResults(context);
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSearchResults(BuildContext context) {
+    // محاكاة نتائج البحث (سيتم استبدالها بالبحث الحقيقي من Firebase)
+    final allData = [
+      {'id': 'd1', 'name': 'د. أحمد المولد', 'type': 'طبيب', 'subtitle': 'باطنية', 'icon': Icons.medical_services, 'color': Colors.teal},
+      {'id': 'd2', 'name': 'د. خالد النخلاني', 'type': 'طبيب', 'subtitle': 'قلبية', 'icon': Icons.medical_services, 'color': Colors.teal},
+      {'id': 'd3', 'name': 'د. أسماء الهندي', 'type': 'طبيب', 'subtitle': 'أطفال', 'icon': Icons.medical_services, 'color': Colors.teal},
+      {'id': 'm1', 'name': 'باراسيتامول 500mg', 'type': 'دواء', 'subtitle': 'مسكن ألم', 'icon': Icons.medication, 'color': Colors.blue},
+      {'id': 'm2', 'name': 'فيتامين د 1000IU', 'type': 'دواء', 'subtitle': 'مكمل غذائي', 'icon': Icons.medication, 'color': Colors.blue},
+      {'id': 'h1', 'name': 'مستشفى 22 مايو', 'type': 'مستشفى', 'subtitle': 'صنعاء', 'icon': Icons.local_hospital, 'color': Colors.red},
+      {'id': 'l1', 'name': 'مختبرات الزارزي', 'type': 'مختبر', 'subtitle': 'صنعاء - الزبيري', 'icon': Icons.science, 'color': Colors.purple},
+    ];
+
+    final results = allData.where((item) {
+      final searchText = query.toLowerCase();
+      return item['name'].toLowerCase().contains(searchText) ||
+          item['subtitle'].toLowerCase().contains(searchText);
+    }).toList();
+
+    if (results.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.search_off, size: 80, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              'لا توجد نتائج',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'لم نعثر على أي نتائج لـ "$query"',
+              style: TextStyle(color: Colors.grey[500]),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      itemCount: results.length,
+      itemBuilder: (context, index) {
+        final item = results[index];
+        final color = item['color'] as Color? ?? AppColors.primary;
+        return ListTile(
+          leading: CircleAvatar(
+            backgroundColor: color.withOpacity(0.1),
+            child: Icon(item['icon'], color: color, size: 24),
+          ),
+          title: Text(
+            item['name'],
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+          ),
+          subtitle: Text(
+            item['subtitle'] ?? '',
+            style: TextStyle(color: Colors.grey[600], fontSize: 12),
+          ),
+          trailing: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              item['type'] ?? '',
+              style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w500),
+            ),
+          ),
+          onTap: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('تم اختيار: ${item['name']}'),
+                backgroundColor: AppColors.primary,
+              ),
+            );
+            close(context, null);
+          },
+        );
+      },
+    );
+  }
+}

@@ -133,7 +133,7 @@ class _SplashScreenState extends State<SplashScreen>
                 child: TweenAnimationBuilder<double>(
                   tween: Tween(begin: 0.0, end: 1.0),
                   duration: const Duration(seconds: 3),
-                  delay: Duration(seconds: delays[index]),
+                  
                   builder: (_, value, __) => Transform.scale(
                     scale: value,
                     child: Container(
