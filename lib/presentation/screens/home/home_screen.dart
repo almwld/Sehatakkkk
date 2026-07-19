@@ -1,5 +1,4 @@
 import "package:flutter/material.dart";
-import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -66,6 +65,17 @@ import 'package:sehatak/presentation/screens/family_planning/family_planning_scr
 import 'package:sehatak/presentation/screens/genetic_counseling/genetic_counseling_screen.dart';
 import 'package:sehatak/presentation/screens/alternative_medicine/alternative_medicine_screen.dart';
 import 'package:sehatak/presentation/screens/voice_search/voice_search_screen.dart';
+import 'package:sehatak/presentation/screens/settings/settings_screen.dart';
+import 'package:sehatak/presentation/screens/settings/about_screen.dart';
+import 'package:sehatak/presentation/screens/terms/terms_screen.dart';
+import 'package:sehatak/presentation/screens/help_center/help_center_screen.dart';
+import 'package:sehatak/presentation/screens/women_health/period_tracker_screen.dart';
+import 'package:sehatak/presentation/screens/glucose_tracker/glucose_tracker_screen.dart';
+import 'package:sehatak/presentation/screens/weight_tracker/weight_tracker_screen.dart';
+import 'package:sehatak/presentation/screens/patient/patient_medical_history.dart';
+import 'package:sehatak/presentation/screens/patient/patient_prescriptions.dart';
+import 'package:sehatak/presentation/screens/contact_us/contact_us_screen.dart';
+import 'package:sehatak/presentation/screens/settings/privacy_screen.dart';
 
 // ============================================================
 // 📱 HomeScreen - الشاشة الرئيسية
@@ -340,7 +350,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin, 
   ];
 
   final List<Map<String, dynamic>> _products = [
-    {'name': 'بار.ييتامول 500mg', 'price': 500, 'image': ImageService.medicine1, 'category': 'مسكنات'},
+    {'name': 'باراسيتامول 500mg', 'price': 500, 'image': ImageService.medicine1, 'category': 'مسكنات'},
     {'name': 'فيتامين د 1000IU', 'price': 1200, 'image': ImageService.medicine2, 'category': 'فيتامينات'},
     {'name': 'جهاز قياس ضغط', 'price': 8500, 'image': ImageService.medicine3, 'category': 'أجهزة طبية'},
     {'name': 'أموكسيسيلين 500mg', 'price': 1500, 'image': ImageService.medicine4, 'category': 'مضادات حيوية'},
@@ -350,17 +360,34 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin, 
     {'name': 'إيبوبروفين 400mg', 'price': 750, 'image': ImageService.medicine4, 'category': 'مسكنات'},
   ];
 
+  // ===== مستشفيات مميزة (6 مستشفيات) =====
+  final List<Map<String, dynamic>> _featuredHospitals = [
+    {'id': '1', 'name': 'مستشفى 22 مايو', 'location': 'صنعاء', 'image': ImageService.hospital1, 'rating': 4.9, 'phone': '01-234571', 'specialty': 'عام'},
+    {'id': '2', 'name': 'مستشفى الجمهورية', 'location': 'صنعاء', 'image': ImageService.hospital2, 'rating': 4.8, 'phone': '01-234572', 'specialty': 'عام'},
+    {'id': '3', 'name': 'مستشفى السبعين', 'location': 'صنعاء', 'image': ImageService.hospital3, 'rating': 4.7, 'phone': '01-234573', 'specialty': 'أطفال وولادة'},
+    {'id': '4', 'name': 'مستشفى الكويت', 'location': 'صنعاء', 'image': ImageService.hospital4, 'rating': 4.8, 'phone': '01-234574', 'specialty': 'جراحة'},
+    {'id': '5', 'name': 'مستشفى الثورة العام', 'location': 'صنعاء', 'image': ImageService.hospital5, 'rating': 4.6, 'phone': '01-234575', 'specialty': 'عام'},
+    {'id': '6', 'name': 'مستشفى الأمل', 'location': 'صنعاء', 'image': ImageService.hospital6, 'rating': 4.5, 'phone': '01-234576', 'specialty': 'أمراض قلبية'},
+  ];
+
+  // ===== مختبرات مميزة (6 مختبرات) =====
   final List<Map<String, dynamic>> _featuredLabs = [
     {'id': '1', 'name': 'مختبرات الذبحاني', 'location': 'صنعاء - شارع الأصبحي', 'image': ImageService.lab1, 'rating': 4.9, 'phone': '01-234567', 'open': true},
     {'id': '2', 'name': 'مختبرات العولقي', 'location': 'صنعاء - شارع الستين', 'image': ImageService.lab2, 'rating': 4.8, 'phone': '01-234568', 'open': true},
     {'id': '3', 'name': 'مختبرات المأمون', 'location': 'صنعاء - حدة', 'image': ImageService.lab3, 'rating': 4.7, 'phone': '01-234569', 'open': true},
-    {'id': '4', 'name': 'مختبر الرازي', 'location': 'صنعاء - باب اليمن ', 'image': ImageService.lab1, 'rating': 4.6, 'phone': '01-234570', 'open': false},
+    {'id': '4', 'name': 'مختبر الرازي', 'location': 'صنعاء - باب اليمن', 'image': ImageService.lab1, 'rating': 4.6, 'phone': '01-234570', 'open': false},
+    {'id': '5', 'name': 'مختبرات النخبة', 'location': 'صنعاء - التحرير', 'image': ImageService.lab2, 'rating': 4.5, 'phone': '01-234571', 'open': true},
+    {'id': '6', 'name': 'مختبرات اليمن الحديثة', 'location': 'صنعاء - شارع الزبيري', 'image': ImageService.lab3, 'rating': 4.4, 'phone': '01-234572', 'open': true},
   ];
 
-  final List<Map<String, dynamic>> _featuredHospitals = [
-    {'id': '1', 'name': 'مستشفى 22 مايو', 'location': 'صنعاء', 'image': ImageService.hospital1, 'rating': 4.9, 'phone': '01-234571', 'specialty': 'عام'},
-    {'id': '2', 'name': 'مستشفى الجمهوري', 'location': 'صنعاء', 'image': ImageService.hospital2, 'rating': 4.8, 'phone': '01-234572', 'specialty': 'عام'},
-    {'id': '3', 'name': 'مستشفى السبعين', 'location': 'صنعاء', 'image': ImageService.hospital3, 'rating': 4.7, 'phone': '01-234573', 'specialty': 'أطفال وولادة'},
+  // ===== صيدليات مميزة (6 صيدليات) =====
+  final List<Map<String, dynamic>> _featuredPharmacies = [
+    {'id': '1', 'name': 'صيدلية ابن حيان', 'location': 'صنعاء - شارع حدة', 'image': ImageService.pharmacy1, 'rating': 4.9, 'phone': '01-234580', 'open': true},
+    {'id': '2', 'name': 'صيدلية عالم الصيدلة', 'location': 'صنعاء - شارع الستين', 'image': ImageService.pharmacy2, 'rating': 4.8, 'phone': '01-234581', 'open': true},
+    {'id': '3', 'name': 'صيدلية النهضة', 'location': 'صنعاء - باب اليمن', 'image': ImageService.pharmacy3, 'rating': 4.7, 'phone': '01-234582', 'open': true},
+    {'id': '4', 'name': 'صيدليات اليمن الحديثة', 'location': 'صنعاء - شارع الزبيري', 'image': ImageService.pharmacy1, 'rating': 4.6, 'phone': '01-234583', 'open': true},
+    {'id': '5', 'name': 'صيدلية الشفاء', 'location': 'صنعاء - حدة', 'image': ImageService.pharmacy2, 'rating': 4.5, 'phone': '01-234584', 'open': false},
+    {'id': '6', 'name': 'صيدلية الأمانة', 'location': 'صنعاء - التحرير', 'image': ImageService.pharmacy3, 'rating': 4.4, 'phone': '01-234585', 'open': true},
   ];
 
   // ============================================================
@@ -705,7 +732,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin, 
           controller: _scrollController,
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
-            // ✅ AppBar
             SliverAppBar(
               expandedHeight: 90,
               floating: true,
@@ -786,7 +812,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin, 
                 ),
               ),
             ),
-            // ✅ المحتوى
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               sliver: SliverList(
@@ -820,6 +845,10 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin, 
                   _buildSectionTitleWithAction('مستشفيات مميزة', isDark, 'عرض الكل', () => _goTo(context, const HospitalScreen())),
                   const SizedBox(height: 10),
                   _buildFeaturedHospitalsRow(isDark),
+                  const SizedBox(height: 24),
+                  _buildSectionTitleWithAction('صيدليات مميزة', isDark, 'عرض الكل', () => _goTo(context, const PharmacyScreen())),
+                  const SizedBox(height: 10),
+                  _buildFeaturedPharmaciesRow(isDark),
                   const SizedBox(height: 24),
                   _buildSectionTitle('مجتمع صحتك', isDark),
                   const SizedBox(height: 10),
@@ -970,7 +999,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin, 
       }).toList(),
     );
   }
-
   Widget _buildSectionTitle(String title, bool isDark) {
     return Text(
       title,
@@ -1265,6 +1293,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin, 
     );
   }
 
+  // ===== مختبرات مميزة =====
   Widget _buildFeaturedLabsRow(bool isDark) {
     return SizedBox(
       height: 120,
@@ -1378,6 +1407,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin, 
     );
   }
 
+  // ===== مستشفيات مميزة =====
   Widget _buildFeaturedHospitalsRow(bool isDark) {
     return SizedBox(
       height: 160,
@@ -1466,6 +1496,121 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin, 
     );
   }
 
+  // ===== صيدليات مميزة =====
+  Widget _buildFeaturedPharmaciesRow(bool isDark) {
+    return SizedBox(
+      height: 120,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: _featuredPharmacies.length,
+        itemBuilder: (context, index) {
+          final pharmacy = _featuredPharmacies[index];
+          return GestureDetector(
+            onTap: () => _showPharmacyDetails(pharmacy),
+            child: Container(
+              width: 250,
+              margin: const EdgeInsets.only(right: 12),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+                border: Border.all(
+                  color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: _buildImageAsset(
+                      pharmacy['image'] as String,
+                      width: 50,
+                      height: 50,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          pharmacy['name'] as String,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            Icon(Icons.location_on, size: 12, color: Colors.grey[500]),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                pharmacy['location'] as String,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            const Icon(Icons.star, size: 12, color: Colors.amber),
+                            const SizedBox(width: 2),
+                            Text(
+                              '${pharmacy['rating']}',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: isDark ? Colors.white : Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: (pharmacy['open'] as bool) ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                (pharmacy['open'] as bool) ? 'مفتوح' : 'مغلق',
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  color: (pharmacy['open'] as bool) ? Colors.green : Colors.red,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  // ===== عرض تفاصيل المختبر =====
   void _showLabDetails(Map<String, dynamic> lab) {
     showModalBottomSheet(
       context: context,
@@ -1599,6 +1744,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin, 
     );
   }
 
+  // ===== عرض تفاصيل المستشفى =====
   void _showHospitalDetails(Map<String, dynamic> hospital) {
     showModalBottomSheet(
       context: context,
@@ -1749,6 +1895,140 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin, 
                   ),
                 ),
               ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ===== عرض تفاصيل الصيدلية =====
+  void _showPharmacyDetails(Map<String, dynamic> pharmacy) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Center(
+              child: Container(
+                width: 50,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: _buildImageAsset(
+                    pharmacy['image'] as String,
+                    width: 60,
+                    height: 60,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        pharmacy['name'] as String,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(Icons.location_on, size: 14, color: Colors.grey[600]),
+                          const SizedBox(width: 4),
+                          Text(
+                            pharmacy['location'] as String,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          const Icon(Icons.star, size: 14, color: Colors.amber),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${pharmacy['rating']}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: (pharmacy['open'] as bool) ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              (pharmacy['open'] as bool) ? 'مفتوح' : 'مغلق',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: (pharmacy['open'] as bool) ? Colors.green : Colors.red,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(Icons.phone, size: 16, color: Colors.grey),
+                const SizedBox(width: 8),
+                Text(
+                  pharmacy['phone'] as String,
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const PharmacyScreen(),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text('عرض جميع الصيدليات'),
+              ),
             ),
           ],
         ),
@@ -1948,111 +2228,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin, 
 // ============================================================
 // 🔍 AppSearchDelegate - البحث المتقدم والشامل
 // ============================================================
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('طلب مساعدة'),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return ListView.builder(
-      itemCount: results.length,
-      itemBuilder: (context, index) {
-        final item = results[index];
-        return _buildResultItem(item);
-      },
-    );
-  }
-
-  Widget _buildResultItem(Map<String, dynamic> item) {
-    Color iconColor;
-    switch (item['type']) {
-      case 'طبيب':
-        iconColor = Colors.teal;
-        break;
-      case 'دواء':
-        iconColor = Colors.blue;
-        break;
-      case 'مستشفى':
-        iconColor = Colors.red;
-        break;
-      case 'مختبر':
-        iconColor = Colors.purple;
-        break;
-      default:
-        iconColor = AppColors.primary;
-    }
-
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: iconColor.withOpacity(0.1),
-        child: Icon(
-          item['icon'],
-          color: iconColor,
-          size: 24,
-        ),
-      ),
-      title: Text(
-        item['name'],
-        style: const TextStyle(
-          fontWeight: FontWeight.w600,
-          fontSize: 15,
-        ),
-      ),
-      subtitle: Text(
-        item['subtitle'] ?? '',
-        style: TextStyle(
-          color: Colors.grey[600],
-          fontSize: 12,
-        ),
-      ),
-      trailing: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-        decoration: BoxDecoration(
-          color: iconColor.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Text(
-          item['type'] ?? '',
-          style: TextStyle(
-            fontSize: 10,
-            color: iconColor,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ),
-      onTap: () {
-        // التنقل حسب النوع
-        if (item['type'] == 'طبيب') {
-          // Navigator.push(context, MaterialPageRoute(builder: (_) => DoctorDetailsScreen(doctorId: item['id'])));
-        } else if (item['type'] == 'دواء') {
-          // Navigator.push(context, MaterialPageRoute(builder: (_) => MedicinesScreen()));
-        } else if (item['type'] == 'مستشفى') {
-          // Navigator.push(context, MaterialPageRoute(builder: (_) => HospitalScreen()));
-        } else {
-          // عرض تفاصيل
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('تم اختيار: ${item['name']}'),
-              backgroundColor: AppColors.primary,
-            ),
-          );
-        }
-        close(context, null);
-      },
-    );
-  }
-}
-
-// ============================================================
-// 🔍 AppSearchDelegate - البحث المتقدم والشامل
-// ============================================================
-
-// ============================================================
-// 🔍 AppSearchDelegate - البحث المتقدم والشامل
-// ============================================================
 class AppSearchDelegate extends SearchDelegate {
   @override
   String get searchFieldLabel => 'ابحث عن طبيب، دواء، خدمة، مستشفى، مختبر...';
@@ -2098,7 +2273,7 @@ class AppSearchDelegate extends SearchDelegate {
   Widget _buildRecentSearches(BuildContext context) {
     final recentSearches = [
       'طبيب باطنية',
-      'بار.ييتامول',
+      'باراسيتامول',
       'مختبر تحاليل',
       'صيدلية 24 ساعة',
       'استشارة قلبية',
@@ -2140,15 +2315,15 @@ class AppSearchDelegate extends SearchDelegate {
   }
 
   Widget _buildSearchResults(BuildContext context) {
-    // بيانات البحث (محاكاة مؤقتة)
     final List<Map<String, dynamic>> allData = [
       {'id': 'd1', 'name': 'د. أحمد المولد', 'type': 'طبيب', 'subtitle': 'باطنية', 'icon': Icons.medical_services, 'color': Colors.teal},
       {'id': 'd2', 'name': 'د. خالد النخلاني', 'type': 'طبيب', 'subtitle': 'قلبية', 'icon': Icons.medical_services, 'color': Colors.teal},
       {'id': 'd3', 'name': 'د. أسماء الهندي', 'type': 'طبيب', 'subtitle': 'أطفال', 'icon': Icons.medical_services, 'color': Colors.teal},
-      {'id': 'm1', 'name': 'بار.ييتامول 500mg', 'type': 'دواء', 'subtitle': 'مسكن ألم', 'icon': Icons.medication, 'color': Colors.blue},
+      {'id': 'm1', 'name': 'باراسيتامول 500mg', 'type': 'دواء', 'subtitle': 'مسكن ألم', 'icon': Icons.medication, 'color': Colors.blue},
       {'id': 'm2', 'name': 'فيتامين د 1000IU', 'type': 'دواء', 'subtitle': 'مكمل غذائي', 'icon': Icons.medication, 'color': Colors.blue},
       {'id': 'h1', 'name': 'مستشفى 22 مايو', 'type': 'مستشفى', 'subtitle': 'صنعاء', 'icon': Icons.local_hospital, 'color': Colors.red},
       {'id': 'l1', 'name': 'مختبرات الزارزي', 'type': 'مختبر', 'subtitle': 'صنعاء - الزبيري', 'icon': Icons.science, 'color': Colors.purple},
+      {'id': 'p1', 'name': 'صيدلية ابن حيان', 'type': 'صيدلية', 'subtitle': 'صنعاء - حدة', 'icon': Icons.local_pharmacy, 'color': Colors.green},
     ];
 
     final searchText = query.toLowerCase();
