@@ -1,12 +1,11 @@
-import "package:sehatak/presentation/screens/home/home_screen.dart";
 import "package:flutter/material.dart";
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/roles.dart';
 import 'package:sehatak/core/services/biometric_service.dart';
+import 'package:sehatak/presentation/screens/home/home_screen.dart';
 import 'package:sehatak/presentation/screens/terms/terms_screen.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -276,6 +275,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
                 const SizedBox(height: 30),
 
+                // ✅ قسم اختيار المستخدم/طبيب (تسجيل الدخول)
                 if (!widget.isSignUp) ...[
                   Container(
                     padding: const EdgeInsets.all(6),
@@ -311,6 +311,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 35),
                 ],
 
+                // ✅ اختيار الدور (إنشاء حساب)
                 if (widget.isSignUp) ...[
                   Container(
                     padding: const EdgeInsets.all(6),
@@ -329,7 +330,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             child: GestureDetector(
                               onTap: () => setState(() => _selectedRole = role['id'] as String),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                                 decoration: BoxDecoration(
                                   color: isSelected ? color.withOpacity(0.15) : Colors.transparent,
                                   borderRadius: BorderRadius.circular(12),
@@ -337,13 +338,13 @@ class _AuthScreenState extends State<AuthScreen> {
                                 ),
                                 child: Row(
                                   children: [
-                                    Icon(role['icon'] as IconData, color: isSelected ? color : Colors.grey, size: 16),
-                                    const SizedBox(width: 4),
+                                    Icon(role['icon'] as IconData, color: isSelected ? color : Colors.grey, size: 18),
+                                    const SizedBox(width: 6),
                                     Text(
                                       role['name'] as String,
                                       style: TextStyle(
                                         color: isSelected ? color : Colors.grey,
-                                        fontSize: 12,
+                                        fontSize: 13,
                                         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                                         fontFamily: 'NotoSansArabicUI',
                                       ),
@@ -360,6 +361,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 30),
                 ],
 
+                // ✅ الحقول
                 if (widget.isSignUp) ...[
                   _buildTextField(
                     controller: _nameController,
@@ -415,7 +417,6 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 16),
                 ],
 
-                // ✅ حقل كلمة المرور - بدون البصمة في إنشاء الحساب
                 _buildPasswordField(isDark, primaryColor),
                 const SizedBox(height: 16),
 
@@ -637,15 +638,6 @@ class _AuthScreenState extends State<AuthScreen> {
         decoration: BoxDecoration(
           color: isSelected ? primaryColor.withOpacity(0.12) : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: primaryColor.withOpacity(0.1),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
         ),
         child: Column(
           children: [
@@ -730,7 +722,6 @@ class _AuthScreenState extends State<AuthScreen> {
               ),
               onPressed: () => setState(() => _obscureText = !_obscureText),
             ),
-            // ✅ زر البصمة يظهر فقط في تسجيل الدخول (ليس في إنشاء الحساب)
             if (_hasBiometric && !widget.isSignUp)
               IconButton(
                 icon: Icon(Icons.fingerprint, color: primaryColor),
