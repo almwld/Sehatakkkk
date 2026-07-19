@@ -340,7 +340,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin, 
   ];
 
   final List<Map<String, dynamic>> _products = [
-    {'name': 'باراسيتامول 500mg', 'price': 500, 'image': ImageService.medicine1, 'category': 'مسكنات'},
+    {'name': 'بار.ييتامول 500mg', 'price': 500, 'image': ImageService.medicine1, 'category': 'مسكنات'},
     {'name': 'فيتامين د 1000IU', 'price': 1200, 'image': ImageService.medicine2, 'category': 'فيتامينات'},
     {'name': 'جهاز قياس ضغط', 'price': 8500, 'image': ImageService.medicine3, 'category': 'أجهزة طبية'},
     {'name': 'أموكسيسيلين 500mg', 'price': 1500, 'image': ImageService.medicine4, 'category': 'مضادات حيوية'},
@@ -2098,7 +2098,7 @@ class AppSearchDelegate extends SearchDelegate {
   Widget _buildRecentSearches(BuildContext context) {
     final recentSearches = [
       'طبيب باطنية',
-      'باراسيتامول',
+      'بار.ييتامول',
       'مختبر تحاليل',
       'صيدلية 24 ساعة',
       'استشارة قلبية',
@@ -2145,7 +2145,7 @@ class AppSearchDelegate extends SearchDelegate {
       {'id': 'd1', 'name': 'د. أحمد المولد', 'type': 'طبيب', 'subtitle': 'باطنية', 'icon': Icons.medical_services, 'color': Colors.teal},
       {'id': 'd2', 'name': 'د. خالد النخلاني', 'type': 'طبيب', 'subtitle': 'قلبية', 'icon': Icons.medical_services, 'color': Colors.teal},
       {'id': 'd3', 'name': 'د. أسماء الهندي', 'type': 'طبيب', 'subtitle': 'أطفال', 'icon': Icons.medical_services, 'color': Colors.teal},
-      {'id': 'm1', 'name': 'باراسيتامول 500mg', 'type': 'دواء', 'subtitle': 'مسكن ألم', 'icon': Icons.medication, 'color': Colors.blue},
+      {'id': 'm1', 'name': 'بار.ييتامول 500mg', 'type': 'دواء', 'subtitle': 'مسكن ألم', 'icon': Icons.medication, 'color': Colors.blue},
       {'id': 'm2', 'name': 'فيتامين د 1000IU', 'type': 'دواء', 'subtitle': 'مكمل غذائي', 'icon': Icons.medication, 'color': Colors.blue},
       {'id': 'h1', 'name': 'مستشفى 22 مايو', 'type': 'مستشفى', 'subtitle': 'صنعاء', 'icon': Icons.local_hospital, 'color': Colors.red},
       {'id': 'l1', 'name': 'مختبرات الزارزي', 'type': 'مختبر', 'subtitle': 'صنعاء - الزبيري', 'icon': Icons.science, 'color': Colors.purple},

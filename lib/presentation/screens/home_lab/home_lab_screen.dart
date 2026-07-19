@@ -15,7 +15,7 @@ class _HomeLabScreenState extends State<HomeLabScreen> {
     {'name': 'دهون ثلاثية', 'price': '200', 'dur': '6 ساعات', 'prep': 'صيام 12 س', 'icon': '🧪', 'color': AppColors.warning},
     {'name': 'فيتامين د', 'price': '250', 'dur': '24 ساعة', 'prep': 'لا يحتاج', 'icon': '☀️', 'color': AppColors.amber},
     {'name': 'تحليل بول', 'price': '60', 'dur': '1 ساعة', 'prep': 'عينة صباحية', 'icon': '🧫', 'color': AppColors.teal},
-    {'name': 'فيروسات كبد', 'price': '400', 'dur': '48 ساعة', 'prep': 'لا يحتاج', 'icon': '🦠', 'color': AppColors.primary},
+    {'name': 'فير.يات كبد', 'price': '400', 'dur': '48 ساعة', 'prep': 'لا يحتاج', 'icon': '🦠', 'color': AppColors.primary},
   ];
 
   @override

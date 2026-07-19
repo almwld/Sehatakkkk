@@ -48,10 +48,10 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
   // ✅ 100+ دواء مع صور Unsplash
   final List<Map<String, dynamic>> _medications = [
     // مسكنات
-    {'id': '1', 'name': 'باراسيتامول 500mg', 'category': 'مسكنات', 'price': 500, 'image': 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200', 'description': 'مسكن للآلام وخافض للحرارة', 'prescription': false, 'pharmacy': 'صيدلية الرحمة - حدة'},
+    {'id': '1', 'name': 'بار.ييتامول 500mg', 'category': 'مسكنات', 'price': 500, 'image': 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200', 'description': 'مسكن للآلام وخافض للحرارة', 'prescription': false, 'pharmacy': 'صيدلية الرحمة - حدة'},
     {'id': '2', 'name': 'إيبوبروفين 400mg', 'category': 'مسكنات', 'price': 800, 'image': 'https://images.unsplash.com/photo-1550572012-edd7b1a7b51c?w=200', 'description': 'مضاد للالتهاب ومسكن', 'prescription': false, 'pharmacy': 'صيدلية النور - الستين'},
     {'id': '3', 'name': 'بنادول إكسترا', 'category': 'مسكنات', 'price': 600, 'image': 'https://images.unsplash.com/photo-1632833239869-a37e7a58066e?w=200', 'description': 'مسكن للصداع والآلام', 'prescription': false, 'pharmacy': 'صيدلية الشفاء - الزراعة'},
-    {'id': '4', 'name': 'فولتارين 50mg', 'category': 'مسكنات', 'price': 1200, 'image': 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200', 'description': 'مضاد التهاب غير ستيرويدي', 'prescription': true, 'pharmacy': 'صيدلية الأمل - التحرير'},
+    {'id': '4', 'name': 'فولتارين 50mg', 'category': 'مسكنات', 'price': 1200, 'image': 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200', 'description': 'مضاد التهاب غير.يتيرويدي', 'prescription': true, 'pharmacy': 'صيدلية الأمل - التحرير'},
     {'id': '5', 'name': 'سيروكويل 25mg', 'category': 'مسكنات', 'price': 1500, 'image': 'https://images.unsplash.com/photo-1550572012-edd7b1a7b51c?w=200', 'description': 'مسكن للألم العصبي', 'prescription': true, 'pharmacy': 'صيدلية اليمن - المطار'},
     
     // مضادات حيوية
@@ -129,7 +129,7 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
     {'name': 'صيدلية الأمل', 'branches': ['فرع التحرير - شارع الضباب', 'فرع السبعين - شارع السبعين', 'فرع الروضة - حي الروضة'], 'rating': 4.5, 'delivery': false, 'phone': '01-567890'},
     {'name': 'صيدلية اليمن', 'branches': ['فرع المطار - شارع المطار', 'فرع حدة - شارع حدة', 'فرع الستين - شارع الستين'], 'rating': 4.6, 'delivery': false, 'phone': '01-678901'},
     {'name': 'صيدلية الصحة', 'branches': ['فرع الروضة - شارع الثورة', 'فرع التحرير - حي التحرير', 'فرع السبعين - شارع السبعين'], 'rating': 4.8, 'delivery': true, 'phone': '01-789012'},
-    {'name': 'صيدلية السلام', 'branches': ['فرع حدة - بجوار سوق الأحد', 'فرع المطار - شارع المطار', 'فرع الجراف - حي الجراف'], 'rating': 4.4, 'delivery': true, 'phone': '01-890123'},
+    {'name': 'صيدلية السلام', 'branches': ['فرع حدة - بجوار.يوق الأحد', 'فرع المطار - شارع المطار', 'فرع الجراف - حي الجراف'], 'rating': 4.4, 'delivery': true, 'phone': '01-890123'},
     {'name': 'صيدلية الحياة', 'branches': ['فرع الجراف - شارع الميثاق', 'فرع الروضة - حي الروضة', 'فرع التحرير - حي التحرير'], 'rating': 4.7, 'delivery': true, 'phone': '01-901234'},
   ];
 

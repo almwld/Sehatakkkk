@@ -36,7 +36,7 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
     {'name': 'تحليل دم شامل', 'price': 150},
     {'name': 'فحص هرمونات', 'price': 200},
     {'name': 'أشعة', 'price': 180},
-    {'name': 'تحليل فيروسات', 'price': 100},
+    {'name': 'تحليل فير.يات', 'price': 100},
     {'name': 'فحص وراثي', 'price': 250},
   ];
 
@@ -134,7 +134,7 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
                       child: Text(test['name'], style: TextStyle(fontSize: 13)),
                     ),
                     Text(
-                      '${test['price']} ر.س',
+                      '${test['price']} ر.ي',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: isSelected ? AppColors.primary : AppColors.grey,
@@ -262,7 +262,7 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  '+30 ر.س رسوم التوصيل',
+                  '+30 ر.ي رسوم التوصيل',
                   style: TextStyle(fontSize: 11, color: AppColors.grey),
                 ),
               ],
@@ -338,7 +338,7 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
                   'خدمة منزلية',
                   style: TextStyle(color: AppColors.grey),
                 ),
-                Text('30 ر.س', style: TextStyle(fontWeight: FontWeight.w500)),
+                Text('30 ر.ي', style: TextStyle(fontWeight: FontWeight.w500)),
               ],
             ),
           ],
@@ -351,7 +351,7 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               Text(
-                '$_totalPrice ر.س',
+                '$_totalPrice ر.ي',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -379,7 +379,7 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
           ),
         ),
         child: Text(
-          'تأكيد الدفع ($_totalPrice ر.س)',
+          'تأكيد الدفع ($_totalPrice ر.ي)',
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ),

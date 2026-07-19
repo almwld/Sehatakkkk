@@ -113,7 +113,7 @@ class ReportsService {
     return [
       MedicationReportModel(
         id: '1',
-        name: 'باراسيتامول 500mg',
+        name: 'بار.ييتامول 500mg',
         dosage: 'مرة كل 8 ساعات',
         duration: '7 أيام',
         startDate: DateTime.now().subtract(const Duration(days: 7)),

@@ -35,7 +35,7 @@ class _SymptomCheckerScreenState extends State<SymptomCheckerScreen> {
           const SizedBox(height: 14),
           Text('اختر الأعراض', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          _section('رأس', ['صداع', 'دوخة', 'طنين', 'ألم عين', 'احتقان أنف']),
+          _section('ر.ي', ['صداع', 'دوخة', 'طنين', 'ألم عين', 'احتقان أنف']),
           _section('صدر', ['ألم صدر', 'ضيق تنفس', 'خفقان', 'سعال', 'بلغم']),
           _section('بطن', ['ألم بطن', 'غثيان', 'إسهال', 'إمساك', 'حرقة']),
           _section('عام', ['حمى', 'تعب', 'فقدان وزن', 'تعرق ليلي']),

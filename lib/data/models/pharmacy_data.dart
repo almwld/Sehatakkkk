@@ -94,7 +94,7 @@ class PharmacyData {
     {
       'id': 'ph007',
       'name': 'صيدلية السلام',
-      'address': 'شارع حدة - بجوار سوق الأحد',
+      'address': 'شارع حدة - بجوار.يوق الأحد',
       'phone': '01-890123',
       'rating': 4.4,
       'reviews': 98,

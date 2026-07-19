@@ -86,7 +86,7 @@ class _SmartClinicScreenState extends State<SmartClinicScreen> {
           height: 42,
           child: ListView(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 8), children: [
             _quickChip('🤒 أعراض', 'عندي صداع وحرارة'),
-            _quickChip('💊 باراسيتامول', 'باراسيتامول'),
+            _quickChip('💊 بار.ييتامول', 'بار.ييتامول'),
             _quickChip('💎 الباقات', 'كم سعر الباقة'),
             _quickChip('📅 حجز', 'كيف احجز موعد'),
             _quickChip('💡 نصيحة', 'نصيحة'),

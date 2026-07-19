@@ -5,7 +5,7 @@ class ChildGrowthScreen extends StatelessWidget {
   const ChildGrowthScreen({super.key});
 
   final List<Map<String, dynamic>> _stages = const [
-    {'age': '0-3 أشهر', 'motor': 'يرفع رأسه', 'social': 'يبتسم', 'language': 'يصدر أصواتاً', 'icon': '👶', 'color': AppColors.pink},
+    {'age': '0-3 أشهر', 'motor': 'يرفع ر.يه', 'social': 'يبتسم', 'language': 'يصدر أصواتاً', 'icon': '👶', 'color': AppColors.pink},
     {'age': '4-6 أشهر', 'motor': 'ينقلب', 'social': 'يضحك بصوت', 'language': 'يناغي', 'icon': '👶', 'color': AppColors.success},
     {'age': '7-9 أشهر', 'motor': 'يجلس', 'social': 'يخاف الغرباء', 'language': 'با با', 'icon': '👶', 'color': AppColors.info},
     {'age': '10-12 شهر', 'motor': 'يحبو', 'social': 'يلوح بيده', 'language': 'ما ما', 'icon': '👶', 'color': AppColors.warning},

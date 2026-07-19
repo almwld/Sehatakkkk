@@ -9,11 +9,11 @@ class PediatricDoseScreen extends StatefulWidget {
 
 class _PediatricDoseScreenState extends State<PediatricDoseScreen> {
   double _weight = 15;
-  String _selectedMed = 'باراسيتامول';
+  String _selectedMed = 'بار.ييتامول';
 
   Map<String, dynamic> _getMed(String name) {
     final meds = <String, Map<String, dynamic>>{
-      'باراسيتامول': {'dose': 15, 'unit': 'mg/kg', 'freq': 'كل 6 ساعات', 'max': 60, 'color': AppColors.primary, 'desc': 'خافض حرارة ومسكن ألم'},
+      'بار.ييتامول': {'dose': 15, 'unit': 'mg/kg', 'freq': 'كل 6 ساعات', 'max': 60, 'color': AppColors.primary, 'desc': 'خافض حرارة ومسكن ألم'},
       'ايبوبروفين': {'dose': 10, 'unit': 'mg/kg', 'freq': 'كل 8 ساعات', 'max': 40, 'color': AppColors.error, 'desc': 'مضاد التهاب وخافض حرارة'},
       'اموكسيسيلين': {'dose': 50, 'unit': 'mg/kg', 'freq': 'كل 8 ساعات', 'max': 150, 'color': AppColors.success, 'desc': 'مضاد حيوي واسع المجال'},
       'سيتريزين': {'dose': 0.25, 'unit': 'mg/kg', 'freq': 'مرة يومياً', 'max': 0.5, 'color': AppColors.info, 'desc': 'مضاد حساسية'},
@@ -22,10 +22,10 @@ class _PediatricDoseScreenState extends State<PediatricDoseScreen> {
       'مونتيلوكاست': {'dose': 4, 'unit': 'mg', 'freq': 'مساءً', 'max': 5, 'color': AppColors.teal, 'desc': 'للربو والحساسية'},
       'ديكساميثازون': {'dose': 0.15, 'unit': 'mg/kg', 'freq': 'كل 6 ساعات', 'max': 0.6, 'color': AppColors.orange, 'desc': 'كورتيزون للحالات الشديدة'},
     };
-    return meds[name] ?? meds['باراسيتامول']!;
+    return meds[name] ?? meds['بار.ييتامول']!;
   }
 
-  List<String> get _drugNames => ['باراسيتامول', 'ايبوبروفين', 'اموكسيسيلين', 'سيتريزين', 'أزيثرومايسين', 'كيتوتيفين', 'مونتيلوكاست', 'ديكساميثازون'];
+  List<String> get _drugNames => ['بار.ييتامول', 'ايبوبروفين', 'اموكسيسيلين', 'سيتريزين', 'أزيثرومايسين', 'كيتوتيفين', 'مونتيلوكاست', 'ديكساميثازون'];
 
   @override
   Widget build(BuildContext context) {

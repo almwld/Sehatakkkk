@@ -34,7 +34,7 @@ class _DeliveryOptionsScreenState extends State<DeliveryOptionsScreen> {
       'time': {'normal': '2-3 أيام', 'express': '24 ساعة', 'instant': '2-4 ساعات'},
     },
     {
-      'name': 'يمن إكسبريس',
+      'name': 'يمن إكسبر.ي',
       'emoji': '🚚',
       'color': AppColors.info,
       'rating': 4.5,

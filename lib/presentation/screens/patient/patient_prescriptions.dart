@@ -38,7 +38,7 @@ class _PatientPrescriptionsState extends State<PatientPrescriptions> {
       'date': '18 أبريل 2026',
       'duration': '7 أيام',
       'diagnosis': 'التهاب حلق',
-      'medications': ['أموكسيليين 500mg', 'باراسيتامول 800mg'],
+      'medications': ['أموكسيليين 500mg', 'بار.ييتامول 800mg'],
       'notes': '',
       'status': 'نشطة',
     },

@@ -111,7 +111,7 @@ class ImageService {
   static const String serviceNearby = '$_baseIcons/services/بالقرب مني .png';
   static const String serviceInsurance = '$_baseIcons/services/تامين.png';
   static const String serviceBloodDonation = '$_baseIcons/services/تقييم.png';
-  static const String serviceHomeServices = '$_baseIcons/services/مراسلات.png';
+  static const String serviceHomeServices = '$_baseIcons/services/مر.يلات.png';
 
   // ============================================================
   // 📦 أيقونات SVG - النواة (Core)

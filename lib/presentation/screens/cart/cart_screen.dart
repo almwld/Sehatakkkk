@@ -9,7 +9,7 @@ class CartScreen extends StatefulWidget {
 
 class _CartScreenState extends State<CartScreen> {
   final List<Map<String, dynamic>> _items = [
-    {'name': 'باراسيتامول 500mg', 'price': 500, 'qty': 2, 'image': 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=100'},
+    {'name': 'بار.ييتامول 500mg', 'price': 500, 'qty': 2, 'image': 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=100'},
     {'name': 'فيتامين د 1000IU', 'price': 1200, 'qty': 1, 'image': 'https://images.unsplash.com/photo-1550572012-edd7b1a7b51c?w=100'},
     {'name': 'جهاز قياس ضغط', 'price': 8500, 'qty': 1, 'image': 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=100'},
   ];

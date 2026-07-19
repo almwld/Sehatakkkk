@@ -34,7 +34,7 @@ class GeneticCounselingScreen extends StatelessWidget {
               Text(s['icon']!, style: const TextStyle(fontSize: 36)),
               const SizedBox(width: 12),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(s['name']!, style: const TextStyle(fontWeight: FontWeight.bold)), Text(s['desc']!, style: const TextStyle(fontSize: 10, color: AppColors.grey))])),
-              Column(children: [Text('${s['price']} ر.س', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)), const SizedBox(height: 6), ElevatedButton(onPressed: () {}, style: ElevatedButton.styleFrom(backgroundColor: AppColors.indigo, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5), minimumSize: Size.zero), child: const Text('احجز', style: TextStyle(fontSize: 10)))]),
+              Column(children: [Text('${s['price']} ر.ي', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)), const SizedBox(height: 6), ElevatedButton(onPressed: () {}, style: ElevatedButton.styleFrom(backgroundColor: AppColors.indigo, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5), minimumSize: Size.zero), child: const Text('احجز', style: TextStyle(fontSize: 10)))]),
             ]),
           )),
         ]),

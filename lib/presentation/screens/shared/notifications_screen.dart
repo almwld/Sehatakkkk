@@ -70,7 +70,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       {
         'id': '2',
         'title': 'تذكير دواء',
-        'body': 'حان موعد تناول دواء باراسيتامول 500mg',
+        'body': 'حان موعد تناول دواء بار.ييتامول 500mg',
         'time': DateTime.now().subtract(const Duration(minutes: 30)),
         'read': false,
         'icon': Icons.medication_rounded,

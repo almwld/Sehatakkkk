@@ -8,12 +8,12 @@ class DrugCompareScreen extends StatefulWidget {
 }
 
 class _DrugCompareScreenState extends State<DrugCompareScreen> {
-  String _d1 = 'باراسيتامول';
+  String _d1 = 'بار.ييتامول';
   String _d2 = 'إيبوبروفين';
 
   Map<String, String> _info(String d) {
     switch (d) {
-      case 'باراسيتامول': return {'cat': 'مسكن ألم', 'use': 'ألم، حمى', 'onset': '30-60 دقيقة', 'dur': '4-6 ساعات', 'preg': 'آمن', 'stomach': 'لطيف', 'price': 'رخيص'};
+      case 'بار.ييتامول': return {'cat': 'مسكن ألم', 'use': 'ألم، حمى', 'onset': '30-60 دقيقة', 'dur': '4-6 ساعات', 'preg': 'آمن', 'stomach': 'لطيف', 'price': 'رخيص'};
       case 'إيبوبروفين': return {'cat': 'مضاد التهاب', 'use': 'التهاب، ألم', 'onset': '30-60 دقيقة', 'dur': '6-8 ساعات', 'preg': 'خطر', 'stomach': 'قوي', 'price': 'رخيص'};
       case 'ديكلوفيناك': return {'cat': 'مضاد التهاب', 'use': 'مفاصل، عضلات', 'onset': '20-30 دقيقة', 'dur': '8-12 ساعات', 'preg': 'خطر', 'stomach': 'قوي', 'price': 'متوسط'};
       case 'نابروكسين': return {'cat': 'مضاد التهاب', 'use': 'نقرس، مفاصل', 'onset': 'ساعة', 'dur': '12 ساعة', 'preg': 'خطر', 'stomach': 'قوي', 'price': 'متوسط'};
@@ -57,7 +57,7 @@ class _DrugCompareScreenState extends State<DrugCompareScreen> {
   Widget _drop(String val, Function(String?) cb) {
     return DropdownButtonFormField<String>(
       value: val,
-      items: ['باراسيتامول','إيبوبروفين','ديكلوفيناك','نابروكسين'].map((k) => DropdownMenuItem(value: k, child: Text(k, style: const TextStyle(fontSize: 13)))).toList(),
+      items: ['بار.ييتامول','إيبوبروفين','ديكلوفيناك','نابروكسين'].map((k) => DropdownMenuItem(value: k, child: Text(k, style: const TextStyle(fontSize: 13)))).toList(),
       onChanged: cb,
     );
   }

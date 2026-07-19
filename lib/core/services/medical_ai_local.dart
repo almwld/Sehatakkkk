@@ -14,7 +14,7 @@ class LocalMedicalAI {
 
   // ========== قاعدة الأدوية ==========
   final Map<String, Map<String, String>> _drugsDb = {
-    'باراسيتامول': {
+    'بار.ييتامول': {
       'category': 'مسكن ألم وخافض حرارة',
       'dose': '500-1000mg كل 6-8 ساعات',
       'pregnancy': 'آمن',
@@ -98,7 +98,7 @@ class LocalMedicalAI {
     'قلل استهلاك الملح',
     'تجنب التدخين والكحول',
     'افحص ضغط الدم شهرياً',
-    'افحص السكر سنوياً',
+    'افحص السكر.ينوياً',
     'استخدم واقي شمس',
     'اغسل يديك بانتظام',
   ];
@@ -242,17 +242,17 @@ class LocalMedicalAI {
     }
     // باقات
     if (RegExp(r'باقة|اشتراك|سعر|تكلفة').hasMatch(message)) {
-      return '💎 الباقة الأساسية: مجانية\n⭐ الذهبية: 99 ر.س/شهر\n👑 البلاتينية: 249 ر.س/شهر\n👨‍👩‍👧‍👦 العائلية: 399 ر.س/شهر';
+      return '💎 الباقة الأساسية: مجانية\n⭐ الذهبية: 99 ر.ي/شهر\n👑 البلاتينية: 249 ر.ي/شهر\n👨‍👩‍👧‍👦 العائلية: 399 ر.ي/شهر';
     }
     // أدوية
-    if (RegExp(r'دواء|علاج|باراسيتامول|ايبوبروفين').hasMatch(message)) {
+    if (RegExp(r'دواء|علاج|بار.ييتامول|ايبوبروفين').hasMatch(message)) {
       for (var drug in _drugsDb.keys) {
         if (message.contains(drug)) {
           final info = _drugsDb[drug]!;
           return '💊 $drug\n📋 ${info['category']}\n💉 ${info['dose']}\n⚠️ ${info['pregnancy']}';
         }
       }
-      return '💊 اكتب اسم الدواء للمعلومات. مثال: "باراسيتامول"';
+      return '💊 اكتب اسم الدواء للمعلومات. مثال: "بار.ييتامول"';
     }
     // خدمات
     if (RegExp(r'كيف|طريقة').hasMatch(message)) {

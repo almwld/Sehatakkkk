@@ -11,7 +11,7 @@ class _DrugDictionaryScreenState extends State<DrugDictionaryScreen> {
   String _query = '';
   
   final List<Map<String, String>> _drugs = const [
-    {'name': 'باراسيتامول', 'cat': 'مسكن ألم', 'dose': '500-1000mg كل 6-8 س', 'preg': 'آمن'},
+    {'name': 'بار.ييتامول', 'cat': 'مسكن ألم', 'dose': '500-1000mg كل 6-8 س', 'preg': 'آمن'},
     {'name': 'ايبوبروفين', 'cat': 'مضاد التهاب', 'dose': '200-400mg كل 6-8 س', 'preg': 'غير آمن'},
     {'name': 'اموكسيسيلين', 'cat': 'مضاد حيوي', 'dose': '500mg كل 8 س', 'preg': 'آمن نسبياً'},
     {'name': 'اوميبرازول', 'cat': 'مضاد حموضة', 'dose': '20-40mg يومياً', 'preg': 'باستشارة'},

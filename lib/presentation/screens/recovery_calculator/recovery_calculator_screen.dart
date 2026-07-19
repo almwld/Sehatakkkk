@@ -15,7 +15,7 @@ class _RecoveryCalculatorScreenState extends State<RecoveryCalculatorScreen> {
 
   final Map<String, Map<String, dynamic>> _conditions = {
     'نزلة برد': {'min': 3, 'max': 7, 'unit': 'أيام', 'icon': '🤧', 'color': AppColors.info, 'advice': 'راحة، سوائل، فيتامين C'},
-    'إنفلونزا': {'min': 5, 'max': 14, 'unit': 'أيام', 'icon': '🤒', 'color': AppColors.warning, 'advice': 'راحة تامة، سوائل، باراسيتامول'},
+    'إنفلونزا': {'min': 5, 'max': 14, 'unit': 'أيام', 'icon': '🤒', 'color': AppColors.warning, 'advice': 'راحة تامة، سوائل، بار.ييتامول'},
     'جرح بسيط': {'min': 7, 'max': 14, 'unit': 'أيام', 'icon': '🩹', 'color': AppColors.success, 'advice': 'تنظيف يومي، تغيير ضماد'},
     'كسر بسيط': {'min': 30, 'max': 60, 'unit': 'يوم', 'icon': '🦴', 'color': AppColors.error, 'advice': 'تثبيت، علاج طبيعي'},
     'شد عضلي': {'min': 3, 'max': 10, 'unit': 'أيام', 'icon': '💪', 'color': AppColors.purple, 'advice': 'راحة، كمادات، مسكن'},

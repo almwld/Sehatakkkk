@@ -1,7 +1,7 @@
 class MedicationData {
   static List<Map<String, dynamic>> get medications => [
     // ========== مسكنات ==========
-    {'id': 'm001', 'name': 'باراسيتامول 500mg', 'price': 500, 'category': 'مسكنات', 'type': 'دواء', 'prescription': false, 'image': 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200', 'desc': 'مسكن للآلام وخافض للحرارة', 'brand': 'بانادول'},
+    {'id': 'm001', 'name': 'بار.ييتامول 500mg', 'price': 500, 'category': 'مسكنات', 'type': 'دواء', 'prescription': false, 'image': 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200', 'desc': 'مسكن للآلام وخافض للحرارة', 'brand': 'بانادول'},
     {'id': 'm002', 'name': 'إيبوبروفين 400mg', 'price': 800, 'category': 'مسكنات', 'type': 'دواء', 'prescription': false, 'image': 'https://images.unsplash.com/photo-1550572012-edd7b1a7b51c?w=200', 'desc': 'مضاد للالتهاب ومسكن', 'brand': 'بروفين'},
     {'id': 'm003', 'name': 'ديكلوفيناك 50mg', 'price': 600, 'category': 'مسكنات', 'type': 'دواء', 'prescription': true, 'image': 'https://images.unsplash.com/photo-1632833239869-a37e7a58066e?w=200', 'desc': 'مضاد التهاب قوي', 'brand': 'فولتارين'},
     {'id': 'm004', 'name': 'نابروكسين 250mg', 'price': 700, 'category': 'مسكنات', 'type': 'دواء', 'prescription': true, 'image': 'https://images.unsplash.com/photo-1577174881658-0f30ed549adc?w=200', 'desc': 'مسكن للآلام المزمنة', 'brand': 'نابروكسين'},

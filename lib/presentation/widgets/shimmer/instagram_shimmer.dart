@@ -38,7 +38,7 @@ class InstagramShimmer extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ✅ رأس البوست (مثل إنستغرام)
+          // ✅ ر.ي البوست (مثل إنستغرام)
           Row(
             children: [
               Container(

@@ -23,7 +23,7 @@ class _PaymentInvoiceScreenState extends State<PaymentInvoiceScreen> {
 
   // بيانات الفاتورة
   final List<Map<String, dynamic>> _cartItems = [
-    {'name': 'باراسيتامول 500mg', 'qty': 2, 'price': 150},
+    {'name': 'بار.ييتامول 500mg', 'qty': 2, 'price': 150},
     {'name': 'فيتامين د 1000IU', 'qty': 1, 'price': 300},
     {'name': 'جهاز قياس ضغط', 'qty': 1, 'price': 1200},
   ];
