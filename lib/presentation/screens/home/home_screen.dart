@@ -4,6 +4,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/image_service.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
@@ -238,16 +239,16 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               child: Container(
                 width: 60,
                 height: 60,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
                     colors: [AppColors.primary, AppColors.primaryDark],
                   ),
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withOpacity(0.45),
+                      color: AppColors.primary,
                       blurRadius: 14,
-                      offset: const Offset(0, 4),
+                      offset: Offset(0, 4),
                     ),
                   ],
                 ),
@@ -285,12 +286,13 @@ class HomeTab extends StatefulWidget {
   State<HomeTab> createState() => _HomeTabState();
 }
 
-class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
+class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   int _currentBanner = 0;
   final ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
+  _HomeScreenState? _homeState;
 
   // ============================================================
   // 📊 البيانات
@@ -299,14 +301,13 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
   final List<String> _bannerImages = ImageService.bannerList;
 
   final List<Map<String, dynamic>> _topDoctors = [
-    {'id': '1', 'name': 'د. أحمد المولد', 'specialty': 'باطنية', 'rating': 4.9, 'reviews': 328, 'image': ImageService.doctor1},
-    {'id': '2', 'name': 'د. خالد النخلاني', 'specialty': 'قلبية', 'rating': 4.8, 'reviews': 256, 'image': ImageService.doctor2},
-    {'id': '3', 'name': 'د. أسماء الهندي', 'specialty': 'أطفال', 'rating': 4.7, 'reviews': 189, 'image': ImageService.doctor3},
-    {'id': '4', 'name': 'د. محمد العلاي', 'specialty': 'أنف وأذن وحنجرة', 'rating': 4.6, 'reviews': 89, 'image': ImageService.doctor4},
-    {'id': '5', 'name': 'د. فاطمة صديقي', 'specialty': 'نساء وولادة', 'rating': 4.8, 'reviews': 210, 'image': ImageService.doctor5},
+    {'id': '1', 'name': 'د. أحمد المولد', 'specialty': 'باطنية', 'rating': 4.9, 'reviews': 328, 'image': ImageService.doctor1, 'gender': 'male'},
+    {'id': '2', 'name': 'د. خالد النخلاني', 'specialty': 'قلبية', 'rating': 4.8, 'reviews': 256, 'image': ImageService.doctor2, 'gender': 'male'},
+    {'id': '3', 'name': 'د. أسماء الهندي', 'specialty': 'أطفال', 'rating': 4.7, 'reviews': 189, 'image': ImageService.doctor3, 'gender': 'female'},
+    {'id': '4', 'name': 'د. محمد العلاي', 'specialty': 'أنف وأذن وحنجرة', 'rating': 4.6, 'reviews': 89, 'image': ImageService.doctor4, 'gender': 'male'},
+    {'id': '5', 'name': 'د. فاطمة صديقي', 'specialty': 'نساء وولادة', 'rating': 4.8, 'reviews': 210, 'image': ImageService.doctor5, 'gender': 'female'},
   ];
 
-  // ✅ الخدمات السريعة - أيقونات جديدة
   final List<Map<String, dynamic>> _quickServices = [
     {'icon': ImageService.fastPharmacy, 'label': 'صيدلية', 'color': AppColors.success, 'screen': const MedicinesScreen()},
     {'icon': ImageService.fastEmergency, 'label': 'طوارئ', 'color': AppColors.error, 'screen': const EmergencyNumbers()},
@@ -357,7 +358,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
 
   final List<Map<String, dynamic>> _featuredHospitals = [
     {'id': '1', 'name': 'مستشفى 22 مايو', 'location': 'صنعاء', 'image': ImageService.hospital1, 'rating': 4.9, 'phone': '01-234571', 'specialty': 'عام'},
-    {'id': '2', 'name': 'مستشفى الجمهورية', 'location': 'صنعاء', 'image': ImageService.hospital2, 'rating': 4.8, 'phone': '01-234572', 'specialty': 'عام'},
+    {'id': '2', 'name': 'مستشفى الجمهوري', 'location': 'صنعاء', 'image': ImageService.hospital2, 'rating': 4.8, 'phone': '01-234572', 'specialty': 'عام'},
     {'id': '3', 'name': 'مستشفى السبعين', 'location': 'صنعاء', 'image': ImageService.hospital3, 'rating': 4.7, 'phone': '01-234573', 'specialty': 'أطفال وولادة'},
   ];
 
@@ -465,7 +466,108 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     setState(() => _isLoading = false);
   }
 
-  Widget _buildShimmerEffect({double width = double.infinity, double height = 200}) {
+  // ✅ دالة موحدة لعرض أي صورة مع fallback
+  Widget _buildImageAsset(
+    String path, {
+    double? width,
+    double? height,
+    BoxFit fit = BoxFit.cover,
+    BorderRadius? borderRadius,
+    Color? color,
+  }) {
+    Widget child = Image.asset(
+      path,
+      width: width,
+      height: height,
+      fit: fit,
+      color: color,
+      frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+        if (wasSynchronouslyLoaded) return child;
+        return AnimatedOpacity(
+          opacity: frame == null ? 0 : 1,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+          child: child,
+        );
+      },
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          width: width,
+          height: height,
+          color: Colors.grey[200],
+          child: Icon(Icons.image_not_supported, color: Colors.grey[400], size: (width ?? 40) * 0.5),
+        );
+      },
+    );
+
+    if (borderRadius != null) {
+      return ClipRRect(borderRadius: borderRadius, child: child);
+    }
+    return child;
+  }
+
+  // ✅ دالة صورة الطبيب مع SVG placeholder حسب الجنس
+  Widget _buildDoctorAvatar(String? imagePath, {double size = 55, String gender = 'male'}) {
+    final fallbackSvg = gender == 'female'
+        ? 'assets/images/doctors/doctor_female_placeholder.svg'
+        : 'assets/images/doctors/doctor_placeholder.svg';
+
+    if (imagePath == null || imagePath.isEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: SvgPicture.asset(
+          fallbackSvg,
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+          placeholderBuilder: (_) => Container(
+            width: size,
+            height: size,
+            color: Colors.grey[200],
+            child: Icon(Icons.person, color: Colors.grey[400], size: size * 0.5),
+          ),
+        ),
+      );
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: Image.asset(
+        imagePath,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+          if (wasSynchronouslyLoaded) return child;
+          return AnimatedOpacity(
+            opacity: frame == null ? 0 : 1,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+            child: child,
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          return ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: SvgPicture.asset(
+              fallbackSvg,
+              width: size,
+              height: size,
+              fit: BoxFit.cover,
+              placeholderBuilder: (_) => Container(
+                width: size,
+                height: size,
+                color: Colors.grey[200],
+                child: Icon(Icons.person, color: Colors.grey[400], size: size * 0.5),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildShimmerBox({double width = double.infinity, double height = 200, double radius = 16}) {
     return Shimmer.fromColors(
       baseColor: Colors.grey[300]!,
       highlightColor: Colors.grey[100]!,
@@ -474,56 +576,8 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
         height: height,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(radius),
         ),
-      ),
-    );
-  }
-
-  Widget _buildInstagramShimmer() {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(width: 40, height: 40, decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(width: 120, height: 14, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
-                  const SizedBox(height: 4),
-                  Container(width: 80, height: 10, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
-                ],
-              ),
-              const Spacer(),
-              Container(width: 20, height: 20, decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Container(width: double.infinity, height: 300, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8))),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Container(width: 30, height: 30, decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
-              const SizedBox(width: 12),
-              Container(width: 30, height: 30, decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
-              const SizedBox(width: 12),
-              Container(width: 30, height: 30, decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
-              const Spacer(),
-              Container(width: 30, height: 30, decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Container(width: 100, height: 12, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
-          const SizedBox(height: 4),
-          Container(width: double.infinity, height: 12, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
-          const SizedBox(height: 4),
-          Container(width: 200, height: 12, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
-        ],
       ),
     );
   }
@@ -544,16 +598,22 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
     _fadeController.forward();
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _homeState = context.findAncestorStateOfType<_HomeScreenState>();
+      }
+    });
+
     _scrollController.addListener(() {
-      if (_scrollController.position.userScrollDirection == ScrollDirection.reverse) {
-        _HomeScreenState? homeState = context.findAncestorStateOfType<_HomeScreenState>();
-        if (homeState != null && homeState._isBottomBarVisible.value != false) {
-          homeState._isBottomBarVisible.value = false;
+      if (_homeState == null) return;
+      final direction = _scrollController.position.userScrollDirection;
+      if (direction == ScrollDirection.reverse) {
+        if (_homeState!._isBottomBarVisible.value != false) {
+          _homeState!._isBottomBarVisible.value = false;
         }
-      } else if (_scrollController.position.userScrollDirection == ScrollDirection.forward) {
-        _HomeScreenState? homeState = context.findAncestorStateOfType<_HomeScreenState>();
-        if (homeState != null && homeState._isBottomBarVisible.value != true) {
-          homeState._isBottomBarVisible.value = true;
+      } else if (direction == ScrollDirection.forward) {
+        if (_homeState!._isBottomBarVisible.value != true) {
+          _homeState!._isBottomBarVisible.value = true;
         }
       }
     });
@@ -566,12 +626,16 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     super.dispose();
   }
 
+  @override
+  bool get wantKeepAlive => true;
+
   // ============================================================
   // 🎨 بناء الواجهة
   // ============================================================
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final logged = FirebaseAuth.instance.currentUser != null;
     final user = FirebaseAuth.instance.currentUser;
     final name = user?.displayName ?? user?.email?.split('@')[0] ?? 'مستخدم';
@@ -581,7 +645,54 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     if (_isLoading) {
       return Scaffold(
         backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-        body: _buildInstagramShimmer(),
+        body: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              expandedHeight: 90,
+              floating: true,
+              snap: true,
+              pinned: false,
+              backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
+              foregroundColor: primaryColor,
+              elevation: 0,
+              automaticallyImplyLeading: false,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
+                    children: [
+                      CircleAvatar(radius: 20, backgroundColor: Colors.grey[300]),
+                      const SizedBox(width: 12),
+                      Expanded(child: Container(height: 16, color: Colors.grey[300])),
+                      const SizedBox(width: 8),
+                      Container(width: 40, height: 40, color: Colors.grey[300]),
+                      const SizedBox(width: 8),
+                      Container(width: 40, height: 40, color: Colors.grey[300]),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.all(16),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  _buildShimmerBox(height: 50, radius: 25),
+                  const SizedBox(height: 16),
+                  _buildShimmerBox(height: 180),
+                  const SizedBox(height: 20),
+                  _buildShimmerBox(height: 80),
+                  const SizedBox(height: 24),
+                  _buildShimmerBox(height: 90),
+                  const SizedBox(height: 24),
+                  _buildShimmerBox(height: 110),
+                  const SizedBox(height: 24),
+                  _buildShimmerBox(height: 200),
+                ]),
+              ),
+            ),
+          ],
+        ),
       );
     }
 
@@ -591,6 +702,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
         backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
         body: CustomScrollView(
           controller: _scrollController,
+          physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             // ✅ AppBar
             SliverAppBar(
@@ -612,15 +724,18 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                           if (logged) _goTo(context, const PatientProfile());
                           else _goTo(context, const AuthScreen());
                         },
-                        child: CircleAvatar(
-                          radius: 20,
-                          backgroundColor: primaryColor.withOpacity(0.1),
-                          child: Text(
-                            name.isNotEmpty ? name[0] : 'م',
-                            style: TextStyle(
-                              color: primaryColor,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                        child: Hero(
+                          tag: 'user_avatar',
+                          child: CircleAvatar(
+                            radius: 20,
+                            backgroundColor: primaryColor.withOpacity(0.1),
+                            child: Text(
+                              name.isNotEmpty ? name[0] : 'م',
+                              style: TextStyle(
+                                color: primaryColor,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
@@ -637,11 +752,21 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                         ),
                       ),
                       IconButton(
-                        icon: Icon(Icons.notifications_outlined, color: primaryColor),
+                        icon: _buildImageAsset(
+                          ImageService.notificationIcon,
+                          width: 24,
+                          height: 24,
+                          color: primaryColor,
+                        ),
                         onPressed: () => _goTo(context, const NotificationsScreen()),
                       ),
                       IconButton(
-                        icon: Icon(Icons.shopping_cart_outlined, color: primaryColor),
+                        icon: _buildImageAsset(
+                          ImageService.cartIcon,
+                          width: 24,
+                          height: 24,
+                          color: primaryColor,
+                        ),
                         onPressed: () => _goTo(context, const CartScreen()),
                       ),
                       if (!logged)
@@ -725,7 +850,11 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
       ),
       child: Row(
         children: [
-          Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey),
+          _buildImageAsset(
+            ImageService.searchIcon,
+            width: 20,
+            height: 20,
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: TextField(
@@ -753,7 +882,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
       children: [
         CarouselSlider(
           options: CarouselOptions(
-            height: 180,
+            height: 160,
             autoPlay: true,
             autoPlayInterval: const Duration(seconds: 4),
             autoPlayAnimationDuration: const Duration(milliseconds: 800),
@@ -766,12 +895,9 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
             return Container(
               width: double.infinity,
               margin: const EdgeInsets.symmetric(horizontal: 4),
-              decoration: BoxDecoration(
+              child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
-                image: DecorationImage(
-                  image: AssetImage(imagePath),
-                  fit: BoxFit.cover,
-                ),
+                child: _buildImageAsset(imagePath, height: 160),
               ),
             );
           }).toList(),
@@ -871,7 +997,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
           onPressed: onTap,
           child: Text(
             action,
-            style: TextStyle(
+            style: const TextStyle(
               color: AppColors.primary,
               fontWeight: FontWeight.w600,
             ),
@@ -903,13 +1029,10 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                       color: color.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Image.asset(
-                      service['icon'],
+                    child: _buildImageAsset(
+                      service['icon'] as String,
                       width: 32,
                       height: 32,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Icon(Icons.circle, color: color, size: 32);
-                      },
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -956,21 +1079,12 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
               ),
               child: Row(
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.asset(
+                  Hero(
+                    tag: 'doctor_${doctor['id']}',
+                    child: _buildDoctorAvatar(
                       doctor['image'],
-                      width: 55,
-                      height: 55,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          width: 55,
-                          height: 55,
-                          color: Colors.grey[200],
-                          child: const Icon(Icons.person, color: Colors.grey),
-                        );
-                      },
+                      size: 55,
+                      gender: doctor['gender'] ?? 'male',
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -1056,19 +1170,10 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: Image.asset(
+                    child: _buildImageAsset(
                       product['image'],
-                      height: 80,
-                      width: 80,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          height: 80,
-                          width: 80,
-                          color: Colors.grey[200],
-                          child: const Icon(Icons.medication, color: Colors.grey),
-                        );
-                      },
+                      height: 70,
+                      width: 70,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -1192,19 +1297,10 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(10),
-                    child: Image.asset(
+                    child: _buildImageAsset(
                       lab['image'] as String,
                       width: 50,
                       height: 50,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          width: 50,
-                          height: 50,
-                          color: Colors.purple.withOpacity(0.1),
-                          child: const Icon(Icons.science, color: Colors.purple, size: 25),
-                        );
-                      },
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -1243,7 +1339,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                         ),
                         Row(
                           children: [
-                            Icon(Icons.star, size: 12, color: Colors.amber),
+                            const Icon(Icons.star, size: 12, color: Colors.amber),
                             const SizedBox(width: 2),
                             Text(
                               '${lab['rating']}',
@@ -1294,66 +1390,70 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
             child: Container(
               width: 200,
               margin: const EdgeInsets.only(right: 12),
-              decoration: BoxDecoration(
+              child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
-                image: DecorationImage(
-                  image: AssetImage(hospital['image'] as String),
-                  fit: BoxFit.cover,
-                  onError: (exception, stackTrace) {},
-                ),
-              ),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: [
-                      Colors.black.withOpacity(0.7),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-                padding: const EdgeInsets.all(12),
-                alignment: Alignment.bottomRight,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Stack(
+                  fit: StackFit.expand,
                   children: [
-                    Text(
-                      hospital['name'] as String,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                    _buildImageAsset(
+                      hospital['image'] as String,
+                      fit: BoxFit.cover,
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.bottomCenter,
+                          end: Alignment.topCenter,
+                          colors: [
+                            Colors.black.withOpacity(0.7),
+                            Colors.transparent,
+                          ],
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(Icons.location_on, color: Colors.white70, size: 14),
-                        const SizedBox(width: 4),
-                        Text(
-                          hospital['location'] as String,
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 12,
+                    Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            hospital['name'] as String,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        const Icon(Icons.star, color: Colors.amber, size: 12),
-                        const SizedBox(width: 2),
-                        Text(
-                          '${hospital['rating']}',
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 11,
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(Icons.location_on, color: Colors.white70, size: 14),
+                              const SizedBox(width: 4),
+                              Text(
+                                hospital['location'] as String,
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
+                          Row(
+                            children: [
+                              const Icon(Icons.star, color: Colors.amber, size: 12),
+                              const SizedBox(width: 2),
+                              Text(
+                                '${hospital['rating']}',
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -1392,19 +1492,10 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.asset(
+                  child: _buildImageAsset(
                     lab['image'] as String,
                     width: 60,
                     height: 60,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        width: 60,
-                        height: 60,
-                        color: Colors.purple.withOpacity(0.1),
-                        child: const Icon(Icons.science, color: Colors.purple, size: 30),
-                      );
-                    },
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -1435,7 +1526,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                       ),
                       Row(
                         children: [
-                          Icon(Icons.star, size: 14, color: Colors.amber),
+                          const Icon(Icons.star, size: 14, color: Colors.amber),
                           const SizedBox(width: 4),
                           Text(
                             '${lab['rating']}',
@@ -1534,19 +1625,10 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.asset(
+                  child: _buildImageAsset(
                     hospital['image'] as String,
                     width: 60,
                     height: 60,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        width: 60,
-                        height: 60,
-                        color: Colors.red.withOpacity(0.1),
-                        child: const Icon(Icons.local_hospital, color: Colors.red, size: 30),
-                      );
-                    },
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -1577,7 +1659,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                       ),
                       Row(
                         children: [
-                          Icon(Icons.star, size: 14, color: Colors.amber),
+                          const Icon(Icons.star, size: 14, color: Colors.amber),
                           const SizedBox(width: 4),
                           Text(
                             '${hospital['rating']}',
@@ -1695,9 +1777,10 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
             child: Row(
               children: [
                 CircleAvatar(
-                  radius: 20,
+                  radius: 18,
                   backgroundImage: AssetImage(post['avatar']),
-                  child: const Icon(Icons.person, size: 20),
+                  onBackgroundImageError: (_, __) {},
+                  child: const Icon(Icons.person, size: 18),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -1729,18 +1812,24 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
               ],
             ),
           ),
-          Container(
-            height: 250,
+          SizedBox(
+            height: 220,
             width: double.infinity,
-            decoration: BoxDecoration(
-              color: isDark ? Colors.grey[800] : Colors.grey[200],
-            ),
             child: Image.asset(
               post['image'],
               fit: BoxFit.cover,
+              frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+                if (wasSynchronouslyLoaded) return child;
+                return AnimatedOpacity(
+                  opacity: frame == null ? 0 : 1,
+                  duration: const Duration(milliseconds: 400),
+                  curve: Curves.easeOut,
+                  child: child,
+                );
+              },
               errorBuilder: (context, error, stackTrace) {
                 return Container(
-                  height: 250,
+                  height: 220,
                   color: isDark ? Colors.grey[800] : Colors.grey[200],
                   child: const Icon(Icons.image, color: Colors.grey, size: 40),
                 );
@@ -1856,17 +1945,45 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
 }
 
 // ============================================================
-// 🔍 AppSearchDelegate - البحث المتقدم
+// 🔍 AppSearchDelegate - البحث المتقدم والشامل
 // ============================================================
 class AppSearchDelegate extends SearchDelegate {
   @override
-  String get searchFieldLabel => 'ابحث عن طبيب، دواء، خدمة...';
+  String get searchFieldLabel => 'ابحث عن طبيب، دواء، خدمة، مستشفى، مختبر...';
 
   @override
   TextStyle get searchFieldStyle => const TextStyle(
         fontFamily: 'NotoSansArabicUI',
         fontSize: 16,
       );
+
+  // ✅ قائمة نتائج البحث
+  final List<Map<String, dynamic>> _searchResults = [];
+
+  // ✅ بيانات البحث (محاكاة)
+  final List<Map<String, dynamic>> _allData = [
+    // أطباء
+    {'id': 'd1', 'name': 'د. أحمد المؤيد', 'type': 'طبيب', 'specialty': 'باطنية', 'subtitle': 'استشاري باطنية', 'icon': Icons.medical_services},
+    {'id': 'd2', 'name': 'د. خالد النخلاني', 'type': 'طبيب', 'specialty': 'قلبية', 'subtitle': 'استشاري قلبية', 'icon': Icons.medical_services},
+    {'id': 'd3', 'name': 'د. أسماء الهندي', 'type': 'طبيب', 'specialty': 'أطفال', 'subtitle': 'استشارية أطفال', 'icon': Icons.medical_services},
+    {'id': 'd4', 'name': 'د. محمد العلاي', 'type': 'طبيب', 'specialty': 'أنف وأذن وحنجرة', 'subtitle': 'استشاري أنف وأذن وحنجرة', 'icon': Icons.medical_services},
+    {'id': 'd5', 'name': 'د. فاطمة صديقي', 'type': 'طبيب', 'specialty': 'نساء وولادة', 'subtitle': 'استشارية نساء وولادة', 'icon': Icons.medical_services},
+    // أدوية
+    {'id': 'm1', 'name': 'باراسيتامول 500mg', 'type': 'دواء', 'subtitle': 'مسكن ألم وخافض حرارة', 'icon': Icons.medication},
+    {'id': 'm2', 'name': 'فيتامين د 1000IU', 'type': 'دواء', 'subtitle': 'مكمل غذائي', 'icon': Icons.medication},
+    {'id': 'm3', 'name': 'أموكسيسيلين 500mg', 'type': 'دواء', 'subtitle': 'مضاد حيوي', 'icon': Icons.medication},
+    {'id': 'm4', 'name': 'إيبوبروفين 400mg', 'type': 'دواء', 'subtitle': 'مضاد التهاب', 'icon': Icons.medication},
+    // مستشفيات
+    {'id': 'h1', 'name': 'مستشفى 22 مايو', 'type': 'مستشفى', 'subtitle': 'صنعاء', 'icon': Icons.local_hospital},
+    {'id': 'h2', 'name': 'مستشفى آزال', 'type': 'مستشفى', 'subtitle': 'صنعاء', 'icon': Icons.local_hospital},
+    {'id': 'h3', 'name': 'مستشفى السبعين', 'type': 'مستشفى', 'subtitle': 'صنعاء - أطفال وولادة', 'icon': Icons.local_hospital},
+    // مختبرات
+    {'id': 'l1', 'name': 'مختبرات الرازي', 'type': 'مختبر', 'subtitle': 'صنعاء - شارع الزبيري', 'icon': Icons.science},
+    {'id': 'l2', 'name': 'مختبرات العولقي', 'type': 'مختبر', 'subtitle': 'صنعاء - شارع الستين', 'icon': Icons.science},
+    // خدمات
+    {'id': 's1', 'name': 'استشارة طبية', 'type': 'خدمة', 'subtitle': 'استشارة عبر الفيديو', 'icon': Icons.chat},
+    {'id': 's2', 'name': 'حجز موعد', 'type': 'خدمة', 'subtitle': 'حجز موعد مع طبيب', 'icon': Icons.calendar_today},
+  ];
 
   @override
   List<Widget>? buildActions(BuildContext context) {
@@ -1908,42 +2025,173 @@ class AppSearchDelegate extends SearchDelegate {
       'صيدلية 24 ساعة',
       'استشارة قلبية',
       'تحليل دم شامل',
+      'مستشفى 22 مايو',
+      'د. أحمد المولد',
     ];
 
-    return ListView.builder(
-      itemCount: recentSearches.length,
-      itemBuilder: (context, index) => ListTile(
-        leading: const Icon(Icons.history, color: Colors.grey),
-        title: Text(recentSearches[index]),
-        onTap: () {
-          query = recentSearches[index];
-          showResults(context);
-        },
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(
+            'عمليات البحث الأخيرة',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[700],
+            ),
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: recentSearches.length,
+            itemBuilder: (context, index) => ListTile(
+              leading: const Icon(Icons.history, color: Colors.grey),
+              title: Text(recentSearches[index]),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+              onTap: () {
+                query = recentSearches[index];
+                showResults(context);
+              },
+            ),
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildSearchResults() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.search, size: 64, color: Colors.grey[400]),
-          const SizedBox(height: 16),
-          Text(
-            'جاري البحث عن "$query"...',
-            style: TextStyle(color: Colors.grey[600]),
+    // فلترة النتائج حسب البحث
+    final results = _allData.where((item) {
+      final searchText = query.toLowerCase();
+      return item['name'].toLowerCase().contains(searchText) ||
+          item['subtitle'].toLowerCase().contains(searchText) ||
+          item['type'].contains(searchText) ||
+          (item['specialty'] ?? '').toLowerCase().contains(searchText);
+    }).toList();
+
+    if (results.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.search_off, size: 80, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              'لا توجد نتائج',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'لم نعثر على أي نتائج لـ "$query"',
+              style: TextStyle(color: Colors.grey[500]),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () {
+                // يمكن إضافة طلب جديد
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('طلب مساعدة'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      itemCount: results.length,
+      itemBuilder: (context, index) {
+        final item = results[index];
+        return _buildResultItem(item);
+      },
+    );
+  }
+
+  Widget _buildResultItem(Map<String, dynamic> item) {
+    Color iconColor;
+    switch (item['type']) {
+      case 'طبيب':
+        iconColor = Colors.teal;
+        break;
+      case 'دواء':
+        iconColor = Colors.blue;
+        break;
+      case 'مستشفى':
+        iconColor = Colors.red;
+        break;
+      case 'مختبر':
+        iconColor = Colors.purple;
+        break;
+      default:
+        iconColor = AppColors.primary;
+    }
+
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundColor: iconColor.withOpacity(0.1),
+        child: Icon(
+          item['icon'],
+          color: iconColor,
+          size: 24,
+        ),
+      ),
+      title: Text(
+        item['name'],
+        style: const TextStyle(
+          fontWeight: FontWeight.w600,
+          fontSize: 15,
+        ),
+      ),
+      subtitle: Text(
+        item['subtitle'] ?? '',
+        style: TextStyle(
+          color: Colors.grey[600],
+          fontSize: 12,
+        ),
+      ),
+      trailing: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        decoration: BoxDecoration(
+          color: iconColor.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          item['type'] ?? '',
+          style: TextStyle(
+            fontSize: 10,
+            color: iconColor,
+            fontWeight: FontWeight.w500,
           ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: () {},
-            style: ElevatedButton.styleFrom(
+        ),
+      ),
+      onTap: () {
+        // التنقل حسب النوع
+        if (item['type'] == 'طبيب') {
+          // Navigator.push(context, MaterialPageRoute(builder: (_) => DoctorDetailsScreen(doctorId: item['id'])));
+        } else if (item['type'] == 'دواء') {
+          // Navigator.push(context, MaterialPageRoute(builder: (_) => MedicinesScreen()));
+        } else if (item['type'] == 'مستشفى') {
+          // Navigator.push(context, MaterialPageRoute(builder: (_) => HospitalScreen()));
+        } else {
+          // عرض تفاصيل
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('تم اختيار: ${item['name']}'),
               backgroundColor: AppColors.primary,
             ),
-            child: const Text('بحث متقدم'),
-          ),
-        ],
-      ),
+          );
+        }
+        close(context, null);
+      },
     );
   }
 }
