@@ -12,7 +12,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
   final _amountCtrl = TextEditingController();
   bool _showTopUp = false;
   String _topUpWallet = 'فلوسك';
-  String _topUpMethod = 'بطاقة ائتمان';
+  String _topUpMethod = 'جيب، جوالي كاش، كريمي جوال';
 
   final List<Map<String, dynamic>> _wallets = const [
     {'name': 'فلوسك', 'code': 'FLOSWK', 'icon': '💳', 'color': Color(0xFF1A73E8), 'number': '**** 4582', 'balance': '12,500 ر.ي'},
