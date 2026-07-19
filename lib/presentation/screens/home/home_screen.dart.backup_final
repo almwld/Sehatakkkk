@@ -50,12 +50,12 @@ import 'package:sehatak/presentation/screens/blood_pressure/blood_pressure_scree
 import 'package:sehatak/presentation/screens/glucose/glucose_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/weight/weight_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/heart_rate/heart_rate_screen.dart';
-import 'package:sehatak/presentation/screens/sleep_tracker/sleep_tracker_screen.dart';
+import 'package:sehatak/presentation/screens/sleep/sleep_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/step_counter/step_counter_screen.dart';
-import 'package:sehatak/presentation/screens/health_tools/bmi_calculator_screen.dart';
-import 'package:sehatak/presentation/screens/health_tools/calorie_calculator_screen.dart';
-import 'package:sehatak/presentation/screens/health_tools/stress_meter_screen.dart';
-import 'package:sehatak/presentation/screens/medication/medication_reminder_screen.dart';
+import 'package:sehatak/presentation/screens/bmi/bmi_calculator_screen.dart';
+import 'package:sehatak/presentation/screens/calorie/calorie_calculator_screen.dart';
+import 'package:sehatak/presentation/screens/stress/stress_meter_screen.dart';
+import 'package:sehatak/presentation/screens/medication_reminder/medication_reminder_screen.dart';
 import 'package:sehatak/presentation/screens/drug_dictionary/drug_dictionary_screen.dart';
 import 'package:sehatak/presentation/screens/drug_compare/drug_compare_screen.dart';
 import 'package:sehatak/presentation/screens/pediatric_dose/pediatric_dose_screen.dart';
