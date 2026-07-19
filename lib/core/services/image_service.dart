@@ -145,9 +145,9 @@ class ImageService {
 }
 
   // ===== صور الصيدليات =====
-  static const String pharmacy1 = 'assets/images/pharmacies/pharmacy_1.png';
-  static const String pharmacy2 = 'assets/images/pharmacies/pharmacy_2.png';
-  static const String pharmacy3 = 'assets/images/pharmacies/pharmacy_3.png';
-  static const String pharmacyIbnHayyan = 'assets/images/pharmacies/صيدليات ابن حيان.png';
-  static const String pharmacyAlShifa = 'assets/images/pharmacies/صيدلية الشفاء.png';
-  static const String pharmacyAlamAlSaidala = 'assets/images/pharmacies/عالم الصيدله.png';
+  const String pharmacy1 = 'assets/images/pharmacies/pharmacy_1.png';
+  const String pharmacy2 = 'assets/images/pharmacies/pharmacy_2.png';
+  const String pharmacy3 = 'assets/images/pharmacies/pharmacy_3.png';
+  const String pharmacyIbnHayyan = 'assets/images/pharmacies/صيدليات ابن حيان.png';
+  const String pharmacyAlShifa = 'assets/images/pharmacies/صيدلية الشفاء.png';
+  const String pharmacyAlamAlSaidala = 'assets/images/pharmacies/عالم الصيدله.png';
