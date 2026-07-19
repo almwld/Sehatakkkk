@@ -1947,157 +1947,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin, 
 // ============================================================
 // 🔍 AppSearchDelegate - البحث المتقدم والشامل
 // ============================================================
-class AppSearchDelegate extends SearchDelegate {
-  @override
-  String get searchFieldLabel => 'ابحث عن طبيب، دواء، خدمة، مستشفى، مختبر...';
-
-  @override
-  TextStyle get searchFieldStyle => const TextStyle(
-        fontFamily: 'NotoSansArabicUI',
-        fontSize: 16,
-      );
-
-  // ✅ قائمة نتائج البحث
-  final List<Map<String, dynamic>> _searchResults = [];
-
-  // ✅ بيانات البحث (محاكاة)
-  final List<Map<String, dynamic>> _allData = [
-    // أطباء
-    {'id': 'd1', 'name': 'د. أحمد المؤيد', 'type': 'طبيب', 'specialty': 'باطنية', 'subtitle': 'استشاري باطنية', 'icon': Icons.medical_services},
-    {'id': 'd2', 'name': 'د. خالد النخلاني', 'type': 'طبيب', 'specialty': 'قلبية', 'subtitle': 'استشاري قلبية', 'icon': Icons.medical_services},
-    {'id': 'd3', 'name': 'د. أسماء الهندي', 'type': 'طبيب', 'specialty': 'أطفال', 'subtitle': 'استشارية أطفال', 'icon': Icons.medical_services},
-    {'id': 'd4', 'name': 'د. محمد العلاي', 'type': 'طبيب', 'specialty': 'أنف وأذن وحنجرة', 'subtitle': 'استشاري أنف وأذن وحنجرة', 'icon': Icons.medical_services},
-    {'id': 'd5', 'name': 'د. فاطمة صديقي', 'type': 'طبيب', 'specialty': 'نساء وولادة', 'subtitle': 'استشارية نساء وولادة', 'icon': Icons.medical_services},
-    // أدوية
-    {'id': 'm1', 'name': 'باراسيتامول 500mg', 'type': 'دواء', 'subtitle': 'مسكن ألم وخافض حرارة', 'icon': Icons.medication},
-    {'id': 'm2', 'name': 'فيتامين د 1000IU', 'type': 'دواء', 'subtitle': 'مكمل غذائي', 'icon': Icons.medication},
-    {'id': 'm3', 'name': 'أموكسيسيلين 500mg', 'type': 'دواء', 'subtitle': 'مضاد حيوي', 'icon': Icons.medication},
-    {'id': 'm4', 'name': 'إيبوبروفين 400mg', 'type': 'دواء', 'subtitle': 'مضاد التهاب', 'icon': Icons.medication},
-    // مستشفيات
-    {'id': 'h1', 'name': 'مستشفى 22 مايو', 'type': 'مستشفى', 'subtitle': 'صنعاء', 'icon': Icons.local_hospital},
-    {'id': 'h2', 'name': 'مستشفى آزال', 'type': 'مستشفى', 'subtitle': 'صنعاء', 'icon': Icons.local_hospital},
-    {'id': 'h3', 'name': 'مستشفى السبعين', 'type': 'مستشفى', 'subtitle': 'صنعاء - أطفال وولادة', 'icon': Icons.local_hospital},
-    // مختبرات
-    {'id': 'l1', 'name': 'مختبرات الرازي', 'type': 'مختبر', 'subtitle': 'صنعاء - شارع الزبيري', 'icon': Icons.science},
-    {'id': 'l2', 'name': 'مختبرات العولقي', 'type': 'مختبر', 'subtitle': 'صنعاء - شارع الستين', 'icon': Icons.science},
-    // خدمات
-    {'id': 's1', 'name': 'استشارة طبية', 'type': 'خدمة', 'subtitle': 'استشارة عبر الفيديو', 'icon': Icons.chat},
-    {'id': 's2', 'name': 'حجز موعد', 'type': 'خدمة', 'subtitle': 'حجز موعد مع طبيب', 'icon': Icons.calendar_today},
-  ];
-
-  @override
-  List<Widget>? buildActions(BuildContext context) {
-    return [
-      if (query.isNotEmpty)
-        IconButton(
-          icon: const Icon(Icons.clear),
-          onPressed: () {
-            query = '';
-          },
-        ),
-    ];
-  }
-
-  @override
-  Widget? buildLeading(BuildContext context) {
-    return IconButton(
-      icon: const Icon(Icons.arrow_back),
-      onPressed: () {
-        close(context, null);
-      },
-    );
-  }
-
-  @override
-  Widget buildResults(BuildContext context) => _buildSearchResults();
-
-  @override
-  Widget buildSuggestions(BuildContext context) {
-    if (query.isEmpty) return _buildRecentSearches();
-    return _buildSearchResults();
-  }
-
-  Widget _buildRecentSearches() {
-    final recentSearches = [
-      'طبيب باطنية',
-      'باراسيتامول',
-      'مختبر تحاليل',
-      'صيدلية 24 ساعة',
-      'استشارة قلبية',
-      'تحليل دم شامل',
-      'مستشفى 22 مايو',
-      'د. أحمد المولد',
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Text(
-            'عمليات البحث الأخيرة',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[700],
-            ),
-          ),
-        ),
-        Expanded(
-          child: ListView.builder(
-            itemCount: recentSearches.length,
-            itemBuilder: (context, index) => ListTile(
-              leading: const Icon(Icons.history, color: Colors.grey),
-              title: Text(recentSearches[index]),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 14),
-              onTap: () {
-                query = recentSearches[index];
-                showResults(context);
-              },
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSearchResults() {
-    // فلترة النتائج حسب البحث
-    final results = _allData.where((item) {
-      final searchText = query.toLowerCase();
-      return item['name'].toLowerCase().contains(searchText) ||
-          item['subtitle'].toLowerCase().contains(searchText) ||
-          item['type'].contains(searchText) ||
-          (item['specialty'] ?? '').toLowerCase().contains(searchText);
-    }).toList();
-
-    if (results.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.search_off, size: 80, color: Colors.grey[400]),
-            const SizedBox(height: 16),
-            Text(
-              'لا توجد نتائج',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[600],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'لم نعثر على أي نتائج لـ "$query"',
-              style: TextStyle(color: Colors.grey[500]),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {
-                // يمكن إضافة طلب جديد
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
               ),
               child: const Text('طلب مساعدة'),
@@ -2199,11 +2048,11 @@ class AppSearchDelegate extends SearchDelegate {
 // ============================================================
 // 🔍 AppSearchDelegate - البحث المتقدم والشامل
 // ============================================================
-class AppSearchDelegate extends SearchDelegate {
-  final BuildContext? searchContext;
-  
-  AppSearchDelegate({this.searchContext});
 
+// ============================================================
+// 🔍 AppSearchDelegate - البحث المتقدم والشامل
+// ============================================================
+class AppSearchDelegate extends SearchDelegate {
   @override
   String get searchFieldLabel => 'ابحث عن طبيب، دواء، خدمة، مستشفى، مختبر...';
 
@@ -2290,8 +2139,8 @@ class AppSearchDelegate extends SearchDelegate {
   }
 
   Widget _buildSearchResults(BuildContext context) {
-    // محاكاة نتائج البحث (سيتم استبدالها بالبحث الحقيقي من Firebase)
-    final allData = [
+    // بيانات البحث (محاكاة مؤقتة)
+    final List<Map<String, dynamic>> allData = [
       {'id': 'd1', 'name': 'د. أحمد المولد', 'type': 'طبيب', 'subtitle': 'باطنية', 'icon': Icons.medical_services, 'color': Colors.teal},
       {'id': 'd2', 'name': 'د. خالد النخلاني', 'type': 'طبيب', 'subtitle': 'قلبية', 'icon': Icons.medical_services, 'color': Colors.teal},
       {'id': 'd3', 'name': 'د. أسماء الهندي', 'type': 'طبيب', 'subtitle': 'أطفال', 'icon': Icons.medical_services, 'color': Colors.teal},
@@ -2301,10 +2150,12 @@ class AppSearchDelegate extends SearchDelegate {
       {'id': 'l1', 'name': 'مختبرات الزارزي', 'type': 'مختبر', 'subtitle': 'صنعاء - الزبيري', 'icon': Icons.science, 'color': Colors.purple},
     ];
 
+    final searchText = query.toLowerCase();
     final results = allData.where((item) {
-      final searchText = query.toLowerCase();
-      return item['name'].toLowerCase().contains(searchText) ||
-          item['subtitle'].toLowerCase().contains(searchText);
+      final name = item['name'] as String? ?? '';
+      final subtitle = item['subtitle'] as String? ?? '';
+      return name.toLowerCase().contains(searchText) ||
+          subtitle.toLowerCase().contains(searchText);
     }).toList();
 
     if (results.isEmpty) {
@@ -2337,17 +2188,22 @@ class AppSearchDelegate extends SearchDelegate {
       itemBuilder: (context, index) {
         final item = results[index];
         final color = item['color'] as Color? ?? AppColors.primary;
+        final icon = item['icon'] as IconData? ?? Icons.search;
+        final name = item['name'] as String? ?? '';
+        final subtitle = item['subtitle'] as String? ?? '';
+        final type = item['type'] as String? ?? '';
+
         return ListTile(
           leading: CircleAvatar(
             backgroundColor: color.withOpacity(0.1),
-            child: Icon(item['icon'], color: color, size: 24),
+            child: Icon(icon, color: color, size: 24),
           ),
           title: Text(
-            item['name'],
+            name,
             style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
           ),
           subtitle: Text(
-            item['subtitle'] ?? '',
+            subtitle,
             style: TextStyle(color: Colors.grey[600], fontSize: 12),
           ),
           trailing: Container(
@@ -2357,14 +2213,14 @@ class AppSearchDelegate extends SearchDelegate {
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
-              item['type'] ?? '',
+              type,
               style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w500),
             ),
           ),
           onTap: () {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('تم اختيار: ${item['name']}'),
+                content: Text('تم اختيار: $name'),
                 backgroundColor: AppColors.primary,
               ),
             );
