@@ -50,3 +50,5 @@ flutter build apk --release
 ## الترخيص
 
 MIT License
+
+📱 آخر تحديث: Sun Jul 19 23:36:13 +03 2026
