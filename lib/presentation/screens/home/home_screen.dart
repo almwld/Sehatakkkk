@@ -382,12 +382,12 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin, 
 
   // ===== صيدليات مميزة (6 صيدليات) =====
   final List<Map<String, dynamic>> _featuredPharmacies = [
-    {'id': '1', 'name': 'صيدلية ابن حيان', 'location': 'صنعاء - شارع حدة', 'image': ImageService.pharmacy1, 'rating': 4.9, 'phone': '01-234580', 'open': true},
-    {'id': '2', 'name': 'صيدلية عالم الصيدلة', 'location': 'صنعاء - شارع الستين', 'image': ImageService.pharmacy2, 'rating': 4.8, 'phone': '01-234581', 'open': true},
-    {'id': '3', 'name': 'صيدلية النهضة', 'location': 'صنعاء - باب اليمن', 'image': ImageService.pharmacy3, 'rating': 4.7, 'phone': '01-234582', 'open': true},
-    {'id': '4', 'name': 'صيدليات اليمن الحديثة', 'location': 'صنعاء - شارع الزبيري', 'image': ImageService.pharmacy1, 'rating': 4.6, 'phone': '01-234583', 'open': true},
-    {'id': '5', 'name': 'صيدلية الشفاء', 'location': 'صنعاء - حدة', 'image': ImageService.pharmacy2, 'rating': 4.5, 'phone': '01-234584', 'open': false},
-    {'id': '6', 'name': 'صيدلية الأمانة', 'location': 'صنعاء - التحرير', 'image': ImageService.pharmacy3, 'rating': 4.4, 'phone': '01-234585', 'open': true},
+    {'id': '1', 'name': 'صيدلية ابن حيان', 'location': 'صنعاء - شارع حدة', 'image': ImageService.pharmacyIbnHayyan, 'rating': 4.9, 'phone': '01-234580', 'open': true},
+    {'id': '2', 'name': 'صيدلية عالم الصيدلة', 'location': 'صنعاء - شارع الستين', 'image': ImageService.pharmacyAlamAlSaidala, 'rating': 4.8, 'phone': '01-234581', 'open': true},
+    {'id': '3', 'name': 'صيدلية النهضة', 'location': 'صنعاء - باب اليمن', 'image': ImageService.pharmacyAlShifa, 'rating': 4.7, 'phone': '01-234582', 'open': true},
+    {'id': '4', 'name': 'صيدليات اليمن الحديثة', 'location': 'صنعاء - شارع الزبيري', 'image': ImageService.pharmacyIbnHayyan, 'rating': 4.6, 'phone': '01-234583', 'open': true},
+    {'id': '5', 'name': 'صيدلية الشفاء', 'location': 'صنعاء - حدة', 'image': ImageService.pharmacyAlamAlSaidala, 'rating': 4.5, 'phone': '01-234584', 'open': false},
+    {'id': '6', 'name': 'صيدلية الأمانة', 'location': 'صنعاء - التحرير', 'image': ImageService.pharmacyAlShifa, 'rating': 4.4, 'phone': '01-234585', 'open': true},
   ];
 
   // ============================================================
