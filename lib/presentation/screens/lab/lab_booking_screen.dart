@@ -1,4 +1,5 @@
 import package:sehatak/core/models/lab/sample_collection_method.dart;
+import package:sehatak/core/models/lab/sample_collection_method.dart;
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
