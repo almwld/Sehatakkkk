@@ -1,3 +1,6 @@
+import package:sehatak/core/models/lab/lab_choice.dart;
+import package:sehatak/core/models/consultation/consultation_status.dart;
+import package:sehatak/core/models/consultation/consultation_model.dart;
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -247,7 +250,7 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
         const SizedBox(height: 8),
         // ✅ خيار 1: حجز في مختبر نموذجي
         _buildLabOption(
-          icon: Icons.booking,
+          icon: Icons.calendar_today,
           title: 'حجز في مختبر نموذجي',
           subtitle: 'اختر من أفضل المختبرات المعتمدة',
           color: Colors.blue,

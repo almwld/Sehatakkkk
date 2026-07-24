@@ -1,3 +1,4 @@
+import package:sehatak/core/constants/app_colors.dart;
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -203,7 +204,7 @@ class _CartScreenState extends State<CartScreen> {
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
-                        color: primaryColor,
+                        color: AppColors.primary,
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -256,7 +257,7 @@ class _CartScreenState extends State<CartScreen> {
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
-                  color: primaryColor,
+                  color: AppColors.primary,
                 ),
               ),
             ],

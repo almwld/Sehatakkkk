@@ -1,4 +1,6 @@
 enum LabChoice {
-  atLab,
-  atHome,
+  home,
+  visit,
+  book,
+  search,
 }
