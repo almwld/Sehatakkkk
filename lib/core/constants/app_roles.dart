@@ -1,40 +1,44 @@
+import 'package:sehatak/core/models/user_model.dart';
+
 class AppRoles {
-  static const List<String> all = [
-    'patient',
-    'doctor',
-    'pharmacist',
-    'lab',
-    'hospital',
-    'nurse',
-    'midwife',
-    'physiotherapist',
-    'paramedic',
-    'delivery',
-    'service',
-    'veterinarian',
-    'admin',
+  static const List<UserRole> all = [
+    UserRole.patient,
+    UserRole.doctor,
+    UserRole.pharmacist,
+    UserRole.lab,
+    UserRole.hospital,
+    UserRole.nurse,
+    UserRole.midwife,
+    UserRole.physiotherapist,
+    UserRole.paramedic,
+    UserRole.delivery,
+    UserRole.service,
+    UserRole.veterinarian,
+    UserRole.admin,
   ];
 
-  static bool needsVerification(String role) {
-    return role == 'doctor' || role == 'pharmacist' || role == 'lab' || role == 'hospital';
+  static bool needsVerification(UserRole role) {
+    return role == UserRole.doctor || 
+           role == UserRole.pharmacist || 
+           role == UserRole.lab || 
+           role == UserRole.hospital;
   }
 
-  static String getRoleName(String role) {
+  static String getRoleName(UserRole role) {
     switch (role) {
-      case 'patient': return 'مريض';
-      case 'doctor': return 'طبيب';
-      case 'pharmacist': return 'صيدلي';
-      case 'lab': return 'مختبر';
-      case 'hospital': return 'مستشفى';
-      case 'nurse': return 'ممرض';
-      case 'midwife': return 'قابلة';
-      case 'physiotherapist': return 'معالج فيزيائي';
-      case 'paramedic': return 'مسعف';
-      case 'delivery': return 'موصل طلبات';
-      case 'service': return 'خدمي';
-      case 'veterinarian': return 'بيطري';
-      case 'admin': return 'مشرف';
-      default: return 'مستخدم';
+      case UserRole.patient: return 'مريض';
+      case UserRole.doctor: return 'طبيب';
+      case UserRole.pharmacist: return 'صيدلي';
+      case UserRole.lab: return 'مختبر';
+      case UserRole.hospital: return 'مستشفى';
+      case UserRole.nurse: return 'ممرض';
+      case UserRole.midwife: return 'قابلة';
+      case UserRole.physiotherapist: return 'معالج فيزيائي';
+      case UserRole.paramedic: return 'مسعف';
+      case UserRole.delivery: return 'موصل طلبات';
+      case UserRole.service: return 'خدمي';
+      case UserRole.veterinarian: return 'بيطري';
+      case UserRole.admin: return 'مشرف';
     }
   }
 }
