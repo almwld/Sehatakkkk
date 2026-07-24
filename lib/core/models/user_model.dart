@@ -1,181 +1,125 @@
+import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum UserRole {
-  user,        // مستخدم عادي
-  doctor,      // طبيب
-  pharmacist,  // صيدلي
-  lab,         // مختبر
-  veterinarian, // بيطري
-  admin,       // مشرف
-  superAdmin,  // مدير المنصة
+  patient,
+  doctor,
+  pharmacist,
+  lab,
+  hospital,
+  nurse,
+  midwife,
+  physiotherapist,
+  paramedic,
+  delivery,
+  service,
+  veterinarian,
+  admin,
 }
 
-enum VerificationStatus {
-  pending,     // قيد المراجعة
-  approved,    // تم الموافقة
-  rejected,    // مرفوض
-  notSubmitted, // لم يتم التقديم
+enum UserStatus {
+  pending,
+  active,
+  blocked,
+  rejected,
 }
 
 class UserModel {
-  final String uid;
+  final String id;
   final String name;
   final String email;
   final String? phone;
   final String? photoUrl;
   final UserRole role;
-  final VerificationStatus verificationStatus;
-  final bool isActive;
-  final bool isAvailable;
-  final double rating;
-  final int reviewCount;
+  final UserStatus status;
   final DateTime createdAt;
   final DateTime? updatedAt;
-  final DateTime? verifiedAt;
-  final String? licenseNumber;
-  final String? specialty;
-  final String? experience;
-  final String? bio;
-  final List<String>? documents;
-  final Map<String, dynamic>? additionalData;
+  final Map<String, dynamic>? metadata;
 
   UserModel({
-    required this.uid,
+    required this.id,
     required this.name,
     required this.email,
     this.phone,
     this.photoUrl,
-    this.role = UserRole.user,
-    this.verificationStatus = VerificationStatus.notSubmitted,
-    this.isActive = true,
-    this.isAvailable = true,
-    this.rating = 0.0,
-    this.reviewCount = 0,
+    required this.role,
+    this.status = UserStatus.pending,
     required this.createdAt,
     this.updatedAt,
-    this.verifiedAt,
-    this.licenseNumber,
-    this.specialty,
-    this.experience,
-    this.bio,
-    this.documents,
-    this.additionalData,
+    this.metadata,
   });
 
-  // ✅ هل المستخدم مقدم خدمة؟
-  bool get isProvider {
-    return role == UserRole.doctor ||
-        role == UserRole.pharmacist ||
-        role == UserRole.lab ||
-        role == UserRole.veterinarian;
-  }
-
-  // ✅ هل المستخدم مشرف؟
-  bool get isAdmin {
-    return role == UserRole.admin || role == UserRole.superAdmin;
-  }
-
-  // ✅ هل الحساب موثق؟
-  bool get isVerified {
-    return verificationStatus == VerificationStatus.approved;
-  }
-
-  // ✅ هل الحساب قيد المراجعة؟
-  bool get isPendingVerification {
-    return verificationStatus == VerificationStatus.pending;
-  }
-
-  // ✅ نص الحالة
-  String get verificationStatusText {
-    switch (verificationStatus) {
-      case VerificationStatus.pending:
-        return '⏳ قيد المراجعة';
-      case VerificationStatus.approved:
-        return '✅ موثق';
-      case VerificationStatus.rejected:
-        return '❌ مرفوض';
-      case VerificationStatus.notSubmitted:
-        return '📤 لم يتم التقديم';
+  String get roleText {
+    switch (role) {
+      case UserRole.patient: return 'مريض';
+      case UserRole.doctor: return 'طبيب';
+      case UserRole.pharmacist: return 'صيدلي';
+      case UserRole.lab: return 'مختبر';
+      case UserRole.hospital: return 'مستشفى';
+      case UserRole.nurse: return 'ممرض';
+      case UserRole.midwife: return 'قابلة';
+      case UserRole.physiotherapist: return 'معالج فيزيائي';
+      case UserRole.paramedic: return 'مسعف';
+      case UserRole.delivery: return 'موصل طلبات';
+      case UserRole.service: return 'خدمي';
+      case UserRole.veterinarian: return 'بيطري';
+      case UserRole.admin: return 'مشرف';
     }
   }
 
-  // ✅ لون الحالة
-  Color get verificationStatusColor {
-    switch (verificationStatus) {
-      case VerificationStatus.pending:
-        return Colors.orange;
-      case VerificationStatus.approved:
-        return Colors.green;
-      case VerificationStatus.rejected:
-        return Colors.red;
-      case VerificationStatus.notSubmitted:
-        return Colors.grey;
+  String get statusText {
+    switch (status) {
+      case UserStatus.pending: return 'قيد المراجعة';
+      case UserStatus.active: return 'نشط';
+      case UserStatus.blocked: return 'محظور';
+      case UserStatus.rejected: return 'مرفوض';
     }
   }
 
-  // ✅ أيقونة الحالة
-  IconData get verificationStatusIcon {
-    switch (verificationStatus) {
-      case VerificationStatus.pending:
-        return Icons.hourglass_empty;
-      case VerificationStatus.approved:
-        return Icons.verified;
-      case VerificationStatus.rejected:
-        return Icons.cancel;
-      case VerificationStatus.notSubmitted:
-        return Icons.upload_file;
+  Color get statusColor {
+    switch (status) {
+      case UserStatus.pending: return Colors.orange;
+      case UserStatus.active: return Colors.green;
+      case UserStatus.blocked: return Colors.red;
+      case UserStatus.rejected: return Colors.grey;
     }
   }
 
-  // ✅ تحويل إلى Firestore
+  IconData get statusIcon {
+    switch (status) {
+      case UserStatus.pending: return Icons.hourglass_empty;
+      case UserStatus.active: return Icons.verified;
+      case UserStatus.blocked: return Icons.cancel;
+      case UserStatus.rejected: return Icons.upload_file;
+    }
+  }
+
   Map<String, dynamic> toFirestore() {
     return {
-      'uid': uid,
       'name': name,
       'email': email,
       'phone': phone,
       'photoUrl': photoUrl,
       'role': role.toString().split('.').last,
-      'verificationStatus': verificationStatus.toString().split('.').last,
-      'isActive': isActive,
-      'isAvailable': isAvailable,
-      'rating': rating,
-      'reviewCount': reviewCount,
+      'status': status.toString().split('.').last,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
-      'verifiedAt': verifiedAt?.toIso8601String(),
-      'licenseNumber': licenseNumber,
-      'specialty': specialty,
-      'experience': experience,
-      'bio': bio,
-      'documents': documents,
-      'additionalData': additionalData,
+      'metadata': metadata,
     };
   }
 
-  // ✅ من Firestore إلى Model
-  factory UserModel.fromFirestore(Map<String, dynamic> data, String uid) {
+  factory UserModel.fromFirestore(Map<String, dynamic> data, String id) {
     return UserModel(
-      uid: uid,
+      id: id,
       name: data['name'] ?? '',
       email: data['email'] ?? '',
       phone: data['phone'],
       photoUrl: data['photoUrl'],
-      role: _parseRole(data['role'] ?? 'user'),
-      verificationStatus: _parseVerificationStatus(data['verificationStatus'] ?? 'notSubmitted'),
-      isActive: data['isActive'] ?? true,
-      isAvailable: data['isAvailable'] ?? true,
-      rating: data['rating']?.toDouble() ?? 0.0,
-      reviewCount: data['reviewCount'] ?? 0,
+      role: _parseRole(data['role'] ?? 'patient'),
+      status: _parseStatus(data['status'] ?? 'pending'),
       createdAt: DateTime.parse(data['createdAt'] ?? DateTime.now().toIso8601String()),
       updatedAt: data['updatedAt'] != null ? DateTime.parse(data['updatedAt']) : null,
-      verifiedAt: data['verifiedAt'] != null ? DateTime.parse(data['verifiedAt']) : null,
-      licenseNumber: data['licenseNumber'],
-      specialty: data['specialty'],
-      experience: data['experience'],
-      bio: data['bio'],
-      documents: List<String>.from(data['documents'] ?? []),
-      additionalData: data['additionalData'],
+      metadata: data['metadata'],
     );
   }
 
@@ -184,62 +128,25 @@ class UserModel {
       case 'doctor': return UserRole.doctor;
       case 'pharmacist': return UserRole.pharmacist;
       case 'lab': return UserRole.lab;
+      case 'hospital': return UserRole.hospital;
+      case 'nurse': return UserRole.nurse;
+      case 'midwife': return UserRole.midwife;
+      case 'physiotherapist': return UserRole.physiotherapist;
+      case 'paramedic': return UserRole.paramedic;
+      case 'delivery': return UserRole.delivery;
+      case 'service': return UserRole.service;
       case 'veterinarian': return UserRole.veterinarian;
       case 'admin': return UserRole.admin;
-      case 'superAdmin': return UserRole.superAdmin;
-      default: return UserRole.user;
+      default: return UserRole.patient;
     }
   }
 
-  static VerificationStatus _parseVerificationStatus(String value) {
+  static UserStatus _parseStatus(String value) {
     switch (value) {
-      case 'pending': return VerificationStatus.pending;
-      case 'approved': return VerificationStatus.approved;
-      case 'rejected': return VerificationStatus.rejected;
-      default: return VerificationStatus.notSubmitted;
+      case 'active': return UserStatus.active;
+      case 'blocked': return UserStatus.blocked;
+      case 'rejected': return UserStatus.rejected;
+      default: return UserStatus.pending;
     }
-  }
-
-  UserModel copyWith({
-    String? name,
-    String? phone,
-    String? photoUrl,
-    UserRole? role,
-    VerificationStatus? verificationStatus,
-    bool? isActive,
-    bool? isAvailable,
-    double? rating,
-    int? reviewCount,
-    DateTime? updatedAt,
-    DateTime? verifiedAt,
-    String? licenseNumber,
-    String? specialty,
-    String? experience,
-    String? bio,
-    List<String>? documents,
-    Map<String, dynamic>? additionalData,
-  }) {
-    return UserModel(
-      uid: uid,
-      name: name ?? this.name,
-      email: email,
-      phone: phone ?? this.phone,
-      photoUrl: photoUrl ?? this.photoUrl,
-      role: role ?? this.role,
-      verificationStatus: verificationStatus ?? this.verificationStatus,
-      isActive: isActive ?? this.isActive,
-      isAvailable: isAvailable ?? this.isAvailable,
-      rating: rating ?? this.rating,
-      reviewCount: reviewCount ?? this.reviewCount,
-      createdAt: createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
-      verifiedAt: verifiedAt ?? this.verifiedAt,
-      licenseNumber: licenseNumber ?? this.licenseNumber,
-      specialty: specialty ?? this.specialty,
-      experience: experience ?? this.experience,
-      bio: bio ?? this.bio,
-      documents: documents ?? this.documents,
-      additionalData: additionalData ?? this.additionalData,
-    );
   }
 }

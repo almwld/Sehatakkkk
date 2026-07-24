@@ -1,3 +1,4 @@
+import package:sehatak/core/models/lab/sample_collection_method.dart;
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -20,7 +21,7 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
   final TextEditingController _notesController = TextEditingController();
   
   bool _isLoading = false;
-  SampleCollectionMethod _collectionMethod = SampleCollectionMethod.visit;
+  SampleCollectionMethod _collectionMethod = SampleCollectionMethod.atLab;
   List<Map<String, dynamic>> _selectedTests = [];
   String? _selectedLabId;
   String _selectedLabName = '';
@@ -114,7 +115,7 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
       return;
     }
 
-    if (_collectionMethod == SampleCollectionMethod.home && 
+    if (_collectionMethod == SampleCollectionMethod.atHome && 
         _addressController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('الرجاء إدخال عنوان المنزل')),
@@ -130,7 +131,7 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
         patientId: user.uid,
         patientName: user.displayName ?? 'مستخدم',
         patientPhone: _phoneController.text.trim(),
-        patientAddress: _collectionMethod == SampleCollectionMethod.home 
+        patientAddress: _collectionMethod == SampleCollectionMethod.atHome 
             ? _addressController.text.trim() 
             : null,
         labId: _selectedLabId!,
@@ -415,8 +416,8 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
                         child: _buildCollectionOption(
                           label: 'زيارة المختبر',
                           icon: Icons.directions_walk,
-                          method: SampleCollectionMethod.visit,
-                          isSelected: _collectionMethod == SampleCollectionMethod.visit,
+                          method: SampleCollectionMethod.atLab,
+                          isSelected: _collectionMethod == SampleCollectionMethod.atLab,
                           color: Colors.blue,
                         ),
                       ),
@@ -425,8 +426,8 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
                         child: _buildCollectionOption(
                           label: 'أخذ عينة للمنزل',
                           icon: Icons.home_work,
-                          method: SampleCollectionMethod.home,
-                          isSelected: _collectionMethod == SampleCollectionMethod.home,
+                          method: SampleCollectionMethod.atHome,
+                          isSelected: _collectionMethod == SampleCollectionMethod.atHome,
                           color: Colors.orange,
                         ),
                       ),
@@ -435,14 +436,14 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
                         child: _buildCollectionOption(
                           label: 'في العيادة',
                           icon: Icons.local_hospital,
-                          method: SampleCollectionMethod.clinic,
-                          isSelected: _collectionMethod == SampleCollectionMethod.clinic,
+                          method: SampleCollectionMethod.atLab,
+                          isSelected: _collectionMethod == SampleCollectionMethod.atLab,
                           color: Colors.purple,
                         ),
                       ),
                     ],
                   ),
-                  if (_collectionMethod == SampleCollectionMethod.home) ...[
+                  if (_collectionMethod == SampleCollectionMethod.atHome) ...[
                     const SizedBox(height: 8),
                     TextField(
                       controller: _addressController,
