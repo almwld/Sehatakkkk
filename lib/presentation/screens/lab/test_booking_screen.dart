@@ -90,7 +90,7 @@ class _TestBookingScreenState extends State<TestBookingScreen> {
                   label: Text(time),
                   onSelected: (selected) => setState(() => _selectedTime = selected ? time : null),
                   selectedColor: AppColors.info,
-                  labelStyle: TextStyle(color: isSelected ? AppColors.white : AppColors.darkGrey, fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal),
+                  labelStyle: TextStyle(color: isSelected ? AppColors.white : Colors.grey.shade700, fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal),
                 );
               }).toList(),
             ),
@@ -139,7 +139,7 @@ class _TestBookingScreenState extends State<TestBookingScreen> {
                 ),
               );
             } : null,
-            style: ElevatedButton.styleFrom(backgroundColor: _selectedTime != null ? AppColors.info : AppColors.grey),
+            style: ElevatedButton.styleFrom(backgroundColor: _selectedTime != null ? AppColors.info : Colors.grey),
             child: Text('تأكيد الحجز - 3500 ${AppStrings.currencyYER}'),
           ),
         ),

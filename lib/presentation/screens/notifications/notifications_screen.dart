@@ -50,9 +50,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.notifications_off, size: 60, color: AppColors.grey),
+                  Icon(Icons.notifications_off, size: 60, color: Colors.grey),
                   SizedBox(height: 16),
-                  Text('لا توجد إشعارات', style: TextStyle(color: AppColors.grey)),
+                  Text('لا توجد إشعارات', style: TextStyle(color: Colors.grey)),
                 ],
               ),
             );
@@ -103,7 +103,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           const SizedBox(height: 2),
                           Text(
                             data['body'] ?? '',
-                            style: const TextStyle(fontSize: 12, color: AppColors.grey),
+                            style: TextStyle(fontSize: 12, color: Colors.grey),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),

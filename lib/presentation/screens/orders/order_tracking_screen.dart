@@ -120,7 +120,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                       children: [
                         Text(
                           'تتبع الطلب',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.white,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -275,7 +275,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                                 'الوقت المتوقع للتوصيل',
                                 style: TextStyle(
                                   fontSize: 10,
-                                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                                  color: isDark ? Colors.grey : Colors.grey,
                                 ),
                               ),
                               Text(
@@ -360,7 +360,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                                   ),
                                   child: Text(
                                     _driver['status'],
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       color: Colors.green,
                                       fontSize: 8,
                                       fontWeight: FontWeight.w600,
@@ -386,17 +386,17 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                                   '(${_driver['reviews']} تقييم)',
                                   style: TextStyle(
                                     fontSize: 10,
-                                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                                    color: isDark ? Colors.grey : Colors.grey,
                                   ),
                                 ),
                                 const SizedBox(width: 8),
-                                Icon(Icons.directions_car, size: 12, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                                Icon(Icons.directions_car, size: 12, color: isDark ? Colors.grey : Colors.grey),
                                 const SizedBox(width: 2),
                                 Text(
                                   _driver['vehicle'],
                                   style: TextStyle(
                                     fontSize: 9,
-                                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                                    color: isDark ? Colors.grey : Colors.grey,
                                   ),
                                 ),
                               ],
@@ -465,7 +465,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                                         : FontWeight.normal,
                                     color: isCompleted || isActive
                                         ? (isDark ? Colors.white : Colors.black87)
-                                        : (isDark ? Colors.grey[500] : Colors.grey[400]),
+                                        : (isDark ? Colors.grey : Colors.grey),
                                   ),
                                   textAlign: TextAlign.center,
                                   maxLines: 2,

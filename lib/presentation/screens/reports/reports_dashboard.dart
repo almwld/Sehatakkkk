@@ -99,13 +99,13 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
           Icon(
             Icons.error_outline,
             size: 64,
-            color: isDark ? Colors.grey[600] : Colors.grey[400],
+            color: isDark ? Colors.grey : Colors.grey,
           ),
           const SizedBox(height: 16),
           Text(
             'حدث خطأ في تحميل التقارير',
             style: TextStyle(
-              color: isDark ? Colors.grey[400] : Colors.grey[600],
+              color: isDark ? Colors.grey : Colors.grey,
             ),
           ),
           const SizedBox(height: 16),
@@ -200,7 +200,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
                 card['label'] as String,
                 style: TextStyle(
                   fontSize: 11,
-                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  color: isDark ? Colors.grey : Colors.grey,
                 ),
               ),
             ],
@@ -288,7 +288,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
                         if (index < _chartData.length) {
                           return Text(
                             _chartData[index].label,
-                            style: const TextStyle(fontSize: 10),
+                            style: TextStyle(fontSize: 10),
                           );
                         }
                         return const Text('');
@@ -325,7 +325,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
     return Container(
       height: 40,
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2540) : Colors.grey[100],
+        color: isDark ? const Color(0xFF1A2540) : Colors.grey,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -347,7 +347,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
                     style: TextStyle(
                       color: _selectedTab == index
                           ? Colors.white
-                          : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                          : (isDark ? Colors.grey : Colors.grey),
                       fontWeight: _selectedTab == index
                           ? FontWeight.bold
                           : FontWeight.normal,
@@ -379,7 +379,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
           child: Text(
             'لا توجد تقارير طبية',
             style: TextStyle(
-              color: isDark ? Colors.grey[400] : Colors.grey[600],
+              color: isDark ? Colors.grey : Colors.grey,
             ),
           ),
         ),
@@ -405,7 +405,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
         color: isDark ? const Color(0xFF1A2540) : Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark ? Colors.grey[700]! : Colors.grey[200]!,
+          color: isDark ? Colors.grey! : Colors.grey!,
         ),
       ),
       child: Column(
@@ -446,7 +446,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
             report.summary,
             style: TextStyle(
               fontSize: 12,
-              color: isDark ? Colors.grey[400] : Colors.grey[600],
+              color: isDark ? Colors.grey : Colors.grey,
             ),
           ),
           const SizedBox(height: 8),
@@ -455,28 +455,28 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
               Icon(
                 Icons.person_rounded,
                 size: 12,
-                color: isDark ? Colors.grey[500] : Colors.grey[400],
+                color: isDark ? Colors.grey : Colors.grey,
               ),
               const SizedBox(width: 4),
               Text(
                 report.doctor,
                 style: TextStyle(
                   fontSize: 11,
-                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  color: isDark ? Colors.grey : Colors.grey,
                 ),
               ),
               const SizedBox(width: 12),
               Icon(
                 Icons.calendar_today_rounded,
                 size: 12,
-                color: isDark ? Colors.grey[500] : Colors.grey[400],
+                color: isDark ? Colors.grey : Colors.grey,
               ),
               const SizedBox(width: 4),
               Text(
                 '${report.date.day}/${report.date.month}/${report.date.year}',
                 style: TextStyle(
                   fontSize: 11,
-                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  color: isDark ? Colors.grey : Colors.grey,
                 ),
               ),
             ],
@@ -497,7 +497,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
           child: Text(
             'لا توجد أدوية',
             style: TextStyle(
-              color: isDark ? Colors.grey[400] : Colors.grey[600],
+              color: isDark ? Colors.grey : Colors.grey,
             ),
           ),
         ),
@@ -525,7 +525,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
         border: Border.all(
           color: medication.status == 'نشط'
               ? Colors.green.withOpacity(0.3)
-              : (isDark ? Colors.grey[700]! : Colors.grey[200]!),
+              : (isDark ? Colors.grey! : Colors.grey!),
           width: medication.status == 'نشط' ? 1.5 : 1,
         ),
       ),
@@ -571,7 +571,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
                 'الجرعة: ${medication.dosage}',
                 style: TextStyle(
                   fontSize: 12,
-                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  color: isDark ? Colors.grey : Colors.grey,
                 ),
               ),
             ],
@@ -585,7 +585,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
                 'المدة: ${medication.duration}',
                 style: TextStyle(
                   fontSize: 12,
-                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  color: isDark ? Colors.grey : Colors.grey,
                 ),
               ),
               const SizedBox(width: 12),
@@ -598,7 +598,7 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
                   ),
                   child: Text(
                     'متبقي ${medication.remainingDays} يوم',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 10,
                       color: Colors.blue,
                       fontWeight: FontWeight.w500,

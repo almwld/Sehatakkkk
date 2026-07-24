@@ -101,7 +101,7 @@ class _MedicalReportsScreenState extends State<MedicalReportsScreen> {
       padding: const EdgeInsets.all(12),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.grey[100],
+          color: Colors.grey,
           borderRadius: BorderRadius.circular(14),
         ),
         child: TextField(
@@ -135,13 +135,13 @@ class _MedicalReportsScreenState extends State<MedicalReportsScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               decoration: BoxDecoration(
-                color: selected ? AppColors.primary : Colors.grey[200],
+                color: selected ? AppColors.primary : Colors.grey,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
                 type,
                 style: TextStyle(
-                  color: selected ? Colors.white : AppColors.darkGrey,
+                  color: selected ? Colors.white : Colors.grey.shade700,
                   fontSize: 12,
                   fontWeight: selected ? FontWeight.bold : FontWeight.normal,
                 ),
@@ -183,26 +183,26 @@ class _MedicalReportsScreenState extends State<MedicalReportsScreen> {
               const Spacer(),
               Text(
                 DateFormat('dd/MM/yyyy').format(date),
-                style: const TextStyle(fontSize: 10, color: AppColors.grey),
+                style: TextStyle(fontSize: 10, color: Colors.grey),
               ),
             ],
           ),
           const SizedBox(height: 6),
           Text(
             data['title'] ?? 'تقرير طبي',
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 4),
           Text(
             data['doctorName'] ?? 'طبيب',
-            style: const TextStyle(fontSize: 12, color: AppColors.grey),
+            style: TextStyle(fontSize: 12, color: Colors.grey),
           ),
           if (data['notes'] != null)
             Padding(
               padding: const EdgeInsets.only(top: 6),
               child: Text(
                 data['notes'],
-                style: const TextStyle(fontSize: 12, color: AppColors.darkGrey),
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -210,11 +210,11 @@ class _MedicalReportsScreenState extends State<MedicalReportsScreen> {
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.attachment, size: 14, color: AppColors.grey),
+              const Icon(Icons.attachment, size: 14, color: Colors.grey),
               const SizedBox(width: 4),
               Text(
                 '${data['attachments'] ?? 0} مرفق',
-                style: const TextStyle(fontSize: 10, color: AppColors.grey),
+                style: TextStyle(fontSize: 10, color: Colors.grey),
               ),
               const Spacer(),
               IconButton(
@@ -256,7 +256,7 @@ class _MedicalReportsScreenState extends State<MedicalReportsScreen> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء', style: TextStyle(color: AppColors.grey))),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء', style: TextStyle(color: Colors.grey))),
           ElevatedButton(
             onPressed: () async {
               final user = _auth.currentUser;

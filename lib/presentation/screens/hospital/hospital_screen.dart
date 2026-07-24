@@ -131,7 +131,7 @@ class _HospitalScreenState extends State<HospitalScreen> {
           ),
         ],
         border: Border.all(
-          color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
+          color: isDark ? Colors.grey! : Colors.grey!,
           width: 1,
         ),
       ),
@@ -151,7 +151,7 @@ class _HospitalScreenState extends State<HospitalScreen> {
                 return Container(
                   width: 100,
                   height: 100,
-                  color: Colors.grey[200],
+                  color: Colors.grey,
                   child: const Icon(
                     Icons.local_hospital,
                     color: Colors.grey,
@@ -185,14 +185,14 @@ class _HospitalScreenState extends State<HospitalScreen> {
                       Icon(
                         Icons.location_on,
                         size: 14,
-                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        color: isDark ? Colors.grey : Colors.grey,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         hospital['location'] as String,
                         style: TextStyle(
                           fontSize: 12,
-                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          color: isDark ? Colors.grey : Colors.grey,
                         ),
                       ),
                     ],
@@ -244,14 +244,14 @@ class _HospitalScreenState extends State<HospitalScreen> {
                       Icon(
                         Icons.phone,
                         size: 12,
-                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        color: isDark ? Colors.grey : Colors.grey,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         hospital['phone'] as String,
                         style: TextStyle(
                           fontSize: 11,
-                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          color: isDark ? Colors.grey : Colors.grey,
                         ),
                       ),
                       const Spacer(),

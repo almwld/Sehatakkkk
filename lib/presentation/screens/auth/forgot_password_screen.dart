@@ -22,7 +22,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: const Text('نسيت كلمة المرور'),
-        backgroundColor: AppColors.primaryColor,
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -56,14 +56,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      color: AppColors.primaryColor.withOpacity(0.1),
+                      color: AppColors.primary.withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
                     child: const Center(
                       child: Icon(
                         Icons.phone_android_rounded,
                         size: 40,
-                        color: AppColors.primaryColor,
+                        color: AppColors.primary,
                       ),
                     ),
                   ),
@@ -81,7 +81,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 Text(
                   'سنرسل لك رمز تحقق لإعادة تعيين كلمة المرور',
                   style: TextStyle(
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    color: isDark ? Colors.grey : Colors.grey,
                     fontSize: 14,
                   ),
                 ),
@@ -92,8 +92,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   style: TextStyle(color: isDark ? Colors.white : Colors.black87),
                   decoration: InputDecoration(
                     hintText: 'أدخل رقم الهاتف',
-                    hintStyle: TextStyle(color: isDark ? Colors.grey[500] : Colors.grey[400]),
-                    prefixIcon: const Icon(Icons.phone_rounded, color: AppColors.primaryColor),
+                    hintStyle: TextStyle(color: isDark ? Colors.grey : Colors.grey),
+                    prefixIcon: const Icon(Icons.phone_rounded, color: AppColors.primary),
                     filled: true,
                     fillColor: isDark ? const Color(0xFF1A2540) : Colors.white,
                     border: OutlineInputBorder(
@@ -102,11 +102,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: isDark ? Colors.grey[700]! : Colors.grey[200]!),
+                      borderSide: BorderSide(color: isDark ? Colors.grey! : Colors.grey!),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.primaryColor, width: 2),
+                      borderSide: const BorderSide(color: AppColors.primary, width: 2),
                     ),
                   ),
                 ),
@@ -117,7 +117,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _sendOtp,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryColor,
+                      backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),

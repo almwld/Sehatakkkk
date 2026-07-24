@@ -118,7 +118,7 @@ class _BookingScreenState extends State<BookingScreen> {
                       width: 28,
                       height: 28,
                       decoration: BoxDecoration(
-                        color: isActive ? const Color(0xFF0D5257) : (isDark ? Colors.grey[700] : Colors.grey[300]),
+                        color: isActive ? const Color(0xFF0D5257) : (isDark ? Colors.grey : Colors.grey),
                         shape: BoxShape.circle,
                       ),
                       child: Center(
@@ -127,7 +127,7 @@ class _BookingScreenState extends State<BookingScreen> {
                             : Text(
                                 '${index + 1}',
                                 style: TextStyle(
-                                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                                  color: isDark ? Colors.grey : Colors.grey,
                                   fontSize: 12,
                                 ),
                               ),
@@ -138,7 +138,7 @@ class _BookingScreenState extends State<BookingScreen> {
                       steps[index],
                       style: TextStyle(
                         fontSize: 9,
-                        color: isActive ? const Color(0xFF0D5257) : (isDark ? Colors.grey[500] : Colors.grey[400]),
+                        color: isActive ? const Color(0xFF0D5257) : (isDark ? Colors.grey : Colors.grey),
                       ),
                     ),
                   ],
@@ -147,7 +147,7 @@ class _BookingScreenState extends State<BookingScreen> {
                   Expanded(
                     child: Container(
                       height: 2,
-                      color: _currentStep > index ? const Color(0xFF0D5257) : (isDark ? Colors.grey[700] : Colors.grey[300]),
+                      color: _currentStep > index ? const Color(0xFF0D5257) : (isDark ? Colors.grey : Colors.grey),
                       margin: const EdgeInsets.symmetric(horizontal: 4),
                     ),
                   ),
@@ -198,7 +198,7 @@ class _BookingScreenState extends State<BookingScreen> {
               : (isDark ? const Color(0xFF1A2540) : Colors.white),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? const Color(0xFF0D5257) : (isDark ? Colors.grey[700]! : Colors.grey[200]!),
+            color: isSelected ? const Color(0xFF0D5257) : (isDark ? Colors.grey! : Colors.grey!),
             width: isSelected ? 2 : 1,
           ),
           boxShadow: isSelected
@@ -215,7 +215,7 @@ class _BookingScreenState extends State<BookingScreen> {
           children: [
             Text(
               specialty.icon,
-              style: const TextStyle(fontSize: 32),
+              style: TextStyle(fontSize: 32),
             ),
             const SizedBox(height: 8),
             Text(
@@ -232,7 +232,7 @@ class _BookingScreenState extends State<BookingScreen> {
               '${specialty.doctorCount} طبيب',
               style: TextStyle(
                 fontSize: 11,
-                color: isDark ? Colors.grey[400] : Colors.grey[600],
+                color: isDark ? Colors.grey : Colors.grey,
               ),
             ),
           ],
@@ -253,13 +253,13 @@ class _BookingScreenState extends State<BookingScreen> {
             Icon(
               Icons.medical_services_rounded,
               size: 64,
-              color: isDark ? Colors.grey[600] : Colors.grey[400],
+              color: isDark ? Colors.grey : Colors.grey,
             ),
             const SizedBox(height: 16),
             Text(
               'لا يوجد أطباء في هذا التخصص',
               style: TextStyle(
-                color: isDark ? Colors.grey[400] : Colors.grey[600],
+                color: isDark ? Colors.grey : Colors.grey,
                 fontSize: 16,
               ),
             ),
@@ -296,7 +296,7 @@ class _BookingScreenState extends State<BookingScreen> {
               : (isDark ? const Color(0xFF1A2540) : Colors.white),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? const Color(0xFF0D5257) : (isDark ? Colors.grey[700]! : Colors.grey[200]!),
+            color: isSelected ? const Color(0xFF0D5257) : (isDark ? Colors.grey! : Colors.grey!),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -307,7 +307,7 @@ class _BookingScreenState extends State<BookingScreen> {
               backgroundColor: const Color(0xFF0D5257).withOpacity(0.1),
               child: Text(
                 doctor.name[0],
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF0D5257),
@@ -332,7 +332,7 @@ class _BookingScreenState extends State<BookingScreen> {
                     doctor.specialty,
                     style: TextStyle(
                       fontSize: 13,
-                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      color: isDark ? Colors.grey : Colors.grey,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -344,7 +344,7 @@ class _BookingScreenState extends State<BookingScreen> {
                         doctor.rating.toString(),
                         style: TextStyle(
                           fontSize: 12,
-                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          color: isDark ? Colors.grey : Colors.grey,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -352,7 +352,7 @@ class _BookingScreenState extends State<BookingScreen> {
                         '${doctor.experience} سنة خبرة',
                         style: TextStyle(
                           fontSize: 12,
-                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          color: isDark ? Colors.grey : Colors.grey,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -379,7 +379,7 @@ class _BookingScreenState extends State<BookingScreen> {
             const Icon(
               Icons.arrow_forward_ios,
               size: 16,
-              color: AppColors.grey,
+              color: Colors.grey,
             ),
           ],
         ),
@@ -459,8 +459,8 @@ class _BookingScreenState extends State<BookingScreen> {
             color: isSelected
                 ? const Color(0xFF0D5257)
                 : (isPast || isBooked
-                    ? (isDark ? Colors.grey[700]! : Colors.grey[300]!)
-                    : (isDark ? Colors.grey[700]! : Colors.grey[200]!)),
+                    ? (isDark ? Colors.grey! : Colors.grey!)
+                    : (isDark ? Colors.grey! : Colors.grey!)),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -489,7 +489,7 @@ class _BookingScreenState extends State<BookingScreen> {
                     slot.date,
                     style: TextStyle(
                       fontSize: 13,
-                      color: isPast ? Colors.grey : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                      color: isPast ? Colors.grey : (isDark ? Colors.grey : Colors.grey),
                     ),
                   ),
                 ],
@@ -560,7 +560,7 @@ class _BookingScreenState extends State<BookingScreen> {
             'يرجى مراجعة التفاصيل قبل التأكيد',
             style: TextStyle(
               fontSize: 14,
-              color: isDark ? Colors.grey[400] : Colors.grey[600],
+              color: isDark ? Colors.grey : Colors.grey,
             ),
           ),
           const SizedBox(height: 16),
@@ -572,7 +572,7 @@ class _BookingScreenState extends State<BookingScreen> {
               color: isDark ? const Color(0xFF1A2540) : Colors.white,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isDark ? Colors.grey[700]! : Colors.grey[200]!,
+                color: isDark ? Colors.grey! : Colors.grey!,
               ),
             ),
             child: Column(
@@ -633,7 +633,7 @@ class _BookingScreenState extends State<BookingScreen> {
                     'سيتم إرسال تأكيد الحجز إلى بريدك الإلكتروني',
                     style: TextStyle(
                       fontSize: 13,
-                      color: isDark ? Colors.grey[300] : Colors.grey[700],
+                      color: isDark ? Colors.grey : Colors.grey,
                     ),
                   ),
                 ),
@@ -656,7 +656,7 @@ class _BookingScreenState extends State<BookingScreen> {
             label,
             style: TextStyle(
               fontSize: 14,
-              color: isDark ? Colors.grey[400] : Colors.grey[600],
+              color: isDark ? Colors.grey : Colors.grey,
             ),
           ),
           const Spacer(),
@@ -677,7 +677,7 @@ class _BookingScreenState extends State<BookingScreen> {
     return Divider(
       height: 1,
       thickness: 1,
-      color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
+      color: isDark ? Colors.grey! : Colors.grey!,
     );
   }
 

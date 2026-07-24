@@ -92,7 +92,7 @@ class _PaymentInvoiceScreenState extends State<PaymentInvoiceScreen> {
                                 Expanded(
                                   child: Text(
                                     item['name'] as String,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontFamily: 'Tajawal',
                                       fontSize: 13,
                                     ),
@@ -100,7 +100,7 @@ class _PaymentInvoiceScreenState extends State<PaymentInvoiceScreen> {
                                 ),
                                 Text(
                                   '${item['qty']} × ${item['price']}',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontFamily: 'Tajawal',
                                     fontSize: 13,
                                   ),
@@ -166,7 +166,7 @@ class _PaymentInvoiceScreenState extends State<PaymentInvoiceScreen> {
                           border: Border.all(
                             color: isSelected
                                 ? AppTheme.primaryColor
-                                : (isDark ? Colors.grey[700]! : AppTheme.cardBorderColor),
+                                : (isDark ? Colors.grey! : AppTheme.cardBorderColor),
                             width: isSelected ? 1.5 : 0.5,
                           ),
                         ),
@@ -174,7 +174,7 @@ class _PaymentInvoiceScreenState extends State<PaymentInvoiceScreen> {
                           children: [
                             Text(
                               gateway['icon']!,
-                              style: const TextStyle(fontSize: 24),
+                              style: TextStyle(fontSize: 24),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -193,7 +193,7 @@ class _PaymentInvoiceScreenState extends State<PaymentInvoiceScreen> {
                                   Text(
                                     gateway['type']!,
                                     style: TextStyle(
-                                      color: isDark ? Colors.grey[400] : Colors.grey[500],
+                                      color: isDark ? Colors.grey : Colors.grey,
                                       fontSize: 11,
                                       fontFamily: 'Tajawal',
                                     ),
@@ -290,7 +290,7 @@ class _PaymentInvoiceScreenState extends State<PaymentInvoiceScreen> {
                               ),
                               child: Text(
                                 '${_total.toStringAsFixed(0)} ر.ي',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,

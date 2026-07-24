@@ -115,7 +115,7 @@ class _DeliveryOptionsScreenState extends State<DeliveryOptionsScreen> {
           // ========== اختيار شركة التوصيل ==========
           const Text('اختر شركة التوصيل', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
-          const Text('شركات توصيل موثوقة في اليمن', style: TextStyle(fontSize: 12, color: AppColors.grey)),
+          const Text('شركات توصيل موثوقة في اليمن', style: TextStyle(fontSize: 12, color: Colors.grey)),
           const SizedBox(height: 12),
           
           ...List.generate(_companies.length, (i) {
@@ -134,7 +134,7 @@ class _DeliveryOptionsScreenState extends State<DeliveryOptionsScreen> {
                 ),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Row(children: [
-                    Container(width: 50, height: 50, decoration: BoxDecoration(color: c['color'].withOpacity(0.1), borderRadius: BorderRadius.circular(12)), child: Center(child: Text(c['emoji'], style: const TextStyle(fontSize: 26)))),
+                    Container(width: 50, height: 50, decoration: BoxDecoration(color: c['color'].withOpacity(0.1), borderRadius: BorderRadius.circular(12)), child: Center(child: Text(c['emoji'], style: TextStyle(fontSize: 26)))),
                     const SizedBox(width: 12),
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Row(children: [
@@ -148,9 +148,9 @@ class _DeliveryOptionsScreenState extends State<DeliveryOptionsScreen> {
                       Row(children: [
                         _starMini(c['rating']),
                         const SizedBox(width: 4),
-                        Text('(${c['reviews']})', style: const TextStyle(fontSize: 10, color: AppColors.grey)),
+                        Text('(${c['reviews']})', style: TextStyle(fontSize: 10, color: Colors.grey)),
                       ]),
-                      Text('التغطية: ${c['coverage']}', style: const TextStyle(fontSize: 10, color: AppColors.grey)),
+                      Text('التغطية: ${c['coverage']}', style: TextStyle(fontSize: 10, color: Colors.grey)),
                     ])),
                     if (sel) Icon(Icons.check_circle, color: c['color'], size: 28),
                   ]),
@@ -185,11 +185,11 @@ class _DeliveryOptionsScreenState extends State<DeliveryOptionsScreen> {
                     border: Border.all(color: sel ? AppColors.primary : AppColors.outlineVariant, width: sel ? 2 : 1),
                   ),
                   child: Column(children: [
-                    Text(s['icon'], style: const TextStyle(fontSize: 28)),
+                    Text(s['icon'], style: TextStyle(fontSize: 28)),
                     const SizedBox(height: 4),
-                    Text(s['title'], style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: sel ? AppColors.primary : AppColors.darkGrey)),
+                    Text(s['title'], style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: sel ? AppColors.primary : Colors.grey.shade700)),
                     const SizedBox(height: 2),
-                    Text(s['desc'], style: const TextStyle(fontSize: 9, color: AppColors.grey), textAlign: TextAlign.center),
+                    Text(s['desc'], style: TextStyle(fontSize: 9, color: Colors.grey), textAlign: TextAlign.center),
                   ]),
                 ),
               ),
@@ -201,7 +201,7 @@ class _DeliveryOptionsScreenState extends State<DeliveryOptionsScreen> {
           // ========== ملخص الطلب ==========
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: AppColors.surfaceContainerLow, borderRadius: BorderRadius.circular(14)),
+            decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(14)),
             child: Column(children: [
               _summaryRow('قيمة الطلب', '${widget.orderAmount} ر.ي'),
               _summaryRow('شركة التوصيل', company['name']),
@@ -209,7 +209,7 @@ class _DeliveryOptionsScreenState extends State<DeliveryOptionsScreen> {
               _summaryRow('رسوم التوصيل', deliveryPrice == 'غير متاح' ? 'غير متاح' : '$deliveryPrice ر.ي'),
               _summaryRow('الوقت المتوقع', deliveryTime),
               if (company['codAvailable'] == true)
-                Container(margin: const EdgeInsets.only(top: 4), padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: AppColors.success.withOpacity(0.06), borderRadius: BorderRadius.circular(6)), child: const Row(children: [Icon(Icons.check, color: AppColors.success, size: 14), SizedBox(width: 4), Text('الدفع عند الاستلام متاح', style: TextStyle(fontSize: 10, color: AppColors.success))])),
+                Container(margin: const EdgeInsets.only(top: 4), padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: AppColors.success.withOpacity(0.06), borderRadius: BorderRadius.circular(6)), child: Row(children: [Icon(Icons.check, color: AppColors.success, size: 14), SizedBox(width: 4), Text('الدفع عند الاستلام متاح', style: TextStyle(fontSize: 10, color: AppColors.success))])),
               const Divider(height: 16),
               _summaryRow('الإجمالي النهائي', deliveryPrice == 'غير متاح' ? '${widget.orderAmount} ر.ي' : '$total ر.ي', bold: true, color: AppColors.primary),
             ]),
@@ -226,7 +226,7 @@ class _DeliveryOptionsScreenState extends State<DeliveryOptionsScreen> {
             child: Row(children: [
               const Icon(Icons.location_on, color: AppColors.primary, size: 28),
               const SizedBox(width: 10),
-              const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('المنزل', style: TextStyle(fontWeight: FontWeight.bold)), Text('صنعاء - شارع الزبيري - أمام مستشفى الثورة', style: TextStyle(fontSize: 11, color: AppColors.grey))])),
+              const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('المنزل', style: TextStyle(fontWeight: FontWeight.bold)), Text('صنعاء - شارع الزبيري - أمام مستشفى الثورة', style: TextStyle(fontSize: 11, color: Colors.grey))])),
               TextButton(onPressed: () {}, child: const Text('تغيير')),
             ]),
           ),
@@ -258,9 +258,9 @@ class _DeliveryOptionsScreenState extends State<DeliveryOptionsScreen> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
               child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Text('🚀', style: const TextStyle(fontSize: 22)),
+                Text('🚀', style: TextStyle(fontSize: 22)),
                 const SizedBox(width: 8),
-                Text('تأكيد الطلب وإتمام الدفع (${deliveryPrice == 'غير متاح' ? widget.orderAmount : total} ر.ي)', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                Text('تأكيد الطلب وإتمام الدفع (${deliveryPrice == 'غير متاح' ? widget.orderAmount : total} ر.ي)', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
               ]),
             ),
           ),
@@ -273,21 +273,21 @@ class _DeliveryOptionsScreenState extends State<DeliveryOptionsScreen> {
   Widget _miniPrice(Map<String, dynamic> c, String label, String key) {
     final price = c['prices'][key];
     return Column(children: [
-      Text(label, style: const TextStyle(fontSize: 9, color: AppColors.grey)),
-      Text(price != null ? '$price ر.ي' : '—', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: price != null ? AppColors.primary : AppColors.grey)),
+      Text(label, style: TextStyle(fontSize: 9, color: Colors.grey)),
+      Text(price != null ? '$price ر.ي' : '—', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: price != null ? AppColors.primary : Colors.grey)),
     ]);
   }
 
   Widget _starMini(double rating) {
-    return Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.star, color: AppColors.amber, size: 12), const SizedBox(width: 2), Text(rating.toString(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11))]);
+    return Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.star, color: AppColors.amber, size: 12), const SizedBox(width: 2), Text(rating.toString(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11))]);
   }
 
   Widget _summaryRow(String label, String value, {bool bold = false, Color? color}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Text(label, style: const TextStyle(fontSize: 13, color: AppColors.grey)),
-        Text(value, style: TextStyle(fontSize: 13, fontWeight: bold ? FontWeight.bold : FontWeight.normal, color: color ?? AppColors.darkGrey)),
+        Text(label, style: TextStyle(fontSize: 13, color: Colors.grey)),
+        Text(value, style: TextStyle(fontSize: 13, fontWeight: bold ? FontWeight.bold : FontWeight.normal, color: color ?? Colors.grey.shade700)),
       ]),
     );
   }

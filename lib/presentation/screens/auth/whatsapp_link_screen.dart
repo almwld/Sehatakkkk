@@ -30,7 +30,7 @@ class _WhatsAppLinkScreenState extends State<WhatsAppLinkScreen> {
         const SizedBox(height: 40), const Icon(Icons.chat, color: Color(0xFF25D366), size: 80),
         const SizedBox(height: 20), const Text('أدخل رقم الواتساب', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
         const SizedBox(height: 20),
-        TextField(controller: _phone, keyboardType: TextInputType.phone, textAlign: TextAlign.right, style: const TextStyle(fontSize: 20), decoration: InputDecoration(hintText: '+967 777 123 456', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)))),
+        TextField(controller: _phone, keyboardType: TextInputType.phone, textAlign: TextAlign.right, style: TextStyle(fontSize: 20), decoration: InputDecoration(hintText: '+967 777 123 456', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)))),
         const SizedBox(height: 30),
         SizedBox(width: double.infinity, height: 54, child: ElevatedButton(onPressed: _loading ? null : _verify, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF25D366), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))), child: _loading ? const CircularProgressIndicator(color: Colors.white) : const Text('تحقق', style: TextStyle(fontSize: 18, color: Colors.white)))),
       ])),

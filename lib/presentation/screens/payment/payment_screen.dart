@@ -1,50 +1,78 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
-class PaymentScreen extends StatelessWidget {
-  const PaymentScreen({super.key});
+class PaymentScreen extends StatefulWidget {
+  final int amount;
+  final String? bookingId;
+  final String? providerId;
+  final String? providerName;
+  final String? packageName;
+  final String? bookingType;
+  final bool isSubscription;
+
+  const PaymentScreen({
+    super.key,
+    required this.amount,
+    this.bookingId,
+    this.providerId,
+    this.providerName,
+    this.packageName,
+    this.bookingType,
+    this.isSubscription = false,
+  });
+
+  @override
+  State<PaymentScreen> createState() => _PaymentScreenState();
+}
+
+class _PaymentScreenState extends State<PaymentScreen> {
+  String _selectedMethod = 'jeeb';
+  bool _isProcessing = false;
+
+  final List<Map<String, dynamic>> _paymentMethods = [
+    {'id': 'jeeb', 'name': 'جيب', 'icon': Icons.account_balance_wallet},
+    {'id': 'jawali', 'name': 'جوالي كاش', 'icon': Icons.phone_android},
+    {'id': 'floosak', 'name': 'فلوسك', 'icon': Icons.money},
+    {'id': 'yemen_wallet', 'name': 'يمن وولت', 'icon': Icons.wallet},
+  ];
 
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, dynamic>> _payments = [
-      {'id': 'jawali', 'name': 'جوالي', 'icon': 'assets/icons/payment/Jawali_icon.png', 'color': 0xFF1A73E8},
-      {'id': 'floosak', 'name': 'فلوسك', 'icon': 'assets/icons/payment/floosak_icon.png', 'color': 0xFFF9A825},
-      {'id': 'jeeb', 'name': 'جيب', 'icon': 'assets/icons/payment/جيب_icon.png', 'color': 0xFF0D9488},
-      {'id': 'kash', 'name': 'كاش', 'icon': 'assets/icons/payment/كاش_icon.png', 'color': 0xFFE53935},
-      {'id': 'easy', 'name': 'إيزي', 'icon': 'assets/icons/payment/ايزي_icon.png', 'color': 0xFF43A047},
-      {'id': 'kuraimi', 'name': 'الكريمي جوال', 'icon': 'assets/icons/payment/الكريمي جوال_icon.png', 'color': 0xFF6D4C41},
-      {'id': 'kash_one', 'name': 'كاش ONE', 'icon': 'assets/icons/payment/كاش ONE_icon.png', 'color': 0xFFF57C00},
-      {'id': 'mobile_money', 'name': 'موبايل موني', 'icon': 'assets/icons/payment/موبايل موني انترنت_icon.png', 'color': 0xFF1565C0},
-      {'id': 'yemen_wallet', 'name': 'محفظة اليمن', 'icon': 'assets/icons/payment/Yemen Wallet_icon.png', 'color': 0xFF2E7D32},
-    ];
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('طرق الدفع')),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: _payments.length,
-        itemBuilder: (context, index) {
-          final payment = _payments[index];
-          return Card(
-            margin: const EdgeInsets.only(bottom: 10),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: ListTile(
-              leading: Image.asset(
-                payment['icon'] as String,
-                width: 40,
-                height: 40,
-                errorBuilder: (_, __, ___) => Icon(Icons.payment, color: Color(payment['color'] as int)),
+      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        title: const Text('الدفع الإلكتروني'),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.payment, size: 64, color: AppColors.primary),
+            const SizedBox(height: 16),
+            Text(
+              'قيد التطوير',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black87,
               ),
-              title: Text(payment['name'] as String, style: const TextStyle(fontWeight: FontWeight.bold)),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('تم اختيار ${payment['name']}'), backgroundColor: Color(payment['color'] as int)),
-                );
-              },
             ),
-          );
-        },
+            const SizedBox(height: 8),
+            Text(
+              'سيتم إضافة نظام الدفع قريباً',
+              style: TextStyle(
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -101,7 +101,7 @@ class _OTPScreenState extends State<OTPScreen> {
           const SizedBox(height: 20),
           const Text('تأكيد رقم الهاتف', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          Text('أدخل الرمز المرسل إلى ${widget.phone}', style: const TextStyle(color: AppColors.grey, fontSize: 14)),
+          Text('أدخل الرمز المرسل إلى ${widget.phone}', style: TextStyle(color: Colors.grey, fontSize: 14)),
           const SizedBox(height: 6),
 
           // زر واتساب
@@ -110,7 +110,7 @@ class _OTPScreenState extends State<OTPScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(color: const Color(0xFF25D366).withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
-              child: const Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.chat, color: Color(0xFF25D366), size: 18), SizedBox(width: 4), Text('الرمز عبر واتساب', style: TextStyle(color: Color(0xFF25D366), fontSize: 12))]),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.chat, color: Color(0xFF25D366), size: 18), SizedBox(width: 4), Text('الرمز عبر واتساب', style: TextStyle(color: Color(0xFF25D366), fontSize: 12))]),
             ),
           ),
           const SizedBox(height: 30),
@@ -124,7 +124,7 @@ class _OTPScreenState extends State<OTPScreen> {
               textAlign: TextAlign.center,
               keyboardType: TextInputType.number,
               maxLength: 1,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               decoration: InputDecoration(counterText: '', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)), filled: true, fillColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3)),
               onChanged: (v) { if (v.isNotEmpty && i < 5) _focusNodes[i + 1].requestFocus(); if (i == 5 && v.isNotEmpty) _verifyOTP(); },
             ),
@@ -133,7 +133,7 @@ class _OTPScreenState extends State<OTPScreen> {
 
           // مؤقت
           _timer > 0
-              ? Text('إعادة الإرسال بعد ${_timer.toString().padLeft(2, '0')} ثانية', style: const TextStyle(color: AppColors.grey))
+              ? Text('إعادة الإرسال بعد ${_timer.toString().padLeft(2, '0')} ثانية', style: TextStyle(color: Colors.grey))
               : TextButton(onPressed: _resendOTP, child: const Text('إعادة إرسال الرمز', style: TextStyle(fontWeight: FontWeight.bold))),
           const SizedBox(height: 20),
 

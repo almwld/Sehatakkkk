@@ -12,7 +12,7 @@ class TransactionHistoryScreen extends StatelessWidget {
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: const Text('سجل المعاملات'),
-        backgroundColor: AppColors.primaryColor,
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -23,13 +23,13 @@ class TransactionHistoryScreen extends StatelessWidget {
             Icon(
               Icons.receipt_long_rounded,
               size: 64,
-              color: isDark ? Colors.grey[600] : Colors.grey[400],
+              color: isDark ? Colors.grey : Colors.grey,
             ),
             const SizedBox(height: 16),
             Text(
               'لا توجد معاملات',
               style: TextStyle(
-                color: isDark ? Colors.grey[400] : Colors.grey[600],
+                color: isDark ? Colors.grey : Colors.grey,
                 fontSize: 16,
               ),
             ),
@@ -37,7 +37,7 @@ class TransactionHistoryScreen extends StatelessWidget {
             Text(
               'ستظهر معاملاتك هنا',
               style: TextStyle(
-                color: isDark ? Colors.grey[500] : Colors.grey[400],
+                color: isDark ? Colors.grey : Colors.grey,
                 fontSize: 13,
               ),
             ),

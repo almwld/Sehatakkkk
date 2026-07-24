@@ -74,13 +74,13 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
           Icon(
             Icons.error_outline,
             size: 64,
-            color: isDark ? Colors.grey[600] : Colors.grey[400],
+            color: isDark ? Colors.grey : Colors.grey,
           ),
           const SizedBox(height: 16),
           Text(
             'حدث خطأ في تحميل بيانات الطلب',
             style: TextStyle(
-              color: isDark ? Colors.grey[400] : Colors.grey[600],
+              color: isDark ? Colors.grey : Colors.grey,
             ),
           ),
           const SizedBox(height: 16),
@@ -155,7 +155,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
                 ),
                 child: Text(
                   delivery.orderId,
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                  style: TextStyle(color: Colors.white, fontSize: 12),
                 ),
               ),
             ],
@@ -176,7 +176,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
                 ),
                 child: Text(
                   delivery.statusText,
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                  style: TextStyle(color: Colors.white, fontSize: 12),
                 ),
               ),
             ],
@@ -195,7 +195,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
                   const SizedBox(width: 4),
                   Text(
                     delivery.estimatedTime,
-                    style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                    style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -229,7 +229,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
             // ✅ خلفية الخريطة
             Container(
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1A2540) : Colors.grey[100],
+                color: isDark ? const Color(0xFF1A2540) : Colors.grey,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Center(
@@ -239,13 +239,13 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
                     Icon(
                       Icons.map_rounded,
                       size: 48,
-                      color: isDark ? Colors.grey[600] : Colors.grey[400],
+                      color: isDark ? Colors.grey : Colors.grey,
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'اضغط لعرض الخريطة',
                       style: TextStyle(
-                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        color: isDark ? Colors.grey : Colors.grey,
                         fontSize: 14,
                       ),
                     ),
@@ -253,7 +253,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
                     Text(
                       'تتبع موقع المندوب في الوقت الفعلي',
                       style: TextStyle(
-                        color: isDark ? Colors.grey[500] : Colors.grey[400],
+                        color: isDark ? Colors.grey : Colors.grey,
                         fontSize: 12,
                       ),
                     ),
@@ -355,7 +355,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
                   decoration: BoxDecoration(
                     color: isCompleted
                         ? Colors.green
-                        : (isActive ? primaryColor : (isDark ? Colors.grey[700] : Colors.grey[300])),
+                        : (isActive ? primaryColor : (isDark ? Colors.grey : Colors.grey)),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -376,7 +376,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
                           fontWeight: isCompleted || isActive ? FontWeight.bold : FontWeight.normal,
                           color: isCompleted || isActive
                               ? (isDark ? Colors.white : Colors.black87)
-                              : (isDark ? Colors.grey[500] : Colors.grey[400]),
+                              : (isDark ? Colors.grey : Colors.grey),
                         ),
                       ),
                       if (isActive)
@@ -396,7 +396,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
                     'تم',
                     style: TextStyle(
                       fontSize: 12,
-                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      color: isDark ? Colors.grey : Colors.grey,
                     ),
                   ),
               ],
@@ -457,7 +457,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
                           courier.rating.toString(),
                           style: TextStyle(
                             fontSize: 12,
-                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                            color: isDark ? Colors.grey : Colors.grey,
                           ),
                         ),
                         const SizedBox(width: 8),

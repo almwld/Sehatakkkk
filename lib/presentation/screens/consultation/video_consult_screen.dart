@@ -89,12 +89,12 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
-                      color: selected ? AppColors.primary : Colors.grey[200],
+                      color: selected ? AppColors.primary : Colors.grey,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       type == 'فيديو' ? '📹 فيديو' : type == 'صوتي' ? '🎤 صوتي' : '💬 نصي',
-                      style: TextStyle(color: selected ? Colors.white : AppColors.darkGrey),
+                      style: TextStyle(color: selected ? Colors.white : Colors.grey.shade700),
                     ),
                   ),
                 );
@@ -118,7 +118,7 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey[300]!),
+                  border: Border.all(color: Colors.grey!),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -146,12 +146,12 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                     decoration: BoxDecoration(
-                      color: selected ? AppColors.primary : Colors.grey[200],
+                      color: selected ? AppColors.primary : Colors.grey,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       time,
-                      style: TextStyle(color: selected ? Colors.white : AppColors.darkGrey),
+                      style: TextStyle(color: selected ? Colors.white : Colors.grey.shade700),
                     ),
                   ),
                 );
@@ -165,7 +165,7 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
               child: ElevatedButton(
                 onPressed: (_selectedDoctor.isNotEmpty && _selectedTime != null) ? _requestConsultation : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: (_selectedDoctor.isNotEmpty && _selectedTime != null) ? AppColors.primary : AppColors.grey,
+                  backgroundColor: (_selectedDoctor.isNotEmpty && _selectedTime != null) ? AppColors.primary : Colors.grey,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
@@ -192,7 +192,7 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
                   return const Center(
                     child: Padding(
                       padding: EdgeInsets.all(16),
-                      child: Text('لا توجد استشارات سابقة', style: TextStyle(color: AppColors.grey)),
+                      child: Text('لا توجد استشارات سابقة', style: TextStyle(color: Colors.grey)),
                     ),
                   );
                 }
@@ -231,9 +231,9 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(data['doctorName'] ?? 'طبيب', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                                Text(data['type'] ?? 'استشارة', style: const TextStyle(fontSize: 10, color: AppColors.grey)),
-                                Text(DateFormat('dd/MM/yyyy').format(date), style: const TextStyle(fontSize: 9, color: AppColors.grey)),
+                                Text(data['doctorName'] ?? 'طبيب', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                Text(data['type'] ?? 'استشارة', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                                Text(DateFormat('dd/MM/yyyy').format(date), style: TextStyle(fontSize: 9, color: Colors.grey)),
                               ],
                             ),
                           ),

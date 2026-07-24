@@ -60,7 +60,7 @@ class PaymentMethods extends StatelessWidget {
                     ],
                   ],
                 ),
-                Text(detail, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.grey)),
+                Text(detail, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey)),
               ],
             ),
           ),

@@ -58,9 +58,9 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.group_work, size: 60, color: AppColors.grey),
+                  Icon(Icons.group_work, size: 60, color: Colors.grey),
                   SizedBox(height: 16),
-                  Text('لا توجد استشارات جماعية', style: TextStyle(color: AppColors.grey)),
+                  Text('لا توجد استشارات جماعية', style: TextStyle(color: Colors.grey)),
                 ],
               ),
             );
@@ -92,7 +92,7 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8)],
         border: Border.all(
-          color: status == 'مفتوحة' ? AppColors.success.withOpacity(0.2) : AppColors.grey.withOpacity(0.2),
+          color: status == 'مفتوحة' ? AppColors.success.withOpacity(0.2) : Colors.grey.withOpacity(0.2),
         ),
       ),
       child: Column(
@@ -103,34 +103,34 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: status == 'مفتوحة' ? AppColors.success.withOpacity(0.1) : AppColors.grey.withOpacity(0.1),
+                  color: status == 'مفتوحة' ? AppColors.success.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   status,
                   style: TextStyle(
                     fontSize: 9,
-                    color: status == 'مفتوحة' ? AppColors.success : AppColors.grey,
+                    color: status == 'مفتوحة' ? AppColors.success : Colors.grey,
                   ),
                 ),
               ),
               const Spacer(),
               Text(
                 DateFormat('dd/MM/yyyy').format(date),
-                style: const TextStyle(fontSize: 10, color: AppColors.grey),
+                style: TextStyle(fontSize: 10, color: Colors.grey),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          Text(data['topic'] ?? 'استشارة جماعية', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(data['topic'] ?? 'استشارة جماعية', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
-          Text(data['description'] ?? '', style: const TextStyle(fontSize: 12, color: AppColors.grey)),
+          Text(data['description'] ?? '', style: TextStyle(fontSize: 12, color: Colors.grey)),
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.people, size: 14, color: AppColors.grey),
+              const Icon(Icons.people, size: 14, color: Colors.grey),
               const SizedBox(width: 4),
-              Text('${participants.length} مشارك', style: const TextStyle(fontSize: 10, color: AppColors.grey)),
+              Text('${participants.length} مشارك', style: TextStyle(fontSize: 10, color: Colors.grey)),
               const Spacer(),
               ElevatedButton(
                 onPressed: () {
@@ -139,11 +139,11 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: status == 'مفتوحة' ? AppColors.primary : AppColors.grey,
+                  backgroundColor: status == 'مفتوحة' ? AppColors.primary : Colors.grey,
                   foregroundColor: Colors.white,
                   minimumSize: const Size(60, 28),
                   padding: const EdgeInsets.symmetric(horizontal: 10),
-                  textStyle: const TextStyle(fontSize: 10),
+                  textStyle: TextStyle(fontSize: 10),
                 ),
                 child: Text(status == 'مفتوحة' ? 'انضم' : 'مغلقة'),
               ),

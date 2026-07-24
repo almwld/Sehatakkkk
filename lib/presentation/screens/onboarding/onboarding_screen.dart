@@ -212,7 +212,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 opacity: 1 - (v / 20),
                                 child: Text(
                                   p['title'] as String,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 34,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
@@ -277,7 +277,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           children: [
                             Text(
                               _page == _pages.length - 1 ? 'ابدأ الآن' : 'التالي',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                                 fontFamily: 'Cairo',

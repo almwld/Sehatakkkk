@@ -40,7 +40,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             const Text('الرصيد الإجمالي', style: TextStyle(color: Colors.white70, fontSize: 14)),
             const SizedBox(height: 8),
-            Text('$_balance ر.ي', style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)),
+            Text('$_balance ر.ي', style: TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
               _btn('شحن', Icons.add_circle, () => setState(() => _showTopUp = true)),
@@ -55,9 +55,9 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
           margin: const EdgeInsets.only(bottom: 8), padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6)]),
           child: Row(children: [
-            Container(width: 44, height: 44, decoration: BoxDecoration(color: (w['color'] as Color).withOpacity(0.1), borderRadius: BorderRadius.circular(12)), child: Center(child: Text(w['icon'], style: const TextStyle(fontSize: 22)))),
+            Container(width: 44, height: 44, decoration: BoxDecoration(color: (w['color'] as Color).withOpacity(0.1), borderRadius: BorderRadius.circular(12)), child: Center(child: Text(w['icon'], style: TextStyle(fontSize: 22)))),
             const SizedBox(width: 10),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(w['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)), Text('${w['code']} • ${w['number']}', style: const TextStyle(fontSize: 10, color: AppColors.grey)), Text(w['balance'], style: TextStyle(fontWeight: FontWeight.bold, color: w['color'], fontSize: 13))])),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(w['name'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)), Text('${w['code']} • ${w['number']}', style: TextStyle(fontSize: 10, color: Colors.grey)), Text(w['balance'], style: TextStyle(fontWeight: FontWeight.bold, color: w['color'], fontSize: 13))])),
             ElevatedButton(onPressed: () { setState(() => _topUpWallet = w['name']); _showTopUp = true; }, style: ElevatedButton.styleFrom(backgroundColor: w['color'], padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), minimumSize: Size.zero), child: const Text('شحن', style: TextStyle(fontSize: 10, color: Colors.white))),
           ]),
         ),
@@ -65,7 +65,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
       bottomSheet: _showTopUp ? Container(
         padding: const EdgeInsets.all(20), color: Theme.of(context).scaffoldBackgroundColor,
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('شحن $_topUpWallet', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), IconButton(icon: const Icon(Icons.close), onPressed: () => setState(() => _showTopUp = false))]),
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('شحن $_topUpWallet', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), IconButton(icon: const Icon(Icons.close), onPressed: () => setState(() => _showTopUp = false))]),
           const SizedBox(height: 10),
           TextField(controller: _amountCtrl, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: 'المبلغ (ر.ي)', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)))),
           const SizedBox(height: 10),
@@ -75,5 +75,5 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
     );
   }
 
-  Widget _btn(String l, IconData i, VoidCallback t) => GestureDetector(onTap: t, child: Column(children: [Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), shape: BoxShape.circle), child: Icon(i, color: Colors.white, size: 22)), const SizedBox(height: 4), Text(l, style: const TextStyle(color: Colors.white, fontSize: 10))]));
+  Widget _btn(String l, IconData i, VoidCallback t) => GestureDetector(onTap: t, child: Column(children: [Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), shape: BoxShape.circle), child: Icon(i, color: Colors.white, size: 22)), const SizedBox(height: 4), Text(l, style: TextStyle(color: Colors.white, fontSize: 10))]));
 }

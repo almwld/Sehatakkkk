@@ -4,9 +4,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/roles.dart';
+import 'package:sehatak/core/constants/medical_specialties.dart';
+import 'package:sehatak/core/models/user_model.dart';
 import 'package:sehatak/core/services/biometric_service.dart';
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
 import 'package:sehatak/presentation/screens/terms/terms_screen.dart';
+import 'package:sehatak/presentation/screens/onboarding/role_onboarding_screen.dart';
+import 'package:sehatak/presentation/screens/verification/verification_screen.dart';
+import 'package:sehatak/presentation/screens/platform/dashboard/platform_dashboard.dart';
 
 class AuthScreen extends StatefulWidget {
   final bool isSignUp;
@@ -16,24 +21,74 @@ class AuthScreen extends StatefulWidget {
   State<AuthScreen> createState() => _AuthScreenState();
 }
 
-class _AuthScreenState extends State<AuthScreen> {
-  bool _isUserSelected = true;
-  String _selectedRole = 'user';
-  bool _obscureText = true;
-  bool _agreeTerms = false;
-  bool _rememberMe = false;
-  bool _isLoading = false;
-  bool _hasBiometric = false;
-  String _biometricName = 'البصمة';
-
+class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateMixin {
+  // ✅ Controllers
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
   final TextEditingController _specialtyController = TextEditingController();
-  final TextEditingController _experienceController = TextEditingController();
   final TextEditingController _licenseController = TextEditingController();
+  final TextEditingController _experienceController = TextEditingController();
+
+  // ✅ متغيرات الحالة
+  bool _obscureText = true;
+  bool _agreeTerms = false;
+  bool _rememberMe = false;
+  bool _isLoading = false;
+  bool _hasBiometric = false;
+  String _biometricName = 'البصمة';
+  String _selectedRole = 'user';
+  String? _selectedSpecialty;
+  bool _showAdminTab = false;
+  bool _showAllSpecialties = false;
+  bool _isUserSelected = true; // ✅ للتبويب الرئيسي
+
+  // ✅ قائمة الأدوار الرئيسية (تظهر في التبويبين)
+  final List<Map<String, dynamic>> _primaryRoles = [
+    {'id': 'user', 'name': 'مستخدم', 'icon': Icons.person_outline, 'color': 0xFF0D5257},
+    {'id': 'doctor', 'name': 'طبيب', 'icon': Icons.local_hospital_outlined, 'color': 0xFF2196F3},
+  ];
+
+  // ✅ قائمة الأدوار الإضافية (تظهر في القائمة المنسدلة)
+  final List<Map<String, dynamic>> _secondaryRoles = [
+    {'id': 'nurse', 'name': 'ممرض', 'icon': Icons.medical_services_outlined, 'color': 0xFF00BCD4},
+    {'id': 'midwife', 'name': 'قابلة وتوليد', 'icon': Icons.pregnant_woman, 'color': 0xFFE91E63},
+    {'id': 'physiotherapist', 'name': 'علاج فيزيائي', 'icon': Icons.fitness_center, 'color': 0xFFFF9800},
+    {'id': 'pharmacist', 'name': 'صيدلي', 'icon': Icons.local_pharmacy_outlined, 'color': 0xFF4CAF50},
+    {'id': 'lab', 'name': 'مختبر', 'icon': Icons.science_outlined, 'color': 0xFF9C27B0},
+    {'id': 'paramedic', 'name': 'مسعف', 'icon': Icons.emergency, 'color': 0xFFF44336},
+    {'id': 'delivery', 'name': 'موصل طلبات', 'icon': Icons.delivery_dining, 'color': 0xFFFF5722},
+    {'id': 'service', 'name': 'خدمي', 'icon': Icons.handyman, 'color': 0xFF607D8B},
+    {'id': 'veterinarian', 'name': 'بيطري', 'icon': Icons.pets, 'color': 0xFF795548},
+  ];
+
+  // ✅ قائمة الأدوار الكاملة (للمشرفين)
+  final List<Map<String, dynamic>> _allRoles = [
+    {'id': 'user', 'name': 'مستخدم', 'icon': Icons.person_outline, 'color': 0xFF0D5257},
+    {'id': 'doctor', 'name': 'طبيب', 'icon': Icons.local_hospital_outlined, 'color': 0xFF2196F3},
+    {'id': 'nurse', 'name': 'ممرض', 'icon': Icons.medical_services_outlined, 'color': 0xFF00BCD4},
+    {'id': 'midwife', 'name': 'قابلة وتوليد', 'icon': Icons.pregnant_woman, 'color': 0xFFE91E63},
+    {'id': 'physiotherapist', 'name': 'علاج فيزيائي', 'icon': Icons.fitness_center, 'color': 0xFFFF9800},
+    {'id': 'pharmacist', 'name': 'صيدلي', 'icon': Icons.local_pharmacy_outlined, 'color': 0xFF4CAF50},
+    {'id': 'lab', 'name': 'مختبر', 'icon': Icons.science_outlined, 'color': 0xFF9C27B0},
+    {'id': 'paramedic', 'name': 'مسعف', 'icon': Icons.emergency, 'color': 0xFFF44336},
+    {'id': 'delivery', 'name': 'موصل طلبات', 'icon': Icons.delivery_dining, 'color': 0xFFFF5722},
+    {'id': 'service', 'name': 'خدمي', 'icon': Icons.handyman, 'color': 0xFF607D8B},
+    {'id': 'veterinarian', 'name': 'بيطري', 'icon': Icons.pets, 'color': 0xFF795548},
+    {'id': 'admin', 'name': 'مشرف', 'icon': Icons.admin_panel_settings, 'color': 0xFFFF5722},
+  ];
+
+  List<Map<String, dynamic>> get _availableRoles {
+    if (_showAdminTab) return _allRoles;
+    return _allRoles.where((role) => role['id'] != 'admin').toList();
+  }
+
+  // ✅ الحصول على تخصصات الدور المحدد
+  List<String> get _roleSpecialties {
+    return MedicalSpecialties.getSpecialtiesForRole(_selectedRole);
+  }
 
   final BiometricService _biometricService = BiometricService();
 
@@ -42,6 +97,25 @@ class _AuthScreenState extends State<AuthScreen> {
     super.initState();
     _checkBiometric();
     _loadSavedCredentials();
+    _checkAdminStatus();
+  }
+
+  Future<void> _checkAdminStatus() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        final doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+        if (doc.exists) {
+          final role = doc.data()?['role'] ?? 'user';
+          if (role == 'admin' || role == 'superAdmin') {
+            setState(() => _showAdminTab = true);
+          }
+        }
+      } catch (e) {}
+    }
   }
 
   Future<void> _loadSavedCredentials() async {
@@ -98,6 +172,30 @@ class _AuthScreenState extends State<AuthScreen> {
         password: _passwordController.text.trim(),
       );
       await _saveCredentials();
+      
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+        
+        if (doc.exists) {
+          final role = doc.data()?['role'] ?? 'user';
+          
+          // ✅ إذا كان مشرفاً، التوجيه للوحة التحكم
+          if (role == 'admin' || role == 'superAdmin') {
+            if (mounted) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const PlatformDashboard()),
+              );
+            }
+            return;
+          }
+        }
+      }
+      
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -129,8 +227,9 @@ class _AuthScreenState extends State<AuthScreen> {
       return;
     }
 
-    if (_selectedRole == 'doctor' && _specialtyController.text.isEmpty) {
-      _showMessage('يرجى إدخال التخصص', true);
+    // ✅ التحقق من التخصص للمهن الطبية
+    if (_selectedRole == 'doctor' && _selectedSpecialty == null) {
+      _showMessage('يرجى اختيار التخصص', true);
       return;
     }
 
@@ -149,32 +248,49 @@ class _AuthScreenState extends State<AuthScreen> {
         'email': _emailController.text.trim(),
         'phone': _phoneController.text.trim(),
         'role': _selectedRole,
+        'specialty': _selectedSpecialty,
+        'licenseNumber': _licenseController.text.trim(),
+        'experience': _experienceController.text.trim(),
+        'isVerified': false,
+        'verificationStatus': 'notSubmitted',
+        'rating': 0.0,
+        'reviewCount': 0,
+        'isAvailable': true,
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       };
 
-      switch (_selectedRole) {
-        case 'doctor':
-          userData.addAll({
-            'specialty': _specialtyController.text.trim(),
-            'experience': _experienceController.text.trim(),
-            'licenseNumber': _licenseController.text.trim(),
-            'isVerified': false,
-            'rating': 0.0,
-            'reviewCount': 0,
-            'isAvailable': true,
-          });
-          break;
-        default:
-          break;
-      }
-
       await FirebaseFirestore.instance.collection('users').doc(user.uid).set(userData);
 
       if (mounted) {
+        final userModel = UserModel.fromFirestore(userData, user.uid);
+        
+        // ✅ عرض الشاشة التعليمية حسب الدور
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
+          MaterialPageRoute(
+            builder: (_) => RoleOnboardingScreen(
+              role: _getUserRole(_selectedRole),
+              onComplete: () {
+                // ✅ بعد انتهاء الشاشة التعليمية
+                if (AppRoles.needsVerification(_selectedRole)) {
+                  // ✅ إذا كان الدور يحتاج توثيق
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => VerificationScreen(userModel: userModel),
+                    ),
+                  );
+                } else {
+                  // ✅ الانتقال للرئيسية
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => const HomeScreen()),
+                  );
+                }
+              },
+            ),
+          ),
         );
       }
     } on FirebaseAuthException catch (e) {
@@ -184,6 +300,20 @@ class _AuthScreenState extends State<AuthScreen> {
       _showMessage(message, true);
     } finally {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  UserRole _getUserRole(String roleId) {
+    switch (roleId) {
+      case 'doctor': return UserRole.doctor;
+      case 'nurse': return UserRole.doctor;
+      case 'midwife': return UserRole.doctor;
+      case 'physiotherapist': return UserRole.doctor;
+      case 'pharmacist': return UserRole.pharmacist;
+      case 'lab': return UserRole.lab;
+      case 'paramedic': return UserRole.doctor;
+      case 'veterinarian': return UserRole.veterinarian;
+      default: return UserRole.user;
     }
   }
 
@@ -229,6 +359,7 @@ class _AuthScreenState extends State<AuthScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = const Color(0xFF0D5257);
+    final isSignUp = widget.isSignUp;
 
     return Scaffold(
       body: Container(
@@ -252,7 +383,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 const SizedBox(height: 20),
 
                 Text(
-                  widget.isSignUp ? 'إنشاء حساب جديد' : 'مرحباً بعودتك',
+                  isSignUp ? 'إنشاء حساب جديد' : 'مرحباً بعودتك',
                   style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.bold,
@@ -263,8 +394,8 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  widget.isSignUp
-                      ? 'اختر مهنتك وأدخل بياناتك للانضمام'
+                  isSignUp
+                      ? 'اختر نوع حسابك وأدخل بياناتك للانضمام'
                       : 'قم بتسجيل الدخول للمتابعة',
                   style: TextStyle(
                     fontSize: 15,
@@ -275,94 +406,23 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
                 const SizedBox(height: 30),
 
-                // ✅ قسم اختيار المستخدم/طبيب (تسجيل الدخول)
-                if (!widget.isSignUp) ...[
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1A2540).withOpacity(0.5) : Colors.grey[100],
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: _buildSegmentTab(
-                            title: 'مستخدم',
-                            icon: Icons.person_outline,
-                            isSelected: _isUserSelected,
-                            onTap: () => setState(() => _isUserSelected = true),
-                            isDark: isDark,
-                            primaryColor: primaryColor,
-                          ),
-                        ),
-                        Expanded(
-                          child: _buildSegmentTab(
-                            title: 'طبيب',
-                            icon: Icons.local_hospital_outlined,
-                            isSelected: !_isUserSelected,
-                            onTap: () => setState(() => _isUserSelected = false),
-                            isDark: isDark,
-                            primaryColor: primaryColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 35),
+                // ✅ تبويبات نوع الحساب (للتسجيل فقط)
+                if (isSignUp) ...[
+                  _buildRoleTabs(isDark, primaryColor),
+                  const SizedBox(height: 16),
+                  // ✅ عرض الدور المحدد
+                  _buildSelectedRoleDisplay(isDark, primaryColor),
+                  const SizedBox(height: 16),
                 ],
 
-                // ✅ اختيار الدور (إنشاء حساب)
-                if (widget.isSignUp) ...[
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1A2540).withOpacity(0.5) : Colors.grey[100],
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: AppRoles.all.map((role) {
-                          final isSelected = _selectedRole == role['id'];
-                          final color = Color(role['color'] as int);
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
-                            child: GestureDetector(
-                              onTap: () => setState(() => _selectedRole = role['id'] as String),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: isSelected ? color.withOpacity(0.15) : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: isSelected ? color : Colors.transparent, width: 2),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(role['icon'] as IconData, color: isSelected ? color : Colors.grey, size: 18),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      role['name'] as String,
-                                      style: TextStyle(
-                                        color: isSelected ? color : Colors.grey,
-                                        fontSize: 13,
-                                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                        fontFamily: 'NotoSansArabicUI',
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 30),
+                // ✅ اختيار التخصص (للمهن الطبية)
+                if (isSignUp && _roleSpecialties.isNotEmpty) ...[
+                  _buildSpecialtySelector(isDark, primaryColor),
+                  const SizedBox(height: 16),
                 ],
 
-                // ✅ الحقول
-                if (widget.isSignUp) ...[
+                // ✅ الحقول الأساسية
+                if (isSignUp) ...[
                   _buildTextField(
                     controller: _nameController,
                     label: 'الاسم الكامل',
@@ -374,14 +434,14 @@ class _AuthScreenState extends State<AuthScreen> {
 
                 _buildTextField(
                   controller: _emailController,
-                  label: widget.isSignUp ? 'البريد الإلكتروني' : 'رقم الموبيل أو البريد الإلكتروني',
+                  label: isSignUp ? 'البريد الإلكتروني' : 'رقم الموبايل أو البريد الإلكتروني',
                   icon: Icons.alternate_email_outlined,
                   isDark: isDark,
                   keyboardType: TextInputType.emailAddress,
                 ),
                 const SizedBox(height: 16),
 
-                if (widget.isSignUp) ...[
+                if (isSignUp) ...[
                   _buildTextField(
                     controller: _phoneController,
                     label: 'رقم الهاتف',
@@ -392,14 +452,19 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 16),
                 ],
 
-                if (widget.isSignUp && _selectedRole == 'doctor') ...[
+                // ✅ رقم الترخيص (للمهن الطبية)
+                if (isSignUp && AppRoles.needsVerification(_selectedRole)) ...[
                   _buildTextField(
-                    controller: _specialtyController,
-                    label: 'التخصص',
-                    icon: Icons.medical_services_outlined,
+                    controller: _licenseController,
+                    label: 'رقم الترخيص المهني',
+                    icon: Icons.verified_outlined,
                     isDark: isDark,
                   ),
                   const SizedBox(height: 16),
+                ],
+
+                // ✅ سنوات الخبرة (للأطباء)
+                if (isSignUp && _selectedRole == 'doctor') ...[
                   _buildTextField(
                     controller: _experienceController,
                     label: 'سنوات الخبرة',
@@ -408,19 +473,12 @@ class _AuthScreenState extends State<AuthScreen> {
                     keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 16),
-                  _buildTextField(
-                    controller: _licenseController,
-                    label: 'رقم الترخيص',
-                    icon: Icons.verified_outlined,
-                    isDark: isDark,
-                  ),
-                  const SizedBox(height: 16),
                 ],
 
                 _buildPasswordField(isDark, primaryColor),
                 const SizedBox(height: 16),
 
-                if (widget.isSignUp) ...[
+                if (isSignUp) ...[
                   _buildTextField(
                     controller: _confirmPasswordController,
                     label: 'تأكيد كلمة المرور',
@@ -431,7 +489,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 16),
                 ],
 
-                if (!widget.isSignUp) ...[
+                if (!isSignUp) ...[
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -469,7 +527,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 8),
                 ],
 
-                if (widget.isSignUp) ...[
+                if (isSignUp) ...[
                   Row(
                     children: [
                       Checkbox(
@@ -512,7 +570,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 SizedBox(
                   height: 54,
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : (widget.isSignUp ? _register : _login),
+                    onPressed: _isLoading ? null : (isSignUp ? _register : _login),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryColor,
                       foregroundColor: Colors.white,
@@ -524,10 +582,10 @@ class _AuthScreenState extends State<AuthScreen> {
                     child: _isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
                         : Text(
-                            widget.isSignUp
-                                ? 'إنشاء حساب'
-                                : (_isUserSelected ? 'تسجيل الدخول كـ عميل' : 'تسجيل الدخول كـ طبيب'),
-                            style: const TextStyle(
+                            isSignUp
+                                ? 'إنشاء حساب ${_getRoleDisplayName(_selectedRole)}'
+                                : 'تسجيل الدخول',
+                            style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               fontFamily: 'NotoSansArabicUI',
@@ -537,7 +595,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                if (!widget.isSignUp) ...[
+                if (!isSignUp) ...[
                   SizedBox(
                     height: 50,
                     child: OutlinedButton(
@@ -586,7 +644,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      widget.isSignUp ? 'لديك حساب بالفعل؟' : 'ليس لديك حساب؟',
+                      isSignUp ? 'لديك حساب بالفعل؟' : 'ليس لديك حساب؟',
                       style: TextStyle(
                         fontSize: 14,
                         color: isDark ? Colors.white70 : Colors.grey[600],
@@ -599,12 +657,12 @@ class _AuthScreenState extends State<AuthScreen> {
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => AuthScreen(isSignUp: !widget.isSignUp),
+                            builder: (_) => AuthScreen(isSignUp: !isSignUp),
                           ),
                         );
                       },
                       child: Text(
-                        widget.isSignUp ? 'تسجيل الدخول' : 'أنشئ حسابك الآن',
+                        isSignUp ? 'تسجيل الدخول' : 'أنشئ حسابك الآن',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: primaryColor,
@@ -623,39 +681,290 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
-  Widget _buildSegmentTab({
-    required String title,
-    required IconData icon,
-    required bool isSelected,
-    required VoidCallback onTap,
-    required bool isDark,
-    required Color primaryColor,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected ? primaryColor.withOpacity(0.12) : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
+  // ✅ تبويبات نوع الحساب (اثنين مع تمرير للباقي)
+  Widget _buildRoleTabs(bool isDark, Color primaryColor) {
+    // ✅ الأدوار المعروضة في التبويبات
+    final displayedRoles = _showAdminTab ? _allRoles : _primaryRoles;
+    // ✅ الأدوار المتبقية للتمرير
+    final remainingRoles = _showAdminTab 
+        ? <Map<String, dynamic>>[] 
+        : _secondaryRoles;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ✅ تبويبان رئيسيان
+        Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1A2540).withOpacity(0.5) : Colors.grey[100],
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            children: displayedRoles.map((role) {
+              final isSelected = _selectedRole == role['id'];
+              final color = Color(role['color'] as int);
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _selectedRole = role['id'] as String;
+                      _selectedSpecialty = null;
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: isSelected ? color.withOpacity(0.15) : Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: isSelected
+                          ? [BoxShadow(color: color.withOpacity(0.1), blurRadius: 4, offset: const Offset(0, 2))]
+                          : null,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          role['icon'] as IconData,
+                          color: isSelected ? color : Colors.grey,
+                          size: 22,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          role['name'] as String,
+                          style: TextStyle(
+                            color: isSelected ? color : Colors.grey,
+                            fontSize: 14,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            fontFamily: 'NotoSansArabicUI',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
         ),
-        child: Column(
-          children: [
-            Icon(icon, color: isSelected ? primaryColor : Colors.grey, size: 22),
-            const SizedBox(height: 4),
-            Text(
-              title,
-              style: TextStyle(
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected ? primaryColor : Colors.grey,
-                fontSize: 14,
-                fontFamily: 'NotoSansArabicUI',
+        
+        // ✅ إذا كانت هناك أدوار إضافية، عرضها كخيارات تمرير
+        if (remainingRoles.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: Row(
+                children: [
+                  const Icon(Icons.more_horiz, color: Colors.grey, size: 16),
+                  const SizedBox(width: 4),
+                  ...remainingRoles.map((role) {
+                    final isSelected = _selectedRole == role['id'];
+                    final color = Color(role['color'] as int);
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _selectedRole = role['id'] as String;
+                            _selectedSpecialty = null;
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: isSelected ? color.withOpacity(0.15) : Colors.transparent,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isSelected ? color : Colors.grey.withOpacity(0.3),
+                              width: isSelected ? 2 : 1,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                role['icon'] as IconData,
+                                color: isSelected ? color : Colors.grey,
+                                size: 14,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                role['name'] as String,
+                                style: TextStyle(
+                                  color: isSelected ? color : Colors.grey,
+                                  fontSize: 11,
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                  fontFamily: 'NotoSansArabicUI',
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  // ✅ عرض الدور المحدد
+  Widget _buildSelectedRoleDisplay(bool isDark, Color primaryColor) {
+    final role = _allRoles.firstWhere(
+      (r) => r['id'] == _selectedRole,
+      orElse: () => _allRoles.first,
+    );
+    final color = Color(role['color'] as int);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(role['icon'] as IconData, color: color, size: 16),
+          const SizedBox(width: 6),
+          Text(
+            'الدور المختار: ${role['name']}',
+            style: TextStyle(
+              color: color,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              fontFamily: 'NotoSansArabicUI',
+            ),
+          ),
+        ],
       ),
     );
+  }
+
+  // ✅ منتقي التخصص
+  Widget _buildSpecialtySelector(bool isDark, Color primaryColor) {
+    final specialties = _roleSpecialties;
+    
+    if (specialties.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          _selectedRole == 'doctor' ? 'اختر تخصصك الطبي' : 'اختر مجال عملك',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: isDark ? Colors.white70 : Colors.grey[700],
+            fontFamily: 'NotoSansArabicUI',
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1A2540).withOpacity(0.3) : Colors.grey[50],
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Row(
+              children: [
+                // ✅ خيار "الكل" لعرض كل التخصصات
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _showAllSpecialties = !_showAllSpecialties;
+                      if (!_showAllSpecialties) {
+                        _selectedSpecialty = null;
+                      }
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    margin: const EdgeInsets.symmetric(horizontal: 2),
+                    decoration: BoxDecoration(
+                      color: _showAllSpecialties 
+                          ? primaryColor.withOpacity(0.15) 
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: _showAllSpecialties ? primaryColor : Colors.grey,
+                        width: _showAllSpecialties ? 2 : 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.list, size: 14),
+                        const SizedBox(width: 4),
+                        Text(
+                          'جميع التخصصات',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: _showAllSpecialties ? primaryColor : Colors.grey,
+                            fontWeight: _showAllSpecialties ? FontWeight.bold : FontWeight.normal,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                // ✅ التخصصات
+                ...(_showAllSpecialties ? MedicalSpecialties.all : specialties).map((specialty) {
+                  final isSelected = _selectedSpecialty == specialty;
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _selectedSpecialty = specialty;
+                        _showAllSpecialties = false;
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      margin: const EdgeInsets.symmetric(horizontal: 2),
+                      decoration: BoxDecoration(
+                        color: isSelected ? primaryColor.withOpacity(0.15) : Colors.transparent,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: isSelected ? primaryColor : Colors.grey,
+                          width: isSelected ? 2 : 1,
+                        ),
+                      ),
+                      child: Text(
+                        specialty,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isSelected ? primaryColor : (isDark ? Colors.white70 : Colors.grey[700]),
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          fontFamily: 'NotoSansArabicUI',
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _getRoleDisplayName(String roleId) {
+    final role = _allRoles.firstWhere(
+      (r) => r['id'] == roleId,
+      orElse: () => {'name': ''},
+    );
+    return role['name'] as String;
   }
 
   Widget _buildTextField({
@@ -688,7 +997,7 @@ class _AuthScreenState extends State<AuthScreen> {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: isDark ? Colors.grey[700]! : Colors.grey[300]!),
+          borderSide: BorderSide(color: isDark ? Colors.grey[800]! : Colors.grey[300]!),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -737,7 +1046,7 @@ class _AuthScreenState extends State<AuthScreen> {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: isDark ? Colors.grey[700]! : Colors.grey[300]!),
+          borderSide: BorderSide(color: isDark ? Colors.grey[800]! : Colors.grey[300]!),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
