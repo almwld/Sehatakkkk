@@ -1,5 +1,7 @@
+import package:sehatak/core/models/lab/lab_choice.dart;
+import package:sehatak/core/models/consultation/consultation_status.dart;
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:sehatak/core/models/medical/consultation_model.dart';
+import 'package:sehatak/core/models/consultation/consultation_model.dart';
 
 class ConsultationService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
