@@ -1,0 +1,4 @@
+enum LabChoice {
+  atLab,
+  atHome,
+}

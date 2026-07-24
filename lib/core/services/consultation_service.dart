@@ -1,7 +1,7 @@
-import package:sehatak/core/models/lab/lab_choice.dart;
-import package:sehatak/core/models/consultation/consultation_status.dart;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/models/consultation/consultation_model.dart';
+import 'package:sehatak/core/models/consultation/consultation_status.dart';
+import 'package:sehatak/core/models/lab/lab_choice.dart';
 
 class ConsultationService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -72,7 +72,7 @@ class ConsultationService {
   // ✅ تحديث حالة المختبر
   Future<void> updateLab({
     required String consultationId,
-    required LabChoice labChoice,
+    required String labChoice,
     String? labId,
     String? labName,
   }) async {
@@ -80,7 +80,7 @@ class ConsultationService {
         .collection('consultations')
         .doc(consultationId)
         .update({
-      'labChoice': labChoice.toString().split('.').last,
+      'labChoice': labChoice,
       'labId': labId,
       'labName': labName,
       'updatedAt': FieldValue.serverTimestamp(),

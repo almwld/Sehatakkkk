@@ -1,12 +1,10 @@
-import package:sehatak/core/models/lab/sample_collection_method.dart;
-import package:sehatak/core/models/lab/lab_booking_status.dart;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/models/lab/lab_booking_model.dart';
-import 'package:sehatak/core/services/notification_service.dart';
+import 'package:sehatak/core/models/lab/lab_booking_status.dart';
+import 'package:sehatak/core/models/lab/sample_collection_method.dart';
 
 class LabService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final NotificationService _notificationService = NotificationService();
 
   // ✅ إنشاء حجز مختبر
   Future<LabBookingModel> createLabBooking({
