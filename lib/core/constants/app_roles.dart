@@ -15,6 +15,7 @@ class AppRoles {
     UserRole.service,
     UserRole.veterinarian,
     UserRole.admin,
+    UserRole.user,
   ];
 
   static bool needsVerification(UserRole role) {
@@ -39,6 +40,7 @@ class AppRoles {
       case UserRole.service: return 'خدمي';
       case UserRole.veterinarian: return 'بيطري';
       case UserRole.admin: return 'مشرف';
+      case UserRole.user: return 'مستخدم';
     }
   }
 
@@ -56,6 +58,7 @@ class AppRoles {
       case 'service': return UserRole.service;
       case 'veterinarian': return UserRole.veterinarian;
       case 'admin': return UserRole.admin;
+      case 'user': return UserRole.user;
       default: return UserRole.patient;
     }
   }
