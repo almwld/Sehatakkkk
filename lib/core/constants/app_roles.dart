@@ -41,4 +41,22 @@ class AppRoles {
       case UserRole.admin: return 'مشرف';
     }
   }
+
+  static UserRole getRoleFromString(String role) {
+    switch (role) {
+      case 'doctor': return UserRole.doctor;
+      case 'pharmacist': return UserRole.pharmacist;
+      case 'lab': return UserRole.lab;
+      case 'hospital': return UserRole.hospital;
+      case 'nurse': return UserRole.nurse;
+      case 'midwife': return UserRole.midwife;
+      case 'physiotherapist': return UserRole.physiotherapist;
+      case 'paramedic': return UserRole.paramedic;
+      case 'delivery': return UserRole.delivery;
+      case 'service': return UserRole.service;
+      case 'veterinarian': return UserRole.veterinarian;
+      case 'admin': return UserRole.admin;
+      default: return UserRole.patient;
+    }
+  }
 }

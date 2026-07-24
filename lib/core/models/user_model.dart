@@ -15,6 +15,7 @@ enum UserRole {
   service,
   veterinarian,
   admin,
+  user,  // ✅ إضافة user كقيمة افتراضية
 }
 
 enum UserStatus {
@@ -64,6 +65,7 @@ class UserModel {
       case UserRole.service: return 'خدمي';
       case UserRole.veterinarian: return 'بيطري';
       case UserRole.admin: return 'مشرف';
+      case UserRole.user: return 'مستخدم';
     }
   }
 
@@ -115,7 +117,7 @@ class UserModel {
       email: data['email'] ?? '',
       phone: data['phone'],
       photoUrl: data['photoUrl'],
-      role: _parseRole(data['role'] ?? 'patient'),
+      role: _parseRole(data['role'] ?? 'user'),
       status: _parseStatus(data['status'] ?? 'pending'),
       createdAt: DateTime.parse(data['createdAt'] ?? DateTime.now().toIso8601String()),
       updatedAt: data['updatedAt'] != null ? DateTime.parse(data['updatedAt']) : null,
@@ -137,6 +139,7 @@ class UserModel {
       case 'service': return UserRole.service;
       case 'veterinarian': return UserRole.veterinarian;
       case 'admin': return UserRole.admin;
+      case 'user': return UserRole.user;
       default: return UserRole.patient;
     }
   }
