@@ -1,65 +1,61 @@
 import 'package:sehatak/core/models/user_model.dart';
 
 class AppRoles {
-  static const List<UserRole> all = [
-    UserRole.patient,
-    UserRole.doctor,
-    UserRole.pharmacist,
-    UserRole.lab,
-    UserRole.hospital,
-    UserRole.nurse,
-    UserRole.midwife,
-    UserRole.physiotherapist,
-    UserRole.paramedic,
-    UserRole.delivery,
-    UserRole.service,
-    UserRole.veterinarian,
-    UserRole.admin,
-    UserRole.user,
+  static const List<String> allRoles = [
+    'user',
+    'doctor',
+    'nurse',
+    'midwife',
+    'physiotherapist',
+    'pharmacist',
+    'lab',
+    'paramedic',
+    'delivery',
+    'service',
+    'veterinarian',
+    'admin',
   ];
 
-  static bool needsVerification(UserRole role) {
-    return role == UserRole.doctor || 
-           role == UserRole.pharmacist || 
-           role == UserRole.lab || 
-           role == UserRole.hospital;
+  static const List<String> rolesNeedingVerification = [
+    'doctor',
+    'pharmacist',
+    'lab',
+  ];
+
+  static bool needsVerification(String role) {
+    return rolesNeedingVerification.contains(role);
   }
 
-  static String getRoleName(UserRole role) {
+  static String getRoleName(String role) {
     switch (role) {
-      case UserRole.patient: return 'مريض';
-      case UserRole.doctor: return 'طبيب';
-      case UserRole.pharmacist: return 'صيدلي';
-      case UserRole.lab: return 'مختبر';
-      case UserRole.hospital: return 'مستشفى';
-      case UserRole.nurse: return 'ممرض';
-      case UserRole.midwife: return 'قابلة';
-      case UserRole.physiotherapist: return 'معالج فيزيائي';
-      case UserRole.paramedic: return 'مسعف';
-      case UserRole.delivery: return 'موصل طلبات';
-      case UserRole.service: return 'خدمي';
-      case UserRole.veterinarian: return 'بيطري';
-      case UserRole.admin: return 'مشرف';
-      case UserRole.user: return 'مستخدم';
+      case 'user': return 'مستخدم';
+      case 'doctor': return 'طبيب';
+      case 'nurse': return 'ممرض';
+      case 'midwife': return 'قابلة وتوليد';
+      case 'physiotherapist': return 'علاج فيزيائي';
+      case 'pharmacist': return 'صيدلي';
+      case 'lab': return 'مختبر';
+      case 'paramedic': return 'مسعف';
+      case 'delivery': return 'موصل طلبات';
+      case 'service': return 'خدمي';
+      case 'veterinarian': return 'بيطري';
+      case 'admin': return 'مشرف';
+      default: return 'مستخدم';
     }
   }
 
-  static UserRole getRoleFromString(String role) {
+  static UserRole getUserRoleFromString(String role) {
     switch (role) {
       case 'doctor': return UserRole.doctor;
+      case 'nurse': return UserRole.doctor;
+      case 'midwife': return UserRole.doctor;
+      case 'physiotherapist': return UserRole.doctor;
       case 'pharmacist': return UserRole.pharmacist;
       case 'lab': return UserRole.lab;
-      case 'hospital': return UserRole.hospital;
-      case 'nurse': return UserRole.nurse;
-      case 'midwife': return UserRole.midwife;
-      case 'physiotherapist': return UserRole.physiotherapist;
-      case 'paramedic': return UserRole.paramedic;
-      case 'delivery': return UserRole.delivery;
-      case 'service': return UserRole.service;
+      case 'paramedic': return UserRole.doctor;
       case 'veterinarian': return UserRole.veterinarian;
       case 'admin': return UserRole.admin;
-      case 'user': return UserRole.user;
-      default: return UserRole.patient;
+      default: return UserRole.user;
     }
   }
 }
