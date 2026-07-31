@@ -16,6 +16,11 @@ import 'package:sehatak/presentation/screens/onboarding/role_onboarding_screen.d
 import 'package:sehatak/presentation/screens/verification/verification_screen.dart';
 import 'package:sehatak/presentation/screens/platform/dashboard/platform_dashboard.dart';
 
+// ✅ دالة مساعدة للتحقق من الحاجة للتوثيق
+bool _needsVerification(String role) {
+  return role == 'doctor' || role == 'pharmacist' || role == 'lab';
+}
+
 class AuthScreen extends StatefulWidget {
   final bool isSignUp;
   const AuthScreen({super.key, this.isSignUp = false});
@@ -329,7 +334,8 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
             builder: (_) => RoleOnboardingScreen(
               role: _getUserRole(_selectedRole),
               onComplete: () {
-                if (AppRoles.needsVerification(_selectedRole)) {
+                // ✅ استخدام الدالة المساعدة _needsVerification
+                if (_needsVerification(_selectedRole)) {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
@@ -1109,7 +1115,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
   List<Widget> _buildDynamicFields(bool isDark, Color primaryColor) {
     final fields = <Widget>[];
 
-    if (AppRoles.needsVerification(_selectedRole)) {
+    if (_needsVerification(_selectedRole)) {
       fields.add(_buildTextField(
         controller: _licenseController,
         label: 'رقم الترخيص المهني',
