@@ -2,19 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum WalletTransactionType {
-  deposit,
-  withdrawal,
-  payment,
-  refund,
-  bonus,
-  fee,
+  deposit,      // إيداع
+  withdrawal,   // سحب
+  payment,      // دفع
+  refund,       // استرداد
+  bonus,        // مكافأة
+  fee,          // رسوم
 }
 
 enum WalletTransactionStatus {
-  pending,
-  completed,
-  failed,
-  cancelled,
+  pending,      // قيد المعالجة
+  completed,    // مكتمل
+  failed,       // فشل
+  cancelled,    // ملغي
 }
 
 class WalletModel {
@@ -80,6 +80,34 @@ class WalletModel {
       createdAt: DateTime.parse(data['createdAt'] ?? DateTime.now().toIso8601String()),
       updatedAt: data['updatedAt'] != null ? DateTime.parse(data['updatedAt']) : null,
       lastTransactionAt: data['lastTransactionAt'] != null ? DateTime.parse(data['lastTransactionAt']) : null,
+    );
+  }
+
+  WalletModel copyWith({
+    double? balance,
+    double? pendingBalance,
+    double? totalDeposited,
+    double? totalWithdrawn,
+    double? totalEarned,
+    double? totalSpent,
+    bool? isActive,
+    DateTime? updatedAt,
+    DateTime? lastTransactionAt,
+  }) {
+    return WalletModel(
+      id: id,
+      userId: userId,
+      balance: balance ?? this.balance,
+      pendingBalance: pendingBalance ?? this.pendingBalance,
+      totalDeposited: totalDeposited ?? this.totalDeposited,
+      totalWithdrawn: totalWithdrawn ?? this.totalWithdrawn,
+      totalEarned: totalEarned ?? this.totalEarned,
+      totalSpent: totalSpent ?? this.totalSpent,
+      currency: currency,
+      isActive: isActive ?? this.isActive,
+      createdAt: createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      lastTransactionAt: lastTransactionAt ?? this.lastTransactionAt,
     );
   }
 }
