@@ -1,7 +1,7 @@
 name: sehatak
-description: A comprehensive healthcare platform for Yemen
+description: A new Flutter project.
 publish_to: 'none'
-version: 1.1.0+2
+version: 1.0.0+1
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -11,170 +11,66 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-
-  # UI
-  cupertino_icons: ^1.0.6
-  iconsax: ^0.0.8
-  flutter_svg: ^2.0.9
+  intl: ^0.18.0
+  
+  # Firebase
+  firebase_core: ^2.24.0
+  firebase_auth: ^4.16.0
+  cloud_firestore: ^4.14.0
+  firebase_storage: ^11.5.0
+  firebase_messaging: ^14.7.0
+  
+  # UI & Animation
+  carousel_slider: ^4.2.1
+  cached_network_image: ^3.3.0
+  flutter_svg: ^2.0.7
+  lottie: ^2.6.0
   shimmer: ^3.0.0
-  cached_network_image: ^3.3.1
-  lottie: ^3.1.3  # ✅ تم التحديث من ^3.1.0 إلى ^3.2.0
-  confetti: ^0.7.0
-  flutter_staggered_grid_view: ^0.7.0
-  pull_to_refresh: ^2.0.0
-  flutter_slidable: ^3.0.1
-  flutter_animate: ^4.5.0
-  carousel_slider: ^5.0.0
-  table_calendar: ^3.0.9
-  fl_chart: ^0.66.0
-
+  
   # State Management
   flutter_bloc: ^8.1.3
-  bloc: ^8.1.2
   equatable: ^2.0.5
-  provider: ^6.1.2
-  get_it: ^7.6.7
-
+  
   # Navigation
-  go_router: ^13.0.1
-
-  # Firebase
-  firebase_core: ^2.25.4
-  firebase_auth: ^4.17.4
-  cloud_firestore: ^4.15.0
-  firebase_storage: ^11.6.0
-  firebase_messaging: ^14.7.15
-  firebase_analytics: ^10.8.0
-  firebase_crashlytics: ^3.4.9
-  firebase_app_check: ^0.2.1
-  google_sign_in: ^6.2.1
-
-  # Networking
-  http: ^1.2.0
-  dio: ^5.4.0
-  retrofit: ^4.0.3
-  json_annotation: ^4.8.1
-  socket_io_client: ^2.0.3
-
-  # Local Storage
+  go_router: ^13.0.0
+  
+  # Storage
   shared_preferences: ^2.2.2
-  sqflite: ^2.3.0
-  path: ^1.8.3
-  path_provider: ^2.1.1
-  hive_flutter: ^1.1.0
-
-  # Utilities
-  intl: ^0.18.1
-  connectivity_plus: ^5.0.0
-  url_launcher: ^6.2.3
-  share_plus: ^7.2.1
-  package_info_plus: ^5.0.1
-  device_info_plus: ^9.1.1
-  permission_handler: ^11.1.0
-  local_auth: ^2.1.8
-  flutter_app_badger: ^1.5.0
-  flutter_local_notifications: ^16.3.0
-  workmanager: ^0.5.2
-  flutter_background_service: ^5.0.5
-  sensors_plus: ^4.0.0
-
-  # Media
+  
+  # Utils
+  url_launcher: ^6.2.1
   image_picker: ^1.0.7
-  record: ^5.0.0
   audioplayers: ^5.2.1
-  photo_view: ^0.14.0
-  file_picker: ^6.1.1
-  flutter_image_compress: ^2.0.0
-
-  # Maps & Location
-  flutter_map: ^6.1.0
-  latlong2: ^0.9.1
-  geolocator: ^10.1.0
-  geocoding: ^3.0.0
-
-  # WebView
-  webview_flutter: ^4.4.0
-
-  # Real-time Communication
-  livekit_client: ^1.5.6
-  flutter_webrtc: 0.9.47
-
-  # JSON
-  json_serializable: ^6.7.1
-  build_runner: ^2.4.7
-  dart_jsonwebtoken: ^2.4.0
+  
+  # Charts & Graphs
+  fl_chart: ^0.68.0
+  
+  # Other
+  google_fonts: ^6.1.0
+  flutter_screenutil: ^5.9.0
+  glass_kit: ^3.0.0
+  liquid_pull_to_refresh: ^3.0.1
+  timeline_tile: ^2.0.0
+  font_awesome_flutter: ^10.5.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.1
-  retrofit_generator: ^8.0.6
-  flutter_launcher_icons: ^0.13.1
-  flutter_native_splash: ^2.3.10
+  flutter_lints: ^2.0.0
 
 flutter:
   uses-material-design: true
-
+  
+  # ✅ فقط Lottie و SVG (بدون صور PNG)
   assets:
-    # أيقونات
-    - assets/icons/app_icon.png
-    - assets/icons/consultations/
-    - assets/icons/core/
-    - assets/icons/mini_specialties/
-    - assets/icons/navigation/
-    - assets/icons/offers/
-    - assets/icons/payment/
-    - assets/icons/plans/
-    - assets/icons/png_core/
-    - assets/icons/png_specialties/
-    - assets/icons/services/
-    - assets/icons/social/
-    - assets/icons/specialties/
-
-    # أيقونات جديدة (New Assets)
-    - assets/images/icons/doctors/
-    - assets/images/icons/fast_services/
-    - assets/images/icons/search/
-    - assets/images/icons/top_bar/
-
-    # صور
-    - assets/images/
-    - assets/images/banners/
-    - assets/images/doctors/
-    - assets/images/medicines/
-    - assets/images/pharmacies/
-    - assets/images/labs/
-    - assets/images/hospitals/
-    - assets/images/delivery/
-    - assets/images/posts/
-
-    # صوتيات ورسوم متحركة
-    - assets/audio/
-    - assets/animations/
-
+    - assets/animation/sehatak_animation.json
+    - assets/audio/splash_sound.mp3
+    - assets/social/
+    - assets/svg/
+  
   fonts:
     - family: NotoSansArabicUI
       fonts:
         - asset: assets/fonts/NotoSansArabicUI-Regular.ttf
         - asset: assets/fonts/NotoSansArabicUI-Bold.ttf
           weight: 700
-        - asset: assets/fonts/NotoSansArabicUI-Medium.ttf
-          weight: 500
-        - asset: assets/fonts/NotoSansArabicUI-Light.ttf
-          weight: 300
-        - asset: assets/fonts/NotoSansArabicUI-SemiBold.ttf
-          weight: 600
-        - asset: assets/fonts/NotoSansArabicUI-Black.ttf
-          weight: 900
-
-flutter_launcher_icons:
-  android: true
-  ios: false
-  image_path: "assets/icons/app_icon.png"
-  min_sdk_android: 21
-
-flutter_native_splash:
-  color: "#FFFFFF"
-  image: assets/icons/app_icon.png
-  android: true
-  ios: false
