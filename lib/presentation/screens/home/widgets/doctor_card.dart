@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
-import 'package:sehatak/presentation/widgets/gradient_button.dart';
 
 class DoctorCard extends StatelessWidget {
   final Map<String, dynamic> doctor;
@@ -18,7 +15,7 @@ class DoctorCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.04),
@@ -33,31 +30,31 @@ class DoctorCard extends StatelessWidget {
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                   child: AppImage(
                     url: doctor['image'] as String,
-                    height: 120.h,
+                    height: 120,
                     width: double.infinity,
                   ),
                 ),
                 Positioned(
-                  top: 8.r,
-                  right: 8.r,
+                  top: 8,
+                  right: 8,
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.black.withOpacity(0.7),
-                      borderRadius: BorderRadius.circular(12.r),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
                       children: [
                         const Icon(Icons.star, color: Colors.amber, size: 12),
-                        SizedBox(width: 4.w),
+                        const SizedBox(width: 4),
                         Text(
                           doctor['rating'].toString(),
-                          style: GoogleFonts.cairo(
+                          style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 12.sp,
+                            fontSize: 12,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -66,21 +63,21 @@ class DoctorCard extends StatelessWidget {
                   ),
                 ),
                 Positioned(
-                  bottom: 8.r,
-                  left: 8.r,
+                  bottom: 8,
+                  left: 8,
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: doctor['available'] == true 
                           ? Colors.green.withOpacity(0.9)
                           : Colors.red.withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(12.r),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       doctor['available'] == true ? 'متاح' : 'غير متاح',
-                      style: GoogleFonts.cairo(
+                      style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 10.sp,
+                        fontSize: 10,
                       ),
                     ),
                   ),
@@ -88,34 +85,47 @@ class DoctorCard extends StatelessWidget {
               ],
             ),
             Padding(
-              padding: EdgeInsets.all(12.w),
+              padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     doctor['name'] as String,
-                    style: GoogleFonts.cairo(
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 14.sp,
+                      fontSize: 14,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
                     doctor['specialty'] as String,
-                    style: GoogleFonts.cairo(
-                      fontSize: 11.sp,
+                    style: TextStyle(
+                      fontSize: 11,
                       color: Colors.grey[600],
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: 8.h),
-                  GradientButton(
-                    text: 'حجز موعد',
-                    onPressed: onTap,
-                    height: 32.h,
-                    fontSize: 11.sp,
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: onTap,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        minimumSize: const Size(0, 32),
+                      ),
+                      child: const Text(
+                        'حجز موعد',
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                      ),
+                    ),
                   ),
                 ],
               ),

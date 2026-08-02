@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 
 class QuickServiceItem {
@@ -25,7 +23,7 @@ class QuickServices extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 90.h,
+      height: 90,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: services.length,
@@ -37,30 +35,30 @@ class QuickServices extends StatelessWidget {
               MaterialPageRoute(builder: (_) => service.screen),
             ),
             child: Container(
-              width: 70.w,
-              margin: EdgeInsets.only(right: 12.w),
+              width: 70,
+              margin: const EdgeInsets.only(right: 12),
               child: Column(
                 children: [
                   Container(
-                    padding: EdgeInsets.all(14.w),
+                    padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
                       color: service.color.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(16.r),
+                      borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: service.color.withOpacity(0.2),
                       ),
                     ),
                     child: AppImage(
                       url: service.icon,
-                      width: 32.w,
-                      height: 32.h,
+                      width: 32,
+                      height: 32,
                     ),
                   ),
-                  SizedBox(height: 6.h),
+                  const SizedBox(height: 6),
                   Text(
                     service.label,
-                    style: TextStyle(
-                      fontSize: 10.sp,
+                    style: const TextStyle(
+                      fontSize: 10,
                       fontWeight: FontWeight.w500,
                     ),
                     textAlign: TextAlign.center,
