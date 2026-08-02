@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/models/medication/medication_model.dart';
+import 'package:sehatak/core/services/medication/medication_service.dart';
+import 'package:sehatak/presentation/screens/medication/add_medication_screen.dart';
+import 'package:sehatak/presentation/screens/medication/medication_detail_screen.dart';
+import 'package:sehatak/presentation/screens/medication/medication_history_screen.dart';
 
 class MedicationReminderScreen extends StatefulWidget {
   const MedicationReminderScreen({super.key});
@@ -8,126 +13,47 @@ class MedicationReminderScreen extends StatefulWidget {
   State<MedicationReminderScreen> createState() => _MedicationReminderScreenState();
 }
 
-class _MedicationReminderScreenState extends State<MedicationReminderScreen> {
-  bool _isAdding = false;
+class _MedicationReminderScreenState extends State<MedicationReminderScreen> with SingleTickerProviderStateMixin {
+  final MedicationService _medicationService = MedicationService();
+  List<MedicationModel> _medications = [];
+  List<MedicationModel> _todayMedications = [];
+  bool _isLoading = true;
+  late TabController _tabController;
 
-  // ✅ قائمة الأدوية
-  final List<Map<String, dynamic>> _medications = [
-    {
-      'name': 'أملوديبين',
-      'dose': '5mg',
-      'frequency': 'يومياً',
-      'time': '8:00 ص',
-      'remaining': '25/30',
-      'icon': Icons.medication,
-      'color': AppColors.primary,
-    },
-    {
-      'name': 'أوميبازول',
-      'dose': '40mg',
-      'frequency': 'قبل الأكل',
-      'time': '9:00 ص',
-      'remaining': '8/14',
-      'icon': Icons.medication,
-      'color': AppColors.warning,
-    },
-    {
-      'name': 'فيتامين د',
-      'dose': '1000IU',
-      'frequency': 'أحد/أربعاء/جمعة',
-      'time': '2:00 م',
-      'remaining': '45/60',
-      'icon': Icons.medication,
-      'color': AppColors.success,
-    },
-    {
-      'name': 'سيستريزين',
-      'dose': '10mg',
-      'frequency': 'عند اللزوم',
-      'time': '10:00 م',
-      'remaining': '12/20',
-      'icon': Icons.medication,
-      'color': AppColors.purple,
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _initService();
+  }
 
-  // ✅ متغيرات الإضافة
-  final TextEditingController _nameCtrl = TextEditingController();
-  final TextEditingController _doseCtrl = TextEditingController();
-  final TextEditingController _remainingCtrl = TextEditingController();
-  String _selectedFrequency = 'يومياً';
-  TimeOfDay _selectedTime = const TimeOfDay(hour: 8, minute: 0);
-  Color _selectedColor = AppColors.primary;
+  Future<void> _initService() async {
+    await _medicationService.initNotifications();
+    _loadData();
+  }
 
-  final List<String> _frequencyOptions = [
-    'يومياً',
-    'مرتين يومياً',
-    'ثلاث مرات يومياً',
-    'أسبوعياً',
-    'عند اللزوم',
-    'قبل الأكل',
-    'بعد الأكل',
-  ];
-
-  final List<Color> _colorOptions = [
-    AppColors.primary,
-    AppColors.success,
-    AppColors.warning,
-    AppColors.error,
-    AppColors.purple,
-    AppColors.info,
-    AppColors.pink,
-    AppColors.orange,
-  ];
-
-  void _saveMedication() {
-    if (_nameCtrl.text.isEmpty || _doseCtrl.text.isEmpty) return;
-
-    setState(() {
-      _medications.insert(0, {
-        'name': _nameCtrl.text,
-        'dose': _doseCtrl.text,
-        'frequency': _selectedFrequency,
-        'time': _selectedTime.format(context),
-        'remaining': _remainingCtrl.text.isNotEmpty ? _remainingCtrl.text : '0/0',
-        'icon': Icons.medication,
-        'color': _selectedColor,
+  void _loadData() {
+    _medicationService.getMedications().listen((medications) {
+      setState(() {
+        _medications = medications;
+        _isLoading = false;
       });
-      _isAdding = false;
-      _nameCtrl.clear();
-      _doseCtrl.clear();
-      _remainingCtrl.clear();
+    });
+    
+    _loadTodayMedications();
+  }
+
+  Future<void> _loadTodayMedications() async {
+    final today = await _medicationService.getTodayMedications();
+    setState(() {
+      _todayMedications = today;
     });
   }
 
-  void _showAddDialog() {
-    _nameCtrl.clear();
-    _doseCtrl.clear();
-    _remainingCtrl.clear();
-    _selectedFrequency = 'يومياً';
-    _selectedTime = const TimeOfDay(hour: 8, minute: 0);
-    _selectedColor = AppColors.primary;
-    setState(() => _isAdding = true);
-  }
-
-  Future<void> _selectTime() async {
-    final time = await showTimePicker(
-      context: context,
-      initialTime: _selectedTime,
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: AppColors.primary,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (time != null) {
-      setState(() => _selectedTime = time);
-    }
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   @override
@@ -135,361 +61,415 @@ class _MedicationReminderScreenState extends State<MedicationReminderScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
+      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('تذكير الأدوية', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('💊 تذكير الأدوية'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(text: '📋 اليوم'),
+            Tab(text: '📦 جميع الأدوية'),
+          ],
+          indicatorColor: Colors.white,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add_rounded),
-            onPressed: _showAddDialog,
+            icon: const Icon(Icons.history),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const MedicationHistoryScreen(),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const AddMedicationScreen(),
+                ),
+              ).then((_) => _loadData());
+            },
           ),
         ],
       ),
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : TabBarView(
+              controller: _tabController,
               children: [
-                // ✅ جرعات اليوم
-                _buildDailyProgress(),
-                const SizedBox(height: 20),
-                // ✅ قائمة الأدوية
-                ..._medications.map((med) => _buildMedicationCard(med, isDark)),
-                const SizedBox(height: 20),
-                // ✅ زر إضافة دواء
-                _buildAddButton(),
+                _buildTodayTab(isDark),
+                _buildAllMedicationsTab(isDark),
+              ],
+            ),
+    );
+  }
+
+  // ✅ تبويب اليوم
+  Widget _buildTodayTab(bool isDark) {
+    if (_todayMedications.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.medication_outlined, size: 64, color: isDark ? Colors.grey[600] : Colors.grey[300]),
+            const SizedBox(height: 16),
+            Text(
+              'لا توجد أدوية اليوم',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'أضف دواء جديد أو تحقق من قائمة الأدوية',
+              style: TextStyle(
+                fontSize: 13,
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const AddMedicationScreen(),
+                  ),
+                ).then((_) => _loadData());
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('➕ إضافة دواء'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: _todayMedications.length,
+      itemBuilder: (context, index) {
+        final med = _todayMedications[index];
+        final isTaken = med.logs.isNotEmpty && med.logs.last.takenAt.day == DateTime.now().day;
+        
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => MedicationDetailScreen(medicationId: med.id),
+              ),
+            );
+          },
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1A2540) : Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: isTaken
+                  ? Border.all(color: Colors.green, width: 2)
+                  : null,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 8,
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: (med.form as MedicationDosageForm).color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    med.formIcon,
+                    color: (med.form as MedicationDosageForm).color,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        med.name,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${med.dosage ?? ''} • ${med.formText}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Wrap(
+                        spacing: 4,
+                        children: med.times.map((time) {
+                          final timeStr = time.formatTime();
+                          final isTimePassed = _isTimePassed(time);
+                          return Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: isTimePassed && !isTaken
+                                  ? Colors.red.withOpacity(0.1)
+                                  : Colors.blue.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              timeStr,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: isTimePassed && !isTaken
+                                    ? Colors.red
+                                    : Colors.blue,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  children: [
+                    if (isTaken)
+                      const Icon(Icons.check_circle, color: Colors.green, size: 28)
+                    else
+                      ElevatedButton(
+                        onPressed: () {
+                          _showTakeDialog(med);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          minimumSize: const Size(0, 32),
+                        ),
+                        child: const Text('تناولت'),
+                      ),
+                    const SizedBox(height: 4),
+                    if (med.remainingPills > 0)
+                      Text(
+                        '${med.remainingPills} حبة متبقية',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: med.needsRenewal ? Colors.red : Colors.grey,
+                        ),
+                      ),
+                  ],
+                ),
               ],
             ),
           ),
-          // ✅ نافذة إضافة دواء (في منتصف الشاشة)
-          if (_isAdding) _buildAddMedicationDialog(isDark),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildDailyProgress() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.primary, AppColors.primaryDark],
-        ),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        children: [
-          const Text(
-            'جرعات اليوم',
-            style: TextStyle(color: Colors.white70, fontSize: 14),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            '4/4',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            height: 6,
-            decoration: BoxDecoration(
-              color: Colors.white24,
-              borderRadius: BorderRadius.circular(3),
-            ),
-            child: FractionallySizedBox(
-              widthFactor: 1.0,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(3),
-                ),
+  // ✅ تبويب جميع الأدوية
+  Widget _buildAllMedicationsTab(bool isDark) {
+    if (_medications.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.medication_outlined, size: 64, color: isDark ? Colors.grey[600] : Colors.grey[300]),
+            const SizedBox(height: 16),
+            Text(
+              'لا توجد أدوية',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black87,
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMedicationCard(Map<String, dynamic> med, bool isDark) {
-    final color = med['color'] as Color;
-    final icon = med['icon'] as IconData;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2540) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-        border: Border.all(
-          color: isDark ? const Color(0xFF2D3A54) : Colors.transparent,
+            const SizedBox(height: 8),
+            Text(
+              'أضف أدويتك للحصول على تذكيرات',
+              style: TextStyle(
+                fontSize: 13,
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
+              ),
+            ),
+          ],
         ),
-      ),
-      child: Row(
-        children: [
-          // ✅ أيقونة الدواء
-          Container(
-            width: 44,
-            height: 44,
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: _medications.length,
+      itemBuilder: (context, index) {
+        final med = _medications[index];
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => MedicationDetailScreen(medicationId: med.id),
+              ),
+            );
+          },
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: isDark ? const Color(0xFF1A2540) : Colors.white,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: color, size: 24),
-          ),
-          const SizedBox(width: 12),
-          // ✅ معلومات الدواء
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                Text(
-                  med['name'],
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    color: isDark ? Colors.white : Colors.black87,
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: (med.form as MedicationDosageForm).color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    med.formIcon,
+                    color: (med.form as MedicationDosageForm).color,
+                    size: 20,
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  '${med['dose']} • ${med['frequency']}',
-                  style: TextStyle(fontSize: 12, color: AppColors.grey),
-                ),
-              ],
-            ),
-          ),
-          // ✅ الوقت والجرعة المتبقية
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  med['time'],
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                    color: color,
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        med.name,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                      Text(
+                        '${med.dosage ?? ''} • ${med.frequencyText}',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'متبقي: ${med['remaining']}',
-                style: TextStyle(fontSize: 11, color: AppColors.grey),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAddButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 52,
-      child: OutlinedButton.icon(
-        onPressed: _showAddDialog,
-        icon: const Icon(Icons.add_rounded),
-        label: const Text(
-          'إضافة دواء',
-          style: TextStyle(fontSize: 16),
-        ),
-        style: OutlinedButton.styleFrom(
-          side: BorderSide(color: AppColors.primary),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ✅ نافذة إضافة دواء (في منتصف الشاشة)
-  Widget _buildAddMedicationDialog(bool isDark) {
-    return GestureDetector(
-      onTap: () => setState(() => _isAdding = false),
-      child: Container(
-        color: Colors.black54,
-        child: Center(
-          child: GestureDetector(
-            onTap: () {},
-            child: Container(
-              margin: const EdgeInsets.all(20),
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1A2540) : Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 20,
-                  ),
-                ],
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                      'إضافة دواء جديد',
+                if (med.needsRenewal)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      'نفذ المخزون',
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 10,
+                        color: Colors.red,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    // ✅ اسم الدواء
-                    TextField(
-                      controller: _nameCtrl,
-                      textAlign: TextAlign.right,
-                      decoration: const InputDecoration(
-                        labelText: 'اسم الدواء',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.medication),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    // ✅ الجرعة
-                    TextField(
-                      controller: _doseCtrl,
-                      textAlign: TextAlign.right,
-                      decoration: const InputDecoration(
-                        labelText: 'الجرعة (مثال: 5mg)',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    // ✅ التكرار
-                    DropdownButtonFormField<String>(
-                      value: _selectedFrequency,
-                      items: _frequencyOptions.map((freq) {
-                        return DropdownMenuItem<String>(
-                          value: freq,
-                          child: Text(freq),
-                        );
-                      }).toList(),
-                      onChanged: (value) => setState(() => _selectedFrequency = value!),
-                      decoration: const InputDecoration(
-                        labelText: 'التكرار',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    // ✅ اختيار الوقت (زر مع الوقت المكتوب)
-                    GestureDetector(
-                      onTap: _selectTime,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey.shade400),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.access_time, color: AppColors.primary),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                _selectedTime.format(context),
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                            ),
-                            const Icon(Icons.arrow_drop_down, color: AppColors.grey),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    // ✅ الكمية المتبقية
-                    TextField(
-                      controller: _remainingCtrl,
-                      textAlign: TextAlign.right,
-                      decoration: const InputDecoration(
-                        labelText: 'المتبقي (مثال: 25/30)',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    // ✅ اختيار اللون
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _colorOptions.map((color) {
-                        final isSelected = _selectedColor == color;
-                        return GestureDetector(
-                          onTap: () => setState(() => _selectedColor = color),
-                          child: Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: color,
-                              shape: BoxShape.circle,
-                              border: isSelected
-                                  ? Border.all(color: Colors.white, width: 3)
-                                  : null,
-                              boxShadow: isSelected
-                                  ? [
-                                      BoxShadow(
-                                        color: color.withOpacity(0.4),
-                                        blurRadius: 8,
-                                      ),
-                                    ]
-                                  : null,
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextButton(
-                            onPressed: () => setState(() => _isAdding = false),
-                            child: const Text('إلغاء'),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: _saveMedication,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              foregroundColor: Colors.white,
-                            ),
-                            child: const Text('حفظ'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+                  ),
+                const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
+              ],
             ),
           ),
+        );
+      },
+    );
+  }
+
+  void _showTakeDialog(MedicationModel med) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('💊 ${med.name}'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('هل تناولت الدواء؟'),
+            const SizedBox(height: 8),
+            Text(
+              'الجرعة: ${med.dosage ?? ''}',
+              style: const TextStyle(fontSize: 13, color: Colors.grey),
+            ),
+          ],
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('تخطي'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await _medicationService.logMedication(med.id, true);
+              Navigator.pop(context);
+              await _loadTodayMedications();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('✅ تم تسجيل تناول الدواء'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('✅ تناولت'),
+          ),
+        ],
       ),
     );
+  }
+
+  bool _isTimePassed(TimeOfDay time) {
+    final now = TimeOfDay.now();
+    return time.hour < now.hour || (time.hour == now.hour && time.minute < now.minute);
+  }
+}
+
+extension MedicationDosageFormExtension on MedicationDosageForm {
+  Color get color {
+    switch (this) {
+      case MedicationDosageForm.tablet: return Colors.blue;
+      case MedicationDosageForm.capsule: return Colors.purple;
+      case MedicationDosageForm.syrup: return Colors.orange;
+      case MedicationDosageForm.injection: return Colors.red;
+      case MedicationDosageForm.drops: return Colors.cyan;
+      case MedicationDosageForm.cream: return Colors.pink;
+      case MedicationDosageForm.spray: return Colors.teal;
+      case MedicationDosageForm.patch: return Colors.green;
+    }
   }
 }
