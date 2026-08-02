@@ -439,7 +439,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     ),
                   ),
                   Text(
-                    'كيف تشعر اليوم؟ 🌟',
+                    'كيف تشعر اليوم؟',
                     style: TextStyle(
                       fontSize: 11,
                       color: isDark ? Colors.grey[400] : Colors.grey[600],
