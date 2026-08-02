@@ -20,6 +20,7 @@ import 'package:sehatak/presentation/screens/consultation/consultation_screen.da
 import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
 import 'package:sehatak/presentation/screens/insurance/insurance_companies.dart';
 import 'package:sehatak/presentation/screens/health/health_dashboard.dart';
+import 'package:sehatak/presentation/screens/articles/articles_screen.dart';
 
 class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
@@ -172,10 +173,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     children: [
                       Text(
                         'خدمات سريعة',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.black87,
                         ),
                       ),
                       TextButton(
@@ -204,10 +204,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     children: [
                       Text(
                         'أفضل الأطباء',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.black87,
                         ),
                       ),
                       TextButton(
@@ -230,7 +229,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
@@ -258,10 +257,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     children: [
                       Text(
                         'منتجات صيدلية',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.black87,
                         ),
                       ),
                       TextButton(
@@ -284,7 +282,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
@@ -304,10 +302,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     children: [
                       Text(
                         'نصائح يومية',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.black87,
                         ),
                       ),
                     ],
@@ -316,7 +313,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
@@ -336,10 +333,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     children: [
                       Text(
                         'مستشفيات مميزة',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.black87,
                         ),
                       ),
                       TextButton(
@@ -362,7 +358,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
@@ -382,10 +378,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     children: [
                       Text(
                         'مختبرات مميزة',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.black87,
                         ),
                       ),
                       TextButton(
@@ -408,7 +403,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
@@ -428,10 +423,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     children: [
                       Text(
                         'صيدليات مميزة',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.black87,
                         ),
                       ),
                       TextButton(
@@ -454,7 +448,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
@@ -474,10 +468,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     children: [
                       Text(
                         'أحدث المقالات',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.black87,
                         ),
                       ),
                     ],
@@ -486,7 +479,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
@@ -506,10 +499,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     children: [
                       Text(
                         'مجتمع صحتك',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.black87,
                         ),
                       ),
                     ],
