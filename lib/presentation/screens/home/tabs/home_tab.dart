@@ -432,7 +432,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Text(
-                    'مرحباً بك 👋',
+                    'مرحباً بك',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
