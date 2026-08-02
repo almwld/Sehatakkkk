@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/core/services/health_score_service.dart';
-import 'package:sehatak/presentation/widgets/gradient_button.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 import 'package:sehatak/presentation/screens/home/widgets/banner_carousel.dart';
 import 'package:sehatak/presentation/screens/home/widgets/quick_services.dart';
@@ -158,16 +155,16 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
           controller: _scrollController,
           slivers: [
             SliverPadding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   // 📊 الإحصائيات
                   _buildStatsRow(),
-                  SizedBox(height: 20.h),
+                  const SizedBox(height: 20),
 
                   // 🎯 البانر
                   BannerCarousel(images: _bannerImages),
-                  SizedBox(height: 20.h),
+                  const SizedBox(height: 20),
 
                   // 🚀 الخدمات السريعة
                   Row(
@@ -175,8 +172,8 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     children: [
                       Text(
                         'خدمات سريعة',
-                        style: GoogleFonts.cairo(
-                          fontSize: 18.sp,
+                        style: TextStyle(
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: isDark ? Colors.white : Colors.black87,
                         ),
@@ -188,18 +185,18 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                         ),
                         child: Text(
                           'عرض الكل',
-                          style: GoogleFonts.cairo(
+                          style: TextStyle(
                             color: AppColors.primary,
                             fontWeight: FontWeight.w600,
-                            fontSize: 14.sp,
+                            fontSize: 14,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 10.h),
+                  const SizedBox(height: 10),
                   QuickServices(services: _quickServices),
-                  SizedBox(height: 24.h),
+                  const SizedBox(height: 24),
 
                   // 👨‍⚕️ أفضل الأطباء
                   Row(
@@ -207,8 +204,8 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     children: [
                       Text(
                         'أفضل الأطباء',
-                        style: GoogleFonts.cairo(
-                          fontSize: 18.sp,
+                        style: TextStyle(
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: isDark ? Colors.white : Colors.black87,
                         ),
@@ -220,23 +217,23 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                         ),
                         child: Text(
                           'عرض الكل',
-                          style: GoogleFonts.cairo(
+                          style: TextStyle(
                             color: AppColors.primary,
                             fontWeight: FontWeight.w600,
-                            fontSize: 14.sp,
+                            fontSize: 14,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 10.h),
+                  const SizedBox(height: 10),
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
-                      crossAxisSpacing: 12.w,
-                      mainAxisSpacing: 12.h,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
                       childAspectRatio: 0.75,
                     ),
                     itemCount: _topDoctors.length > 6 ? 6 : _topDoctors.length,
@@ -253,7 +250,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                       );
                     },
                   ),
-                  SizedBox(height: 24.h),
+                  const SizedBox(height: 24),
 
                   // 💊 منتجات صيدلية
                   Row(
@@ -261,8 +258,8 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     children: [
                       Text(
                         'منتجات صيدلية',
-                        style: GoogleFonts.cairo(
-                          fontSize: 18.sp,
+                        style: TextStyle(
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: isDark ? Colors.white : Colors.black87,
                         ),
@@ -274,23 +271,23 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                         ),
                         child: Text(
                           'عرض الكل',
-                          style: GoogleFonts.cairo(
+                          style: TextStyle(
                             color: AppColors.primary,
                             fontWeight: FontWeight.w600,
-                            fontSize: 14.sp,
+                            fontSize: 14,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 10.h),
+                  const SizedBox(height: 10),
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
-                      crossAxisSpacing: 12.w,
-                      mainAxisSpacing: 12.h,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
                       childAspectRatio: 0.75,
                     ),
                     itemCount: _products.length > 6 ? 6 : _products.length,
@@ -299,7 +296,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                       return _buildProductCard(product, isDark);
                     },
                   ),
-                  SizedBox(height: 24.h),
+                  const SizedBox(height: 24),
 
                   // 💡 نصائح يومية
                   Row(
@@ -307,22 +304,22 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     children: [
                       Text(
                         'نصائح يومية',
-                        style: GoogleFonts.cairo(
-                          fontSize: 18.sp,
+                        style: TextStyle(
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: isDark ? Colors.white : Colors.black87,
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 10.h),
+                  const SizedBox(height: 10),
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
-                      crossAxisSpacing: 12.w,
-                      mainAxisSpacing: 12.h,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
                       childAspectRatio: 1.2,
                     ),
                     itemCount: _dailyTips.length,
@@ -331,7 +328,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                       return _buildDailyTipCard(tip, isDark);
                     },
                   ),
-                  SizedBox(height: 24.h),
+                  const SizedBox(height: 24),
 
                   // 🏥 مستشفيات مميزة
                   Row(
@@ -339,8 +336,8 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     children: [
                       Text(
                         'مستشفيات مميزة',
-                        style: GoogleFonts.cairo(
-                          fontSize: 18.sp,
+                        style: TextStyle(
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: isDark ? Colors.white : Colors.black87,
                         ),
@@ -352,23 +349,23 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                         ),
                         child: Text(
                           'عرض الكل',
-                          style: GoogleFonts.cairo(
+                          style: TextStyle(
                             color: AppColors.primary,
                             fontWeight: FontWeight.w600,
-                            fontSize: 14.sp,
+                            fontSize: 14,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 10.h),
+                  const SizedBox(height: 10),
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
-                      crossAxisSpacing: 12.w,
-                      mainAxisSpacing: 12.h,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
                       childAspectRatio: 0.8,
                     ),
                     itemCount: _featuredHospitals.length > 6 ? 6 : _featuredHospitals.length,
@@ -377,7 +374,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                       return _buildHospitalCard(hospital, isDark);
                     },
                   ),
-                  SizedBox(height: 24.h),
+                  const SizedBox(height: 24),
 
                   // 🧪 مختبرات مميزة
                   Row(
@@ -385,8 +382,8 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     children: [
                       Text(
                         'مختبرات مميزة',
-                        style: GoogleFonts.cairo(
-                          fontSize: 18.sp,
+                        style: TextStyle(
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: isDark ? Colors.white : Colors.black87,
                         ),
@@ -398,23 +395,23 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                         ),
                         child: Text(
                           'عرض الكل',
-                          style: GoogleFonts.cairo(
+                          style: TextStyle(
                             color: AppColors.primary,
                             fontWeight: FontWeight.w600,
-                            fontSize: 14.sp,
+                            fontSize: 14,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 10.h),
+                  const SizedBox(height: 10),
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
-                      crossAxisSpacing: 12.w,
-                      mainAxisSpacing: 12.h,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
                       childAspectRatio: 0.8,
                     ),
                     itemCount: _featuredLabs.length > 6 ? 6 : _featuredLabs.length,
@@ -423,7 +420,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                       return _buildLabCard(lab, isDark);
                     },
                   ),
-                  SizedBox(height: 24.h),
+                  const SizedBox(height: 24),
 
                   // 💊 صيدليات مميزة
                   Row(
@@ -431,8 +428,8 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     children: [
                       Text(
                         'صيدليات مميزة',
-                        style: GoogleFonts.cairo(
-                          fontSize: 18.sp,
+                        style: TextStyle(
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: isDark ? Colors.white : Colors.black87,
                         ),
@@ -444,23 +441,23 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                         ),
                         child: Text(
                           'عرض الكل',
-                          style: GoogleFonts.cairo(
+                          style: TextStyle(
                             color: AppColors.primary,
                             fontWeight: FontWeight.w600,
-                            fontSize: 14.sp,
+                            fontSize: 14,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 10.h),
+                  const SizedBox(height: 10),
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
-                      crossAxisSpacing: 12.w,
-                      mainAxisSpacing: 12.h,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
                       childAspectRatio: 0.8,
                     ),
                     itemCount: _featuredPharmacies.length > 6 ? 6 : _featuredPharmacies.length,
@@ -469,7 +466,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                       return _buildPharmacyCard(pharmacy, isDark);
                     },
                   ),
-                  SizedBox(height: 24.h),
+                  const SizedBox(height: 24),
 
                   // 📰 مقالات صحية
                   Row(
@@ -477,22 +474,22 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     children: [
                       Text(
                         'أحدث المقالات',
-                        style: GoogleFonts.cairo(
-                          fontSize: 18.sp,
+                        style: TextStyle(
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: isDark ? Colors.white : Colors.black87,
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 10.h),
+                  const SizedBox(height: 10),
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
-                      crossAxisSpacing: 12.w,
-                      mainAxisSpacing: 12.h,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
                       childAspectRatio: 0.9,
                     ),
                     itemCount: _healthArticles.length,
@@ -501,7 +498,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                       return _buildArticleCard(article, isDark);
                     },
                   ),
-                  SizedBox(height: 24.h),
+                  const SizedBox(height: 24),
 
                   // 💬 مجتمع صحتك
                   Row(
@@ -509,17 +506,17 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     children: [
                       Text(
                         'مجتمع صحتك',
-                        style: GoogleFonts.cairo(
-                          fontSize: 18.sp,
+                        style: TextStyle(
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: isDark ? Colors.white : Colors.black87,
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 10.h),
+                  const SizedBox(height: 10),
                   ..._communityPosts.map((post) => _buildCommunityPostCard(post, isDark)),
-                  SizedBox(height: 50.h),
+                  const SizedBox(height: 50),
                 ]),
               ),
             ),
@@ -536,28 +533,28 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         final color = stat['color'] as Color;
         return Expanded(
           child: Container(
-            margin: EdgeInsets.symmetric(horizontal: 4.w),
-            padding: EdgeInsets.symmetric(vertical: 12.h),
+            margin: const EdgeInsets.symmetric(horizontal: 4),
+            padding: const EdgeInsets.symmetric(vertical: 12),
             decoration: BoxDecoration(
               color: color.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(12.r),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
               children: [
-                Icon(stat['icon'] as IconData, color: color, size: 22.sp),
-                SizedBox(height: 4.h),
+                Icon(stat['icon'] as IconData, color: color, size: 22),
+                const SizedBox(height: 4),
                 Text(
                   stat['value'] as String,
-                  style: GoogleFonts.cairo(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 14.sp,
+                    fontSize: 14,
                     color: color,
                   ),
                 ),
                 Text(
                   stat['label'] as String,
-                  style: GoogleFonts.cairo(
-                    fontSize: 9.sp,
+                  style: TextStyle(
+                    fontSize: 9,
                     color: Colors.grey[600],
                   ),
                 ),
@@ -576,7 +573,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       child: Container(
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF1A2540) : Colors.white,
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.04),
@@ -591,38 +588,38 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             Stack(
               children: [
                 Container(
-                  height: 120.h,
+                  height: 120,
                   width: double.infinity,
                   decoration: BoxDecoration(
                     color: Colors.grey[50],
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                   ),
                   child: Center(
                     child: AppImage(
                       url: product['image'] as String,
-                      height: 100.h,
-                      width: 100.w,
+                      height: 100,
+                      width: 100,
                       fit: BoxFit.contain,
                     ),
                   ),
                 ),
                 if (product['discount'] > 0)
                   Positioned(
-                    top: 8.r,
-                    right: 8.r,
+                    top: 8,
+                    right: 8,
                     child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [Colors.red, Colors.orange],
                         ),
-                        borderRadius: BorderRadius.circular(12.r),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         'خصم ${product['discount']}%',
-                        style: GoogleFonts.cairo(
+                        style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 10.sp,
+                          fontSize: 10,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -631,43 +628,44 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               ],
             ),
             Padding(
-              padding: EdgeInsets.all(12.w),
+              padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     product['name'] as String,
-                    style: GoogleFonts.cairo(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 14.sp,
+                      fontSize: 14,
+                      color: isDark ? Colors.white : Colors.black87,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
                     product['category'] as String,
-                    style: GoogleFonts.cairo(
-                      fontSize: 10.sp,
-                      color: Colors.grey[600],
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
                     ),
                   ),
-                  SizedBox(height: 8.h),
+                  const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         '${product['price']} ريال',
-                        style: GoogleFonts.cairo(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 16.sp,
+                          fontSize: 16,
                           color: AppColors.primary,
                         ),
                       ),
                       Container(
-                        padding: EdgeInsets.all(8.w),
+                        padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           color: AppColors.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8.r),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Icon(
                           Icons.add_shopping_cart,
@@ -690,30 +688,30 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   Widget _buildDailyTipCard(Map<String, dynamic> tip, bool isDark) {
     final color = tip['color'] as Color;
     return Container(
-      padding: EdgeInsets.all(12.w),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1A2540) : Colors.white,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: color.withOpacity(0.2)),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(tip['icon'] as IconData, color: color, size: 32.sp),
-          SizedBox(height: 8.h),
+          Icon(tip['icon'] as IconData, color: color, size: 32),
+          const SizedBox(height: 8),
           Text(
             tip['title'] as String,
-            style: GoogleFonts.cairo(
+            style: TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: 14.sp,
+              fontSize: 14,
               color: isDark ? Colors.white : Colors.black87,
             ),
             textAlign: TextAlign.center,
           ),
           Text(
             tip['subtitle'] as String,
-            style: GoogleFonts.cairo(
-              fontSize: 11.sp,
+            style: TextStyle(
+              fontSize: 11,
               color: isDark ? Colors.grey[400] : Colors.grey[600],
             ),
             textAlign: TextAlign.center,
@@ -730,7 +728,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       child: Container(
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF1A2540) : Colors.white,
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.04),
@@ -745,30 +743,31 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                   child: AppImage(
                     url: hospital['image'] as String,
-                    height: 120.h,
+                    height: 120,
                     width: double.infinity,
                   ),
                 ),
                 Positioned(
-                  top: 8.r,
-                  right: 8.r,
+                  top: 8,
+                  right: 8,
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.black.withOpacity(0.7),
-                      borderRadius: BorderRadius.circular(12.r),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
                       children: [
                         const Icon(Icons.star, color: Colors.amber, size: 12),
+                        const SizedBox(width: 4),
                         Text(
                           hospital['rating'].toString(),
-                          style: GoogleFonts.cairo(
+                          style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 12.sp,
+                            fontSize: 12,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -777,21 +776,21 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   ),
                 ),
                 Positioned(
-                  bottom: 8.r,
-                  left: 8.r,
+                  bottom: 8,
+                  left: 8,
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: hospital['open'] == true 
                           ? Colors.green.withOpacity(0.9)
                           : Colors.red.withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(12.r),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       hospital['open'] == true ? 'مفتوح' : 'مغلق',
-                      style: GoogleFonts.cairo(
+                      style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 10.sp,
+                        fontSize: 10,
                       ),
                     ),
                   ),
@@ -799,35 +798,49 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               ],
             ),
             Padding(
-              padding: EdgeInsets.all(12.w),
+              padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     hospital['name'] as String,
-                    style: GoogleFonts.cairo(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 14.sp,
+                      fontSize: 14,
+                      color: isDark ? Colors.white : Colors.black87,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
                     hospital['location'] as String,
-                    style: GoogleFonts.cairo(
-                      fontSize: 11.sp,
+                    style: TextStyle(
+                      fontSize: 11,
                       color: isDark ? Colors.grey[400] : Colors.grey[600],
                     ),
                   ),
-                  SizedBox(height: 8.h),
-                  GradientButton(
-                    text: 'حجز',
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const HospitalScreen()),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const HospitalScreen()),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        minimumSize: const Size(0, 32),
+                      ),
+                      child: const Text(
+                        'حجز',
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                      ),
                     ),
-                    height: 32.h,
-                    fontSize: 11.sp,
                   ),
                 ],
               ),
@@ -845,7 +858,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       child: Container(
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF1A2540) : Colors.white,
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.04),
@@ -858,43 +871,57 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
               child: AppImage(
                 url: lab['image'] as String,
-                height: 120.h,
+                height: 120,
                 width: double.infinity,
               ),
             ),
             Padding(
-              padding: EdgeInsets.all(12.w),
+              padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     lab['name'] as String,
-                    style: GoogleFonts.cairo(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 14.sp,
+                      fontSize: 14,
+                      color: isDark ? Colors.white : Colors.black87,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
                     lab['location'] as String,
-                    style: GoogleFonts.cairo(
-                      fontSize: 11.sp,
+                    style: TextStyle(
+                      fontSize: 11,
                       color: isDark ? Colors.grey[400] : Colors.grey[600],
                     ),
                   ),
-                  SizedBox(height: 8.h),
-                  GradientButton(
-                    text: 'حجز',
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const LabsListScreen()),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const LabsListScreen()),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        minimumSize: const Size(0, 32),
+                      ),
+                      child: const Text(
+                        'حجز',
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                      ),
                     ),
-                    height: 32.h,
-                    fontSize: 11.sp,
                   ),
                 ],
               ),
@@ -912,7 +939,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       child: Container(
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF1A2540) : Colors.white,
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.04),
@@ -925,43 +952,57 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
               child: AppImage(
                 url: pharmacy['image'] as String,
-                height: 120.h,
+                height: 120,
                 width: double.infinity,
               ),
             ),
             Padding(
-              padding: EdgeInsets.all(12.w),
+              padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     pharmacy['name'] as String,
-                    style: GoogleFonts.cairo(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 14.sp,
+                      fontSize: 14,
+                      color: isDark ? Colors.white : Colors.black87,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
                     pharmacy['location'] as String,
-                    style: GoogleFonts.cairo(
-                      fontSize: 11.sp,
+                    style: TextStyle(
+                      fontSize: 11,
                       color: isDark ? Colors.grey[400] : Colors.grey[600],
                     ),
                   ),
-                  SizedBox(height: 8.h),
-                  GradientButton(
-                    text: 'طلب',
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const PharmacyScreen()),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const PharmacyScreen()),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        minimumSize: const Size(0, 32),
+                      ),
+                      child: const Text(
+                        'طلب',
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                      ),
                     ),
-                    height: 32.h,
-                    fontSize: 11.sp,
                   ),
                 ],
               ),
@@ -979,7 +1020,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       child: Container(
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF1A2540) : Colors.white,
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.04),
@@ -992,46 +1033,47 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
               child: AppImage(
                 url: article['image'] as String,
-                height: 100.h,
+                height: 100,
                 width: double.infinity,
               ),
             ),
             Padding(
-              padding: EdgeInsets.all(12.w),
+              padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: AppColors.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12.r),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       article['category'] as String,
-                      style: GoogleFonts.cairo(
-                        fontSize: 10.sp,
+                      style: TextStyle(
+                        fontSize: 10,
                         color: AppColors.primary,
                       ),
                     ),
                   ),
-                  SizedBox(height: 4.h),
+                  const SizedBox(height: 4),
                   Text(
                     article['title'] as String,
-                    style: GoogleFonts.cairo(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 13.sp,
+                      fontSize: 13,
+                      color: isDark ? Colors.white : Colors.black87,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
                     article['time'] as String,
-                    style: GoogleFonts.cairo(
-                      fontSize: 10.sp,
+                    style: TextStyle(
+                      fontSize: 10,
                       color: isDark ? Colors.grey[400] : Colors.grey[600],
                     ),
                   ),
@@ -1048,11 +1090,11 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   Widget _buildCommunityPostCard(Map<String, dynamic> post, bool isDark) {
     final index = _communityPosts.indexOf(post);
     return Container(
-      margin: EdgeInsets.only(bottom: 12.h),
-      padding: EdgeInsets.all(16.w),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1A2540) : Colors.white,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
@@ -1067,30 +1109,30 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
           Row(
             children: [
               CircleAvatar(
-                radius: 20.r,
+                radius: 20,
                 backgroundColor: AppColors.primary.withOpacity(0.1),
                 child: Text(
                   post['author'][0],
-                  style: TextStyle(color: AppColors.primary, fontSize: 16.sp),
+                  style: TextStyle(color: AppColors.primary, fontSize: 16),
                 ),
               ),
-              SizedBox(width: 12.w),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       post['author'] as String,
-                      style: GoogleFonts.cairo(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 14.sp,
+                        fontSize: 14,
                         color: isDark ? Colors.white : Colors.black87,
                       ),
                     ),
                     Text(
                       post['time'] as String,
-                      style: GoogleFonts.cairo(
-                        fontSize: 11.sp,
+                      style: TextStyle(
+                        fontSize: 11,
                         color: isDark ? Colors.grey[400] : Colors.grey[600],
                       ),
                     ),
@@ -1103,34 +1145,34 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               ),
             ],
           ),
-          SizedBox(height: 8.h),
+          const SizedBox(height: 8),
           Text(
             post['title'] as String,
-            style: GoogleFonts.cairo(
+            style: TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: 16.sp,
+              fontSize: 16,
               color: isDark ? Colors.white : Colors.black87,
             ),
           ),
-          SizedBox(height: 4.h),
+          const SizedBox(height: 4),
           Text(
             post['content'] as String,
-            style: GoogleFonts.cairo(
-              fontSize: 14.sp,
+            style: TextStyle(
+              fontSize: 14,
               color: isDark ? Colors.grey[300] : Colors.grey[700],
             ),
           ),
-          SizedBox(height: 8.h),
+          const SizedBox(height: 8),
           if (post['image'] != null)
             ClipRRect(
-              borderRadius: BorderRadius.circular(12.r),
+              borderRadius: BorderRadius.circular(12),
               child: AppImage(
                 url: post['image'] as String,
-                height: 150.h,
+                height: 150,
                 width: double.infinity,
               ),
             ),
-          SizedBox(height: 12.h),
+          const SizedBox(height: 12),
           Row(
             children: [
               GestureDetector(
@@ -1140,42 +1182,42 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     Icon(
                       post['liked'] == true ? Icons.favorite : Icons.favorite_border,
                       color: post['liked'] == true ? Colors.red : (isDark ? Colors.grey[400] : Colors.grey[600]),
-                      size: 20.sp,
+                      size: 20,
                     ),
-                    SizedBox(width: 4.w),
+                    const SizedBox(width: 4),
                     Text(
                       '${post['likes']}',
-                      style: GoogleFonts.cairo(
-                        fontSize: 12.sp,
+                      style: TextStyle(
+                        fontSize: 12,
                         color: isDark ? Colors.grey[400] : Colors.grey[600],
                       ),
                     ),
                   ],
                 ),
               ),
-              SizedBox(width: 16.w),
+              const SizedBox(width: 16),
               Row(
                 children: [
-                  Icon(Icons.comment, color: isDark ? Colors.grey[400] : Colors.grey[600], size: 20.sp),
-                  SizedBox(width: 4.w),
+                  Icon(Icons.comment, color: isDark ? Colors.grey[400] : Colors.grey[600], size: 20),
+                  const SizedBox(width: 4),
                   Text(
                     '${post['comments']}',
-                    style: GoogleFonts.cairo(
-                      fontSize: 12.sp,
+                    style: TextStyle(
+                      fontSize: 12,
                       color: isDark ? Colors.grey[400] : Colors.grey[600],
                     ),
                   ),
                 ],
               ),
-              SizedBox(width: 16.w),
+              const SizedBox(width: 16),
               Row(
                 children: [
-                  Icon(Icons.share, color: isDark ? Colors.grey[400] : Colors.grey[600], size: 20.sp),
-                  SizedBox(width: 4.w),
+                  Icon(Icons.share, color: isDark ? Colors.grey[400] : Colors.grey[600], size: 20),
+                  const SizedBox(width: 4),
                   Text(
                     '${post['shares']}',
-                    style: GoogleFonts.cairo(
-                      fontSize: 12.sp,
+                    style: TextStyle(
+                      fontSize: 12,
                       color: isDark ? Colors.grey[400] : Colors.grey[600],
                     ),
                   ),
