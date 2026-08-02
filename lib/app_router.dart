@@ -1,153 +1,123 @@
 import 'package:flutter/material.dart';
-import 'package:sehatak/presentation/screens/auth/splash_screen.dart';
-import package:sehatak/presentation/screens/auth/auth_screen.dart;
-import 'package:sehatak/presentation/screens/auth/register_screen.dart';
-import 'package:sehatak/presentation/screens/auth/forgot_password_screen.dart';
-import 'package:sehatak/presentation/screens/auth/otp_verification_screen.dart';
-import 'package:sehatak/presentation/screens/auth/reset_password_screen.dart';
-import 'package:sehatak/presentation/screens/home/main_navigation.dart';
+import 'package:go_router/go_router.dart';
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
+import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
-import 'package:sehatak/presentation/screens/doctor/doctor_booking_screen.dart';
+import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
+import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
+import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
+import 'package:sehatak/presentation/screens/more/more_screen.dart';
 import 'package:sehatak/presentation/screens/patient/patient_dashboard.dart';
 import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
-import 'package:sehatak/presentation/screens/patient/patient_medical_history.dart';
-import 'package:sehatak/presentation/screens/patient/patient_appointments.dart';
-import 'package:sehatak/presentation/screens/patient/patient_prescriptions.dart';
-import 'package:sehatak/presentation/screens/pharmacy/pharmacies_list_screen.dart';
-import 'package:sehatak/presentation/screens/pharmacy/pharmacy_products_screen.dart';
-import 'package:sehatak/presentation/screens/pharmacy/cart_screen.dart';
-import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
-import 'package:sehatak/presentation/screens/lab/lab_tests_screen.dart';
-import 'package:sehatak/presentation/screens/lab/test_booking_screen.dart';
-import 'package:sehatak/presentation/screens/insurance/insurance_companies.dart';
-import 'package:sehatak/presentation/screens/insurance/insurance_plans.dart';
-import 'package:sehatak/presentation/screens/health/health_dashboard.dart';
-import 'package:sehatak/presentation/screens/payment/wallet_screen.dart';
-import 'package:sehatak/presentation/screens/payment/payment_methods.dart';
-import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart';
-import 'package:sehatak/presentation/screens/emergencies/sos_screen.dart';
-import 'package:sehatak/presentation/screens/settings/settings_screen.dart';
-import 'package:sehatak/presentation/screens/reports/reports_dashboard.dart';
 import 'package:sehatak/presentation/screens/shared/notifications_screen.dart';
-import 'package:sehatak/presentation/screens/shared/search_screen.dart';
+import 'package:sehatak/presentation/screens/pharmacy/cart_screen.dart';
+import 'package:sehatak/presentation/screens/payment/wallet_screen.dart';
+import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
+import 'package:sehatak/presentation/screens/consultation/consultation_screen.dart';
+import 'package:sehatak/presentation/screens/services/services_screen.dart';
+import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart';
+import 'package:sehatak/presentation/screens/settings/settings_screen.dart';
 
 class AppRouter {
-  static const String splash = '/';
-  static const String login = '/login';
-  static const String register = '/register';
-  static const String forgotPassword = '/forgot-password';
-  static const String otpVerification = '/otp-verification';
-  static const String resetPassword = '/reset-password';
-  static const String mainNav = '/main';
-  static const String home = '/home';
-  static const String doctorsList = '/doctors';
-  static const String doctorDetails = '/doctor-details';
-  static const String doctorBooking = '/doctor-booking';
-  static const String patientDashboard = '/patient-dashboard';
-  static const String patientProfile = '/patient-profile';
-  static const String patientMedicalHistory = '/patient-medical-history';
-  static const String patientAppointments = '/patient-appointments';
-  static const String patientPrescriptions = '/patient-prescriptions';
-  static const String pharmaciesList = '/pharmacies';
-  static const String pharmacyProducts = '/pharmacy-products';
-  static const String cart = '/cart';
-  static const String labsList = '/labs';
-  static const String labTests = '/lab-tests';
-  static const String testBooking = '/test-booking';
-  static const String insuranceCompanies = '/insurance';
-  static const String insurancePlans = '/insurance-plans';
-  static const String healthDashboard = '/health';
-  static const String wallet = '/wallet';
-  static const String paymentMethods = '/payment-methods';
-  static const String emergencyNumbers = '/emergency';
-  static const String sos = '/sos';
-  static const String settingsScreen = '/settings';
-  static const String reports = '/reports';
+  static const String home = '/';
+  static const String auth = '/auth';
+  static const String doctors = '/doctors';
+  static const String doctorDetails = '/doctor/:id';
+  static const String pharmacy = '/pharmacy';
+  static const String labs = '/labs';
+  static const String chat = '/chat';
+  static const String more = '/more';
+  static const String dashboard = '/dashboard';
+  static const String profile = '/profile';
   static const String notifications = '/notifications';
+  static const String cart = '/cart';
+  static const String wallet = '/wallet';
+  static const String map = '/map';
+  static const String consultation = '/consultation';
+  static const String services = '/services';
+  static const String emergency = '/emergency';
+  static const String settings = '/settings';
   static const String search = '/search';
 
-  static Route<dynamic> generateRoute(RouteSettings settings) {
-    switch (settings.name) {
-      case splash:
-        return MaterialPageRoute(builder: (_) => const SplashScreen());
-      case login:
-        return MaterialPageRoute(builder: (_) => const AuthScreen());
-      case register:
-        return MaterialPageRoute(builder: (_) => const RegisterScreen());
-      case forgotPassword:
-        return MaterialPageRoute(builder: (_) => const ForgotPasswordScreen());
-      case otpVerification:
-        final phone = settings.arguments as String?;
-        return MaterialPageRoute(builder: (_) => OtpVerificationScreen(phone: phone ?? ''));
-      case resetPassword:
-        return MaterialPageRoute(builder: (_) => const ResetPasswordScreen());
-      case mainNav:
-        return MaterialPageRoute(builder: (_) => const MainNavigation());
-      case home:
-        return MaterialPageRoute(builder: (_) => const HomeScreen());
-      case doctorsList:
-        return MaterialPageRoute(builder: (_) => const DoctorsListScreen());
-      case doctorDetails:
-        final doctorId = settings.arguments as String?;
-        return MaterialPageRoute(builder: (_) => DoctorDetailsScreen(doctorId: doctorId ?? ''));
-      case doctorBooking:
-        final doctorId = settings.arguments as String?;
-        return MaterialPageRoute(builder: (_) => DoctorBookingScreen(doctorId: doctorId ?? ''));
-      case patientDashboard:
-        return MaterialPageRoute(builder: (_) => const PatientDashboard());
-      case patientProfile:
-        return MaterialPageRoute(builder: (_) => const PatientProfile());
-      case patientMedicalHistory:
-        return MaterialPageRoute(builder: (_) => const PatientMedicalHistory());
-      case patientAppointments:
-        return MaterialPageRoute(builder: (_) => const PatientAppointments());
-      case patientPrescriptions:
-        return MaterialPageRoute(builder: (_) => const PatientPrescriptions());
-      case pharmaciesList:
-        return MaterialPageRoute(builder: (_) => const PharmaciesListScreen());
-      case pharmacyProducts:
-        final pharmacyId = settings.arguments as String?;
-        return MaterialPageRoute(builder: (_) => PharmacyProductsScreen(pharmacyId: pharmacyId ?? ''));
-      case cart:
-        return MaterialPageRoute(builder: (_) => const CartScreen());
-      case labsList:
-        return MaterialPageRoute(builder: (_) => const LabsListScreen());
-      case labTests:
-        return MaterialPageRoute(builder: (_) => const LabTestsScreen());
-      case testBooking:
-        final testId = settings.arguments as String?;
-        return MaterialPageRoute(builder: (_) => TestBookingScreen(testId: testId ?? ''));
-      case insuranceCompanies:
-        return MaterialPageRoute(builder: (_) => const InsuranceCompanies());
-      case insurancePlans:
-        final companyId = settings.arguments as String?;
-        return MaterialPageRoute(builder: (_) => InsurancePlans(companyId: companyId ?? ''));
-      case healthDashboard:
-        return MaterialPageRoute(builder: (_) => const HealthDashboard());
-      case wallet:
-        return MaterialPageRoute(builder: (_) => const WalletScreen());
-      case paymentMethods:
-        return MaterialPageRoute(builder: (_) => const PaymentMethods());
-      case emergencyNumbers:
-        return MaterialPageRoute(builder: (_) => const EmergencyNumbers());
-      case sos:
-        return MaterialPageRoute(builder: (_) => const SosScreen());
-      case settingsScreen:
-        return MaterialPageRoute(builder: (_) => const SettingsScreen());
-      case reports:
-        return MaterialPageRoute(builder: (_) => const ReportsDashboard());
-      case notifications:
-        return MaterialPageRoute(builder: (_) => const NotificationsScreen());
-      case search:
-        return MaterialPageRoute(builder: (_) => const SearchScreen());
-      default:
-        return MaterialPageRoute(
-          builder: (_) => Scaffold(
-            body: Center(child: Text('No route defined for ${settings.name}')),
-          ),
-        );
-    }
-  }
+  static final GoRouter router = GoRouter(
+    initialLocation: home,
+    routes: [
+      GoRoute(
+        path: home,
+        builder: (context, state) => const HomeScreen(),
+      ),
+      GoRoute(
+        path: auth,
+        builder: (context, state) => const AuthScreen(),
+      ),
+      GoRoute(
+        path: doctors,
+        builder: (context, state) => const DoctorsListScreen(),
+      ),
+      GoRoute(
+        path: doctorDetails,
+        builder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          return DoctorDetailsScreen(doctorId: id);
+        },
+      ),
+      GoRoute(
+        path: pharmacy,
+        builder: (context, state) => const PharmacyScreen(),
+      ),
+      GoRoute(
+        path: labs,
+        builder: (context, state) => const LabsListScreen(),
+      ),
+      GoRoute(
+        path: chat,
+        builder: (context, state) => const ChatScreen(),
+      ),
+      GoRoute(
+        path: more,
+        builder: (context, state) => const MoreScreen(),
+      ),
+      GoRoute(
+        path: dashboard,
+        builder: (context, state) => const PatientDashboard(),
+      ),
+      GoRoute(
+        path: profile,
+        builder: (context, state) => const PatientProfile(),
+      ),
+      GoRoute(
+        path: notifications,
+        builder: (context, state) => const NotificationsScreen(),
+      ),
+      GoRoute(
+        path: cart,
+        builder: (context, state) => const CartScreen(),
+      ),
+      GoRoute(
+        path: wallet,
+        builder: (context, state) => const WalletScreen(),
+      ),
+      GoRoute(
+        path: map,
+        builder: (context, state) => const InteractiveMapScreen(),
+      ),
+      GoRoute(
+        path: consultation,
+        builder: (context, state) => const ConsultationScreen(),
+      ),
+      GoRoute(
+        path: services,
+        builder: (context, state) => const ServicesScreen(),
+      ),
+      GoRoute(
+        path: emergency,
+        builder: (context, state) => const EmergencyNumbers(),
+      ),
+      GoRoute(
+        path: settings,
+        builder: (context, state) => const SettingsScreen(),
+      ),
+    ],
+  );
 }
