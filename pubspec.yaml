@@ -148,3 +148,7 @@ flutter_native_splash:
   image: assets/icons/app_icon.svg
   android: true
   ios: false
+  # ✅ كاميرا لفحص النبض
+  camera: ^0.10.5
+  image: ^4.1.3
+  flutter_screenutil: ^5.9.0
