@@ -231,7 +231,7 @@ class _MedicationReminderScreenState extends State<MedicationReminderScreen> wit
                       Wrap(
                         spacing: 4,
                         children: med.times.map((time) {
-                          final timeStr = time.formatTime();
+                          final timeStr = ${time.hour.toString().padLeft(2, 0)}:${time.minute.toString().padLeft(2, 0)};
                           final isTimePassed = _isTimePassed(time);
                           return Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),

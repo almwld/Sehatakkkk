@@ -18,7 +18,7 @@ class _InsuranceCompaniesState extends State<InsuranceCompanies> {
     {'name': 'أليانز إي إف يو', 'type': 'عائلي', 'coverage': 'حتى 2,000,000 ر.ي', 'hospitals': '700+', 'rating': 4.8, 'premium': 'من 3,500 ر.ي/شهر', 'color': AppColors.success, 'icon': Icons.family_restroom},
     {'name': 'آي جي آي للتأمين', 'type': 'سفر', 'coverage': 'حتى 500,000 ر.ي', 'hospitals': '200+', 'rating': 4.3, 'premium': 'من 1,500 ر.ي/شهر', 'color': AppColors.teal, 'icon': Icons.flight},
     {'name': 'تي بي إل', 'type': 'صحي', 'coverage': 'حتى 1,500,000 ر.ي', 'hospitals': '600+', 'rating': 4.6, 'premium': 'من 3,000 ر.ي/شهر', 'color': AppColors.purple, 'icon': Icons.medical_services},
-    {'name': 'ستيت لايف', 'type': 'عائلي', 'coverage': 'حتى 5,000,000 ر.ي', 'hospitals': '1000+', 'rating': 4.9, 'premium': 'من 5,000 ر.ي/شهر', 'color': AppColors.orange, 'icon': Icons.crown},
+    {'name': 'ستيت لايف', 'type': 'عائلي', 'coverage': 'حتى 5,000,000 ر.ي', 'hospitals': '1000+', 'rating': 4.9, 'premium': 'من 5,000 ر.ي/شهر', 'color': AppColors.orange, 'icon': Icons.star},
   ];
 
   @override

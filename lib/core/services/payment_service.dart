@@ -72,3 +72,4 @@ class PaymentService {
     }, SetOptions(merge: true));
   }
 }
+  final String merchantCode = '536398';

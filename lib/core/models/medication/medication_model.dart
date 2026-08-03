@@ -2,11 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum MedicationFrequency {
-  once, twice, three, four, asNeeded, custom,
+  once,
+  twice,
+  three,
+  four,
+  asNeeded,
+  custom,
 }
 
 enum MedicationDosageForm {
-  tablet, capsule, syrup, injection, drops, cream, spray, patch,
+  tablet,
+  capsule,
+  syrup,
+  injection,
+  drops,
+  cream,
+  spray,
+  patch,
 }
 
 class MedicationModel {
@@ -85,12 +97,27 @@ class MedicationModel {
       case MedicationDosageForm.tablet: return Icons.medication;
       case MedicationDosageForm.capsule: return Icons.medication_outlined;
       case MedicationDosageForm.syrup: return Icons.science;
-      case MedicationDosageForm.injection: return Icons.injection;
+      case MedicationDosageForm.injection: return Icons.medical_services;
       case MedicationDosageForm.drops: return Icons.water_drop;
       case MedicationDosageForm.cream: return Icons.spa;
       case MedicationDosageForm.spray: return Icons.air;
       case MedicationDosageForm.patch: return Icons.health_and_safety;
     }
+  }
+
+  bool get needsRenewal {
+    if (remainingPills <= 0) return true;
+    if (reorderThreshold != null && remainingPills <= reorderThreshold!) return true;
+    return false;
+  }
+
+  bool get isExpired {
+    if (endDate == null) return false;
+    return endDate!.isBefore(DateTime.now());
+  }
+
+  String get timesFormatted {
+    return times.map((t) => '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}').join(' • ');
   }
 
   Map<String, dynamic> toFirestore() => {
@@ -123,7 +150,7 @@ class MedicationModel {
     dosage: data['dosage'],
     form: _parseForm(data['form'] ?? 'tablet'),
     frequency: _parseFrequency(data['frequency'] ?? 'once'),
-    times: (data['times'] as List?)?.map((t) => TimeOfDay(hour: t['hour'], minute: t['minute'])).toList() ?? [],
+    times: (data['times'] as List?)?.map((t) => TimeOfDay(hour: t['hour'] ?? 0, minute: t['minute'] ?? 0)).toList() ?? [],
     daysOfWeek: data['daysOfWeek'] != null ? List<int>.from(data['daysOfWeek']) : [1, 2, 3, 4, 5, 6, 7],
     startDate: DateTime.parse(data['startDate'] ?? DateTime.now().toIso8601String()),
     endDate: data['endDate'] != null ? DateTime.parse(data['endDate']) : null,

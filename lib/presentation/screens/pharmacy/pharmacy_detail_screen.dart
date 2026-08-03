@@ -1,3 +1,4 @@
+import dart:io;
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
@@ -632,7 +633,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        drug['name'],
+                        drug['name'] as String,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
@@ -648,14 +649,14 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
-                              drug['category'],
+                              drug['category'] as String,
                               style: TextStyle(
                                 fontSize: 10,
                                 color: AppColors.primary,
                               ),
                             ),
                           ),
-                          if (drug['prescription'])
+                          if (drug['prescription'] == true)
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                               decoration: BoxDecoration(
@@ -756,7 +757,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: isDark ? Colors.grey[700]! : Colors.grey[300]!,
-                  style: BorderStyle.dashed,
+                  style: BorderStyle.solid,
                   width: 2,
                 ),
               ),
