@@ -1,5 +1,5 @@
 name: sehatak
-description: منصة صحتك - الرعاية الصحية المتكاملة في اليمن
+description: A comprehensive healthcare platform for Yemen
 publish_to: 'none'
 version: 1.1.0+2
 
@@ -9,13 +9,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  
   flutter_localizations:
     sdk: flutter
 
-  # ============================================================
-  # 🎨 UI
-  # ============================================================
+  # UI
   cupertino_icons: ^1.0.6
   iconsax: ^0.0.8
   flutter_svg: ^2.0.9
@@ -31,23 +28,17 @@ dependencies:
   table_calendar: ^3.0.9
   fl_chart: ^0.66.0
 
-  # ============================================================
-  # 📦 State Management
-  # ============================================================
+  # State Management
   flutter_bloc: ^8.1.3
   bloc: ^8.1.2
   equatable: ^2.0.5
   provider: ^6.1.2
   get_it: ^7.6.7
 
-  # ============================================================
-  # 🧭 Navigation
-  # ============================================================
+  # Navigation
   go_router: ^13.0.1
 
-  # ============================================================
-  # 🔥 Firebase
-  # ============================================================
+  # Firebase
   firebase_core: ^2.25.4
   firebase_auth: ^4.17.4
   cloud_firestore: ^4.15.0
@@ -58,27 +49,21 @@ dependencies:
   firebase_app_check: ^0.2.1
   google_sign_in: ^6.2.1
 
-  # ============================================================
-  # 🌐 Networking
-  # ============================================================
+  # Networking
   http: ^1.2.0
   dio: ^5.4.0
   retrofit: ^4.0.3
   json_annotation: ^4.8.1
   socket_io_client: ^2.0.3
 
-  # ============================================================
-  # 💾 Local Storage
-  # ============================================================
+  # Local Storage
   shared_preferences: ^2.2.2
   sqflite: ^2.3.0
   path: ^1.8.3
   path_provider: ^2.1.1
   hive_flutter: ^1.1.0
 
-  # ============================================================
-  # 🔧 Utilities
-  # ============================================================
+  # Utilities
   intl: ^0.18.1
   connectivity_plus: ^5.0.0
   url_launcher: ^6.2.3
@@ -91,18 +76,9 @@ dependencies:
   flutter_local_notifications: ^16.3.0
   workmanager: ^0.5.2
   flutter_background_service: ^5.0.5
-  
-  # ❌ sensors_plus: ^4.0.0  # معطل - يسبب مشكلة في Kotlin
+  sensors_plus: ^4.0.0
 
-  # ============================================================
-  # 🏃‍♂️ Step Counter - استخدام الإصدار الصحيح
-  # ============================================================
-  # ✅ استخدام pedometer (موجود بالفعل في المشروع)
-  pedometer: ^4.0.0
-
-  # ============================================================
-  # 🎥 Media
-  # ============================================================
+  # Media
   image_picker: ^1.0.7
   record: ^5.0.0
   audioplayers: ^5.2.1
@@ -110,28 +86,20 @@ dependencies:
   file_picker: ^6.1.1
   flutter_image_compress: ^2.0.0
 
-  # ============================================================
-  # 🗺️ Maps & Location
-  # ============================================================
+  # Maps & Location
   flutter_map: ^6.1.0
   latlong2: ^0.9.1
   geolocator: ^10.1.0
   geocoding: ^3.0.0
 
-  # ============================================================
-  # 🌐 WebView
-  # ============================================================
+  # WebView
   webview_flutter: ^4.4.0
 
-  # ============================================================
-  # 📡 Real-time Communication
-  # ============================================================
+  # Real-time Communication
   livekit_client: ^1.5.6
-  # ❌ flutter_webrtc: 0.9.47  # معطل - يسبب مشكلة في Kotlin
+  flutter_webrtc: 0.9.47
 
-  # ============================================================
-  # 📝 JSON
-  # ============================================================
+  # JSON
   json_serializable: ^6.7.1
   build_runner: ^2.4.7
   dart_jsonwebtoken: ^2.4.0
@@ -147,13 +115,12 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
+  # ✅ استخدام SVG بدلاً من PNG
   assets:
-    - assets/icons/app_icon.png
+    - assets/icons/app_icon.svg
     - assets/animations/sehatak_animation.json
     - assets/audio/splash_sound.mp3
     - assets/fonts/
-    - assets/images/
-    - assets/social/
 
   fonts:
     - family: NotoSansArabicUI
@@ -173,11 +140,11 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: false
-  image_path: "assets/icons/app_icon.png"
+  image_path: "assets/icons/app_icon.svg"
   min_sdk_android: 21
 
 flutter_native_splash:
   color: "#FFFFFF"
-  image: assets/icons/app_icon.png
+  image: assets/icons/app_icon.svg
   android: true
   ios: false

@@ -1,7 +1,8 @@
+import "package:sehatak/utils/image_utils.dart";
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/constants/imagekit.dart';
-import 'package:sehatak/presentation/widgets/common/app_image.dart';
+import 'package:sehatak/core/services/image_service.dart';
+import 'package:sehatak/data/medicines_data.dart';
 
 class MedicinesScreen extends StatefulWidget {
   const MedicinesScreen({super.key});
@@ -15,37 +16,57 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
   String _selectedCategory = 'الكل';
   String _selectedSort = 'الاسم';
 
-  final List<String> _categories = [
-    'الكل', 'مسكنات', 'مضادات حيوية', 'فيتامينات', 'مكملات غذائية', 'أدوية ضغط', 'أدوية سكر'
-  ];
+  final List<String> _categories = ['الكل', 'مسكنات', 'مضادات حيوية', 'أدوية ضغط', 'أدوية سكر', 'فيتامينات', 'مكملات غذائية'];
+  final List<String> _sortOptions = ['الاسم', 'السعر (منخفض)', 'السعر (مرتفع)'];
 
-  final List<Map<String, dynamic>> _medicines = [
-    {'id': '1', 'name': 'باراسيتامول 500mg', 'category': 'مسكنات', 'price': 500, 'image': ImageKit.medicine1, 'inStock': true, 'rating': 4.8, 'reviews': 328},
-    {'id': '2', 'name': 'فيتامين د 1000IU', 'category': 'فيتامينات', 'price': 1200, 'image': ImageKit.medicine2, 'inStock': true, 'rating': 4.7, 'reviews': 256},
-    {'id': '3', 'name': 'جهاز قياس ضغط', 'category': 'مكملات غذائية', 'price': 8500, 'image': ImageKit.medicine3, 'inStock': true, 'rating': 4.9, 'reviews': 189},
-    {'id': '4', 'name': 'أموكسيسيلين 500mg', 'category': 'مضادات حيوية', 'price': 1500, 'image': ImageKit.medicine4, 'inStock': true, 'rating': 4.5, 'reviews': 145},
-    {'id': '5', 'name': 'ديكلوفيناك 50mg', 'category': 'مسكنات', 'price': 650, 'image': ImageKit.medicine1, 'inStock': true, 'rating': 4.6, 'reviews': 210},
-    {'id': '6', 'name': 'نابروكسين 250mg', 'category': 'مسكنات', 'price': 550, 'image': ImageKit.medicine2, 'inStock': true, 'rating': 4.4, 'reviews': 98},
-    {'id': '7', 'name': 'أسبرين 100mg', 'category': 'مسكنات', 'price': 300, 'image': ImageKit.medicine3, 'inStock': false, 'rating': 4.3, 'reviews': 76},
-    {'id': '8', 'name': 'إيبوبروفين 400mg', 'category': 'مسكنات', 'price': 750, 'image': ImageKit.medicine4, 'inStock': true, 'rating': 4.7, 'reviews': 312},
-    {'id': '9', 'name': 'لوسارتان 50mg', 'category': 'أدوية ضغط', 'price': 800, 'image': ImageKit.medicine1, 'inStock': true, 'rating': 4.6, 'reviews': 178},
-    {'id': '10', 'name': 'ميتفورمين 500mg', 'category': 'أدوية سكر', 'price': 600, 'image': ImageKit.medicine2, 'inStock': true, 'rating': 4.5, 'reviews': 156},
-    {'id': '11', 'name': 'فيتامين سي 1000mg', 'category': 'فيتامينات', 'price': 800, 'image': ImageKit.medicine3, 'inStock': true, 'rating': 4.8, 'reviews': 420},
-    {'id': '12', 'name': 'مكمل أوميغا 3', 'category': 'مكملات غذائية', 'price': 1500, 'image': ImageKit.medicine4, 'inStock': true, 'rating': 4.9, 'reviews': 289},
-  ];
-
+  // ✅ دالة آمنة للحصول على الأدوية المفلترة
   List<Map<String, dynamic>> get _filteredMedicines {
-    var list = _medicines;
-    if (_searchQuery.isNotEmpty) {
-      list = list.where((m) =>
-        m['name'].toString().contains(_searchQuery) ||
-        m['category'].toString().contains(_searchQuery)
-      ).toList();
+    try {
+      var filtered = MedicinesData.getByCategory(_selectedCategory);
+
+      if (_searchQuery.isNotEmpty) {
+        filtered = filtered.where((med) {
+          final name = (med['name'] as String?)?.toLowerCase() ?? '';
+          final desc = (med['description'] as String?)?.toLowerCase() ?? '';
+          final query = _searchQuery.toLowerCase();
+          return name.contains(query) || desc.contains(query);
+        }).toList();
+      }
+
+      // ✅ ترتيب آمن
+      try {
+        switch (_selectedSort) {
+          case 'السعر (منخفض)':
+            filtered.sort((a, b) {
+              final priceA = (a['price'] as num?)?.toDouble() ?? 0;
+              final priceB = (b['price'] as num?)?.toDouble() ?? 0;
+              return priceA.compareTo(priceB);
+            });
+            break;
+          case 'السعر (مرتفع)':
+            filtered.sort((a, b) {
+              final priceA = (a['price'] as num?)?.toDouble() ?? 0;
+              final priceB = (b['price'] as num?)?.toDouble() ?? 0;
+              return priceB.compareTo(priceA);
+            });
+            break;
+          default:
+            filtered.sort((a, b) {
+              final nameA = (a['name'] as String?)?.toLowerCase() ?? '';
+              final nameB = (b['name'] as String?)?.toLowerCase() ?? '';
+              return nameA.compareTo(nameB);
+            });
+            break;
+        }
+      } catch (e) {
+        // في حال حدوث خطأ في الترتيب، نعرض القائمة كما هي
+      }
+
+      return filtered;
+    } catch (e) {
+      // في حال حدوث خطأ في التصفية، نرجع قائمة فارغة
+      return [];
     }
-    if (_selectedCategory != 'الكل') {
-      list = list.where((m) => m['category'] == _selectedCategory).toList();
-    }
-    return list;
   }
 
   @override
@@ -56,7 +77,7 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('الأدوية'),
+        title: const Text('الأدوية (300)'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -73,39 +94,33 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
       ),
       body: Column(
         children: [
-          // ✅ التصنيفات
-          Container(
-            height: 40,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: _categories.length,
-              itemBuilder: (context, index) {
-                final category = _categories[index];
-                final isSelected = _selectedCategory == category;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 6),
-                  child: FilterChip(
-                    label: Text(category, style: const TextStyle(fontSize: 11)),
-                    selected: isSelected,
-                    onSelected: (_) => setState(() => _selectedCategory = category),
-                    backgroundColor: isDark ? const Color(0xFF1A2540) : Colors.white,
-                    selectedColor: AppColors.primary,
-                    labelStyle: TextStyle(
-                      color: isSelected ? Colors.white : (isDark ? Colors.white : AppColors.primary),
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      side: BorderSide(
-                        color: isSelected ? AppColors.primary : (isDark ? Colors.grey[700]! : Colors.grey.shade300),
-                      ),
+          // ✅ شريط الفئات
+          _buildCategoryChips(isDark),
+          // ✅ عدد النتائج
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '${filtered.length} دواء',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                ),
+                if (_searchQuery.isNotEmpty)
+                  Text(
+                    'نتيجة بحث: $_searchQuery',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.primary,
                     ),
                   ),
-                );
-              },
+              ],
             ),
           ),
-          // ✅ القائمة
+          // ✅ قائمة الأدوية
           Expanded(
             child: filtered.isEmpty
                 ? _buildEmptyState(isDark)
@@ -129,7 +144,54 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
     );
   }
 
+  Widget _buildCategoryChips(bool isDark) {
+    return SizedBox(
+      height: 45,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        itemCount: _categories.length,
+        itemBuilder: (context, index) {
+          final category = _categories[index];
+          final isSelected = _selectedCategory == category;
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: FilterChip(
+              label: Text(category),
+              selected: isSelected,
+              onSelected: (selected) {
+                setState(() {
+                  _selectedCategory = selected ? category : 'الكل';
+                });
+              },
+              backgroundColor: isDark ? const Color(0xFF1A2540) : Colors.white,
+              selectedColor: AppColors.primary,
+              labelStyle: TextStyle(
+                color: isSelected ? Colors.white : (isDark ? Colors.white : AppColors.primary),
+                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: BorderSide(
+                  color: isSelected ? AppColors.primary : (isDark ? Colors.grey[700]! : Colors.grey.shade300),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   Widget _buildMedicineCard(Map<String, dynamic> medicine, bool isDark) {
+    // ✅ استخراج القيم بأمان مع افتراضيات
+    final name = (medicine['name'] as String?) ?? 'دواء';
+    final category = (medicine['category'] as String?) ?? 'عام';
+    final price = (medicine['price'] as num?)?.toDouble() ?? 0;
+    final image = (medicine['image'] as String?) ?? ImageService.medicine1;
+    final inStock = medicine['inStock'] ?? true;
+
     return Container(
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1A2540) : Colors.white,
@@ -149,20 +211,25 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ✅ الصورة
+          // ✅ صورة الدواء
           Expanded(
             flex: 2,
             child: ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-              child: AppImage(
-                url: medicine['image'],
+              child: Image.asset(
+                image,
                 width: double.infinity,
-                height: double.infinity,
                 fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    color: isDark ? Colors.grey[800] : Colors.grey[200],
+                    child: const Icon(Icons.medication, color: Colors.grey, size: 40),
+                  );
+                },
               ),
             ),
           ),
-          // ✅ المعلومات
+          // ✅ معلومات الدواء
           Expanded(
             flex: 1,
             child: Padding(
@@ -172,7 +239,7 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    medicine['name'],
+                    name,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
@@ -190,24 +257,9 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
-                          medicine['category'],
+                          category,
                           style: const TextStyle(fontSize: 8, color: AppColors.primary),
                         ),
-                      ),
-                      const Spacer(),
-                      Row(
-                        children: [
-                          const Icon(Icons.star, color: Colors.amber, size: 12),
-                          const SizedBox(width: 2),
-                          Text(
-                            medicine['rating'].toString(),
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: isDark ? Colors.white : Colors.black87,
-                            ),
-                          ),
-                        ],
                       ),
                     ],
                   ),
@@ -215,10 +267,10 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '${medicine['price']} ر.ي',
+                        '${price.toStringAsFixed(0)} ر.ي',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                          fontSize: 13,
                           color: AppColors.primary,
                         ),
                       ),
@@ -226,7 +278,7 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
                         width: 8,
                         height: 8,
                         decoration: BoxDecoration(
-                          color: medicine['inStock'] ? Colors.green : Colors.red,
+                          color: inStock ? Colors.green : Colors.red,
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -246,7 +298,11 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.medication_outlined, size: 64, color: isDark ? Colors.grey[600] : Colors.grey[300]),
+          Icon(
+            Icons.medication_outlined,
+            size: 64,
+            color: isDark ? Colors.grey[600] : Colors.grey[300],
+          ),
           const SizedBox(height: 16),
           Text(
             'لا توجد أدوية',
@@ -319,7 +375,7 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
-                  ...['الاسم', 'السعر (منخفض)', 'السعر (مرتفع)'].map((option) {
+                  ..._sortOptions.map((option) {
                     return RadioListTile<String>(
                       title: Text(option),
                       value: option,

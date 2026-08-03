@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/constants/app_icons.dart';
 import 'package:sehatak/presentation/screens/edit_profile/edit_profile_screen.dart';
 import 'package:sehatak/presentation/screens/settings/settings_screen.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
 class PatientProfile extends StatefulWidget {
   const PatientProfile({super.key});
@@ -17,6 +18,7 @@ class PatientProfile extends StatefulWidget {
 class _PatientProfileState extends State<PatientProfile> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   Map<String, dynamic>? _userData;
   bool _isLoading = true;
 
@@ -28,11 +30,13 @@ class _PatientProfileState extends State<PatientProfile> {
 
   Future<void> _loadUserData() async {
     setState(() => _isLoading = true);
+
     final user = _auth.currentUser;
     if (user == null) {
       setState(() => _isLoading = false);
       return;
     }
+
     try {
       final doc = await _firestore.collection('users').doc(user.uid).get();
       if (doc.exists) {
@@ -48,6 +52,7 @@ class _PatientProfileState extends State<PatientProfile> {
     } catch (e) {
       print('❌ Error loading user data: $e');
     }
+
     setState(() => _isLoading = false);
   }
 
@@ -57,12 +62,12 @@ class _PatientProfileState extends State<PatientProfile> {
     final user = _auth.currentUser;
     final name = _userData?['name'] ?? user?.displayName ?? 'مستخدم';
     final email = _userData?['email'] ?? user?.email ?? '';
+    final phone = _userData?['phone'] ?? user?.phoneNumber ?? '';
     final photoUrl = _userData?['photoUrl'] ?? user?.photoURL;
     final bloodType = _userData?['bloodType'] ?? 'غير محدد';
     final weight = _userData?['weight'] ?? '--';
     final height = _userData?['height'] ?? '--';
     final age = _userData?['age'] ?? '--';
-    final phone = _userData?['phone'] ?? user?.phoneNumber ?? '';
 
     if (_isLoading) {
       return Scaffold(
@@ -75,23 +80,31 @@ class _PatientProfileState extends State<PatientProfile> {
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: const Text('ملفي الشخصي'),
-        backgroundColor: AppColors.primary,
+        backgroundColor: AppColors.primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.edit_rounded),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const EditProfileScreen()),
-            ).then((_) => _loadUserData()),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const EditProfileScreen(),
+                ),
+              ).then((_) => _loadUserData());
+            },
           ),
           IconButton(
             icon: const Icon(Icons.settings_rounded),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const SettingsScreen()),
-            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const SettingsScreen(),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -100,15 +113,10 @@ class _PatientProfileState extends State<PatientProfile> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ✅ Header
             _buildProfileHeader(photoUrl, name, email, isDark),
             const SizedBox(height: 20),
-
-            // ✅ الإحصائيات السريعة
             _buildQuickStats(isDark),
             const SizedBox(height: 20),
-
-            // ✅ المعلومات الشخصية
             _buildInfoSection('المعلومات الشخصية', isDark),
             const SizedBox(height: 12),
             _buildInfoCard([
@@ -120,18 +128,12 @@ class _PatientProfileState extends State<PatientProfile> {
               {'icon': Icons.email_rounded, 'label': 'البريد الإلكتروني', 'value': email},
             ], isDark),
             const SizedBox(height: 20),
-
-            // ✅ الإحصائيات الصحية
             _buildInfoSection('الإحصائيات الصحية', isDark),
             const SizedBox(height: 12),
             _buildHealthStats(isDark),
             const SizedBox(height: 20),
-
-            // ✅ الإجراءات السريعة
             _buildQuickActions(isDark),
             const SizedBox(height: 20),
-
-            // ✅ زر تسجيل الخروج
             _buildLogoutButton(isDark),
           ],
         ),
@@ -139,6 +141,9 @@ class _PatientProfileState extends State<PatientProfile> {
     );
   }
 
+  // ============================================================
+  // 🧩 ويدجتس
+  // ============================================================
   Widget _buildProfileHeader(String? photoUrl, String name, String email, bool isDark) {
     return Row(
       children: [
@@ -147,7 +152,10 @@ class _PatientProfileState extends State<PatientProfile> {
           height: 80,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: AppColors.primary, width: 3),
+            border: Border.all(
+              color: AppColors.primaryColor,
+              width: 3,
+            ),
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(40),
@@ -165,14 +173,14 @@ class _PatientProfileState extends State<PatientProfile> {
                     ),
                   )
                 : Container(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primaryColor.withOpacity(0.1),
                     child: Center(
                       child: Text(
                         name.isNotEmpty ? name[0] : 'م',
                         style: const TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
+                          color: AppColors.primaryColor,
                         ),
                       ),
                     ),
@@ -231,54 +239,53 @@ class _PatientProfileState extends State<PatientProfile> {
   }
 
   Widget _buildQuickStats(bool isDark) {
-    final stats = [
-      {'label': 'المواعيد', 'value': '24', 'icon': Icons.calendar_today_rounded, 'color': AppColors.primary},
-      {'label': 'الوصفات', 'value': '12', 'icon': Icons.medication_rounded, 'color': AppColors.success},
-      {'label': 'التحاليل', 'value': '8', 'icon': Icons.science_rounded, 'color': AppColors.purple},
-      {'label': 'الزيارات', 'value': '6', 'icon': Icons.local_hospital_rounded, 'color': AppColors.info},
-    ];
-
     return Row(
-      children: stats.map((stat) {
-        final color = stat['color'] as Color;
-        return Expanded(
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1A2540) : Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 4,
-                ),
-              ],
+      children: [
+        _buildStatItem('المواعيد', '24', Icons.calendar_today_rounded, isDark),
+        _buildStatItem('الوصفات', '12', Icons.medication_rounded, isDark),
+        _buildStatItem('التحاليل', '8', Icons.science_rounded, isDark),
+        _buildStatItem('الزيارات', '6', Icons.local_hospital_rounded, isDark),
+      ],
+    );
+  }
+
+  Widget _buildStatItem(String label, String value, IconData icon, bool isDark) {
+    return Expanded(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1A2540) : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 4,
             ),
-            child: Column(
-              children: [
-                Icon(stat['icon'] as IconData, color: color, size: 22),
-                const SizedBox(height: 4),
-                Text(
-                  stat['value'] as String,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                ),
-                Text(
-                  stat['label'] as String,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  ),
-                ),
-              ],
+          ],
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: AppColors.primaryColor, size: 22),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
             ),
-          ),
-        );
-      }).toList(),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -289,7 +296,7 @@ class _PatientProfileState extends State<PatientProfile> {
           width: 4,
           height: 20,
           decoration: BoxDecoration(
-            color: AppColors.primary,
+            color: AppColors.primaryColor,
             borderRadius: BorderRadius.circular(2),
           ),
         ),
@@ -336,7 +343,7 @@ class _PatientProfileState extends State<PatientProfile> {
             children: [
               Icon(
                 item['icon'] as IconData,
-                color: hasValue ? AppColors.primary : Colors.grey,
+                color: hasValue ? AppColors.primaryColor : Colors.grey,
                 size: 20,
               ),
               const SizedBox(height: 4),
@@ -391,25 +398,57 @@ class _PatientProfileState extends State<PatientProfile> {
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF1A2540) : Colors.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: color.withOpacity(0.2)),
+            border: Border.all(
+              color: color.withOpacity(0.2),
+            ),
           ),
           child: Row(
             children: [
-              Container(width: 4, height: 30, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2))),
+              Container(
+                width: 4,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(stat['label'] as String, style: TextStyle(fontSize: 11, color: isDark ? Colors.grey[400] : Colors.grey[600])),
-                    Text(stat['value'] as String, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : Colors.black87)),
+                    Text(
+                      stat['label'] as String,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      ),
+                    ),
+                    Text(
+                      stat['value'] as String,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ),
                   ],
                 ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-                child: Text(stat['status'] as String, style: TextStyle(fontSize: 9, color: color, fontWeight: FontWeight.w500)),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  stat['status'] as String,
+                  style: TextStyle(
+                    fontSize: 9,
+                    color: color,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
             ],
           ),
@@ -420,7 +459,7 @@ class _PatientProfileState extends State<PatientProfile> {
 
   Widget _buildQuickActions(bool isDark) {
     final actions = [
-      {'icon': Icons.medical_services_rounded, 'label': 'استشارة', 'color': AppColors.primary},
+      {'icon': Icons.medical_services_rounded, 'label': 'استشارة', 'color': AppColors.primaryColor},
       {'icon': Icons.calendar_month_rounded, 'label': 'موعد', 'color': Colors.blue},
       {'icon': Icons.local_pharmacy_rounded, 'label': 'صيدلية', 'color': Colors.green},
       {'icon': Icons.science_rounded, 'label': 'مختبر', 'color': Colors.purple},
@@ -438,7 +477,9 @@ class _PatientProfileState extends State<PatientProfile> {
               decoration: BoxDecoration(
                 color: isDark ? const Color(0xFF1A2540) : Colors.white,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: isDark ? Colors.grey[700]! : Colors.grey[200]!),
+                border: Border.all(
+                  color: isDark ? Colors.grey[700]! : Colors.grey[200]!,
+                ),
               ),
               child: Column(
                 children: [
@@ -487,11 +528,16 @@ class _PatientProfileState extends State<PatientProfile> {
       builder: (_) => AlertDialog(
         title: const Text('تسجيل الخروج'),
         content: const Text('هل أنت متأكد من رغبتك في تسجيل الخروج؟'),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء', style: TextStyle(color: Colors.grey)),
+            child: const Text(
+              'إلغاء',
+              style: TextStyle(color: Colors.grey),
+            ),
           ),
           ElevatedButton(
             onPressed: () {
@@ -505,7 +551,9 @@ class _PatientProfileState extends State<PatientProfile> {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             child: const Text('تسجيل الخروج'),
           ),

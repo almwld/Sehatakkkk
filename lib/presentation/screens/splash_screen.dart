@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:lottie/lottie.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
@@ -18,6 +17,8 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _mainCtrl;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
+  late Animation<double> _pulseAnimation;
+  late AnimationController _loadingCtrl;
   final AudioPlayer _audioPlayer = AudioPlayer();
 
   @override
@@ -28,21 +29,39 @@ class _SplashScreenState extends State<SplashScreen>
 
     _mainCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 2000),
     );
 
     _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _mainCtrl, curve: Curves.easeIn),
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.7, end: 1.0).animate(
+    _scaleAnimation = Tween<double>(begin: 0.3, end: 1.0).animate(
       CurvedAnimation(parent: _mainCtrl, curve: Curves.elasticOut),
     );
 
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.08).animate(
+      CurvedAnimation(
+        parent: _mainCtrl,
+        curve: Curves.easeInOut,
+      ),
+    )..addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          _mainCtrl.reverse();
+        } else if (status == AnimationStatus.dismissed) {
+          _mainCtrl.forward();
+        }
+      });
+
+    // ✅ تحكم خاص بالخط المتحرك
+    _loadingCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat();
+
     _mainCtrl.forward();
 
-    // ✅ مدة العرض: 10 ثواني
-    Future.delayed(const Duration(seconds: 10), () {
+    Future.delayed(const Duration(seconds: 5), () {
       if (!mounted) return;
       _navigateToNext();
     });
@@ -52,7 +71,7 @@ class _SplashScreenState extends State<SplashScreen>
     try {
       await _audioPlayer.play(
         AssetSource('audio/splash_sound.mp3'),
-        volume: 0.5,
+        volume: 0.8,
       );
     } catch (e) {
       debugPrint('❌ خطأ في تشغيل الصوت: $e');
@@ -83,6 +102,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void dispose() {
     _mainCtrl.dispose();
+    _loadingCtrl.dispose();
     _audioPlayer.dispose();
     super.dispose();
   }
@@ -93,18 +113,90 @@ class _SplashScreenState extends State<SplashScreen>
     final screenWidth = screenSize.width;
     final screenHeight = screenSize.height;
 
-    final lottieWidth = screenWidth * 0.50;
-    final lottieHeight = lottieWidth * (180 / 320);
-
     return Scaffold(
       body: Container(
         width: double.infinity,
         height: double.infinity,
         color: const Color(0xFF2D7E81),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              physics: const ClampingScrollPhysics(),
+        child: Stack(
+          children: [
+            // ===== دوائر خلفية نابضة =====
+            ...List.generate(3, (index) {
+              final sizes = [350, 250, 120];
+              final positions = [
+                {'top': -120, 'right': -80},
+                {'bottom': -100, 'left': -60},
+                {'top': 200, 'right': -30},
+              ];
+              return Positioned(
+                top: positions[index]['top']?.toDouble(),
+                bottom: positions[index]['bottom']?.toDouble(),
+                left: positions[index]['left']?.toDouble(),
+                right: positions[index]['right']?.toDouble(),
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0.0, end: 1.0),
+                  duration: const Duration(seconds: 3),
+                  builder: (_, value, __) => Transform.scale(
+                    scale: value,
+                    child: Container(
+                      width: sizes[index].toDouble(),
+                      height: sizes[index].toDouble(),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withOpacity(0.04 + (index * 0.01)),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }),
+
+            // ===== نقاط صاعدة =====
+            Positioned(
+              top: 150, left: 50,
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.0, end: 1.0),
+                duration: const Duration(seconds: 4),
+                builder: (_, value, __) => Opacity(
+                  opacity: value,
+                  child: Transform.translate(
+                    offset: Offset(0, -20 * value),
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: 200, right: 60,
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.0, end: 1.0),
+                duration: const Duration(seconds: 3),
+                builder: (_, value, __) => Opacity(
+                  opacity: value,
+                  child: Transform.translate(
+                    offset: Offset(0, -15 * value),
+                    child: Container(
+                      width: 6,
+                      height: 6,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // ===== المحتوى الرئيسي =====
+            Center(
               child: AnimatedBuilder(
                 animation: _mainCtrl,
                 builder: (context, child) {
@@ -118,33 +210,37 @@ class _SplashScreenState extends State<SplashScreen>
                         children: [
                           SizedBox(height: screenHeight * 0.05),
 
-                          // ✅ Lottie بدون وميض
+                          // ✅ أيقونة نابضة
                           Transform.scale(
-                            scale: _scaleAnimation.value,
-                            child: ConstrainedBox(
-                              constraints: BoxConstraints(
-                                maxWidth: lottieWidth,
-                                maxHeight: lottieHeight,
-                                minWidth: 120,
-                                minHeight: 67,
-                              ),
-                              child: Lottie.asset(
-                                'assets/animations/sehatak_animation.json',
-                                fit: BoxFit.contain,
-                                repeat: true,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Icon(
-                                    Icons.health_and_safety,
-                                    size: screenWidth * 0.15,
-                                    color: Colors.white,
-                                  );
-                                },
+                            scale: 1.0 + (_pulseAnimation.value - 1.0) * 0.5,
+                            child: Transform.scale(
+                              scale: _scaleAnimation.value,
+                              child: Container(
+                                width: screenWidth * 0.35,
+                                height: screenWidth * 0.35,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.15),
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.white.withOpacity(0.1),
+                                      blurRadius: 30,
+                                      spreadRadius: 10,
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.health_and_safety,
+                                  size: 80,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                           ),
 
                           SizedBox(height: screenHeight * 0.04),
 
+                          // ✅ اسم التطبيق
                           Transform.scale(
                             scale: _scaleAnimation.value,
                             child: const Column(
@@ -173,6 +269,7 @@ class _SplashScreenState extends State<SplashScreen>
 
                           SizedBox(height: screenHeight * 0.02),
 
+                          // ✅ الوصف
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 20,
@@ -193,13 +290,48 @@ class _SplashScreenState extends State<SplashScreen>
 
                           SizedBox(height: screenHeight * 0.08),
 
-                          const SizedBox(
-                            width: 30,
-                            height: 30,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 3,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
+                          // ✅ خط تحميل متحرك (بدلاً من الدائرة)
+                          AnimatedBuilder(
+                            animation: _loadingCtrl,
+                            builder: (context, child) {
+                              return SizedBox(
+                                width: 200,
+                                height: 4,
+                                child: Stack(
+                                  children: [
+                                    // ✅ الخلفية
+                                    Container(
+                                      width: double.infinity,
+                                      height: 4,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(2),
+                                      ),
+                                    ),
+                                    // ✅ الخط المتحرك
+                                    Align(
+                                      alignment: Alignment(
+                                        -1.0 + (_loadingCtrl.value * 2),
+                                        0,
+                                      ),
+                                      child: Container(
+                                        width: 60,
+                                        height: 4,
+                                        decoration: BoxDecoration(
+                                          gradient: const LinearGradient(
+                                            colors: [
+                                              Colors.white,
+                                              Colors.white70,
+                                            ],
+                                          ),
+                                          borderRadius: BorderRadius.circular(2),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
                           ),
 
                           const SizedBox(height: 16),
@@ -213,6 +345,7 @@ class _SplashScreenState extends State<SplashScreen>
 
                           SizedBox(height: screenHeight * 0.05),
 
+                          // ===== النص السفلي =====
                           Column(
                             children: [
                               Text(
@@ -242,7 +375,7 @@ class _SplashScreenState extends State<SplashScreen>
                 },
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
