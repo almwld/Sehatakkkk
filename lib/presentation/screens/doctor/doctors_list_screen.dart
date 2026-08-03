@@ -1,6 +1,5 @@
-import package:flutter/rendering.dart;
-import package:flutter/rendering.dart;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -20,27 +19,14 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
   String _selectedSpecialty = 'الكل';
   String _selectedSort = 'التقييم';
   bool _isLoading = false;
-  
-  // ✅ للتحكم في الشريط السفلي
-  final ScrollController _scrollController = ScrollController();
   bool _isBottomBarVisible = true;
+  final ScrollController _scrollController = ScrollController();
 
   final List<String> _specialties = [
-    'الكل', 
-    'باطنية', 
-    'قلبية', 
-    'أطفال', 
-    'نساء وولادة', 
-    'عظام', 
-    'أنف وأذن وحنجرة', 
-    'جلدية', 
-    'عيون', 
-    'نفسية',
-    'جراحة',
-    'مسالك بولية',
+    'الكل', 'باطنية', 'قلبية', 'أطفال', 'نساء وولادة', 'عظام', 
+    'أنف وأذن وحنجرة', 'جلدية', 'عيون', 'نفسية', 'جراحة', 'مسالك بولية'
   ];
 
-  // ✅ أطباء محسّنين مع صور متنوعة
   final List<Map<String, dynamic>> _allDoctors = [
     {'id': '1', 'name': 'د. أحمد المولد', 'specialty': 'باطنية', 'experience': '20+ سنة', 'rating': 4.9, 'reviews': 328, 'price': 500, 'available': true, 'image': ImageKit.doctor1, 'hospital': 'مستشفى الثورة العام', 'online': true, 'gender': 'male', 'badge': 'استشاري'},
     {'id': '2', 'name': 'د. خالد النخلاني', 'specialty': 'قلبية', 'experience': '15 سنة', 'rating': 4.8, 'reviews': 256, 'price': 600, 'available': true, 'image': ImageKit.doctor2, 'hospital': 'مركز قلب العاصمة', 'online': false, 'gender': 'male', 'badge': 'أستاذ'},
@@ -48,15 +34,10 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
     {'id': '4', 'name': 'د. محمد العلاي', 'specialty': 'أنف وأذن وحنجرة', 'experience': '8 سنوات', 'rating': 4.7, 'reviews': 89, 'price': 400, 'available': false, 'image': ImageKit.doctor4, 'hospital': 'مستشفى الأنف والأذن', 'online': false, 'gender': 'male', 'badge': 'أخصائي'},
     {'id': '5', 'name': 'د. فاطمة صديقي', 'specialty': 'نساء وولادة', 'experience': '18 سنة', 'rating': 4.8, 'reviews': 210, 'price': 550, 'available': true, 'image': ImageKit.doctor5, 'hospital': 'مستشفى الولادة', 'online': true, 'gender': 'female', 'badge': 'استشارية'},
     {'id': '6', 'name': 'د. سعيد العمري', 'specialty': 'جلدية', 'experience': '14 سنة', 'rating': 4.7, 'reviews': 178, 'price': 480, 'available': true, 'image': ImageKit.doctor1, 'hospital': 'مركز الجلدية', 'online': true, 'gender': 'male', 'badge': 'استشاري'},
-    {'id': '7', 'name': 'د. ناصر الحمزي', 'specialty': 'عيون', 'experience': '22 سنة', 'rating': 4.9, 'reviews': 312, 'price': 580, 'available': true, 'image': ImageKit.doctor2, 'hospital': 'مركز العيون', 'online': false, 'gender': 'male', 'badge': 'أستاذ'},
-    {'id': '8', 'name': 'د. رنا الحوثي', 'specialty': 'نفسية', 'experience': '9 سنوات', 'rating': 4.5, 'reviews': 98, 'price': 420, 'available': true, 'image': ImageKit.doctor3, 'hospital': 'مركز الصحة النفسية', 'online': true, 'gender': 'female', 'badge': 'أخصائية'},
-    {'id': '9', 'name': 'د. ياسر القبلي', 'specialty': 'جراحة', 'experience': '25 سنة', 'rating': 4.9, 'reviews': 456, 'price': 650, 'available': true, 'image': ImageKit.doctor4, 'hospital': 'مستشفى الجراحة', 'online': false, 'gender': 'male', 'badge': 'بروفيسور'},
-    {'id': '10', 'name': 'د. ليلى الكبسي', 'specialty': 'مسالك بولية', 'experience': '16 سنة', 'rating': 4.6, 'reviews': 134, 'price': 520, 'available': true, 'image': ImageKit.doctor5, 'hospital': 'مركز المسالك البولية', 'online': true, 'gender': 'female', 'badge': 'استشارية'},
   ];
 
   List<Map<String, dynamic>> get _filteredDoctors {
     var list = _allDoctors;
-    
     if (_searchQuery.isNotEmpty) {
       list = list.where((d) =>
         d['name'].toString().contains(_searchQuery) ||
@@ -64,24 +45,9 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
         d['hospital'].toString().contains(_searchQuery)
       ).toList();
     }
-    
     if (_selectedSpecialty != 'الكل') {
       list = list.where((d) => d['specialty'] == _selectedSpecialty).toList();
     }
-    
-    switch (_selectedSort) {
-      case 'السعر (منخفض)':
-        list.sort((a, b) => (a['price'] as int).compareTo(b['price'] as int));
-        break;
-      case 'السعر (مرتفع)':
-        list.sort((a, b) => (b['price'] as int).compareTo(a['price'] as int));
-        break;
-      case 'التقييم':
-      default:
-        list.sort((a, b) => (b['rating'] as double).compareTo(a['rating'] as double));
-        break;
-    }
-    
     return list;
   }
 
@@ -129,7 +95,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
       ),
       body: Column(
         children: [
-          // ✅ شريط البحث المحسّن
+          // شريط البحث
           Padding(
             padding: const EdgeInsets.all(12),
             child: Container(
@@ -154,7 +120,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                       onChanged: (v) => setState(() => _searchQuery = v),
                       style: TextStyle(color: isDark ? Colors.white : Colors.black87),
                       decoration: InputDecoration(
-                        hintText: 'ابحث عن طبيب بالاسم أو التخصص...',
+                        hintText: 'ابحث عن طبيب...',
                         hintStyle: TextStyle(color: isDark ? Colors.grey[500] : Colors.grey[400]),
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.symmetric(vertical: 12),
@@ -166,24 +132,13 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                       icon: Icon(Icons.close, size: 18, color: isDark ? Colors.grey[400] : Colors.grey),
                       onPressed: () => setState(() => _searchQuery = ''),
                     ),
-                  IconButton(
-                    icon: Icon(Icons.mic, color: isDark ? Colors.grey[400] : Colors.grey),
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('🎤 البحث الصوتي قريباً'),
-                          backgroundColor: AppColors.primary,
-                        ),
-                      );
-                    },
-                  ),
                 ],
               ),
             ),
           ),
-          // ✅ التصنيفات مع تمرير
+          // التصنيفات
           SizedBox(
-            height: 42,
+            height: 40,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -217,31 +172,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
               },
             ),
           ),
-          // ✅ عدد النتائج
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '${filtered.length} طبيب',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  ),
-                ),
-                if (_searchQuery.isNotEmpty)
-                  Text(
-                    'نتيجة بحث: $_searchQuery',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.primary,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          // ✅ قائمة الأطباء
+          // القائمة
           Expanded(
             child: filtered.isEmpty
                 ? _buildEmptyState(isDark)
@@ -257,7 +188,6 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
           ),
         ],
       ),
-      // ✅ شريط سفلي متحرك
       bottomNavigationBar: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         height: _isBottomBarVisible ? 68 : 0,
@@ -412,62 +342,16 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
               offset: const Offset(0, 2),
             ),
           ],
-          border: Border.all(
-            color: doctor['available'] 
-                ? Colors.transparent 
-                : (isDark ? Colors.grey[800]! : Colors.grey[300]!),
-          ),
         ),
         child: Row(
           children: [
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: AppImage(
-                    url: doctor['image'],
-                    width: 70,
-                    height: 70,
-                  ),
-                ),
-                if (doctor['online'] == true)
-                  Positioned(
-                    bottom: 2,
-                    right: 2,
-                    child: Container(
-                      padding: const EdgeInsets.all(2),
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.circle,
-                        color: Colors.green,
-                        size: 12,
-                      ),
-                    ),
-                  ),
-                if (doctor['badge'] != null)
-                  Positioned(
-                    top: 2,
-                    left: 2,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: Colors.amber.withOpacity(0.9),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        doctor['badge'],
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 7,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: AppImage(
+                url: doctor['image'],
+                width: 70,
+                height: 70,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -498,13 +382,6 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                               fontWeight: FontWeight.bold,
                               fontSize: 13,
                               color: isDark ? Colors.white : Colors.black87,
-                            ),
-                          ),
-                          Text(
-                            ' (${doctor['reviews']})',
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: isDark ? Colors.grey[400] : Colors.grey[600],
                             ),
                           ),
                         ],
@@ -547,26 +424,14 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                     ],
                   ),
                   const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.location_on,
-                        size: 12,
-                        color: isDark ? Colors.grey[400] : Colors.grey[600],
-                      ),
-                      const SizedBox(width: 2),
-                      Expanded(
-                        child: Text(
-                          doctor['hospital'],
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: isDark ? Colors.grey[400] : Colors.grey[600],
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
+                  Text(
+                    doctor['hospital'],
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
                   Row(
@@ -574,9 +439,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: doctor['available'] 
-                              ? Colors.green.withOpacity(0.1) 
-                              : Colors.red.withOpacity(0.1),
+                          color: doctor['available'] ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Row(
@@ -608,25 +471,13 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                           color: AppColors.primary.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Row(
-                          children: [
-                            Text(
-                              '${doctor['price']}',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                            const SizedBox(width: 2),
-                            Text(
-                              'ر.ي',
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                          ],
+                        child: Text(
+                          '${doctor['price']} ر.ي',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: AppColors.primary,
+                          ),
                         ),
                       ),
                     ],
@@ -646,11 +497,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.medical_services_outlined,
-            size: 64,
-            color: isDark ? Colors.grey[600] : Colors.grey[300],
-          ),
+          Icon(Icons.medical_services_outlined, size: 64, color: isDark ? Colors.grey[600] : Colors.grey[300]),
           const SizedBox(height: 16),
           Text(
             'لا يوجد أطباء',
