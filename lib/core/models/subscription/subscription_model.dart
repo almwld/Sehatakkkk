@@ -1,26 +1,20 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sehatak/core/models/transaction_model.dart';
 
 enum SubscriptionPlan {
-  free,          // مجاني
-  basic,         // أساسي
-  premium,       // مميز
-  family,        // عائلي
-  enterprise,    // مؤسسي
+  free,
+  basic,
+  premium,
+  family,
+  enterprise,
 }
 
 enum SubscriptionStatus {
-  active,        // نشط
-  expired,       // منتهي
-  cancelled,     // ملغي
-  pending,       // قيد المعالجة
-  trial,         // تجريبي
-}
-
-enum PaymentProvider {
-  jeeb,          // جيب
-  stripe,        // سترايب
-  paypal,        // باي بال
-  wallet,        // محفظة
+  active,
+  expired,
+  cancelled,
+  pending,
+  trial,
 }
 
 class SubscriptionModel {
@@ -32,7 +26,7 @@ class SubscriptionModel {
   final DateTime endDate;
   final double price;
   final String? currency;
-  final PaymentProvider paymentProvider;
+  final PaymentMethod paymentProvider;
   final String? transactionId;
   final bool autoRenew;
   final List<String> features;
@@ -96,6 +90,16 @@ class SubscriptionModel {
     }
   }
 
+  String get statusText {
+    switch (status) {
+      case SubscriptionStatus.active: return 'نشط';
+      case SubscriptionStatus.expired: return 'منتهي';
+      case SubscriptionStatus.cancelled: return 'ملغي';
+      case SubscriptionStatus.pending: return 'قيد المعالجة';
+      case SubscriptionStatus.trial: return 'تجريبي';
+    }
+  }
+
   Map<String, dynamic> toFirestore() => {
     'userId': userId,
     'plan': plan.toString().split('.').last,
@@ -154,12 +158,12 @@ class SubscriptionModel {
     }
   }
 
-  static PaymentProvider _parseProvider(String value) {
+  static PaymentMethod _parseProvider(String value) {
     switch (value) {
-      case 'stripe': return PaymentProvider.stripe;
-      case 'paypal': return PaymentProvider.paypal;
-      case 'jeeb': return PaymentProvider.jeeb;
-      default: return PaymentProvider.wallet;
+      case 'stripe': return PaymentMethod.card;
+      case 'paypal': return PaymentMethod.card;
+      case 'jeeb': return PaymentMethod.jeeb;
+      default: return PaymentMethod.wallet;
     }
   }
 }

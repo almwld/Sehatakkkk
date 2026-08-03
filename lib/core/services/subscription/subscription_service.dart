@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/models/subscription/subscription_model.dart';
-import 'package:sehatak/core/services/payment/payment_service.dart';
+import 'package:sehatak/core/models/transaction_model.dart';
+import 'package:sehatak/core/services/payment_service.dart';
 
 class SubscriptionService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -34,7 +35,7 @@ class SubscriptionService {
   // ✅ إنشاء اشتراك جديد
   Future<SubscriptionModel> createSubscription({
     required SubscriptionPlan plan,
-    required PaymentProvider provider,
+    required PaymentMethod method,
     required String? transactionId,
     bool isYearly = false,
   }) async {
@@ -58,7 +59,7 @@ class SubscriptionService {
       startDate: now,
       endDate: endDate,
       price: price,
-      paymentProvider: provider,
+      paymentProvider: method,
       transactionId: transactionId,
       features: planDetails.features,
       trialDays: planDetails.trialDays,
@@ -123,9 +124,8 @@ class SubscriptionService {
   // ✅ معالجة الدفع للاشتراك
   Future<Map<String, dynamic>> processSubscriptionPayment({
     required SubscriptionPlan plan,
-    required PaymentProvider provider,
+    required PaymentMethod method,
     bool isYearly = false,
-    String? paymentMethodId,
   }) async {
     final user = _auth.currentUser;
     if (user == null) throw Exception('الرجاء تسجيل الدخول');
@@ -139,7 +139,7 @@ class SubscriptionService {
       userId: user.uid,
       amount: amount,
       type: TransactionType.subscription,
-      method: provider,
+      method: method,
       description: 'اشتراك ${planName}',
     );
 
@@ -153,15 +153,15 @@ class SubscriptionService {
     // ✅ إنشاء الاشتراك
     final subscription = await createSubscription(
       plan: plan,
-      provider: provider,
-      transactionId: paymentResult['transactionId'],
+      method: method,
+      transactionId: paymentResult['paymentId'],
       isYearly: isYearly,
     );
 
     return {
       'success': true,
       'subscription': subscription,
-      'transactionId': paymentResult['transactionId'],
+      'paymentId': paymentResult['paymentId'],
     };
   }
 

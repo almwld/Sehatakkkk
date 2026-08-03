@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/subscription/subscription_model.dart';
+import 'package:sehatak/core/models/transaction_model.dart';
 import 'package:sehatak/core/services/subscription/subscription_service.dart';
-import 'package:sehatak/presentation/screens/subscriptions/subscription_detail_screen.dart';
-import 'package:sehatak/presentation/screens/payment/payment_screen.dart';
 
 class SubscriptionsScreen extends StatefulWidget {
   const SubscriptionsScreen({super.key});
@@ -82,7 +81,6 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
     );
   }
 
-  // ✅ تبويب الباقات
   Widget _buildPlansTab(bool isDark) {
     final plans = SubscriptionPlanDetails.visiblePlans;
 
@@ -91,12 +89,11 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ✅ الاشتراك الحالي
           if (_currentSubscription != null)
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
+                gradient: const LinearGradient(
                   colors: [Colors.green, Colors.teal],
                 ),
                 borderRadius: BorderRadius.circular(16),
@@ -129,14 +126,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
                   ),
                   OutlinedButton(
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => SubscriptionDetailScreen(
-                            subscription: _currentSubscription!,
-                          ),
-                        ),
-                      );
+                      // عرض التفاصيل
                     },
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.white,
@@ -144,13 +134,12 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
                     ),
                     child: const Text('التفاصيل'),
                   ),
-                ],
+                ),
               ),
             ),
           
           const SizedBox(height: 16),
           
-          // ✅ تبديل الفترة
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -196,12 +185,10 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
           
           const SizedBox(height: 16),
           
-          // ✅ عرض الباقات
           ...plans.map((plan) => _buildPlanCard(plan, isDark)),
           
           const SizedBox(height: 24),
           
-          // ✅ المميزات الإضافية
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -258,7 +245,6 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ✅ الرأس
           Row(
             children: [
               Text(
@@ -315,7 +301,6 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
             ),
           const SizedBox(height: 8),
           
-          // ✅ السعر
           Row(
             children: [
               Text(
@@ -355,7 +340,6 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
           ),
           const SizedBox(height: 12),
           
-          // ✅ الميزات
           ...plan.features.map((feature) => Padding(
             padding: const EdgeInsets.symmetric(vertical: 3),
             child: Row(
@@ -375,7 +359,6 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
           
           const SizedBox(height: 16),
           
-          // ✅ زر الاشتراك
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -452,7 +435,6 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
     );
   }
 
-  // ✅ تبويب التاريخ
   Widget _buildHistoryTab(bool isDark) {
     if (_history.isEmpty) {
       return Center(
@@ -606,7 +588,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
             const SizedBox(height: 16),
             const Text(
               'سيتم خصم المبلغ من محفظتك',
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 14,
                 color: Colors.grey,
               ),
@@ -649,7 +631,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
     try {
       final result = await _subscriptionService.processSubscriptionPayment(
         plan: plan.plan,
-        provider: PaymentProvider.wallet,
+        method: PaymentMethod.wallet,
         isYearly: _isYearly,
       );
 
@@ -679,18 +661,6 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> with SingleTi
           backgroundColor: Colors.red,
         ),
       );
-    }
-  }
-}
-
-extension on SubscriptionModel {
-  String get statusText {
-    switch (status) {
-      case SubscriptionStatus.active: return 'نشط';
-      case SubscriptionStatus.expired: return 'منتهي';
-      case SubscriptionStatus.cancelled: return 'ملغي';
-      case SubscriptionStatus.pending: return 'قيد المعالجة';
-      case SubscriptionStatus.trial: return 'تجريبي';
     }
   }
 }
