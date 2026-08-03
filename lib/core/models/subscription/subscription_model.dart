@@ -1,5 +1,5 @@
+import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:sehatak/core/models/transaction_model.dart';
 
 enum SubscriptionPlan {
   free,
@@ -17,6 +17,13 @@ enum SubscriptionStatus {
   trial,
 }
 
+enum PaymentProvider {
+  jeeb,
+  stripe,
+  paypal,
+  wallet,
+}
+
 class SubscriptionModel {
   final String id;
   final String userId;
@@ -26,7 +33,7 @@ class SubscriptionModel {
   final DateTime endDate;
   final double price;
   final String? currency;
-  final PaymentMethod paymentProvider;
+  final PaymentProvider paymentProvider;
   final String? transactionId;
   final bool autoRenew;
   final List<String> features;
@@ -90,16 +97,6 @@ class SubscriptionModel {
     }
   }
 
-  String get statusText {
-    switch (status) {
-      case SubscriptionStatus.active: return 'نشط';
-      case SubscriptionStatus.expired: return 'منتهي';
-      case SubscriptionStatus.cancelled: return 'ملغي';
-      case SubscriptionStatus.pending: return 'قيد المعالجة';
-      case SubscriptionStatus.trial: return 'تجريبي';
-    }
-  }
-
   Map<String, dynamic> toFirestore() => {
     'userId': userId,
     'plan': plan.toString().split('.').last,
@@ -158,12 +155,12 @@ class SubscriptionModel {
     }
   }
 
-  static PaymentMethod _parseProvider(String value) {
+  static PaymentProvider _parseProvider(String value) {
     switch (value) {
-      case 'stripe': return PaymentMethod.card;
-      case 'paypal': return PaymentMethod.card;
-      case 'jeeb': return PaymentMethod.jeeb;
-      default: return PaymentMethod.wallet;
+      case 'stripe': return PaymentProvider.stripe;
+      case 'paypal': return PaymentProvider.paypal;
+      case 'jeeb': return PaymentProvider.jeeb;
+      default: return PaymentProvider.wallet;
     }
   }
 }

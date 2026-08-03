@@ -10,7 +10,6 @@ enum TransactionType {
   deposit,
   payment,
   refund,
-  transfer,
   bonus,
   fee,
 }
@@ -96,7 +95,7 @@ class TransactionModel {
       case TransactionStatus.processing: return Icons.sync;
       case TransactionStatus.completed: return Icons.check_circle;
       case TransactionStatus.failed: return Icons.cancel;
-      case TransactionStatus.refunded: return Icons.money_off;
+      case TransactionStatus.refunded: return Icons.refresh;
       case TransactionStatus.cancelled: return Icons.block;
     }
   }
@@ -111,7 +110,6 @@ class TransactionModel {
       case TransactionType.deposit: return 'إيداع';
       case TransactionType.payment: return 'دفع';
       case TransactionType.refund: return 'استرداد';
-      case TransactionType.transfer: return 'تحويل';
       case TransactionType.bonus: return 'مكافأة';
       case TransactionType.fee: return 'رسوم';
     }
@@ -121,63 +119,15 @@ class TransactionModel {
     switch (type) {
       case TransactionType.booking: return Icons.calendar_today;
       case TransactionType.subscription: return Icons.subscriptions;
-      case TransactionType.ad: return Icons.ads_click;
+      case TransactionType.ad: return Icons.campaign;
       case TransactionType.wallet: return Icons.wallet;
       case TransactionType.withdrawal: return Icons.arrow_upward;
       case TransactionType.deposit: return Icons.arrow_downward;
       case TransactionType.payment: return Icons.payment;
-      case TransactionType.refund: return Icons.money_off;
-      case TransactionType.transfer: return Icons.swap_horiz;
+      case TransactionType.refund: return Icons.refresh;
       case TransactionType.bonus: return Icons.emoji_events;
       case TransactionType.fee: return Icons.receipt;
     }
-  }
-
-  Color get typeColor {
-    switch (type) {
-      case TransactionType.booking: return Colors.blue;
-      case TransactionType.subscription: return Colors.purple;
-      case TransactionType.ad: return Colors.orange;
-      case TransactionType.wallet: return Colors.green;
-      case TransactionType.withdrawal: return Colors.red;
-      case TransactionType.deposit: return Colors.green;
-      case TransactionType.payment: return Colors.teal;
-      case TransactionType.refund: return Colors.amber;
-      case TransactionType.transfer: return Colors.indigo;
-      case TransactionType.bonus: return Colors.pink;
-      case TransactionType.fee: return Colors.grey;
-    }
-  }
-
-  String get methodText {
-    switch (method) {
-      case PaymentMethod.wallet: return 'محفظة';
-      case PaymentMethod.jeeb: return 'جيب';
-      case PaymentMethod.jawali: return 'جوالي كاش';
-      case PaymentMethod.floosak: return 'فلوسك';
-      case PaymentMethod.yemenWallet: return 'يمن وولت';
-      case PaymentMethod.cash: return 'كاش';
-      case PaymentMethod.card: return 'بطاقة';
-      case PaymentMethod.bank: return 'تحويل بنكي';
-    }
-  }
-
-  bool get isCredit {
-    return type == TransactionType.deposit ||
-           type == TransactionType.refund ||
-           type == TransactionType.bonus ||
-           type == TransactionType.transfer;
-  }
-
-  bool get isDebit {
-    return type == TransactionType.payment ||
-           type == TransactionType.withdrawal ||
-           type == TransactionType.fee;
-  }
-
-  String get formattedAmount {
-    final sign = isCredit ? '+' : '-';
-    return '$sign ${amount.toStringAsFixed(0)} ريال';
   }
 
   Map<String, dynamic> toFirestore() {
@@ -204,22 +154,20 @@ class TransactionModel {
       userId: data['userId'] ?? '',
       providerId: data['providerId'],
       orderId: data['orderId'],
-      type: _parseTransactionType(data['type'] ?? 'payment'),
-      status: _parseTransactionStatus(data['status'] ?? 'pending'),
-      method: _parsePaymentMethod(data['method'] ?? 'wallet'),
+      type: _parseType(data['type'] ?? 'payment'),
+      status: _parseStatus(data['status'] ?? 'pending'),
+      method: _parseMethod(data['method'] ?? 'wallet'),
       amount: data['amount']?.toDouble() ?? 0,
       fee: data['fee']?.toDouble() ?? 0,
       netAmount: data['netAmount']?.toDouble() ?? 0,
       description: data['description'],
       metadata: data['metadata'],
       createdAt: DateTime.parse(data['createdAt'] ?? DateTime.now().toIso8601String()),
-      completedAt: data['completedAt'] != null
-          ? DateTime.parse(data['completedAt'])
-          : null,
+      completedAt: data['completedAt'] != null ? DateTime.parse(data['completedAt']) : null,
     );
   }
 
-  static TransactionType _parseTransactionType(String value) {
+  static TransactionType _parseType(String value) {
     switch (value) {
       case 'booking': return TransactionType.booking;
       case 'subscription': return TransactionType.subscription;
@@ -229,14 +177,13 @@ class TransactionModel {
       case 'deposit': return TransactionType.deposit;
       case 'payment': return TransactionType.payment;
       case 'refund': return TransactionType.refund;
-      case 'transfer': return TransactionType.transfer;
       case 'bonus': return TransactionType.bonus;
       case 'fee': return TransactionType.fee;
       default: return TransactionType.payment;
     }
   }
 
-  static TransactionStatus _parseTransactionStatus(String value) {
+  static TransactionStatus _parseStatus(String value) {
     switch (value) {
       case 'pending': return TransactionStatus.pending;
       case 'processing': return TransactionStatus.processing;
@@ -248,7 +195,7 @@ class TransactionModel {
     }
   }
 
-  static PaymentMethod _parsePaymentMethod(String value) {
+  static PaymentMethod _parseMethod(String value) {
     switch (value) {
       case 'jeeb': return PaymentMethod.jeeb;
       case 'jawali': return PaymentMethod.jawali;
@@ -259,5 +206,30 @@ class TransactionModel {
       case 'bank': return PaymentMethod.bank;
       default: return PaymentMethod.wallet;
     }
+  }
+
+  String get methodText {
+    switch (method) {
+      case PaymentMethod.wallet: return 'محفظة';
+      case PaymentMethod.jeeb: return 'جيب';
+      case PaymentMethod.jawali: return 'جوالي كاش';
+      case PaymentMethod.floosak: return 'فلوسك';
+      case PaymentMethod.yemenWallet: return 'يمن وولت';
+      case PaymentMethod.cash: return 'كاش';
+      case PaymentMethod.card: return 'بطاقة';
+      case PaymentMethod.bank: return 'تحويل بنكي';
+    }
+  }
+
+  bool get isCredit {
+    return type == TransactionType.deposit ||
+           type == TransactionType.refund ||
+           type == TransactionType.bonus;
+  }
+
+  bool get isDebit {
+    return type == TransactionType.payment ||
+           type == TransactionType.withdrawal ||
+           type == TransactionType.fee;
   }
 }
