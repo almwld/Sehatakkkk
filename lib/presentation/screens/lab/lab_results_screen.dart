@@ -32,7 +32,7 @@ class LabResultsScreen extends StatelessWidget {
         itemCount: results.length,
         itemBuilder: (context, index) {
           final result = results[index];
-          final isNormal = result['result'] == 'طبيعي';
+          final isNormal = result['result'] as String == 'طبيعي';
           final color = isNormal ? Colors.green : Colors.orange;
 
           return Container(
@@ -88,7 +88,7 @@ class LabResultsScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    result['result'],
+                    result['result'] as String,
                     style: TextStyle(
                       fontSize: 12,
                       color: color,

@@ -73,3 +73,5 @@ class PaymentService {
   }
 }
   final String merchantCode = '536398';
+  // ✅ رقم نقطة الدفع
+  final String merchantCode = '536398';

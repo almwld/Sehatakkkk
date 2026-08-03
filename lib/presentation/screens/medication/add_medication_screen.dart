@@ -131,7 +131,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                         Expanded(
                           child: ListTile(
                             leading: const Icon(Icons.access_time),
-                            title: Text(time.formatTime()),
+                            title: Text(${time.hour.toString().padLeft(2, 0)}:${time.minute.toString().padLeft(2, 0)}),
                             trailing: IconButton(
                               icon: const Icon(Icons.close, color: Colors.red),
                               onPressed: _selectedTimes.length > 1
