@@ -37,11 +37,12 @@ class HomeTab extends StatefulWidget {
 class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   bool _isLoading = false;
   double _healthScore = 0.0;
+  int _currentBanner = 0;
   
-  // ✅ البيانات
+  // ✅ البانر
   final List<String> _bannerImages = ImageKit.bannerList;
 
-  // ✅ الأطباء (6 أطباء)
+  // ✅ أفضل الأطباء
   final List<Map<String, dynamic>> _topDoctors = [
     {'id': '1', 'name': 'د. أحمد المولد', 'specialty': 'باطنية', 'rating': 4.9, 'reviews': 328, 'image': ImageKit.doctor1, 'gender': 'male', 'price': 150, 'available': true},
     {'id': '2', 'name': 'د. خالد النخلاني', 'specialty': 'قلبية', 'rating': 4.8, 'reviews': 256, 'image': ImageKit.doctor2, 'gender': 'male', 'price': 180, 'available': true},
@@ -66,7 +67,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     QuickServiceItem(icon: ImageKit.placeholder, label: 'تأمين', color: Colors.blue, screen: const InsuranceCompanies()),
   ];
 
-  // ✅ الإحصائيات (السعرات، الخطوات، النوم، النبض)
+  // ✅ الإحصائيات
   final List<Map<String, dynamic>> _stats = [
     {'icon': Icons.local_fire_department, 'value': '2,450', 'label': 'سعرة حرارية', 'color': Colors.orange, 'subtitle': 'اليوم'},
     {'icon': Icons.directions_walk, 'value': '8,542', 'label': 'خطوة', 'color': Colors.green, 'subtitle': 'اليوم'},
@@ -90,7 +91,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'name': 'أموكسيسيلين 500mg', 'price': 1500, 'image': ImageKit.medicine4, 'category': 'مضادات حيوية', 'discount': 0},
   ];
 
-  // ✅ مستشفيات مميزة (حسب الترتيب المطلوب)
+  // ✅ مستشفيات مميزة
   final List<Map<String, dynamic>> _featuredHospitals = [
     {'id': '1', 'name': 'مستشفى 22 مايو', 'location': 'صنعاء', 'image': ImageKit.hospital1, 'rating': 4.9, 'phone': '01-234571', 'specialty': 'عام', 'open': true},
     {'id': '2', 'name': 'مستشفى آزال', 'location': 'صنعاء', 'image': ImageKit.hospital2, 'rating': 4.8, 'phone': '01-234572', 'specialty': 'خاص', 'open': true},
@@ -110,7 +111,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'id': '6', 'name': 'مختبرات اليمن الحديثة', 'location': 'صنعاء - شارع الزبيري', 'image': ImageKit.lab3, 'rating': 4.4, 'phone': '01-234572', 'open': true},
   ];
 
-  // ✅ صيدليات مميزة (مع فروع متعددة)
+  // ✅ صيدليات مميزة
   final List<Map<String, dynamic>> _featuredPharmacies = [
     {'id': '1', 'name': 'صيدلية ابن حيان', 'location': 'صنعاء - شارع حدة', 'image': ImageKit.pharmacy1, 'rating': 4.9, 'phone': '01-234580', 'open': true},
     {'id': '2', 'name': 'صيدلية عالم الصيدلة', 'location': 'صنعاء - شارع الستين', 'image': ImageKit.pharmacy2, 'rating': 4.8, 'phone': '01-234581', 'open': true},
@@ -135,17 +136,17 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'id': 3, 'author': 'د. أحمد المولد', 'avatar': 'أ', 'image': ImageKit.nutritionTips, 'title': 'تغذيتك سر صحتك', 'content': 'الطعام الصحي هو أساس المناعة القوية والجسم السليم.', 'likes': 210, 'comments': 22, 'shares': 12, 'time': 'منذ 5 ساعات', 'liked': true, 'commentList': ['أحسنت', 'مفيد جداً', 'شكراً دكتور']},
   ];
 
+  double _caloriesAnim = 0;
+  double _stepsAnim = 0;
+  double _sleepAnim = 0;
+  double _heartAnim = 0;
+
   @override
   void initState() {
     super.initState();
     _loadHealthScore();
     _startAnimation();
   }
-
-  double _caloriesAnim = 0;
-  double _stepsAnim = 0;
-  double _sleepAnim = 0;
-  double _heartAnim = 0;
 
   void _startAnimation() {
     Future.delayed(const Duration(milliseconds: 300), () {
@@ -168,6 +169,10 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     await Future.delayed(const Duration(seconds: 1));
     await _loadHealthScore();
     setState(() => _isLoading = false);
+  }
+
+  void _goTo(BuildContext context, Widget screen) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
   }
 
   void _toggleLike(int index) {
@@ -455,17 +460,11 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
           actions: [
             IconButton(
               icon: const Icon(Icons.notifications_outlined),
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const NotificationsScreen()),
-              ),
+              onPressed: () => _goTo(context, const NotificationsScreen()),
             ),
             IconButton(
               icon: const Icon(Icons.shopping_cart_outlined),
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const CartScreen()),
-              ),
+              onPressed: () => _goTo(context, const CartScreen()),
             ),
           ],
         ),
@@ -478,14 +477,25 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                 delegate: SliverChildListDelegate([
                   
                   // ============================================================
-                  // 1️⃣ الإحصائيات (السعرات، الخطوات، النوم، النبض)
+                  // 1️⃣ شريط البحث
                   // ============================================================
-                  const SizedBox(height: 4),
+                  _buildSearchBar(isDark),
+                  const SizedBox(height: 16),
+
+                  // ============================================================
+                  // 2️⃣ الإحصائيات
+                  // ============================================================
                   _buildStatsRow(),
                   const SizedBox(height: 16),
 
                   // ============================================================
-                  // 2️⃣ الخدمات السريعة
+                  // 3️⃣ البانر
+                  // ============================================================
+                  BannerCarousel(images: _bannerImages),
+                  const SizedBox(height: 16),
+
+                  // ============================================================
+                  // 4️⃣ الخدمات السريعة
                   // ============================================================
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -498,10 +508,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                         ),
                       ),
                       TextButton(
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const ServicesScreen()),
-                        ),
+                        onPressed: () => _goTo(context, const ServicesScreen()),
                         child: const Text(
                           'عرض الكل',
                           style: TextStyle(
@@ -518,7 +525,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   const SizedBox(height: 16),
 
                   // ============================================================
-                  // 3️⃣ أفضل الأطباء
+                  // 5️⃣ أفضل الأطباء
                   // ============================================================
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -531,10 +538,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                         ),
                       ),
                       TextButton(
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const DoctorsListScreen()),
-                        ),
+                        onPressed: () => _goTo(context, const DoctorsListScreen()),
                         child: const Text(
                           'عرض الكل',
                           style: TextStyle(
@@ -561,11 +565,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                       final doctor = _topDoctors[index];
                       return DoctorCard(
                         doctor: doctor,
-                        onTap: () => Navigator.push(
+                        onTap: () => _goTo(
                           context,
-                          MaterialPageRoute(
-                            builder: (_) => DoctorDetailsScreen(doctorId: doctor['id'] as String),
-                          ),
+                          DoctorDetailsScreen(doctorId: doctor['id'] as String),
                         ),
                       );
                     },
@@ -573,7 +575,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   const SizedBox(height: 16),
 
                   // ============================================================
-                  // 4️⃣ مستشفيات مميزة
+                  // 6️⃣ مستشفيات مميزة
                   // ============================================================
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -586,10 +588,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                         ),
                       ),
                       TextButton(
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const HospitalScreen()),
-                        ),
+                        onPressed: () => _goTo(context, const HospitalScreen()),
                         child: const Text(
                           'عرض الكل',
                           style: TextStyle(
@@ -620,7 +619,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   const SizedBox(height: 16),
 
                   // ============================================================
-                  // 5️⃣ مختبرات مميزة
+                  // 7️⃣ مختبرات مميزة
                   // ============================================================
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -633,10 +632,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                         ),
                       ),
                       TextButton(
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const LabsListScreen()),
-                        ),
+                        onPressed: () => _goTo(context, const LabsListScreen()),
                         child: const Text(
                           'عرض الكل',
                           style: TextStyle(
@@ -667,7 +663,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   const SizedBox(height: 16),
 
                   // ============================================================
-                  // 6️⃣ صيدليات مميزة
+                  // 8️⃣ صيدليات مميزة
                   // ============================================================
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -680,10 +676,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                         ),
                       ),
                       TextButton(
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const PharmacyScreen()),
-                        ),
+                        onPressed: () => _goTo(context, const PharmacyScreen()),
                         child: const Text(
                           'عرض الكل',
                           style: TextStyle(
@@ -714,7 +707,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   const SizedBox(height: 16),
 
                   // ============================================================
-                  // 7️⃣ مقالات صحية
+                  // 9️⃣ مقالات صحية
                   // ============================================================
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -747,7 +740,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   const SizedBox(height: 16),
 
                   // ============================================================
-                  // 8️⃣ نصائح يومية
+                  // 🔟 نصائح يومية
                   // ============================================================
                   const Text(
                     'نصائح يومية',
@@ -825,7 +818,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   const SizedBox(height: 16),
 
                   // ============================================================
-                  // 9️⃣ منشورات المجتمع
+                  // 1️⃣1️⃣ منشورات المجتمع
                   // ============================================================
                   const Text(
                     'مجتمع صحتك',
@@ -851,7 +844,45 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ============================================================
-  // 📊 الإحصائيات (مع أنيميشن)
+  // 🔍 شريط البحث
+  // ============================================================
+  Widget _buildSearchBar(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2540) : Colors.grey[100],
+        borderRadius: BorderRadius.circular(25),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey),
+          const SizedBox(width: 10),
+          Expanded(
+            child: TextField(
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                hintText: 'ابحث عن طبيب، دواء، أو خدمة...',
+                hintStyle: TextStyle(
+                  color: isDark ? Colors.grey[500] : Colors.grey[400],
+                ),
+              ),
+              style: TextStyle(
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+              onTap: () {
+                // فتح شاشة البحث
+              },
+              readOnly: true,
+            ),
+          ),
+          Icon(Icons.mic, color: isDark ? Colors.grey[500] : Colors.grey[400]),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // 📊 الإحصائيات
   // ============================================================
   Widget _buildStatsRow() {
     final statsData = [
@@ -866,7 +897,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         final color = stat['color'] as Color;
         final value = stat['value'] as double;
         final isInt = stat['format'] == 'int';
-        final displayValue = isInt ? value.toInt().toString() : value.toStringAsFixed(1);
         
         return Expanded(
           child: TweenAnimationBuilder<double>(
@@ -901,17 +931,11 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     ),
                     Text(
                       stat['label'] as String,
-                      style: TextStyle(
-                        fontSize: 9,
-                        color: Colors.grey[600],
-                      ),
+                      style: const TextStyle(fontSize: 9, color: Colors.grey),
                     ),
                     Text(
                       stat['subtitle'] as String,
-                      style: TextStyle(
-                        fontSize: 7,
-                        color: Colors.grey[400],
-                      ),
+                      style: const TextStyle(fontSize: 7, color: Colors.grey),
                     ),
                   ],
                 ),
@@ -926,7 +950,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   // 🏥 بطاقة المستشفى
   Widget _buildHospitalCard(Map<String, dynamic> hospital, bool isDark) {
     return GestureDetector(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HospitalScreen())),
+      onTap: () => _goTo(context, const HospitalScreen()),
       child: Container(
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF1A2540) : Colors.white,
@@ -1025,10 +1049,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const HospitalScreen()),
-                      ),
+                      onPressed: () => _goTo(context, const HospitalScreen()),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
@@ -1056,7 +1077,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   // 🧪 بطاقة المختبر
   Widget _buildLabCard(Map<String, dynamic> lab, bool isDark) {
     return GestureDetector(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LabsListScreen())),
+      onTap: () => _goTo(context, const LabsListScreen()),
       child: Container(
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF1A2540) : Colors.white,
@@ -1106,10 +1127,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const LabsListScreen()),
-                      ),
+                      onPressed: () => _goTo(context, const LabsListScreen()),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
@@ -1137,7 +1155,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   // 💊 بطاقة الصيدلية
   Widget _buildPharmacyCard(Map<String, dynamic> pharmacy, bool isDark) {
     return GestureDetector(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PharmacyScreen())),
+      onTap: () => _goTo(context, const PharmacyScreen()),
       child: Container(
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF1A2540) : Colors.white,
@@ -1187,10 +1205,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const PharmacyScreen()),
-                      ),
+                      onPressed: () => _goTo(context, const PharmacyScreen()),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
@@ -1218,7 +1233,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   // 📰 بطاقة المقال
   Widget _buildArticleCard(Map<String, dynamic> article, bool isDark) {
     return GestureDetector(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ArticlesScreen())),
+      onTap: () => _goTo(context, const ArticlesScreen()),
       child: Container(
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF1A2540) : Colors.white,
