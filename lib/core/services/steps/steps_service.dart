@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pedometer/pedometer.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:sensors_plus/sensors_plus.dart';
 import 'package:sehatak/core/models/steps/steps_model.dart';
 import 'dart:async';
 
@@ -20,13 +21,13 @@ class StepsService {
   Timer? _updateTimer;
   DateTime? _startTime;
   
-  // ✅ Pedometer
-  Stream<StepCount>? _stepCountStream;
-  StreamSubscription<StepCount>? _stepCountSubscription;
+  // ✅ مستشعرات الخطوات
+  int _lastStepCount = 0;
+  StreamSubscription<StepCountEvent>? _stepCountSubscription;
+  StreamSubscription<PedestrianStatusEvent>? _pedestrianStatusSubscription;
 
   // ✅ طلب الإذن
   Future<bool> requestPermissions() async {
-    // ✅ طلب إذن النشاط البدني
     final status = await Permission.activityRecognition.request();
     return status.isGranted;
   }
@@ -45,8 +46,8 @@ class StepsService {
     _todaySteps = await getTodaySteps();
     _hourlySteps = List.filled(24, 0);
     
-    // ✅ بدء تتبع Pedometer
-    _startPedometerTracking();
+    // ✅ بدء تتبع المستشعرات
+    _startSensorTracking();
     
     // ✅ تحديث كل 10 ثواني
     _updateTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
@@ -60,9 +61,8 @@ class StepsService {
     
     _isTracking = false;
     _updateTimer?.cancel();
-    _stopPedometerTracking();
+    _stopSensorTracking();
     
-    // ✅ حفظ اليوم
     if (_todaySteps > 0) {
       await _saveTodayRecord();
     }
@@ -135,81 +135,90 @@ class StepsService {
     final totalDistance = records.fold(0.0, (sum, r) => sum + r.distance);
     final totalCalories = records.fold(0, (sum, r) => sum + r.calories);
     
-    // ✅ أفضل يوم
     final bestDay = records.reduce((a, b) => a.steps > b.steps ? a : b);
     
     return {
       'avgSteps': avgSteps,
       'totalSteps': totalSteps,
       'bestDay': '${bestDay.date.day}/${bestDay.date.month}',
-      'totalDistance': totalDistance / 1000, // كم
+      'totalDistance': totalDistance / 1000,
       'totalCalories': totalCalories,
     };
   }
 
   // ============================================================
-  // 🔧 دوال Pedometer
+  // 🔧 دوال المستشعرات باستخدام pedometer
   // ============================================================
   
-  void _startPedometerTracking() {
+  void _startSensorTracking() {
+    // ✅ استخدام pedometer لعد الخطوات
     try {
-      // ✅ استخدام Pedometer
-      _stepCountStream = Pedometer.stepCountStream;
-      _stepCountSubscription = _stepCountStream!.listen((event) {
-        _currentSteps = event.steps;
-        _todaySteps = event.steps;
-        
-        // ✅ تحديث السعرات (0.04 سعرة لكل خطوة)
-        _calories = (_todaySteps * 0.04).toInt();
-        
-        // ✅ تحديث المسافة (0.8 متر لكل خطوة)
-        _distance = _todaySteps * 0.0008;
-        
-        // ✅ تحديث الدقائق النشطة (كل 100 خطوة = دقيقة)
-        _activeMinutes = (_todaySteps / 100).toInt();
-        
-        // ✅ تحديث الخطوات لكل ساعة
-        final hour = DateTime.now().hour;
-        if (hour < 24) {
-          _hourlySteps[hour] = _todaySteps;
+      _stepCountSubscription = Pedometer.stepCountStream.listen((event) {
+        final newSteps = event.steps - _lastStepCount;
+        if (newSteps > 0) {
+          _currentSteps += newSteps;
+          _todaySteps += newSteps;
+          _lastStepCount = event.steps;
+          
+          // ✅ تحديث السعرات
+          _calories += (newSteps * 0.04).toInt();
+          
+          // ✅ تحديث المسافة
+          _distance += newSteps * 0.0008;
+          
+          // ✅ تحديث الدقائق النشطة
+          _activeMinutes = (_todaySteps / 100).toInt();
+          
+          // ✅ تحديث الخطوات لكل ساعة
+          final hour = DateTime.now().hour;
+          if (hour < 24) {
+            _hourlySteps[hour] += newSteps;
+          }
         }
       }, onError: (error) {
-        // ✅ إذا فشل Pedometer، استخدام محاكاة
-        _startSimulatedTracking();
+        // ✅ إذا فشل pedometer، استخدام sensors_plus كبديل
+        _startFallbackTracking();
       });
     } catch (e) {
-      // ✅ إذا فشل Pedometer، استخدام محاكاة
-      _startSimulatedTracking();
+      // ✅ في حال حدوث خطأ، استخدام sensors_plus
+      _startFallbackTracking();
     }
+    
+    // ✅ حالة المشي
+    _pedestrianStatusSubscription = Pedometer.pedestrianStatusStream.listen((event) {
+      // يمكن استخدام الحالة لعرضها في الواجهة
+    });
   }
 
-  void _stopPedometerTracking() {
-    _stepCountSubscription?.cancel();
-  }
-
-  // ✅ محاكاة لعد الخطوات (للاختبار)
-  void _startSimulatedTracking() {
-    _updateTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
-      if (!_isTracking) {
-        timer.cancel();
-        return;
-      }
-      // ✅ إضافة خطوات محاكاة
-      _currentSteps += 5;
-      _todaySteps += 5;
-      _calories += 1;
-      _distance += 0.004;
+  void _startFallbackTracking() {
+    // ✅ استخدام sensors_plus كبديل
+    accelerometerEvents.listen((event) {
+      final acceleration = sqrt(
+        event.x * event.x + event.y * event.y + event.z * event.z
+      );
       
-      final hour = DateTime.now().hour;
-      if (hour < 24) {
-        _hourlySteps[hour] = _todaySteps;
+      // ✅ اكتشاف الخطوات (محاكاة)
+      if (acceleration > 12.0 && acceleration < 20.0) {
+        _currentSteps++;
+        _todaySteps++;
+        _calories += 1;
+        _distance += 0.0008;
+        
+        final hour = DateTime.now().hour;
+        if (hour < 24) {
+          _hourlySteps[hour]++;
+        }
       }
     });
   }
 
+  void _stopSensorTracking() {
+    _stepCountSubscription?.cancel();
+    _pedestrianStatusSubscription?.cancel();
+  }
+
   void _updateStepData() {
-    // ✅ تحديث البيانات في الواجهة
-    // يمكن إضافة منطق إضافي هنا
+    // تحديث البيانات في الواجهة
   }
 
   Future<void> _saveTodayRecord() async {
