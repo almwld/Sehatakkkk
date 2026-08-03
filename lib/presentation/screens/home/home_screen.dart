@@ -1,5 +1,5 @@
 import "package:flutter/material.dart";
-import 'package:flutter/rendering.dart';  // ✅ إضافة هذا الاستيراد
+import 'package:flutter/rendering.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/health_score_service.dart';
@@ -25,9 +25,6 @@ import 'package:sehatak/presentation/screens/health/health_dashboard.dart';
 import 'package:sehatak/presentation/screens/home/tabs/home_tab.dart';
 import 'package:sehatak/app_router.dart';
 
-// ============================================================
-// 📱 HomeScreen - الشاشة الرئيسية (نسخة مطورة)
-// ============================================================
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -48,10 +45,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   void initState() {
     super.initState();
     
-    // ✅ إنشاء ScrollController لكل تبويب
     _scrollControllers = List.generate(7, (index) => ScrollController());
     
-    // ✅ إضافة مستمعين للتمرير لكل تبويب
     for (int i = 0; i < _scrollControllers.length; i++) {
       _scrollControllers[i].addListener(() {
         _handleScroll(_scrollControllers[i]);
@@ -103,7 +98,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   void _onTabTap(int index) {
-    // ✅ عند تغيير التبويب، إظهار الشريط السفلي
     _isBottomBarVisible.value = true;
     
     if (index == 3 || index == 4 || index == 5) {
@@ -113,7 +107,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     }
   }
 
-  // ✅ معالجة التمرير - إخفاء/إظهار الشريط السفلي
   void _handleScroll(ScrollController controller) {
     if (!controller.hasClients) return;
     
@@ -121,29 +114,21 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     final maxScroll = position.maxScrollExtent;
     final currentScroll = position.pixels;
     
-    // ✅ إذا كان في أعلى الصفحة، إظهار الشريط
     if (currentScroll <= 10) {
       _isBottomBarVisible.value = true;
       return;
     }
     
-    // ✅ إذا كان في أسفل الصفحة، إظهار الشريط
     if (currentScroll >= maxScroll - 10) {
       _isBottomBarVisible.value = true;
       return;
     }
     
-    // ✅ بناءً على اتجاه التمرير (باستخدام ScrollDirection من flutter/rendering)
     if (position.userScrollDirection == ScrollDirection.reverse) {
       _isBottomBarVisible.value = false;
     } else if (position.userScrollDirection == ScrollDirection.forward) {
       _isBottomBarVisible.value = true;
     }
-  }
-
-  // ✅ إعادة تعيين حالة الشريط السفلي عند تغيير التبويب
-  void _resetBottomBar() {
-    _isBottomBarVisible.value = true;
   }
 
   @override
@@ -154,15 +139,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     return Scaffold(
       body: Stack(
         children: [
-          // ✅ المحتوى الرئيسي
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
             switchInCurve: Curves.easeOut,
             switchOutCurve: Curves.easeIn,
             child: _screens[_currentIndex],
           ),
-          
-          // ✅ الشريط السفلي مع أنيميشن
           Positioned(
             bottom: 0,
             left: 0,
