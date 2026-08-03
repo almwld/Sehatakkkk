@@ -357,7 +357,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         MaterialPageRoute(
           builder: (_) => PaymentConfirmationScreen(
             success: true,
-            transactionId: result['id'],
+            transactionId: result.id,
             amount: widget.summary.total,
             message: 'تم دفع ${widget.summary.total.toStringAsFixed(0)} ريال بنجاح',
           ),

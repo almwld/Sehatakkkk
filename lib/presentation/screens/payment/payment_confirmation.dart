@@ -19,6 +19,7 @@ class PaymentConfirmationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final paymentService = PaymentService();
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
@@ -80,7 +81,7 @@ class PaymentConfirmationScreen extends StatelessWidget {
                       const Icon(Icons.receipt, size: 16, color: Colors.grey),
                       const SizedBox(width: 8),
                       Text(
-                        'رقم المعاملة: #${transactionId!.substring(0, 8)}',
+                        'رقم المعاملة: #${transactionId!.substring(0, transactionId!.length >= 8 ? 8 : transactionId!.length)}',
                         style: TextStyle(
                           fontSize: 12,
                           color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -114,7 +115,7 @@ class PaymentConfirmationScreen extends StatelessWidget {
                     const Icon(Icons.verified, color: Colors.green, size: 14),
                     const SizedBox(width: 4),
                     Text(
-                      'رمز نقطة الدفع: ${PaymentService.merchantCode}',
+                      'رمز نقطة الدفع: ${paymentService.merchantCode}',
                       style: const TextStyle(
                         fontSize: 11,
                         color: Colors.green,
