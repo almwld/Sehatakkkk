@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import 'package:flutter/rendering.dart';  // ✅ إضافة هذا الاستيراد
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/health_score_service.dart';
@@ -132,7 +133,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       return;
     }
     
-    // ✅ بناءً على اتجاه التمرير
+    // ✅ بناءً على اتجاه التمرير (باستخدام ScrollDirection من flutter/rendering)
     if (position.userScrollDirection == ScrollDirection.reverse) {
       _isBottomBarVisible.value = false;
     } else if (position.userScrollDirection == ScrollDirection.forward) {
