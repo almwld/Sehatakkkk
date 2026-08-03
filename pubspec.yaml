@@ -92,13 +92,13 @@ dependencies:
   workmanager: ^0.5.2
   flutter_background_service: ^5.0.5
   
-  # ❌ sensors_plus: ^4.0.0  # معطل - يسبب مشكلة في Kotlin 1.9.0
+  # ❌ sensors_plus: ^4.0.0  # معطل - يسبب مشكلة في Kotlin
 
   # ============================================================
-  # 🏃‍♂️ Step Counter - استخدام البديل الآمن
+  # 🏃‍♂️ Step Counter - استخدام الإصدار الصحيح
   # ============================================================
-  # ✅ استبدال pedometer بـ step_counter (أكثر استقراراً)
-  step_counter: ^1.2.0
+  # ✅ استخدام pedometer (موجود بالفعل في المشروع)
+  pedometer: ^4.0.0
 
   # ============================================================
   # 🎥 Media
@@ -127,7 +127,7 @@ dependencies:
   # 📡 Real-time Communication
   # ============================================================
   livekit_client: ^1.5.6
-  # ❌ flutter_webrtc: 0.9.47  # معطل - يسبب مشكلة في Kotlin 1.9.0
+  # ❌ flutter_webrtc: 0.9.47  # معطل - يسبب مشكلة في Kotlin
 
   # ============================================================
   # 📝 JSON
@@ -173,11 +173,11 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: false
-  image_path: "assets/icons/app_icon.svg"
+  image_path: "assets/icons/app_icon.png"
   min_sdk_android: 21
 
 flutter_native_splash:
   color: "#FFFFFF"
-  image: assets/icons/app_icon.svg
+  image: assets/icons/app_icon.png
   android: true
   ios: false
