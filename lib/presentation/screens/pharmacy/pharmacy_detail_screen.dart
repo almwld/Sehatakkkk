@@ -1,4 +1,4 @@
-import dart:io;
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
@@ -24,14 +24,12 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
   late TabController _tabController;
   bool _isFavorite = false;
 
-  // ✅ عروض خاصة
   final List<Map<String, dynamic>> _offers = [
     {'title': 'خصم 20% على جميع المسكنات', 'code': 'SAVE20', 'expiry': '2024-02-28', 'discount': 20},
     {'title': 'خصم 15% على فيتامين د', 'code': 'VITD15', 'expiry': '2024-03-15', 'discount': 15},
     {'title': 'توصيل مجاني للطلبات فوق 2000 ريال', 'code': 'FREE100', 'expiry': '2024-04-01', 'discount': 0},
   ];
 
-  // ✅ أوقات التوصيل
   final List<Map<String, String>> _deliveryTimes = [
     {'day': 'السبت', 'time': '9:00 ص - 10:00 م'},
     {'day': 'الأحد', 'time': '9:00 ص - 10:00 م'},
@@ -42,7 +40,6 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
     {'day': 'الجمعة', 'time': 'مغلق'},
   ];
 
-  // ✅ بدائل الأدوية
   final List<Map<String, dynamic>> _alternatives = [
     {'name': 'باراسيتامول', 'alternatives': ['أسيتامينوفين', 'تيلينول'], 'price': 500},
     {'name': 'إيبوبروفين', 'alternatives': ['أدفيل', 'موترين'], 'price': 750},
@@ -102,7 +99,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
       MaterialPageRoute(
         builder: (_) => OrderTrackingScreen(
           orderId: 'ORD${DateTime.now().millisecondsSinceEpoch}',
-          pharmacyName: widget.pharmacy['name'],
+          pharmacyName: widget.pharmacy['name'] as String,
         ),
       ),
     );
@@ -142,7 +139,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            offer['title'],
+                            offer['title'] as String,
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
@@ -157,7 +154,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
-                                  'كود: ${offer['code']}',
+                                  'كود: ${offer['code'] as String}',
                                   style: const TextStyle(
                                     fontSize: 10,
                                     color: Colors.blue,
@@ -166,7 +163,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                'ينتهي ${offer['expiry']}',
+                                'ينتهي ${offer['expiry'] as String}',
                                 style: const TextStyle(
                                   fontSize: 10,
                                   color: Colors.grey,
@@ -177,7 +174,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
                         ],
                       ),
                     ),
-                    if (offer['discount'] > 0)
+                    if ((offer['discount'] as int) > 0)
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
@@ -210,7 +207,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: Text(pharmacy['name']),
+        title: Text(pharmacy['name'] as String),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -246,7 +243,6 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
     );
   }
 
-  // ✅ تبويب المعلومات
   Widget _buildInfoTab(bool isDark) {
     final pharmacy = widget.pharmacy;
 
@@ -255,23 +251,20 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ✅ صورة الصيدلية
           ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: AppImage(
-              url: pharmacy['image'],
+              url: pharmacy['image'] as String,
               height: 180,
               width: double.infinity,
             ),
           ),
           const SizedBox(height: 16),
-
-          // ✅ الاسم والتقييم
           Row(
             children: [
               Expanded(
                 child: Text(
-                  pharmacy['name'],
+                  pharmacy['name'] as String,
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -284,7 +277,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => PharmacyReviewScreen(pharmacyId: pharmacy['id']),
+                      builder: (_) => PharmacyReviewScreen(pharmacyId: pharmacy['id'] as String),
                     ),
                   );
                 },
@@ -313,15 +306,13 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
             ],
           ),
           const SizedBox(height: 8),
-
-          // ✅ العنوان
           Row(
             children: [
               Icon(Icons.location_on, size: 16, color: isDark ? Colors.grey[400] : Colors.grey[600]),
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
-                  pharmacy['address'],
+                  pharmacy['address'] as String,
                   style: TextStyle(
                     fontSize: 13,
                     color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -342,14 +333,12 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
             ],
           ),
           const SizedBox(height: 8),
-
-          // ✅ حالة الصيدلية
           Row(
             children: [
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: pharmacy['open'] ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                  color: (pharmacy['open'] as bool) ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -358,15 +347,15 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
                       width: 8,
                       height: 8,
                       decoration: BoxDecoration(
-                        color: pharmacy['open'] ? Colors.green : Colors.red,
+                        color: (pharmacy['open'] as bool) ? Colors.green : Colors.red,
                         shape: BoxShape.circle,
                       ),
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      pharmacy['open'] ? '🟢 مفتوح' : '🔴 مغلق',
+                      (pharmacy['open'] as bool) ? '🟢 مفتوح' : '🔴 مغلق',
                       style: TextStyle(
-                        color: pharmacy['open'] ? Colors.green : Colors.red,
+                        color: (pharmacy['open'] as bool) ? Colors.green : Colors.red,
                         fontWeight: FontWeight.w600,
                         fontSize: 12,
                       ),
@@ -386,7 +375,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
                     const Icon(Icons.delivery_dining, size: 14, color: Colors.blue),
                     const SizedBox(width: 4),
                     Text(
-                      pharmacy['delivery'] ? '🚚 توصيل' : '📦 استلام',
+                      (pharmacy['delivery'] as bool) ? '🚚 توصيل' : '📦 استلام',
                       style: TextStyle(
                         color: Colors.blue,
                         fontWeight: FontWeight.w600,
@@ -399,8 +388,6 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
             ],
           ),
           const SizedBox(height: 16),
-
-          // ✅ عروض خاصة
           GestureDetector(
             onTap: _showOfferDialog,
             child: Container(
@@ -442,8 +429,6 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
             ),
           ),
           const SizedBox(height: 16),
-
-          // ✅ أوقات التوصيل
           const Text(
             '🕐 أوقات التوصيل',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -478,8 +463,6 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
             );
           }).toList(),
           const SizedBox(height: 16),
-
-          // ✅ بدائل الأدوية
           const Text(
             '💊 بدائل الأدوية',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -497,7 +480,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    alt['name'],
+                    alt['name'] as String,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: isDark ? Colors.white : Colors.black87,
@@ -514,7 +497,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          a,
+                          a as String,
                           style: TextStyle(
                             fontSize: 11,
                             color: AppColors.primary,
@@ -528,8 +511,6 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
             );
           }).toList(),
           const SizedBox(height: 16),
-
-          // ✅ أزرار إضافية
           Row(
             children: [
               Expanded(
@@ -538,7 +519,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => PharmacyReviewScreen(pharmacyId: pharmacy['id']),
+                        builder: (_) => PharmacyReviewScreen(pharmacyId: pharmacy['id'] as String),
                       ),
                     );
                   },
@@ -578,7 +559,6 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
     );
   }
 
-  // ✅ تبويب الأدوية
   Widget _buildDrugsTab(bool isDark) {
     final drugs = [
       {'name': 'باراسيتامول 500mg', 'price': 500, 'category': 'مسكنات', 'prescription': false},
@@ -695,7 +675,6 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
     );
   }
 
-  // ✅ تبويب الطلب
   Widget _buildOrderTab(bool isDark) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -718,8 +697,6 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
             ),
           ),
           const SizedBox(height: 16),
-
-          // ✅ معاينة الصورة
           if (_selectedImage != null)
             Container(
               width: double.infinity,
@@ -781,8 +758,6 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
               ),
             ),
           const SizedBox(height: 12),
-
-          // ✅ أزرار رفع الصورة
           Row(
             children: [
               Expanded(
@@ -819,8 +794,6 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
             ],
           ),
           const SizedBox(height: 12),
-
-          // ✅ ملاحظات
           TextField(
             controller: _noteController,
             maxLines: 3,
@@ -841,8 +814,6 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
             style: TextStyle(color: isDark ? Colors.white : Colors.black87),
           ),
           const SizedBox(height: 16),
-
-          // ✅ زر إرسال الطلب
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -862,8 +833,6 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
             ),
           ),
           const SizedBox(height: 16),
-
-          // ✅ استشارة صيدلي
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -908,8 +877,6 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
             ),
           ),
           const SizedBox(height: 16),
-
-          // ✅ متابعة الطلبات
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -949,7 +916,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
                       MaterialPageRoute(
                         builder: (_) => OrderTrackingScreen(
                           orderId: 'ORD20240101',
-                          pharmacyName: widget.pharmacy['name'],
+                          pharmacyName: widget.pharmacy['name'] as String,
                         ),
                       ),
                     );

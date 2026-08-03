@@ -219,3 +219,18 @@ class MedicationLog {
     skippedReason: data['skippedReason'],
   );
 }
+
+extension MedicationDosageFormExtension on MedicationDosageForm {
+  Color get color {
+    switch (this) {
+      case MedicationDosageForm.tablet: return Colors.blue;
+      case MedicationDosageForm.capsule: return Colors.purple;
+      case MedicationDosageForm.syrup: return Colors.orange;
+      case MedicationDosageForm.injection: return Colors.red;
+      case MedicationDosageForm.drops: return Colors.cyan;
+      case MedicationDosageForm.cream: return Colors.pink;
+      case MedicationDosageForm.spray: return Colors.teal;
+      case MedicationDosageForm.patch: return Colors.green;
+    }
+  }
+}
