@@ -1,720 +1,279 @@
-import "package:sehatak/data/models/delivery/delivery_model.dart";
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/services/delivery/delivery_service.dart';
 
 class DeliveryScreen extends StatefulWidget {
-  final String? orderId;
-  const DeliveryScreen({super.key, this.orderId});
+  const DeliveryScreen({super.key});
 
   @override
   State<DeliveryScreen> createState() => _DeliveryScreenState();
 }
 
-class _DeliveryScreenState extends State<DeliveryScreen> {
-  final DeliveryService _deliveryService = DeliveryService();
-  DeliveryModel? _delivery;
-  bool _isLoading = true;
-  String _selectedOrderId = 'ORD-2026-001';
+class _DeliveryScreenState extends State<DeliveryScreen> with SingleTickerProviderStateMixin {
+  String _selectedType = 'standard';
+  late TabController _tabController;
 
-  final List<Map<String, dynamic>> _recentOrders = [
-    {'id': 'ORD-2026-001', 'date': '2026-07-19', 'status': 'shipping', 'total': 1250.0, 'items': 3},
-    {'id': 'ORD-2026-002', 'date': '2026-07-18', 'status': 'delivered', 'total': 850.0, 'items': 2},
-    {'id': 'ORD-2026-003', 'date': '2026-07-17', 'status': 'processing', 'total': 2300.0, 'items': 5},
+  final List<Map<String, dynamic>> _deliveryCompanies = [
+    {'name': '🚚 توصيل صحتك', 'type': 'standard', 'rating': 4.9, 'deliveryTime': '30-60 دقيقة', 'price': 500, 'image': 'assets/images/delivery/delivery_1.png', 'active': true},
+    {'name': '🚀 توصيل السريع', 'type': 'express', 'rating': 4.8, 'deliveryTime': '15-30 دقيقة', 'price': 800, 'image': 'assets/images/delivery/delivery_2.png', 'active': true},
+    {'name': '🏠 توصيل ناس', 'type': 'standard', 'rating': 4.7, 'deliveryTime': '45-90 دقيقة', 'price': 400, 'image': 'assets/images/delivery/delivery_3.png', 'active': true},
+    {'name': '🌟 توصيل صحتك بلس', 'type': 'premium', 'rating': 4.9, 'deliveryTime': '20-40 دقيقة', 'price': 1000, 'image': 'assets/images/delivery/delivery_4.png', 'active': true},
+  ];
+
+  // ✅ شركات توصيل قريباً
+  final List<Map<String, dynamic>> _comingSoon = [
+    {'name': '🛵 واصل', 'type': 'standard', 'rating': 4.6, 'deliveryTime': '30-60 دقيقة', 'price': 450, 'comingSoon': true},
+    {'name': '🚗 سريع', 'type': 'express', 'rating': 4.5, 'deliveryTime': '15-30 دقيقة', 'price': 750, 'comingSoon': true},
+    {'name': '🏍️ موتومان', 'type': 'express', 'rating': 4.4, 'deliveryTime': '20-40 دقيقة', 'price': 700, 'comingSoon': true},
+    {'name': '🚕 تاكسي', 'type': 'standard', 'rating': 4.3, 'deliveryTime': '30-60 دقيقة', 'price': 500, 'comingSoon': true},
   ];
 
   @override
   void initState() {
     super.initState();
-    if (widget.orderId != null) {
-      _selectedOrderId = widget.orderId!;
-    }
-    _loadDelivery();
+    _tabController = TabController(length: 2, vsync: this);
   }
 
-  Future<void> _loadDelivery() async {
-    setState(() => _isLoading = true);
-    try {
-      _delivery = await _deliveryService.getDeliveryStatus(_selectedOrderId);
-    } catch (e) {
-      print('❌ خطأ في تحميل التوصيل: $e');
-    }
-    setState(() => _isLoading = false);
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = const Color(0xFF0D5257);
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('تتبع الطلب'),
-        backgroundColor: primaryColor,
+        title: const Text('🚚 خدمة التوصيل'),
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadDelivery,
-          ),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(text: '🚚 شركات التوصيل'),
+            Tab(text: '⏳ قريباً'),
+          ],
+          indicatorColor: Colors.white,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _buildDeliveryCompanies(isDark),
+          _buildComingSoon(isDark),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _delivery == null
-              ? _buildEmptyState(isDark)
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // ✅ معلومات الطلب
-                      _buildOrderInfo(isDark, primaryColor),
-                      const SizedBox(height: 16),
+    );
+  }
 
-                      // ✅ خريطة التتبع
-                      _buildTrackingMap(isDark),
-                      const SizedBox(height: 16),
+  Widget _buildDeliveryCompanies(bool isDark) {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: _deliveryCompanies.length,
+      itemBuilder: (context, index) {
+        final company = _deliveryCompanies[index];
+        return _buildCompanyCard(company, isDark);
+      },
+    );
+  }
 
-                      // ✅ حالة التوصيل
-                      _buildDeliveryStatus(isDark),
-                      const SizedBox(height: 16),
-
-                      // ✅ معلومات المندوب
-                      _buildCourierInfo(isDark),
-                      const SizedBox(height: 16),
-
-                      // ✅ أزرار الإجراءات
-                      _buildActionButtons(isDark, primaryColor),
-                      const SizedBox(height: 16),
-
-                      // ✅ الطلبات السابقة
-                      _buildRecentOrders(isDark),
-                    ],
+  Widget _buildComingSoon(bool isDark) {
+    return GridView.builder(
+      padding: const EdgeInsets.all(16),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 0.85,
+      ),
+      itemCount: _comingSoon.length,
+      itemBuilder: (context, index) {
+        final company = _comingSoon[index];
+        return Container(
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1A2540) : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
+              style: BorderStyle.solid,
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                company['name'],
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  '⏳ قريباً',
+                  style: TextStyle(
+                    color: Colors.blue,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
                   ),
                 ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '⏱️ ${company['deliveryTime']}',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '💰 ${company['price']} ريال',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildEmptyState(bool isDark) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.delivery_dining_outlined,
-            size: 80,
-            color: isDark ? Colors.grey : Colors.grey,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'لا توجد طلبات',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'قم بطلب من الصيدلية لتتبع الطلب',
-            style: TextStyle(
-              color: isDark ? Colors.grey : Colors.grey,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildOrderInfo(bool isDark, Color primaryColor) {
+  Widget _buildCompanyCard(Map<String, dynamic> company, bool isDark) {
     return Container(
+      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1A2540) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.04),
             blurRadius: 8,
-            offset: const Offset(0, 2),
           ),
         ],
+        border: company['active'] == true
+            ? Border.all(color: Colors.green, width: 1.5)
+            : null,
       ),
       child: Row(
         children: [
+          // ✅ صورة الشركة
           Container(
-            padding: const EdgeInsets.all(12),
+            width: 60,
+            height: 60,
             decoration: BoxDecoration(
-              color: primaryColor.withOpacity(0.1),
+              color: isDark ? const Color(0xFF0B1121) : Colors.grey[100],
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(
-              Icons.receipt_long,
-              color: AppColors.primary,
-              size: 30,
+            child: Center(
+              child: Text(
+                company['name'].split(' ')[0],
+                style: const TextStyle(fontSize: 28),
+              ),
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
+          // ✅ المعلومات
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'رقم الطلب: $_selectedOrderId',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'تاريخ الطلب: ${DateTime.now().toString().substring(0, 10)}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isDark ? Colors.grey : Colors.grey,
-                  ),
-                ),
-                const SizedBox(height: 4),
                 Row(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: _delivery?.status == 'delivered'
-                            ? Colors.green.withOpacity(0.1)
-                            : Colors.orange.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        _delivery?.status == 'delivered' ? 'تم التوصيل ✅' : 'قيد التوصيل 🚚',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: _delivery?.status == 'delivered' ? Colors.green : Colors.orange,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTrackingMap(bool isDark) {
-    return Container(
-      height: 200,
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2540) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // ✅ خريطة ثابتة (سيتم استبدالها بخريطة حقيقية)
-            Container(
-              color: isDark ? const Color(0xFF2D3748) : const Color(0xFFE2E8F0),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.map_outlined,
-                      size: 60,
-                      color: isDark ? Colors.grey : Colors.grey,
-                    ),
-                    const SizedBox(height: 8),
                     Text(
-                      'خريطة التتبع',
-                      style: TextStyle(
-                        color: isDark ? Colors.grey : Colors.grey,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'موقع المندوب: ${_delivery?.courier?.name ?? 'غير معروف'}',
-                      style: TextStyle(
-                        color: isDark ? Colors.grey : Colors.grey,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            // ✅ نقطة المندوب
-            Positioned(
-              top: 60,
-              left: 80,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.green,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.green.withOpacity(0.5),
-                      blurRadius: 12,
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.person_pin_circle,
-                  color: Colors.white,
-                  size: 30,
-                ),
-              ),
-            ),
-            // ✅ نقطة الوجهة
-            Positioned(
-              bottom: 60,
-              right: 80,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.red.withOpacity(0.5),
-                      blurRadius: 12,
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.location_on,
-                  color: Colors.white,
-                  size: 30,
-                ),
-              ),
-            ),
-            // ✅ الوقت المتوقع
-            Positioned(
-              bottom: 16,
-              left: 16,
-              right: 16,
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1A2540) : Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 8,
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.timer, color: AppColors.primary),
-                    const SizedBox(width: 8),
-                    Text(
-                      'الوقت المتوقع للوصول: ${_delivery?.estimatedTime ?? 'غير محدد'}',
+                      company['name'],
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
+                        fontSize: 15,
                         color: isDark ? Colors.white : Colors.black87,
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDeliveryStatus(bool isDark) {
-    final statuses = [
-      {'label': 'تم الطلب', 'icon': Icons.receipt, 'step': 0},
-      {'label': 'تم التجهيز', 'icon': Icons.inventory, 'step': 1},
-      {'label': 'في الطريق', 'icon': Icons.local_shipping, 'step': 2},
-      {'label': 'تم التوصيل', 'icon': Icons.check_circle, 'step': 3},
-    ];
-
-    final currentStep = _delivery?.currentStep ?? 0;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2540) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'حالة الطلب',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 16),
-          ...statuses.asMap().entries.map((entry) {
-            final index = entry.key;
-            final status = entry.value;
-            final isCompleted = index <= currentStep;
-            final isCurrent = index == currentStep;
-
-            return Row(
-              children: [
-                // ✅ الخط العمودي
-                if (index > 0)
-                  Container(
-                    width: 2,
-                    height: 30,
-                    color: isCompleted ? Colors.green : Colors.grey,
-                    margin: const EdgeInsets.symmetric(horizontal: 12),
-                  ),
-                // ✅ النقطة
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: isCompleted ? Colors.green : (isDark ? const Color(0xFF1A2540) : Colors.grey),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    status['icon'] as IconData,
-                    color: isCompleted ? Colors.white : Colors.grey,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        status['label'] as String,
-                        style: TextStyle(
-                          fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
-                          color: isCompleted
-                              ? Colors.green
-                              : (isDark ? Colors.grey : Colors.grey),
-                        ),
-                      ),
-                      if (isCurrent)
-                        Text(
-                          'جاري الآن...',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                if (isCurrent)
-                  const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: AppColors.primary,
-                    ),
-                  ),
-              ],
-            );
-          }).toList(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCourierInfo(bool isDark) {
-    final courier = _delivery?.courier;
-    if (courier == null) return const SizedBox.shrink();
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2540) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 30,
-            backgroundColor: AppColors.primary.withOpacity(0.1),
-            child: const Icon(
-              Icons.person,
-              color: AppColors.primary,
-              size: 30,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  courier.name,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                ),
-                Row(
-                  children: [
-                    Icon(Icons.star, color: Colors.amber, size: 14),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${courier.rating}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isDark ? Colors.white : Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Icon(Icons.phone, size: 14, color: isDark ? Colors.grey : Colors.grey),
-                    const SizedBox(width: 4),
-                    Text(
-                      courier.phone,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isDark ? Colors.grey : Colors.grey,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Icon(Icons.directions_car, size: 14, color: isDark ? Colors.grey : Colors.grey),
-                    const SizedBox(width: 4),
-                    Text(
-                      courier.vehicleType,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isDark ? Colors.grey : Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: courier.isOnline ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              courier.isOnline ? 'متصل 🟢' : 'غير متصل 🔴',
-              style: TextStyle(
-                fontSize: 10,
-                color: courier.isOnline ? Colors.green : Colors.red,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionButtons(bool isDark, Color primaryColor) {
-    return Row(
-      children: [
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: () {
-              // TODO: الاتصال بالمندوب
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('📞 جاري الاتصال بالمندوب...'),
-                  backgroundColor: Colors.blue,
-                ),
-              );
-            },
-            icon: const Icon(Icons.phone),
-            label: const Text('اتصال'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: primaryColor,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: () {
-              // TODO: مشاركة الموقع
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('📍 جاري مشاركة الموقع...'),
-                  backgroundColor: Colors.blue,
-                ),
-              );
-            },
-            icon: const Icon(Icons.share_location),
-            label: const Text('مشاركة الموقع'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: primaryColor,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildRecentOrders(bool isDark) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'طلبات سابقة',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 8),
-        ..._recentOrders.map((order) {
-          final status = order['status'] as String;
-          final statusColor = status == 'delivered'
-              ? Colors.green
-              : status == 'shipping'
-                  ? Colors.orange
-                  : Colors.blue;
-          final statusLabel = status == 'delivered'
-              ? 'تم التوصيل'
-              : status == 'shipping'
-                  ? 'قيد التوصيل'
-                  : 'جاري التجهيز';
-
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                _selectedOrderId = order['id'] as String;
-              });
-              _loadDelivery();
-            },
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1A2540) : Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: _selectedOrderId == order['id']
-                      ? AppColors.primary
-                      : Colors.transparent,
-                  width: 2,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: statusColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      status == 'delivered' ? Icons.check_circle : Icons.local_shipping,
-                      color: statusColor,
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    const SizedBox(width: 8),
+                    Row(
                       children: [
+                        const Icon(Icons.star, color: Colors.amber, size: 14),
+                        const SizedBox(width: 2),
                         Text(
-                          order['id'],
+                          company['rating'].toString(),
                           style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
+                            fontSize: 12,
                             color: isDark ? Colors.white : Colors.black87,
-                          ),
-                        ),
-                        Text(
-                          '${order['date']} • ${order['items']} منتجات',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: isDark ? Colors.grey : Colors.grey,
                           ),
                         ),
                       ],
                     ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        '${order['total']} ر.ي',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(Icons.access_time, size: 14, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                    const SizedBox(width: 4),
+                    Text(
+                      company['deliveryTime'],
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: statusColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          statusLabel,
-                          style: TextStyle(
-                            fontSize: 9,
-                            color: statusColor,
-                          ),
-                        ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(Icons.money, size: 14, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${company['price']} ريال',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
                       ),
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          );
-        }).toList(),
-      ],
+          ),
+          // ✅ زر الاختيار
+          if (company['active'] == true)
+            ElevatedButton(
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('✅ تم اختيار خدمة التوصيل'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text('اختيار'),
+            ),
+        ],
+      ),
     );
   }
 }

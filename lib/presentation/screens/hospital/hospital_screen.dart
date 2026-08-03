@@ -1,7 +1,7 @@
-import "package:sehatak/utils/image_utils.dart";
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/services/image_service.dart';
+import 'package:sehatak/core/constants/imagekit.dart';
+import 'package:sehatak/presentation/widgets/common/app_image.dart';
 
 class HospitalScreen extends StatefulWidget {
   const HospitalScreen({super.key});
@@ -11,84 +11,42 @@ class HospitalScreen extends StatefulWidget {
 }
 
 class _HospitalScreenState extends State<HospitalScreen> {
-  final List<Map<String, dynamic>> hospitals = [
-    {
-      'name': 'مستشفى الثورة العام',
-      'location': 'صنعاء',
-      'specialty': 'عام',
-      'rating': 4.8,
-      'image': ImageService.hospital1,
-      'phone': '01-234567',
-    },
-    {
-      'name': 'المستشفى الجمهوري',
-      'location': 'صنعاء',
-      'specialty': 'عام',
-      'rating': 4.7,
-      'image': ImageService.hospital2,
-      'phone': '01-234568',
-    },
-    {
-      'name': 'مستشفى الكويت الجامعي',
-      'location': 'صنعاء',
-      'specialty': 'تعليمي',
-      'rating': 4.9,
-      'image': ImageService.hospital3,
-      'phone': '01-234569',
-    },
-    {
-      'name': 'مستشفى السبعين للأمومة والطفولة',
-      'location': 'صنعاء',
-      'specialty': 'أطفال وولادة',
-      'rating': 4.6,
-      'image': ImageService.hospital4,
-      'phone': '01-234570',
-    },
-    {
-      'name': 'المستشفى العسكري',
-      'location': 'صنعاء',
-      'specialty': 'عام',
-      'rating': 4.5,
-      'image': ImageService.hospital5,
-      'phone': '01-234571',
-    },
-    {
-      'name': 'مستشفى آزال',
-      'location': 'صنعاء',
-      'specialty': 'عام',
-      'rating': 4.4,
-      'image': ImageService.hospital6,
-      'phone': '01-234572',
-    },
-    {
-      'name': 'مستشفى اليمن الألماني',
-      'location': 'صنعاء',
-      'specialty': 'متخصص',
-      'rating': 4.8,
-      'image': ImageService.hospital7,
-      'phone': '01-234573',
-    },
-    {
-      'name': 'مستشفى النقيب',
-      'location': 'صنعاء',
-      'specialty': 'عام',
-      'rating': 4.3,
-      'image': ImageService.hospital8,
-      'phone': '01-234574',
-    },
-    {
-      'name': 'مستشفى العلوم والتكنولوجيا',
-      'location': 'صنعاء',
-      'specialty': 'تعليمي',
-      'rating': 4.6,
-      'image': ImageService.hospital9,
-      'phone': '01-234575',
-    },
+  String _searchQuery = '';
+  String _selectedFilter = 'الكل';
+
+  final List<String> _filters = ['الكل', 'حكومي', 'خاص', 'جامعي', 'تخصصي'];
+
+  final List<Map<String, dynamic>> _hospitals = [
+    {'id': '1', 'name': 'مستشفى الثورة العام', 'location': 'صنعاء', 'specialty': 'حكومي', 'rating': 4.8, 'reviews': 450, 'phone': '01-222222', 'image': ImageKit.hospital1, 'open': true, 'emergency': true, 'beds': 500},
+    {'id': '2', 'name': 'المستشفى الجمهوري', 'location': 'صنعاء', 'specialty': 'حكومي', 'rating': 4.7, 'reviews': 380, 'phone': '01-999444', 'image': ImageKit.hospital2, 'open': true, 'emergency': true, 'beds': 450},
+    {'id': '3', 'name': 'مستشفى الكويت الجامعي', 'location': 'صنعاء', 'specialty': 'جامعي', 'rating': 4.9, 'reviews': 520, 'phone': '01-333333', 'image': ImageKit.hospital3, 'open': true, 'emergency': true, 'beds': 400},
+    {'id': '4', 'name': 'مستشفى السبعين للأمومة', 'location': 'صنعاء', 'specialty': 'تخصصي', 'rating': 4.6, 'reviews': 290, 'phone': '01-444444', 'image': ImageKit.hospital4, 'open': true, 'emergency': true, 'beds': 300},
+    {'id': '5', 'name': 'المستشفى العسكري', 'location': 'صنعاء', 'specialty': 'حكومي', 'rating': 4.5, 'reviews': 310, 'phone': '01-777777', 'image': ImageKit.hospital5, 'open': true, 'emergency': true, 'beds': 600},
+    {'id': '6', 'name': 'مستشفى آزال', 'location': 'صنعاء', 'specialty': 'خاص', 'rating': 4.4, 'reviews': 220, 'phone': '01-555555', 'image': ImageKit.hospital6, 'open': true, 'emergency': true, 'beds': 150},
+    {'id': '7', 'name': 'مستشفى اليمن الألماني', 'location': 'صنعاء', 'specialty': 'خاص', 'rating': 4.8, 'reviews': 410, 'phone': '01-111222', 'image': ImageKit.hospital7, 'open': true, 'emergency': true, 'beds': 200},
+    {'id': '8', 'name': 'مستشفى النقيب', 'location': 'صنعاء', 'specialty': 'خاص', 'rating': 4.3, 'reviews': 180, 'phone': '01-888888', 'image': ImageKit.hospital8, 'open': false, 'emergency': false, 'beds': 100},
+    {'id': '9', 'name': 'مستشفى العلوم الحديثة', 'location': 'صنعاء', 'specialty': 'خاص', 'rating': 4.6, 'reviews': 260, 'phone': '01-999999', 'image': ImageKit.hospital9, 'open': true, 'emergency': true, 'beds': 120},
   ];
+
+  List<Map<String, dynamic>> get _filteredHospitals {
+    var list = _hospitals;
+    if (_searchQuery.isNotEmpty) {
+      list = list.where((h) =>
+        h['name'].toString().contains(_searchQuery) ||
+        h['location'].toString().contains(_searchQuery) ||
+        h['specialty'].toString().contains(_searchQuery)
+      ).toList();
+    }
+    if (_selectedFilter != 'الكل') {
+      list = list.where((h) => h['specialty'] == _selectedFilter).toList();
+    }
+    return list;
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final filtered = _filteredHospitals;
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
@@ -100,99 +58,121 @@ class _HospitalScreenState extends State<HospitalScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.search_rounded),
-            onPressed: () {
-              // TODO: فتح شاشة البحث
-            },
+            onPressed: () => _showSearchDialog(),
           ),
         ],
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: hospitals.length,
-        itemBuilder: (context, index) {
-          final hospital = hospitals[index];
-          return _buildHospitalCard(hospital, isDark);
-        },
-      ),
-    );
-  }
-
-  Widget _buildHospitalCard(Map<String, dynamic> hospital, bool isDark) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2540) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-        border: Border.all(
-          color: isDark ? Colors.grey! : Colors.grey!,
-          width: 1,
-        ),
-      ),
-      child: Row(
+      body: Column(
         children: [
-          // ✅ صورة المستشفى
-          ClipRRect(
-            borderRadius: const BorderRadius.horizontal(
-              left: Radius.circular(16),
-            ),
-            child: Image.asset(
-              hospital['image'] as String,
-              width: 100,
-              height: 100,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  width: 100,
-                  height: 100,
-                  color: Colors.grey,
-                  child: const Icon(
-                    Icons.local_hospital,
-                    color: Colors.grey,
-                    size: 40,
+          // ✅ التصنيفات
+          Container(
+            height: 45,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: _filters.length,
+              itemBuilder: (context, index) {
+                final filter = _filters[index];
+                final isSelected = _selectedFilter == filter;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: FilterChip(
+                    label: Text(filter, style: const TextStyle(fontSize: 12)),
+                    selected: isSelected,
+                    onSelected: (_) => setState(() => _selectedFilter = filter),
+                    backgroundColor: isDark ? const Color(0xFF1A2540) : Colors.white,
+                    selectedColor: AppColors.primary,
+                    labelStyle: TextStyle(
+                      color: isSelected ? Colors.white : (isDark ? Colors.white : AppColors.primary),
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      side: BorderSide(
+                        color: isSelected ? AppColors.primary : (isDark ? Colors.grey[700]! : Colors.grey.shade300),
+                      ),
+                    ),
                   ),
                 );
               },
             ),
           ),
-          const SizedBox(width: 12),
-          // ✅ معلومات المستشفى
+          // ✅ القائمة
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+            child: filtered.isEmpty
+                ? _buildEmptyState(isDark)
+                : ListView.builder(
+                    padding: const EdgeInsets.all(12),
+                    itemCount: filtered.length,
+                    itemBuilder: (context, index) {
+                      final hospital = filtered[index];
+                      return _buildHospitalCard(hospital, isDark);
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHospitalCard(Map<String, dynamic> hospital, bool isDark) {
+    return GestureDetector(
+      onTap: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('جاري عرض تفاصيل ${hospital['name']}'),
+            backgroundColor: AppColors.primary,
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1A2540) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: AppImage(
+                url: hospital['image'],
+                width: 80,
+                height: 80,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    hospital['name'] as String,
+                    hospital['name'],
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 15,
+                      fontSize: 14,
                       color: isDark ? Colors.white : Colors.black87,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   Row(
                     children: [
-                      Icon(
-                        Icons.location_on,
-                        size: 14,
-                        color: isDark ? Colors.grey : Colors.grey,
-                      ),
-                      const SizedBox(width: 4),
+                      Icon(Icons.location_on, size: 12, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                      const SizedBox(width: 2),
                       Text(
-                        hospital['location'] as String,
+                        hospital['location'],
                         style: TextStyle(
-                          fontSize: 12,
-                          color: isDark ? Colors.grey : Colors.grey,
+                          fontSize: 11,
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
                         ),
                       ),
                     ],
@@ -201,85 +181,90 @@ class _HospitalScreenState extends State<HospitalScreen> {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                         decoration: BoxDecoration(
                           color: AppColors.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          hospital['specialty'] as String,
+                          hospital['specialty'],
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: 10,
                             color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 4),
                       Row(
                         children: [
-                          const Icon(
-                            Icons.star,
-                            color: Colors.amber,
-                            size: 14,
+                          const Icon(Icons.star, color: Colors.amber, size: 12),
+                          const SizedBox(width: 2),
+                          Text(
+                            hospital['rating'].toString(),
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
                           ),
                           const SizedBox(width: 2),
                           Text(
-                            '${hospital['rating']}',
+                            '(${hospital['reviews']})',
                             style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: isDark ? Colors.white : Colors.black87,
+                              fontSize: 9,
+                              color: isDark ? Colors.grey[400] : Colors.grey[600],
                             ),
                           ),
                         ],
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(
-                        Icons.phone,
-                        size: 12,
-                        color: isDark ? Colors.grey : Colors.grey,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        hospital['phone'] as String,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: isDark ? Colors.grey : Colors.grey,
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: hospital['open'] ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 6,
+                              height: 6,
+                              decoration: BoxDecoration(
+                                color: hospital['open'] ? Colors.green : Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              hospital['open'] ? 'مفتوح' : 'مغلق',
+                              style: TextStyle(
+                                color: hospital['open'] ? Colors.green : Colors.red,
+                                fontSize: 9,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       const Spacer(),
-                      ElevatedButton(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'جاري حجز موعد في ${hospital['name']}',
-                              ),
-                              backgroundColor: AppColors.primary,
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Text(
-                          'حجز',
-                          style: TextStyle(fontSize: 11),
+                        child: Text(
+                          '${hospital['beds']} سرير',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ],
@@ -287,9 +272,71 @@ class _HospitalScreenState extends State<HospitalScreen> {
                 ],
               ),
             ),
+            Icon(Icons.arrow_forward_ios, size: 14, color: isDark ? Colors.grey[600] : Colors.grey[400]),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(bool isDark) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.local_hospital_outlined, size: 64, color: isDark ? Colors.grey[600] : Colors.grey[300]),
+          const SizedBox(height: 16),
+          Text(
+            'لا توجد مستشفيات',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'جرب تغيير البحث أو التصنيف',
+            style: TextStyle(
+              fontSize: 13,
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  void _showSearchDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        String tempSearch = '';
+        return AlertDialog(
+          title: const Text('بحث عن مستشفى'),
+          content: TextField(
+            onChanged: (value) => tempSearch = value,
+            autofocus: true,
+            decoration: const InputDecoration(
+              hintText: 'أدخل اسم المستشفى...',
+              prefixIcon: Icon(Icons.search),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('إلغاء'),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() => _searchQuery = tempSearch);
+                Navigator.pop(context);
+              },
+              child: const Text('بحث'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

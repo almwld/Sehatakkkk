@@ -12,8 +12,7 @@ class EmergencyNumbers extends StatelessWidget {
         await launchUrl(Uri.parse(url));
       }
     } catch (e) {
-      // ignore: avoid_print
-      print('Error making call: $e');
+      debugPrint('Error making call: $e');
     }
   }
 
@@ -22,12 +21,12 @@ class EmergencyNumbers extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final numbers = [
-      {'name': 'الشرطة', 'number': '199', 'icon': Icons.local_police, 'color': Colors.blue, 'description': 'الطوارئ الأمنية'},
-      {'name': 'الإسعاف', 'number': '191', 'icon': Icons.medical_services, 'color': Colors.red, 'description': 'الحالات الحرجة'},
-      {'name': 'مطافئ', 'number': '16', 'icon': Icons.fire_extinguisher, 'color': Colors.orange, 'description': 'الحرائق والكوارث'},
-      {'name': 'الدفاع المدني', 'number': '194', 'icon': Icons.shield, 'color': Colors.green, 'description': 'الطوارئ العامة'},
-      {'name': 'الدعم النفسي', 'number': '185', 'icon': Icons.psychology, 'color': Colors.purple, 'description': 'الدعم النفسي'},
-      {'name': 'التسمم', 'number': '180', 'icon': Icons.warning_amber_rounded, 'color': Colors.orange, 'description': 'حالات التسمم'},
+      {'name': 'الشرطة', 'number': '199', 'icon': Icons.local_police, 'color': Colors.blue, 'description': 'الطوارئ الأمنية', 'emergency': true},
+      {'name': 'الإسعاف', 'number': '191', 'icon': Icons.medical_services, 'color': Colors.red, 'description': 'الحالات الحرجة', 'emergency': true},
+      {'name': 'مطافئ', 'number': '16', 'icon': Icons.fire_extinguisher, 'color': Colors.orange, 'description': 'الحرائق والكوارث', 'emergency': true},
+      {'name': 'الدفاع المدني', 'number': '194', 'icon': Icons.shield, 'color': Colors.green, 'description': 'الطوارئ العامة', 'emergency': true},
+      {'name': 'الدعم النفسي', 'number': '185', 'icon': Icons.psychology, 'color': Colors.purple, 'description': 'الدعم النفسي', 'emergency': false},
+      {'name': 'التسمم', 'number': '180', 'icon': Icons.warning_amber_rounded, 'color': Colors.orange, 'description': 'حالات التسمم', 'emergency': true},
     ];
 
     return Scaffold(
@@ -37,19 +36,6 @@ class EmergencyNumbers extends StatelessWidget {
         backgroundColor: Colors.red,
         foregroundColor: Colors.white,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.help_outline),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('اتصل بالرقم المناسب للحالة الطارئة'),
-                  backgroundColor: Colors.blue,
-                ),
-              );
-            },
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -88,33 +74,46 @@ class EmergencyNumbers extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                SizedBox(
-                  width: 200,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: () => _makeCall('191'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.red,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.call, size: 24),
-                        SizedBox(width: 8),
-                        Text(
-                          'اتصل الآن 191',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => _makeCall('191'),
+                        icon: const Icon(Icons.call, size: 20),
+                        label: const Text(
+                          'اتصل بالإسعاف',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.red,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                      ],
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => _makeCall('199'),
+                        icon: const Icon(Icons.local_police, size: 20),
+                        label: const Text(
+                          'اتصل بالشرطة',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Colors.white),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -144,13 +143,14 @@ class EmergencyNumbers extends StatelessWidget {
                   child: ListTile(
                     leading: CircleAvatar(
                       backgroundColor: color.withOpacity(0.1),
-                      child: Icon(item['icon'] as IconData, color: color),
+                      child: Icon(item['icon'] as IconData, color: color, size: 22),
                     ),
                     title: Text(
                       item['name'] as String,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: isDark ? Colors.white : Colors.black87,
+                        fontSize: 15,
                       ),
                     ),
                     subtitle: Text(
