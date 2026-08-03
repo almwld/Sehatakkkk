@@ -1,23 +1,12 @@
+import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum MedicationFrequency {
-  once,          // مرة واحدة
-  twice,         // مرتين
-  three,         // ثلاث مرات
-  four,          // أربع مرات
-  asNeeded,      // حسب الحاجة
-  custom,        // مخصص
+  once, twice, three, four, asNeeded, custom,
 }
 
 enum MedicationDosageForm {
-  tablet,        // أقراص
-  capsule,       // كبسولات
-  syrup,         // شراب
-  injection,     // حقن
-  drops,         // قطرات
-  cream,         // كريم
-  spray,         // بخاخ
-  patch,         // لصقة
+  tablet, capsule, syrup, injection, drops, cream, spray, patch,
 }
 
 class MedicationModel {
@@ -27,8 +16,8 @@ class MedicationModel {
   final String? dosage;
   final MedicationDosageForm form;
   final MedicationFrequency frequency;
-  final List<TimeOfDay> times;        // أوقات الجرعات
-  final List<int> daysOfWeek;         // أيام الأسبوع (1-7)
+  final List<TimeOfDay> times;
+  final List<int> daysOfWeek;
   final DateTime startDate;
   final DateTime? endDate;
   final int? durationDays;
@@ -102,21 +91,6 @@ class MedicationModel {
       case MedicationDosageForm.spray: return Icons.air;
       case MedicationDosageForm.patch: return Icons.health_and_safety;
     }
-  }
-
-  bool get needsRenewal {
-    if (remainingPills <= 0) return true;
-    if (reorderThreshold != null && remainingPills <= reorderThreshold!) return true;
-    return false;
-  }
-
-  bool get isExpired {
-    if (endDate == null) return false;
-    return endDate!.isBefore(DateTime.now());
-  }
-
-  String get timesFormatted {
-    return times.map((t) => t.formatTime()).join(' • ');
   }
 
   Map<String, dynamic> toFirestore() => {
@@ -217,12 +191,4 @@ class MedicationLog {
     notes: data['notes'],
     skippedReason: data['skippedReason'],
   );
-}
-
-extension TimeOfDayExtension on TimeOfDay {
-  String formatTime() {
-    final hour = this.hour.toString().padLeft(2, '0');
-    final minute = this.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
-  }
 }
