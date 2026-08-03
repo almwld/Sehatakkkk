@@ -25,7 +25,7 @@ import 'package:sehatak/presentation/screens/home/tabs/home_tab.dart';
 import 'package:sehatak/app_router.dart';
 
 // ============================================================
-// 📱 HomeScreen - الشاشة الرئيسية (نسخة خفيفة)
+// 📱 HomeScreen - الشاشة الرئيسية (نسخة مطورة)
 // ============================================================
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -38,14 +38,27 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   int _currentIndex = 0;
   final ValueNotifier<bool> _isBottomBarVisible = ValueNotifier<bool>(true);
   late final List<Widget> _screens;
+  late final List<ScrollController> _scrollControllers;
   
   double _healthScore = 0.0;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    
+    // ✅ إنشاء ScrollController لكل تبويب
+    _scrollControllers = List.generate(7, (index) => ScrollController());
+    
+    // ✅ إضافة مستمعين للتمرير لكل تبويب
+    for (int i = 0; i < _scrollControllers.length; i++) {
+      _scrollControllers[i].addListener(() {
+        _handleScroll(_scrollControllers[i]);
+      });
+    }
+
     _screens = [
-      const HomeTab(),
+      HomeTab(scrollController: _scrollControllers[0]),
       const DoctorsListScreen(),
       const PharmacyScreen(),
       const ChatScreen(),
@@ -53,7 +66,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       const PatientDashboard(),
       const MoreScreen(),
     ];
+    
     _loadHealthScore();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    setState(() => _isLoading = true);
+    await Future.delayed(const Duration(seconds: 1));
+    setState(() => _isLoading = false);
   }
 
   Future<void> _loadHealthScore() async {
@@ -64,6 +85,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   @override
   void dispose() {
     _isBottomBarVisible.dispose();
+    for (var controller in _scrollControllers) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -78,11 +102,47 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   void _onTabTap(int index) {
+    // ✅ عند تغيير التبويب، إظهار الشريط السفلي
+    _isBottomBarVisible.value = true;
+    
     if (index == 3 || index == 4 || index == 5) {
       _navigateWithAuth(() => setState(() => _currentIndex = index));
     } else {
       setState(() => _currentIndex = index);
     }
+  }
+
+  // ✅ معالجة التمرير - إخفاء/إظهار الشريط السفلي
+  void _handleScroll(ScrollController controller) {
+    if (!controller.hasClients) return;
+    
+    final position = controller.position;
+    final maxScroll = position.maxScrollExtent;
+    final currentScroll = position.pixels;
+    
+    // ✅ إذا كان في أعلى الصفحة، إظهار الشريط
+    if (currentScroll <= 10) {
+      _isBottomBarVisible.value = true;
+      return;
+    }
+    
+    // ✅ إذا كان في أسفل الصفحة، إظهار الشريط
+    if (currentScroll >= maxScroll - 10) {
+      _isBottomBarVisible.value = true;
+      return;
+    }
+    
+    // ✅ بناءً على اتجاه التمرير
+    if (position.userScrollDirection == ScrollDirection.reverse) {
+      _isBottomBarVisible.value = false;
+    } else if (position.userScrollDirection == ScrollDirection.forward) {
+      _isBottomBarVisible.value = true;
+    }
+  }
+
+  // ✅ إعادة تعيين حالة الشريط السفلي عند تغيير التبويب
+  void _resetBottomBar() {
+    _isBottomBarVisible.value = true;
   }
 
   @override
@@ -93,10 +153,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     return Scaffold(
       body: Stack(
         children: [
+          // ✅ المحتوى الرئيسي
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
+            switchInCurve: Curves.easeOut,
+            switchOutCurve: Curves.easeIn,
             child: _screens[_currentIndex],
           ),
+          
+          // ✅ الشريط السفلي مع أنيميشن
           Positioned(
             bottom: 0,
             left: 0,
@@ -106,6 +171,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               builder: (context, isVisible, child) {
                 return AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
                   height: isVisible ? 68 : 0,
                   child: Container(
                     decoration: BoxDecoration(
