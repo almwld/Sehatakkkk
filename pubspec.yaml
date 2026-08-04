@@ -175,3 +175,4 @@ flutter_native_splash:
   image: assets/icons/app_icon.svg
   android: true
   ios: false
+  camera: ^0.10.5
