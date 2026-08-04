@@ -11,6 +11,7 @@ import 'package:sehatak/presentation/screens/medication/medication_reminder_scre
 import 'package:sehatak/presentation/screens/medical_reports/medical_reports_screen.dart';
 import 'package:sehatak/presentation/screens/patient/patient_appointments.dart';
 import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
+import 'package:sehatak/presentation/screens/health_tools/pulse_oximeter_screen.dart';
 
 class PatientDashboard extends StatefulWidget {
   const PatientDashboard({super.key});
@@ -22,6 +23,7 @@ class PatientDashboard extends StatefulWidget {
 class _PatientDashboardState extends State<PatientDashboard> {
   final ScrollController _scrollController = ScrollController();
   double _appBarOpacity = 1.0;
+  bool _isLoading = false;
 
   // ✅ بيانات المريض
   final Map<String, dynamic> _patientData = {
@@ -48,6 +50,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
     {'title': 'معدل السكر', 'value': '95 mg/dL', 'status': 'طبيعي', 'icon': Icons.biotech, 'color': AppColors.warning, 'screen': const GlucoseTrackerScreen()},
     {'title': 'الوزن', 'value': '75 kg', 'status': 'مثالي', 'icon': Icons.monitor_weight, 'color': AppColors.info, 'screen': const WeightTrackerScreen()},
     {'title': 'الأدوية', 'value': '3', 'status': 'نشط', 'icon': Icons.medication, 'color': AppColors.success, 'screen': const MedicationReminderScreen()},
+    {'title': 'فحص البلاس', 'value': '98%', 'status': 'ممتاز', 'icon': Icons.sensors, 'color': AppColors.teal, 'screen': const PulseOximeterScreen()},
   ];
 
   // ✅ آخر المواعيد
@@ -95,9 +98,9 @@ class _PatientDashboardState extends State<PatientDashboard> {
       body: CustomScrollView(
         controller: _scrollController,
         slivers: [
-          // ✅ AppBar
+          // ✅ AppBar احترافي
           SliverAppBar(
-            expandedHeight: 120,
+            expandedHeight: 140,
             floating: true,
             pinned: true,
             backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
@@ -114,6 +117,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
                     children: [
                       Row(
                         children: [
+                          // ✅ صورة الملف الشخصي
                           GestureDetector(
                             onTap: () {
                               Navigator.push(
@@ -121,27 +125,44 @@ class _PatientDashboardState extends State<PatientDashboard> {
                                 MaterialPageRoute(builder: (_) => const PatientProfile()),
                               );
                             },
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(16),
-                              child: CachedNetworkImage(
-                                imageUrl: user?.photoURL ?? '',
-                                width: 50,
-                                height: 50,
-                                fit: BoxFit.cover,
-                                placeholder: (context, url) => _shimmerPlaceholder(50, 50, 16),
-                                errorWidget: (_, __, ___) => Container(
-                                  width: 50,
-                                  height: 50,
-                                  decoration: BoxDecoration(
-                                    color: primaryColor.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(16),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: primaryColor,
+                                  width: 2,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: primaryColor.withOpacity(0.3),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
                                   ),
-                                  child: Icon(Icons.person, color: primaryColor, size: 28),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(50),
+                                child: CachedNetworkImage(
+                                  imageUrl: user?.photoURL ?? '',
+                                  width: 56,
+                                  height: 56,
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, url) => _shimmerPlaceholder(56, 56, 50),
+                                  errorWidget: (_, __, ___) => Container(
+                                    width: 56,
+                                    height: 56,
+                                    decoration: BoxDecoration(
+                                      color: primaryColor.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(50),
+                                    ),
+                                    child: Icon(Icons.person, color: primaryColor, size: 30),
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 14),
+                          // ✅ معلومات المستخدم
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -162,9 +183,11 @@ class _PatientDashboardState extends State<PatientDashboard> {
                                     fontSize: 12,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: 6),
+                                // ✅ شارات المعلومات
                                 Wrap(
                                   spacing: 6,
+                                  runSpacing: 4,
                                   children: [
                                     _buildInfoChip('${_patientData['age']} سنة', isDark),
                                     _buildInfoChip(_patientData['bloodType'], isDark),
@@ -174,14 +197,21 @@ class _PatientDashboardState extends State<PatientDashboard> {
                               ],
                             ),
                           ),
-                          IconButton(
-                            icon: Icon(Icons.edit_outlined, color: primaryColor),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (_) => const PatientProfile()),
-                              );
-                            },
+                          // ✅ زر تعديل الملف الشخصي
+                          Container(
+                            decoration: BoxDecoration(
+                              color: primaryColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: IconButton(
+                              icon: Icon(Icons.edit_outlined, color: primaryColor, size: 22),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const PatientProfile()),
+                                );
+                              },
+                            ),
                           ),
                         ],
                       ),
@@ -201,14 +231,14 @@ class _PatientDashboardState extends State<PatientDashboard> {
                 _statsRow(),
                 const SizedBox(height: 20),
 
-                // 2️⃣ المؤشرات الحيوية
+                // ✅ ✅ ✅ 2️⃣ قسم الباقات والاشتراكات (تم نقله هنا)
+                _buildPackagesSection(isDark),
+                const SizedBox(height: 20),
+
+                // 3️⃣ المؤشرات الحيوية (تم نقله بعد الباقات)
                 _sectionTitle('المؤشرات الحيوية', isDark),
                 const SizedBox(height: 10),
                 _vitalsGrid(),
-                const SizedBox(height: 20),
-
-                // ✅ ✅ ✅ 3️⃣ قسم الباقات والاشتراكات (الجديد)
-                _buildPackagesSection(isDark),
                 const SizedBox(height: 20),
 
                 // 4️⃣ الخدمات الصحية
@@ -254,16 +284,17 @@ class _PatientDashboardState extends State<PatientDashboard> {
 
   Widget _buildInfoChip(String label, bool isDark) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1A2540) : Colors.grey[100],
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Text(
         label,
         style: TextStyle(
           fontSize: 10,
           color: isDark ? Colors.grey[400] : Colors.grey[600],
+          fontWeight: FontWeight.w500,
         ),
       ),
     );
@@ -289,15 +320,22 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ✅ 3️⃣ قسم الباقات والاشتراكات
+  // ✅ قسم الباقات والاشتراكات
   Widget _buildPackagesSection(bool isDark) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [AppColors.primary, AppColors.primaryDark],
         ),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -325,14 +363,14 @@ class _PatientDashboardState extends State<PatientDashboard> {
                       'اشترك في الباقات',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 15,
+                        fontSize: 16,
                         color: Colors.white,
                       ),
                     ),
                     Text(
                       'احصل على مميزات حصرية',
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: 12,
                         color: Colors.white70,
                       ),
                     ),
@@ -342,15 +380,15 @@ class _PatientDashboardState extends State<PatientDashboard> {
               const Icon(Icons.chevron_left, color: Colors.white),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
                 child: Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Column(
                     children: [
@@ -367,7 +405,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
                         '4,900 ريال',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 16,
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -382,16 +420,16 @@ class _PatientDashboardState extends State<PatientDashboard> {
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               Expanded(
                 child: Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: AppColors.amber.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: AppColors.amber,
-                      width: 1.5,
+                      width: 2,
                     ),
                   ),
                   child: Column(
@@ -427,7 +465,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
                         '7,900 ريال',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 16,
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -457,7 +495,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
         return Expanded(
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 4),
-            padding: const EdgeInsets.symmetric(vertical: 10),
+            padding: const EdgeInsets.symmetric(vertical: 12),
             decoration: BoxDecoration(
               color: color.withOpacity(0.06),
               borderRadius: BorderRadius.circular(12),
@@ -470,13 +508,13 @@ class _PatientDashboardState extends State<PatientDashboard> {
                   stat['value'] as String,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                    fontSize: 16,
                     color: color,
                   ),
                 ),
                 Text(
                   stat['label'] as String,
-                  style: const TextStyle(fontSize: 9, color: Colors.grey),
+                  style: const TextStyle(fontSize: 10, color: Colors.grey),
                 ),
               ],
             ),
@@ -495,15 +533,17 @@ class _PatientDashboardState extends State<PatientDashboard> {
         crossAxisCount: 2,
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
-        childAspectRatio: 1.2,
+        childAspectRatio: 1.1,
       ),
       itemCount: _vitals.length,
       itemBuilder: (context, index) {
         final vital = _vitals[index];
         final color = vital['color'] as Color;
-        final statusColor = vital['status'] == 'طبيعي' || vital['status'] == 'مثالي' || vital['status'] == 'نشط'
+        final statusColor = vital['status'] == 'طبيعي' || vital['status'] == 'مثالي' || vital['status'] == 'نشط' || vital['status'] == 'ممتاز'
             ? Colors.green
             : Colors.orange;
+        final isPulseOximeter = vital['title'] == 'فحص البلاس';
+        
         return GestureDetector(
           onTap: () {
             Navigator.push(
@@ -518,7 +558,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
+                  color: Colors.black.withOpacity(0.04),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 ),
@@ -532,24 +572,24 @@ class _PatientDashboardState extends State<PatientDashboard> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(6),
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: color.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      child: Icon(vital['icon'] as IconData, color: color, size: 18),
+                      child: Icon(vital['icon'] as IconData, color: color, size: 20),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
                         color: statusColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
                         vital['status'] as String,
                         style: TextStyle(
                           color: statusColor,
-                          fontSize: 8,
+                          fontSize: 9,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -557,12 +597,33 @@ class _PatientDashboardState extends State<PatientDashboard> {
                   ],
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  vital['title'] as String,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      vital['title'] as String,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    if (isPulseOximeter)
+                      Container(
+                        margin: const EdgeInsets.only(left: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: AppColors.teal.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          'جديد',
+                          style: TextStyle(
+                            fontSize: 7,
+                            color: AppColors.teal,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
                 Text(
                   vital['value'] as String,
@@ -587,6 +648,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
       {'icon': Icons.biotech, 'label': 'تتبع السكر', 'color': AppColors.warning, 'screen': const GlucoseTrackerScreen()},
       {'icon': Icons.monitor_weight, 'label': 'الوزن', 'color': AppColors.info, 'screen': const WeightTrackerScreen()},
       {'icon': Icons.medication, 'label': 'الأدوية', 'color': AppColors.success, 'screen': const MedicationReminderScreen()},
+      {'icon': Icons.sensors, 'label': 'فحص البلاس', 'color': AppColors.teal, 'screen': const PulseOximeterScreen()},
       {'icon': Icons.description, 'label': 'التقارير', 'color': AppColors.primary, 'screen': const MedicalReportsScreen()},
       {'icon': Icons.calendar_month, 'label': 'المواعيد', 'color': AppColors.purple, 'screen': const PatientAppointments()},
     ];
@@ -595,15 +657,16 @@ class _PatientDashboardState extends State<PatientDashboard> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
+        crossAxisCount: 4,
         mainAxisSpacing: 8,
         crossAxisSpacing: 8,
-        childAspectRatio: 0.9,
+        childAspectRatio: 0.85,
       ),
       itemCount: services.length,
       itemBuilder: (context, index) {
         final service = services[index];
         final color = service['color'] as Color;
+        final isPulseOximeter = service['label'] == 'فحص البلاس';
         return GestureDetector(
           onTap: () {
             Navigator.push(
@@ -616,21 +679,46 @@ class _PatientDashboardState extends State<PatientDashboard> {
             decoration: BoxDecoration(
               color: color.withOpacity(0.06),
               borderRadius: BorderRadius.circular(12),
+              border: isPulseOximeter ? Border.all(color: AppColors.teal, width: 1) : null,
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+            child: Stack(
               children: [
-                Icon(service['icon'] as IconData, color: color, size: 24),
-                const SizedBox(height: 4),
-                Text(
-                  service['label'] as String,
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                    color: color,
-                  ),
-                  textAlign: TextAlign.center,
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(service['icon'] as IconData, color: color, size: 24),
+                    const SizedBox(height: 4),
+                    Text(
+                      service['label'] as String,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500,
+                        color: color,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
+                if (isPulseOximeter)
+                  Positioned(
+                    top: 2,
+                    right: 2,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: AppColors.teal,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Text(
+                        'جديد',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 6,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -668,23 +756,23 @@ class _PatientDashboardState extends State<PatientDashboard> {
                 borderRadius: BorderRadius.circular(8),
                 child: CachedNetworkImage(
                   imageUrl: appointment['image'],
-                  width: 40,
-                  height: 40,
+                  width: 44,
+                  height: 44,
                   fit: BoxFit.cover,
                   placeholder: (context, url) => Container(
-                    width: 40,
-                    height: 40,
+                    width: 44,
+                    height: 44,
                     color: isDark ? Colors.grey[800] : Colors.grey[200],
                   ),
                   errorWidget: (_, __, ___) => Container(
-                    width: 40,
-                    height: 40,
+                    width: 44,
+                    height: 44,
                     color: isDark ? Colors.grey[800] : Colors.grey[200],
                     child: Icon(Icons.person, color: isDark ? Colors.grey[600] : Colors.grey[400]),
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -708,17 +796,17 @@ class _PatientDashboardState extends State<PatientDashboard> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: isPast
                       ? Colors.grey.withOpacity(0.1)
                       : Colors.green.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   appointment['status'],
                   style: TextStyle(
-                    fontSize: 9,
+                    fontSize: 10,
                     color: isPast ? Colors.grey : Colors.green,
                     fontWeight: FontWeight.w600,
                   ),
@@ -760,11 +848,11 @@ class _PatientDashboardState extends State<PatientDashboard> {
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(result['icon'] as IconData, color: color, size: 18),
+                child: Icon(result['icon'] as IconData, color: color, size: 20),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -788,15 +876,15 @@ class _PatientDashboardState extends State<PatientDashboard> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   result['status'],
                   style: TextStyle(
-                    fontSize: 9,
+                    fontSize: 10,
                     color: color,
                     fontWeight: FontWeight.w600,
                   ),
