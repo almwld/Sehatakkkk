@@ -248,16 +248,16 @@ class _LabsListScreenState extends State<LabsListScreen> with SingleTickerProvid
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('🔬 المختبرات'),
+        title: const Text(' المختبرات'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(text: '📍 الكل'),
-            Tab(text: '⭐ الأفضل'),
-            Tab(text: '🏠 خدمة منزلية'),
+            Tab(text: ' الكل'),
+            Tab(text: ' الأفضل'),
+            Tab(text: ' خدمة منزلية'),
           ],
           indicatorColor: Colors.white,
           labelColor: Colors.white,
@@ -445,7 +445,7 @@ class _LabsListScreenState extends State<LabsListScreen> with SingleTickerProvid
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: const Text(
-                        '⭐ ممتاز',
+                        ' ممتاز',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 7,
@@ -706,7 +706,7 @@ class _LabsListScreenState extends State<LabsListScreen> with SingleTickerProvid
               ),
               const SizedBox(height: 8),
               const Text(
-                '🔬 ابحث عن أفضل المختبرات في منطقتك',
+                ' ابحث عن أفضل المختبرات في منطقتك',
                 style: TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ],
