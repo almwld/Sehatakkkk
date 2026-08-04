@@ -571,33 +571,27 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                           ],
                         ),
                       ),
+                      // ✅ زر الإشعارات
                       GestureDetector(
                         onTap: () => _goTo(context, const NotificationsScreen()),
                         child: Container(
                           padding: const EdgeInsets.all(8),
-                          child: Image.asset(
-                            ImageKit.notificationIcon,
-                            width: 24,
-                            height: 24,
+                          child: Icon(
+                            Icons.notifications_outlined,
                             color: isDark ? Colors.white : Colors.black87,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Icon(Icons.notifications_outlined, color: isDark ? Colors.white : Colors.black87);
-                            },
+                            size: 24,
                           ),
                         ),
                       ),
+                      // ✅ زر السلة
                       GestureDetector(
                         onTap: () => _goTo(context, const CartScreen()),
                         child: Container(
                           padding: const EdgeInsets.all(8),
-                          child: Image.asset(
-                            ImageKit.cartIcon,
-                            width: 24,
-                            height: 24,
+                          child: Icon(
+                            Icons.shopping_cart_outlined,
                             color: isDark ? Colors.white : Colors.black87,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Icon(Icons.shopping_cart_outlined, color: isDark ? Colors.white : Colors.black87);
-                            },
+                            size: 24,
                           ),
                         ),
                       ),
@@ -739,15 +733,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       ),
       child: Row(
         children: [
-          Image.asset(
-            ImageKit.searchIcon,
-            width: 22,
-            height: 22,
-            color: isDark ? Colors.grey[400] : Colors.grey[500],
-            errorBuilder: (context, error, stackTrace) {
-              return Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey[500]);
-            },
-          ),
+          Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey[500], size: 22),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -758,15 +744,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               ),
             ),
           ),
-          Image.asset(
-            ImageKit.micIcon,
-            width: 22,
-            height: 22,
-            color: isDark ? Colors.grey[500] : Colors.grey[400],
-            errorBuilder: (context, error, stackTrace) {
-              return Icon(Icons.mic, color: isDark ? Colors.grey[500] : Colors.grey[400]);
-            },
-          ),
+          Icon(Icons.mic, color: isDark ? Colors.grey[500] : Colors.grey[400], size: 22),
         ],
       ),
     );
@@ -1496,6 +1474,112 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   ),
                   Text(
                     lab['location'] as String,
+                    style: TextStyle(
+                      fontSize: 9,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => _goTo(context, const LabsListScreen()),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        minimumSize: const Size(0, 28),
+                      ),
+                      child: const Text(
+                        'حجز',
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // 💊 صيدليات مميزة
+  // ============================================================
+  Widget _buildFeaturedPharmaciesGrid(bool isDark) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 0.8,
+      ),
+      itemCount: _featuredPharmacies.length,
+      itemBuilder: (context, index) {
+        final pharmacy = _featuredPharmacies[index];
+        return _buildPharmacyCard(pharmacy, isDark);
+      },
+    );
+  }
+
+  Widget _buildPharmacyCard(Map<String, dynamic> pharmacy, bool isDark) {
+    return GestureDetector(
+      onTap: () => _goTo(context, const PharmacyScreen()),
+      child: Container(
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1A2540) : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              child: Image.asset(
+                pharmacy['image'] as String,
+                height: 90,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: 90,
+                    color: isDark ? const Color(0xFF1A2540) : Colors.grey[200],
+                    child: Icon(Icons.local_pharmacy, size: 40, color: Colors.grey),
+                  );
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    pharmacy['name'] as String,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    pharmacy['location'] as String,
                     style: TextStyle(
                       fontSize: 9,
                       color: isDark ? Colors.grey[400] : Colors.grey[600],
