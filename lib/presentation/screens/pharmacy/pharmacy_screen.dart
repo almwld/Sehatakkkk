@@ -22,15 +22,15 @@ class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProvid
   List<Map<String, dynamic>> _medicalSupplies = [];
   List<Map<String, dynamic>> _beautyProducts = [];
 
-  // ✅ تبويبات الصيدلية
+  //  تبويبات الصيدلية
   final List<String> _tabs = [
-    '🏪 صيدليات',
-    '💊 أدوية',
-    '🩺 مستلزمات',
-    '🧴 عناية',
+    ' صيدليات',
+    ' أدوية',
+    ' مستلزمات',
+    ' عناية',
   ];
 
-  // ✅ بيانات الصيدليات
+  //  بيانات الصيدليات
   final List<Map<String, dynamic>> _mockPharmacies = [
     {'id': '1', 'name': 'صيدلية ابن حيان', 'address': 'صنعاء - شارع حدة', 'rating': 4.9, 'reviews': 450, 'phone': '01-234580', 'image': ImageKit.pharmacy1, 'open': true, 'delivery': true, 'distance': '1.2 كم'},
     {'id': '2', 'name': 'صيدلية عالم الصيدلة', 'address': 'صنعاء - شارع الستين', 'rating': 4.8, 'reviews': 380, 'phone': '01-234581', 'image': ImageKit.pharmacy2, 'open': true, 'delivery': true, 'distance': '2.5 كم'},
@@ -40,7 +40,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProvid
     {'id': '6', 'name': 'صيدلية اليمن الحديثة', 'address': 'صنعاء - حدة', 'rating': 4.4, 'reviews': 180, 'phone': '01-234585', 'image': ImageKit.pharmacy3, 'open': true, 'delivery': false, 'distance': '6.2 كم'},
   ];
 
-  // ✅ بيانات الأدوية (300+ دواء - عينة)
+  //  بيانات الأدوية (300+ دواء - عينة)
   final List<Map<String, dynamic>> _mockMedicines = [
     {'id': 'm1', 'name': 'باراسيتامول 500mg', 'category': 'مسكنات', 'price': 500, 'image': ImageKit.medicine1, 'pharmacyName': 'صيدلية ابن حيان', 'stock': 50, 'unit': 'قرص', 'rating': 4.8, 'discount': 20, 'prescription': false},
     {'id': 'm2', 'name': 'فيتامين د 1000IU', 'category': 'فيتامينات', 'price': 1200, 'image': ImageKit.medicine2, 'pharmacyName': 'عالم الصيدلة', 'stock': 30, 'unit': 'كبسولة', 'rating': 4.7, 'discount': 15, 'prescription': false},
@@ -56,7 +56,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProvid
     {'id': 'm12', 'name': 'جلوكوفاج 500mg', 'category': 'أدوية سكر', 'price': 650, 'image': ImageKit.medicine1, 'pharmacyName': 'صيدلية ابن حيان', 'stock': 35, 'unit': 'قرص', 'rating': 4.4, 'discount': 0, 'prescription': true},
   ];
 
-  // ✅ المستلزمات الطبية
+  //  المستلزمات الطبية
   final List<Map<String, dynamic>> _mockMedicalSupplies = [
     {'id': 's1', 'name': 'جهاز قياس ضغط رقمي', 'price': 8500, 'image': ImageKit.medicine3, 'category': 'أجهزة', 'rating': 4.9, 'stock': 10, 'discount': 10},
     {'id': 's2', 'name': 'جهاز قياس سكر الدم', 'price': 6500, 'image': ImageKit.medicine4, 'category': 'أجهزة', 'rating': 4.8, 'stock': 8, 'discount': 5},
@@ -68,7 +68,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProvid
     {'id': 's8', 'name': 'قفازات طبية (100 قطعة)', 'price': 400, 'image': ImageKit.medicine2, 'category': 'مستهلكات', 'rating': 4.6, 'stock': 60, 'discount': 5},
   ];
 
-  // ✅ منتجات العناية
+  //  منتجات العناية
   final List<Map<String, dynamic>> _mockBeautyProducts = [
     {'id': 'b1', 'name': 'كريم ترطيب للبشرة', 'price': 1800, 'image': ImageKit.medicine1, 'category': 'عناية بالبشرة', 'rating': 4.7, 'stock': 40, 'discount': 10},
     {'id': 'b2', 'name': 'غسول للبشرة الدهنية', 'price': 1500, 'image': ImageKit.medicine2, 'category': 'عناية بالبشرة', 'rating': 4.6, 'stock': 35, 'discount': 5},
@@ -167,7 +167,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProvid
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('💊 الصيدلية'),
+        title: const Text(' الصيدلية'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -192,7 +192,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProvid
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                // ✅ شريط البحث
+                //  شريط البحث
                 Padding(
                   padding: const EdgeInsets.all(12),
                   child: Container(
@@ -233,7 +233,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProvid
                     ),
                   ),
                 ),
-                // ✅ المحتوى حسب التبويب
+                //  المحتوى حسب التبويب
                 Expanded(
                   child: TabBarView(
                     controller: _tabController,
@@ -255,7 +255,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProvid
   }
 
   // ============================================================
-  // 🏪 تبويب الصيدليات
+  //  تبويب الصيدليات
   // ============================================================
   Widget _buildPharmaciesTab(bool isDark) {
     final filtered = _filteredPharmacies;
@@ -427,14 +427,14 @@ class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProvid
   }
 
   // ============================================================
-  // 💊 تبويب الأدوية
+  //  تبويب الأدوية
   // ============================================================
   Widget _buildMedicinesTab(bool isDark) {
     final categories = ['الكل', 'مسكنات', 'مضادات حيوية', 'فيتامينات', 'أدوية ضغط', 'أدوية سكر', 'مكملات غذائية'];
     
     return Column(
       children: [
-        // ✅ تصنيفات الأدوية
+        //  تصنيفات الأدوية
         Container(
           height: 40,
           padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -466,7 +466,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProvid
             },
           ),
         ),
-        // ✅ قائمة الأدوية
+        //  قائمة الأدوية
         Expanded(
           child: _filteredMedicines.isEmpty
               ? _buildEmptyState(isDark, 'لا توجد أدوية')
@@ -664,7 +664,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProvid
   }
 
   // ============================================================
-  // 🩺 تبويب المستلزمات الطبية
+  //  تبويب المستلزمات الطبية
   // ============================================================
   Widget _buildSuppliesTab(bool isDark) {
     final filtered = _filteredSupplies;
@@ -812,7 +812,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProvid
   }
 
   // ============================================================
-  // 🧴 تبويب العناية
+  //  تبويب العناية
   // ============================================================
   Widget _buildBeautyTab(bool isDark) {
     final filtered = _filteredBeauty;
