@@ -18,7 +18,21 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _mainCtrl;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
+  late AnimationController _dotsCtrl;
+  late Animation<double> _dotsAnimation;
   final AudioPlayer _audioPlayer = AudioPlayer();
+
+  // ✅ دوائر متحركة
+  final List<CircleData> _circles = [
+    CircleData(size: 120, duration: 20, dx: -100, dy: -150, color: Colors.white.withOpacity(0.03)),
+    CircleData(size: 80, duration: 15, dx: 120, dy: -200, color: Colors.white.withOpacity(0.04)),
+    CircleData(size: 60, duration: 12, dx: -150, dy: 100, color: Colors.white.withOpacity(0.05)),
+    CircleData(size: 40, duration: 8, dx: 180, dy: 150, color: Colors.white.withOpacity(0.06)),
+    CircleData(size: 100, duration: 18, dx: -80, dy: 250, color: Colors.white.withOpacity(0.03)),
+    CircleData(size: 50, duration: 10, dx: 200, dy: -100, color: Colors.white.withOpacity(0.04)),
+    CircleData(size: 70, duration: 14, dx: -200, dy: -50, color: Colors.white.withOpacity(0.05)),
+    CircleData(size: 30, duration: 6, dx: 100, dy: 280, color: Colors.white.withOpacity(0.06)),
+  ];
 
   @override
   void initState() {
@@ -26,6 +40,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     _playSplashSound();
 
+    // ✅ التحكم الرئيسي
     _mainCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
@@ -39,7 +54,18 @@ class _SplashScreenState extends State<SplashScreen>
       CurvedAnimation(parent: _mainCtrl, curve: Curves.elasticOut),
     );
 
+    // ✅ التحكم للخط المتحرك (النقاط)
+    _dotsCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+
+    _dotsAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _dotsCtrl, curve: Curves.easeInOut),
+    );
+
     _mainCtrl.forward();
+    _dotsCtrl.repeat();
 
     // ✅ مدة العرض: 10 ثواني
     Future.delayed(const Duration(seconds: 10), () {
@@ -83,6 +109,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void dispose() {
     _mainCtrl.dispose();
+    _dotsCtrl.dispose();
     _audioPlayer.dispose();
     super.dispose();
   }
@@ -102,149 +129,247 @@ class _SplashScreenState extends State<SplashScreen>
         height: double.infinity,
         color: const Color(0xFF2D7E81),
         child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              physics: const ClampingScrollPhysics(),
-              child: AnimatedBuilder(
-                animation: _mainCtrl,
-                builder: (context, child) {
-                  return Opacity(
-                    opacity: _fadeAnimation.value,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          SizedBox(height: screenHeight * 0.05),
+          child: Stack(
+            children: [
+              // ============================================================
+              // ✅ دوائر متحركة في الخلفية
+              // ============================================================
+              ..._circles.map((circle) => _buildAnimatedCircle(circle)),
 
-                          // ✅ Lottie بدون وميض
-                          Transform.scale(
-                            scale: _scaleAnimation.value,
-                            child: ConstrainedBox(
-                              constraints: BoxConstraints(
-                                maxWidth: lottieWidth,
-                                maxHeight: lottieHeight,
-                                minWidth: 120,
-                                minHeight: 67,
-                              ),
-                              child: Lottie.asset(
-                                'assets/animations/sehatak_animation.json',
-                                fit: BoxFit.contain,
-                                repeat: true,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Icon(
-                                    Icons.health_and_safety,
-                                    size: screenWidth * 0.15,
-                                    color: Colors.white,
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
-
-                          SizedBox(height: screenHeight * 0.04),
-
-                          Transform.scale(
-                            scale: _scaleAnimation.value,
-                            child: const Column(
-                              children: [
-                                Text(
-                                  'SEHATAK',
-                                  style: TextStyle(
-                                    fontSize: 36,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                    letterSpacing: 4,
-                                  ),
-                                ),
-                                SizedBox(height: 6),
-                                Text(
-                                  'صحتك',
-                                  style: TextStyle(
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          SizedBox(height: screenHeight * 0.02),
-
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: const Text(
-                              'منصة الرعاية الصحية الشاملة',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.white70,
-                              ),
-                            ),
-                          ),
-
-                          SizedBox(height: screenHeight * 0.08),
-
-                          const SizedBox(
-                            width: 30,
-                            height: 30,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 3,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
-                          ),
-
-                          const SizedBox(height: 16),
-                          Text(
-                            'جاري التحميل...',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.white.withOpacity(0.5),
-                            ),
-                          ),
-
-                          SizedBox(height: screenHeight * 0.05),
-
-                          Column(
+              // ============================================================
+              // ✅ المحتوى الرئيسي
+              // ============================================================
+              Center(
+                child: SingleChildScrollView(
+                  physics: const ClampingScrollPhysics(),
+                  child: AnimatedBuilder(
+                    animation: _mainCtrl,
+                    builder: (context, child) {
+                      return Opacity(
+                        opacity: _fadeAnimation.value,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Text(
-                                'صحـتـك أولاً',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.white.withOpacity(0.3),
-                                  letterSpacing: 3,
+                              SizedBox(height: screenHeight * 0.05),
+
+                              // ✅ Lottie
+                              Transform.scale(
+                                scale: _scaleAnimation.value,
+                                child: ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    maxWidth: lottieWidth,
+                                    maxHeight: lottieHeight,
+                                    minWidth: 120,
+                                    minHeight: 67,
+                                  ),
+                                  child: Lottie.asset(
+                                    'assets/animations/sehatak_animation.json',
+                                    fit: BoxFit.contain,
+                                    repeat: true,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Icon(
+                                        Icons.health_and_safety,
+                                        size: screenWidth * 0.15,
+                                        color: Colors.white,
+                                      );
+                                    },
+                                  ),
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '© 2026 Sehatak Platform',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 9,
-                                  color: Colors.white.withOpacity(0.2),
+
+                              SizedBox(height: screenHeight * 0.04),
+
+                              Transform.scale(
+                                scale: _scaleAnimation.value,
+                                child: const Column(
+                                  children: [
+                                    Text(
+                                      'SEHATAK',
+                                      style: TextStyle(
+                                        fontSize: 36,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                        letterSpacing: 4,
+                                      ),
+                                    ),
+                                    SizedBox(height: 6),
+                                    Text(
+                                      'صحتك',
+                                      style: TextStyle(
+                                        fontSize: 28,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
                                 ),
+                              ),
+
+                              SizedBox(height: screenHeight * 0.02),
+
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: const Text(
+                                  'منصة الرعاية الصحية الشاملة',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.white70,
+                                  ),
+                                ),
+                              ),
+
+                              SizedBox(height: screenHeight * 0.08),
+
+                              // ✅ خط تحميل متحرك (بدلاً من CircularProgressIndicator)
+                              _buildLoadingDots(),
+
+                              const SizedBox(height: 16),
+                              Text(
+                                'جاري التحميل...',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.white.withOpacity(0.5),
+                                ),
+                              ),
+
+                              SizedBox(height: screenHeight * 0.05),
+
+                              Column(
+                                children: [
+                                  Text(
+                                    'صحـتـك أولاً',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.white.withOpacity(0.3),
+                                      letterSpacing: 3,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '© 2026 Sehatak Platform',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 9,
+                                      color: Colors.white.withOpacity(0.2),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
+                        ),
+                      );
+                    },
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),
     );
   }
+
+  // ============================================================
+  // ✅ دوائر متحركة
+  // ============================================================
+  Widget _buildAnimatedCircle(CircleData circle) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0, end: 2 * 3.14159),
+      duration: Duration(seconds: circle.duration),
+      curve: Curves.linear,
+      builder: (context, angle, child) {
+        final x = circle.dx + 150 * (angle / (2 * 3.14159) * 2 - 1);
+        final y = circle.dy + 150 * (angle / (2 * 3.14159) * 2 - 1);
+        return Positioned(
+          left: MediaQuery.of(context).size.width / 2 + x - circle.size / 2,
+          top: MediaQuery.of(context).size.height / 2 + y - circle.size / 2,
+          child: Container(
+            width: circle.size,
+            height: circle.size,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: circle.color,
+              border: Border.all(
+                color: circle.color,
+                width: 2,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // ============================================================
+  // ✅ خط تحميل متحرك (نقاط متتالية)
+  // ============================================================
+  Widget _buildLoadingDots() {
+    return AnimatedBuilder(
+      animation: _dotsCtrl,
+      builder: (context, child) {
+        final value = _dotsAnimation.value;
+        final dotCount = 3;
+        final spacing = 12.0;
+        final dotSize = 10.0;
+
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(dotCount, (index) {
+            final progress = (value * dotCount - index).clamp(0.0, 1.0);
+            final size = dotSize * (0.5 + 0.5 * progress);
+            final opacity = 0.3 + 0.7 * progress;
+
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              margin: EdgeInsets.symmetric(horizontal: spacing / 2),
+              width: size,
+              height: size,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(opacity),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.white.withOpacity(0.2 * progress),
+                    blurRadius: 8,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+            );
+          }),
+        );
+      },
+    );
+  }
+}
+
+// ============================================================
+// ✅ بيانات الدوائر
+// ============================================================
+class CircleData {
+  final double size;
+  final int duration;
+  final double dx;
+  final double dy;
+  final Color color;
+
+  CircleData({
+    required this.size,
+    required this.duration,
+    required this.dx,
+    required this.dy,
+    required this.color,
+  });
 }
