@@ -7,6 +7,7 @@ import 'package:sehatak/presentation/widgets/common/app_image.dart';
 import 'package:sehatak/presentation/screens/home/widgets/banner_carousel.dart';
 import 'package:sehatak/presentation/screens/home/widgets/quick_services.dart';
 import 'package:sehatak/presentation/screens/home/widgets/doctor_card.dart';
+import 'package:sehatak/presentation/screens/home/widgets/home_app_bar.dart';
 import 'package:sehatak/presentation/screens/services/services_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
@@ -39,9 +40,13 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   bool _isLoading = false;
   double _healthScore = 0.0;
   int _currentBanner = 0;
+  bool _isLoggedIn = false;
+  String _userName = 'مستخدم';
   
+  // ✅ البانر
   final List<String> _bannerImages = ImageKit.bannerList;
 
+  // ✅ أفضل الأطباء
   final List<Map<String, dynamic>> _topDoctors = [
     {'id': '1', 'name': 'د. أحمد المولد', 'specialty': 'باطنية', 'rating': 4.9, 'reviews': 328, 'image': ImageKit.doctor1, 'gender': 'male', 'price': 150, 'available': true},
     {'id': '2', 'name': 'د. خالد النخلاني', 'specialty': 'قلبية', 'rating': 4.8, 'reviews': 256, 'image': ImageKit.doctor2, 'gender': 'male', 'price': 180, 'available': true},
@@ -51,6 +56,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'id': '6', 'name': 'د. سعيد العمري', 'specialty': 'جلدية', 'rating': 4.5, 'reviews': 145, 'image': ImageKit.doctor1, 'gender': 'male', 'price': 130, 'available': true},
   ];
 
+  // ✅ الخدمات السريعة
   final List<QuickServiceItem> _quickServices = [
     QuickServiceItem(icon: ImageKit.pharmacyIcon, label: 'صيدلية', color: AppColors.success, screen: const MedicinesScreen()),
     QuickServiceItem(icon: ImageKit.emergencyIcon, label: 'طوارئ', color: AppColors.error, screen: const EmergencyNumbers()),
@@ -65,6 +71,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     QuickServiceItem(icon: ImageKit.placeholder, label: 'تأمين', color: Colors.blue, screen: const InsuranceCompanies()),
   ];
 
+  // ✅ الإحصائيات
   final List<Map<String, dynamic>> _stats = [
     {'icon': Icons.local_fire_department, 'value': '2,450', 'label': 'سعرة حرارية', 'color': Colors.orange, 'subtitle': 'اليوم'},
     {'icon': Icons.directions_walk, 'value': '8,542', 'label': 'خطوة', 'color': Colors.green, 'subtitle': 'اليوم'},
@@ -72,58 +79,33 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'icon': Icons.favorite, 'value': '72', 'label': 'نبضة/دقيقة', 'color': Colors.red, 'subtitle': 'الآن'},
   ];
 
-  final List<Map<String, dynamic>> _dailyTips = [
-    {'title': 'شرب الماء', 'subtitle': '8 أكواب يومياً', 'icon': Icons.water_drop, 'color': AppColors.info, 'content': 'شرب 8 أكواب من الماء يومياً يحسن صحة البشرة ويساعد في التخلص من السموم ويحسن وظائف الكلى.'},
-    {'title': 'المشي', 'subtitle': '30 دقيقة يومياً', 'icon': Icons.directions_walk, 'color': AppColors.success, 'content': 'المشي 30 دقيقة يومياً يقلل خطر أمراض القلب والسكري ويعزز الصحة النفسية ويحسن جودة النوم.'},
-    {'title': 'النوم', 'subtitle': '7-8 ساعات ليلاً', 'icon': Icons.nights_stay, 'color': AppColors.purple, 'content': 'النوم 7-8 ساعات يومياً يحسن الصحة النفسية والجسدية ويساعد في تقوية الذاكرة والمناعة.'},
-    {'title': 'الفواكه', 'subtitle': '5 حصص يومياً', 'icon': Icons.apple, 'color': AppColors.warning, 'content': 'تناول 5 حصص من الفواكه والخضار يومياً يوفر الفيتامينات والمعادن الضرورية للجسم ويعزز المناعة.'},
-  ];
-
-  final List<Map<String, dynamic>> _products = [
-    {'name': 'باراسيتامول 500mg', 'price': 500, 'image': ImageKit.medicine1, 'category': 'مسكنات', 'discount': 20},
-    {'name': 'فيتامين د 1000IU', 'price': 1200, 'image': ImageKit.medicine2, 'category': 'فيتامينات', 'discount': 15},
-    {'name': 'جهاز قياس ضغط', 'price': 8500, 'image': ImageKit.medicine3, 'category': 'أجهزة طبية', 'discount': 10},
-    {'name': 'أموكسيسيلين 500mg', 'price': 1500, 'image': ImageKit.medicine4, 'category': 'مضادات حيوية', 'discount': 0},
-  ];
-
+  // ✅ مستشفيات مميزة
   final List<Map<String, dynamic>> _featuredHospitals = [
     {'id': '1', 'name': 'مستشفى 22 مايو', 'location': 'صنعاء', 'image': ImageKit.hospital1, 'rating': 4.9, 'phone': '01-234571', 'specialty': 'عام', 'open': true},
     {'id': '2', 'name': 'مستشفى آزال', 'location': 'صنعاء', 'image': ImageKit.hospital2, 'rating': 4.8, 'phone': '01-234572', 'specialty': 'خاص', 'open': true},
     {'id': '3', 'name': 'مستشفى السبعين', 'location': 'صنعاء', 'image': ImageKit.hospital3, 'rating': 4.7, 'phone': '01-234573', 'specialty': 'أطفال وولادة', 'open': true},
-    {'id': '4', 'name': 'مستشفى الكويت', 'location': 'صنعاء', 'image': ImageKit.hospital4, 'rating': 4.8, 'phone': '01-234574', 'specialty': 'جراحة', 'open': true},
-    {'id': '5', 'name': 'المستشفى الجمهوري', 'location': 'صنعاء', 'image': ImageKit.hospital5, 'rating': 4.6, 'phone': '01-234575', 'specialty': 'حكومي', 'open': true},
-    {'id': '6', 'name': 'مستشفى الثورة العام', 'location': 'صنعاء', 'image': ImageKit.hospital6, 'rating': 4.5, 'phone': '01-234576', 'specialty': 'حكومي', 'open': true},
   ];
 
+  // ✅ مختبرات مميزة
   final List<Map<String, dynamic>> _featuredLabs = [
     {'id': '1', 'name': 'مختبرات الرازي', 'location': 'صنعاء - باب اليمن', 'image': ImageKit.lab1, 'rating': 4.9, 'phone': '01-234567', 'open': true},
     {'id': '2', 'name': 'مختبرات العولقي', 'location': 'صنعاء - شارع الستين', 'image': ImageKit.lab2, 'rating': 4.8, 'phone': '01-234568', 'open': true},
     {'id': '3', 'name': 'مختبرات المأمون', 'location': 'صنعاء - حدة', 'image': ImageKit.lab3, 'rating': 4.7, 'phone': '01-234569', 'open': true},
-    {'id': '4', 'name': 'مختبرات الذبحاني', 'location': 'صنعاء - شارع الأصبحي', 'image': ImageKit.lab1, 'rating': 4.6, 'phone': '01-234570', 'open': true},
-    {'id': '5', 'name': 'مختبرات النخبة', 'location': 'صنعاء - التحرير', 'image': ImageKit.lab2, 'rating': 4.5, 'phone': '01-234571', 'open': true},
-    {'id': '6', 'name': 'مختبرات اليمن الحديثة', 'location': 'صنعاء - شارع الزبيري', 'image': ImageKit.lab3, 'rating': 4.4, 'phone': '01-234572', 'open': true},
   ];
 
+  // ✅ صيدليات مميزة
   final List<Map<String, dynamic>> _featuredPharmacies = [
     {'id': '1', 'name': 'صيدلية ابن حيان', 'location': 'صنعاء - شارع حدة', 'image': ImageKit.pharmacy1, 'rating': 4.9, 'phone': '01-234580', 'open': true},
     {'id': '2', 'name': 'صيدلية عالم الصيدلة', 'location': 'صنعاء - شارع الستين', 'image': ImageKit.pharmacy2, 'rating': 4.8, 'phone': '01-234581', 'open': true},
     {'id': '3', 'name': 'صيدلية الشفاء', 'location': 'صنعاء - باب اليمن', 'image': ImageKit.pharmacy3, 'rating': 4.7, 'phone': '01-234582', 'open': true},
-    {'id': '4', 'name': 'صيدلية النهضة', 'location': 'صنعاء - التحرير', 'image': ImageKit.pharmacy1, 'rating': 4.6, 'phone': '01-234583', 'open': true},
-    {'id': '5', 'name': 'صيدلية الأمانة', 'location': 'صنعاء - شارع الزبيري', 'image': ImageKit.pharmacy2, 'rating': 4.5, 'phone': '01-234584', 'open': true},
-    {'id': '6', 'name': 'صيدلية اليمن الحديثة', 'location': 'صنعاء - حدة', 'image': ImageKit.pharmacy3, 'rating': 4.4, 'phone': '01-234585', 'open': true},
   ];
 
+  // ✅ مقالات صحية
   final List<Map<String, dynamic>> _healthArticles = [
     {'title': 'فوائد المشي اليومي', 'category': 'صحة عامة', 'time': 'منذ ساعة', 'image': ImageKit.morningWalk},
     {'title': 'نصائح لتقوية المناعة', 'category': 'تغذية', 'time': 'منذ 3 ساعات', 'image': ImageKit.immuneBoost},
     {'title': 'أهمية النوم الصحي', 'category': 'صحة نفسية', 'time': 'منذ 5 ساعات', 'image': ImageKit.sleepTips},
     {'title': 'العناية بالبشرة في الصيف', 'category': 'جلدية', 'time': 'منذ يوم', 'image': ImageKit.skinCare},
-  ];
-
-  final List<Map<String, dynamic>> _communityPosts = [
-    {'id': 1, 'author': 'د. سارة العمري', 'avatar': 'س', 'image': ImageKit.skinCare, 'title': 'نصائح للعناية بالبشرة', 'content': 'مع حلول فصل الصيف، احرصي على ترطيب بشرتك واستخدام واقي الشمس.', 'likes': 120, 'comments': 15, 'shares': 8, 'time': 'منذ ساعة', 'liked': false, 'commentList': ['نصائح رائعة!', 'شكراً دكتورة', 'مفيد جداً']},
-    {'id': 2, 'author': 'د. خالد النخلاني', 'avatar': 'خ', 'image': ImageKit.morningWalk, 'title': 'فوائد المشي الصباحي', 'content': 'المشي 30 دقيقة يومياً يقلل خطر أمراض القلب والسكري.', 'likes': 95, 'comments': 8, 'shares': 5, 'time': 'منذ 3 ساعات', 'liked': false, 'commentList': ['معلومة قيمة', 'سأطبقها']},
-    {'id': 3, 'author': 'د. أحمد المولد', 'avatar': 'أ', 'image': ImageKit.nutritionTips, 'title': 'تغذيتك سر صحتك', 'content': 'الطعام الصحي هو أساس المناعة القوية والجسم السليم.', 'likes': 210, 'comments': 22, 'shares': 12, 'time': 'منذ 5 ساعات', 'liked': true, 'commentList': ['أحسنت', 'مفيد جداً', 'شكراً دكتور']},
   ];
 
   double _caloriesAnim = 0;
@@ -136,6 +118,15 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     super.initState();
     _loadHealthScore();
     _startAnimation();
+    _loadUserData();
+  }
+
+  void _loadUserData() {
+    // يمكن جلب بيانات المستخدم من Firebase Auth
+    setState(() {
+      _isLoggedIn = true;
+      _userName = 'أحمد';
+    });
   }
 
   void _startAnimation() {
@@ -161,239 +152,8 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     setState(() => _isLoading = false);
   }
 
-  void _toggleLike(int index) {
-    setState(() {
-      _communityPosts[index]['liked'] = !_communityPosts[index]['liked'];
-      _communityPosts[index]['likes'] += _communityPosts[index]['liked'] ? 1 : -1;
-    });
-  }
-
-  void _sharePost(int index) {
-    final post = _communityPosts[index];
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('✅ تم مشاركة: ${post['title']}'),
-        backgroundColor: Colors.green,
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
-  void _showComments(Map<String, dynamic> post, int index) {
-    final TextEditingController _commentController = TextEditingController();
-    
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => StatefulBuilder(
-        builder: (context, setStateModal) {
-          return Container(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
-            ),
-            height: MediaQuery.of(context).size.height * 0.7,
-            child: Column(
-              children: [
-                Container(
-                  margin: const EdgeInsets.only(top: 8),
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[400],
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'التعليقات (${post['comments']})',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ],
-                  ),
-                ),
-                const Divider(),
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: (post['commentList'] as List).length,
-                    itemBuilder: (context, i) {
-                      final comment = (post['commentList'] as List)[i];
-                      return ListTile(
-                        leading: CircleAvatar(
-                          radius: 16,
-                          backgroundColor: AppColors.primary.withOpacity(0.1),
-                          child: Text(
-                            'م',
-                            style: TextStyle(
-                              color: AppColors.primary,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        title: Text(
-                          comment,
-                          style: const TextStyle(fontSize: 14),
-                        ),
-                        subtitle: Text(
-                          'منذ دقيقة',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.grey[500],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[50],
-                    border: Border(
-                      top: BorderSide(color: Colors.grey[200]!),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _commentController,
-                          decoration: InputDecoration(
-                            hintText: 'أضف تعليقاً...',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(24),
-                              borderSide: BorderSide.none,
-                            ),
-                            filled: true,
-                            fillColor: Colors.white,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 10,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      CircleAvatar(
-                        backgroundColor: AppColors.primary,
-                        child: IconButton(
-                          icon: const Icon(
-                            Icons.send,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                          onPressed: () {
-                            if (_commentController.text.isNotEmpty) {
-                              setStateModal(() {
-                                (post['commentList'] as List).add(_commentController.text);
-                                post['comments'] = (post['comments'] as int) + 1;
-                              });
-                              _commentController.clear();
-                            }
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  void _showTipDetails(Map<String, dynamic> tip) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[400],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Icon(tip['icon'] as IconData, color: tip['color'] as Color, size: 28),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    tip['title'] as String,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              tip['subtitle'] as String,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
-            ),
-            const Divider(height: 24),
-            Text(
-              tip['content'] as String,
-              style: const TextStyle(
-                fontSize: 16,
-                height: 1.6,
-              ),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text('أغلقت'),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  void _goTo(BuildContext context, Widget screen) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
   }
 
   @override
@@ -408,18 +168,117 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         body: CustomScrollView(
           controller: widget.scrollController,
           slivers: [
+            // ✅ AppBar مخصص مع الصورة الشخصية والإشعارات
+            SliverAppBar(
+              expandedHeight: 90,
+              floating: true,
+              snap: true,
+              pinned: false,
+              backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
+              elevation: 0,
+              automaticallyImplyLeading: false,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
+                    children: [
+                      // ✅ الصورة الشخصية
+                      GestureDetector(
+                        onTap: () => _goTo(context, const PatientProfile()),
+                        child: CircleAvatar(
+                          radius: 20,
+                          backgroundColor: AppColors.primary.withOpacity(0.1),
+                          child: Icon(
+                            Icons.person,
+                            color: AppColors.primary,
+                            size: 24,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // ✅ الترحيب
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              _isLoggedIn ? 'مرحباً، $_userName 👋' : 'منصة صحتك',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.white : Colors.black87,
+                              ),
+                            ),
+                            Text(
+                              'كيف تشعر اليوم؟',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isDark ? Colors.grey[400] : Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // ✅ الإشعارات
+                      IconButton(
+                        icon: Icon(
+                          Icons.notifications_outlined,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                        onPressed: () => _goTo(context, const NotificationsScreen()),
+                      ),
+                      // ✅ العربة
+                      IconButton(
+                        icon: Icon(
+                          Icons.shopping_cart_outlined,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                        onPressed: () => _goTo(context, const CartScreen()),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            
+            // ✅ المحتوى
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                  const SizedBox(height: 4),
+                  // ============================================================
+                  // 1️⃣ شريط البحث 🎯
+                  // ============================================================
+                  _buildSearchBar(isDark),
+                  const SizedBox(height: 16),
+
+                  // ============================================================
+                  // 2️⃣ الإحصائيات 📊
+                  // ============================================================
                   _buildStatsRow(),
                   const SizedBox(height: 16),
-                  _buildSectionTitleWithAction('خدمات سريعة', isDark, 'عرض الكل', () {}),
+
+                  // ============================================================
+                  // 3️⃣ البانر 🖼️
+                  // ============================================================
+                  BannerCarousel(images: _bannerImages),
+                  const SizedBox(height: 16),
+
+                  // ============================================================
+                  // 4️⃣ الخدمات السريعة 🚀
+                  // ============================================================
+                  _buildSectionTitleWithAction('خدمات سريعة', isDark, 'عرض الكل', 
+                    () => _goTo(context, const ServicesScreen())),
                   const SizedBox(height: 8),
                   QuickServices(services: _quickServices),
                   const SizedBox(height: 16),
-                  _buildSectionTitleWithAction('أفضل الأطباء', isDark, 'عرض الكل', () {}),
+
+                  // ============================================================
+                  // 5️⃣ أفضل الأطباء 👨‍⚕️
+                  // ============================================================
+                  _buildSectionTitleWithAction('أفضل الأطباء', isDark, 'عرض الكل', 
+                    () => _goTo(context, const DoctorsListScreen())),
                   const SizedBox(height: 8),
                   GridView.builder(
                     shrinkWrap: true,
@@ -430,22 +289,25 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                       mainAxisSpacing: 10,
                       childAspectRatio: 0.75,
                     ),
-                    itemCount: _topDoctors.length > 6 ? 6 : _topDoctors.length,
+                    itemCount: _topDoctors.length > 4 ? 4 : _topDoctors.length,
                     itemBuilder: (context, index) {
                       final doctor = _topDoctors[index];
                       return DoctorCard(
                         doctor: doctor,
-                        onTap: () => Navigator.push(
+                        onTap: () => _goTo(
                           context,
-                          MaterialPageRoute(
-                            builder: (_) => DoctorDetailsScreen(doctorId: doctor['id'] as String),
-                          ),
+                          DoctorDetailsScreen(doctorId: doctor['id'] as String),
                         ),
                       );
                     },
                   ),
                   const SizedBox(height: 16),
-                  _buildSectionTitleWithAction('مستشفيات مميزة', isDark, 'عرض الكل', () {}),
+
+                  // ============================================================
+                  // 6️⃣ مستشفيات مميزة 🏥
+                  // ============================================================
+                  _buildSectionTitleWithAction('مستشفيات مميزة', isDark, 'عرض الكل', 
+                    () => _goTo(context, const HospitalScreen())),
                   const SizedBox(height: 8),
                   GridView.builder(
                     shrinkWrap: true,
@@ -456,14 +318,19 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                       mainAxisSpacing: 10,
                       childAspectRatio: 0.8,
                     ),
-                    itemCount: _featuredHospitals.length > 6 ? 6 : _featuredHospitals.length,
+                    itemCount: _featuredHospitals.length,
                     itemBuilder: (context, index) {
                       final hospital = _featuredHospitals[index];
                       return _buildHospitalCard(hospital, isDark);
                     },
                   ),
                   const SizedBox(height: 16),
-                  _buildSectionTitleWithAction('مختبرات مميزة', isDark, 'عرض الكل', () {}),
+
+                  // ============================================================
+                  // 7️⃣ مختبرات مميزة 🧪
+                  // ============================================================
+                  _buildSectionTitleWithAction('مختبرات مميزة', isDark, 'عرض الكل', 
+                    () => _goTo(context, const LabsListScreen())),
                   const SizedBox(height: 8),
                   GridView.builder(
                     shrinkWrap: true,
@@ -474,14 +341,19 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                       mainAxisSpacing: 10,
                       childAspectRatio: 0.8,
                     ),
-                    itemCount: _featuredLabs.length > 6 ? 6 : _featuredLabs.length,
+                    itemCount: _featuredLabs.length,
                     itemBuilder: (context, index) {
                       final lab = _featuredLabs[index];
                       return _buildLabCard(lab, isDark);
                     },
                   ),
                   const SizedBox(height: 16),
-                  _buildSectionTitleWithAction('صيدليات مميزة', isDark, 'عرض الكل', () {}),
+
+                  // ============================================================
+                  // 8️⃣ صيدليات مميزة 💊
+                  // ============================================================
+                  _buildSectionTitleWithAction('صيدليات مميزة', isDark, 'عرض الكل', 
+                    () => _goTo(context, const PharmacyScreen())),
                   const SizedBox(height: 8),
                   GridView.builder(
                     shrinkWrap: true,
@@ -492,13 +364,17 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                       mainAxisSpacing: 10,
                       childAspectRatio: 0.8,
                     ),
-                    itemCount: _featuredPharmacies.length > 6 ? 6 : _featuredPharmacies.length,
+                    itemCount: _featuredPharmacies.length,
                     itemBuilder: (context, index) {
                       final pharmacy = _featuredPharmacies[index];
                       return _buildPharmacyCard(pharmacy, isDark);
                     },
                   ),
                   const SizedBox(height: 16),
+
+                  // ============================================================
+                  // 9️⃣ مقالات صحية 📰
+                  // ============================================================
                   _buildSectionTitle('أحدث المقالات', isDark),
                   const SizedBox(height: 8),
                   GridView.builder(
@@ -516,82 +392,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                       return _buildArticleCard(article, isDark);
                     },
                   ),
-                  const SizedBox(height: 16),
-                  _buildSectionTitle('نصائح يومية', isDark),
-                  const SizedBox(height: 8),
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 10,
-                      mainAxisSpacing: 10,
-                      childAspectRatio: 1.2,
-                    ),
-                    itemCount: _dailyTips.length,
-                    itemBuilder: (context, index) {
-                      final tip = _dailyTips[index];
-                      return GestureDetector(
-                        onTap: () => _showTipDetails(tip),
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF1A2540) : Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: (tip['color'] as Color).withOpacity(0.2),
-                            ),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(tip['icon'] as IconData, color: tip['color'] as Color, size: 32),
-                              const SizedBox(height: 6),
-                              Text(
-                                tip['title'] as String,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              Text(
-                                tip['subtitle'] as String,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: isDark ? Colors.grey[400] : Colors.grey[600],
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 4),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: (tip['color'] as Color).withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Text(
-                                  'اقرأ المزيد',
-                                  style: TextStyle(
-                                    fontSize: 9,
-                                    color: AppColors.primary,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  _buildSectionTitle('مجتمع صحتك', isDark),
-                  const SizedBox(height: 8),
-                  ..._communityPosts.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final post = entry.value;
-                    return _buildCommunityPostCard(post, index, isDark);
-                  }),
                   const SizedBox(height: 80),
                 ]),
               ),
@@ -602,6 +402,128 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
+  // ============================================================
+  // 🔍 شريط البحث
+  // ============================================================
+  Widget _buildSearchBar(bool isDark) {
+    return GestureDetector(
+      onTap: () {
+        // فتح شاشة البحث
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('🔍 فتح شاشة البحث'),
+            backgroundColor: AppColors.primary,
+            duration: Duration(seconds: 1),
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1A2540) : Colors.grey[100],
+          borderRadius: BorderRadius.circular(25),
+          border: Border.all(
+            color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.search,
+              color: isDark ? Colors.grey[400] : Colors.grey[500],
+              size: 22,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'ابحث عن طبيب، دواء، أو خدمة...',
+                style: TextStyle(
+                  color: isDark ? Colors.grey[500] : Colors.grey[400],
+                  fontSize: 14,
+                ),
+              ),
+            ),
+            Icon(
+              Icons.mic,
+              color: isDark ? Colors.grey[500] : Colors.grey[400],
+              size: 22,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // 📊 الإحصائيات
+  // ============================================================
+  Widget _buildStatsRow() {
+    final statsData = [
+      {'icon': Icons.local_fire_department, 'value': _caloriesAnim, 'label': 'سعرة حرارية', 'color': Colors.orange, 'subtitle': 'اليوم', 'format': 'int'},
+      {'icon': Icons.directions_walk, 'value': _stepsAnim, 'label': 'خطوة', 'color': Colors.green, 'subtitle': 'اليوم', 'format': 'int'},
+      {'icon': Icons.bedtime, 'value': _sleepAnim, 'label': 'ساعات النوم', 'color': Colors.purple, 'subtitle': 'الليلة الماضية', 'format': 'double'},
+      {'icon': Icons.favorite, 'value': _heartAnim, 'label': 'نبضة/دقيقة', 'color': Colors.red, 'subtitle': 'الآن', 'format': 'int'},
+    ];
+
+    return Row(
+      children: statsData.map((stat) {
+        final color = stat['color'] as Color;
+        final value = stat['value'] as double;
+        final isInt = stat['format'] == 'int';
+        
+        return Expanded(
+          child: TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 0, end: value),
+            duration: const Duration(milliseconds: 1500),
+            curve: Curves.easeOutCubic,
+            builder: (context, val, child) {
+              final displayVal = isInt ? val.toInt().toString() : val.toStringAsFixed(1);
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 3),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(stat['icon'] as IconData, color: color, size: 16),
+                        const SizedBox(width: 4),
+                        Text(
+                          displayVal,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: color,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      stat['label'] as String,
+                      style: const TextStyle(fontSize: 8, color: Colors.grey),
+                    ),
+                    Text(
+                      stat['subtitle'] as String,
+                      style: const TextStyle(fontSize: 7, color: Colors.grey),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  // ============================================================
+  // 📝 عناوين الأقسام
+  // ============================================================
   Widget _buildSectionTitle(String title, bool isDark) {
     return Text(
       title,
@@ -632,6 +554,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             style: TextStyle(
               color: AppColors.primary,
               fontWeight: FontWeight.w600,
+              fontSize: 14,
             ),
           ),
         ),
@@ -639,72 +562,12 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  Widget _buildStatsRow() {
-    final statsData = [
-      {'icon': Icons.local_fire_department, 'value': _caloriesAnim, 'label': 'سعرة حرارية', 'color': Colors.orange, 'subtitle': 'اليوم', 'format': 'int'},
-      {'icon': Icons.directions_walk, 'value': _stepsAnim, 'label': 'خطوة', 'color': Colors.green, 'subtitle': 'اليوم', 'format': 'int'},
-      {'icon': Icons.bedtime, 'value': _sleepAnim, 'label': 'ساعات النوم', 'color': Colors.purple, 'subtitle': 'الليلة الماضية', 'format': 'double'},
-      {'icon': Icons.favorite, 'value': _heartAnim, 'label': 'نبضة/دقيقة', 'color': Colors.red, 'subtitle': 'الآن', 'format': 'int'},
-    ];
-
-    return Row(
-      children: statsData.map((stat) {
-        final color = stat['color'] as Color;
-        final value = stat['value'] as double;
-        final isInt = stat['format'] == 'int';
-        
-        return Expanded(
-          child: TweenAnimationBuilder<double>(
-            tween: Tween<double>(begin: 0, end: value),
-            duration: const Duration(milliseconds: 1500),
-            curve: Curves.easeOutCubic,
-            builder: (context, val, child) {
-              final displayVal = isInt ? val.toInt().toString() : val.toStringAsFixed(1);
-              return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(stat['icon'] as IconData, color: color, size: 18),
-                        const SizedBox(width: 4),
-                        Text(
-                          displayVal,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: color,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Text(
-                      stat['label'] as String,
-                      style: const TextStyle(fontSize: 9, color: Colors.grey),
-                    ),
-                    Text(
-                      stat['subtitle'] as String,
-                      style: const TextStyle(fontSize: 7, color: Colors.grey),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        );
-      }).toList(),
-    );
-  }
-
+  // ============================================================
+  // 🏥 بطاقة المستشفى
+  // ============================================================
   Widget _buildHospitalCard(Map<String, dynamic> hospital, bool isDark) {
     return GestureDetector(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HospitalScreen())),
+      onTap: () => _goTo(context, const HospitalScreen()),
       child: Container(
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF1A2540) : Colors.white,
@@ -726,7 +589,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                   child: AppImage(
                     url: hospital['image'] as String,
-                    height: 100,
+                    height: 90,
                     width: double.infinity,
                   ),
                 ),
@@ -786,7 +649,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     hospital['name'] as String,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 12,
+                      fontSize: 11,
                       color: isDark ? Colors.white : Colors.black87,
                     ),
                     maxLines: 1,
@@ -803,10 +666,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const HospitalScreen()),
-                      ),
+                      onPressed: () => _goTo(context, const HospitalScreen()),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
@@ -831,9 +691,12 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
+  // ============================================================
+  // 🧪 بطاقة المختبر
+  // ============================================================
   Widget _buildLabCard(Map<String, dynamic> lab, bool isDark) {
     return GestureDetector(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LabsListScreen())),
+      onTap: () => _goTo(context, const LabsListScreen()),
       child: Container(
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF1A2540) : Colors.white,
@@ -853,7 +716,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
               child: AppImage(
                 url: lab['image'] as String,
-                height: 100,
+                height: 90,
                 width: double.infinity,
               ),
             ),
@@ -866,7 +729,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     lab['name'] as String,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 12,
+                      fontSize: 11,
                       color: isDark ? Colors.white : Colors.black87,
                     ),
                     maxLines: 1,
@@ -883,10 +746,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const LabsListScreen()),
-                      ),
+                      onPressed: () => _goTo(context, const LabsListScreen()),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
@@ -911,9 +771,12 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
+  // ============================================================
+  // 💊 بطاقة الصيدلية
+  // ============================================================
   Widget _buildPharmacyCard(Map<String, dynamic> pharmacy, bool isDark) {
     return GestureDetector(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PharmacyScreen())),
+      onTap: () => _goTo(context, const PharmacyScreen()),
       child: Container(
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF1A2540) : Colors.white,
@@ -933,7 +796,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
               child: AppImage(
                 url: pharmacy['image'] as String,
-                height: 100,
+                height: 90,
                 width: double.infinity,
               ),
             ),
@@ -946,7 +809,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     pharmacy['name'] as String,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 12,
+                      fontSize: 11,
                       color: isDark ? Colors.white : Colors.black87,
                     ),
                     maxLines: 1,
@@ -963,10 +826,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const PharmacyScreen()),
-                      ),
+                      onPressed: () => _goTo(context, const PharmacyScreen()),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
@@ -991,9 +851,12 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
+  // ============================================================
+  // 📰 بطاقة المقال
+  // ============================================================
   Widget _buildArticleCard(Map<String, dynamic> article, bool isDark) {
     return GestureDetector(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ArticlesScreen())),
+      onTap: () => _goTo(context, const ArticlesScreen()),
       child: Container(
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF1A2540) : Colors.white,
@@ -1059,171 +922,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildCommunityPostCard(Map<String, dynamic> post, int index, bool isDark) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2540) : Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: AppColors.primary.withOpacity(0.1),
-                child: Text(
-                  post['avatar'] as String,
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      post['author'] as String,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                        color: isDark ? Colors.white : Colors.black87,
-                      ),
-                    ),
-                    Text(
-                      post['time'] as String,
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: isDark ? Colors.grey[400] : Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                onPressed: () {},
-                icon: Icon(Icons.more_horiz, color: isDark ? Colors.grey[400] : Colors.grey[600], size: 18),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            post['title'] as String,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 15,
-              color: isDark ? Colors.white : Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            post['content'] as String,
-            style: TextStyle(
-              fontSize: 13,
-              color: isDark ? Colors.grey[300] : Colors.grey[700],
-            ),
-          ),
-          const SizedBox(height: 8),
-          if (post['image'] != null)
-            GestureDetector(
-              onTap: () => showDialog(
-                context: context,
-                builder: (_) => Dialog(
-                  child: AppImage(
-                    url: post['image'] as String,
-                    width: double.infinity,
-                    height: 300,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: AppImage(
-                  url: post['image'] as String,
-                  height: 180,
-                  width: double.infinity,
-                ),
-              ),
-            ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              GestureDetector(
-                onTap: () => _toggleLike(index),
-                child: Row(
-                  children: [
-                    Icon(
-                      post['liked'] == true ? Icons.favorite : Icons.favorite_border,
-                      color: post['liked'] == true ? Colors.red : (isDark ? Colors.grey[400] : Colors.grey[600]),
-                      size: 18,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${post['likes']}',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isDark ? Colors.grey[400] : Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 14),
-              GestureDetector(
-                onTap: () => _showComments(post, index),
-                child: Row(
-                  children: [
-                    Icon(Icons.comment, color: isDark ? Colors.grey[400] : Colors.grey[600], size: 18),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${post['comments']}',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isDark ? Colors.grey[400] : Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 14),
-              GestureDetector(
-                onTap: () => _sharePost(index),
-                child: Row(
-                  children: [
-                    Icon(Icons.share, color: isDark ? Colors.grey[400] : Colors.grey[600], size: 18),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${post['shares']}',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isDark ? Colors.grey[400] : Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }
