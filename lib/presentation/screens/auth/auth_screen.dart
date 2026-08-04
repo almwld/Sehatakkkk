@@ -16,11 +16,6 @@ import 'package:sehatak/presentation/screens/onboarding/role_onboarding_screen.d
 import 'package:sehatak/presentation/screens/verification/verification_screen.dart';
 import 'package:sehatak/presentation/screens/platform/dashboard/platform_dashboard.dart';
 
-// ✅ دالة مساعدة للتحقق من الحاجة للتوثيق
-bool _needsVerification(String role) {
-  return role == 'doctor' || role == 'pharmacist' || role == 'lab';
-}
-
 class AuthScreen extends StatefulWidget {
   final bool isSignUp;
   const AuthScreen({super.key, this.isSignUp = false});
@@ -169,6 +164,11 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     }
   }
 
+  // ✅ دالة التحقق من الحاجة للتوثيق (داخل الكلاس)
+  bool _needsVerification(String role) {
+    return role == 'doctor' || role == 'pharmacist' || role == 'lab';
+  }
+
   // ✅ شاشة تحميل Lottie في وسط الشاشة
   void _showLoading() {
     showDialog(
@@ -183,6 +183,18 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
             width: 200,
             height: 200,
             fit: BoxFit.contain,
+            repeat: true,
+            errorBuilder: (context, error, stackTrace) {
+              print('❌ خطأ في تحميل Lottie: $error');
+              return Container(
+                width: 200,
+                height: 200,
+                color: Colors.grey[200],
+                child: const Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            },
           ),
         ),
       ),
@@ -210,6 +222,17 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
             height: 250,
             fit: BoxFit.contain,
             repeat: false,
+            errorBuilder: (context, error, stackTrace) {
+              print('❌ خطأ في تحميل Lottie: $error');
+              return Container(
+                width: 250,
+                height: 250,
+                color: Colors.green[100],
+                child: const Center(
+                  child: Icon(Icons.check_circle, color: Colors.green, size: 80),
+                ),
+              );
+            },
           ),
         ),
       ),
@@ -271,6 +294,9 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       else if (e.code == 'wrong-password') message = 'كلمة المرور غير صحيحة';
       else if (e.code == 'invalid-email') message = 'البريد الإلكتروني غير صحيح';
       _showMessage(message, true);
+    } catch (e) {
+      _hideLoading();
+      _showMessage('حدث خطأ غير متوقع', true);
     }
   }
 
@@ -334,7 +360,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
             builder: (_) => RoleOnboardingScreen(
               role: _getUserRole(_selectedRole),
               onComplete: () {
-                // ✅ استخدام الدالة المساعدة _needsVerification
+                // ✅ استخدام الدالة _needsVerification داخل الكلاس
                 if (_needsVerification(_selectedRole)) {
                   Navigator.pushReplacement(
                     context,
@@ -359,6 +385,9 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       if (e.code == 'email-already-in-use') message = 'البريد الإلكتروني مستخدم بالفعل';
       else if (e.code == 'weak-password') message = 'كلمة المرور ضعيفة جداً';
       _showMessage(message, true);
+    } catch (e) {
+      _hideLoading();
+      _showMessage('حدث خطأ غير متوقع', true);
     }
   }
 
