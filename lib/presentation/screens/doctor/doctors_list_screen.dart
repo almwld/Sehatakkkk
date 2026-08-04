@@ -82,7 +82,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('👨‍⚕️ الأطباء'),
+        title: const Text(' الأطباء'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
