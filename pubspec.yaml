@@ -115,12 +115,39 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # ✅ استخدام SVG بدلاً من PNG
+  # ✅ تضمين كافة المجلدات الرئيسية والفرعية الخاصة بالصور والأيقونات
   assets:
-    - assets/icons/app_icon.svg
-    - assets/animations/sehatak_animation.json
-    - assets/audio/splash_sound.mp3
-    - assets/fonts/
+    - assets/
+    - assets/icons/
+    - assets/svg/
+    - assets/svg/صور الاطباء الافتراضيه/
+    - assets/delivery/
+    - assets/animations/
+    - assets/audio/
+    - banners/
+    - doctors/
+    - medicines/
+    - pharmacies/
+    - Labs/
+    - hospitals/
+    - delivery/
+    - posts/
+    - Wallets/
+    - images/
+    - images/doctors/
+    - images/doctors/placeholders/
+    - images/medicines/
+    - images/delivery/
+    - images/posts/
+    - images/pharmacies/
+    - images/hospitals/
+    - images/labs/
+    - images/banners/
+    - images/icons/
+    - images/icons/doctors/
+    - images/icons/search/
+    - images/icons/top_bar/
+    - images/icons/fast_services/
 
   fonts:
     - family: NotoSansArabicUI
