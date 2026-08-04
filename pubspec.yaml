@@ -80,6 +80,7 @@ dependencies:
 
   # Media
   image_picker: ^1.0.7
+  camera: ^0.10.5
   record: ^5.0.0
   audioplayers: ^5.2.1
   photo_view: ^0.14.0
@@ -175,4 +176,3 @@ flutter_native_splash:
   image: assets/icons/app_icon.svg
   android: true
   ios: false
-  camera: ^0.10.5
