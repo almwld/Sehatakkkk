@@ -26,9 +26,6 @@ import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
 import 'package:sehatak/presentation/screens/shared/notifications_screen.dart';
 import 'package:sehatak/presentation/screens/pharmacy/cart_screen.dart';
 
-// ============================================================
-// 🏠 HomeTab - المحتوى الرئيسي (النسخة الكاملة)
-// ============================================================
 class HomeTab extends StatefulWidget {
   final ScrollController? scrollController;
 
@@ -39,12 +36,14 @@ class HomeTab extends StatefulWidget {
 }
 
 class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
-  bool _isLoading = false;
+  bool _isLoading = true;  // ✅ تغيير القيمة الافتراضية إلى true
   bool _isLoggedIn = false;
   String _userName = 'مستخدم';
   int _currentBanner = 0;
+  bool _hasError = false;
+  String _errorMessage = '';
   
-  // ✅ البانرات - 4 صور من ImageKit
+  // ✅ البيانات
   final List<String> _bannerImages = ImageKit.bannerList;
 
   // ✅ أفضل الأطباء
@@ -154,35 +153,94 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   @override
   void initState() {
     super.initState();
-    _loadUserData();
-    _startAnimation();
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    try {
+      // ✅ تحميل بيانات المستخدم
+      await _loadUserData();
+      // ✅ تحميل البيانات الأخرى
+      await _loadHealthScore();
+      // ✅ بدء الأنيميشن
+      _startAnimation();
+    } catch (e) {
+      debugPrint('❌ خطأ في التهيئة: $e');
+      if (mounted) {
+        setState(() {
+          _hasError = true;
+          _errorMessage = 'حدث خطأ في تحميل البيانات';
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   void _loadUserData() {
-    final user = FirebaseAuth.instance.currentUser;
-    setState(() {
-      _isLoggedIn = user != null;
-      if (user != null) {
-        _userName = user.displayName ?? user.email?.split('@')[0] ?? 'مستخدم';
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (mounted) {
+        setState(() {
+          _isLoggedIn = user != null;
+          if (user != null) {
+            _userName = user.displayName ?? user.email?.split('@')[0] ?? 'مستخدم';
+          }
+        });
       }
-    });
+    } catch (e) {
+      debugPrint('❌ خطأ في تحميل بيانات المستخدم: $e');
+    }
   }
 
   void _startAnimation() {
     Future.delayed(const Duration(milliseconds: 300), () {
-      setState(() {
-        _caloriesAnim = 2450;
-        _stepsAnim = 8542;
-        _sleepAnim = 7.5;
-        _heartAnim = 72;
-      });
+      if (mounted) {
+        setState(() {
+          _caloriesAnim = 2450;
+          _stepsAnim = 8542;
+          _sleepAnim = 7.5;
+          _heartAnim = 72;
+        });
+      }
     });
+  }
+
+  Future<void> _loadHealthScore() async {
+    try {
+      final score = await HealthScoreService.calculateHealthScore();
+      if (mounted) {
+        setState(() => _healthScore = score);
+      }
+    } catch (e) {
+      debugPrint('❌ خطأ في حساب درجة الصحة: $e');
+    }
   }
 
   Future<void> _refreshData() async {
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(seconds: 1));
-    setState(() => _isLoading = false);
+    try {
+      await _loadUserData();
+      await Future.delayed(const Duration(seconds: 1));
+      await _loadHealthScore();
+      if (mounted) {
+        setState(() => _hasError = false);
+      }
+    } catch (e) {
+      debugPrint('❌ خطأ في التحديث: $e');
+      if (mounted) {
+        setState(() {
+          _hasError = true;
+          _errorMessage = 'حدث خطأ في تحديث البيانات';
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   void _goTo(BuildContext context, Widget screen) {
@@ -424,7 +482,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  // ✅ شاشة تحميل Shimmer (مثل إنستغرام)
+  // ✅ شاشة تحميل Shimmer
   Widget _buildShimmerLoader() {
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -497,13 +555,69 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
+  // ✅ شاشة الخطأ
+  Widget _buildErrorScreen() {
+    return Scaffold(
+      backgroundColor: Colors.grey[50],
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 64,
+              color: Colors.red[300],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'حدث خطأ',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[800],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _errorMessage,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: _refreshData,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text('إعادة المحاولة'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    // ✅ عرض شاشة التحميل
     if (_isLoading) {
       return _buildShimmerLoader();
+    }
+
+    // ✅ عرض شاشة الخطأ
+    if (_hasError) {
+      return _buildErrorScreen();
     }
 
     return RefreshIndicator(
@@ -514,7 +628,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
           controller: widget.scrollController,
           slivers: [
             // ============================================================
-            // 1️⃣ شريط علوي متحرك مع SVG أيقونات
+            // 1️⃣ شريط علوي
             // ============================================================
             SliverAppBar(
               expandedHeight: 90,
@@ -575,14 +689,11 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                         onTap: () => _goTo(context, const NotificationsScreen()),
                         child: Container(
                           padding: const EdgeInsets.all(8),
-                          child: Image.asset(
-                            ImageKit.notificationIcon,
+                          child: AppImage(
+                            url: ImageKit.notificationIcon,
                             width: 24,
                             height: 24,
                             color: isDark ? Colors.white : Colors.black87,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Icon(Icons.notifications_outlined, color: isDark ? Colors.white : Colors.black87);
-                            },
                           ),
                         ),
                       ),
@@ -590,14 +701,11 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                         onTap: () => _goTo(context, const CartScreen()),
                         child: Container(
                           padding: const EdgeInsets.all(8),
-                          child: Image.asset(
-                            ImageKit.cartIcon,
+                          child: AppImage(
+                            url: ImageKit.cartIcon,
                             width: 24,
                             height: 24,
                             color: isDark ? Colors.white : Colors.black87,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Icon(Icons.shopping_cart_outlined, color: isDark ? Colors.white : Colors.black87);
-                            },
                           ),
                         ),
                       ),
@@ -615,97 +723,73 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   
-                  // ============================================================
-                  // 2️⃣ شريط بحث
-                  // ============================================================
+                  // ✅ شريط بحث
                   _buildSearchBar(isDark),
                   const SizedBox(height: 16),
 
-                  // ============================================================
-                  // 3️⃣ 4 بنرات (✅ استخدام AppImage)
-                  // ============================================================
+                  // ✅ 4 بنرات
                   _buildBannerCarousel(isDark),
                   const SizedBox(height: 16),
 
-                  // ============================================================
-                  // 4️⃣ إحصائيات متحركة (سعرات، خطوات، نوم، نبض)
-                  // ============================================================
+                  // ✅ إحصائيات متحركة
                   _buildStatsRow(),
                   const SizedBox(height: 16),
 
-                  // ============================================================
-                  // 5️⃣ خدمات سريعة (✅ استخدام AppImage)
-                  // ============================================================
+                  // ✅ خدمات سريعة
                   _buildSectionTitleWithAction('خدمات سريعة', isDark, 'عرض الكل', 
                     () => _goTo(context, const ServicesScreen())),
                   const SizedBox(height: 8),
                   _buildQuickServicesRow(),
                   const SizedBox(height: 16),
 
-                  // ============================================================
-                  // 6️⃣ أفضل الأطباء (✅ استخدام AppImage)
-                  // ============================================================
+                  // ✅ أفضل الأطباء
                   _buildSectionTitleWithAction('أفضل الأطباء', isDark, 'عرض الكل', 
                     () => _goTo(context, const DoctorsListScreen())),
                   const SizedBox(height: 8),
                   _buildTopDoctorsGrid(isDark),
                   const SizedBox(height: 16),
 
-                  // ============================================================
-                  // 7️⃣ منتجات صيدلية (✅ استخدام AppImage)
-                  // ============================================================
+                  // ✅ منتجات صيدلية
                   _buildSectionTitleWithAction('منتجات صيدلية', isDark, 'عرض الكل', 
                     () => _goTo(context, const MedicinesScreen())),
                   const SizedBox(height: 8),
                   _buildProductsRow(),
                   const SizedBox(height: 16),
 
-                  // ============================================================
-                  // 8️⃣ مستشفيات مميزة (✅ استخدام AppImage)
-                  // ============================================================
+                  // ✅ مستشفيات مميزة
                   _buildSectionTitleWithAction('مستشفيات مميزة', isDark, 'عرض الكل', 
                     () => _goTo(context, const HospitalScreen())),
                   const SizedBox(height: 8),
                   _buildFeaturedHospitalsGrid(isDark),
                   const SizedBox(height: 16),
 
-                  // ============================================================
-                  // 9️⃣ مختبرات مميزة (✅ استخدام AppImage)
-                  // ============================================================
+                  // ✅ مختبرات مميزة
                   _buildSectionTitleWithAction('مختبرات مميزة', isDark, 'عرض الكل', 
                     () => _goTo(context, const LabsListScreen())),
                   const SizedBox(height: 8),
                   _buildFeaturedLabsGrid(isDark),
                   const SizedBox(height: 16),
 
-                  // ============================================================
-                  // 🔟 صيدليات مميزة (✅ استخدام AppImage)
-                  // ============================================================
+                  // ✅ صيدليات مميزة
                   _buildSectionTitleWithAction('صيدليات مميزة', isDark, 'عرض الكل', 
                     () => _goTo(context, const PharmacyScreen())),
                   const SizedBox(height: 8),
                   _buildFeaturedPharmaciesGrid(isDark),
                   const SizedBox(height: 16),
 
-                  // ============================================================
-                  // 1️⃣1️⃣ أحدث المقالات (✅ استخدام AppImage)
-                  // ============================================================
+                  // ✅ أحدث المقالات
                   _buildSectionTitle('أحدث المقالات', isDark),
                   const SizedBox(height: 8),
                   _buildArticlesGrid(isDark),
                   const SizedBox(height: 16),
 
-                  // ============================================================
-                  // 1️⃣2️⃣ نصائح يومية
-                  // ============================================================
+                  // ✅ نصائح يومية
                   _buildSectionTitle('نصائح يومية', isDark),
                   const SizedBox(height: 8),
                   _buildDailyTipsGrid(),
                   const SizedBox(height: 16),
 
-                  // ============================================================
-                  // 1️⃣3️⃣ منشورات المجتمع (✅ استخدام AppImage)
-                  // ============================================================
+                  // ✅ منشورات المجتمع
                   _buildSectionTitle('مجتمع صحتك', isDark),
                   const SizedBox(height: 8),
                   ..._communityPosts.asMap().entries.map((entry) {
@@ -724,7 +808,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ============================================================
-  // 🔍 شريط البحث (✅ استخدام AppImage)
+  // 🔍 شريط البحث
   // ============================================================
   Widget _buildSearchBar(bool isDark) {
     return Container(
@@ -767,7 +851,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ============================================================
-  // 🖼️ البانرات (✅ استخدام AppImage)
+  // 🖼️ البانرات
   // ============================================================
   Widget _buildBannerCarousel(bool isDark) {
     if (_bannerImages.isEmpty) {
@@ -951,7 +1035,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ============================================================
-  // 🚀 الخدمات السريعة (✅ استخدام AppImage)
+  // 🚀 الخدمات السريعة
   // ============================================================
   Widget _buildQuickServicesRow() {
     return SizedBox(
@@ -999,7 +1083,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ============================================================
-  // 👨‍⚕️ أفضل الأطباء (✅ استخدام AppImage)
+  // 👨‍⚕️ أفضل الأطباء
   // ============================================================
   Widget _buildTopDoctorsGrid(bool isDark) {
     return GridView.builder(
@@ -1133,7 +1217,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ============================================================
-  // 💊 منتجات صيدلية (✅ استخدام AppImage)
+  // 💊 منتجات صيدلية
   // ============================================================
   Widget _buildProductsRow() {
     return SizedBox(
@@ -1239,7 +1323,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ============================================================
-  // 🏥 مستشفيات مميزة (✅ استخدام AppImage)
+  // 🏥 مستشفيات مميزة
   // ============================================================
   Widget _buildFeaturedHospitalsGrid(bool isDark) {
     return GridView.builder(
@@ -1387,7 +1471,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ============================================================
-  // 🧪 مختبرات مميزة (✅ استخدام AppImage)
+  // 🧪 مختبرات مميزة
   // ============================================================
   Widget _buildFeaturedLabsGrid(bool isDark) {
     return GridView.builder(
@@ -1486,7 +1570,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ============================================================
-  // 💊 صيدليات مميزة (✅ استخدام AppImage)
+  // 💊 صيدليات مميزة
   // ============================================================
   Widget _buildFeaturedPharmaciesGrid(bool isDark) {
     return GridView.builder(
@@ -1585,7 +1669,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ============================================================
-  // 📰 مقالات صحية (✅ استخدام AppImage)
+  // 📰 مقالات صحية
   // ============================================================
   Widget _buildArticlesGrid(bool isDark) {
     return GridView.builder(
@@ -1750,7 +1834,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ============================================================
-  // 💬 منشورات المجتمع (✅ استخدام AppImage)
+  // 💬 منشورات المجتمع
   // ============================================================
   Widget _buildCommunityPostCard(Map<String, dynamic> post, int index, bool isDark) {
     return Container(
@@ -1770,7 +1854,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // رأس المنشور
           Row(
             children: [
               CircleAvatar(
@@ -1815,8 +1898,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             ],
           ),
           const SizedBox(height: 6),
-
-          // محتوى المنشور
           Text(
             post['title'] as String,
             style: TextStyle(
@@ -1834,8 +1915,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             ),
           ),
           const SizedBox(height: 8),
-
-          // صورة المنشور (✅ استخدام AppImage)
           if (post['image'] != null)
             GestureDetector(
               onTap: () => showDialog(
@@ -1860,8 +1939,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               ),
             ),
           const SizedBox(height: 10),
-
-          // أزرار التفاعل
           Row(
             children: [
               GestureDetector(
