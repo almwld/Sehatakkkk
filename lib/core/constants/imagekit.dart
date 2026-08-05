@@ -2,7 +2,7 @@ class ImageKit {
   // ✅ الرابط الأساسي
   static const String base = "https://ik.imagekit.io/fqcynk86c";
   
-  // ✅ المجلدات الرئيسية
+  // ✅ المجلدات
   static const String imagesBase = "$base/images";
   static const String assetsBase = "$base/assets";
   
@@ -31,22 +31,16 @@ class ImageKit {
   ];
   
   // ============================================================
-  // 👨‍⚕️ الأطباء (11 صورة)
+  // 👨‍⚕️ الأطباء (5 صور)
   // ============================================================
   static String get doctor1 => doctor("doctor_1.png");
   static String get doctor2 => doctor("doctor_2.png");
   static String get doctor3 => doctor("doctor_3.png");
   static String get doctor4 => doctor("doctor_4.png");
   static String get doctor5 => doctor("doctor_5.png");
-  static String get doctor6 => doctor("doctor_6.png");
-  static String get doctor7 => doctor("doctor_7.png");
-  static String get doctor8 => doctor("doctor_8.png");
-  static String get doctor9 => doctor("doctor_9.png");
-  static String get doctor10 => doctor("doctor_10.png");
-  static String get doctor11 => doctor("doctor_11.png");
   
   // ============================================================
-  // 🏥 المستشفيات (9 صور)
+  // 🏥 المستشفيات (6 صور)
   // ============================================================
   static String get hospital1 => hospital("hospital_1.png");
   static String get hospital2 => hospital("hospital_2.png");
@@ -54,9 +48,6 @@ class ImageKit {
   static String get hospital4 => hospital("hospital_4.png");
   static String get hospital5 => hospital("hospital_5.png");
   static String get hospital6 => hospital("hospital_6.png");
-  static String get hospital7 => hospital("hospital_7.png");
-  static String get hospital8 => hospital("hospital_8.png");
-  static String get hospital9 => hospital("hospital_9.png");
   
   // ============================================================
   // 🧪 المختبرات (3 صور)
@@ -99,7 +90,7 @@ class ImageKit {
   static String get post5 => post("post_5.png");
   
   // ============================================================
-  // 📰 المقالات (صور من Unsplash مؤقتاً)
+  // 📰 المقالات (صور من Unsplash)
   // ============================================================
   static String get morningWalk => "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop";
   static String get immuneBoost => "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=300&fit=crop";
@@ -116,13 +107,13 @@ class ImageKit {
   static String get donateBlood => svg("donate_blood.svg");
   static String get maleDoctorIcon => svg("male_doctor.svg");
   static String get medicalIcon => svg("medical.svg");
-  static String get notificationsIcon => svg("notifications.svg");
+  static String get notificationIcon => svg("notifications.svg");  // ✅ تمت إضافته
   static String get placeholder => svg("placeholder.svg");
-  static String get cartIcon => svg("cart.svg");
-  static String get searchIcon => svg("search.svg");
-  static String get micIcon => svg("mic.svg");
+  static String get cartIcon => svg("cart.svg");                    // ✅ تمت إضافته
+  static String get searchIcon => svg("search.svg");                // ✅ تمت إضافته
+  static String get micIcon => svg("mic.svg");                      // ✅ تمت إضافته
   
-  // ✅ روابط أيقونات الخدمات السريعة
+  // ✅ أيقونات الخدمات السريعة
   static String get fastPharmacy => svg("fast_services/pharmacy.svg");
   static String get fastEmergency => svg("fast_services/emergency.svg");
   static String get fastHomeServices => svg("fast_services/home_services.svg");
