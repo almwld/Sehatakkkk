@@ -67,7 +67,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'icon': ImageKit.medicine1, 'label': 'صحة', 'color': AppColors.pink, 'screen': const HealthDashboard()},
     {'icon': ImageKit.cartIcon, 'label': 'محفظة', 'color': AppColors.amber, 'screen': const WalletScreen()},
     {'icon': ImageKit.medicalIcon, 'label': 'استشارة', 'color': AppColors.teal, 'screen': const ConsultationScreen()},
-    {'icon': ImageKit.notificationsIcon, 'label': 'بالقرب منك', 'color': Colors.orange, 'screen': const InteractiveMapScreen()},
+    {'icon': ImageKit.notificationIcon, 'label': 'بالقرب منك', 'color': Colors.orange, 'screen': const InteractiveMapScreen()},
     {'icon': ImageKit.placeholder, 'label': 'تأمين', 'color': Colors.blue, 'screen': const InsuranceCompanies()},
   ];
 

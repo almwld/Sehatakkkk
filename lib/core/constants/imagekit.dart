@@ -40,7 +40,7 @@ class ImageKit {
   static String get doctor5 => doctor("doctor_5.png");
   
   // ============================================================
-  // 🏥 المستشفيات (6 صور)
+  // 🏥 المستشفيات (9 صور)
   // ============================================================
   static String get hospital1 => hospital("hospital_1.png");
   static String get hospital2 => hospital("hospital_2.png");
@@ -48,6 +48,9 @@ class ImageKit {
   static String get hospital4 => hospital("hospital_4.png");
   static String get hospital5 => hospital("hospital_5.png");
   static String get hospital6 => hospital("hospital_6.png");
+  static String get hospital7 => hospital("hospital_7.png");  // ✅ تمت الإضافة
+  static String get hospital8 => hospital("hospital_8.png");  // ✅ تمت الإضافة
+  static String get hospital9 => hospital("hospital_9.png");  // ✅ تمت الإضافة
   
   // ============================================================
   // 🧪 المختبرات (3 صور)
@@ -107,11 +110,12 @@ class ImageKit {
   static String get donateBlood => svg("donate_blood.svg");
   static String get maleDoctorIcon => svg("male_doctor.svg");
   static String get medicalIcon => svg("medical.svg");
-  static String get notificationIcon => svg("notifications.svg");  // ✅ تمت إضافته
+  static String get notificationIcon => svg("notifications.svg");  // ✅ بدون s
+  static String get notificationsIcon => svg("notifications.svg"); // ✅ للتوافق (مع s)
   static String get placeholder => svg("placeholder.svg");
-  static String get cartIcon => svg("cart.svg");                    // ✅ تمت إضافته
-  static String get searchIcon => svg("search.svg");                // ✅ تمت إضافته
-  static String get micIcon => svg("mic.svg");                      // ✅ تمت إضافته
+  static String get cartIcon => svg("cart.svg");
+  static String get searchIcon => svg("search.svg");
+  static String get micIcon => svg("mic.svg");
   
   // ✅ أيقونات الخدمات السريعة
   static String get fastPharmacy => svg("fast_services/pharmacy.svg");
