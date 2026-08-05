@@ -99,7 +99,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'name': 'إيبوبروفين 400mg', 'price': 750, 'image': ImageKit.medicine4, 'category': 'مسكنات', 'discount': 5},
   ];
 
-  // ✅ مستشفيات مميزة (بالترتيب المطلوب)
+  // ✅ مستشفيات مميزة
   final List<Map<String, dynamic>> _featuredHospitals = [
     {'id': '1', 'name': 'مستشفى 22 مايو', 'location': 'صنعاء', 'image': ImageKit.hospital1, 'rating': 4.9, 'phone': '01-234571', 'specialty': 'عام', 'open': true},
     {'id': '2', 'name': 'مستشفى آزال', 'location': 'صنعاء', 'image': ImageKit.hospital2, 'rating': 4.8, 'phone': '01-234572', 'specialty': 'خاص', 'open': true},
@@ -119,7 +119,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'id': '6', 'name': 'مختبرات اليمن الحديثة', 'location': 'صنعاء - شارع الزبيري', 'image': ImageKit.lab3, 'rating': 4.4, 'phone': '01-234572', 'open': true},
   ];
 
-  // ✅ صيدليات مميزة (مع فروع متعددة)
+  // ✅ صيدليات مميزة
   final List<Map<String, dynamic>> _featuredPharmacies = [
     {'id': '1', 'name': 'صيدلية ابن حيان', 'location': 'صنعاء - شارع حدة', 'image': ImageKit.pharmacy1, 'rating': 4.9, 'phone': '01-234580', 'open': true},
     {'id': '2', 'name': 'صيدلية عالم الصيدلة', 'location': 'صنعاء - شارع الستين', 'image': ImageKit.pharmacy2, 'rating': 4.8, 'phone': '01-234581', 'open': true},
@@ -571,27 +571,33 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                           ],
                         ),
                       ),
-                      // ✅ زر الإشعارات
                       GestureDetector(
                         onTap: () => _goTo(context, const NotificationsScreen()),
                         child: Container(
                           padding: const EdgeInsets.all(8),
-                          child: Icon(
-                            Icons.notifications_outlined,
+                          child: Image.asset(
+                            ImageKit.notificationIcon,
+                            width: 24,
+                            height: 24,
                             color: isDark ? Colors.white : Colors.black87,
-                            size: 24,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(Icons.notifications_outlined, color: isDark ? Colors.white : Colors.black87);
+                            },
                           ),
                         ),
                       ),
-                      // ✅ زر السلة
                       GestureDetector(
                         onTap: () => _goTo(context, const CartScreen()),
                         child: Container(
                           padding: const EdgeInsets.all(8),
-                          child: Icon(
-                            Icons.shopping_cart_outlined,
+                          child: Image.asset(
+                            ImageKit.cartIcon,
+                            width: 24,
+                            height: 24,
                             color: isDark ? Colors.white : Colors.black87,
-                            size: 24,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(Icons.shopping_cart_outlined, color: isDark ? Colors.white : Colors.black87);
+                            },
                           ),
                         ),
                       ),
@@ -616,7 +622,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   const SizedBox(height: 16),
 
                   // ============================================================
-                  // 3️⃣ 4 بنرات
+                  // 3️⃣ 4 بنرات (✅ استخدام AppImage)
                   // ============================================================
                   _buildBannerCarousel(isDark),
                   const SizedBox(height: 16),
@@ -628,7 +634,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   const SizedBox(height: 16),
 
                   // ============================================================
-                  // 5️⃣ خدمات سريعة
+                  // 5️⃣ خدمات سريعة (✅ استخدام AppImage)
                   // ============================================================
                   _buildSectionTitleWithAction('خدمات سريعة', isDark, 'عرض الكل', 
                     () => _goTo(context, const ServicesScreen())),
@@ -637,7 +643,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   const SizedBox(height: 16),
 
                   // ============================================================
-                  // 6️⃣ أفضل الأطباء
+                  // 6️⃣ أفضل الأطباء (✅ استخدام AppImage)
                   // ============================================================
                   _buildSectionTitleWithAction('أفضل الأطباء', isDark, 'عرض الكل', 
                     () => _goTo(context, const DoctorsListScreen())),
@@ -646,7 +652,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   const SizedBox(height: 16),
 
                   // ============================================================
-                  // 7️⃣ منتجات صيدلية
+                  // 7️⃣ منتجات صيدلية (✅ استخدام AppImage)
                   // ============================================================
                   _buildSectionTitleWithAction('منتجات صيدلية', isDark, 'عرض الكل', 
                     () => _goTo(context, const MedicinesScreen())),
@@ -655,7 +661,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   const SizedBox(height: 16),
 
                   // ============================================================
-                  // 8️⃣ مستشفيات مميزة (بالترتيب المطلوب)
+                  // 8️⃣ مستشفيات مميزة (✅ استخدام AppImage)
                   // ============================================================
                   _buildSectionTitleWithAction('مستشفيات مميزة', isDark, 'عرض الكل', 
                     () => _goTo(context, const HospitalScreen())),
@@ -664,7 +670,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   const SizedBox(height: 16),
 
                   // ============================================================
-                  // 9️⃣ مختبرات مميزة
+                  // 9️⃣ مختبرات مميزة (✅ استخدام AppImage)
                   // ============================================================
                   _buildSectionTitleWithAction('مختبرات مميزة', isDark, 'عرض الكل', 
                     () => _goTo(context, const LabsListScreen())),
@@ -673,7 +679,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   const SizedBox(height: 16),
 
                   // ============================================================
-                  // 🔟 صيدليات مميزة
+                  // 🔟 صيدليات مميزة (✅ استخدام AppImage)
                   // ============================================================
                   _buildSectionTitleWithAction('صيدليات مميزة', isDark, 'عرض الكل', 
                     () => _goTo(context, const PharmacyScreen())),
@@ -682,7 +688,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   const SizedBox(height: 16),
 
                   // ============================================================
-                  // 1️⃣1️⃣ أحدث المقالات
+                  // 1️⃣1️⃣ أحدث المقالات (✅ استخدام AppImage)
                   // ============================================================
                   _buildSectionTitle('أحدث المقالات', isDark),
                   const SizedBox(height: 8),
@@ -698,7 +704,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   const SizedBox(height: 16),
 
                   // ============================================================
-                  // 1️⃣3️⃣ منشورات المجتمع
+                  // 1️⃣3️⃣ منشورات المجتمع (✅ استخدام AppImage)
                   // ============================================================
                   _buildSectionTitle('مجتمع صحتك', isDark),
                   const SizedBox(height: 8),
@@ -718,7 +724,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ============================================================
-  // 🔍 شريط البحث
+  // 🔍 شريط البحث (✅ استخدام AppImage)
   // ============================================================
   Widget _buildSearchBar(bool isDark) {
     return Container(
@@ -733,7 +739,12 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       ),
       child: Row(
         children: [
-          Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey[500], size: 22),
+          AppImage(
+            url: ImageKit.searchIcon,
+            width: 22,
+            height: 22,
+            color: isDark ? Colors.grey[400] : Colors.grey[500],
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -744,14 +755,19 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               ),
             ),
           ),
-          Icon(Icons.mic, color: isDark ? Colors.grey[500] : Colors.grey[400], size: 22),
+          AppImage(
+            url: ImageKit.micIcon,
+            width: 22,
+            height: 22,
+            color: isDark ? Colors.grey[500] : Colors.grey[400],
+          ),
         ],
       ),
     );
   }
 
   // ============================================================
-  // 🖼️ البانرات
+  // 🖼️ البانرات (✅ استخدام AppImage)
   // ============================================================
   Widget _buildBannerCarousel(bool isDark) {
     if (_bannerImages.isEmpty) {
@@ -793,18 +809,11 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
-                child: Image.asset(
-                  url,
+                child: AppImage(
+                  url: url,
                   height: 160,
                   width: double.infinity,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      height: 160,
-                      color: isDark ? const Color(0xFF1A2540) : Colors.grey[200],
-                      child: const Icon(Icons.broken_image, size: 40, color: Colors.grey),
-                    );
-                  },
                 ),
               ),
             );
@@ -942,7 +951,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ============================================================
-  // 🚀 الخدمات السريعة
+  // 🚀 الخدمات السريعة (✅ استخدام AppImage)
   // ============================================================
   Widget _buildQuickServicesRow() {
     return SizedBox(
@@ -966,13 +975,10 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                       color: color.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Image.asset(
-                      service['icon'] as String,
+                    child: AppImage(
+                      url: service['icon'] as String,
                       width: 32,
                       height: 32,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Icon(Icons.circle, color: color, size: 32);
-                      },
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -993,7 +999,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ============================================================
-  // 👨‍⚕️ أفضل الأطباء
+  // 👨‍⚕️ أفضل الأطباء (✅ استخدام AppImage)
   // ============================================================
   Widget _buildTopDoctorsGrid(bool isDark) {
     return GridView.builder(
@@ -1038,18 +1044,11 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               children: [
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                  child: Image.asset(
-                    doctor['image'] as String,
+                  child: AppImage(
+                    url: doctor['image'] as String,
                     height: 90,
                     width: double.infinity,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        height: 90,
-                        color: isDark ? const Color(0xFF1A2540) : Colors.grey[200],
-                        child: Icon(Icons.person, size: 40, color: Colors.grey),
-                      );
-                    },
                   ),
                 ),
                 Positioned(
@@ -1134,7 +1133,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ============================================================
-  // 💊 منتجات صيدلية
+  // 💊 منتجات صيدلية (✅ استخدام AppImage)
   // ============================================================
   Widget _buildProductsRow() {
     return SizedBox(
@@ -1175,19 +1174,11 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.asset(
-                    product['image'] as String,
+                  child: AppImage(
+                    url: product['image'] as String,
                     height: 80,
                     width: 80,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        height: 80,
-                        width: 80,
-                        color: Colors.grey[200],
-                        child: const Icon(Icons.medication, color: Colors.grey),
-                      );
-                    },
                   ),
                 ),
                 if (product['discount'] > 0)
@@ -1248,7 +1239,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ============================================================
-  // 🏥 مستشفيات مميزة
+  // 🏥 مستشفيات مميزة (✅ استخدام AppImage)
   // ============================================================
   Widget _buildFeaturedHospitalsGrid(bool isDark) {
     return GridView.builder(
@@ -1290,18 +1281,11 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               children: [
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                  child: Image.asset(
-                    hospital['image'] as String,
+                  child: AppImage(
+                    url: hospital['image'] as String,
                     height: 90,
                     width: double.infinity,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        height: 90,
-                        color: isDark ? const Color(0xFF1A2540) : Colors.grey[200],
-                        child: Icon(Icons.local_hospital, size: 40, color: Colors.grey),
-                      );
-                    },
                   ),
                 ),
                 Positioned(
@@ -1403,7 +1387,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ============================================================
-  // 🧪 مختبرات مميزة
+  // 🧪 مختبرات مميزة (✅ استخدام AppImage)
   // ============================================================
   Widget _buildFeaturedLabsGrid(bool isDark) {
     return GridView.builder(
@@ -1443,18 +1427,11 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
           children: [
             ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-              child: Image.asset(
-                lab['image'] as String,
+              child: AppImage(
+                url: lab['image'] as String,
                 height: 90,
                 width: double.infinity,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    height: 90,
-                    color: isDark ? const Color(0xFF1A2540) : Colors.grey[200],
-                    child: Icon(Icons.science, size: 40, color: Colors.grey),
-                  );
-                },
               ),
             ),
             Padding(
@@ -1509,7 +1486,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ============================================================
-  // 💊 صيدليات مميزة
+  // 💊 صيدليات مميزة (✅ استخدام AppImage)
   // ============================================================
   Widget _buildFeaturedPharmaciesGrid(bool isDark) {
     return GridView.builder(
@@ -1549,18 +1526,11 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
           children: [
             ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-              child: Image.asset(
-                pharmacy['image'] as String,
+              child: AppImage(
+                url: pharmacy['image'] as String,
                 height: 90,
                 width: double.infinity,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    height: 90,
-                    color: isDark ? const Color(0xFF1A2540) : Colors.grey[200],
-                    child: Icon(Icons.local_pharmacy, size: 40, color: Colors.grey),
-                  );
-                },
               ),
             ),
             Padding(
@@ -1615,7 +1585,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ============================================================
-  // 📰 مقالات صحية
+  // 📰 مقالات صحية (✅ استخدام AppImage)
   // ============================================================
   Widget _buildArticlesGrid(bool isDark) {
     return GridView.builder(
@@ -1655,18 +1625,11 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
           children: [
             ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-              child: Image.asset(
-                article['image'] as String,
+              child: AppImage(
+                url: article['image'] as String,
                 height: 80,
                 width: double.infinity,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    height: 80,
-                    color: isDark ? const Color(0xFF1A2540) : Colors.grey[200],
-                    child: Icon(Icons.article, size: 40, color: Colors.grey),
-                  );
-                },
               ),
             ),
             Padding(
@@ -1787,7 +1750,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ============================================================
-  // 💬 منشورات المجتمع
+  // 💬 منشورات المجتمع (✅ استخدام AppImage)
   // ============================================================
   Widget _buildCommunityPostCard(Map<String, dynamic> post, int index, bool isDark) {
     return Container(
@@ -1872,41 +1835,27 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
           ),
           const SizedBox(height: 8),
 
-          // صورة المنشور
+          // صورة المنشور (✅ استخدام AppImage)
           if (post['image'] != null)
             GestureDetector(
               onTap: () => showDialog(
                 context: context,
                 builder: (_) => Dialog(
-                  child: Image.asset(
-                    post['image'] as String,
+                  child: AppImage(
+                    url: post['image'] as String,
                     width: double.infinity,
                     height: 300,
                     fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        height: 300,
-                        color: Colors.grey[200],
-                        child: const Icon(Icons.image, size: 40, color: Colors.grey),
-                      );
-                    },
                   ),
                 ),
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(10),
-                child: Image.asset(
-                  post['image'] as String,
+                child: AppImage(
+                  url: post['image'] as String,
                   height: 180,
                   width: double.infinity,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      height: 180,
-                      color: isDark ? const Color(0xFF1A2540) : Colors.grey[200],
-                      child: const Icon(Icons.image, size: 40, color: Colors.grey),
-                    );
-                  },
                 ),
               ),
             ),
