@@ -47,8 +47,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
   final List<Map<String, dynamic>> _paymentMethods = [
     {'id': 'card', 'name': 'بطاقة ائتمان', 'icon': Icons.credit_card},
     {'id': 'mada', 'name': 'مدى', 'icon': Icons.account_balance},
-    {'id': 'apple_pay', 'name': 'Apple Pay', 'icon: Icons.apple},
-    {'id': 'google_pay', 'name': 'Google Pay', 'icon': Icons.google},
+    {'id': 'apple_pay', 'name': 'Apple Pay', 'icon': Icons.apple},  // ✅ تم الإصلاح
+    {'id': 'google_pay', 'name': 'Google Pay', 'icon': Icons.g_mobiledata},  // ✅ تم الإصلاح
     {'id': 'bank', 'name': 'تحويل بنكي', 'icon': Icons.account_balance},
   ];
 
@@ -60,7 +60,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
       final user = FirebaseAuth.instance.currentUser;
 
-      // ✅ حفظ المعاملة
       final transactionData = {
         'userId': user?.uid ?? '',
         'amount': widget.amount,
