@@ -6,6 +6,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'core/providers/font_size_provider.dart';
 import 'core/providers/user_provider.dart';
+import 'core/providers/cart_provider.dart';
 import 'core/themes/theme_manager.dart';
 import 'presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'presentation/bloc/theme_bloc/theme_bloc.dart';
@@ -33,12 +34,20 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
+        // ✅ Providers الحالية
         ChangeNotifierProvider(
           create: (_) => UserProvider()..loadUser(),
         ),
         ChangeNotifierProvider(
           create: (_) => FontSizeProvider(),
         ),
+        
+        // ✅ إضافة CartProvider (إدارة السلة)
+        ChangeNotifierProvider(
+          create: (_) => CartProvider(),
+        ),
+        
+        // ✅ Bloc Providers
         BlocProvider(
           create: (_) => AuthBloc()..add(CheckAuthStatus()),
         ),
