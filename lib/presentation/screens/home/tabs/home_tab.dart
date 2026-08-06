@@ -37,7 +37,7 @@ class HomeTab extends StatefulWidget {
 }
 
 class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
-  bool _isLoading = true;
+  bool _isLoading = true;  // ✅ بداية التحميل
   bool _isLoggedIn = false;
   String _userName = 'مستخدم';
   int _currentBanner = 0;
@@ -153,19 +153,47 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   @override
   void initState() {
     super.initState();
-    _loadUserData();
-    _loadHealthScore();
-    _startAnimation();
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    try {
+      _loadUserData();
+      await _loadHealthScore();
+      _startAnimation();
+      // ✅ تأكد من تغيير حالة التحميل بعد اكتمال البيانات
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _hasError = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('❌ خطأ في التهيئة: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _hasError = true;
+          _errorMessage = 'حدث خطأ في تحميل البيانات';
+        });
+      }
+    }
   }
 
   void _loadUserData() {
-    final user = FirebaseAuth.instance.currentUser;
-    setState(() {
-      _isLoggedIn = user != null;
-      if (user != null) {
-        _userName = user.displayName ?? user.email?.split('@')[0] ?? 'مستخدم';
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (mounted) {
+        setState(() {
+          _isLoggedIn = user != null;
+          if (user != null) {
+            _userName = user.displayName ?? user.email?.split('@')[0] ?? 'مستخدم';
+          }
+        });
       }
-    });
+    } catch (e) {
+      debugPrint('❌ خطأ في تحميل بيانات المستخدم: $e');
+    }
   }
 
   Future<void> _loadHealthScore() async {
@@ -199,18 +227,18 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       await Future.delayed(const Duration(seconds: 1));
       await _loadHealthScore();
       if (mounted) {
-        setState(() => _hasError = false);
+        setState(() {
+          _hasError = false;
+          _isLoading = false;
+        });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _hasError = true;
           _errorMessage = 'حدث خطأ في تحديث البيانات';
+          _isLoading = false;
         });
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
       }
     }
   }
@@ -608,14 +636,17 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     super.build(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    // ✅ إذا كان في حالة تحميل، عرض Shimmer
     if (_isLoading) {
       return _buildShimmerLoader();
     }
 
+    // ✅ إذا كان هناك خطأ، عرض شاشة الخطأ
     if (_hasError) {
       return _buildErrorScreen();
     }
 
+    // ✅ عرض المحتوى الرئيسي
     return RefreshIndicator(
       onRefresh: _refreshData,
       child: Scaffold(
