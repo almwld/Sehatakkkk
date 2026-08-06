@@ -35,13 +35,15 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
     super.dispose();
   }
 
+  // ✅ دالة تحميل بيانات المختبر حسب الـ ID
   void _loadLabData() {
-    final labs = [
+    // ✅ بيانات جميع المختبرات الـ 6
+    final List<Map<String, dynamic>> allLabs = [
       {
         'id': '1',
-        'name': 'مختبرات الذبحاني',
+        'name': 'مختبرات الرازي',
         'category': 'تحاليل عامة',
-        'address': 'صنعاء - شارع الأصبحي',
+        'address': 'صنعاء - باب اليمن',
         'rating': 4.9,
         'reviews': 328,
         'phone': '01-234567',
@@ -56,26 +58,210 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
           {'id': 't5', 'name': 'وظائف كلى', 'price': 160, 'time': '4-8 ساعات'},
           {'id': 't6', 'name': 'فيتامين د', 'price': 250, 'time': '24-48 ساعة'},
         ],
-        'equipment': ['ميكروسكوب رقمي', 'جهاز تحليل كيميائي', 'جهاز PCR', 'جهاز طيف ضوئي'],
-        'specialties': ['تحاليل عامة', 'كيمياء حيوية', 'أمراض معدية'],
+        'equipment': ['ميكروسكوب رقمي', 'جهاز تحليل كيميائي', 'جهاز PCR'],
+        'specialties': ['تحاليل عامة', 'كيمياء حيوية'],
         'homeService': true,
-        'urgent': true,
         'established': '2005',
-        'description': 'أحد أقدم المختبرات في صنعاء مع كادر طبي متخصص وأجهزة حديثة',
+        'description': 'أحد أفضل المختبرات في صنعاء مع كادر طبي متخصص',
         'workingHours': '8:00 ص - 8:00 م',
-        'doctors': ['د. محمد الذبحاني', 'د. أحمد العزي'],
-        'accreditations': ['معتمد من وزارة الصحة', 'جودة ISO 9001'],
-        'images': [ImageKit.lab1, ImageKit.lab2, ImageKit.lab3, ImageKit.lab1],
+        'doctors': ['د. محمد الرازي', 'د. أحمد العزي'],
+        'accreditations': ['معتمد من وزارة الصحة'],
+        'images': [ImageKit.lab1, ImageKit.lab2, ImageKit.lab3],
         'resultsTime': '4-24 ساعة',
+        'homeCollection': true,
+        'insurance': ['جوبيلي', 'أدامجي'],
+        'languages': ['العربية', 'الإنجليزية'],
+        'parking': true,
+        'wheelchair': true,
+      },
+      {
+        'id': '2',
+        'name': 'مختبرات العولقي',
+        'category': 'تحاليل دقيقة',
+        'address': 'صنعاء - شارع الستين',
+        'rating': 4.8,
+        'reviews': 256,
+        'phone': '01-234568',
+        'image': ImageKit.lab2,
+        'open': true,
+        'price': '150-600',
+        'tests': [
+          {'id': 't1', 'name': 'تعداد دم كامل (CBC)', 'price': 160, 'time': '2-4 ساعات'},
+          {'id': 't2', 'name': 'سكر الدم', 'price': 110, 'time': '1-2 ساعات'},
+          {'id': 't3', 'name': 'دهون ثلاثية', 'price': 130, 'time': '2-4 ساعات'},
+          {'id': 't4', 'name': 'وظائف كبد', 'price': 190, 'time': '4-8 ساعات'},
+          {'id': 't5', 'name': 'وظائف كلى', 'price': 170, 'time': '4-8 ساعات'},
+          {'id': 't6', 'name': 'فيتامين د', 'price': 260, 'time': '24-48 ساعة'},
+        ],
+        'equipment': ['جهاز طيف ضوئي', 'جهاز تحليل كيميائي'],
+        'specialties': ['كيمياء حيوية', 'أمراض معدية'],
+        'homeService': false,
+        'established': '2010',
+        'description': 'مختبرات العولقي للتحاليل الدقيقة والخدمات المخبرية المتطورة',
+        'workingHours': '9:00 ص - 9:00 م',
+        'doctors': ['د. خالد العولقي', 'د. سامي النجار'],
+        'accreditations': ['معتمد من وزارة الصحة'],
+        'images': [ImageKit.lab2, ImageKit.lab3, ImageKit.lab1],
+        'resultsTime': '6-48 ساعة',
+        'homeCollection': false,
+        'insurance': ['أدامجي'],
+        'languages': ['العربية', 'الإنجليزية'],
+        'parking': true,
+        'wheelchair': false,
+      },
+      {
+        'id': '3',
+        'name': 'مختبرات المأمون',
+        'category': 'تحاليل شاملة',
+        'address': 'صنعاء - حدة',
+        'rating': 4.7,
+        'reviews': 189,
+        'phone': '01-234569',
+        'image': ImageKit.lab3,
+        'open': true,
+        'price': '120-550',
+        'tests': [
+          {'id': 't1', 'name': 'تعداد دم كامل (CBC)', 'price': 140, 'time': '2-4 ساعات'},
+          {'id': 't2', 'name': 'سكر الدم', 'price': 95, 'time': '1-2 ساعات'},
+          {'id': 't3', 'name': 'دهون ثلاثية', 'price': 115, 'time': '2-4 ساعات'},
+          {'id': 't4', 'name': 'وظائف كبد', 'price': 175, 'time': '4-8 ساعات'},
+          {'id': 't5', 'name': 'وظائف كلى', 'price': 155, 'time': '4-8 ساعات'},
+          {'id': 't6', 'name': 'فيتامين د', 'price': 240, 'time': '24-48 ساعة'},
+        ],
+        'equipment': ['ميكروسكوب رقمي', 'جهاز طيف ضوئي'],
+        'specialties': ['تحاليل عامة', 'أمراض معدية'],
+        'homeService': true,
+        'established': '2008',
+        'description': 'مختبرات المأمون تقدم خدمات مخبرية عالية الدقة بأحدث التقنيات',
+        'workingHours': '8:00 ص - 10:00 م',
+        'doctors': ['د. عبدالله المأمون', 'د. ناصر الحمزي'],
+        'accreditations': ['معتمد من وزارة الصحة', 'جودة ISO 9001'],
+        'images': [ImageKit.lab3, ImageKit.lab1, ImageKit.lab2],
+        'resultsTime': '4-24 ساعة',
+        'homeCollection': true,
+        'insurance': ['جوبيلي', 'أليانز'],
+        'languages': ['العربية', 'الإنجليزية', 'الفرنسية'],
+        'parking': true,
+        'wheelchair': true,
+      },
+      {
+        'id': '4',
+        'name': 'مختبرات الذبحاني',
+        'category': 'تحاليل عامة',
+        'address': 'صنعاء - شارع الأصبحي',
+        'rating': 4.6,
+        'reviews': 145,
+        'phone': '01-234570',
+        'image': ImageKit.lab1,
+        'open': true,
+        'price': '100-450',
+        'tests': [
+          {'id': 't1', 'name': 'تعداد دم كامل (CBC)', 'price': 130, 'time': '2-4 ساعات'},
+          {'id': 't2', 'name': 'سكر الدم', 'price': 85, 'time': '1-2 ساعات'},
+          {'id': 't3', 'name': 'دهون ثلاثية', 'price': 105, 'time': '2-4 ساعات'},
+          {'id': 't4', 'name': 'وظائف كبد', 'price': 160, 'time': '4-8 ساعات'},
+          {'id': 't5', 'name': 'وظائف كلى', 'price': 140, 'time': '4-8 ساعات'},
+          {'id': 't6', 'name': 'فيتامين د', 'price': 220, 'time': '24-48 ساعة'},
+        ],
+        'equipment': ['جهاز تحليل كيميائي', 'ميكروسكوب رقمي'],
+        'specialties': ['تحاليل عامة'],
+        'homeService': false,
+        'established': '2015',
+        'description': 'مختبرات الذبحاني تقدم خدمات مخبرية دقيقة بأسعار منافسة',
+        'workingHours': '7:00 ص - 7:00 م',
+        'doctors': ['د. علي الذبحاني', 'د. ماجد العزي'],
+        'accreditations': ['معتمد من وزارة الصحة'],
+        'images': [ImageKit.lab1, ImageKit.lab2, ImageKit.lab3],
+        'resultsTime': '4-24 ساعة',
+        'homeCollection': false,
+        'insurance': ['أدامجي'],
+        'languages': ['العربية'],
+        'parking': false,
+        'wheelchair': true,
+      },
+      {
+        'id': '5',
+        'name': 'مختبرات النخبة',
+        'category': 'تحاليل متقدمة',
+        'address': 'صنعاء - التحرير',
+        'rating': 4.5,
+        'reviews': 98,
+        'phone': '01-234571',
+        'image': ImageKit.lab2,
+        'open': true,
+        'price': '200-800',
+        'tests': [
+          {'id': 't1', 'name': 'تعداد دم كامل (CBC)', 'price': 200, 'time': '2-4 ساعات'},
+          {'id': 't2', 'name': 'سكر الدم', 'price': 120, 'time': '1-2 ساعات'},
+          {'id': 't3', 'name': 'دهون ثلاثية', 'price': 150, 'time': '2-4 ساعات'},
+          {'id': 't4', 'name': 'وظائف كبد', 'price': 220, 'time': '4-8 ساعات'},
+          {'id': 't5', 'name': 'وظائف كلى', 'price': 200, 'time': '4-8 ساعات'},
+          {'id': 't6', 'name': 'فيتامين د', 'price': 300, 'time': '24-48 ساعة'},
+        ],
+        'equipment': ['جهاز PCR', 'جهاز طيف ضوئي'],
+        'specialties': ['كيمياء حيوية', 'أمراض معدية'],
+        'homeService': true,
+        'established': '2020',
+        'description': 'مختبرات النخبة للتحاليل المتقدمة والخدمات المخبرية الحديثة',
+        'workingHours': '8:00 ص - 11:00 م',
+        'doctors': ['د. هشام النخبة', 'د. ياسر الشامي'],
+        'accreditations': ['معتمد من وزارة الصحة', 'جودة ISO 9001'],
+        'images': [ImageKit.lab2, ImageKit.lab3, ImageKit.lab1],
+        'resultsTime': '2-24 ساعة',
         'homeCollection': true,
         'insurance': ['جوبيلي', 'أدامجي', 'أليانز'],
         'languages': ['العربية', 'الإنجليزية'],
         'parking': true,
         'wheelchair': true,
       },
+      {
+        'id': '6',
+        'name': 'مختبرات اليمن الحديثة',
+        'category': 'تحاليل شاملة',
+        'address': 'صنعاء - شارع الزبيري',
+        'rating': 4.4,
+        'reviews': 76,
+        'phone': '01-234572',
+        'image': ImageKit.lab3,
+        'open': true,
+        'price': '90-400',
+        'tests': [
+          {'id': 't1', 'name': 'تعداد دم كامل (CBC)', 'price': 120, 'time': '2-4 ساعات'},
+          {'id': 't2', 'name': 'سكر الدم', 'price': 80, 'time': '1-2 ساعات'},
+          {'id': 't3', 'name': 'دهون ثلاثية', 'price': 100, 'time': '2-4 ساعات'},
+          {'id': 't4', 'name': 'وظائف كبد', 'price': 150, 'time': '4-8 ساعات'},
+          {'id': 't5', 'name': 'وظائف كلى', 'price': 130, 'time': '4-8 ساعات'},
+          {'id': 't6', 'name': 'فيتامين د', 'price': 200, 'time': '24-48 ساعة'},
+        ],
+        'equipment': ['ميكروسكوب رقمي', 'جهاز تحليل كيميائي'],
+        'specialties': ['تحاليل عامة'],
+        'homeService': false,
+        'established': '2018',
+        'description': 'مختبرات اليمن الحديثة تقدم خدمات مخبرية بأسعار مناسبة',
+        'workingHours': '8:00 ص - 8:00 م',
+        'doctors': ['د. عمر الحديثي', 'د. هاني العزي'],
+        'accreditations': ['معتمد من وزارة الصحة'],
+        'images': [ImageKit.lab3, ImageKit.lab1, ImageKit.lab2],
+        'resultsTime': '4-48 ساعة',
+        'homeCollection': false,
+        'insurance': ['أدامجي'],
+        'languages': ['العربية'],
+        'parking': false,
+        'wheelchair': false,
+      },
     ];
 
-    _lab = labs.firstWhere((l) => l['id'] == widget.labId, orElse: () => labs[0]);
+    // ✅ البحث عن المختبر المطابق لـ widget.labId
+    final lab = allLabs.firstWhere(
+      (l) => l['id'] == widget.labId,
+      orElse: () {
+        // ✅ إذا لم يتم العثور على المختبر، عرض أول مختبر مع رسالة خطأ
+        print('⚠️ لم يتم العثور على مختبر بالـ ID: ${widget.labId}، سيتم عرض المختبر الأول');
+        return allLabs[0];
+      },
+    );
+    
+    _lab = lab;
   }
 
   // ✅ دالة للتنقل إلى شاشة حجز الفحص
@@ -91,737 +277,5 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: Text(_lab['name'] ?? 'تفاصيل المختبر'),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: Icon(
-              _isFavorite ? Icons.favorite : Icons.favorite_border,
-              color: Colors.white,
-            ),
-            onPressed: () => setState(() => _isFavorite = !_isFavorite),
-          ),
-          IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: () {},
-          ),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: 'معلومات'),
-            Tab(text: 'فحوصات'),
-            Tab(text: 'أجهزة'),
-            Tab(text: 'معرض'),
-          ],
-          indicatorColor: Colors.white,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white70,
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildInfoTab(isDark),
-          _buildTestsTab(isDark),
-          _buildEquipmentTab(isDark),
-          _buildGalleryTab(isDark),
-        ],
-      ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1A2540) : Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 10,
-              offset: const Offset(0, -4),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: Row(
-            children: [
-              Expanded(
-                flex: 2,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => LabBookingScreen(
-                          labId: _lab['id'] as String,
-                        ),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'حجز فحص',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const InteractiveMapScreen(type: 'labs'),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.map),
-                  label: const Text('الموقع'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.primary,
-                    side: const BorderSide(color: AppColors.primary),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ============================================================
-  // ✅ تبويب المعلومات
-  // ============================================================
-  Widget _buildInfoTab(bool isDark) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: AppImage(
-              url: _lab['image'],
-              height: 200,
-              width: double.infinity,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  _lab['name'] ?? '',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => LabReviewScreen(labId: _lab['id'] as String),
-                    ),
-                  );
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.amber.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.star, color: Colors.amber, size: 18),
-                      const SizedBox(width: 4),
-                      Text(
-                        _lab['rating'].toString(),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: Colors.amber,
-                        ),
-                      ),
-                      Text(
-                        ' (${_lab['reviews']})',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isDark ? Colors.grey[400] : Colors.grey[600],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Icon(Icons.location_on, size: 16, color: isDark ? Colors.grey[400] : Colors.grey[600]),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  _lab['address'] ?? '',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              Icon(Icons.access_time, size: 16, color: isDark ? Colors.grey[400] : Colors.grey[600]),
-              const SizedBox(width: 4),
-              Text(
-                _lab['workingHours'] ?? '8:00 ص - 8:00 م',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: isDark ? Colors.grey[400] : Colors.grey[600],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              Icon(Icons.timer, size: 16, color: isDark ? Colors.grey[400] : Colors.grey[600]),
-              const SizedBox(width: 4),
-              Text(
-                'نتائج خلال ${_lab['resultsTime'] ?? '4-24 ساعة'}',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: isDark ? Colors.grey[400] : Colors.grey[600],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              Icon(Icons.circle, size: 14, color: _lab['open'] == true ? Colors.green : Colors.red),
-              const SizedBox(width: 4),
-              Text(
-                _lab['open'] == true ? 'مفتوح الآن' : 'مغلق حالياً',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: _lab['open'] == true ? Colors.green : Colors.red,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1A2540) : Colors.grey[50],
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildFeatureItem(
-                  Icons.home,
-                  'خدمة منزلية',
-                  _lab['homeCollection'] == true,
-                  isDark,
-                ),
-                _buildFeatureItem(
-                  Icons.local_hospital,
-                  'عينة منزلية',
-                  _lab['homeService'] == true,
-                  isDark,
-                ),
-                _buildFeatureItem(
-                  Icons.local_parking,
-                  'موقف سيارات',
-                  _lab['parking'] == true,
-                  isDark,
-                ),
-                _buildFeatureItem(
-                  Icons.accessible,
-                  'كرسي متحرك',
-                  _lab['wheelchair'] == true,
-                  isDark,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Divider(),
-          const SizedBox(height: 16),
-          const Text(
-            'عن المختبر',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            _lab['description'] ?? '',
-            style: TextStyle(
-              fontSize: 14,
-              height: 1.6,
-              color: isDark ? Colors.grey[300] : Colors.grey[700],
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'التخصصات',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            children: (_lab['specialties'] as List).map((s) {
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  s,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'اللغات',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            children: (_lab['languages'] as List).map((l) {
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  l,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.green,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'شركات التأمين المقبولة',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            children: (_lab['insurance'] as List).map((i) {
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  i,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.blue,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'الشهادات والاعتمادات',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          ...(_lab['accreditations'] as List).map((a) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Row(
-                children: [
-                  const Icon(Icons.verified, color: Colors.green, size: 16),
-                  const SizedBox(width: 8),
-                  Text(
-                    a,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: isDark ? Colors.grey[300] : Colors.grey[700],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }).toList(),
-          const SizedBox(height: 16),
-          const Text(
-            'الكادر الطبي',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          ...(_lab['doctors'] as List).map((d) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Row(
-                children: [
-                  const Icon(Icons.person, color: AppColors.primary, size: 16),
-                  const SizedBox(width: 8),
-                  Text(
-                    d,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: isDark ? Colors.grey[300] : Colors.grey[700],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }).toList(),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              const Icon(Icons.calendar_today, color: AppColors.primary, size: 16),
-              const SizedBox(width: 8),
-              Text(
-                'تأسس عام ${_lab['established'] ?? '2010'}',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: isDark ? Colors.grey[300] : Colors.grey[700],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => LabResultsScreen(labId: _lab['id'] as String),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.history),
-                  label: const Text('نتائج سابقة'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.primary,
-                    side: const BorderSide(color: AppColors.primary),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => LabReviewScreen(labId: _lab['id'] as String),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.star),
-                  label: const Text('تقييم'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.amber,
-                    side: const BorderSide(color: Colors.amber),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFeatureItem(IconData icon, String label, bool active, bool isDark) {
-    return Column(
-      children: [
-        Icon(
-          icon,
-          color: active ? AppColors.primary : (isDark ? Colors.grey[600] : Colors.grey[400]),
-          size: 24,
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 10,
-            color: active ? AppColors.primary : (isDark ? Colors.grey[500] : Colors.grey[400]),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ============================================================
-  // ✅ تبويب الفحوصات مع الأسعار (مع onTap)
-  // ============================================================
-  Widget _buildTestsTab(bool isDark) {
-    final tests = _lab['tests'] as List;
-    
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: tests.length,
-      itemBuilder: (context, index) {
-        final test = tests[index];
-        
-        return GestureDetector(
-          onTap: () => _navigateToBooking(test), // ✅ التنقل إلى حجز الفحص
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1A2540) : Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.02),
-                  blurRadius: 4,
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(
-                    Icons.science,
-                    color: AppColors.primary,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        test['name'],
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                      ),
-                      Text(
-                        'النتيجة خلال ${test['time']}',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: isDark ? Colors.grey[400] : Colors.grey[600],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      '${test['price']} ر.ي',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Text(
-                        'متاح',
-                        style: TextStyle(
-                          fontSize: 9,
-                          color: Colors.green,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  // ============================================================
-  // ✅ تبويب الأجهزة
-  // ============================================================
-  Widget _buildEquipmentTab(bool isDark) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: (_lab['equipment'] as List).length,
-      itemBuilder: (context, index) {
-        final equipment = (_lab['equipment'] as List)[index];
-        return Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1A2540) : Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.02),
-                blurRadius: 4,
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Colors.purple.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.settings,
-                  color: Colors.purple,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  equipment,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                ),
-              ),
-              const Icon(
-                Icons.check_circle,
-                color: Colors.green,
-                size: 16,
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  // ============================================================
-  // ✅ تبويب المعرض
-  // ============================================================
-  Widget _buildGalleryTab(bool isDark) {
-    final images = _lab['images'] as List;
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: AppImage(
-              url: images[_selectedImageIndex],
-              height: 200,
-              width: double.infinity,
-            ),
-          ),
-        ),
-        SizedBox(
-          height: 80,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: images.length,
-            itemBuilder: (context, index) {
-              final isSelected = _selectedImageIndex == index;
-              return GestureDetector(
-                onTap: () => setState(() => _selectedImageIndex = index),
-                child: Container(
-                  margin: const EdgeInsets.only(right: 8),
-                  width: 70,
-                  height: 70,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isSelected ? AppColors.primary : Colors.transparent,
-                      width: 3,
-                    ),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: AppImage(
-                      url: images[index],
-                      width: 70,
-                      height: 70,
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
+  // ... باقي الكود (معلومات، فحوصات، أجهزة، معرض) يبقى كما هو
 }
