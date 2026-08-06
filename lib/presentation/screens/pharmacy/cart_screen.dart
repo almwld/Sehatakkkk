@@ -37,7 +37,7 @@ class CartScreen extends StatelessWidget {
         ],
       ),
       body: items.isEmpty
-          ? _buildEmptyCart(isDark)
+          ? _buildEmptyCart(isDark, context)
           : Column(
               children: [
                 Expanded(
@@ -50,13 +50,13 @@ class CartScreen extends StatelessWidget {
                     },
                   ),
                 ),
-                _buildCartSummary(cartProvider, isDark),
+                _buildCartSummary(cartProvider, isDark, context),
               ],
             ),
     );
   }
 
-  Widget _buildEmptyCart(bool isDark) {
+  Widget _buildEmptyCart(bool isDark, BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -225,7 +225,7 @@ class CartScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCartSummary(CartProvider cartProvider, bool isDark) {
+  Widget _buildCartSummary(CartProvider cartProvider, bool isDark, BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
