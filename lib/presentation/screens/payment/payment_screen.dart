@@ -1,18 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/models/cart/cart_model.dart';
-import 'package:sehatak/core/services/payment_service.dart';
-import 'package:sehatak/core/models/transaction_model.dart';
-import 'package:sehatak/presentation/screens/payment/payment_confirmation.dart';
+import 'package:sehatak/core/models/booking_model.dart';
 
 class PaymentScreen extends StatefulWidget {
-  final List<CartItem> items;
-  final CartSummary summary;
+  final int amount;
+  final String? bookingId;
+  final String? providerId;
+  final String? providerName;
+  final BookingType? bookingType;
+  final String? packageId;
+  final String? packageName;
 
   const PaymentScreen({
     super.key,
-    required this.items,
-    required this.summary,
+    required this.amount,
+    this.bookingId,
+    this.providerId,
+    this.providerName,
+    this.bookingType,
+    this.packageId,
+    this.packageName,
   });
 
   @override
@@ -20,31 +29,85 @@ class PaymentScreen extends StatefulWidget {
 }
 
 class _PaymentScreenState extends State<PaymentScreen> {
-  final PaymentService _paymentService = PaymentService();
-  String _selectedMethod = 'جيب';
-  bool _isLoading = false;
-  double _balance = 0;
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _walletNumberController = TextEditingController();
+  String _selectedMethod = 'jeeb';
+  bool _isProcessing = false;
 
-  final List<String> _paymentMethods = [
-    'جيب',
-    'فلوسك',
-    'جوالي كاش',
-    'ون كاش',
-    'كاش',
-    'سبأ كاش',
+  final List<Map<String, dynamic>> _paymentMethods = [
+    {'id': 'jeeb', 'name': 'جيب', 'icon': Icons.account_balance_wallet},
+    {'id': 'jawali', 'name': 'جوالي كاش', 'icon': Icons.phone_android},
+    {'id': 'floosak', 'name': 'فلوسك', 'icon': Icons.money},
+    {'id': 'yemen_wallet', 'name': 'يمن وولت', 'icon': Icons.wallet},
   ];
 
-  @override
-  void initState() {
-    super.initState();
-    _loadBalance();
-  }
+  Future<void> _processPayment() async {
+    setState(() => _isProcessing = true);
 
-  Future<void> _loadBalance() async {
-    final balance = await _paymentService.getWalletBalance('current_user');
-    setState(() => _balance = balance);
+    await Future.delayed(const Duration(seconds: 2));
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    try {
+      // ✅ حفظ الدفع
+      await FirebaseFirestore.instance.collection('payments').add({
+        'userId': user.uid,
+        'amount': widget.amount,
+        'method': _selectedMethod,
+        'bookingId': widget.bookingId,
+        'providerId': widget.providerId,
+        'providerName': widget.providerName,
+        'bookingType': widget.bookingType?.toString().split('.').last,
+        'packageId': widget.packageId,
+        'status': 'completed',
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      // ✅ تحديث حالة الحجز إذا موجود
+      if (widget.bookingId != null) {
+        await FirebaseFirestore.instance
+            .collection('bookings')
+            .doc(widget.bookingId)
+            .update({
+          'status': 'confirmed',
+          'confirmedAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      // ✅ إنشاء اشتراك إذا كان باقة
+      if (widget.packageId != null) {
+        await FirebaseFirestore.instance.collection('user_packages').add({
+          'userId': user.uid,
+          'packageId': widget.packageId,
+          'packageName': widget.packageName,
+          'providerId': widget.providerId,
+          'isActive': true,
+          'remainingMessages': 10,
+          'startDate': FieldValue.serverTimestamp(),
+          'endDate': Timestamp.fromDate(DateTime.now().add(const Duration(days: 30))),
+        });
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ تم الدفع بنجاح!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ حدث خطأ: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+
+    setState(() => _isProcessing = false);
   }
 
   @override
@@ -54,320 +117,187 @@ class _PaymentScreenState extends State<PaymentScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('💳 إتمام الدفع'),
+        title: const Text('الدفع الإلكتروني'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ✅ تفاصيل الدفع
+            Container(
               padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8)],
+              ),
               child: Column(
                 children: [
-                  _buildSummaryCard(isDark),
-                  const SizedBox(height: 16),
-                  _buildPaymentDetails(isDark),
-                  const SizedBox(height: 16),
-                  _buildPaymentMethods(isDark),
-                  const SizedBox(height: 24),
-                  _buildSubmitButton(isDark),
+                  _buildDetailRow('المبلغ', '${widget.amount} ريال'),
+                  if (widget.providerName != null)
+                    _buildDetailRow('المقدم', widget.providerName!),
+                  if (widget.bookingType != null)
+                    _buildDetailRow('النوع', _getTypeText(widget.bookingType!)),
+                  if (widget.packageName != null)
+                    _buildDetailRow('الباقة', widget.packageName!),
+                  const Divider(),
+                  _buildDetailRow('عمولة المنصة (15%)', '- ${(widget.amount * 0.15).toInt()} ريال', isTotal: true),
+                  _buildDetailRow('صافي المقدم', '${(widget.amount * 0.85).toInt()} ريال', isTotal: true),
                 ],
               ),
             ),
+            const SizedBox(height: 24),
+            const Text('اختر طريقة الدفع', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            ..._paymentMethods.map((method) => GestureDetector(
+              onTap: () => setState(() => _selectedMethod = method['id']),
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: _selectedMethod == method['id'] ? AppColors.primary : Colors.grey,
+                    width: _selectedMethod == method['id'] ? 2 : 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(method['icon'], color: _selectedMethod == method['id'] ? AppColors.primary : Colors.grey),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        method['name'],
+                        style: TextStyle(
+                          fontWeight: _selectedMethod == method['id'] ? FontWeight.bold : FontWeight.normal,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                    ),
+                    if (_selectedMethod == method['id'])
+                      const Icon(Icons.check_circle, color: AppColors.primary),
+                  ],
+                ),
+              ),
+            )),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isProcessing ? null : _processPayment,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: _isProcessing
+                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : Text('تأكيد الدفع (${widget.amount} ريال)'),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.amber.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info, color: Colors.amber),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'سيتم خصم 15% عمولة للمنصة، وصافي المبلغ يذهب للمقدم',
+                      style: TextStyle(fontSize: 12, color: Colors.amber),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _buildSummaryCard(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2540) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.receipt_long, color: AppColors.primary, size: 20),
-              const SizedBox(width: 8),
-              const Text('ملخص الطلب', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            ],
-          ),
-          const Divider(height: 16),
-          _buildSummaryRow('عدد المنتجات', '${widget.summary.itemCount} منتج', isDark),
-          _buildSummaryRow('المجموع الفرعي', '${widget.summary.subtotal.toStringAsFixed(0)} ريال', isDark),
-          if (widget.summary.totalDiscount > 0)
-            _buildSummaryRow('الخصم', '-${widget.summary.totalDiscount.toStringAsFixed(0)} ريال', isDark, color: Colors.green),
-          _buildSummaryRow('رسوم التوصيل', '${widget.summary.deliveryFee.toStringAsFixed(0)} ريال', isDark),
-          _buildSummaryRow('الضريبة', '${widget.summary.tax.toStringAsFixed(0)} ريال', isDark),
-          const Divider(height: 16),
-          _buildSummaryRow('الإجمالي', '${widget.summary.total.toStringAsFixed(0)} ريال', isDark, isTotal: true),
-        ],
-      ),
-    );
+  String _getTypeText(BookingType type) {
+    switch (type) {
+      case BookingType.doctor: return 'طبيب';
+      case BookingType.lab: return 'مختبر';
+      case BookingType.pharmacy: return 'صيدلية';
+      case BookingType.hospital: return 'مستشفى';
+    }
   }
 
-  Widget _buildSummaryRow(String label, String value, bool isDark, {Color? color, bool isTotal = false}) {
+  Widget _buildDetailRow(String label, String value, {bool isTotal = false}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(
-            fontSize: isTotal ? 14 : 13,
-            fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-            color: isTotal ? AppColors.primary : (isDark ? Colors.grey[400] : Colors.grey[600]),
-          )),
-          Text(value, style: TextStyle(
-            fontSize: isTotal ? 14 : 13,
-            fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-            color: color ?? (isTotal ? AppColors.primary : (isDark ? Colors.white : Colors.black87)),
-          )),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPaymentDetails(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2540) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.payment, color: AppColors.primary, size: 20),
-              const SizedBox(width: 8),
-              const Text('تفاصيل الدفع', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            ],
-          ),
-          const Divider(height: 16),
-          TextFormField(
-            controller: _phoneController,
-            keyboardType: TextInputType.phone,
-            textAlign: TextAlign.right,
-            decoration: const InputDecoration(
-              labelText: 'رقم الهاتف',
-              prefixIcon: Icon(Icons.phone),
-              border: OutlineInputBorder(),
-              hintText: 'أدخل رقم الهاتف المسجل',
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+              color: isTotal ? AppColors.primary : Colors.grey,
             ),
           ),
-          const SizedBox(height: 12),
-          TextFormField(
-            controller: _walletNumberController,
-            keyboardType: TextInputType.number,
-            textAlign: TextAlign.right,
-            decoration: InputDecoration(
-              labelText: 'رقم المحفظة (${_selectedMethod})',
-              prefixIcon: const Icon(Icons.account_balance_wallet),
-              border: const OutlineInputBorder(),
-              hintText: 'أدخل رقم محفظتك في ${_selectedMethod}',
+          Text(
+            value,
+            style: TextStyle(
+              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+              color: isTotal ? AppColors.primary : Colors.black87,
             ),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildPaymentMethods(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2540) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.wallet, color: AppColors.primary, size: 20),
-              const SizedBox(width: 8),
-              const Text('طريقة الدفع', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            ],
-          ),
-          const Divider(height: 16),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.05),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.primary.withOpacity(0.2)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.account_balance, color: AppColors.primary),
-                const SizedBox(width: 8),
-                Text('رصيد المحفظة: ${_balance.toStringAsFixed(0)} ريال',
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary),
-                ),
-                const Spacer(),
-                TextButton(
-                  onPressed: () => Navigator.pushNamed(context, '/wallet'),
-                  child: const Text('شحن'),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: _paymentMethods.map((method) {
-              final isSelected = _selectedMethod == method;
-              return ChoiceChip(
-                label: Text(method, style: TextStyle(fontSize: 12, color: isSelected ? Colors.white : null)),
-                selected: isSelected,
-                onSelected: (_) => setState(() => _selectedMethod = method),
-                selectedColor: AppColors.primary,
-                backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[200],
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.05),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.green.withOpacity(0.2)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.verified, color: Colors.green),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('رمز نقطة الدفع: ${_paymentService.merchantCode}',
-                        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green, fontSize: 13),
-                      ),
-                      Text('التحويل على حساب منصة صحتك الطبية - جيب',
-                        style: TextStyle(fontSize: 11, color: isDark ? Colors.grey[400] : Colors.grey[600]),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+// ✅ دعم الاشتراكات
+final bool isSubscription;
+final String? subscriptionPlanId;
+final String? subscriptionPlanName;
 
-  Widget _buildSubmitButton(bool isDark) {
-    return SizedBox(
-      width: double.infinity,
-      height: 56,
-      child: ElevatedButton(
-        onPressed: _processPayment,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.green,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.check_circle),
-            const SizedBox(width: 8),
-            Text('إتمام الطلب - ${widget.summary.total.toStringAsFixed(0)} ريال',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+// ✅ تحديث الـ constructor
+const PaymentScreen({
+  super.key,
+  required this.amount,
+  this.bookingId,
+  this.providerId,
+  this.providerName,
+  this.bookingType,
+  this.packageId,
+  this.packageName,
+  this.isSubscription = false,
+  this.subscriptionPlanId,
+  this.subscriptionPlanName,
+});
 
-  Future<void> _processPayment() async {
-    if (_phoneController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('الرجاء إدخال رقم الهاتف'), backgroundColor: Colors.orange),
-      );
-      return;
-    }
-
-    if (_walletNumberController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('الرجاء إدخال رقم المحفظة'), backgroundColor: Colors.orange),
-      );
-      return;
-    }
-
-    if (_balance < widget.summary.total) {
-      await showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: const Text('⚠️ رصيد غير كافٍ'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('الرصيد الحالي: ${_balance.toStringAsFixed(0)} ريال'),
-              Text('المبلغ المطلوب: ${widget.summary.total.toStringAsFixed(0)} ريال'),
-              const SizedBox(height: 12),
-              const Text('يرجى شحن المحفظة لإكمال الدفع'),
-            ],
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, '/wallet');
-              },
-              child: const Text('شحن المحفظة'),
-            ),
-          ],
-        ),
-      );
-      return;
-    }
-
-    setState(() => _isLoading = true);
-
-    try {
-      final result = await _paymentService.processPayment(
-        userId: 'current_user',
-        amount: widget.summary.total,
-        type: TransactionType.payment,
-        method: PaymentMethod.wallet,
-        description: 'طلب سلة مشتريات',
-      );
-
-      setState(() => _isLoading = false);
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => PaymentConfirmationScreen(
-            success: true,
-            transactionId: result.id,
-            amount: widget.summary.total,
-            message: 'تم دفع ${widget.summary.total.toStringAsFixed(0)} ريال بنجاح',
-          ),
-        ),
-      );
-    } catch (e) {
-      setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('❌ حدث خطأ: $e'), backgroundColor: Colors.red),
-      );
-    }
-  }
+// ✅ في _processPayment
+if (widget.isSubscription && widget.subscriptionPlanId != null) {
+  // إنشاء اشتراك
+  await FirebaseFirestore.instance.collection('subscriptions').add({
+    'userId': user.uid,
+    'plan': widget.subscriptionPlanId,
+    'status': 'active',
+    'startDate': DateTime.now().toIso8601String(),
+    'endDate': DateTime.now().add(const Duration(days: 30)).toIso8601String(),
+    'price': widget.amount,
+    'messagesLimit': 30,
+    'bookingsLimit': 15,
+    'adsLimit': 1,
+    'commissionRate': 0.15,
+    'features': ['30 رسالة', '15 حجز', '1 إعلان'],
+    'isAutoRenew': true,
+    'createdAt': FieldValue.serverTimestamp(),
+  });
 }
