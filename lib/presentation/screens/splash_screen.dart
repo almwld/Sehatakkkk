@@ -18,8 +18,8 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _mainCtrl;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
-  late AnimationController _dotsCtrl;
-  late Animation<double> _dotsAnimation;
+  late AnimationController _loadingCtrl;
+  late Animation<double> _loadingAnimation;
   final AudioPlayer _audioPlayer = AudioPlayer();
 
   // ✅ دوائر متحركة
@@ -54,18 +54,18 @@ class _SplashScreenState extends State<SplashScreen>
       CurvedAnimation(parent: _mainCtrl, curve: Curves.elasticOut),
     );
 
-    // ✅ التحكم للخط المتحرك (النقاط)
-    _dotsCtrl = AnimationController(
+    // ✅ التحكم لخط التحميل
+    _loadingCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 900),
+      duration: const Duration(milliseconds: 1500),
     );
 
-    _dotsAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _dotsCtrl, curve: Curves.easeInOut),
+    _loadingAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _loadingCtrl, curve: Curves.easeInOut),
     );
 
     _mainCtrl.forward();
-    _dotsCtrl.repeat();
+    _loadingCtrl.repeat();
 
     // ✅ مدة العرض: 10 ثواني
     Future.delayed(const Duration(seconds: 10), () {
@@ -109,7 +109,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void dispose() {
     _mainCtrl.dispose();
-    _dotsCtrl.dispose();
+    _loadingCtrl.dispose();
     _audioPlayer.dispose();
     super.dispose();
   }
@@ -230,38 +230,49 @@ class _SplashScreenState extends State<SplashScreen>
 
                               SizedBox(height: screenHeight * 0.08),
 
-                              // ✅ خط تحميل متحرك (بدلاً من CircularProgressIndicator)
-                              _buildLoadingDots(),
-
-                              const SizedBox(height: 16),
-                              Text(
+                              // ✅ نص التحميل
+                              const Text(
                                 'جاري التحميل...',
                                 style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.white.withOpacity(0.5),
+                                  fontSize: 14,
+                                  color: Colors.white70,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
 
                               SizedBox(height: screenHeight * 0.05),
 
+                              // ============================================================
+                              // ✅ "صحتك أولاً" - إصلاح التقطيع
+                              // ============================================================
                               Column(
                                 children: [
-                                  Text(
-                                    'صحـتـك أولاً',
+                                  // ✅ استخدام Text مع مسافات موحدة
+                                  const Text(
+                                    'صحتك أولاً',
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
-                                      fontSize: 11,
-                                      color: Colors.white.withOpacity(0.3),
-                                      letterSpacing: 3,
+                                      fontSize: 12,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: 4,
+                                      height: 1.5,
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
+                                  const SizedBox(height: 6),
+                                  Container(
+                                    width: 60,
+                                    height: 1,
+                                    color: Colors.white.withOpacity(0.3),
+                                  ),
+                                  const SizedBox(height: 6),
                                   Text(
                                     '© 2026 Sehatak Platform',
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                       fontSize: 9,
-                                      color: Colors.white.withOpacity(0.2),
+                                      color: Colors.white.withOpacity(0.3),
+                                      letterSpacing: 2,
                                     ),
                                   ),
                                 ],
@@ -272,6 +283,64 @@ class _SplashScreenState extends State<SplashScreen>
                       );
                     },
                   ),
+                ),
+              ),
+
+              // ============================================================
+              // ✅ خط تحميل متحرك في أسفل الشاشة
+              // ============================================================
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: AnimatedBuilder(
+                  animation: _loadingCtrl,
+                  builder: (context, child) {
+                    return Column(
+                      children: [
+                        // ✅ خط التحميل المتحرك
+                        ClipRRect(
+                          borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(0),
+                            bottomRight: Radius.circular(0),
+                          ),
+                          child: LinearProgressIndicator(
+                            value: _loadingAnimation.value,
+                            backgroundColor: Colors.white.withOpacity(0.2),
+                            color: Colors.white,
+                            minHeight: 3,
+                          ),
+                        ),
+                        // ✅ نسبة التحميل
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 6,
+                            horizontal: 16,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                '${(_loadingAnimation.value * 100).toInt()}%',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.white.withOpacity(0.5),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                'جاري التحميل...',
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  color: Colors.white.withOpacity(0.3),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ],
@@ -307,48 +376,6 @@ class _SplashScreenState extends State<SplashScreen>
               ),
             ),
           ),
-        );
-      },
-    );
-  }
-
-  // ============================================================
-  // ✅ خط تحميل متحرك (نقاط متتالية)
-  // ============================================================
-  Widget _buildLoadingDots() {
-    return AnimatedBuilder(
-      animation: _dotsCtrl,
-      builder: (context, child) {
-        final value = _dotsAnimation.value;
-        final dotCount = 3;
-        final spacing = 12.0;
-        final dotSize = 10.0;
-
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(dotCount, (index) {
-            final progress = (value * dotCount - index).clamp(0.0, 1.0);
-            final size = dotSize * (0.5 + 0.5 * progress);
-            final opacity = 0.3 + 0.7 * progress;
-
-            return AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              margin: EdgeInsets.symmetric(horizontal: spacing / 2),
-              width: size,
-              height: size,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withOpacity(opacity),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.white.withOpacity(0.2 * progress),
-                    blurRadius: 8,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-            );
-          }),
         );
       },
     );
