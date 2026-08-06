@@ -223,9 +223,9 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(text: '📋 معلومات'),
-            Tab(text: '💊 أدوية'),
-            Tab(text: '📦 طلب'),
+            Tab(text: ' معلومات'),
+            Tab(text: ' أدوية'),
+            Tab(text: ' طلب'),
           ],
           indicatorColor: Colors.white,
           labelColor: Colors.white,
@@ -375,7 +375,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
                     const Icon(Icons.delivery_dining, size: 14, color: Colors.blue),
                     const SizedBox(width: 4),
                     Text(
-                      (pharmacy['delivery'] as bool) ? '🚚 توصيل' : '📦 استلام',
+                      (pharmacy['delivery'] as bool) ? '🚚 توصيل' : ' استلام',
                       style: TextStyle(
                         color: Colors.blue,
                         fontWeight: FontWeight.w600,
@@ -464,7 +464,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
           }).toList(),
           const SizedBox(height: 16),
           const Text(
-            '💊 بدائل الأدوية',
+            ' بدائل الأدوية',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
@@ -893,7 +893,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        '📦 متابعة الطلبات',
+                        ' متابعة الطلبات',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
