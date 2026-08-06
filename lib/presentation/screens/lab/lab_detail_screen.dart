@@ -36,7 +36,6 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
   }
 
   void _loadLabData() {
-    // ✅ بيانات تجريبية - سيتم جلبها من Firebase لاحقاً
     final labs = [
       {
         'id': '1',
@@ -50,12 +49,12 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
         'open': true,
         'price': '100-500',
         'tests': [
-          {'name': 'تعداد دم كامل (CBC)', 'price': 150, 'time': '2-4 ساعات'},
-          {'name': 'سكر الدم', 'price': 100, 'time': '1-2 ساعات'},
-          {'name': 'دهون ثلاثية', 'price': 120, 'time': '2-4 ساعات'},
-          {'name': 'وظائف كبد', 'price': 180, 'time': '4-8 ساعات'},
-          {'name': 'وظائف كلى', 'price': 160, 'time': '4-8 ساعات'},
-          {'name': 'فيتامين د', 'price': 250, 'time': '24-48 ساعة'},
+          {'id': 't1', 'name': 'تعداد دم كامل (CBC)', 'price': 150, 'time': '2-4 ساعات'},
+          {'id': 't2', 'name': 'سكر الدم', 'price': 100, 'time': '1-2 ساعات'},
+          {'id': 't3', 'name': 'دهون ثلاثية', 'price': 120, 'time': '2-4 ساعات'},
+          {'id': 't4', 'name': 'وظائف كبد', 'price': 180, 'time': '4-8 ساعات'},
+          {'id': 't5', 'name': 'وظائف كلى', 'price': 160, 'time': '4-8 ساعات'},
+          {'id': 't6', 'name': 'فيتامين د', 'price': 250, 'time': '24-48 ساعة'},
         ],
         'equipment': ['ميكروسكوب رقمي', 'جهاز تحليل كيميائي', 'جهاز PCR', 'جهاز طيف ضوئي'],
         'specialties': ['تحاليل عامة', 'كيمياء حيوية', 'أمراض معدية'],
@@ -77,6 +76,19 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
     ];
 
     _lab = labs.firstWhere((l) => l['id'] == widget.labId, orElse: () => labs[0]);
+  }
+
+  // ✅ دالة للتنقل إلى شاشة حجز الفحص
+  void _navigateToBooking(Map<String, dynamic> test) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => LabBookingScreen(
+          labId: _lab['id'] as String,
+          testId: test['id'] as String,
+        ),
+      ),
+    );
   }
 
   @override
@@ -106,10 +118,10 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(text: '📋 معلومات'),
-            Tab(text: '🔬 فحوصات'),
-            Tab(text: '📊 أجهزة'),
-            Tab(text: '📸 معرض'),
+            Tab(text: 'معلومات'),
+            Tab(text: 'فحوصات'),
+            Tab(text: 'أجهزة'),
+            Tab(text: 'معرض'),
           ],
           indicatorColor: Colors.white,
           labelColor: Colors.white,
@@ -147,7 +159,9 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => LabBookingScreen(labId: _lab['id'] as String),
+                        builder: (_) => LabBookingScreen(
+                          labId: _lab['id'] as String,
+                        ),
                       ),
                     );
                   },
@@ -160,7 +174,7 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
                     ),
                   ),
                   child: const Text(
-                    '📅 حجز فحص',
+                    'حجز فحص',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -195,14 +209,15 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
     );
   }
 
+  // ============================================================
   // ✅ تبويب المعلومات
+  // ============================================================
   Widget _buildInfoTab(bool isDark) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ✅ صورة المختبر
           ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: AppImage(
@@ -212,8 +227,6 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
             ),
           ),
           const SizedBox(height: 16),
-
-          // ✅ الاسم والتقييم
           Row(
             children: [
               Expanded(
@@ -267,8 +280,6 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
             ],
           ),
           const SizedBox(height: 8),
-
-          // ✅ العنوان
           Row(
             children: [
               Icon(Icons.location_on, size: 16, color: isDark ? Colors.grey[400] : Colors.grey[600]),
@@ -285,8 +296,6 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
             ],
           ),
           const SizedBox(height: 4),
-
-          // ✅ ساعات العمل
           Row(
             children: [
               Icon(Icons.access_time, size: 16, color: isDark ? Colors.grey[400] : Colors.grey[600]),
@@ -301,8 +310,6 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
             ],
           ),
           const SizedBox(height: 4),
-
-          // ✅ وقت النتائج
           Row(
             children: [
               Icon(Icons.timer, size: 16, color: isDark ? Colors.grey[400] : Colors.grey[600]),
@@ -317,14 +324,12 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
             ],
           ),
           const SizedBox(height: 4),
-
-          // ✅ الحالة
           Row(
             children: [
               Icon(Icons.circle, size: 14, color: _lab['open'] == true ? Colors.green : Colors.red),
               const SizedBox(width: 4),
               Text(
-                _lab['open'] == true ? '🟢 مفتوح الآن' : '🔴 مغلق حالياً',
+                _lab['open'] == true ? 'مفتوح الآن' : 'مغلق حالياً',
                 style: TextStyle(
                   fontSize: 14,
                   color: _lab['open'] == true ? Colors.green : Colors.red,
@@ -334,8 +339,6 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
             ],
           ),
           const SizedBox(height: 16),
-
-          // ✅ الميزات السريعة
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -373,13 +376,10 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
             ),
           ),
           const SizedBox(height: 16),
-
           const Divider(),
           const SizedBox(height: 16),
-
-          // ✅ الوصف
           const Text(
-            '📝 عن المختبر',
+            'عن المختبر',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
@@ -392,10 +392,8 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
             ),
           ),
           const SizedBox(height: 16),
-
-          // ✅ التخصصات
           const Text(
-            '🎯 التخصصات',
+            'التخصصات',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
@@ -420,10 +418,8 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
             }).toList(),
           ),
           const SizedBox(height: 16),
-
-          // ✅ اللغات
           const Text(
-            '🌐 اللغات',
+            'اللغات',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
@@ -448,10 +444,8 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
             }).toList(),
           ),
           const SizedBox(height: 16),
-
-          // ✅ التأمين
           const Text(
-            '🛡️ شركات التأمين المقبولة',
+            'شركات التأمين المقبولة',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
@@ -476,10 +470,8 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
             }).toList(),
           ),
           const SizedBox(height: 16),
-
-          // ✅ الشهادات
           const Text(
-            '🏅 الشهادات والاعتمادات',
+            'الشهادات والاعتمادات',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
@@ -502,10 +494,8 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
             );
           }).toList(),
           const SizedBox(height: 16),
-
-          // ✅ الأطباء
           const Text(
-            '👨‍⚕️ الكادر الطبي',
+            'الكادر الطبي',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
@@ -528,8 +518,6 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
             );
           }).toList(),
           const SizedBox(height: 16),
-
-          // ✅ سنة التأسيس
           Row(
             children: [
               const Icon(Icons.calendar_today, color: AppColors.primary, size: 16),
@@ -544,8 +532,6 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
             ],
           ),
           const SizedBox(height: 16),
-
-          // ✅ أزرار إضافية
           Row(
             children: [
               Expanded(
@@ -621,100 +607,111 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
     );
   }
 
-  // ✅ تبويب الفحوصات مع الأسعار
+  // ============================================================
+  // ✅ تبويب الفحوصات مع الأسعار (مع onTap)
+  // ============================================================
   Widget _buildTestsTab(bool isDark) {
+    final tests = _lab['tests'] as List;
+    
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: (_lab['tests'] as List).length,
+      itemCount: tests.length,
       itemBuilder: (context, index) {
-        final test = (_lab['tests'] as List)[index];
-        return Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1A2540) : Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.02),
-                blurRadius: 4,
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
+        final test = tests[index];
+        
+        return GestureDetector(
+          onTap: () => _navigateToBooking(test), // ✅ التنقل إلى حجز الفحص
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1A2540) : Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.02),
+                  blurRadius: 4,
                 ),
-                child: const Icon(
-                  Icons.science,
-                  color: AppColors.primary,
-                  size: 20,
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.science,
+                    color: AppColors.primary,
+                    size: 20,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        test['name'],
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                      Text(
+                        'النتيجة خلال ${test['time']}',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      test['name'],
+                      '${test['price']} ر.ي',
                       style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: isDark ? Colors.white : Colors.black87,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: AppColors.primary,
                       ),
                     ),
-                    Text(
-                      'النتيجة خلال ${test['time']}',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.green.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        'متاح',
+                        style: TextStyle(
+                          fontSize: 9,
+                          color: Colors.green,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ],
                 ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    '${test['price']} ر.ي',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.green.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      'متاح',
-                      style: TextStyle(
-                        fontSize: 9,
-                        color: Colors.green,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+                const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
+              ],
+            ),
           ),
         );
       },
     );
   }
 
+  // ============================================================
   // ✅ تبويب الأجهزة
+  // ============================================================
   Widget _buildEquipmentTab(bool isDark) {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
@@ -772,12 +769,13 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
     );
   }
 
+  // ============================================================
   // ✅ تبويب المعرض
+  // ============================================================
   Widget _buildGalleryTab(bool isDark) {
     final images = _lab['images'] as List;
     return Column(
       children: [
-        // ✅ الصورة الرئيسية
         Padding(
           padding: const EdgeInsets.all(16),
           child: ClipRRect(
@@ -789,7 +787,6 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
             ),
           ),
         ),
-        // ✅ الصور المصغرة
         SizedBox(
           height: 80,
           child: ListView.builder(
