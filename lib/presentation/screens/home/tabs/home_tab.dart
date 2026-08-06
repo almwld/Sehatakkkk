@@ -27,7 +27,6 @@ import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
 import 'package:sehatak/presentation/screens/shared/notifications_screen.dart';
 import 'package:sehatak/presentation/screens/pharmacy/cart_screen.dart';
 
-
 class HomeTab extends StatefulWidget {
   final ScrollController? scrollController;
 
@@ -43,8 +42,8 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   String _userName = 'مستخدم';
   int _currentBanner = 0;
   bool _hasError = false;
-  double _healthScore = 0.0;
   String _errorMessage = '';
+  double _healthScore = 0.0;
   
   // ✅ البانرات
   final List<String> _bannerImages = ImageKit.bannerList;
@@ -144,8 +143,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'id': 1, 'author': 'د. سارة العمري', 'avatar': 'س', 'image': ImageKit.skinCare, 'title': 'نصائح للعناية بالبشرة', 'content': 'مع حلول فصل الصيف، احرصي على ترطيب بشرتك واستخدام واقي الشمس.', 'likes': 120, 'comments': 15, 'shares': 8, 'time': 'منذ ساعة', 'liked': false, 'commentList': ['نصائح رائعة!', 'شكراً دكتورة', 'مفيد جداً']},
     {'id': 2, 'author': 'د. خالد النخلاني', 'avatar': 'خ', 'image': ImageKit.morningWalk, 'title': 'فوائد المشي الصباحي', 'content': 'المشي 30 دقيقة يومياً يقلل خطر أمراض القلب والسكري.', 'likes': 95, 'comments': 8, 'shares': 5, 'time': 'منذ 3 ساعات', 'liked': false, 'commentList': ['معلومة قيمة', 'سأطبقها']},
     {'id': 3, 'author': 'د. أحمد المؤيد', 'avatar': 'أ', 'image': ImageKit.nutritionTips, 'title': 'تغذيتك سر صحتك', 'content': 'الطعام الصحي هو أساس المناعة القوية والجسم السليم.', 'likes': 210, 'comments': 22, 'shares': 12, 'time': 'منذ 5 ساعات', 'liked': true, 'commentList': ['أحسنت', 'مفيد جداً', 'شكراً دكتور']},
-    {'id': 4, 'author': 'د. أسماء الهندي', 'avatar': 'ه', 'image': ImageKit.immuneBoost, 'title': 'قوة المناعة', 'content': 'الفيتامينات والمعادن تلعب دوراً كبيراً في تقوية المناعة.', 'likes': 78, 'comments': 5, 'shares': 3, 'time': 'منذ يوم', 'liked': false, 'commentList': ['معلومات مفيدة', 'شكراً']},
-    {'id': 5, 'author': 'د. محمد العلاي', 'avatar': 'م', 'image': ImageKit.sleepTips, 'title': 'نصائح النوم الصحي', 'content': 'النوم 7-8 ساعات يومياً يحسن الصحة النفسية والجسدية.', 'likes': 150, 'comments': 12, 'shares': 7, 'time': 'منذ يومين', 'liked': false, 'commentList': ['سأطبق هذه النصائح', 'مفيد']},
   ];
 
   double _caloriesAnim = 0;
@@ -156,42 +153,29 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   @override
   void initState() {
     super.initState();
-    _initializeData();
-  }
-
-  Future<void> _initializeData() async {
-    try {
-      _loadUserData();
-      await _loadHealthScore();
-      _startAnimation();
-    } catch (e) {
-      debugPrint('❌ خطأ في التهيئة: $e');
-      if (mounted) {
-        setState(() {
-          _hasError = true;
-          _errorMessage = 'حدث خطأ في تحميل البيانات';
-        });
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
+    _loadUserData();
+    _loadHealthScore();
+    _startAnimation();
   }
 
   void _loadUserData() {
+    final user = FirebaseAuth.instance.currentUser;
+    setState(() {
+      _isLoggedIn = user != null;
+      if (user != null) {
+        _userName = user.displayName ?? user.email?.split('@')[0] ?? 'مستخدم';
+      }
+    });
+  }
+
+  Future<void> _loadHealthScore() async {
     try {
-      final user = FirebaseAuth.instance.currentUser;
+      final score = await HealthScoreService.calculateHealthScore();
       if (mounted) {
-        setState(() {
-          _isLoggedIn = user != null;
-          if (user != null) {
-            _userName = user.displayName ?? user.email?.split('@')[0] ?? 'مستخدم';
-          }
-        });
+        setState(() => _healthScore = score);
       }
     } catch (e) {
-      debugPrint('❌ خطأ في تحميل بيانات المستخدم: $e');
+      debugPrint('❌ خطأ في حساب درجة الصحة: $e');
     }
   }
 
@@ -208,17 +192,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     });
   }
 
-  Future<void> _loadHealthScore() async {
-    try {
-      final score = await HealthScoreService.calculateHealthScore();
-      if (mounted) {
-        setState(() => _healthScore = score);
-      }
-    } catch (e) {
-      debugPrint('❌ خطأ في حساب درجة الصحة: $e');
-    }
-  }
-
   Future<void> _refreshData() async {
     setState(() => _isLoading = true);
     try {
@@ -229,7 +202,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         setState(() => _hasError = false);
       }
     } catch (e) {
-      debugPrint('❌ خطأ في التحديث: $e');
       if (mounted) {
         setState(() {
           _hasError = true;
@@ -245,22 +217,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
 
   void _goTo(BuildContext context, Widget screen) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
-  }
-
-  void _goToAll(BuildContext context, Widget screen, String title) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => Scaffold(
-          appBar: AppBar(
-            title: Text(title),
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
-          ),
-          body: screen,
-        ),
-      ),
-    );
   }
 
   void _toggleLike(int index) {
@@ -498,61 +454,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  // ============================================================
-  // 🔍 دالة البحث
-  // ============================================================
-  void _openSearch() {
-    showSearch(
-      context: context,
-      delegate: _SearchDelegate(),
-    );
-  }
-
-  // ============================================================
-  // 🎨 دالة مساعدة لعرض الأيقونات
-  // ============================================================
-  Widget _buildServiceIcon(String iconPath, Color color, {double size = 32}) {
-    if (iconPath.endsWith('.svg')) {
-      return SvgPicture.asset(
-        iconPath,
-        width: size,
-        height: size,
-        colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-        placeholderBuilder: (_) => Container(
-          width: size,
-          height: size,
-          color: Colors.grey[200],
-          child: Icon(Icons.circle, color: color, size: size * 0.6),
-        ),
-        // errorBuilder removed
-          return Container(
-            width: size,
-            height: size,
-            color: Colors.grey[200],
-            child: Icon(Icons.broken_image, color: Colors.red, size: size * 0.6),
-          );
-        },
-      );
-    }
-    return AppImage(
-      url: iconPath,
-      width: size,
-      height: size,
-    );
-  }
-
-  // ============================================================
-  // 🖼️ Widget لعرض الصور مع Shimmer دائم
-  // ============================================================
-  Widget _buildImageWithShimmer(String url, {double? width, double? height, BoxFit fit = BoxFit.cover}) {
-    return AppImage(
-      url: url,
-      width: width,
-      height: height,
-      fit: fit,
-    );
-  }
-
   // ✅ شاشة تحميل Shimmer
   Widget _buildShimmerLoader() {
     return Scaffold(
@@ -676,6 +577,32 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
+  // ✅ دالة لعرض الأيقونات
+  Widget _buildServiceIcon(String iconPath, Color color, {double size = 32}) {
+    if (iconPath.endsWith('.svg')) {
+      return SvgPicture.asset(
+        iconPath,
+        width: size,
+        height: size,
+        colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+      );
+    }
+    return AppImage(
+      url: iconPath,
+      width: size,
+      height: size,
+    );
+  }
+
+  Widget _buildImageWithShimmer(String url, {double? width, double? height, BoxFit fit = BoxFit.cover}) {
+    return AppImage(
+      url: url,
+      width: width,
+      height: height,
+      fit: fit,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -697,7 +624,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
           controller: widget.scrollController,
           slivers: [
             // ============================================================
-            // 1️⃣ شريط علوي
+            // 1️⃣ شريط علوي متحرك
             // ============================================================
             SliverAppBar(
               expandedHeight: 90,
@@ -783,7 +710,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                 delegate: SliverChildListDelegate([
                   
                   // ============================================================
-                  // 2️⃣ شريط البحث (مع تفعيل البحث)
+                  // 2️⃣ شريط بحث
                   // ============================================================
                   _buildSearchBar(isDark),
                   const SizedBox(height: 16),
@@ -801,7 +728,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   const SizedBox(height: 16),
 
                   // ============================================================
-                  // 5️⃣ خدمات سريعة (مع ربط لكل شاشة)
+                  // 5️⃣ خدمات سريعة
                   // ============================================================
                   _buildSectionTitleWithAction('خدمات سريعة', isDark, 'عرض الكل', 
                     () => _goTo(context, const ServicesScreen())),
@@ -810,7 +737,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   const SizedBox(height: 16),
 
                   // ============================================================
-                  // 6️⃣ أفضل الأطباء (مع ربط لكل طبيب)
+                  // 6️⃣ أفضل الأطباء
                   // ============================================================
                   _buildSectionTitleWithAction('أفضل الأطباء', isDark, 'عرض الكل', 
                     () => _goTo(context, const DoctorsListScreen())),
@@ -819,7 +746,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   const SizedBox(height: 16),
 
                   // ============================================================
-                  // 7️⃣ منتجات صيدلية (مع ربط لكل منتج)
+                  // 7️⃣ منتجات صيدلية
                   // ============================================================
                   _buildSectionTitleWithAction('منتجات صيدلية', isDark, 'عرض الكل', 
                     () => _goTo(context, const MedicinesScreen())),
@@ -828,7 +755,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   const SizedBox(height: 16),
 
                   // ============================================================
-                  // 8️⃣ مستشفيات مميزة (مع ربط لكل مستشفى)
+                  // 8️⃣ مستشفيات مميزة
                   // ============================================================
                   _buildSectionTitleWithAction('مستشفيات مميزة', isDark, 'عرض الكل', 
                     () => _goTo(context, const HospitalScreen())),
@@ -837,7 +764,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   const SizedBox(height: 16),
 
                   // ============================================================
-                  // 9️⃣ مختبرات مميزة (مع ربط لكل مختبر)
+                  // 9️⃣ مختبرات مميزة
                   // ============================================================
                   _buildSectionTitleWithAction('مختبرات مميزة', isDark, 'عرض الكل', 
                     () => _goTo(context, const LabsListScreen())),
@@ -846,7 +773,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   const SizedBox(height: 16),
 
                   // ============================================================
-                  // 🔟 صيدليات مميزة (مع ربط لكل صيدلية)
+                  // 🔟 صيدليات مميزة
                   // ============================================================
                   _buildSectionTitleWithAction('صيدليات مميزة', isDark, 'عرض الكل', 
                     () => _goTo(context, const PharmacyScreen())),
@@ -855,7 +782,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   const SizedBox(height: 16),
 
                   // ============================================================
-                  // 1️⃣1️⃣ أحدث المقالات (مع ربط لكل مقال)
+                  // 1️⃣1️⃣ أحدث المقالات
                   // ============================================================
                   _buildSectionTitle('أحدث المقالات', isDark),
                   const SizedBox(height: 8),
@@ -891,11 +818,19 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ============================================================
-  // 🔍 شريط البحث (مع تفعيل البحث)
+  // 🔍 شريط البحث
   // ============================================================
   Widget _buildSearchBar(bool isDark) {
     return GestureDetector(
-      onTap: _openSearch,
+      onTap: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('🔍 فتح شاشة البحث'),
+            backgroundColor: AppColors.primary,
+            duration: Duration(seconds: 1),
+          ),
+        );
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
@@ -2077,96 +2012,4 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
 
   @override
   bool get wantKeepAlive => true;
-}
-
-// ============================================================
-// 🔍 SearchDelegate للبحث
-// ============================================================
-class _SearchDelegate extends SearchDelegate {
-  @override
-  String get searchFieldLabel => 'ابحث عن طبيب، دواء، خدمة...';
-
-  @override
-  List<Widget> buildActions(BuildContext context) {
-    return [
-      IconButton(
-        icon: const Icon(Icons.clear),
-        onPressed: () {
-          query = '';
-          showSuggestions(context);
-        },
-      ),
-    ];
-  }
-
-  @override
-  Widget buildLeading(BuildContext context) {
-    return IconButton(
-      icon: const Icon(Icons.arrow_back),
-      onPressed: () {
-        close(context, null);
-      },
-    );
-  }
-
-  @override
-  Widget buildResults(BuildContext context) {
-    return _buildSearchResults();
-  }
-
-  @override
-  Widget buildSuggestions(BuildContext context) {
-    if (query.isEmpty) {
-      return _buildRecentSearches();
-    }
-    return _buildSearchResults();
-  }
-
-  Widget _buildRecentSearches() {
-    final recentSearches = [
-      'طبيب باطنية',
-      'باراسيتامول',
-      'مختبر تحاليل',
-      'صيدلية 24 ساعة',
-      'استشارة قلبية',
-    ];
-
-    return ListView.builder(
-      itemCount: recentSearches.length,
-      itemBuilder: (context, index) => ListTile(
-        leading: const Icon(Icons.history, color: Colors.grey),
-        title: Text(recentSearches[index]),
-        onTap: () {
-          query = recentSearches[index];
-          showResults(context);
-        },
-      ),
-    );
-  }
-
-  Widget _buildSearchResults() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.search, size: 64, color: Colors.grey[400]),
-          const SizedBox(height: 16),
-          Text(
-            query.isEmpty ? 'ابحث عن ما تريد' : 'جاري البحث عن "$query"...',
-            style: TextStyle(color: Colors.grey[600]),
-          ),
-          const SizedBox(height: 24),
-          if (query.isNotEmpty)
-            ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('بحث متقدم'),
-            ),
-        ],
-      ),
-    );
-  }
 }
