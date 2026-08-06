@@ -1,6 +1,4 @@
 import "package:flutter/material.dart";
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:lottie/lottie.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,6 +13,7 @@ import 'package:sehatak/presentation/screens/terms/terms_screen.dart';
 import 'package:sehatak/presentation/screens/onboarding/role_onboarding_screen.dart';
 import 'package:sehatak/presentation/screens/verification/verification_screen.dart';
 import 'package:sehatak/presentation/screens/platform/dashboard/platform_dashboard.dart';
+import 'package:sehatak/core/constants/imagekit.dart';
 
 class AuthScreen extends StatefulWidget {
   final bool isSignUp;
@@ -36,6 +35,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
 
   // ✅ State variables
   bool _obscureText = true;
+  bool _obscureConfirmText = true;
   bool _agreeTerms = false;
   bool _rememberMe = false;
   bool _isLoading = false;
@@ -46,13 +46,18 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
   bool _showAdminTab = false;
   bool _isFirstTimeUser = false;
 
-  // ✅ Primary roles (fixed tabs for sign up - المستخدم والطبيب فقط)
+  // ✅ قوة كلمة المرور
+  String _passwordStrength = '';
+  Color _passwordStrengthColor = Colors.grey;
+  double _passwordStrengthValue = 0.0;
+
+  // ✅ Primary roles (مستخدم، طبيب)
   final List<Map<String, dynamic>> _primaryRoles = [
     {'id': 'user', 'name': 'مستخدم', 'icon': Icons.person_outline, 'color': 0xFF0D5257},
     {'id': 'doctor', 'name': 'طبيب', 'icon': Icons.local_hospital_outlined, 'color': 0xFF2196F3},
   ];
 
-  // ✅ Secondary roles (scrollable - باقي الأدوار)
+  // ✅ Secondary roles (بدون بيطري + مشرف)
   final List<Map<String, dynamic>> _secondaryRoles = [
     {'id': 'nurse', 'name': 'ممرض', 'icon': Icons.medical_services_outlined, 'color': 0xFF00BCD4},
     {'id': 'midwife', 'name': 'قابلة وتوليد', 'icon': Icons.pregnant_woman, 'color': 0xFFE91E63},
@@ -62,10 +67,10 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     {'id': 'paramedic', 'name': 'مسعف', 'icon': Icons.emergency, 'color': 0xFFF44336},
     {'id': 'delivery', 'name': 'موصل طلبات', 'icon': Icons.delivery_dining, 'color': 0xFFFF5722},
     {'id': 'service', 'name': 'خدمي', 'icon': Icons.handyman, 'color': 0xFF607D8B},
-    {'id': 'veterinarian', 'name': 'بيطري', 'icon': Icons.pets, 'color': 0xFF795548},
+    {'id': 'admin', 'name': 'مشرف', 'icon': Icons.admin_panel_settings, 'color': 0xFFFF5722},
   ];
 
-  // ✅ All roles reference
+  // ✅ All roles
   final List<Map<String, dynamic>> _allRoles = [
     {'id': 'user', 'name': 'مستخدم', 'icon': Icons.person_outline, 'color': 0xFF0D5257},
     {'id': 'doctor', 'name': 'طبيب', 'icon': Icons.local_hospital_outlined, 'color': 0xFF2196F3},
@@ -77,7 +82,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     {'id': 'paramedic', 'name': 'مسعف', 'icon': Icons.emergency, 'color': 0xFFF44336},
     {'id': 'delivery', 'name': 'موصل طلبات', 'icon': Icons.delivery_dining, 'color': 0xFFFF5722},
     {'id': 'service', 'name': 'خدمي', 'icon': Icons.handyman, 'color': 0xFF607D8B},
-    {'id': 'veterinarian', 'name': 'بيطري', 'icon': Icons.pets, 'color': 0xFF795548},
     {'id': 'admin', 'name': 'مشرف', 'icon': Icons.admin_panel_settings, 'color': 0xFFFF5722},
   ];
 
@@ -87,6 +91,72 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
 
   final BiometricService _biometricService = BiometricService();
 
+  // ✅ دالة التحقق من قوة كلمة المرور
+  void _checkPasswordStrength(String password) {
+    if (password.isEmpty) {
+      setState(() {
+        _passwordStrength = '';
+        _passwordStrengthColor = Colors.grey;
+        _passwordStrengthValue = 0.0;
+      });
+      return;
+    }
+
+    int score = 0;
+    bool hasLetters = RegExp(r'[a-zA-Z]').hasMatch(password);
+    bool hasNumbers = RegExp(r'[0-9]').hasMatch(password);
+    bool hasSpecial = RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(password);
+    bool hasUpperCase = RegExp(r'[A-Z]').hasMatch(password);
+    bool hasLowerCase = RegExp(r'[a-z]').hasMatch(password);
+
+    if (password.length >= 8) score++;
+    if (hasLetters) score++;
+    if (hasNumbers) score++;
+    if (hasSpecial) score++;
+    if (hasUpperCase && hasLowerCase) score++;
+    if (password.length >= 12) score++;
+
+    if (score <= 1) {
+      setState(() {
+        _passwordStrength = 'ضعيفة جداً';
+        _passwordStrengthColor = Colors.red;
+        _passwordStrengthValue = 0.1;
+      });
+    } else if (score <= 2) {
+      setState(() {
+        _passwordStrength = 'ضعيفة';
+        _passwordStrengthColor = Colors.orange;
+        _passwordStrengthValue = 0.3;
+      });
+    } else if (score <= 3) {
+      setState(() {
+        _passwordStrength = 'متوسطة';
+        _passwordStrengthColor = Colors.blue;
+        _passwordStrengthValue = 0.5;
+      });
+    } else if (score <= 4) {
+      setState(() {
+        _passwordStrength = 'جيدة';
+        _passwordStrengthColor = Colors.teal;
+        _passwordStrengthValue = 0.7;
+      });
+    } else {
+      setState(() {
+        _passwordStrength = 'قوية جداً';
+        _passwordStrengthColor = Colors.green;
+        _passwordStrengthValue = 0.9;
+      });
+    }
+  }
+
+  // ✅ دالة التحقق من تطابق كلمة المرور
+  bool _isPasswordMatch() {
+    if (_passwordController.text.isEmpty || _confirmPasswordController.text.isEmpty) {
+      return false;
+    }
+    return _passwordController.text == _confirmPasswordController.text;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -94,9 +164,16 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     _checkBiometric();
     _loadSavedCredentials();
     _checkAdminStatus();
+    
+    _passwordController.addListener(() {
+      _checkPasswordStrength(_passwordController.text);
+      if (mounted) setState(() {});
+    });
+    _confirmPasswordController.addListener(() {
+      if (mounted) setState(() {});
+    });
   }
 
-  // ✅ كشف أول مرة للمستخدم
   Future<void> _checkFirstTime() async {
     final prefs = await SharedPreferences.getInstance();
     final isFirst = prefs.getBool('is_first_time') ?? true;
@@ -164,12 +241,11 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     }
   }
 
-  // ✅ دالة التحقق من الحاجة للتوثيق (داخل الكلاس)
   bool _needsVerification(String role) {
     return role == 'doctor' || role == 'pharmacist' || role == 'lab';
   }
 
-  // ✅ شاشة تحميل Lottie في وسط الشاشة
+  // ✅ شاشة تحميل
   void _showLoading() {
     showDialog(
       context: context,
@@ -177,24 +253,10 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       barrierColor: Colors.black54,
       builder: (_) => PopScope(
         canPop: false,
-        child: Center(
-          child: Lottie.asset(
-            'assets/animation/sehatak_animation.json',
-            width: 200,
-            height: 200,
-            fit: BoxFit.contain,
-            repeat: true,
-            errorBuilder: (context, error, stackTrace) {
-              print('❌ خطأ في تحميل Lottie: $error');
-              return Container(
-                width: 200,
-                height: 200,
-                color: Colors.grey[200],
-                child: const Center(
-                  child: CircularProgressIndicator(),
-                ),
-              );
-            },
+        child: const Center(
+          child: CircularProgressIndicator(
+            color: Colors.white,
+            strokeWidth: 4,
           ),
         ),
       ),
@@ -207,7 +269,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     }
   }
 
-  // ✅ شاشة نجاح Lottie
   Future<void> _showSuccessAnimation() async {
     showDialog(
       context: context,
@@ -215,29 +276,16 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       barrierColor: Colors.black54,
       builder: (_) => PopScope(
         canPop: false,
-        child: Center(
-          child: Lottie.asset(
-            'assets/animation/sehatak_animation.json',
-            width: 250,
-            height: 250,
-            fit: BoxFit.contain,
-            repeat: false,
-            errorBuilder: (context, error, stackTrace) {
-              print('❌ خطأ في تحميل Lottie: $error');
-              return Container(
-                width: 250,
-                height: 250,
-                color: Colors.green[100],
-                child: const Center(
-                  child: Icon(Icons.check_circle, color: Colors.green, size: 80),
-                ),
-              );
-            },
+        child: const Center(
+          child: Icon(
+            Icons.check_circle,
+            color: Colors.green,
+            size: 80,
           ),
         ),
       ),
     );
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 1));
     if (mounted && Navigator.canPop(context)) {
       Navigator.pop(context);
     }
@@ -314,6 +362,12 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       return;
     }
 
+    // ✅ التحقق من قوة كلمة المرور
+    if (_passwordStrengthValue < 0.3) {
+      _showMessage('كلمة المرور ضعيفة جداً، يرجى اختيار كلمة مرور أقوى', true);
+      return;
+    }
+
     if (_roleSpecialties.isNotEmpty && _selectedSpecialty == null) {
       _showMessage('يرجى اختيار التخصص', true);
       return;
@@ -360,7 +414,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
             builder: (_) => RoleOnboardingScreen(
               role: _getUserRole(_selectedRole),
               onComplete: () {
-                // ✅ استخدام الدالة _needsVerification داخل الكلاس
                 if (_needsVerification(_selectedRole)) {
                   Navigator.pushReplacement(
                     context,
@@ -400,7 +453,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       case 'pharmacist': return UserRole.pharmacist;
       case 'lab': return UserRole.lab;
       case 'paramedic': return UserRole.doctor;
-      case 'veterinarian': return UserRole.veterinarian;
       default: return UserRole.user;
     }
   }
@@ -453,6 +505,51 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     }
   }
 
+  // ✅ زر سوشيال ميديا (من ImageKit)
+  Widget _buildSocialImageButton({
+    required String url,
+    required VoidCallback onTap,
+    required bool isDark,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(30),
+      child: Container(
+        width: 48,
+        height: 48,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: isDark ? Colors.white30 : Colors.grey[300]!,
+          ),
+        ),
+        child: Image.network(
+          url,
+          width: 24,
+          height: 24,
+          fit: BoxFit.contain,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return const Center(
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            );
+          },
+          errorBuilder: (context, error, stackTrace) {
+            return Icon(
+              Icons.image,
+              color: isDark ? Colors.white70 : Colors.grey[600],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -480,7 +577,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
               children: [
                 const SizedBox(height: 20),
 
-                // ✅ ترحيب مخصص لأول مرة
+                // ✅ ترحيب
                 Text(
                   isSignUp
                       ? 'إنشاء حساب جديد'
@@ -507,13 +604,13 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                 ),
                 const SizedBox(height: 30),
 
-                // ✅ تبويبات تسجيل الدخول (مستخدم/طبيب فقط)
+                // ✅ تبويبات تسجيل الدخول
                 if (!isSignUp) ...[
                   _buildLoginRoleTabs(isDark, primaryColor),
                   const SizedBox(height: 35),
                 ],
 
-                // ✅ تبويبات إنشاء حساب (مع تمرير جانبي)
+                // ✅ تبويبات إنشاء حساب
                 if (isSignUp) ...[
                   _buildSignUpRoleTabs(isDark, primaryColor),
                   const SizedBox(height: 16),
@@ -521,13 +618,13 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                   const SizedBox(height: 16),
                 ],
 
-                // ✅ قائمة التخصصات المنسدلة
+                // ✅ التخصصات
                 if (isSignUp && _roleSpecialties.isNotEmpty) ...[
                   _buildSpecialtyDropdown(isDark, primaryColor),
                   const SizedBox(height: 16),
                 ],
 
-                // ✅ الحقول الأساسية
+                // ✅ الحقول
                 if (isSignUp) ...[
                   _buildTextField(
                     controller: _nameController,
@@ -558,25 +655,26 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                   const SizedBox(height: 16),
                 ],
 
-                // ✅ الحقول الديناميكية حسب الدور
+                // ✅ الحقول الديناميكية
                 if (isSignUp) ...[
                   ..._buildDynamicFields(isDark, primaryColor),
                 ],
 
+                // ✅ كلمة المرور مع مؤشر القوة
                 _buildPasswordField(isDark, primaryColor),
+                if (isSignUp && _passwordController.text.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  _buildPasswordStrengthIndicator(),
+                ],
                 const SizedBox(height: 16),
 
+                // ✅ تأكيد كلمة المرور
                 if (isSignUp) ...[
-                  _buildTextField(
-                    controller: _confirmPasswordController,
-                    label: 'تأكيد كلمة المرور',
-                    icon: Icons.lock_outline,
-                    isDark: isDark,
-                    obscureText: true,
-                  ),
+                  _buildConfirmPasswordField(isDark, primaryColor),
                   const SizedBox(height: 16),
                 ],
 
+                // ✅ تذكرني
                 if (!isSignUp) ...[
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -615,6 +713,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                   const SizedBox(height: 8),
                 ],
 
+                // ✅ الشروط
                 if (isSignUp) ...[
                   Row(
                     children: [
@@ -655,6 +754,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                   const SizedBox(height: 16),
                 ],
 
+                // ✅ زر التسجيل/الدخول
                 SizedBox(
                   height: 54,
                   child: ElevatedButton(
@@ -681,6 +781,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                 ),
                 const SizedBox(height: 12),
 
+                // ✅ تسجيل الدخول كضيف
                 if (!isSignUp) ...[
                   SizedBox(
                     height: 50,
@@ -701,6 +802,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                   ),
                   const SizedBox(height: 24),
 
+                  // ✅ أزرار جوجل وآبل (من ImageKit)
                   const Text(
                     'أو سجل الدخول عبر',
                     style: TextStyle(fontSize: 12, color: Colors.grey, fontFamily: 'NotoSansArabicUI'),
@@ -710,14 +812,14 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _buildSocialSvgButton(
-                        assetPath: 'assets/social/google.svg',
+                      _buildSocialImageButton(
+                        url: ImageKit.socialGoogle,
                         onTap: () {},
                         isDark: isDark,
                       ),
                       const SizedBox(width: 20),
-                      _buildSocialSvgButton(
-                        assetPath: 'assets/social/apple.svg',
+                      _buildSocialImageButton(
+                        url: ImageKit.socialApple,
                         onTap: () {},
                         isDark: isDark,
                       ),
@@ -725,7 +827,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                   ),
                   const SizedBox(height: 28),
 
-                  // ✅ الجملة التسويقية
+                  // ✅ الجمل التسويقية
                   const Text(
                     'منصة شاملة تجمع كل ما يهم صحتك في آن واحد',
                     style: TextStyle(
@@ -748,39 +850,39 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                   ),
                   const SizedBox(height: 18),
 
-                  // ✅ أيقونات السوشيال ميديا
+                  // ✅ أيقونات السوشيال ميديا (من ImageKit)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _buildSocialSvgButton(
-                        assetPath: 'assets/social/instagram.svg',
+                      _buildSocialImageButton(
+                        url: ImageKit.socialInstagram,
                         onTap: () => _launchUrl(
                             'https://www.instagram.com/platformsehatak.app?igsh=cXRlbmpjbnpiaXY5'),
                         isDark: isDark,
                       ),
                       const SizedBox(width: 14),
-                      _buildSocialSvgButton(
-                        assetPath: 'assets/social/x_twitter.svg',
+                      _buildSocialImageButton(
+                        url: ImageKit.socialTwitter,
                         onTap: () => _launchUrl('https://www.x.com/sehatakplatfapp'),
                         isDark: isDark,
                       ),
                       const SizedBox(width: 14),
-                      _buildSocialSvgButton(
-                        assetPath: 'assets/social/facebook.svg',
+                      _buildSocialImageButton(
+                        url: ImageKit.socialFacebook,
                         onTap: () => _launchUrl(
                             'https://www.facebook.com/profile.php?id=61591326897936'),
                         isDark: isDark,
                       ),
                       const SizedBox(width: 14),
-                      _buildSocialSvgButton(
-                        assetPath: 'assets/social/youtube.svg',
+                      _buildSocialImageButton(
+                        url: ImageKit.socialYoutube,
                         onTap: () => _launchUrl(
                             'https://youtube.com/@sehatakplatform?si=-4Qy9EvKaOzSbIDs'),
                         isDark: isDark,
                       ),
                       const SizedBox(width: 14),
-                      _buildSocialSvgButton(
-                        assetPath: 'assets/social/tiktok.svg',
+                      _buildSocialImageButton(
+                        url: ImageKit.socialTiktok,
                         onTap: () => _launchUrl(
                             'https://www.tiktok.com/@sehatak.platform?_r=1&_t=ZS-98S9X5X7kUU'),
                         isDark: isDark,
@@ -790,6 +892,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                   const SizedBox(height: 30),
                 ],
 
+                // ✅ التبديل بين تسجيل الدخول وإنشاء الحساب
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -830,8 +933,10 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       ),
     );
   }
+  // ============================================================
+  // 🔧 دوال البناء
+  // ============================================================
 
-  // ============== Sign Up Role Tabs (مع شريط التمرير) ==============
   Widget _buildSignUpRoleTabs(bool isDark, Color primaryColor) {
     final scrollableRoles = _showAdminTab
         ? _allRoles.where((r) => r['id'] != 'admin').toList().sublist(2)
@@ -840,13 +945,11 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ✅ التبويبان الرئيسيان (مستخدم + طبيب) بحجم كامل
+        // ✅ التبويبان الرئيسيان
         Container(
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
-            color: isDark
-                ? const Color(0xFF1A2540).withOpacity(0.5)
-                : Colors.grey[100],
+            color: isDark ? const Color(0xFF1A2540).withOpacity(0.5) : Colors.grey[100],
             borderRadius: BorderRadius.circular(16),
           ),
           child: Row(
@@ -866,18 +969,11 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                     decoration: BoxDecoration(
                       color: isSelected ? color.withOpacity(0.15) : Colors.transparent,
                       borderRadius: BorderRadius.circular(12),
-                      boxShadow: isSelected
-                          ? [BoxShadow(color: color.withOpacity(0.1), blurRadius: 4, offset: const Offset(0, 2))]
-                          : null,
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          role['icon'] as IconData,
-                          color: isSelected ? color : Colors.grey,
-                          size: 22,
-                        ),
+                        Icon(role['icon'] as IconData, color: isSelected ? color : Colors.grey, size: 22),
                         const SizedBox(width: 6),
                         Text(
                           role['name'] as String,
@@ -897,60 +993,63 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
           ),
         ),
 
-        // ✅ شريط التمرير للأدوار الإضافية
+        // ✅ الأدوار الإضافية (عرض دورين في كل صف)
         if (scrollableRoles.isNotEmpty) ...[
           const SizedBox(height: 10),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            child: Row(
-              children: [
-                const Icon(Icons.more_horiz, color: Colors.grey, size: 16),
-                const SizedBox(width: 4),
-                ...scrollableRoles.map((role) {
-                  final isSelected = _selectedRole == role['id'];
-                  final color = Color(role['color'] as int);
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 2),
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _selectedRole = role['id'] as String;
-                          _selectedSpecialty = null;
-                        });
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: isSelected ? color.withOpacity(0.15) : Colors.transparent,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isSelected ? color : Colors.grey.withOpacity(0.3),
-                            width: isSelected ? 2 : 1,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(role['icon'] as IconData,
-                                color: isSelected ? color : Colors.grey, size: 14),
-                            const SizedBox(width: 4),
-                            Text(
-                              role['name'] as String,
-                              style: TextStyle(
-                                color: isSelected ? color : Colors.grey,
-                                fontSize: 11,
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                fontFamily: 'NotoSansArabicUI',
-                              ),
-                            ),
-                          ],
-                        ),
+          Container(
+            height: 50,
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: GridView.builder(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 2,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+              ),
+              itemCount: scrollableRoles.length,
+              itemBuilder: (context, index) {
+                final role = scrollableRoles[index];
+                final isSelected = _selectedRole == role['id'];
+                final color = Color(role['color'] as int);
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _selectedRole = role['id'] as String;
+                      _selectedSpecialty = null;
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: isSelected ? color.withOpacity(0.15) : Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isSelected ? color : Colors.grey.withOpacity(0.3),
+                        width: isSelected ? 2 : 1,
                       ),
                     ),
-                  );
-                }).toList(),
-              ],
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(role['icon'] as IconData, color: isSelected ? color : Colors.grey, size: 16),
+                        const SizedBox(width: 4),
+                        Text(
+                          role['name'] as String,
+                          style: TextStyle(
+                            color: isSelected ? color : Colors.grey,
+                            fontSize: 11,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            fontFamily: 'NotoSansArabicUI',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
           ),
         ],
@@ -958,14 +1057,11 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     );
   }
 
-  // ============== Login Role Tabs (بسيط: مستخدم/طبيب) ==============
   Widget _buildLoginRoleTabs(bool isDark, Color primaryColor) {
     return Container(
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: isDark
-            ? const Color(0xFF1A2540).withOpacity(0.5)
-            : Colors.grey[100],
+        color: isDark ? const Color(0xFF1A2540).withOpacity(0.5) : Colors.grey[100],
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -1030,7 +1126,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     );
   }
 
-  // ============== عرض الدور المحدد ==============
   Widget _buildSelectedRoleDisplay(bool isDark, Color primaryColor) {
     final role = _allRoles.firstWhere(
       (r) => r['id'] == _selectedRole,
@@ -1066,7 +1161,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     );
   }
 
-  // ============== قائمة التخصصات (Dropdown) ==============
   Widget _buildSpecialtyDropdown(bool isDark, Color primaryColor) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1087,9 +1181,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
             color: isDark ? const Color(0xFF1A2540) : Colors.white,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: _selectedSpecialty != null
-                  ? primaryColor
-                  : (isDark ? Colors.grey[800]! : Colors.grey[300]!),
+              color: _selectedSpecialty != null ? primaryColor : (isDark ? Colors.grey[800]! : Colors.grey[300]!),
               width: _selectedSpecialty != null ? 2 : 1,
             ),
           ),
@@ -1099,8 +1191,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
               value: _selectedSpecialty,
               hint: Row(
                 children: [
-                  Icon(Icons.medical_services_outlined,
-                      color: isDark ? Colors.white70 : primaryColor, size: 20),
+                  Icon(Icons.medical_services_outlined, color: isDark ? Colors.white70 : primaryColor, size: 20),
                   const SizedBox(width: 8),
                   Text(
                     'اختر التخصص',
@@ -1118,8 +1209,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                   value: specialty,
                   child: Row(
                     children: [
-                      Icon(Icons.medical_services_outlined,
-                          color: primaryColor, size: 18),
+                      Icon(Icons.medical_services_outlined, color: primaryColor, size: 18),
                       const SizedBox(width: 8),
                       Text(
                         specialty,
@@ -1140,7 +1230,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     );
   }
 
-  // ============== الحقول الديناميكية حسب الدور ==============
   List<Widget> _buildDynamicFields(bool isDark, Color primaryColor) {
     final fields = <Widget>[];
 
@@ -1176,7 +1265,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     return role['name'] as String;
   }
 
-  // ============== حقل نصي عام ==============
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -1217,7 +1305,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     );
   }
 
-  // ============== حقل كلمة المرور ==============
   Widget _buildPasswordField(bool isDark, Color primaryColor) {
     return TextFormField(
       controller: _passwordController,
@@ -1267,29 +1354,104 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     );
   }
 
-  // ============== زر سوشيال SVG ==============
-  Widget _buildSocialSvgButton({
-    required String assetPath,
-    required VoidCallback onTap,
-    required bool isDark,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(30),
-      child: Container(
-        width: 48,
-        height: 48,
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: isDark ? Colors.white30 : Colors.grey[300]!,
+  Widget _buildPasswordStrengthIndicator() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 100,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+              child: FractionallySizedBox(
+                widthFactor: _passwordStrengthValue,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: _passwordStrengthColor,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              _passwordStrength,
+              style: TextStyle(
+                color: _passwordStrengthColor,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                fontFamily: 'NotoSansArabicUI',
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'كلمة المرور يجب أن تحتوي على حروف وأرقام وأحرف خاصة',
+          style: TextStyle(
+            fontSize: 10,
+            color: isDark ? Colors.grey[500] : Colors.grey[400],
+            fontFamily: 'NotoSansArabicUI',
           ),
         ),
-        child: SvgPicture.asset(
-          assetPath,
-          fit: BoxFit.contain,
+      ],
+    );
+  }
+
+  Widget _buildConfirmPasswordField(bool isDark, Color primaryColor) {
+    final isMatch = _isPasswordMatch();
+    final showMatch = _confirmPasswordController.text.isNotEmpty;
+
+    return TextFormField(
+      controller: _confirmPasswordController,
+      obscureText: _obscureConfirmText,
+      textAlign: TextAlign.right,
+      style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
+      decoration: InputDecoration(
+        labelText: 'تأكيد كلمة المرور',
+        labelStyle: TextStyle(
+          color: isDark ? Colors.white70 : Colors.grey[600],
+          fontFamily: 'NotoSansArabicUI',
         ),
+        prefixIcon: Icon(Icons.lock_outline, color: isDark ? Colors.white70 : primaryColor),
+        suffixIcon: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (showMatch)
+              Icon(
+                isMatch ? Icons.check_circle : Icons.cancel,
+                color: isMatch ? Colors.green : Colors.red,
+                size: 20,
+              ),
+            IconButton(
+              icon: Icon(
+                _obscureConfirmText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                color: isDark ? Colors.white70 : Colors.grey[600],
+              ),
+              onPressed: () => setState(() => _obscureConfirmText = !_obscureConfirmText),
+            ),
+          ],
+        ),
+        filled: true,
+        fillColor: isDark ? const Color(0xFF1A2540) : Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: isDark ? Colors.grey[800]! : Colors.grey[300]!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: primaryColor, width: 2),
+        ),
+        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
       ),
     );
   }
