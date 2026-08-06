@@ -26,7 +26,7 @@ import 'package:sehatak/presentation/screens/articles/articles_screen.dart';
 import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
 import 'package:sehatak/presentation/screens/shared/notifications_screen.dart';
 import 'package:sehatak/presentation/screens/pharmacy/cart_screen.dart';
-import 'package:sehatak/presentation/screens/search/search_screen.dart';
+
 
 class HomeTab extends StatefulWidget {
   final ScrollController? scrollController;
@@ -43,6 +43,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   String _userName = 'مستخدم';
   int _currentBanner = 0;
   bool _hasError = false;
+  double _healthScore = 0.0;
   String _errorMessage = '';
   
   // ✅ البانرات
@@ -160,7 +161,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
 
   Future<void> _initializeData() async {
     try {
-      await _loadUserData();
+      _loadUserData();
       await _loadHealthScore();
       _startAnimation();
     } catch (e) {
@@ -221,7 +222,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   Future<void> _refreshData() async {
     setState(() => _isLoading = true);
     try {
-      await _loadUserData();
+      _loadUserData();
       await Future.delayed(const Duration(seconds: 1));
       await _loadHealthScore();
       if (mounted) {
@@ -523,7 +524,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
           color: Colors.grey[200],
           child: Icon(Icons.circle, color: color, size: size * 0.6),
         ),
-        errorBuilder: (context, error, stackTrace) {
+        // errorBuilder removed
           return Container(
             width: size,
             height: size,

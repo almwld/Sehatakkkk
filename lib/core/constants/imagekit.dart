@@ -131,3 +131,14 @@ class ImageKit {
   static String get serviceInsurance => svg("fast_services/insurance.svg");
   static String get serviceConsultation => svg("fast_services/consultation.svg");
 }
+
+  // ============================================================
+  // 📸 أيقونات السوشيال ميديا (PNG)
+  // ============================================================
+  static String get socialGoogle => "$imagesBase/social/google.png";
+  static String get socialApple => "$imagesBase/social/apple.png";
+  static String get socialInstagram => "$imagesBase/social/instagram.png";
+  static String get socialTwitter => "$imagesBase/social/x_twitter.png";
+  static String get socialFacebook => "$imagesBase/social/facebook.png";
+  static String get socialYoutube => "$imagesBase/social/youtube.png";
+  static String get socialTiktok => "$imagesBase/social/tiktok.png";
