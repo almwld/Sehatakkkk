@@ -271,7 +271,7 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
       MaterialPageRoute(
         builder: (_) => LabBookingScreen(
           labId: _lab['id'] as String,
-          testId: test['id'] as String,
+           ['id'] as String,
         ),
       ),
     );
