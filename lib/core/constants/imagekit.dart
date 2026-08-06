@@ -48,9 +48,9 @@ class ImageKit {
   static String get hospital4 => hospital("hospital_4.png");
   static String get hospital5 => hospital("hospital_5.png");
   static String get hospital6 => hospital("hospital_6.png");
-  static String get hospital7 => hospital("hospital_7.png");  // ✅ تمت الإضافة
-  static String get hospital8 => hospital("hospital_8.png");  // ✅ تمت الإضافة
-  static String get hospital9 => hospital("hospital_9.png");  // ✅ تمت الإضافة
+  static String get hospital7 => hospital("hospital_7.png");
+  static String get hospital8 => hospital("hospital_8.png");
+  static String get hospital9 => hospital("hospital_9.png");
   
   // ============================================================
   // 🧪 المختبرات (3 صور)
@@ -110,8 +110,7 @@ class ImageKit {
   static String get donateBlood => svg("donate_blood.svg");
   static String get maleDoctorIcon => svg("male_doctor.svg");
   static String get medicalIcon => svg("medical.svg");
-  static String get notificationIcon => svg("notifications.svg");  // ✅ بدون s
-  static String get notificationsIcon => svg("notifications.svg"); // ✅ للتوافق (مع s)
+  static String get notificationIcon => svg("notifications.svg");
   static String get placeholder => svg("placeholder.svg");
   static String get cartIcon => svg("cart.svg");
   static String get searchIcon => svg("search.svg");
@@ -130,8 +129,7 @@ class ImageKit {
   static String get serviceNearby => svg("fast_services/nearby.svg");
   static String get serviceInsurance => svg("fast_services/insurance.svg");
   static String get serviceConsultation => svg("fast_services/consultation.svg");
-}
-
+  
   // ============================================================
   // 📸 أيقونات السوشيال ميديا (PNG)
   // ============================================================
@@ -142,3 +140,4 @@ class ImageKit {
   static String get socialFacebook => "$imagesBase/social/facebook.png";
   static String get socialYoutube => "$imagesBase/social/youtube.png";
   static String get socialTiktok => "$imagesBase/social/tiktok.png";
+}
