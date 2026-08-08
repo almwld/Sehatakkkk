@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/screens/auth/forgot_password_screen.dart';
 import "package:flutter/material.dart";
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -688,7 +689,12 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                         ],
                       ),
                       TextButton(
-                        onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
+                        );
+                      },
                         child: Text(
                           'نسيت كلمة المرور؟',
                           style: TextStyle(
