@@ -37,7 +37,7 @@ class HomeTab extends StatefulWidget {
 }
 
 class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
-  bool _isLoading = true;  // ✅ بداية التحميل
+  bool _isLoading = true;
   bool _isLoggedIn = false;
   String _userName = 'مستخدم';
   int _currentBanner = 0;
@@ -45,10 +45,8 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   String _errorMessage = '';
   double _healthScore = 0.0;
   
-  // ✅ البانرات
   final List<String> _bannerImages = ImageKit.bannerList;
 
-  // ✅ أفضل الأطباء
   final List<Map<String, dynamic>> _topDoctors = [
     {'id': '1', 'name': 'د. أحمد المؤيد', 'specialty': 'باطنية', 'rating': 4.9, 'reviews': 328, 'image': ImageKit.doctor1, 'gender': 'male'},
     {'id': '2', 'name': 'د. خالد النخلاني', 'specialty': 'قلبية', 'rating': 4.8, 'reviews': 256, 'image': ImageKit.doctor2, 'gender': 'male'},
@@ -57,7 +55,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'id': '5', 'name': 'د. فاطمة صديقي', 'specialty': 'نساء وولادة', 'rating': 4.8, 'reviews': 210, 'image': ImageKit.doctor5, 'gender': 'female'},
   ];
 
-  // ✅ الخدمات السريعة
   final List<Map<String, dynamic>> _quickServices = [
     {'icon': ImageKit.pharmacyIcon, 'label': 'صيدلية', 'color': AppColors.success, 'screen': const MedicinesScreen()},
     {'icon': ImageKit.emergencyIcon, 'label': 'طوارئ', 'color': AppColors.error, 'screen': const EmergencyNumbers()},
@@ -72,7 +69,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'icon': ImageKit.placeholder, 'label': 'تأمين', 'color': Colors.blue, 'screen': const InsuranceCompanies()},
   ];
 
-  // ✅ الإحصائيات
   final List<Map<String, dynamic>> _stats = [
     {'icon': Icons.local_fire_department, 'value': '2,450', 'label': 'سعرة حرارية', 'color': Colors.orange, 'subtitle': 'اليوم'},
     {'icon': Icons.directions_walk, 'value': '8,542', 'label': 'خطوة', 'color': Colors.green, 'subtitle': 'اليوم'},
@@ -80,7 +76,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'icon': Icons.favorite, 'value': '72', 'label': 'نبضة/دقيقة', 'color': Colors.red, 'subtitle': 'الآن'},
   ];
 
-  // ✅ النصائح اليومية
   final List<Map<String, dynamic>> _dailyTips = [
     {'title': 'شرب الماء', 'subtitle': '8 أكواب يومياً', 'icon': Icons.water_drop, 'color': AppColors.info, 'content': 'شرب 8 أكواب من الماء يومياً يحسن صحة البشرة ويساعد في التخلص من السموم ويحسن وظائف الكلى.'},
     {'title': 'المشي', 'subtitle': '30 دقيقة يومياً', 'icon': Icons.directions_walk, 'color': AppColors.success, 'content': 'المشي 30 دقيقة يومياً يقلل خطر أمراض القلب والسكري ويعزز الصحة النفسية ويحسن جودة النوم.'},
@@ -88,7 +83,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'title': 'الفواكه', 'subtitle': '5 حصص يومياً', 'icon': Icons.apple, 'color': AppColors.warning, 'content': 'تناول 5 حصص من الفواكه والخضار يومياً يوفر الفيتامينات والمعادن الضرورية للجسم ويعزز المناعة.'},
   ];
 
-  // ✅ المنتجات
   final List<Map<String, dynamic>> _products = [
     {'name': 'باراسيتامول 500mg', 'price': 500, 'image': ImageKit.medicine1, 'category': 'مسكنات', 'discount': 20},
     {'name': 'فيتامين د 1000IU', 'price': 1200, 'image': ImageKit.medicine2, 'category': 'فيتامينات', 'discount': 15},
@@ -100,7 +94,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'name': 'إيبوبروفين 400mg', 'price': 750, 'image': ImageKit.medicine4, 'category': 'مسكنات', 'discount': 5},
   ];
 
-  // ✅ مستشفيات مميزة
   final List<Map<String, dynamic>> _featuredHospitals = [
     {'id': '1', 'name': 'مستشفى 22 مايو', 'location': 'صنعاء', 'image': ImageKit.hospital1, 'rating': 4.9, 'phone': '01-234571', 'specialty': 'عام', 'open': true},
     {'id': '2', 'name': 'مستشفى آزال', 'location': 'صنعاء', 'image': ImageKit.hospital2, 'rating': 4.8, 'phone': '01-234572', 'specialty': 'خاص', 'open': true},
@@ -110,7 +103,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'id': '6', 'name': 'مستشفى الثورة العام', 'location': 'صنعاء', 'image': ImageKit.hospital6, 'rating': 4.5, 'phone': '01-234576', 'specialty': 'حكومي', 'open': true},
   ];
 
-  // ✅ مختبرات مميزة
   final List<Map<String, dynamic>> _featuredLabs = [
     {'id': '1', 'name': 'مختبرات الرازي', 'location': 'صنعاء - باب اليمن', 'image': ImageKit.lab1, 'rating': 4.9, 'phone': '01-234567', 'open': true},
     {'id': '2', 'name': 'مختبرات العولقي', 'location': 'صنعاء - شارع الستين', 'image': ImageKit.lab2, 'rating': 4.8, 'phone': '01-234568', 'open': true},
@@ -120,7 +112,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'id': '6', 'name': 'مختبرات اليمن الحديثة', 'location': 'صنعاء - شارع الزبيري', 'image': ImageKit.lab3, 'rating': 4.4, 'phone': '01-234572', 'open': true},
   ];
 
-  // ✅ صيدليات مميزة
   final List<Map<String, dynamic>> _featuredPharmacies = [
     {'id': '1', 'name': 'صيدلية ابن حيان', 'location': 'صنعاء - شارع حدة', 'image': ImageKit.pharmacy1, 'rating': 4.9, 'phone': '01-234580', 'open': true},
     {'id': '2', 'name': 'صيدلية عالم الصيدلة', 'location': 'صنعاء - شارع الستين', 'image': ImageKit.pharmacy2, 'rating': 4.8, 'phone': '01-234581', 'open': true},
@@ -130,7 +121,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'id': '6', 'name': 'صيدلية الأمانة', 'location': 'صنعاء - التحرير', 'image': ImageKit.pharmacy3, 'rating': 4.4, 'phone': '01-234585', 'open': true},
   ];
 
-  // ✅ مقالات صحية
   final List<Map<String, dynamic>> _healthArticles = [
     {'title': 'فوائد المشي اليومي', 'category': 'صحة عامة', 'time': 'منذ ساعة', 'image': ImageKit.morningWalk},
     {'title': 'نصائح لتقوية المناعة', 'category': 'تغذية', 'time': 'منذ 3 ساعات', 'image': ImageKit.immuneBoost},
@@ -138,11 +128,12 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'title': 'العناية بالبشرة في الصيف', 'category': 'جلدية', 'time': 'منذ يوم', 'image': ImageKit.skinCare},
   ];
 
-  // ✅ منشورات المجتمع
   final List<Map<String, dynamic>> _communityPosts = [
     {'id': 1, 'author': 'د. سارة العمري', 'avatar': 'س', 'image': ImageKit.skinCare, 'title': 'نصائح للعناية بالبشرة', 'content': 'مع حلول فصل الصيف، احرصي على ترطيب بشرتك واستخدام واقي الشمس.', 'likes': 120, 'comments': 15, 'shares': 8, 'time': 'منذ ساعة', 'liked': false, 'commentList': ['نصائح رائعة!', 'شكراً دكتورة', 'مفيد جداً']},
     {'id': 2, 'author': 'د. خالد النخلاني', 'avatar': 'خ', 'image': ImageKit.morningWalk, 'title': 'فوائد المشي الصباحي', 'content': 'المشي 30 دقيقة يومياً يقلل خطر أمراض القلب والسكري.', 'likes': 95, 'comments': 8, 'shares': 5, 'time': 'منذ 3 ساعات', 'liked': false, 'commentList': ['معلومة قيمة', 'سأطبقها']},
     {'id': 3, 'author': 'د. أحمد المؤيد', 'avatar': 'أ', 'image': ImageKit.nutritionTips, 'title': 'تغذيتك سر صحتك', 'content': 'الطعام الصحي هو أساس المناعة القوية والجسم السليم.', 'likes': 210, 'comments': 22, 'shares': 12, 'time': 'منذ 5 ساعات', 'liked': true, 'commentList': ['أحسنت', 'مفيد جداً', 'شكراً دكتور']},
+    {'id': 4, 'author': 'د. أسماء الهندي', 'avatar': 'ه', 'image': ImageKit.immuneBoost, 'title': 'قوة المناعة', 'content': 'الفيتامينات والمعادن تلعب دوراً كبيراً في تقوية المناعة.', 'likes': 78, 'comments': 5, 'shares': 3, 'time': 'منذ يوم', 'liked': false, 'commentList': ['معلومات مفيدة', 'شكراً']},
+    {'id': 5, 'author': 'د. محمد العلاي', 'avatar': 'م', 'image': ImageKit.sleepTips, 'title': 'نصائح النوم الصحي', 'content': 'النوم 7-8 ساعات يومياً يحسن الصحة النفسية والجسدية.', 'likes': 150, 'comments': 12, 'shares': 7, 'time': 'منذ يومين', 'liked': false, 'commentList': ['سأطبق هذه النصائح', 'مفيد']},
   ];
 
   double _caloriesAnim = 0;
@@ -156,12 +147,13 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     _initializeData();
   }
 
+  // ✅ تحميل البيانات مع معالجة الأخطاء
   Future<void> _initializeData() async {
     try {
       _loadUserData();
       await _loadHealthScore();
       _startAnimation();
-      // ✅ تأكد من تغيير حالة التحميل بعد اكتمال البيانات
+      
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -180,6 +172,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     }
   }
 
+  // ✅ تحميل بيانات المستخدم مع try-catch
   void _loadUserData() {
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -193,9 +186,16 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       }
     } catch (e) {
       debugPrint('❌ خطأ في تحميل بيانات المستخدم: $e');
+      if (mounted) {
+        setState(() {
+          _isLoggedIn = false;
+          _userName = 'مستخدم';
+        });
+      }
     }
   }
 
+  // ✅ تحميل درجة الصحة مع try-catch
   Future<void> _loadHealthScore() async {
     try {
       final score = await HealthScoreService.calculateHealthScore();
@@ -204,6 +204,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       }
     } catch (e) {
       debugPrint('❌ خطأ في حساب درجة الصحة: $e');
+      if (mounted) {
+        setState(() => _healthScore = 0.0);
+      }
     }
   }
 
@@ -220,6 +223,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     });
   }
 
+  // ✅ تحديث البيانات مع try-catch
   Future<void> _refreshData() async {
     setState(() => _isLoading = true);
     try {
@@ -482,7 +486,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  // ✅ شاشة تحميل Shimmer
   Widget _buildShimmerLoader() {
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -555,7 +558,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  // ✅ شاشة الخطأ
   Widget _buildErrorScreen() {
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -605,7 +607,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  // ✅ دالة لعرض الأيقونات
   Widget _buildServiceIcon(String iconPath, Color color, {double size = 32}) {
     if (iconPath.endsWith('.svg')) {
       return SvgPicture.asset(
@@ -636,17 +637,14 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     super.build(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // ✅ إذا كان في حالة تحميل، عرض Shimmer
     if (_isLoading) {
       return _buildShimmerLoader();
     }
 
-    // ✅ إذا كان هناك خطأ، عرض شاشة الخطأ
     if (_hasError) {
       return _buildErrorScreen();
     }
 
-    // ✅ عرض المحتوى الرئيسي
     return RefreshIndicator(
       onRefresh: _refreshData,
       child: Scaffold(
@@ -654,9 +652,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         body: CustomScrollView(
           controller: widget.scrollController,
           slivers: [
-            // ============================================================
-            // 1️⃣ شريط علوي متحرك
-            // ============================================================
             SliverAppBar(
               expandedHeight: 90,
               floating: true,
@@ -731,106 +726,54 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                 ),
               ),
             ),
-
-            // ============================================================
-            // المحتوى
-            // ============================================================
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                  
-                  // ============================================================
-                  // 2️⃣ شريط بحث
-                  // ============================================================
                   _buildSearchBar(isDark),
                   const SizedBox(height: 16),
-
-                  // ============================================================
-                  // 3️⃣ 4 بنرات
-                  // ============================================================
                   _buildBannerCarousel(isDark),
                   const SizedBox(height: 16),
-
-                  // ============================================================
-                  // 4️⃣ إحصائيات متحركة
-                  // ============================================================
                   _buildStatsRow(),
                   const SizedBox(height: 16),
-
-                  // ============================================================
-                  // 5️⃣ خدمات سريعة
-                  // ============================================================
                   _buildSectionTitleWithAction('خدمات سريعة', isDark, 'عرض الكل', 
                     () => _goTo(context, const ServicesScreen())),
                   const SizedBox(height: 8),
                   _buildQuickServicesRow(),
                   const SizedBox(height: 16),
-
-                  // ============================================================
-                  // 6️⃣ أفضل الأطباء
-                  // ============================================================
                   _buildSectionTitleWithAction('أفضل الأطباء', isDark, 'عرض الكل', 
                     () => _goTo(context, const DoctorsListScreen())),
                   const SizedBox(height: 8),
                   _buildTopDoctorsGrid(isDark),
                   const SizedBox(height: 16),
-
-                  // ============================================================
-                  // 7️⃣ منتجات صيدلية
-                  // ============================================================
                   _buildSectionTitleWithAction('منتجات صيدلية', isDark, 'عرض الكل', 
                     () => _goTo(context, const MedicinesScreen())),
                   const SizedBox(height: 8),
                   _buildProductsRow(),
                   const SizedBox(height: 16),
-
-                  // ============================================================
-                  // 8️⃣ مستشفيات مميزة
-                  // ============================================================
                   _buildSectionTitleWithAction('مستشفيات مميزة', isDark, 'عرض الكل', 
                     () => _goTo(context, const HospitalScreen())),
                   const SizedBox(height: 8),
                   _buildFeaturedHospitalsGrid(isDark),
                   const SizedBox(height: 16),
-
-                  // ============================================================
-                  // 9️⃣ مختبرات مميزة
-                  // ============================================================
                   _buildSectionTitleWithAction('مختبرات مميزة', isDark, 'عرض الكل', 
                     () => _goTo(context, const LabsListScreen())),
                   const SizedBox(height: 8),
                   _buildFeaturedLabsGrid(isDark),
                   const SizedBox(height: 16),
-
-                  // ============================================================
-                  // 🔟 صيدليات مميزة
-                  // ============================================================
                   _buildSectionTitleWithAction('صيدليات مميزة', isDark, 'عرض الكل', 
                     () => _goTo(context, const PharmacyScreen())),
                   const SizedBox(height: 8),
                   _buildFeaturedPharmaciesGrid(isDark),
                   const SizedBox(height: 16),
-
-                  // ============================================================
-                  // 1️⃣1️⃣ أحدث المقالات
-                  // ============================================================
                   _buildSectionTitle('أحدث المقالات', isDark),
                   const SizedBox(height: 8),
                   _buildArticlesGrid(isDark),
                   const SizedBox(height: 16),
-
-                  // ============================================================
-                  // 1️⃣2️⃣ نصائح يومية
-                  // ============================================================
                   _buildSectionTitle('نصائح يومية', isDark),
                   const SizedBox(height: 8),
                   _buildDailyTipsGrid(),
                   const SizedBox(height: 16),
-
-                  // ============================================================
-                  // 1️⃣3️⃣ منشورات المجتمع
-                  // ============================================================
                   _buildSectionTitle('مجتمع صحتك', isDark),
                   const SizedBox(height: 8),
                   ..._communityPosts.asMap().entries.map((entry) {
@@ -848,9 +791,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  // ============================================================
-  // 🔍 شريط البحث
-  // ============================================================
   Widget _buildSearchBar(bool isDark) {
     return GestureDetector(
       onTap: () {
@@ -892,9 +832,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  // ============================================================
-  // 🖼️ البانرات
-  // ============================================================
   Widget _buildBannerCarousel(bool isDark) {
     if (_bannerImages.isEmpty) {
       return Container(
@@ -968,9 +905,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  // ============================================================
-  // 📊 الإحصائيات
-  // ============================================================
   Widget _buildStatsRow() {
     final statsData = [
       {'icon': Icons.local_fire_department, 'value': _caloriesAnim, 'label': 'سعرة حرارية', 'color': Colors.orange, 'subtitle': 'اليوم', 'format': 'int'},
@@ -1034,9 +968,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  // ============================================================
-  // 📝 عناوين الأقسام
-  // ============================================================
   Widget _buildSectionTitle(String title, bool isDark) {
     return Text(
       title,
@@ -1075,9 +1006,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  // ============================================================
-  // 🚀 الخدمات السريعة
-  // ============================================================
   Widget _buildQuickServicesRow() {
     return SizedBox(
       height: 90,
@@ -1128,9 +1056,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  // ============================================================
-  // 👨‍⚕️ أفضل الأطباء
-  // ============================================================
   Widget _buildTopDoctorsGrid(bool isDark) {
     return GridView.builder(
       shrinkWrap: true,
@@ -1261,9 +1186,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  // ============================================================
-  // 💊 منتجات صيدلية
-  // ============================================================
   Widget _buildProductsRow() {
     return SizedBox(
       height: 200,
@@ -1366,9 +1288,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  // ============================================================
-  // 🏥 مستشفيات مميزة
-  // ============================================================
   Widget _buildFeaturedHospitalsGrid(bool isDark) {
     return GridView.builder(
       shrinkWrap: true,
@@ -1513,9 +1432,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  // ============================================================
-  // 🧪 مختبرات مميزة
-  // ============================================================
   Widget _buildFeaturedLabsGrid(bool isDark) {
     return GridView.builder(
       shrinkWrap: true,
@@ -1611,9 +1527,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  // ============================================================
-  // 💊 صيدليات مميزة
-  // ============================================================
   Widget _buildFeaturedPharmaciesGrid(bool isDark) {
     return GridView.builder(
       shrinkWrap: true,
@@ -1709,9 +1622,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  // ============================================================
-  // 📰 مقالات صحية
-  // ============================================================
   Widget _buildArticlesGrid(bool isDark) {
     return GridView.builder(
       shrinkWrap: true,
@@ -1802,9 +1712,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  // ============================================================
-  // 💡 نصائح يومية
-  // ============================================================
   Widget _buildDailyTipsGrid() {
     return GridView.builder(
       shrinkWrap: true,
@@ -1873,9 +1780,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  // ============================================================
-  // 💬 منشورات المجتمع
-  // ============================================================
   Widget _buildCommunityPostCard(Map<String, dynamic> post, int index, bool isDark) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
