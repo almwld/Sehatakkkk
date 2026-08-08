@@ -8,36 +8,21 @@ class HelpScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final List<Map<String, dynamic>> faqs = [
+    final faqs = [
       {'q': 'كيف يمكنني حجز موعد مع طبيب؟', 'a': 'يمكنك حجز موعد من خلال شاشة الأطباء أو من خلال شاشة المواعيد.'},
       {'q': 'كيف يمكنني التواصل مع الطبيب؟', 'a': 'يمكنك التواصل عبر الدردشة أو المكالمة الصوتية أو المرئية من خلال شاشة الطبيب.'},
       {'q': 'كيف يمكنني شراء أدوية؟', 'a': 'يمكنك شراء الأدوية من خلال شاشة الصيدلية وإضافتها إلى سلة المشتريات.'},
       {'q': 'كيف يمكنني متابعة حالتي الصحية؟', 'a': 'يمكنك متابعة حالتك الصحية من خلال شاشة صحتي التي تحتوي على جميع المؤشرات الحيوية.'},
       {'q': 'التطبيق مجاني؟', 'a': 'نعم، التطبيق مجاني للاستخدام الأساسي. هناك باقات مدفوعة للخدمات المتقدمة.'},
-      {'q': 'كيف يمكنني التواصل مع الدعم؟', 'a': 'يمكنك التواصل من خلال شاشة الإعدادات > المساعدة والدعم.'},
-      {'q': 'هل بياناتي آمنة؟', 'a': 'نعم، جميع بياناتك مشفرة بأمان باستخدام تقنيات التشفير المتقدمة.'},
     ];
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('مركز المساعدة', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('مركز المساعدة'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.contact_support_outlined),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('📧 تواصل معنا: support@sehatak.com'),
-                  backgroundColor: AppColors.primary,
-                ),
-              );
-            },
-          ),
-        ],
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
@@ -58,23 +43,6 @@ class HelpScreen extends StatelessWidget {
               ],
             ),
             child: ExpansionTile(
-              leading: Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(
-                    '${index + 1}',
-                    style: const TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
               title: Text(
                 faq['q']!,
                 style: TextStyle(
@@ -90,7 +58,6 @@ class HelpScreen extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 14,
                       color: isDark ? Colors.grey[400] : Colors.grey[600],
-                      height: 1.5,
                     ),
                   ),
                 ),

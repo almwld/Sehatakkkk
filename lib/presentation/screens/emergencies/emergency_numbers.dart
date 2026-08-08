@@ -1,149 +1,188 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class EmergencyNumbers extends StatelessWidget {
   const EmergencyNumbers({super.key});
+
+  Future<void> _makeCall(String number) async {
+    final url = 'tel:$number';
+    try {
+      if (await canLaunchUrl(Uri.parse(url))) {
+        await launchUrl(Uri.parse(url));
+      }
+    } catch (e) {
+      debugPrint('Error making call: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // ✅ أرقام الطوارئ
-    final List<Map<String, dynamic>> emergencyNumbers = [
-      {'name': 'الشرطة', 'number': '199', 'icon': 'assets/images/services/emergency.png', 'color': Colors.blue},
-      {'name': 'الإسعاف', 'number': '191', 'icon': 'assets/images/tracking/ambulance.png', 'color': Colors.red},
-      {'name': 'الدفاع المدني', 'number': '198', 'icon': 'assets/images/services/emergency.png', 'color': Colors.orange},
-      {'name': 'الدعم النفسي', 'number': '800-123-456', 'icon': 'assets/images/tracking/mental_health.png', 'color': Colors.purple},
+    final numbers = [
+      {'name': 'الشرطة', 'number': '199', 'icon': Icons.local_police, 'color': Colors.blue, 'description': 'الطوارئ الأمنية', 'emergency': true},
+      {'name': 'الإسعاف', 'number': '191', 'icon': Icons.medical_services, 'color': Colors.red, 'description': 'الحالات الحرجة', 'emergency': true},
+      {'name': 'مطافئ', 'number': '16', 'icon': Icons.fire_extinguisher, 'color': Colors.orange, 'description': 'الحرائق والكوارث', 'emergency': true},
+      {'name': 'الدفاع المدني', 'number': '194', 'icon': Icons.shield, 'color': Colors.green, 'description': 'الطوارئ العامة', 'emergency': true},
+      {'name': 'الدعم النفسي', 'number': '185', 'icon': Icons.psychology, 'color': Colors.purple, 'description': 'الدعم النفسي', 'emergency': false},
+      {'name': 'التسمم', 'number': '180', 'icon': Icons.warning_amber_rounded, 'color': Colors.orange, 'description': 'حالات التسمم', 'emergency': true},
     ];
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('أرقام الطوارئ'),
-        backgroundColor: AppColors.primary,
+        title: const Text('الطوارئ'),
+        backgroundColor: Colors.red,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: emergencyNumbers.length,
-        itemBuilder: (context, index) {
-          final item = emergencyNumbers[index];
-          return _buildEmergencyCard(
-            icon: item['icon'] as String,
-            name: item['name'] as String,
-            number: item['number'] as String,
-            color: item['color'] as Color,
-            isDark: isDark,
-            onCall: () => _makeCall(item['number'] as String),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildEmergencyCard({
-    required String icon,
-    required String name,
-    required String number,
-    required Color color,
-    required bool isDark,
-    required VoidCallback onCall,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2540) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-        border: Border.all(
-          color: color.withOpacity(0.2),
-          width: 1,
-        ),
-      ),
-      child: Row(
+      body: Column(
         children: [
+          // ✅ SOS Banner
           Container(
-            padding: const EdgeInsets.all(12),
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              gradient: const LinearGradient(
+                colors: [Colors.red, Colors.redAccent],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.red.withOpacity(0.3),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
             ),
-            child: Image.asset(
-              icon,
-              width: 32,
-              height: 32,
-              color: color,
-              errorBuilder: (context, error, stackTrace) {
-                return Icon(Icons.emergency, color: color, size: 32);
-              },
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  name,
+                const Icon(
+                  Icons.sos,
+                  color: Colors.white,
+                  size: 48,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'في حالات الطوارئ، اتصل فوراً',
                   style: TextStyle(
+                    color: Colors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black87,
                   ),
                 ),
-                Text(
-                  number,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: color,
-                    fontWeight: FontWeight.w600,
-                  ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => _makeCall('191'),
+                        icon: const Icon(Icons.call, size: 20),
+                        label: const Text(
+                          'اتصل بالإسعاف',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.red,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => _makeCall('199'),
+                        icon: const Icon(Icons.local_police, size: 20),
+                        label: const Text(
+                          'اتصل بالشرطة',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Colors.white),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-          GestureDetector(
-            onTap: onCall,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.call, color: Colors.white, size: 18),
-                  const SizedBox(width: 4),
-                  Text(
-                    'اتصل',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
+          // ✅ قائمة الأرقام
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: numbers.length,
+              itemBuilder: (context, index) {
+                final item = numbers[index];
+                final color = item['color'] as Color;
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: color.withOpacity(0.2), width: 1),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: color.withOpacity(0.1),
+                      child: Icon(item['icon'] as IconData, color: color, size: 22),
+                    ),
+                    title: Text(
+                      item['name'] as String,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : Colors.black87,
+                        fontSize: 15,
+                      ),
+                    ),
+                    subtitle: Text(
+                      item['description'] as String,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      ),
+                    ),
+                    trailing: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        item['number'] as String,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: color,
+                        ),
+                      ),
+                    ),
+                    onTap: () => _makeCall(item['number'] as String),
+                  ),
+                );
+              },
             ),
           ),
         ],
       ),
     );
-  }
-
-  void _makeCall(String number) async {
-    final url = 'tel:$number';
-    if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url));
-    }
   }
 }

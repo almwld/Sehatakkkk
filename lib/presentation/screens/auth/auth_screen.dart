@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/screens/auth/forgot_password_screen.dart';
 import "package:flutter/material.dart";
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -502,9 +503,9 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     }
   }
 
-  // ✅ دالة عرض أيقونات السوشيال ميديا
+  // ✅ دالة لعرض أيقونات السوشيال ميديا بحجم أكبر
   Widget _buildSocialImageButton({
-    required String assetPath,
+    required String url,
     required VoidCallback onTap,
     required bool isDark,
   }) {
@@ -512,9 +513,9 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       onTap: onTap,
       borderRadius: BorderRadius.circular(30),
       child: Container(
-        width: 56,
-        height: 56,
-        padding: const EdgeInsets.all(14),
+        width: 56,  // ✅ تم التكبير من 48 إلى 56
+        height: 56, // ✅ تم التكبير من 48 إلى 56
+        padding: const EdgeInsets.all(14), // ✅ تم التكبير من 12 إلى 14
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(
@@ -522,15 +523,25 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
             width: 1.5,
           ),
         ),
-        child: Image.asset(
-          assetPath,
-          width: 32,
-          height: 32,
+        child: Image.network(
+          url,
+          width: 32,  // ✅ تم التكبير من 24 إلى 32
+          height: 32, // ✅ تم التكبير من 24 إلى 32
           fit: BoxFit.contain,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return const Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            );
+          },
           errorBuilder: (context, error, stackTrace) {
             return Icon(
               Icons.image,
-              size: 32,
+              size: 32, // ✅ تم التكبير من 24 إلى 32
               color: isDark ? Colors.white70 : Colors.grey[600],
             );
           },
@@ -678,7 +689,12 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                         ],
                       ),
                       TextButton(
-                        onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
+                        );
+                      },
                         child: Text(
                           'نسيت كلمة المرور؟',
                           style: TextStyle(
@@ -789,13 +805,13 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       _buildSocialImageButton(
-                        assetPath: 'assets/images/social/google.png',
+                        url: ImageKit.socialGoogle,
                         onTap: () {},
                         isDark: isDark,
                       ),
                       const SizedBox(width: 20),
                       _buildSocialImageButton(
-                        assetPath: 'assets/images/social/apple.png',
+                        url: ImageKit.socialApple,
                         onTap: () {},
                         isDark: isDark,
                       ),
@@ -829,34 +845,34 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       _buildSocialImageButton(
-                        assetPath: 'assets/images/social/instagram.png',
+                        url: ImageKit.socialInstagram,
                         onTap: () => _launchUrl(
                             'https://www.instagram.com/platformsehatak.app?igsh=cXRlbmpjbnpiaXY5'),
                         isDark: isDark,
                       ),
                       const SizedBox(width: 14),
                       _buildSocialImageButton(
-                        assetPath: 'assets/images/social/x_twitter.png',
+                        url: ImageKit.socialTwitter,
                         onTap: () => _launchUrl('https://www.x.com/sehatakplatfapp'),
                         isDark: isDark,
                       ),
                       const SizedBox(width: 14),
                       _buildSocialImageButton(
-                        assetPath: 'assets/images/social/facebook.png',
+                        url: ImageKit.socialFacebook,
                         onTap: () => _launchUrl(
                             'https://www.facebook.com/profile.php?id=61591326897936'),
                         isDark: isDark,
                       ),
                       const SizedBox(width: 14),
                       _buildSocialImageButton(
-                        assetPath: 'assets/images/social/youtube.png',
+                        url: ImageKit.socialYoutube,
                         onTap: () => _launchUrl(
                             'https://youtube.com/@sehatakplatform?si=-4Qy9EvKaOzSbIDs'),
                         isDark: isDark,
                       ),
                       const SizedBox(width: 14),
                       _buildSocialImageButton(
-                        assetPath: 'assets/images/social/tiktok.png',
+                        url: ImageKit.socialTiktok,
                         onTap: () => _launchUrl(
                             'https://www.tiktok.com/@sehatak.platform?_r=1&_t=ZS-98S9X5X7kUU'),
                         isDark: isDark,

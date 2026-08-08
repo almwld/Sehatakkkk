@@ -20,6 +20,7 @@ import 'package:sehatak/presentation/screens/blood_donation/blood_donation_scree
 import 'package:sehatak/presentation/screens/payment/wallet_screen.dart';
 import 'package:sehatak/presentation/screens/consultation/consultation_screen.dart';
 import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
+import 'package:sehatak/presentation/screens/insurance/insurance_companies.dart';
 import 'package:sehatak/presentation/screens/health/health_dashboard.dart';
 import 'package:sehatak/presentation/screens/articles/articles_screen.dart';
 import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
@@ -54,21 +55,20 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'id': '5', 'name': 'د. فاطمة صديقي', 'specialty': 'نساء وولادة', 'rating': 4.8, 'reviews': 210, 'image': ImageKit.doctor5, 'gender': 'female'},
   ];
 
-  // ✅ الخدمات السريعة - 10 خدمات
   final List<Map<String, dynamic>> _quickServices = [
-    {'icon': 'assets/images/services/pharmacy.png', 'label': 'صيدلية', 'color': AppColors.success, 'screen': const MedicinesScreen()},
-    {'icon': 'assets/images/services/emergency.png', 'label': 'طوارئ', 'color': AppColors.error, 'screen': const EmergencyNumbers()},
-    {'icon': 'assets/images/services/medical_community.png', 'label': 'خدمات منزلية', 'color': Colors.brown, 'screen': const ServicesScreen()},
-    {'icon': 'assets/images/services/blood_donation.png', 'label': 'تبرع بالدم', 'color': Colors.red, 'screen': const BloodDonationScreen()},
-    {'icon': 'assets/images/services/consultation.png', 'label': 'أطباء', 'color': AppColors.primary, 'screen': const DoctorsListScreen()},
-    {'icon': 'assets/images/services/laboratory.png', 'label': 'مختبرات', 'color': AppColors.purple, 'screen': const LabsListScreen()},
-    {'icon': 'assets/images/services/health_tips.png', 'label': 'صحة', 'color': AppColors.pink, 'screen': const HealthDashboard()},
-    {'icon': 'assets/images/services/wallet.png', 'label': 'محفظة', 'color': AppColors.amber, 'screen': const WalletScreen()},
-    {'icon': 'assets/images/services/medical_records.png', 'label': 'استشارة', 'color': AppColors.teal, 'screen': const ConsultationScreen()},
-    {'icon': 'assets/images/services/map_location.png', 'label': 'بالقرب منك', 'color': Colors.orange, 'screen': const InteractiveMapScreen()},
+    {'icon': ImageKit.pharmacyIcon, 'label': 'صيدلية', 'color': AppColors.success, 'screen': const MedicinesScreen()},
+    {'icon': ImageKit.emergencyIcon, 'label': 'طوارئ', 'color': AppColors.error, 'screen': const EmergencyNumbers()},
+    {'icon': ImageKit.homeMedical, 'label': 'خدمات منزلية', 'color': Colors.brown, 'screen': const ServicesScreen()},
+    {'icon': ImageKit.donateBlood, 'label': 'تبرع بالدم', 'color': Colors.red, 'screen': const BloodDonationScreen()},
+    {'icon': ImageKit.maleDoctorIcon, 'label': 'أطباء', 'color': AppColors.primary, 'screen': const DoctorsListScreen()},
+    {'icon': ImageKit.lab1, 'label': 'مختبرات', 'color': AppColors.purple, 'screen': const LabsListScreen()},
+    {'icon': ImageKit.medicine1, 'label': 'صحة', 'color': AppColors.pink, 'screen': const HealthDashboard()},
+    {'icon': ImageKit.cartIcon, 'label': 'محفظة', 'color': AppColors.amber, 'screen': const WalletScreen()},
+    {'icon': ImageKit.medicalIcon, 'label': 'استشارة', 'color': AppColors.teal, 'screen': const ConsultationScreen()},
+    {'icon': ImageKit.notificationIcon, 'label': 'بالقرب منك', 'color': Colors.orange, 'screen': const InteractiveMapScreen()},
+    {'icon': ImageKit.placeholder, 'label': 'تأمين', 'color': Colors.blue, 'screen': const InsuranceCompanies()},
   ];
 
-  // ✅ الإحصائيات
   final List<Map<String, dynamic>> _stats = [
     {'icon': Icons.local_fire_department, 'value': '2,450', 'label': 'سعرة حرارية', 'color': Colors.orange, 'subtitle': 'اليوم'},
     {'icon': Icons.directions_walk, 'value': '8,542', 'label': 'خطوة', 'color': Colors.green, 'subtitle': 'اليوم'},
@@ -76,7 +76,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'icon': Icons.favorite, 'value': '72', 'label': 'نبضة/دقيقة', 'color': Colors.red, 'subtitle': 'الآن'},
   ];
 
-  // ✅ النصائح اليومية
   final List<Map<String, dynamic>> _dailyTips = [
     {'title': 'شرب الماء', 'subtitle': '8 أكواب يومياً', 'icon': Icons.water_drop, 'color': AppColors.info, 'content': 'شرب 8 أكواب من الماء يومياً يحسن صحة البشرة ويساعد في التخلص من السموم ويحسن وظائف الكلى.'},
     {'title': 'المشي', 'subtitle': '30 دقيقة يومياً', 'icon': Icons.directions_walk, 'color': AppColors.success, 'content': 'المشي 30 دقيقة يومياً يقلل خطر أمراض القلب والسكري ويعزز الصحة النفسية ويحسن جودة النوم.'},
@@ -84,7 +83,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'title': 'الفواكه', 'subtitle': '5 حصص يومياً', 'icon': Icons.apple, 'color': AppColors.warning, 'content': 'تناول 5 حصص من الفواكه والخضار يومياً يوفر الفيتامينات والمعادن الضرورية للجسم ويعزز المناعة.'},
   ];
 
-  // ✅ المنتجات
   final List<Map<String, dynamic>> _products = [
     {'name': 'باراسيتامول 500mg', 'price': 500, 'image': ImageKit.medicine1, 'category': 'مسكنات', 'discount': 20},
     {'name': 'فيتامين د 1000IU', 'price': 1200, 'image': ImageKit.medicine2, 'category': 'فيتامينات', 'discount': 15},
@@ -96,7 +94,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'name': 'إيبوبروفين 400mg', 'price': 750, 'image': ImageKit.medicine4, 'category': 'مسكنات', 'discount': 5},
   ];
 
-  // ✅ مستشفيات مميزة
   final List<Map<String, dynamic>> _featuredHospitals = [
     {'id': '1', 'name': 'مستشفى 22 مايو', 'location': 'صنعاء', 'image': ImageKit.hospital1, 'rating': 4.9, 'phone': '01-234571', 'specialty': 'عام', 'open': true},
     {'id': '2', 'name': 'مستشفى آزال', 'location': 'صنعاء', 'image': ImageKit.hospital2, 'rating': 4.8, 'phone': '01-234572', 'specialty': 'خاص', 'open': true},
@@ -106,7 +103,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'id': '6', 'name': 'مستشفى الثورة العام', 'location': 'صنعاء', 'image': ImageKit.hospital6, 'rating': 4.5, 'phone': '01-234576', 'specialty': 'حكومي', 'open': true},
   ];
 
-  // ✅ مختبرات مميزة
   final List<Map<String, dynamic>> _featuredLabs = [
     {'id': '1', 'name': 'مختبرات الرازي', 'location': 'صنعاء - باب اليمن', 'image': ImageKit.lab1, 'rating': 4.9, 'phone': '01-234567', 'open': true},
     {'id': '2', 'name': 'مختبرات العولقي', 'location': 'صنعاء - شارع الستين', 'image': ImageKit.lab2, 'rating': 4.8, 'phone': '01-234568', 'open': true},
@@ -116,7 +112,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'id': '6', 'name': 'مختبرات اليمن الحديثة', 'location': 'صنعاء - شارع الزبيري', 'image': ImageKit.lab3, 'rating': 4.4, 'phone': '01-234572', 'open': true},
   ];
 
-  // ✅ صيدليات مميزة
   final List<Map<String, dynamic>> _featuredPharmacies = [
     {'id': '1', 'name': 'صيدلية ابن حيان', 'location': 'صنعاء - شارع حدة', 'image': ImageKit.pharmacy1, 'rating': 4.9, 'phone': '01-234580', 'open': true},
     {'id': '2', 'name': 'صيدلية عالم الصيدلة', 'location': 'صنعاء - شارع الستين', 'image': ImageKit.pharmacy2, 'rating': 4.8, 'phone': '01-234581', 'open': true},
@@ -126,7 +121,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'id': '6', 'name': 'صيدلية الأمانة', 'location': 'صنعاء - التحرير', 'image': ImageKit.pharmacy3, 'rating': 4.4, 'phone': '01-234585', 'open': true},
   ];
 
-  // ✅ مقالات صحية
   final List<Map<String, dynamic>> _healthArticles = [
     {'title': 'فوائد المشي اليومي', 'category': 'صحة عامة', 'time': 'منذ ساعة', 'image': ImageKit.morningWalk},
     {'title': 'نصائح لتقوية المناعة', 'category': 'تغذية', 'time': 'منذ 3 ساعات', 'image': ImageKit.immuneBoost},
@@ -134,7 +128,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'title': 'العناية بالبشرة في الصيف', 'category': 'جلدية', 'time': 'منذ يوم', 'image': ImageKit.skinCare},
   ];
 
-  // ✅ منشورات المجتمع
   final List<Map<String, dynamic>> _communityPosts = [
     {'id': 1, 'author': 'د. سارة العمري', 'avatar': 'س', 'image': ImageKit.skinCare, 'title': 'نصائح للعناية بالبشرة', 'content': 'مع حلول فصل الصيف، احرصي على ترطيب بشرتك واستخدام واقي الشمس.', 'likes': 120, 'comments': 15, 'shares': 8, 'time': 'منذ ساعة', 'liked': false, 'commentList': ['نصائح رائعة!', 'شكراً دكتورة', 'مفيد جداً']},
     {'id': 2, 'author': 'د. خالد النخلاني', 'avatar': 'خ', 'image': ImageKit.morningWalk, 'title': 'فوائد المشي الصباحي', 'content': 'المشي 30 دقيقة يومياً يقلل خطر أمراض القلب والسكري.', 'likes': 95, 'comments': 8, 'shares': 5, 'time': 'منذ 3 ساعات', 'liked': false, 'commentList': ['معلومة قيمة', 'سأطبقها']},
@@ -143,7 +136,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'id': 5, 'author': 'د. محمد العلاي', 'avatar': 'م', 'image': ImageKit.sleepTips, 'title': 'نصائح النوم الصحي', 'content': 'النوم 7-8 ساعات يومياً يحسن الصحة النفسية والجسدية.', 'likes': 150, 'comments': 12, 'shares': 7, 'time': 'منذ يومين', 'liked': false, 'commentList': ['سأطبق هذه النصائح', 'مفيد']},
   ];
 
-  // ✅ متغيرات الحركة
   double _caloriesAnim = 0;
   double _stepsAnim = 0;
   double _sleepAnim = 0;
@@ -155,6 +147,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     _initializeData();
   }
 
+  // ✅ تحميل البيانات مع معالجة الأخطاء
   Future<void> _initializeData() async {
     try {
       _loadUserData();
@@ -179,6 +172,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     }
   }
 
+  // ✅ تحميل بيانات المستخدم مع try-catch
   void _loadUserData() {
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -201,6 +195,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     }
   }
 
+  // ✅ تحميل درجة الصحة مع try-catch
   Future<void> _loadHealthScore() async {
     try {
       final score = await HealthScoreService.calculateHealthScore();
@@ -228,6 +223,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     });
   }
 
+  // ✅ تحديث البيانات مع try-catch
   Future<void> _refreshData() async {
     setState(() => _isLoading = true);
     try {
@@ -255,7 +251,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
   }
 
-  // ✅ دوال المجتمع
   void _toggleLike(int index) {
     setState(() {
       _communityPosts[index]['liked'] = !_communityPosts[index]['liked'];
@@ -491,7 +486,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  // ✅ دوال بناء الواجهة
   Widget _buildShimmerLoader() {
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -639,9 +633,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   @override
-  bool get wantKeepAlive => true;
-
-  @override
   Widget build(BuildContext context) {
     super.build(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -720,14 +711,14 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                         onTap: () => _goTo(context, const NotificationsScreen()),
                         child: Container(
                           padding: const EdgeInsets.all(8),
-                          child: _buildServiceIcon('assets/images/services/notifications.png', isDark ? Colors.white : Colors.black87, size: 24),
+                          child: _buildServiceIcon(ImageKit.notificationIcon, isDark ? Colors.white : Colors.black87, size: 24),
                         ),
                       ),
                       GestureDetector(
                         onTap: () => _goTo(context, const CartScreen()),
                         child: Container(
                           padding: const EdgeInsets.all(8),
-                          child: _buildServiceIcon('assets/images/services/wallet.png', isDark ? Colors.white : Colors.black87, size: 24),
+                          child: _buildServiceIcon(ImageKit.cartIcon, isDark ? Colors.white : Colors.black87, size: 24),
                         ),
                       ),
                     ],
@@ -800,7 +791,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  // ✅ باقي دوال البناء...
   Widget _buildSearchBar(bool isDark) {
     return GestureDetector(
       onTap: () {
@@ -824,15 +814,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         ),
         child: Row(
           children: [
-            Image.asset(
-              'assets/images/services/search.png',
-              width: 22,
-              height: 22,
-              color: isDark ? Colors.grey[400] : Colors.grey[500],
-              errorBuilder: (context, error, stackTrace) {
-                return Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey[500]);
-              },
-            ),
+            Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey[500], size: 22),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -843,15 +825,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                 ),
               ),
             ),
-            Image.asset(
-              'assets/images/services/mic.png',
-              width: 22,
-              height: 22,
-              color: isDark ? Colors.grey[500] : Colors.grey[400],
-              errorBuilder: (context, error, stackTrace) {
-                return Icon(Icons.mic, color: isDark ? Colors.grey[500] : Colors.grey[400]);
-              },
-            ),
+            Icon(Icons.mic, color: isDark ? Colors.grey[500] : Colors.grey[400], size: 22),
           ],
         ),
       ),
@@ -931,7 +905,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  // ✅ تبسيط باقي الدوال لتجنب الأخطاء
   Widget _buildStatsRow() {
     final statsData = [
       {'icon': Icons.local_fire_department, 'value': _caloriesAnim, 'label': 'سعرة حرارية', 'color': Colors.orange, 'subtitle': 'اليوم', 'format': 'int'},
@@ -1971,4 +1944,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       ),
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

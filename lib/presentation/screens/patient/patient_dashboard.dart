@@ -3,8 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/constants/imagekit.dart';
-import 'package:sehatak/presentation/widgets/common/app_image.dart';
+import 'package:sehatak/core/services/image_service.dart';
 import 'package:sehatak/presentation/screens/blood_pressure/blood_pressure_screen.dart';
 import 'package:sehatak/presentation/screens/glucose_tracker/glucose_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/weight_tracker/weight_tracker_screen.dart';
@@ -39,44 +38,33 @@ class _PatientDashboardState extends State<PatientDashboard> {
 
   // ✅ الإحصائيات
   final List<Map<String, dynamic>> _stats = [
-    {'label': 'الزيارات', 'value': '12', 'icon': 'assets/images/services/calendar_booking.png', 'color': AppColors.primary},
-    {'label': 'الأدوية', 'value': '5', 'icon': 'assets/images/services/medications.png', 'color': AppColors.success},
-    {'label': 'التحاليل', 'value': '8', 'icon': 'assets/images/services/laboratory.png', 'color': AppColors.purple},
-    {'label': 'التقارير', 'value': '6', 'icon': 'assets/images/tracking/medical_report.png', 'color': AppColors.info},
+    {'label': 'الزيارات', 'value': '12', 'icon': Icons.calendar_month, 'color': AppColors.primary},
+    {'label': 'الأدوية', 'value': '5', 'icon': Icons.medication, 'color': AppColors.success},
+    {'label': 'التحاليل', 'value': '8', 'icon': Icons.science, 'color': AppColors.purple},
+    {'label': 'التقارير', 'value': '6', 'icon': Icons.description, 'color': AppColors.info},
   ];
 
   // ✅ المؤشرات الحيوية
   final List<Map<String, dynamic>> _vitals = [
-    {'title': 'ضغط الدم', 'value': '120/80', 'status': 'طبيعي', 'icon': 'assets/images/tracking/blood_pressure.png', 'color': AppColors.error, 'screen': const BloodPressureScreen()},
-    {'title': 'معدل السكر', 'value': '95 mg/dL', 'status': 'طبيعي', 'icon': 'assets/images/tracking/blood_sugar.png', 'color': AppColors.warning, 'screen': const GlucoseTrackerScreen()},
-    {'title': 'الوزن', 'value': '75 kg', 'status': 'مثالي', 'icon': 'assets/images/tracking/weight_tracking.png', 'color': AppColors.info, 'screen': const WeightTrackerScreen()},
-    {'title': 'الأدوية', 'value': '3', 'status': 'نشط', 'icon': 'assets/images/services/medications.png', 'color': AppColors.success, 'screen': const MedicationReminderScreen()},
-    {'title': 'فحص البلاس', 'value': '98%', 'status': 'ممتاز', 'icon': 'assets/images/tracking/fitness.png', 'color': AppColors.teal, 'screen': const PulseOximeterScreen()},
-  ];
-
-  // ✅ الخدمات الصحية
-  final List<Map<String, dynamic>> _healthServices = [
-    {'icon': 'assets/images/tracking/blood_pressure.png', 'label': 'ضغط الدم', 'color': AppColors.error, 'screen': const BloodPressureScreen()},
-    {'icon': 'assets/images/tracking/blood_sugar.png', 'label': 'تتبع السكر', 'color': AppColors.warning, 'screen': const GlucoseTrackerScreen()},
-    {'icon': 'assets/images/tracking/weight_tracking.png', 'label': 'الوزن', 'color': AppColors.info, 'screen': const WeightTrackerScreen()},
-    {'icon': 'assets/images/services/medications.png', 'label': 'الأدوية', 'color': AppColors.success, 'screen': const MedicationReminderScreen()},
-    {'icon': 'assets/images/tracking/fitness.png', 'label': 'البلاس', 'color': AppColors.teal, 'screen': const PulseOximeterScreen()},
-    {'icon': 'assets/images/tracking/medical_report.png', 'label': 'التقارير', 'color': AppColors.primary, 'screen': const MedicalReportsScreen()},
-    {'icon': 'assets/images/services/calendar_booking.png', 'label': 'المواعيد', 'color': AppColors.purple, 'screen': const PatientAppointments()},
+    {'title': 'ضغط الدم', 'value': '120/80', 'status': 'طبيعي', 'icon': Icons.favorite, 'color': AppColors.error, 'screen': const BloodPressureScreen()},
+    {'title': 'معدل السكر', 'value': '95 mg/dL', 'status': 'طبيعي', 'icon': Icons.biotech, 'color': AppColors.warning, 'screen': const GlucoseTrackerScreen()},
+    {'title': 'الوزن', 'value': '75 kg', 'status': 'مثالي', 'icon': Icons.monitor_weight, 'color': AppColors.info, 'screen': const WeightTrackerScreen()},
+    {'title': 'الأدوية', 'value': '3', 'status': 'نشط', 'icon': Icons.medication, 'color': AppColors.success, 'screen': const MedicationReminderScreen()},
+    {'title': 'فحص البلاس', 'value': '98%', 'status': 'ممتاز', 'icon': Icons.sensors, 'color': AppColors.teal, 'screen': const PulseOximeterScreen()},
   ];
 
   // ✅ آخر المواعيد
   final List<Map<String, dynamic>> _recentAppointments = [
-    {'doctor': 'د. أحمد المولد', 'date': '2024-01-15', 'time': '10:00 ص', 'status': 'قادم', 'image': ImageKit.doctor1},
-    {'doctor': 'د. خالد النخلاني', 'date': '2024-01-10', 'time': '02:30 م', 'status': 'منتهي', 'image': ImageKit.doctor2},
-    {'doctor': 'د. أسماء الهندي', 'date': '2024-01-05', 'time': '09:00 ص', 'status': 'منتهي', 'image': ImageKit.doctor3},
+    {'doctor': 'د. أحمد المولد', 'date': '2024-01-15', 'time': '10:00 ص', 'status': 'قادم', 'image': "assets/images/doctors/doctor_1.png"},
+    {'doctor': 'د. خالد النخلاني', 'date': '2024-01-10', 'time': '02:30 م', 'status': 'منتهي', 'image': "assets/images/doctors/doctor_2.png"},
+    {'doctor': 'د. أسماء الهندي', 'date': '2024-01-05', 'time': '09:00 ص', 'status': 'منتهي', 'image': "assets/images/doctors/doctor_3.png"},
   ];
 
   // ✅ آخر النتائج
   final List<Map<String, dynamic>> _recentResults = [
-    {'title': 'فحص الدم الشامل', 'date': '2024-01-10', 'status': 'طبيعي', 'color': Colors.green, 'icon': 'assets/images/services/laboratory.png'},
-    {'title': 'فحص السكر التراكمي', 'date': '2024-01-05', 'status': 'مرتفع قليلاً', 'color': Colors.orange, 'icon': 'assets/images/tracking/blood_sugar.png'},
-    {'title': 'فحص الدهون', 'date': '2024-01-01', 'status': 'طبيعي', 'color': Colors.green, 'icon': 'assets/images/services/medical_records.png'},
+    {'title': 'فحص الدم الشامل', 'date': '2024-01-10', 'status': 'طبيعي', 'color': Colors.green, 'icon': Icons.science},
+    {'title': 'فحص السكر التراكمي', 'date': '2024-01-05', 'status': 'مرتفع قليلاً', 'color': Colors.orange, 'icon': Icons.biotech},
+    {'title': 'فحص الدهون', 'date': '2024-01-01', 'status': 'طبيعي', 'color': Colors.green, 'icon': Icons.medical_services},
   ];
 
   @override
@@ -95,23 +83,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
   void dispose() {
     _scrollController.dispose();
     super.dispose();
-  }
-
-  // ✅ دالة لعرض الأيقونات المحلية
-  Widget _buildLocalIcon(String iconPath, {double size = 24, Color? color}) {
-    return Image.asset(
-      iconPath,
-      width: size,
-      height: size,
-      color: color,
-      errorBuilder: (context, error, stackTrace) {
-        return Icon(
-          Icons.image,
-          size: size,
-          color: color ?? Colors.grey,
-        );
-      },
-    );
   }
 
   @override
@@ -260,11 +231,11 @@ class _PatientDashboardState extends State<PatientDashboard> {
                 _statsRow(),
                 const SizedBox(height: 20),
 
-                // 2️⃣ قسم الباقات والاشتراكات
+                // ✅ ✅ ✅ 2️⃣ قسم الباقات والاشتراكات (تم نقله هنا)
                 _buildPackagesSection(isDark),
                 const SizedBox(height: 20),
 
-                // 3️⃣ المؤشرات الحيوية
+                // 3️⃣ المؤشرات الحيوية (تم نقله بعد الباقات)
                 _sectionTitle('المؤشرات الحيوية', isDark),
                 const SizedBox(height: 10),
                 _vitalsGrid(),
@@ -273,7 +244,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
                 // 4️⃣ الخدمات الصحية
                 _sectionTitle('خدمات صحية', isDark),
                 const SizedBox(height: 10),
-                _healthServicesGrid(),
+                _healthServices(),
                 const SizedBox(height: 20),
 
                 // 5️⃣ آخر المواعيد
@@ -516,12 +487,11 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ✅ الإحصائيات (مع أيقونات محلية)
+  // ✅ الإحصائيات
   Widget _statsRow() {
     return Row(
       children: _stats.map((stat) {
         final color = stat['color'] as Color;
-        final iconPath = stat['icon'] as String;
         return Expanded(
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -532,7 +502,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
             ),
             child: Column(
               children: [
-                _buildLocalIcon(iconPath, size: 24, color: color),
+                Icon(stat['icon'] as IconData, color: color, size: 22),
                 const SizedBox(height: 4),
                 Text(
                   stat['value'] as String,
@@ -554,7 +524,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ✅ المؤشرات الحيوية (مع أيقونات محلية)
+  // ✅ المؤشرات الحيوية
   Widget _vitalsGrid() {
     return GridView.builder(
       shrinkWrap: true,
@@ -569,7 +539,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
       itemBuilder: (context, index) {
         final vital = _vitals[index];
         final color = vital['color'] as Color;
-        final iconPath = vital['icon'] as String;
         final statusColor = vital['status'] == 'طبيعي' || vital['status'] == 'مثالي' || vital['status'] == 'نشط' || vital['status'] == 'ممتاز'
             ? Colors.green
             : Colors.orange;
@@ -608,7 +577,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
                         color: color.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: _buildLocalIcon(iconPath, size: 20, color: color),
+                      child: Icon(vital['icon'] as IconData, color: color, size: 20),
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -672,8 +641,18 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ✅ الخدمات الصحية (مع أيقونات محلية)
-  Widget _healthServicesGrid() {
+  // ✅ الخدمات الصحية
+  Widget _healthServices() {
+    final services = [
+      {'icon': Icons.monitor_heart, 'label': 'ضغط الدم', 'color': AppColors.error, 'screen': const BloodPressureScreen()},
+      {'icon': Icons.biotech, 'label': 'تتبع السكر', 'color': AppColors.warning, 'screen': const GlucoseTrackerScreen()},
+      {'icon': Icons.monitor_weight, 'label': 'الوزن', 'color': AppColors.info, 'screen': const WeightTrackerScreen()},
+      {'icon': Icons.medication, 'label': 'الأدوية', 'color': AppColors.success, 'screen': const MedicationReminderScreen()},
+      {'icon': Icons.sensors, 'label': 'فحص البلاس', 'color': AppColors.teal, 'screen': const PulseOximeterScreen()},
+      {'icon': Icons.description, 'label': 'التقارير', 'color': AppColors.primary, 'screen': const MedicalReportsScreen()},
+      {'icon': Icons.calendar_month, 'label': 'المواعيد', 'color': AppColors.purple, 'screen': const PatientAppointments()},
+    ];
+
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -683,12 +662,11 @@ class _PatientDashboardState extends State<PatientDashboard> {
         crossAxisSpacing: 8,
         childAspectRatio: 0.85,
       ),
-      itemCount: _healthServices.length,
+      itemCount: services.length,
       itemBuilder: (context, index) {
-        final service = _healthServices[index];
+        final service = services[index];
         final color = service['color'] as Color;
-        final iconPath = service['icon'] as String;
-        final isPulseOximeter = service['label'] == 'البلاس';
+        final isPulseOximeter = service['label'] == 'فحص البلاس';
         return GestureDetector(
           onTap: () {
             Navigator.push(
@@ -708,7 +686,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildLocalIcon(iconPath, size: 28, color: color),
+                    Icon(service['icon'] as IconData, color: color, size: 24),
                     const SizedBox(height: 4),
                     Text(
                       service['label'] as String,
@@ -776,11 +754,22 @@ class _PatientDashboardState extends State<PatientDashboard> {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: AppImage(
-                  url: appointment['image'],
+                child: CachedNetworkImage(
+                  imageUrl: appointment['image'],
                   width: 44,
                   height: 44,
                   fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    width: 44,
+                    height: 44,
+                    color: isDark ? Colors.grey[800] : Colors.grey[200],
+                  ),
+                  errorWidget: (_, __, ___) => Container(
+                    width: 44,
+                    height: 44,
+                    color: isDark ? Colors.grey[800] : Colors.grey[200],
+                    child: Icon(Icons.person, color: isDark ? Colors.grey[600] : Colors.grey[400]),
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -839,7 +828,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
       itemBuilder: (context, index) {
         final result = _recentResults[index];
         final color = result['color'] as Color;
-        final iconPath = result['icon'] as String;
         return Container(
           margin: const EdgeInsets.only(bottom: 8),
           padding: const EdgeInsets.all(12),
@@ -862,7 +850,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
                   color: color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: _buildLocalIcon(iconPath, size: 20, color: color),
+                child: Icon(result['icon'] as IconData, color: color, size: 20),
               ),
               const SizedBox(width: 12),
               Expanded(

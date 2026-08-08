@@ -100,14 +100,68 @@ class ImageKit {
   static String get nutritionTips => "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400&h=300&fit=crop";
   
   // ============================================================
-  // 🎨 أيقونات السوشيال ميديا (SVG من assets)
+  // 🎨 أيقونات الخدمات (PNG) - جميع الأيقونات الجديدة
   // ============================================================
-  // استخدام المسارات المحلية بدلاً من ImageKit
-  static const String socialGoogle = 'assets/icons/social/google.svg';
-  static const String socialApple = 'assets/icons/social/apple.svg';
-  static const String socialInstagram = 'assets/icons/social/instagram.svg';
-  static const String socialTwitter = 'assets/icons/social/x_twitter.svg';
-  static const String socialFacebook = 'assets/icons/social/facebook.svg';
-  static const String socialYoutube = 'assets/icons/social/youtube.svg';
-  static const String socialTiktok = 'assets/icons/social/tiktok.svg';
+  
+  // ✅ أيقونات الخدمات الأساسية (للتوافق مع الكود القديم)
+  static String get pharmacyIcon => "$imagesBase/services/pharmacy.png";
+  static String get emergencyIcon => "$imagesBase/services/emergency.png";
+  static String get homeMedical => "$imagesBase/services/medical_community.png";
+  static String get donateBlood => "$imagesBase/services/blood_donation.png";
+  static String get maleDoctorIcon => "$imagesBase/services/consultation.png";
+  static String get medicalIcon => "$imagesBase/services/medical_records.png";
+  static String get notificationIcon => "$imagesBase/services/notifications.png";
+  static String get cartIcon => "$imagesBase/services/wallet.png";
+  static String get placeholder => "$imagesBase/services/health_tips.png";
+  static String get searchIcon => "$imagesBase/services/medical_records.png";
+  static String get micIcon => "$imagesBase/services/consultation.png";
+  
+  // ✅ أيقونات الخدمات السريعة
+  static String get fastPharmacy => "$imagesBase/services/pharmacy.png";
+  static String get fastEmergency => "$imagesBase/services/emergency.png";
+  static String get fastHomeServices => "$imagesBase/services/medical_community.png";
+  static String get fastDonateBlood => "$imagesBase/services/blood_donation.png";
+  static String get serviceDoctors => "$imagesBase/services/consultation.png";
+  static String get serviceLabs => "$imagesBase/services/laboratory.png";
+  static String get serviceHealth => "$imagesBase/services/health_tips.png";
+  static String get serviceWallet => "$imagesBase/services/wallet.png";
+  static String get serviceAppointments => "$imagesBase/services/calendar_booking.png";
+  static String get serviceNearby => "$imagesBase/services/map_location.png";
+  static String get serviceInsurance => "$imagesBase/services/health_insurance.png";
+  static String get serviceConsultation => "$imagesBase/services/video_consultation.png";
+  
+  // ============================================================
+  // 🎨 أيقونات الدردشة (Chat) - 7 أيقونات PNG
+  // ============================================================
+  static String get chatAudioRecord => "$imagesBase/chat/audio_record.png";
+  static String get chatCalendarBooking => "$imagesBase/chat/calendar_booking.png";
+  static String get chatBubble => "$imagesBase/chat/chat_bubble.png";
+  static String get chatMicrophone => "$imagesBase/chat/microphone.png";
+  static String get chatPhoneCall => "$imagesBase/chat/phone_call.png";
+  static String get chatPlayButton => "$imagesBase/chat/play_button.png";
+  static String get chatVideoCall => "$imagesBase/chat/video_call.png";
+  
+  // ============================================================
+  // 🎨 أيقونات السوشيال ميديا (Social) - 7 أيقونات PNG
+  // ============================================================
+  static String get socialGoogle => "$imagesBase/social/google.png";
+  static String get socialApple => "$imagesBase/social/apple.png";
+  static String get socialInstagram => "$imagesBase/social/instagram.png";
+  static String get socialTwitter => "$imagesBase/social/x_twitter.png";
+  static String get socialFacebook => "$imagesBase/social/facebook.png";
+  static String get socialYoutube => "$imagesBase/social/youtube.png";
+  static String get socialTiktok => "$imagesBase/social/tiktok.png";
+  
+  // ============================================================
+  // 🎨 أيقونات التتبع (Tracking) - 9 أيقونات PNG
+  // ============================================================
+  static String get trackingAmbulance => "$imagesBase/tracking/ambulance.png";
+  static String get trackingBloodPressure => "$imagesBase/tracking/blood_pressure.png";
+  static String get trackingBloodSugar => "$imagesBase/tracking/blood_sugar.png";
+  static String get trackingFitness => "$imagesBase/tracking/fitness.png";
+  static String get trackingMedicalReport => "$imagesBase/tracking/medical_report.png";
+  static String get trackingMentalHealth => "$imagesBase/tracking/mental_health.png";
+  static String get trackingNutrition => "$imagesBase/tracking/nutrition.png";
+  static String get trackingVaccination => "$imagesBase/tracking/vaccination.png";
+  static String get trackingWeight => "$imagesBase/tracking/weight_tracking.png";
 }

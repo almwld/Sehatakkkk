@@ -50,7 +50,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon("assets/images/services/notifications.png"_off, size: 60, color: Colors.grey),
+                  Icon(Icons.notifications_off, size: 60, color: Colors.grey),
                   SizedBox(height: 16),
                   Text('لا توجد إشعارات', style: TextStyle(color: Colors.grey)),
                 ],
@@ -86,7 +86,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         color: AppColors.primary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Icon("assets/images/services/notifications.png", color: AppColors.primary),
+                      child: const Icon(Icons.notifications, color: AppColors.primary),
                     ),
                     const SizedBox(width: 12),
                     Expanded(

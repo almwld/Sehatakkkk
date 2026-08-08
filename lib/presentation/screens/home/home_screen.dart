@@ -22,12 +22,9 @@ import 'package:sehatak/presentation/screens/consultation/consultation_screen.da
 import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
 import 'package:sehatak/presentation/screens/insurance/insurance_companies.dart';
 import 'package:sehatak/presentation/screens/health/health_dashboard.dart';
-import 'package:sehatak/presentation/screens/home/tabs/home_tab.dart';  // ✅ الاستيراد الصحيح
+import 'package:sehatak/presentation/screens/home/tabs/home_tab.dart';
 import 'package:sehatak/app_router.dart';
 
-// ============================================================
-// 📱 HomeScreen - الشاشة الرئيسية
-// ============================================================
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -57,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     }
 
     _screens = [
-      HomeTab(scrollController: _scrollControllers[0]),  // ✅ الآن يعمل بشكل صحيح
+      HomeTab(scrollController: _scrollControllers[0]),
       const DoctorsListScreen(),
       const PharmacyScreen(),
       const ChatScreen(),
