@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
-import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -58,7 +57,7 @@ class ProfileScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const PatientProfile()),
+                  MaterialPageRoute(builder: (_) => const AuthScreen()),
                 );
               },
               style: ElevatedButton.styleFrom(
@@ -70,6 +69,7 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 12),
             OutlinedButton(
               onPressed: () {
+                FirebaseAuth.instance.signOut();
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (_) => const AuthScreen()),
