@@ -22,7 +22,7 @@ import 'package:sehatak/presentation/screens/consultation/consultation_screen.da
 import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
 import 'package:sehatak/presentation/screens/insurance/insurance_companies.dart';
 import 'package:sehatak/presentation/screens/health/health_dashboard.dart';
-import 'package:sehatak/presentation/screens/home/tabs/home_tab.dart';  // ✅ هذا هو الـ import المطلوب
+import 'package:sehatak/presentation/screens/home/tabs/home_tab.dart';  // ✅ الاستيراد الصحيح
 import 'package:sehatak/app_router.dart';
 
 // ============================================================
@@ -57,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     }
 
     _screens = [
-      HomeTab(scrollController: _scrollControllers[0]),  // ✅ HomeTab معرف الآن
+      HomeTab(scrollController: _scrollControllers[0]),  // ✅ الآن يعمل بشكل صحيح
       const DoctorsListScreen(),
       const PharmacyScreen(),
       const ChatScreen(),
