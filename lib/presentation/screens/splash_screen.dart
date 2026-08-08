@@ -230,7 +230,7 @@ class _SplashScreenState extends State<SplashScreen>
 
                               SizedBox(height: screenHeight * 0.08),
 
-                              // ✅ نص التحميل
+                              // ✅ نص التحميل فقط (بدون أرقام)
                               const Text(
                                 'جاري التحميل...',
                                 style: TextStyle(
@@ -243,11 +243,10 @@ class _SplashScreenState extends State<SplashScreen>
                               SizedBox(height: screenHeight * 0.05),
 
                               // ============================================================
-                              // ✅ "صحتك أولاً" - إصلاح التقطيع
+                              // ✅ "صحتك أولاً"
                               // ============================================================
                               Column(
                                 children: [
-                                  // ✅ استخدام Text مع مسافات موحدة
                                   const Text(
                                     'صحتك أولاً',
                                     textAlign: TextAlign.center,
@@ -287,7 +286,7 @@ class _SplashScreenState extends State<SplashScreen>
               ),
 
               // ============================================================
-              // ✅ خط تحميل متحرك في أسفل الشاشة
+              // ✅ خط تحميل متحرك في أسفل الشاشة (بدون أرقام)
               // ============================================================
               Positioned(
                 bottom: 0,
@@ -296,49 +295,20 @@ class _SplashScreenState extends State<SplashScreen>
                 child: AnimatedBuilder(
                   animation: _loadingCtrl,
                   builder: (context, child) {
-                    return Column(
-                      children: [
-                        // ✅ خط التحميل المتحرك
-                        ClipRRect(
-                          borderRadius: const BorderRadius.only(
-                            bottomLeft: Radius.circular(0),
-                            bottomRight: Radius.circular(0),
-                          ),
-                          child: LinearProgressIndicator(
-                            value: _loadingAnimation.value,
-                            backgroundColor: Colors.white.withOpacity(0.2),
+                    return Container(
+                      height: 3,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                      ),
+                      child: FractionallySizedBox(
+                        widthFactor: _loadingAnimation.value,
+                        child: Container(
+                          decoration: BoxDecoration(
                             color: Colors.white,
-                            minHeight: 3,
+                            borderRadius: BorderRadius.circular(2),
                           ),
                         ),
-                        // ✅ نسبة التحميل
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 6,
-                            horizontal: 16,
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                '${(_loadingAnimation.value * 100).toInt()}%',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: Colors.white.withOpacity(0.5),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              Text(
-                                'جاري التحميل...',
-                                style: TextStyle(
-                                  fontSize: 9,
-                                  color: Colors.white.withOpacity(0.3),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                      ),
                     );
                   },
                 ),
