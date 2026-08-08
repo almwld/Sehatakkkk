@@ -10,11 +10,10 @@ class LanguageScreen extends StatefulWidget {
 
 class _LanguageScreenState extends State<LanguageScreen> {
   String _selectedLanguage = 'ar';
-
   final List<Map<String, dynamic>> _languages = [
-    {'code': 'ar', 'name': 'العربية', 'native': 'العربية'},
-    {'code': 'en', 'name': 'English', 'native': 'English'},
-    {'code': 'fr', 'name': 'Français', 'native': 'Français'},
+    {'code': 'ar', 'name': 'العربية', 'native': 'العربية', 'flag': '🇸🇦', 'color': Colors.green},
+    {'code': 'en', 'name': 'English', 'native': 'English', 'flag': '🇬🇧', 'color': Colors.blue},
+    {'code': 'fr', 'name': 'Français', 'native': 'Français', 'flag': '🇫🇷', 'color': Colors.blue},
   ];
 
   @override
@@ -24,7 +23,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('اللغة'),
+        title: const Text('اللغة', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -53,34 +52,54 @@ class _LanguageScreenState extends State<LanguageScreen> {
               ],
             ),
             child: ListTile(
+              leading: Text(
+                lang['flag'],
+                style: const TextStyle(fontSize: 32),
+              ),
               title: Text(
-                lang['name'] as String,
+                lang['name'],
                 style: TextStyle(
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   color: isDark ? Colors.white : Colors.black87,
                 ),
               ),
               subtitle: Text(
-                lang['native'] as String,
+                lang['native'],
                 style: TextStyle(
                   color: isDark ? Colors.grey[400] : Colors.grey[600],
                 ),
               ),
               trailing: isSelected
-                  ? const Icon(Icons.check_circle, color: AppColors.primary)
+                  ? Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.check,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                    )
                   : null,
               onTap: () {
                 setState(() => _selectedLanguage = lang['code'] as String);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('تم تغيير اللغة إلى ${lang['name']}'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
+                _showMessage('تم تغيير اللغة إلى ${lang['name']}');
               },
             ),
           );
         },
+      ),
+    );
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('✅ $message'),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 2),
       ),
     );
   }

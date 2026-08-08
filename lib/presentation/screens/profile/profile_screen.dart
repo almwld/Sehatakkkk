@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/settings/settings_screen.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
+import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -13,28 +14,48 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLoading = false;
+  bool _isEditing = false;
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
 
-  Future<void> _signOut() async {
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  void _loadUserData() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      _nameController.text = user.displayName ?? '';
+      _phoneController.text = user.phoneNumber ?? '';
+    }
+  }
+
+  Future<void> _updateProfile() async {
     setState(() => _isLoading = true);
     try {
-      await FirebaseAuth.instance.signOut();
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const AuthScreen()),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await user.updateDisplayName(_nameController.text.trim());
+        await user.updatePhoneNumber(_phoneController.text.trim());
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('خطأ في تسجيل الخروج: $e'),
-            backgroundColor: Colors.red,
+          const SnackBar(
+            content: Text('✅ تم تحديث الملف الشخصي بنجاح'),
+            backgroundColor: Colors.green,
           ),
         );
+        setState(() => _isEditing = false);
       }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ خطأ: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      setState(() => _isLoading = false);
     }
   }
 
@@ -46,19 +67,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('الملف الشخصي'),
+        title: const Text('الملف الشخصي', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const SettingsScreen()),
-              );
-            },
+            icon: Icon(_isEditing ? Icons.close : Icons.edit_outlined),
+            onPressed: () => setState(() => _isEditing = !_isEditing),
           ),
         ],
       ),
@@ -69,31 +85,79 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 children: [
                   // ✅ صورة الملف الشخصي
-                  CircleAvatar(
-                    radius: 60,
-                    backgroundColor: AppColors.primary.withOpacity(0.1),
-                    child: Text(
-                      user?.displayName?.isNotEmpty == true
-                          ? user!.displayName![0].toUpperCase()
-                          : 'م',
-                      style: const TextStyle(
-                        fontSize: 48,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
+                  Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 60,
+                        backgroundColor: AppColors.primary.withOpacity(0.1),
+                        child: Text(
+                          user?.displayName?.isNotEmpty == true
+                              ? user!.displayName![0].toUpperCase()
+                              : 'م',
+                          style: const TextStyle(
+                            fontSize: 48,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
+                        ),
                       ),
-                    ),
+                      if (_isEditing)
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: AppColors.primary,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.2),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('📸 جاري تطوير تغيير الصورة'),
+                                    backgroundColor: Colors.blue,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                   const SizedBox(height: 16),
 
                   // ✅ الاسم
-                  Text(
-                    user?.displayName ?? 'مستخدم',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : Colors.black87,
+                  if (_isEditing)
+                    TextField(
+                      controller: _nameController,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        hintText: 'أدخل اسمك',
+                      ),
+                    )
+                  else
+                    Text(
+                      user?.displayName ?? 'مستخدم',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
                     ),
-                  ),
                   const SizedBox(height: 4),
 
                   // ✅ البريد الإلكتروني
@@ -104,7 +168,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       color: isDark ? Colors.grey[400] : Colors.grey[600],
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 8),
 
                   // ✅ معرف المستخدم
                   Container(
@@ -122,27 +186,54 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
+
+                  // ✅ زر حفظ التغييرات
+                  if (_isEditing)
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _updateProfile,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'حفظ التغييرات',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 24),
 
                   // ✅ قائمة الخيارات
                   _buildProfileOption(
                     icon: Icons.person_outline,
                     title: 'تعديل الملف الشخصي',
                     subtitle: 'تحديث بياناتك الشخصية',
+                    onTap: () => setState(() => _isEditing = true),
+                    isDark: isDark,
+                  ),
+                  _buildProfileOption(
+                    icon: Icons.medical_services_outlined,
+                    title: 'السجل الطبي',
+                    subtitle: 'عرض تاريخك الطبي',
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('جاري تطوير تعديل الملف الشخصي'),
-                          backgroundColor: Colors.blue,
-                        ),
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const PatientProfile()),
                       );
                     },
                     isDark: isDark,
                   ),
                   _buildProfileOption(
-                    icon: Icons.notifications_outlined,
-                    title: 'الإشعارات',
-                    subtitle: 'إدارة إعدادات الإشعارات',
+                    icon: Icons.settings_outlined,
+                    title: 'الإعدادات',
+                    subtitle: 'إدارة إعدادات التطبيق',
                     onTap: () {
                       Navigator.push(
                         context,
@@ -151,63 +242,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     },
                     isDark: isDark,
                   ),
-                  _buildProfileOption(
-                    icon: Icons.security_outlined,
-                    title: 'الخصوصية والأمان',
-                    subtitle: 'إدارة إعدادات الخصوصية',
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('جاري تطوير إعدادات الخصوصية'),
-                          backgroundColor: Colors.blue,
-                        ),
-                      );
-                    },
-                    isDark: isDark,
-                  ),
-                  _buildProfileOption(
-                    icon: Icons.help_outline,
-                    title: 'مركز المساعدة',
-                    subtitle: 'الأسئلة الشائعة والدعم',
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('جاري تطوير مركز المساعدة'),
-                          backgroundColor: Colors.blue,
-                        ),
-                      );
-                    },
-                    isDark: isDark,
-                  ),
-                  _buildProfileOption(
-                    icon: Icons.info_outline,
-                    title: 'عن التطبيق',
-                    subtitle: 'الإصدار 1.1.0',
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('صحتك - الإصدار 1.1.0'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                    },
-                    isDark: isDark,
-                  ),
-
                   const SizedBox(height: 32),
 
                   // ✅ زر تسجيل الخروج
                   SizedBox(
                     width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: _signOut,
-                      icon: const Icon(Icons.logout, color: Colors.white),
+                    child: OutlinedButton.icon(
+                      onPressed: () => _showLogoutDialog(),
+                      icon: const Icon(Icons.logout, color: Colors.red),
                       label: const Text(
                         'تسجيل الخروج',
-                        style: TextStyle(color: Colors.white, fontSize: 16),
+                        style: TextStyle(color: Colors.red, fontSize: 16),
                       ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.red),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -219,7 +267,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   // ✅ حقوق النشر
                   Text(
-                    '© 2026 Sehatak Platform. All rights reserved.',
+                    '© 2026 Sehatak Platform',
                     style: TextStyle(
                       fontSize: 12,
                       color: isDark ? Colors.grey[600] : Colors.grey[400],
@@ -269,6 +317,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
         onTap: onTap,
+      ),
+    );
+  }
+
+  void _showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: const Text('تسجيل الخروج'),
+        content: const Text('هل أنت متأكد من رغبتك في تسجيل الخروج؟'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('إلغاء'),
+          ),
+          TextButton(
+            onPressed: () async {
+              try {
+                await FirebaseAuth.instance.signOut();
+                if (mounted) {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AuthScreen()),
+                  );
+                }
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('❌ خطأ: ${e.toString()}'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            child: const Text('تسجيل الخروج'),
+          ),
+        ],
       ),
     );
   }
