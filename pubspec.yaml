@@ -116,8 +116,8 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # ✅ تضمين كافة المجلدات الرئيسية والفرعية الخاصة بالصور والأيقونات
   assets:
+    # ✅ المجلدات الرئيسية
     - assets/
     - assets/icons/
     - assets/svg/
@@ -125,15 +125,35 @@ flutter:
     - assets/delivery/
     - assets/animations/
     - assets/audio/
+    
+    # ✅ صور البانرات
     - banners/
+    
+    # ✅ صور الأطباء
     - doctors/
+    
+    # ✅ صور الأدوية
     - medicines/
+    
+    # ✅ صور الصيدليات
     - pharmacies/
+    
+    # ✅ صور المختبرات
     - Labs/
+    
+    # ✅ صور المستشفيات
     - hospitals/
+    
+    # ✅ صور التوصيل
     - delivery/
+    
+    # ✅ صور المنشورات
     - posts/
+    
+    # ✅ صور المحافظ
     - Wallets/
+    
+    # ✅ مجلد images الرئيسي
     - images/
     - images/doctors/
     - images/doctors/placeholders/
@@ -149,6 +169,12 @@ flutter:
     - images/icons/search/
     - images/icons/top_bar/
     - images/icons/fast_services/
+    
+    # ✅ مجلدات الصور الجديدة
+    - images/chat/
+    - images/services/
+    - images/social/
+    - images/tracking/
 
   fonts:
     - family: NotoSansArabicUI
@@ -168,11 +194,11 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: false
-  image_path: "assets/icons/app_icon.svg"
+  image_path: "assets/icons/app_icon.png"   # ✅ PNG بدلاً من SVG
   min_sdk_android: 21
 
 flutter_native_splash:
   color: "#FFFFFF"
-  image: assets/icons/app_icon.svg
+  image: assets/icons/app_icon.png        # ✅ PNG بدلاً من SVG
   android: true
   ios: false
