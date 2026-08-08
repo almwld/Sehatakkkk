@@ -100,6 +100,37 @@ class ImageKit {
   static String get nutritionTips => "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400&h=300&fit=crop";
   
   // ============================================================
+  // 🎨 أيقونات الخدمات (PNG) - جميع الأيقونات الجديدة
+  // ============================================================
+  
+  // ✅ أيقونات الخدمات الأساسية (للتوافق مع الكود القديم)
+  static String get pharmacyIcon => "$imagesBase/services/pharmacy.png";
+  static String get emergencyIcon => "$imagesBase/services/emergency.png";
+  static String get homeMedical => "$imagesBase/services/medical_community.png";
+  static String get donateBlood => "$imagesBase/services/blood_donation.png";
+  static String get maleDoctorIcon => "$imagesBase/services/consultation.png";
+  static String get medicalIcon => "$imagesBase/services/medical_records.png";
+  static String get notificationIcon => "$imagesBase/services/notifications.png";
+  static String get cartIcon => "$imagesBase/services/wallet.png";
+  static String get placeholder => "$imagesBase/services/health_tips.png";
+  static String get searchIcon => "$imagesBase/services/medical_records.png";
+  static String get micIcon => "$imagesBase/services/consultation.png";
+  
+  // ✅ أيقونات الخدمات السريعة
+  static String get fastPharmacy => "$imagesBase/services/pharmacy.png";
+  static String get fastEmergency => "$imagesBase/services/emergency.png";
+  static String get fastHomeServices => "$imagesBase/services/medical_community.png";
+  static String get fastDonateBlood => "$imagesBase/services/blood_donation.png";
+  static String get serviceDoctors => "$imagesBase/services/consultation.png";
+  static String get serviceLabs => "$imagesBase/services/laboratory.png";
+  static String get serviceHealth => "$imagesBase/services/health_tips.png";
+  static String get serviceWallet => "$imagesBase/services/wallet.png";
+  static String get serviceAppointments => "$imagesBase/services/calendar_booking.png";
+  static String get serviceNearby => "$imagesBase/services/map_location.png";
+  static String get serviceInsurance => "$imagesBase/services/health_insurance.png";
+  static String get serviceConsultation => "$imagesBase/services/video_consultation.png";
+  
+  // ============================================================
   // 🎨 أيقونات الدردشة (Chat) - 7 أيقونات PNG
   // ============================================================
   static String get chatAudioRecord => "$imagesBase/chat/audio_record.png";
@@ -109,26 +140,6 @@ class ImageKit {
   static String get chatPhoneCall => "$imagesBase/chat/phone_call.png";
   static String get chatPlayButton => "$imagesBase/chat/play_button.png";
   static String get chatVideoCall => "$imagesBase/chat/video_call.png";
-  
-  // ============================================================
-  // 🎨 أيقونات الخدمات (Services) - 16 أيقونة PNG
-  // ============================================================
-  static String get serviceAiAssistant => "$imagesBase/services/ai_assistant.png";
-  static String get serviceBloodDonation => "$imagesBase/services/blood_donation.png";
-  static String get serviceCalendarBooking => "$imagesBase/services/calendar_booking.png";
-  static String get serviceConsultation => "$imagesBase/services/consultation.png";
-  static String get serviceEmergency => "$imagesBase/services/emergency.png";
-  static String get serviceHealthInsurance => "$imagesBase/services/health_insurance.png";
-  static String get serviceHealthTips => "$imagesBase/services/health_tips.png";
-  static String get serviceLaboratory => "$imagesBase/services/laboratory.png";
-  static String get serviceMapLocation => "$imagesBase/services/map_location.png";
-  static String get serviceMedicalCommunity => "$imagesBase/services/medical_community.png";
-  static String get serviceMedicalRecords => "$imagesBase/services/medical_records.png";
-  static String get serviceMedications => "$imagesBase/services/medications.png";
-  static String get serviceNotifications => "$imagesBase/services/notifications.png";
-  static String get servicePharmacy => "$imagesBase/services/pharmacy.png";
-  static String get serviceVideoConsultation => "$imagesBase/services/video_consultation.png";
-  static String get serviceWallet => "$imagesBase/services/wallet.png";
   
   // ============================================================
   // 🎨 أيقونات السوشيال ميديا (Social) - 7 أيقونات PNG
@@ -153,49 +164,4 @@ class ImageKit {
   static String get trackingNutrition => "$imagesBase/tracking/nutrition.png";
   static String get trackingVaccination => "$imagesBase/tracking/vaccination.png";
   static String get trackingWeight => "$imagesBase/tracking/weight_tracking.png";
-  
-  // ============================================================
-  // 🎨 الخدمات السريعة (Quick Services) - استخدام PNG بدلاً من SVG
-  // ============================================================
-  static String get quickPharmacy => "$imagesBase/services/pharmacy.png";
-  static String get quickEmergency => "$imagesBase/services/emergency.png";
-  static String get quickBloodDonation => "$imagesBase/services/blood_donation.png";
-  static String get quickConsultation => "$imagesBase/services/consultation.png";
-  static String get quickLaboratory => "$imagesBase/services/laboratory.png";
-  static String get quickMedicalRecords => "$imagesBase/services/medical_records.png";
-  static String get quickMedications => "$imagesBase/services/medications.png";
-  static String get quickNotifications => "$imagesBase/services/notifications.png";
-  static String get quickWallet => "$imagesBase/services/wallet.png";
-  static String get quickHealthTips => "$imagesBase/services/health_tips.png";
-  static String get quickMedicalCommunity => "$imagesBase/services/medical_community.png";
-  static String get quickVideoConsultation => "$imagesBase/services/video_consultation.png";
-  
-  // ============================================================
-  // 🎨 الأيقونات القديمة (محفوظة للتوافق)
-  // ============================================================
-  static String get pharmacyIcon => "$imagesBase/services/pharmacy.png";
-  static String get emergencyIcon => "$imagesBase/services/emergency.png";
-  static String get homeMedical => "$imagesBase/services/medical_community.png";
-  static String get donateBlood => "$imagesBase/services/blood_donation.png";
-  static String get maleDoctorIcon => "$imagesBase/services/consultation.png";
-  static String get medicalIcon => "$imagesBase/services/medical_records.png";
-  static String get notificationIcon => "$imagesBase/services/notifications.png";
-  static String get placeholder => "$imagesBase/services/health_tips.png";
-  static String get cartIcon => "$imagesBase/services/wallet.png";
-  static String get searchIcon => "$imagesBase/services/medical_records.png";
-  static String get micIcon => "$imagesBase/services/consultation.png";
-  
-  // ✅ أيقونات الخدمات السريعة (تم تحديثها إلى PNG)
-  static String get fastPharmacy => "$imagesBase/services/pharmacy.png";
-  static String get fastEmergency => "$imagesBase/services/emergency.png";
-  static String get fastHomeServices => "$imagesBase/services/medical_community.png";
-  static String get fastDonateBlood => "$imagesBase/services/blood_donation.png";
-  static String get serviceDoctors => "$imagesBase/services/consultation.png";
-  static String get serviceLabs => "$imagesBase/services/laboratory.png";
-  static String get serviceHealth => "$imagesBase/services/health_tips.png";
-  static String get serviceWallet => "$imagesBase/services/wallet.png";
-  static String get serviceAppointments => "$imagesBase/services/calendar_booking.png";
-  static String get serviceNearby => "$imagesBase/services/map_location.png";
-  static String get serviceInsurance => "$imagesBase/services/health_insurance.png";
-  static String get serviceConsultation => "$imagesBase/services/video_consultation.png";
 }
