@@ -620,7 +620,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                   value: key,
                   child: Row(
                     children: [
-                      const Icon(Icons.map, size: 16),
+                      const Icon("assets/images/services/map_location.png", size: 16),
                       const SizedBox(width: 8),
                       Text(key),
                     ],
@@ -968,7 +968,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                     _mapController.move(LatLng(lat, lng), 16);
                     Navigator.pop(context);
                   },
-                  icon: const Icon(Icons.map),
+                  icon: const Icon("assets/images/services/map_location.png"),
                   label: const Text('عرض على الخريطة'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.primary,

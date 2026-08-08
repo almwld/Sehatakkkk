@@ -55,7 +55,7 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.bloodtype, size: 48, color: Colors.white),
+                          Icon("assets/images/services/blood_donation.png", size: 48, color: Colors.white),
                           SizedBox(height: 8),
                           Text(
                             'تبرع بالدم .. أنقذ حياة',
@@ -138,7 +138,7 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            prefixIcon: const Icon(Icons.bloodtype),
+                            prefixIcon: const Icon("assets/images/services/blood_donation.png"),
                             filled: true,
                             fillColor: isDark ? const Color(0xFF1A2540) : Colors.white,
                           ),

@@ -14,7 +14,7 @@ class _InsuranceCompaniesState extends State<InsuranceCompanies> {
 
   final List<Map<String, dynamic>> _companies = [
     {'name': 'جوبيلي للتأمين الصحي', 'type': 'صحي', 'coverage': 'حتى 1,000,000 ر.ي', 'hospitals': '500+', 'rating': 4.7, 'premium': 'من 2,500 ر.ي/شهر', 'color': AppColors.primary, 'icon': Icons.health_and_safety},
-    {'name': 'أدامجي للتأمين', 'type': 'صحي', 'coverage': 'حتى 800,000 ر.ي', 'hospitals': '400+', 'rating': 4.5, 'premium': 'من 2,000 ر.ي/شهر', 'color': AppColors.info, 'icon': Icons.shield},
+    {'name': 'أدامجي للتأمين', 'type': 'صحي', 'coverage': 'حتى 800,000 ر.ي', 'hospitals': '400+', 'rating': 4.5, 'premium': 'من 2,000 ر.ي/شهر', 'color': AppColors.info, 'icon': "assets/images/services/health_insurance.png"},
     {'name': 'أليانز إي إف يو', 'type': 'عائلي', 'coverage': 'حتى 2,000,000 ر.ي', 'hospitals': '700+', 'rating': 4.8, 'premium': 'من 3,500 ر.ي/شهر', 'color': AppColors.success, 'icon': Icons.family_restroom},
     {'name': 'آي جي آي للتأمين', 'type': 'سفر', 'coverage': 'حتى 500,000 ر.ي', 'hospitals': '200+', 'rating': 4.3, 'premium': 'من 1,500 ر.ي/شهر', 'color': AppColors.teal, 'icon': Icons.flight},
     {'name': 'تي بي إل', 'type': 'صحي', 'coverage': 'حتى 1,500,000 ر.ي', 'hospitals': '600+', 'rating': 4.6, 'premium': 'من 3,000 ر.ي/شهر', 'color': AppColors.purple, 'icon': Icons.medical_services},
@@ -210,7 +210,7 @@ class _InsuranceCompaniesState extends State<InsuranceCompanies> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _info(Icons.shield, 'التغطية', c['coverage'], isDark),
+                      _info("assets/images/services/health_insurance.png", 'التغطية', c['coverage'], isDark),
                       _info(Icons.local_hospital, 'المستشفيات', c['hospitals'], isDark),
                       _info(Icons.payments, 'القسط', c['premium'], isDark),
                     ],

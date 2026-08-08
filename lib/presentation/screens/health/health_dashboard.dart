@@ -14,7 +14,7 @@ class HealthDashboard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildMetricCard(context, Icons.favorite, 'نبض القلب', '72', 'نبضة/دقيقة', AppColors.error, [70, 75, 72, 78, 74, 72, 71]),
+            _buildMetricCard(context, "assets/images/tracking/fitness.png", 'نبض القلب', '72', 'نبضة/دقيقة', AppColors.error, [70, 75, 72, 78, 74, 72, 71]),
             const SizedBox(height: 12),
             _buildMetricCard(context, Icons.water_drop, 'ضغط الدم', '120/80', 'مم زئبق', AppColors.primary, [118, 120, 122, 119, 121, 120, 120]),
             const SizedBox(height: 12),
