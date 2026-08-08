@@ -287,3 +287,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 }
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
+// ... باقي الكود

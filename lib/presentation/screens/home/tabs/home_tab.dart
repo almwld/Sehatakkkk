@@ -72,3 +72,5 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
 
   // ... باقي الكود كما هو
 }
+  @override
+  bool get wantKeepAlive => true;

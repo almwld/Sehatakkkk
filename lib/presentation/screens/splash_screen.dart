@@ -370,3 +370,12 @@ class CircleData {
     required this.color,
   });
 }
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:lottie/lottie.dart';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:sehatak/presentation/screens/home/home_screen.dart';
+import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
+
+// ... الكود كاملاً مع إضافة import AuthScreen
