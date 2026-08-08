@@ -1,365 +1,1141 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/presentation/screens/chat/chat_detail_screen.dart';
-import 'package:sehatak/presentation/screens/call/call_screen.dart';
-import 'package:sehatak/presentation/screens/doctor/doctor_booking_screen.dart';
+import 'package:sehatak/core/constants/imagekit.dart';
+import 'package:sehatak/presentation/widgets/common/app_image.dart';
+import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
+import 'package:sehatak/presentation/screens/consultation/consultation_screen.dart';
+import 'package:sehatak/presentation/screens/patient/patient_appointments.dart';
 
 class DoctorDetailsScreen extends StatefulWidget {
-  final String? doctorId;
-  const DoctorDetailsScreen({super.key, this.doctorId});
+  final String doctorId;
+
+  const DoctorDetailsScreen({super.key, required this.doctorId});
 
   @override
   State<DoctorDetailsScreen> createState() => _DoctorDetailsScreenState();
 }
 
-class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTickerProviderStateMixin {
-  late TabController _tab;
+class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
   bool _isFavorite = false;
+  bool _isAvailable = true;
 
-  Map<String, dynamic> get _doctor {
-    switch (widget.doctorId) {
-      case '1':
-        return {
-          'name': 'د. أحمد المولد',
-          'specialty': 'استشاري باطنية وأطفال',
-          'experience': '20+ سنة',
-          'rating': 4.9,
-          'reviews': 328,
-          'fee': '500',
-          'available': true,
-          'about': 'استشاري باطنية وأطفال مع خبرة واسعة',
-          'hospital': 'مستشفى الثورة العام',
-          'availability': ['السبت - الأربعاء: 9 ص - 5 م'],
-          'image': "assets/images/doctors/doctor_1.png",
-          'doctorId': 'doc_1',
-        };
-      default:
-        return {
-          'name': 'د. محمد العلاي',
-          'specialty': 'أنف وأذن وحنجرة',
-          'experience': '8 سنوات',
-          'rating': 4.7,
-          'reviews': 89,
-          'fee': '400',
-          'available': true,
-          'about': 'أخصائي أنف وأذن وحنجرة',
-          'hospital': 'مستشفى الأنف والأذن',
-          'availability': ['الأحد - الخميس: 9 ص - 3 م'],
-          'image': "assets/images/doctors/doctor_4.png",
-          'doctorId': 'doc_4',
-        };
-    }
-  }
+  // ✅ بيانات الطبيب (مؤقتة - سيتم جلبها من Firebase)
+  final Map<String, dynamic> _doctor = {
+    'id': '1',
+    'name': 'د. محمد العلاي',
+    'specialty': 'أنف وأذن وحنجرة',
+    'rating': 4.7,
+    'reviews': 89,
+    'image': ImageKit.doctor4,
+    'gender': 'male',
+    'price': 140,
+    'available': true,
+    'hospital': 'مستشفى الأنف والأذن',
+    'experience': '8 سنوات',
+    'bio': 'أخصائي أنف وأذن وحنجرة مع خبرة 8 سنوات في تشخيص وعلاج أمراض الأذن والأنف والحنجرة، including جراحة الأنف والحنجرة الدقيقة.',
+    'languages': ['العربية', 'الإنجليزية'],
+    'education': [
+      'دكتوراه في طب الأنف والأذن والحنجرة - جامعة صنعاء',
+      'زمالة جراحة الأنف - مستشفى الملك فيصل',
+    ],
+    'certificates': [
+      'شهادة البورد العربي في الأنف والأذن والحنجرة',
+      'شهادة جراحة المناظير',
+    ],
+    'workingHours': 'السبت - الخميس: 10:00 ص - 8:00 م',
+    'phone': '+967 777 888 999',
+    'email': 'dr.mohammed@sehatak.com',
+  };
+
+  // ✅ الأيام المتاحة
+  final List<Map<String, dynamic>> _availableDays = [
+    {'day': 'السبت', 'date': '12', 'month': 'أكتوبر', 'available': true},
+    {'day': 'الأحد', 'date': '13', 'month': 'أكتوبر', 'available': true},
+    {'day': 'الإثنين', 'date': '14', 'month': 'أكتوبر', 'available': false},
+    {'day': 'الثلاثاء', 'date': '15', 'month': 'أكتوبر', 'available': true},
+    {'day': 'الأربعاء', 'date': '16', 'month': 'أكتوبر', 'available': true},
+  ];
+
+  // ✅ أوقات الحجز
+  final List<String> _availableTimes = [
+    '10:00 ص', '10:30 ص', '11:00 ص', '11:30 ص',
+    '12:00 م', '12:30 م', '1:00 م', '1:30 م',
+    '2:00 م', '2:30 م', '3:00 م', '3:30 م',
+  ];
+
+  // ✅ التقييمات
+  final List<Map<String, dynamic>> _reviews = [
+    {
+      'name': 'أحمد محمد',
+      'rating': 5,
+      'date': 'منذ يومين',
+      'comment': 'دكتور ممتاز جداً، تعامل راقي وتشخيص دقيق',
+      'avatar': 'أ',
+    },
+    {
+      'name': 'سارة علي',
+      'rating': 4,
+      'date': 'منذ 5 أيام',
+      'comment': 'جيد جداً، لكن وقت الانتظار طويل',
+      'avatar': 'س',
+    },
+    {
+      'name': 'خالد حسن',
+      'rating': 5,
+      'date': 'منذ أسبوع',
+      'comment': 'أفضل دكتور في هذا التخصص، أنصح به بشدة',
+      'avatar': 'خ',
+    },
+  ];
 
   @override
   void initState() {
     super.initState();
-    _tab = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
   void dispose() {
-    _tab.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
-  // ✅ دالة فتح الدردشة مع الطبيب
-  void _openChat() {
-    final doc = _doctor;
-    final user = FirebaseAuth.instance.currentUser;
-    
-    if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('يرجى تسجيل الدخول أولاً'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
-    final chatId = 'chat_${user.uid}_${doc['doctorId']}_${DateTime.now().millisecondsSinceEpoch}';
-    
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ChatDetailScreen(
-          chatId: chatId,
-          userName: doc['name'],
-          userId: doc['doctorId'],
-          isDoctor: true, // ✅ الطبيب
-        ),
-      ),
-    );
-  }
-
-  // ✅ دالة الاتصال بالطبيب
-  void _callDoctor() {
-    final doc = _doctor;
-    final user = FirebaseAuth.instance.currentUser;
-    
-    if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('يرجى تسجيل الدخول أولاً'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => CallScreen(
-          chatId: 'call_${user.uid}_${doc['doctorId']}_${DateTime.now().millisecondsSinceEpoch}',
-          doctorName: doc['name'],
-          doctorId: doc['doctorId'],
-          isVideo: false,
-        ),
-      ),
-    );
-  }
-
-  // ✅ دالة مكالمة فيديو
-  void _videoCallDoctor() {
-    final doc = _doctor;
-    final user = FirebaseAuth.instance.currentUser;
-    
-    if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('يرجى تسجيل الدخول أولاً'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => CallScreen(
-          chatId: 'video_${user.uid}_${doc['doctorId']}_${DateTime.now().millisecondsSinceEpoch}',
-          doctorName: doc['name'],
-          doctorId: doc['doctorId'],
-          isVideo: true,
-        ),
-      ),
-    );
-  }
-
-  // ✅ دالة حجز موعد
-  void _bookAppointment() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => DoctorBookingScreen(doctorId: widget.doctorId ?? '1'),
-      ),
+  // ✅ دالة لعرض الأيقونات المحلية
+  Widget _buildLocalIcon(String iconPath, {double size = 24, Color? color}) {
+    return Image.asset(
+      iconPath,
+      width: size,
+      height: size,
+      color: color,
+      errorBuilder: (context, error, stackTrace) {
+        return Icon(
+          Icons.image,
+          size: size,
+          color: color ?? Colors.grey,
+        );
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final doc = _doctor;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = const Color(0xFF0D5257);
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: Text(doc['name']),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: Icon(_isFavorite ? Icons.favorite : Icons.favorite_border, color: Colors.white),
-            onPressed: () => setState(() => _isFavorite = !_isFavorite),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            color: AppColors.primary,
-            child: Row(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: CachedNetworkImage(
-                    imageUrl: doc['image'],
-                    width: 80,
-                    height: 80,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      width: 80,
-                      height: 80,
-                      color: Colors.white24,
-                      child: const Icon(Icons.person, color: Colors.white, size: 40),
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
+          return [
+            SliverAppBar(
+              expandedHeight: 350,
+              floating: false,
+              pinned: true,
+              backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
+              foregroundColor: primaryColor,
+              elevation: 0,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // ✅ صورة الطبيب
+                    Positioned.fill(
+                      child: AppImage(
+                        url: _doctor['image'] as String,
+                        fit: BoxFit.cover,
+                      ),
                     ),
-                    errorWidget: (context, url, error) => Container(
-                      width: 80,
-                      height: 80,
-                      color: Colors.white24,
-                      child: const Icon(Icons.person, color: Colors.white, size: 40),
+                    // ✅ التدرج
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.transparent,
+                              Colors.black.withOpacity(0.6),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(doc['name'], style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                      Text(doc['specialty'], style: const TextStyle(color: Colors.white70, fontSize: 14)),
-                      const SizedBox(height: 4),
-                      Row(
+                    // ✅ معلومات الطبيب
+                    Positioned(
+                      bottom: 16,
+                      left: 16,
+                      right: 16,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.star, color: Colors.amber, size: 16),
-                          Text(' ${doc['rating']} (${doc['reviews']} تقييم)', style: const TextStyle(color: Colors.white70)),
-                          const SizedBox(width: 12),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: doc['available'] ? Colors.green.withOpacity(0.3) : Colors.red.withOpacity(0.3),
-                              borderRadius: BorderRadius.circular(8),
+                          // ✅ التقييم
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.amber.withOpacity(0.9),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.star,
+                                      color: Colors.white,
+                                      size: 12,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '${_doctor['rating']}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '(${_doctor['reviews']} تقييم)',
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                ),
+                              ),
+                              const Spacer(),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: _isAvailable
+                                      ? Colors.green.withOpacity(0.9)
+                                      : Colors.red.withOpacity(0.9),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  _isAvailable ? 'متاح' : 'غير متاح',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            _doctor['name'] as String,
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
-                            child: Text(doc['available'] ? 'متاح' : 'غير متاح', style: const TextStyle(color: Colors.white, fontSize: 11)),
+                          ),
+                          Text(
+                            _doctor['specialty'] as String,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.white70,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              _buildLocalIcon(
+                                'assets/images/services/map_location.png',
+                                size: 16,
+                                color: Colors.white70,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                _doctor['hospital'] as String,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.white70,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              _buildLocalIcon(
+                                'assets/images/tracking/fitness.png',
+                                size: 16,
+                                color: Colors.white70,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${_doctor['experience']}',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.white70,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                IconButton(
+                  icon: Icon(
+                    _isFavorite ? Icons.favorite : Icons.favorite_border,
+                    color: Colors.white,
+                  ),
+                  onPressed: () => setState(() => _isFavorite = !_isFavorite),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.share, color: Colors.white),
+                  onPressed: () {},
+                ),
+              ],
+              bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(50),
+                child: Container(
+                  color: isDark ? const Color(0xFF0B1121) : Colors.white,
+                  child: TabBar(
+                    controller: _tabController,
+                    tabs: const [
+                      Tab(text: 'نبذة'),
+                      Tab(text: 'مواعيد'),
+                      Tab(text: 'تقييمات'),
                     ],
+                    indicatorColor: AppColors.primary,
+                    labelColor: AppColors.primary,
+                    unselectedLabelColor: isDark ? Colors.grey[400] : Colors.grey[600],
+                    labelStyle: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ];
+        },
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            _buildAboutTab(isDark),
+            _buildScheduleTab(isDark),
+            _buildReviewsTab(isDark),
+          ],
+        ),
+      ),
+      bottomNavigationBar: _buildBottomBar(isDark),
+    );
+  }
+
+  // ============================================================
+  // ✅ تبويب النبذة
+  // ============================================================
+  Widget _buildAboutTab(bool isDark) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ✅ أزرار التواصل السريع
+          Row(
+            children: [
+              Expanded(
+                child: _buildActionButton(
+                  icon: 'assets/images/chat/chat_bubble.png',
+                  label: 'محادثة',
+                  color: AppColors.primary,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ChatScreen()),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildActionButton(
+                  icon: 'assets/images/chat/phone_call.png',
+                  label: 'اتصال',
+                  color: Colors.green,
+                  onTap: () {},
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildActionButton(
+                  icon: 'assets/images/chat/video_call.png',
+                  label: 'فيديو',
+                  color: Colors.purple,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ConsultationScreen()),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildActionButton(
+                  icon: 'assets/images/services/calendar_booking.png',
+                  label: 'حجز',
+                  color: AppColors.amber,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const PatientAppointments()),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // ✅ نبذة عن الطبيب
+          const Text(
+            'نبذة عن الطبيب',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _doctor['bio'] as String,
+            style: TextStyle(
+              fontSize: 14,
+              height: 1.8,
+              color: isDark ? Colors.grey[300] : Colors.grey[700],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // ✅ التخصصات
+          const Text(
+            'التخصصات',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  _doctor['specialty'] as String,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Text(
+                  'جراحة الأنف',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Text(
+                  'جراحة المناظير',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // ✅ المؤهلات العلمية
+          const Text(
+            'المؤهلات العلمية',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...(_doctor['education'] as List).map((edu) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.school,
+                    color: AppColors.primary,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      edu,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isDark ? Colors.grey[300] : Colors.grey[700],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+          const SizedBox(height: 16),
+
+          // ✅ الشهادات
+          const Text(
+            'الشهادات',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...(_doctor['certificates'] as List).map((cert) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.verified,
+                    color: Colors.green,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      cert,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isDark ? Colors.grey[300] : Colors.grey[700],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+          const SizedBox(height: 16),
+
+          // ✅ معلومات التواصل
+          const Text(
+            'معلومات التواصل',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(
+                Icons.phone,
+                color: AppColors.primary,
+                size: 16,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                _doctor['phone'] as String,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: isDark ? Colors.grey[300] : Colors.grey[700],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              const Icon(
+                Icons.email,
+                color: AppColors.primary,
+                size: 16,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                _doctor['email'] as String,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: isDark ? Colors.grey[300] : Colors.grey[700],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              const Icon(
+                Icons.access_time,
+                color: AppColors.primary,
+                size: 16,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                _doctor['workingHours'] as String,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: isDark ? Colors.grey[300] : Colors.grey[700],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              const Icon(
+                Icons.language,
+                color: AppColors.primary,
+                size: 16,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                (_doctor['languages'] as List).join(' - '),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: isDark ? Colors.grey[300] : Colors.grey[700],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // ✅ تبويب المواعيد
+  // ============================================================
+  Widget _buildScheduleTab(bool isDark) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ✅ اختيار اليوم
+          const Text(
+            'اختر اليوم',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 100,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: _availableDays.length,
+              itemBuilder: (context, index) {
+                final day = _availableDays[index];
+                final isAvailable = day['available'] as bool;
+                final isSelected = index == 0;
+
+                return Container(
+                  width: 70,
+                  margin: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? AppColors.primary
+                        : (isDark ? const Color(0xFF1A2540) : Colors.white),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected
+                          ? AppColors.primary
+                          : (isDark ? Colors.grey[800]! : Colors.grey[300]!),
+                      width: 2,
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        day['day'] as String,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isSelected
+                              ? Colors.white
+                              : (isDark ? Colors.white : Colors.black87),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        day['date'] as String,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: isSelected
+                              ? Colors.white
+                              : (isDark ? Colors.white : Colors.black87),
+                        ),
+                      ),
+                      Text(
+                        day['month'] as String,
+                        style: TextStyle(
+                          fontSize: 9,
+                          color: isSelected
+                              ? Colors.white70
+                              : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                        ),
+                      ),
+                      if (isAvailable)
+                        Container(
+                          margin: const EdgeInsets.only(top: 2),
+                          width: 6,
+                          height: 6,
+                          decoration: const BoxDecoration(
+                            color: Colors.green,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // ✅ اختيار الوقت
+          const Text(
+            'اختر الوقت',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _availableTimes.map((time) {
+              final isSelected = time == '11:00 ص';
+              return GestureDetector(
+                onTap: () {},
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? AppColors.primary
+                        : (isDark ? const Color(0xFF1A2540) : Colors.white),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isSelected
+                          ? AppColors.primary
+                          : (isDark ? Colors.grey[800]! : Colors.grey[300]!),
+                      width: isSelected ? 2 : 1,
+                    ),
+                  ),
+                  child: Text(
+                    time,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isSelected
+                          ? Colors.white
+                          : (isDark ? Colors.white : Colors.black87),
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 24),
+
+          // ✅ ملاحظات إضافية
+          const Text(
+            'ملاحظات إضافية',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            maxLines: 3,
+            decoration: InputDecoration(
+              hintText: 'أضف ملاحظاتك هنا...',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: isDark ? Colors.grey[700]! : Colors.grey[300]!,
+                ),
+              ),
+              filled: true,
+              fillColor: isDark ? const Color(0xFF1A2540) : Colors.white,
+            ),
+            style: TextStyle(
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // ✅ زر تأكيد الحجز
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: ElevatedButton(
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('✅ تم حجز الموعد بنجاح!'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                'تأكيد الحجز',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // ✅ تبويب التقييمات
+  // ============================================================
+  Widget _buildReviewsTab(bool isDark) {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: _reviews.length + 1,
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          // ✅ إضافة تقييم جديد
+          return Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1A2540) : Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'أضف تقييمك',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: List.generate(5, (star) {
+                    return IconButton(
+                      icon: Icon(
+                        star < 4 ? Icons.star : Icons.star_border,
+                        color: Colors.amber,
+                        size: 28,
+                      ),
+                      onPressed: () {},
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    );
+                  }),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  maxLines: 2,
+                  decoration: InputDecoration(
+                    hintText: 'اكتب تقييمك هنا...',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.grey[700]! : Colors.grey[300]!,
+                      ),
+                    ),
+                    filled: true,
+                    fillColor: isDark ? const Color(0xFF0B1121) : Colors.white,
+                  ),
+                  style: TextStyle(
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('✅ تم إضافة تقييمك!'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text('إرسال التقييم'),
                   ),
                 ),
               ],
             ),
+          );
+        }
+
+        // ✅ التقييمات السابقة
+        final review = _reviews[index - 1];
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1A2540) : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            color: AppColors.primary,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _actionBtn(Icons.chat, 'محادثة', AppColors.info, _openChat),
-                _actionBtn(Icons.phone, 'اتصال', AppColors.success, _callDoctor),
-                _actionBtn(Icons.videocam, 'فيديو', AppColors.primary, _videoCallDoctor),
-                _actionBtn(Icons.calendar_today, 'حجز', AppColors.teal, _bookAppointment),
-              ],
-            ),
-          ),
-          Expanded(
-            child: DefaultTabController(
-              length: 2,
-              child: Column(
-                children: [
-                  TabBar(
-                    controller: _tab,
-                    indicatorColor: AppColors.primary,
-                    labelColor: AppColors.primary,
-                    unselectedLabelColor: AppColors.grey,
-                    tabs: const [
-                      Tab(text: 'نبذة'),
-                      Tab(text: 'مواعيد'),
-                    ],
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                radius: 20,
+                backgroundColor: AppColors.primary.withOpacity(0.1),
+                child: Text(
+                  review['avatar'] as String,
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
                   ),
-                  Expanded(
-                    child: TabBarView(
-                      controller: _tab,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
-                        _aboutTab(doc),
-                        _appointmentsTab(doc),
+                        Text(
+                          review['name'] as String,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Row(
+                          children: List.generate(5, (star) {
+                            return Icon(
+                              star < (review['rating'] as int)
+                                  ? Icons.star
+                                  : Icons.star_border,
+                              color: Colors.amber,
+                              size: 14,
+                            );
+                          }),
+                        ),
+                        const Spacer(),
+                        Text(
+                          review['date'] as String,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          ),
+                        ),
                       ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      review['comment'] as String,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isDark ? Colors.grey[300] : Colors.grey[700],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // ============================================================
+  // ✅ زر الإجراء
+  // ============================================================
+  Widget _buildActionButton({
+    required String icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: color.withOpacity(0.2),
+          ),
+        ),
+        child: Column(
+          children: [
+            _buildLocalIcon(icon, size: 24, color: color),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                color: color,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // ✅ الشريط السفلي
+  // ============================================================
+  Widget _buildBottomBar(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF0B1121) : Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 10,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'سعر الكشف',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    ),
+                  ),
+                  Text(
+                    '${_doctor['price']} ريال',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
                     ),
                   ),
                 ],
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _actionBtn(IconData icon, String label, Color color, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: Colors.white, size: 22),
-          ),
-          const SizedBox(height: 4),
-          Text(label, style: const TextStyle(color: Colors.white70, fontSize: 10)),
-        ],
-      ),
-    );
-  }
-
-  Widget _aboutTab(Map<String, dynamic> doc) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('نبذة عن الطبيب', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          Text(doc['about'], style: TextStyle(fontSize: 14, color: isDark ? Colors.grey[300] : Colors.grey[700])),
-          const SizedBox(height: 16),
-          const Text('المستشفى', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 4),
-          Text(doc['hospital'], style: TextStyle(fontSize: 14, color: isDark ? Colors.grey[300] : Colors.grey[700])),
-          const SizedBox(height: 16),
-          const Text('الخبرة', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 4),
-          Text(doc['experience'], style: TextStyle(fontSize: 14, color: isDark ? Colors.grey[300] : Colors.grey[700])),
-        ],
-      ),
-    );
-  }
-
-  Widget _appointmentsTab(Map<String, dynamic> doc) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('الأوقات المتاحة', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
-          ...(doc['availability'] as List).map((a) => Container(
-            padding: const EdgeInsets.all(12),
-            margin: const EdgeInsets.only(bottom: 8),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.05),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(a, style: const TextStyle(fontSize: 14)),
-          )),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: _bookAppointment,
-              icon: const Icon(Icons.calendar_month),
-              label: const Text('حجز موعد'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 2,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const PatientAppointments(),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  'حجز موعد',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
