@@ -26,7 +26,6 @@ import 'package:sehatak/presentation/screens/articles/articles_screen.dart';
 import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
 import 'package:sehatak/presentation/screens/shared/notifications_screen.dart';
 import 'package:sehatak/presentation/screens/pharmacy/cart_screen.dart';
-import 'package:sehatak/presentation/screens/search/search_screen.dart';
 
 class HomeTab extends StatefulWidget {
   final ScrollController? scrollController;
@@ -38,6 +37,10 @@ class HomeTab extends StatefulWidget {
 }
 
 class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
+  // ✅ يجب إضافة هذه الدالة
+  @override
+  bool get wantKeepAlive => true;
+
   bool _isLoading = true;
   bool _isLoggedIn = false;
   String _userName = 'مستخدم';
@@ -56,6 +59,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'id': '5', 'name': 'د. فاطمة صديقي', 'specialty': 'نساء وولادة', 'rating': 4.8, 'reviews': 210, 'image': ImageKit.doctor5, 'gender': 'female'},
   ];
 
+  // ✅ استخدام المسارات المحلية فقط (حذف ImageKit)
   final List<Map<String, dynamic>> _quickServices = [
     {'icon': 'assets/images/services/pharmacy.png', 'label': 'صيدلية', 'color': AppColors.success, 'screen': const MedicinesScreen()},
     {'icon': 'assets/images/services/emergency.png', 'label': 'طوارئ', 'color': AppColors.error, 'screen': const EmergencyNumbers()},
@@ -70,7 +74,5 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'icon': 'assets/images/services/health_insurance.png', 'label': 'تأمين', 'color': Colors.blue, 'screen': const InsuranceCompanies()},
   ];
 
-  // ... باقي الكود كما هو
+  // ... باقي الكود
 }
-  @override
-  bool get wantKeepAlive => true;
