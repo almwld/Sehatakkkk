@@ -155,26 +155,45 @@ flutter:
     
     # ✅ مجلد images الرئيسي
     - images/
+    - assets/images/chat_background.svg
     - images/doctors/
+    - assets/images/chat_background.svg
     - images/doctors/placeholders/
+    - assets/images/chat_background.svg
     - images/medicines/
+    - assets/images/chat_background.svg
     - images/delivery/
+    - assets/images/chat_background.svg
     - images/posts/
+    - assets/images/chat_background.svg
     - images/pharmacies/
+    - assets/images/chat_background.svg
     - images/hospitals/
+    - assets/images/chat_background.svg
     - images/labs/
+    - assets/images/chat_background.svg
     - images/banners/
+    - assets/images/chat_background.svg
     - images/icons/
+    - assets/images/chat_background.svg
     - images/icons/doctors/
+    - assets/images/chat_background.svg
     - images/icons/search/
+    - assets/images/chat_background.svg
     - images/icons/top_bar/
+    - assets/images/chat_background.svg
     - images/icons/fast_services/
+    - assets/images/chat_background.svg
     
     # ✅ مجلدات الصور الجديدة
     - images/chat/
+    - assets/images/chat_background.svg
     - images/services/
+    - assets/images/chat_background.svg
     - images/social/
+    - assets/images/chat_background.svg
     - images/tracking/
+    - assets/images/chat_background.svg
 
   fonts:
     - family: NotoSansArabicUI
