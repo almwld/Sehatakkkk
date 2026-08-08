@@ -77,7 +77,7 @@ Widget _buildSocialSvgButton({
 // ✅ استخدام الأيقونات في build
 Row(
   mainAxisAlignment: MainAxisAlignment.center,
-  children: [
+  children: const [
     _buildSocialSvgButton(
       assetPath: 'assets/icons/social/google.svg',  // ✅ استخدم المسار الصحيح
       onTap: () {},
@@ -95,7 +95,7 @@ Row(
 // ✅ أيقونات السوشيال ميديا الأخرى
 Row(
   mainAxisAlignment: MainAxisAlignment.center,
-  children: [
+  children: const [
     _buildSocialSvgButton(
       assetPath: 'assets/icons/social/instagram.svg',
       onTap: () => _launchUrl('...'),
