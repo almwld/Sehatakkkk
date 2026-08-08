@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/constants/imagekit.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
@@ -47,26 +46,10 @@ class AboutScreen extends StatelessWidget {
               ),
               child: ClipOval(
                 child: SvgPicture.asset(
-                  'assets/icons/app_icon.svg', // ✅ استخدام SVG
+                  'assets/icons/app_icon.svg',
                   width: 120,
                   height: 120,
                   fit: BoxFit.contain,
-                  placeholderBuilder: (_) => Container(
-                    width: 120,
-                    height: 120,
-                    color: Colors.grey[200],
-                    child: const Icon(Icons.health_and_safety, size: 60, color: AppColors.primary),
-                  ),
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: AppColors.primary.withOpacity(0.2),
-                      child: const Icon(
-                        Icons.health_and_safety,
-                        size: 60,
-                        color: AppColors.primary,
-                      ),
-                    );
-                  },
                 ),
               ),
             ),
@@ -216,19 +199,6 @@ class AboutScreen extends StatelessWidget {
                           isDark ? Colors.white : Colors.black87,
                           BlendMode.srcIn,
                         ),
-                        placeholderBuilder: (_) => Container(
-                          width: 30,
-                          height: 30,
-                          color: Colors.grey[200],
-                          child: const Icon(Icons.circle, size: 30),
-                        ),
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(
-                            Icons.share,
-                            color: isDark ? Colors.white : Colors.black87,
-                            size: 30,
-                          );
-                        },
                       ),
                     ),
                   );

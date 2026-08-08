@@ -16,7 +16,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLoading = false;
   bool _isEditing = false;
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
 
   @override
   void initState() {
@@ -28,7 +27,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       _nameController.text = user.displayName ?? '';
-      _phoneController.text = user.phoneNumber ?? '';
     }
   }
 
@@ -36,9 +34,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() => _isLoading = true);
     try {
       final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
+      if (user != null && _nameController.text.trim().isNotEmpty) {
         await user.updateDisplayName(_nameController.text.trim());
-        await user.updatePhoneNumber(_phoneController.text.trim());
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('✅ تم تحديث الملف الشخصي بنجاح'),
@@ -46,6 +43,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         );
         setState(() => _isEditing = false);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('⚠️ الاسم لا يمكن أن يكون فارغاً'),
+            backgroundColor: Colors.orange,
+          ),
+        );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -84,7 +88,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
-                  // ✅ صورة الملف الشخصي
                   Stack(
                     children: [
                       CircleAvatar(
@@ -133,8 +136,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
-
-                  // ✅ الاسم
                   if (_isEditing)
                     TextField(
                       controller: _nameController,
@@ -159,8 +160,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                   const SizedBox(height: 4),
-
-                  // ✅ البريد الإلكتروني
                   Text(
                     user?.email ?? 'بريد إلكتروني',
                     style: TextStyle(
@@ -169,8 +168,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-
-                  // ✅ معرف المستخدم
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
@@ -187,8 +184,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-
-                  // ✅ زر حفظ التغييرات
                   if (_isEditing)
                     SizedBox(
                       width: double.infinity,
@@ -209,8 +204,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                   const SizedBox(height: 24),
-
-                  // ✅ قائمة الخيارات
                   _buildProfileOption(
                     icon: Icons.person_outline,
                     title: 'تعديل الملف الشخصي',
@@ -243,8 +236,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     isDark: isDark,
                   ),
                   const SizedBox(height: 32),
-
-                  // ✅ زر تسجيل الخروج
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
@@ -264,8 +255,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
-
-                  // ✅ حقوق النشر
                   Text(
                     '© 2026 Sehatak Platform',
                     style: TextStyle(
