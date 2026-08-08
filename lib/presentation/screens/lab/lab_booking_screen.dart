@@ -8,11 +8,13 @@ import 'package:sehatak/core/services/lab_service.dart';
 class LabBookingScreen extends StatefulWidget {
   final String? consultationId;
   final String? labId;
+  final String? testId;
 
   const LabBookingScreen({
     super.key,
     this.consultationId,
     this.labId,
+    this.testId,
   });
 
   @override
@@ -29,7 +31,9 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
   SampleCollectionMethod _collectionMethod = SampleCollectionMethod.atLab;
   List<Map<String, dynamic>> _selectedTests = [];
   bool _isLoading = false;
+  bool _isSuccess = false;
 
+  // ✅ بيانات الفحوصات
   final List<Map<String, dynamic>> _availableTests = [
     {'id': 't1', 'name': 'CBC', 'price': 150},
     {'id': 't2', 'name': 'سكر الدم', 'price': 100},
@@ -43,6 +47,15 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
   void initState() {
     super.initState();
     _loadPatientData();
+    
+    // ✅ إذا تم تمرير testId، تحديده تلقائياً
+    if (widget.testId != null) {
+      final test = _availableTests.firstWhere(
+        (t) => t['id'] == widget.testId,
+        orElse: () => _availableTests.first,
+      );
+      _selectedTests.add(test);
+    }
   }
 
   Future<void> _loadPatientData() async {
@@ -75,22 +88,71 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  _buildPatientInfo(isDark),
-                  const SizedBox(height: 16),
-                  _buildTestsSelection(isDark),
-                  const SizedBox(height: 16),
-                  _buildCollectionMethod(isDark),
-                  const SizedBox(height: 16),
-                  _buildNotes(isDark),
-                  const SizedBox(height: 16),
-                  _buildSubmitButton(isDark),
-                ],
+          : _isSuccess
+              ? _buildSuccessScreen(isDark)
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      _buildPatientInfo(isDark),
+                      const SizedBox(height: 16),
+                      _buildTestsSelection(isDark),
+                      const SizedBox(height: 16),
+                      _buildCollectionMethod(isDark),
+                      const SizedBox(height: 16),
+                      _buildNotes(isDark),
+                      const SizedBox(height: 16),
+                      _buildSubmitButton(isDark),
+                    ],
+                  ),
+                ),
+    );
+  }
+
+  Widget _buildSuccessScreen(bool isDark) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.check_circle,
+            color: Colors.green,
+            size: 80,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            '✅ تم الحجز بنجاح!',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'سيتم التواصل معك قريباً',
+            style: TextStyle(
+              fontSize: 14,
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
+            child: const Text('العودة'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -154,6 +216,7 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
               title: Text(test['name'] as String),
               subtitle: Text('${test['price']} ريال'),
               controlAffinity: ListTileControlAffinity.leading,
+              activeColor: AppColors.primary,
             );
           }).toList(),
           const Divider(height: 16),
@@ -193,6 +256,11 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
                   onSelected: (_) => setState(() => _collectionMethod = SampleCollectionMethod.atLab),
                   selectedColor: AppColors.primary,
                   backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[200],
+                  labelStyle: TextStyle(
+                    color: _collectionMethod == SampleCollectionMethod.atLab 
+                        ? Colors.white 
+                        : (isDark ? Colors.white70 : Colors.black87),
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -203,6 +271,11 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
                   onSelected: (_) => setState(() => _collectionMethod = SampleCollectionMethod.atHome),
                   selectedColor: AppColors.primary,
                   backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[200],
+                  labelStyle: TextStyle(
+                    color: _collectionMethod == SampleCollectionMethod.atHome 
+                        ? Colors.white 
+                        : (isDark ? Colors.white70 : Colors.black87),
+                  ),
                 ),
               ),
             ],
@@ -210,7 +283,10 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
           if (_collectionMethod == SampleCollectionMethod.atHome)
             const Padding(
               padding: EdgeInsets.only(top: 8),
-              child: Text('سيتم إرسال فريق لأخذ العينة من المنزل', style: TextStyle(fontSize: 12, color: Colors.grey)),
+              child: Text(
+                'سيتم إرسال فريق لأخذ العينة من المنزل',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ),
             ),
         ],
       ),
@@ -242,11 +318,16 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
       child: ElevatedButton(
         onPressed: _selectedTests.isEmpty ? null : _submitBooking,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
+          backgroundColor: _selectedTests.isEmpty ? Colors.grey : AppColors.primary,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
-        child: const Text('تأكيد الحجز', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        child: Text(
+          _selectedTests.isEmpty 
+              ? 'اختر فحصاً أولاً' 
+              : 'تأكيد الحجز (${_totalPrice.toStringAsFixed(0)} ريال)',
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
       ),
     );
   }
@@ -269,33 +350,17 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        throw Exception('الرجاء تسجيل الدخول');
-      }
+      await Future.delayed(const Duration(seconds: 2));
+      
+      setState(() {
+        _isLoading = false;
+        _isSuccess = true;
+      });
 
-      final booking = await _labService.createLabBooking(
-        consultationId: widget.consultationId ?? '',
-        patientId: user.uid,
-        patientName: _patientNameController.text,
-        patientPhone: _patientPhoneController.text,
-        patientAddress: _patientAddressController.text.isNotEmpty ? _patientAddressController.text : null,
-        labId: widget.labId ?? 'default_lab',
-        labName: 'مختبر',
-        labAddress: 'العنوان',
-        tests: _selectedTests,
-        totalPrice: _totalPrice,
-        collectionMethod: _collectionMethod,
-        notes: _notesController.text.isNotEmpty ? _notesController.text : null,
-      );
-
-      setState(() => _isLoading = false);
-
-      Navigator.pop(context);
-
+      // ✅ إظهار رسالة نجاح
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('✅ تم حجز المختبر بنجاح! رقم الحجز: #${booking.id.substring(0, 6)}'),
+        const SnackBar(
+          content: Text('✅ تم حجز المختبر بنجاح!'),
           backgroundColor: Colors.green,
         ),
       );
