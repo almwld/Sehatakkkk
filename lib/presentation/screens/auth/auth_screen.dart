@@ -502,6 +502,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     }
   }
 
+  // ✅ دالة لعرض أيقونات السوشيال ميديا بحجم أكبر
   Widget _buildSocialImageButton({
     required String url,
     required VoidCallback onTap,
@@ -511,26 +512,27 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       onTap: onTap,
       borderRadius: BorderRadius.circular(30),
       child: Container(
-        width: 48,
-        height: 48,
-        padding: const EdgeInsets.all(12),
+        width: 56,  // ✅ تم التكبير من 48 إلى 56
+        height: 56, // ✅ تم التكبير من 48 إلى 56
+        padding: const EdgeInsets.all(14), // ✅ تم التكبير من 12 إلى 14
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(
             color: isDark ? Colors.white30 : Colors.grey[300]!,
+            width: 1.5,
           ),
         ),
         child: Image.network(
           url,
-          width: 24,
-          height: 24,
+          width: 32,  // ✅ تم التكبير من 24 إلى 32
+          height: 32, // ✅ تم التكبير من 24 إلى 32
           fit: BoxFit.contain,
           loadingBuilder: (context, child, loadingProgress) {
             if (loadingProgress == null) return child;
             return const Center(
               child: SizedBox(
-                width: 20,
-                height: 20,
+                width: 24,
+                height: 24,
                 child: CircularProgressIndicator(strokeWidth: 2),
               ),
             );
@@ -538,6 +540,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
           errorBuilder: (context, error, stackTrace) {
             return Icon(
               Icons.image,
+              size: 32, // ✅ تم التكبير من 24 إلى 32
               color: isDark ? Colors.white70 : Colors.grey[600],
             );
           },
