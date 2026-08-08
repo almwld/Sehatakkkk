@@ -1,29 +1,14 @@
-import "package:flutter/material.dart";
-import 'package:flutter/rendering.dart';
+import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/services/health_score_service.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
+import 'package:sehatak/presentation/screens/home/tabs/home_tab.dart';
 import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
-import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
 import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
 import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
+import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
 import 'package:sehatak/presentation/screens/patient/patient_dashboard.dart';
 import 'package:sehatak/presentation/screens/more/more_screen.dart';
-import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
-import 'package:sehatak/presentation/screens/medication/medicines_screen.dart';
-import 'package:sehatak/presentation/screens/services/services_screen.dart';
-import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
-import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart';
-import 'package:sehatak/presentation/screens/blood_donation/blood_donation_screen.dart';
-import 'package:sehatak/presentation/screens/hospital/hospital_screen.dart';
-import 'package:sehatak/presentation/screens/payment/wallet_screen.dart';
-import 'package:sehatak/presentation/screens/consultation/consultation_screen.dart';
-import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
-import 'package:sehatak/presentation/screens/insurance/insurance_companies.dart';
-import 'package:sehatak/presentation/screens/health/health_dashboard.dart';
-import 'package:sehatak/presentation/screens/home/tabs/home_tab.dart';
-import 'package:sehatak/app_router.dart';
+import 'package:sehatak/core/constants/app_colors.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -32,14 +17,11 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
   final ValueNotifier<bool> _isBottomBarVisible = ValueNotifier<bool>(true);
   late final List<Widget> _screens;
   late final List<ScrollController> _scrollControllers;
-  
-  double _healthScore = 0.0;
-  bool _isLoading = true;
 
   @override
   void initState() {
@@ -47,12 +29,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     
     _scrollControllers = List.generate(7, (index) => ScrollController());
     
-    for (int i = 0; i < _scrollControllers.length; i++) {
-      _scrollControllers[i].addListener(() {
-        _handleScroll(_scrollControllers[i]);
-      });
-    }
-
     _screens = [
       HomeTab(scrollController: _scrollControllers[0]),
       const DoctorsListScreen(),
@@ -62,20 +38,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       const PatientDashboard(),
       const MoreScreen(),
     ];
-    
-    _loadHealthScore();
-    _loadData();
-  }
-
-  Future<void> _loadData() async {
-    setState(() => _isLoading = true);
-    await Future.delayed(const Duration(seconds: 1));
-    setState(() => _isLoading = false);
-  }
-
-  Future<void> _loadHealthScore() async {
-    final score = await HealthScoreService.calculateHealthScore();
-    setState(() => _healthScore = score);
   }
 
   @override
@@ -89,45 +51,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   bool get _isLoggedIn => FirebaseAuth.instance.currentUser != null;
 
-  void _navigateWithAuth(VoidCallback action) {
-    if (_isLoggedIn) {
-      action();
-    } else {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const AuthScreen()));
-    }
-  }
-
   void _onTabTap(int index) {
-    _isBottomBarVisible.value = true;
-    
     if (index == 3 || index == 4 || index == 5) {
-      _navigateWithAuth(() => setState(() => _currentIndex = index));
+      if (_isLoggedIn) {
+        setState(() => _currentIndex = index);
+      } else {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const AuthScreen()));
+      }
     } else {
       setState(() => _currentIndex = index);
-    }
-  }
-
-  void _handleScroll(ScrollController controller) {
-    if (!controller.hasClients) return;
-    
-    final position = controller.position;
-    final maxScroll = position.maxScrollExtent;
-    final currentScroll = position.pixels;
-    
-    if (currentScroll <= 10) {
-      _isBottomBarVisible.value = true;
-      return;
-    }
-    
-    if (currentScroll >= maxScroll - 10) {
-      _isBottomBarVisible.value = true;
-      return;
-    }
-    
-    if (position.userScrollDirection == ScrollDirection.reverse) {
-      _isBottomBarVisible.value = false;
-    } else if (position.userScrollDirection == ScrollDirection.forward) {
-      _isBottomBarVisible.value = true;
     }
   }
 
@@ -141,8 +73,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         children: [
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
-            switchInCurve: Curves.easeOut,
-            switchOutCurve: Curves.easeIn,
             child: _screens[_currentIndex],
           ),
           Positioned(
@@ -154,7 +84,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               builder: (context, isVisible, child) {
                 return AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
                   height: isVisible ? 68 : 0,
                   child: Container(
                     decoration: BoxDecoration(
@@ -287,7 +216,3 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 }
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
-// ... باقي الكود

@@ -22,7 +22,6 @@ class _SplashScreenState extends State<SplashScreen>
   late Animation<double> _loadingAnimation;
   final AudioPlayer _audioPlayer = AudioPlayer();
 
-  // ✅ دوائر متحركة
   final List<CircleData> _circles = [
     CircleData(size: 120, duration: 20, dx: -100, dy: -150, color: Colors.white.withOpacity(0.03)),
     CircleData(size: 80, duration: 15, dx: 120, dy: -200, color: Colors.white.withOpacity(0.04)),
@@ -37,10 +36,8 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
-
     _playSplashSound();
 
-    // ✅ التحكم الرئيسي
     _mainCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
@@ -54,7 +51,6 @@ class _SplashScreenState extends State<SplashScreen>
       CurvedAnimation(parent: _mainCtrl, curve: Curves.elasticOut),
     );
 
-    // ✅ التحكم لخط التحميل
     _loadingCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
@@ -67,7 +63,6 @@ class _SplashScreenState extends State<SplashScreen>
     _mainCtrl.forward();
     _loadingCtrl.repeat();
 
-    // ✅ مدة العرض: 10 ثواني
     Future.delayed(const Duration(seconds: 10), () {
       if (!mounted) return;
       _navigateToNext();
@@ -89,7 +84,6 @@ class _SplashScreenState extends State<SplashScreen>
     await _audioPlayer.stop();
 
     final user = FirebaseAuth.instance.currentUser;
-    final prefs = await SharedPreferences.getInstance();
 
     if (!mounted) return;
 
@@ -131,14 +125,7 @@ class _SplashScreenState extends State<SplashScreen>
         child: SafeArea(
           child: Stack(
             children: [
-              // ============================================================
-              // ✅ دوائر متحركة في الخلفية
-              // ============================================================
               ..._circles.map((circle) => _buildAnimatedCircle(circle)),
-
-              // ============================================================
-              // ✅ المحتوى الرئيسي
-              // ============================================================
               Center(
                 child: SingleChildScrollView(
                   physics: const ClampingScrollPhysics(),
@@ -154,8 +141,6 @@ class _SplashScreenState extends State<SplashScreen>
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               SizedBox(height: screenHeight * 0.05),
-
-                              // ✅ Lottie
                               Transform.scale(
                                 scale: _scaleAnimation.value,
                                 child: ConstrainedBox(
@@ -179,9 +164,7 @@ class _SplashScreenState extends State<SplashScreen>
                                   ),
                                 ),
                               ),
-
                               SizedBox(height: screenHeight * 0.04),
-
                               Transform.scale(
                                 scale: _scaleAnimation.value,
                                 child: const Column(
@@ -207,9 +190,7 @@ class _SplashScreenState extends State<SplashScreen>
                                   ],
                                 ),
                               ),
-
                               SizedBox(height: screenHeight * 0.02),
-
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 20,
@@ -227,10 +208,7 @@ class _SplashScreenState extends State<SplashScreen>
                                   ),
                                 ),
                               ),
-
                               SizedBox(height: screenHeight * 0.08),
-
-                              // ✅ نص التحميل فقط (بدون أرقام)
                               const Text(
                                 'جاري التحميل...',
                                 style: TextStyle(
@@ -239,12 +217,7 @@ class _SplashScreenState extends State<SplashScreen>
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-
                               SizedBox(height: screenHeight * 0.05),
-
-                              // ============================================================
-                              // ✅ "صحتك أولاً"
-                              // ============================================================
                               Column(
                                 children: [
                                   const Text(
@@ -284,10 +257,6 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                 ),
               ),
-
-              // ============================================================
-              // ✅ خط تحميل متحرك في أسفل الشاشة (بدون أرقام)
-              // ============================================================
               Positioned(
                 bottom: 0,
                 left: 0,
@@ -320,9 +289,6 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
-  // ============================================================
-  // ✅ دوائر متحركة
-  // ============================================================
   Widget _buildAnimatedCircle(CircleData circle) {
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 0, end: 2 * 3.14159),
@@ -352,9 +318,6 @@ class _SplashScreenState extends State<SplashScreen>
   }
 }
 
-// ============================================================
-// ✅ بيانات الدوائر
-// ============================================================
 class CircleData {
   final double size;
   final int duration;
@@ -370,12 +333,3 @@ class CircleData {
     required this.color,
   });
 }
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:lottie/lottie.dart';
-import 'package:audioplayers/audioplayers.dart';
-import 'package:sehatak/presentation/screens/home/home_screen.dart';
-import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
-
-// ... الكود كاملاً مع إضافة import AuthScreen
