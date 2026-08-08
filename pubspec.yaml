@@ -221,3 +221,4 @@ flutter_native_splash:
   image: assets/icons/app_icon.png        # ✅ PNG بدلاً من SVG
   android: true
   ios: false
+    - assets/images/chat_background.svg
