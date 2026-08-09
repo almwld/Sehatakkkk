@@ -116,8 +116,9 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
+  # ✅ الأصول - منظمة وواضحة
   assets:
-    # ✅ الأيقونات
+    # 📁 الأيقونات (Icons)
     - assets/icons/
     - assets/icons/services/
     - assets/icons/social/
@@ -129,42 +130,43 @@ flutter:
     - assets/icons/offers/
     - assets/icons/plans/
     
-    # ✅ الصور
+    # 📁 الصور (Images)
     - assets/images/
-    - assets/images/services/
+    - assets/images/banners/
+    - assets/images/chat/
+    - assets/images/delivery/
     - assets/images/doctors/
     - assets/images/doctors/placeholders/
-    - assets/images/medicines/
-    - assets/images/pharmacies/
-    - assets/images/labs/
     - assets/images/hospitals/
-    - assets/images/banners/
-    - assets/images/delivery/
-    - assets/images/posts/
-    - assets/images/chat/
-    - assets/images/social/
-    - assets/images/tracking/
     - assets/images/icons/
     - assets/images/icons/doctors/
-    - assets/images/icons/search/
-    - assets/images/icons/top_bar/
     - assets/images/icons/fast_services/
     - assets/images/icons/roles/
+    - assets/images/icons/search/
+    - assets/images/icons/top_bar/
+    - assets/images/labs/
+    - assets/images/medicines/
+    - assets/images/pharmacies/
+    - assets/images/posts/
+    - assets/images/services/
+    - assets/images/social/
+    - assets/images/tracking/
     - assets/images/wallets/
     
-    # ✅ الرسوم المتحركة
+    # 📁 الرسوم المتحركة (Animations)
     - assets/animations/
     
-    # ✅ الصوت
+    # 📁 الصوت (Audio)
     - assets/audio/
     
-    # ✅ SVG
+    # 📁 SVG
     - assets/svg/
     
-    # ✅ ملفات مفردة
+    # 📁 ملفات مفردة
     - assets/images/chat_background.svg
     - assets/icons/app_icon.png
 
+  # ✅ الخطوط (Fonts)
   fonts:
     - family: NotoSansArabicUI
       fonts:
@@ -180,12 +182,14 @@ flutter:
         - asset: assets/fonts/NotoSansArabicUI-Black.ttf
           weight: 900
 
+# ✅ أيقونة التطبيق
 flutter_launcher_icons:
   android: true
   ios: false
   image_path: "assets/icons/app_icon.png"
   min_sdk_android: 21
 
+# ✅ شاشة البداية
 flutter_native_splash:
   color: "#FFFFFF"
   image: assets/icons/app_icon.png
