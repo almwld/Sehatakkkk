@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class ShareAppScreen extends StatelessWidget {
@@ -9,13 +10,15 @@ class ShareAppScreen extends StatelessWidget {
   final String _appLink = 'https://github.com/almwld/Sehatakkkk';
   final String _shareMessage = 'مرحباً! أدعوك لتجربة تطبيق "صحتك" - منصة الرعاية الصحية الشاملة في اليمن. احجز مواعيدك، استشر الأطباء، واطلب أدويتك بكل سهولة. حمل التطبيق الآن من الرابط التالي:\n';
 
-  final List<Map<String, dynamic>> _shareMethods = const [
-    {'icon': Icons.chat, 'name': 'واتساب', 'color': Color(0xFF25D366), 'url': 'https://wa.me/?text='},
-    {'icon': Icons.telegram, 'name': 'تيليجرام', 'color': Color(0xFF0088CC), 'url': 'https://t.me/share/url?url='},
-    {'icon': Icons.facebook, 'name': 'فيسبوك', 'color': Color(0xFF1877F2), 'url': 'https://www.facebook.com/sharer/sharer.php?u='},
-    {'icon': Icons.timeline, 'name': 'تويتر', 'color': Color(0xFF1DA1F2), 'url': 'https://twitter.com/intent/tweet?url='},
-    {'icon': Icons.email, 'name': 'بريد إلكتروني', 'color': Color(0xFFEA4335), 'url': 'mailto:?subject=تطبيق صحتك&body='},
-    {'icon': Icons.link, 'name': 'نسخ الرابط', 'color': AppColors.primary, 'url': ''},
+  // ✅ أيقونات المشاركة - باستخدام SVG
+  final List<Map<String, dynamic>> _shareMethods = [
+    {'icon': 'assets/icons/social/whatsapp.svg', 'name': 'واتساب', 'color': Color(0xFF25D366), 'url': 'https://wa.me/?text='},
+    {'icon': 'assets/icons/social/facebook.svg', 'name': 'فيسبوك', 'color': Color(0xFF1877F2), 'url': 'https://www.facebook.com/sharer/sharer.php?u='},
+    {'icon': 'assets/icons/social/instagram.svg', 'name': 'انستغرام', 'color': Color(0xFFE4405F), 'url': 'https://www.instagram.com/'},
+    {'icon': 'assets/icons/social/x_twitter.svg', 'name': 'تويتر', 'color': Color(0xFF1DA1F2), 'url': 'https://twitter.com/intent/tweet?url='},
+    {'icon': 'assets/icons/social/chat_modern.svg', 'name': 'رسالة', 'color': AppColors.primary, 'url': 'mailto:?subject=تطبيق صحتك&body='},
+    {'icon': 'assets/icons/social/linkedin.svg', 'name': 'لينكد إن', 'color': Color(0xFF0A66C2), 'url': 'https://www.linkedin.com/sharing/share-offsite/?url='},
+    {'icon': 'assets/icons/social/discord.svg', 'name': 'ديسكورد', 'color': Color(0xFF5865F2), 'url': 'https://discord.com/'},
   ];
 
   @override
@@ -47,6 +50,20 @@ class ShareAppScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  // ✅ دالة عرض أيقونة SVG
+  Widget _buildSvgIcon(String path, Color color, {double size = 24}) {
+    return SvgPicture.asset(
+      path,
+      width: size,
+      height: size,
+      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+      placeholderBuilder: (_) => Icon(Icons.circle, color: color, size: size),
+      errorBuilder: (context, error, stackTrace) {
+        return Icon(Icons.circle, color: color, size: size);
+      },
     );
   }
 
@@ -132,7 +149,7 @@ class ShareAppScreen extends StatelessWidget {
         final method = _shareMethods[index];
         return _buildShareMethod(
           context,
-          icon: method['icon'] as IconData,
+          iconPath: method['icon'] as String,
           name: method['name'] as String,
           color: method['color'] as Color,
           url: method['url'] as String,
@@ -144,7 +161,7 @@ class ShareAppScreen extends StatelessWidget {
 
   Widget _buildShareMethod(
     BuildContext context, {
-    required IconData icon,
+    required String iconPath,
     required String name,
     required Color color,
     required String url,
@@ -175,10 +192,8 @@ class ShareAppScreen extends StatelessWidget {
                 color: color.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
-                icon,
-                color: color,
-                size: 24,
+              child: Center(
+                child: _buildSvgIcon(iconPath, color, size: 24),
               ),
             ),
             const SizedBox(height: 8),
@@ -227,7 +242,6 @@ class ShareAppScreen extends StatelessWidget {
       _copyLink(context);
       return;
     }
-
     final fullUrl = '$url$_appLink';
     _launchUrl(context, fullUrl);
   }
