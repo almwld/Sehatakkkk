@@ -966,3 +966,23 @@ class _PatientDashboardState extends State<PatientDashboard> with AutomaticKeepA
     );
   }
 }
+
+  Widget _buildSectionTitle(String title, bool isDark) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : Colors.black87,
+          ),
+        ),
+        TextButton(
+          onPressed: () {},
+          child: const Text('عرض الكل'),
+        ),
+      ],
+    );
+  }

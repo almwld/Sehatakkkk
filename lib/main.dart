@@ -41,12 +41,10 @@ void main() async {
         ChangeNotifierProvider(
           create: (_) => FontSizeProvider(),
         ),
-        
         // ✅ إضافة CartProvider (إدارة السلة)
         ChangeNotifierProvider(
           create: (_) => CartProvider(),
         ),
-        
         // ✅ Bloc Providers
         BlocProvider(
           create: (_) => AuthBloc()..add(CheckAuthStatus()),
@@ -76,19 +74,28 @@ class SehatakApp extends StatelessWidget {
               theme: ThemeManager.lightTheme,
               darkTheme: ThemeManager.darkTheme,
               themeMode: themeState.themeMode,
-              
-              // ✅ تطبيق حجم الخط على التطبيق كامل
+              // ✅ حل مشكلة الشاشة البيضاء - منع إعادة البناء
               builder: (context, child) {
+                // ✅ التحقق من وجود child قبل الإرجاع
+                if (child == null) {
+                  return const SizedBox.shrink();
+                }
+                // ✅ إضافة Keys لمنع إعادة البناء غير الضرورية
                 return MediaQuery(
+                  key: const ValueKey('app_media_query'),
                   data: MediaQuery.of(context).copyWith(
                     textScaleFactor: fontProvider.fontScale,
                   ),
                   child: Directionality(
                     textDirection: TextDirection.rtl,
-                    child: child!,
+                    child: child,
                   ),
                 );
               },
+              // ✅ إضافة GlobalKey لتحسين الأداء
+              navigatorKey: GlobalKey<NavigatorState>(),
+              // ✅ منع إعادة بناء التطبيق بالكامل
+              restorationScopeId: 'app',
               home: const SplashScreen(),
             );
           },
