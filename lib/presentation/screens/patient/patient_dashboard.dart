@@ -25,7 +25,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
   double _appBarOpacity = 1.0;
   bool _isLoading = false;
 
-  // ✅ بيانات المريض
   final Map<String, dynamic> _patientData = {
     'name': 'أحمد محمد',
     'age': 35,
@@ -44,13 +43,24 @@ class _PatientDashboardState extends State<PatientDashboard> {
     {'label': 'التقارير', 'value': '6', 'icon': Icons.description, 'color': AppColors.info},
   ];
 
-  // ✅ المؤشرات الحيوية
+  // ✅ المؤشرات الحيوية - استخدام أيقونات tracking
   final List<Map<String, dynamic>> _vitals = [
-    {'title': 'ضغط الدم', 'value': '120/80', 'status': 'طبيعي', 'icon': Icons.favorite, 'color': AppColors.error, 'screen': const BloodPressureScreen()},
-    {'title': 'معدل السكر', 'value': '95 mg/dL', 'status': 'طبيعي', 'icon': Icons.biotech, 'color': AppColors.warning, 'screen': const GlucoseTrackerScreen()},
-    {'title': 'الوزن', 'value': '75 kg', 'status': 'مثالي', 'icon': Icons.monitor_weight, 'color': AppColors.info, 'screen': const WeightTrackerScreen()},
-    {'title': 'الأدوية', 'value': '3', 'status': 'نشط', 'icon': Icons.medication, 'color': AppColors.success, 'screen': const MedicationReminderScreen()},
-    {'title': 'فحص البلاس', 'value': '98%', 'status': 'ممتاز', 'icon': Icons.sensors, 'color': AppColors.teal, 'screen': const PulseOximeterScreen()},
+    {'title': 'ضغط الدم', 'value': '120/80', 'status': 'طبيعي', 'icon': 'assets/images/tracking/blood_pressure.png', 'color': AppColors.error, 'screen': const BloodPressureScreen()},
+    {'title': 'معدل السكر', 'value': '95 mg/dL', 'status': 'طبيعي', 'icon': 'assets/images/tracking/blood_sugar.png', 'color': AppColors.warning, 'screen': const GlucoseTrackerScreen()},
+    {'title': 'الوزن', 'value': '75 kg', 'status': 'مثالي', 'icon': 'assets/images/tracking/weight_tracking.png', 'color': AppColors.info, 'screen': const WeightTrackerScreen()},
+    {'title': 'الأدوية', 'value': '3', 'status': 'نشط', 'icon': 'assets/images/services/medications.png', 'color': AppColors.success, 'screen': const MedicationReminderScreen()},
+    {'title': 'فحص البلاس', 'value': '98%', 'status': 'ممتاز', 'icon': 'assets/images/tracking/fitness.png', 'color': AppColors.teal, 'screen': const PulseOximeterScreen()},
+  ];
+
+  // ✅ أيقونات المؤشرات الحيوية - من مجلد tracking
+  final List<Map<String, dynamic>> _vitalIcons = [
+    {'icon': 'assets/images/tracking/blood_pressure.png', 'title': 'ضغط الدم', 'value': '120/80', 'unit': 'mmHg', 'color': Colors.red},
+    {'icon': 'assets/images/tracking/blood_sugar.png', 'title': 'سكر الدم', 'value': '95', 'unit': 'mg/dL', 'color': Colors.orange},
+    {'icon': 'assets/images/tracking/weight_tracking.png', 'title': 'الوزن', 'value': '72', 'unit': 'kg', 'color': Colors.green},
+    {'icon': 'assets/images/tracking/fitness.png', 'title': 'اللياقة', 'value': '85%', 'unit': '', 'color': Colors.blue},
+    {'icon': 'assets/images/tracking/mental_health.png', 'title': 'الصحة النفسية', 'value': 'جيد', 'unit': '', 'color': Colors.purple},
+    {'icon': 'assets/images/tracking/nutrition.png', 'title': 'التغذية', 'value': '5 وجبات', 'unit': 'يومياً', 'color': Colors.teal},
+    {'icon': 'assets/images/tracking/vaccination.png', 'title': 'التطعيمات', 'value': 'مكتمل', 'unit': '', 'color': Colors.indigo},
   ];
 
   // ✅ آخر المواعيد
@@ -85,6 +95,106 @@ class _PatientDashboardState extends State<PatientDashboard> {
     super.dispose();
   }
 
+  // ✅ دالة عرض أيقونة PNG
+  Widget _buildIcon(String iconPath, Color color, {double size = 24}) {
+    return Image.asset(
+      iconPath,
+      width: size,
+      height: size,
+      fit: BoxFit.contain,
+      errorBuilder: (context, error, stackTrace) {
+        return Icon(Icons.circle, color: color, size: size);
+      },
+    );
+  }
+
+  // ✅ دالة عرض أيقونة التتبع
+  Widget _buildTrackingIcon(Map<String, dynamic> item, bool isDark) {
+    return GestureDetector(
+      onTap: () {
+        // التنقل إلى شاشة التفاصيل
+      },
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1A2540) : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: (item['color'] as Color).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Center(
+                child: _buildIcon(item['icon'] as String, item['color'] as Color, size: 24),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              item['title'] as String,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: isDark ? Colors.white70 : Colors.grey[700],
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              item['value'] as String,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            if (item['unit'] != null && (item['unit'] as String).isNotEmpty)
+              Text(
+                item['unit'] as String,
+                style: TextStyle(
+                  fontSize: 9,
+                  color: isDark ? Colors.grey[400] : Colors.grey[500],
+                ),
+                textAlign: TextAlign.center,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ✅ عرض المؤشرات الحيوية في شبكة
+  Widget _buildVitalsGrid() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 0.85,
+      ),
+      itemCount: _vitalIcons.length,
+      itemBuilder: (context, index) {
+        final item = _vitalIcons[index];
+        return _buildTrackingIcon(item, isDark);
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -98,7 +208,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
       body: CustomScrollView(
         controller: _scrollController,
         slivers: [
-          // ✅ AppBar احترافي
           SliverAppBar(
             expandedHeight: 140,
             floating: true,
@@ -117,7 +226,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
                     children: [
                       Row(
                         children: [
-                          // ✅ صورة الملف الشخصي
                           GestureDetector(
                             onTap: () {
                               Navigator.push(
@@ -162,7 +270,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
                             ),
                           ),
                           const SizedBox(width: 14),
-                          // ✅ معلومات المستخدم
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -184,7 +291,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
                                   ),
                                 ),
                                 const SizedBox(height: 6),
-                                // ✅ شارات المعلومات
                                 Wrap(
                                   spacing: 6,
                                   runSpacing: 4,
@@ -197,7 +303,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
                               ],
                             ),
                           ),
-                          // ✅ زر تعديل الملف الشخصي
                           Container(
                             decoration: BoxDecoration(
                               color: primaryColor.withOpacity(0.1),
@@ -221,39 +326,26 @@ class _PatientDashboardState extends State<PatientDashboard> {
               ),
             ),
           ),
-
-          // ✅ المحتوى الرئيسي
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                // 1️⃣ الإحصائيات السريعة
                 _statsRow(),
                 const SizedBox(height: 20),
-
-                // ✅ ✅ ✅ 2️⃣ قسم الباقات والاشتراكات (تم نقله هنا)
                 _buildPackagesSection(isDark),
                 const SizedBox(height: 20),
-
-                // 3️⃣ المؤشرات الحيوية (تم نقله بعد الباقات)
                 _sectionTitle('المؤشرات الحيوية', isDark),
                 const SizedBox(height: 10),
-                _vitalsGrid(),
+                _buildVitalsGrid(),
                 const SizedBox(height: 20),
-
-                // 4️⃣ الخدمات الصحية
                 _sectionTitle('خدمات صحية', isDark),
                 const SizedBox(height: 10),
                 _healthServices(),
                 const SizedBox(height: 20),
-
-                // 5️⃣ آخر المواعيد
                 _sectionTitle('آخر المواعيد', isDark),
                 const SizedBox(height: 10),
                 _buildAppointmentsList(isDark),
                 const SizedBox(height: 20),
-
-                // 6️⃣ آخر النتائج
                 _sectionTitle('آخر النتائج', isDark),
                 const SizedBox(height: 10),
                 _buildResultsList(isDark),
@@ -266,7 +358,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ✅ Shimmer
   Widget _shimmerPlaceholder(double width, double height, double radius) {
     return Shimmer.fromColors(
       baseColor: Colors.grey[300]!,
@@ -320,7 +411,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ✅ قسم الباقات والاشتراكات
   Widget _buildPackagesSection(bool isDark) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -487,7 +577,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ✅ الإحصائيات
   Widget _statsRow() {
     return Row(
       children: _stats.map((stat) {
@@ -524,124 +613,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ✅ المؤشرات الحيوية
-  Widget _vitalsGrid() {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        childAspectRatio: 1.1,
-      ),
-      itemCount: _vitals.length,
-      itemBuilder: (context, index) {
-        final vital = _vitals[index];
-        final color = vital['color'] as Color;
-        final statusColor = vital['status'] == 'طبيعي' || vital['status'] == 'مثالي' || vital['status'] == 'نشط' || vital['status'] == 'ممتاز'
-            ? Colors.green
-            : Colors.orange;
-        final isPulseOximeter = vital['title'] == 'فحص البلاس';
-        
-        return GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => vital['screen'] as Widget),
-            );
-          },
-          child: Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: color.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(vital['icon'] as IconData, color: color, size: 20),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        vital['status'] as String,
-                        style: TextStyle(
-                          color: statusColor,
-                          fontSize: 9,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Text(
-                      vital['title'] as String,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                    if (isPulseOximeter)
-                      Container(
-                        margin: const EdgeInsets.only(left: 4),
-                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                        decoration: BoxDecoration(
-                          color: AppColors.teal.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: const Text(
-                          'جديد',
-                          style: TextStyle(
-                            fontSize: 7,
-                            color: AppColors.teal,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-                Text(
-                  vital['value'] as String,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0D5257),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  // ✅ الخدمات الصحية
   Widget _healthServices() {
     final services = [
       {'icon': Icons.monitor_heart, 'label': 'ضغط الدم', 'color': AppColors.error, 'screen': const BloodPressureScreen()},
@@ -727,7 +698,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ✅ آخر المواعيد
   Widget _buildAppointmentsList(bool isDark) {
     return ListView.builder(
       shrinkWrap: true,
@@ -819,7 +789,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ✅ آخر النتائج
   Widget _buildResultsList(bool isDark) {
     return ListView.builder(
       shrinkWrap: true,
@@ -896,115 +865,4 @@ class _PatientDashboardState extends State<PatientDashboard> {
       },
     );
   }
-}
-
-// ✅ أيقونات المؤشرات الحيوية - من مجلد tracking
-final List<Map<String, dynamic>> _vitalIcons = [
-  {'icon': 'assets/images/tracking/blood_pressure.png', 'title': 'ضغط الدم', 'value': '120/80', 'unit': 'mmHg', 'color': Colors.red},
-  {'icon': 'assets/images/tracking/blood_sugar.png', 'title': 'سكر الدم', 'value': '95', 'unit': 'mg/dL', 'color': Colors.orange},
-  {'icon': 'assets/images/tracking/weight_tracking.png', 'title': 'الوزن', 'value': '72', 'unit': 'kg', 'color': Colors.green},
-  {'icon': 'assets/images/tracking/fitness.png', 'title': 'اللياقة', 'value': '85%', 'unit': '', 'color': Colors.blue},
-  {'icon': 'assets/images/tracking/mental_health.png', 'title': 'الصحة النفسية', 'value': 'جيد', 'unit': '', 'color': Colors.purple},
-  {'icon': 'assets/images/tracking/nutrition.png', 'title': 'التغذية', 'value': '5 وجبات', 'unit': 'يومياً', 'color': Colors.teal},
-  {'icon': 'assets/images/tracking/vaccination.png', 'title': 'التطعيمات', 'value': 'مكتمل', 'unit': '', 'color': Colors.indigo},
-];
-
-// ✅ دالة عرض أيقونة التتبع
-Widget _buildTrackingIcon(Map<String, dynamic> item, bool isDark) {
-  return GestureDetector(
-    onTap: () {
-      // التنقل إلى شاشة التفاصيل
-    },
-    child: Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2540) : Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: (item['color'] as Color).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Center(
-              child: Image.asset(
-                item['icon'] as String,
-                width: 24,
-                height: 24,
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) {
-                  return Icon(
-                    Icons.health_and_safety,
-                    color: item['color'] as Color,
-                    size: 24,
-                  );
-                },
-              ),
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            item['title'] as String,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              color: isDark ? Colors.white70 : Colors.grey[700],
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 2),
-          Text(
-            item['value'] as String,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : Colors.black87,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          if (item['unit'] != null && (item['unit'] as String).isNotEmpty)
-            Text(
-              item['unit'] as String,
-              style: TextStyle(
-                fontSize: 9,
-                color: isDark ? Colors.grey[400] : Colors.grey[500],
-              ),
-              textAlign: TextAlign.center,
-            ),
-        ],
-      ),
-    ),
-  );
-}
-
-// ✅ عرض المؤشرات الحيوية في شبكة
-Widget _buildVitalsGrid() {
-  final isDark = Theme.of(context).brightness == Brightness.dark;
-  
-  return GridView.builder(
-    shrinkWrap: true,
-    physics: const NeverScrollableScrollPhysics(),
-    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-      crossAxisCount: 3,
-      crossAxisSpacing: 10,
-      mainAxisSpacing: 10,
-      childAspectRatio: 0.85,
-    ),
-    itemCount: _vitalIcons.length,
-    itemBuilder: (context, index) {
-      final item = _vitalIcons[index];
-      return _buildTrackingIcon(item, isDark);
-    },
-  );
 }

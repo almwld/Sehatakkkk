@@ -20,6 +20,17 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
   late TabController _tabController;
   final List<Map<String, dynamic>> _stories = [];
 
+  // ✅ أيقونات الدردشة
+  final List<Map<String, dynamic>> _chatIcons = [
+    {'icon': 'assets/images/chat/audio_record.png', 'label': 'تسجيل صوتي', 'color': Colors.red},
+    {'icon': 'assets/images/chat/phone_call.png', 'label': 'مكالمة', 'color': Colors.green},
+    {'icon': 'assets/images/chat/video_call.png', 'label': 'مكالمة فيديو', 'color': Colors.blue},
+    {'icon': 'assets/images/chat/chat_bubble.png', 'label': 'دردشة', 'color': AppColors.primary},
+    {'icon': 'assets/images/chat/calendar_booking.png', 'label': 'حجز موعد', 'color': Colors.orange},
+    {'icon': 'assets/images/chat/microphone.png', 'label': 'ميكروفون', 'color': Colors.purple},
+    {'icon': 'assets/images/chat/play_button.png', 'label': 'تشغيل', 'color': Colors.teal},
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -44,7 +55,6 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     super.dispose();
   }
 
-  // ✅ التنقل إلى شاشة المحادثة مع userId و isDoctor
   void _navigateToChat(String chatId, String userName, String userId, bool isDoctor) {
     Navigator.push(
       context,
@@ -153,6 +163,61 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     );
   }
 
+  // ✅ دالة عرض عنصر دردشة فردي
+  Widget _buildChatActionItem(Map<String, dynamic> item, bool isDark) {
+    return GestureDetector(
+      onTap: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('📱 ${item['label']}'),
+            backgroundColor: item['color'] as Color,
+            duration: const Duration(seconds: 1),
+          ),
+        );
+      },
+      child: Container(
+        width: 70,
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: (item['color'] as Color).withOpacity(0.12),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Center(
+                child: Image.asset(
+                  item['icon'] as String,
+                  width: 28,
+                  height: 28,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Icon(Icons.circle, color: item['color'] as Color, size: 28);
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              item['label'] as String,
+              style: TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w500,
+                color: isDark ? Colors.white70 : Colors.grey[700],
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -226,9 +291,6 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     );
   }
 
-  // ============================================================
-  // 📸 القصص (Stories)
-  // ============================================================
   Widget _buildStoriesRow(bool isDark) {
     return Container(
       height: 100,
@@ -298,9 +360,6 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     );
   }
 
-  // ============================================================
-  // 📞 تبويب المكالمات
-  // ============================================================
   Widget _buildCallsTab(bool isDark) {
     final calls = [
       {'name': 'د. أحمد المولد', 'type': 'audio', 'status': 'answered', 'time': '10:30 ص', 'duration': '5:23'},
@@ -315,7 +374,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
         final call = calls[index];
         final isMissed = call['status'] == 'missed';
         final isVideo = call['type'] == 'video';
-        
+
         return Container(
           margin: const EdgeInsets.only(bottom: 8),
           padding: const EdgeInsets.all(12),
@@ -386,9 +445,6 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     );
   }
 
-  // ============================================================
-  // 🔵 تبويب الحالات
-  // ============================================================
   Widget _buildStatusTab(bool isDark) {
     return Center(
       child: Column(
@@ -437,9 +493,6 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     );
   }
 
-  // ============================================================
-  // 💬 تبويب المحادثات
-  // ============================================================
   Widget _buildChatsTab(ChatState state, bool isDark, Color primaryColor) {
     if (state is ChatLoadingState) {
       return const Center(child: CircularProgressIndicator());
@@ -447,11 +500,10 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
 
     if (state is ChatListLoadedState) {
       final chats = state.chats;
-      
       if (chats.isEmpty) {
         return _buildEmptyState(isDark);
       }
-      
+
       return ListView.builder(
         padding: const EdgeInsets.all(12),
         itemCount: chats.length,
@@ -464,11 +516,11 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
           final lastMessage = chat['lastMessage'] ?? 'ابدأ المحادثة';
           final lastTime = _formatTime(chat['lastMessageTime']);
           final unreadCount = chat['unreadCount'] ?? 0;
-          
+
           return GestureDetector(
             onTap: () => _navigateToChat(
-              chat['id'], 
-              otherName ?? 'مستخدم', 
+              chat['id'],
+              otherName ?? 'مستخدم',
               otherId ?? '',
               isDoctor,
             ),
@@ -552,9 +604,6 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     return const SizedBox.shrink();
   }
 
-  // ============================================================
-  // 🟡 حالة فارغة
-  // ============================================================
   Widget _buildEmptyState(bool isDark) {
     return Center(
       child: Column(
@@ -600,9 +649,6 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     );
   }
 
-  // ============================================================
-  // 🔴 حالة خطأ
-  // ============================================================
   Widget _buildErrorState(String message, bool isDark) {
     return Center(
       child: Column(
@@ -668,105 +714,4 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
       return '';
     }
   }
-}
-
-// ✅ أيقونات الدردشة
-final List<Map<String, dynamic>> _chatIcons = [
-  {'icon': 'assets/images/chat/audio_record.png', 'label': 'تسجيل صوتي', 'color': Colors.red},
-  {'icon': 'assets/images/chat/phone_call.png', 'label': 'مكالمة', 'color': Colors.green},
-  {'icon': 'assets/images/chat/video_call.png', 'label': 'مكالمة فيديو', 'color': Colors.blue},
-  {'icon': 'assets/images/chat/chat_bubble.png', 'label': 'دردشة', 'color': AppColors.primary},
-  {'icon': 'assets/images/chat/calendar_booking.png', 'label': 'حجز موعد', 'color': Colors.orange},
-  {'icon': 'assets/images/chat/microphone.png', 'label': 'ميكروفون', 'color': Colors.purple},
-  {'icon': 'assets/images/chat/play_button.png', 'label': 'تشغيل', 'color': Colors.teal},
-];
-
-// ✅ عرض أيقونات الدردشة
-Widget _buildChatActionsRow() {
-  final isDark = Theme.of(context).brightness == Brightness.dark;
-  
-  return SizedBox(
-    height: 80,
-    child: ListView.builder(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      itemCount: _chatIcons.length,
-      itemBuilder: (context, index) {
-        final item = _chatIcons[index];
-        return _buildChatActionItem(item, isDark);
-      },
-    ),
-  );
-}
-
-// ✅ دالة عرض عنصر دردشة فردي
-Widget _buildChatActionItem(Map<String, dynamic> item, bool isDark) {
-  return GestureDetector(
-    onTap: () {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('📱 ${item['label']}'),
-          backgroundColor: item['color'] as Color,
-          duration: const Duration(seconds: 1),
-        ),
-      );
-    },
-    child: Container(
-      width: 70,
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: (item['color'] as Color).withOpacity(0.12),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Center(
-              child: Image.asset(
-                item['icon'] as String,
-                width: 28,
-                height: 28,
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) {
-                  return Icon(
-                    Icons.circle,
-                    color: item['color'] as Color,
-                    size: 28,
-                  );
-                },
-              ),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            item['label'] as String,
-            style: TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.w500,
-              color: isDark ? Colors.white70 : Colors.grey[700],
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-// ✅ استخدام خلفية الدردشة
-Widget _buildChatBackground() {
-  return Container(
-    decoration: BoxDecoration(
-      image: DecorationImage(
-        image: AssetImage('assets/images/chat_background.svg'),
-        fit: BoxFit.cover,
-        opacity: 0.1,
-      ),
-    ),
-  );
 }

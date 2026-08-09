@@ -14,7 +14,8 @@ class DoctorDetailsScreen extends StatefulWidget {
   State<DoctorDetailsScreen> createState() => _DoctorDetailsScreenState();
 }
 
-class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTickerProviderStateMixin {
+class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tab;
   bool _isFavorite = false;
 
@@ -53,6 +54,14 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
     }
   }
 
+  // ✅ أيقونات التواصل مع الطبيب
+  final List<Map<String, dynamic>> _contactIcons = [
+    {'icon': 'assets/images/chat/phone_call.png', 'label': 'اتصال', 'color': Colors.green},
+    {'icon': 'assets/images/chat/video_call.png', 'label': 'مكالمة فيديو', 'color': Colors.blue},
+    {'icon': 'assets/images/chat/chat_bubble.png', 'label': 'رسالة', 'color': AppColors.primary},
+    {'icon': 'assets/images/chat/calendar_booking.png', 'label': 'حجز موعد', 'color': Colors.orange},
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -65,23 +74,16 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
     super.dispose();
   }
 
-  // ✅ دالة فتح الدردشة مع الطبيب
   void _openChat() {
     final doc = _doctor;
     final user = FirebaseAuth.instance.currentUser;
-    
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('يرجى تسجيل الدخول أولاً'),
-          backgroundColor: Colors.orange,
-        ),
+        const SnackBar(content: Text('يرجى تسجيل الدخول أولاً'), backgroundColor: Colors.orange),
       );
       return;
     }
-
     final chatId = 'chat_${user.uid}_${doc['doctorId']}_${DateTime.now().millisecondsSinceEpoch}';
-    
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -89,27 +91,21 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
           chatId: chatId,
           userName: doc['name'],
           userId: doc['doctorId'],
-          isDoctor: true, // ✅ الطبيب
+          isDoctor: true,
         ),
       ),
     );
   }
 
-  // ✅ دالة الاتصال بالطبيب
   void _callDoctor() {
     final doc = _doctor;
     final user = FirebaseAuth.instance.currentUser;
-    
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('يرجى تسجيل الدخول أولاً'),
-          backgroundColor: Colors.orange,
-        ),
+        const SnackBar(content: Text('يرجى تسجيل الدخول أولاً'), backgroundColor: Colors.orange),
       );
       return;
     }
-
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -123,21 +119,15 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
     );
   }
 
-  // ✅ دالة مكالمة فيديو
   void _videoCallDoctor() {
     final doc = _doctor;
     final user = FirebaseAuth.instance.currentUser;
-    
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('يرجى تسجيل الدخول أولاً'),
-          backgroundColor: Colors.orange,
-        ),
+        const SnackBar(content: Text('يرجى تسجيل الدخول أولاً'), backgroundColor: Colors.orange),
       );
       return;
     }
-
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -151,12 +141,64 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
     );
   }
 
-  // ✅ دالة حجز موعد
   void _bookAppointment() {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => DoctorBookingScreen(doctorId: widget.doctorId ?? '1'),
+      ),
+    );
+  }
+
+  // ✅ دالة عرض عنصر تواصل فردي
+  Widget _buildContactActionItem(Map<String, dynamic> item, bool isDark) {
+    return GestureDetector(
+      onTap: () {
+        final label = item['label'] as String;
+        if (label == 'اتصال') _callDoctor();
+        else if (label == 'مكالمة فيديو') _videoCallDoctor();
+        else if (label == 'رسالة') _openChat();
+        else if (label == 'حجز موعد') _bookAppointment();
+      },
+      child: Container(
+        width: 70,
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: (item['color'] as Color).withOpacity(0.12),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Center(
+                child: Image.asset(
+                  item['icon'] as String,
+                  width: 28,
+                  height: 28,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Icon(Icons.circle, color: item['color'] as Color, size: 28);
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              item['label'] as String,
+              style: TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w500,
+                color: isDark ? Colors.white70 : Colors.grey[700],
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -237,17 +279,20 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
               ],
             ),
           ),
+          // ✅ أيقونات التواصل - استخدام الأيقونات الجديدة
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             color: AppColors.primary,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _actionBtn(Icons.chat, 'محادثة', AppColors.info, _openChat),
-                _actionBtn(Icons.phone, 'اتصال', AppColors.success, _callDoctor),
-                _actionBtn(Icons.videocam, 'فيديو', AppColors.primary, _videoCallDoctor),
-                _actionBtn(Icons.calendar_today, 'حجز', AppColors.teal, _bookAppointment),
-              ],
+            child: SizedBox(
+              height: 80,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: _contactIcons.length,
+                itemBuilder: (context, index) {
+                  final item = _contactIcons[index];
+                  return _buildContactActionItem(item, isDark);
+                },
+              ),
             ),
           ),
           Expanded(
@@ -283,30 +328,8 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
     );
   }
 
-  Widget _actionBtn(IconData icon, String label, Color color, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: Colors.white, size: 22),
-          ),
-          const SizedBox(height: 4),
-          Text(label, style: const TextStyle(color: Colors.white70, fontSize: 10)),
-        ],
-      ),
-    );
-  }
-
   Widget _aboutTab(Map<String, dynamic> doc) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -363,89 +386,4 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
       ),
     );
   }
-}
-
-// ✅ أيقونات التواصل مع الطبيب
-final List<Map<String, dynamic>> _contactIcons = [
-  {'icon': 'assets/images/chat/phone_call.png', 'label': 'اتصال', 'color': Colors.green},
-  {'icon': 'assets/images/chat/video_call.png', 'label': 'مكالمة فيديو', 'color': Colors.blue},
-  {'icon': 'assets/images/chat/chat_bubble.png', 'label': 'رسالة', 'color': AppColors.primary},
-  {'icon': 'assets/images/chat/calendar_booking.png', 'label': 'حجز موعد', 'color': Colors.orange},
-];
-
-// ✅ عرض أيقونات التواصل
-Widget _buildContactActionsRow() {
-  final isDark = Theme.of(context).brightness == Brightness.dark;
-  
-  return SizedBox(
-    height: 80,
-    child: ListView.builder(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      itemCount: _contactIcons.length,
-      itemBuilder: (context, index) {
-        final item = _contactIcons[index];
-        return _buildContactActionItem(item, isDark);
-      },
-    ),
-  );
-}
-
-// ✅ دالة عرض عنصر تواصل فردي
-Widget _buildContactActionItem(Map<String, dynamic> item, bool isDark) {
-  return GestureDetector(
-    onTap: () {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('📱 ${item['label']} مع الطبيب'),
-          backgroundColor: item['color'] as Color,
-          duration: const Duration(seconds: 1),
-        ),
-      );
-    },
-    child: Container(
-      width: 70,
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: (item['color'] as Color).withOpacity(0.12),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Center(
-              child: Image.asset(
-                item['icon'] as String,
-                width: 28,
-                height: 28,
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) {
-                  return Icon(
-                    Icons.circle,
-                    color: item['color'] as Color,
-                    size: 28,
-                  );
-                },
-              ),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            item['label'] as String,
-            style: TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.w500,
-              color: isDark ? Colors.white70 : Colors.grey[700],
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    ),
-  );
 }
