@@ -1941,3 +1941,359 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 }
+
+// ✅ أيقونات الخدمات السريعة - بنفس نظام Auth
+final List<Map<String, dynamic>> _quickServices = [
+  {'icon': 'assets/images/icons/fast_services/Pharmacy.png', 'label': 'صيدلية', 'color': AppColors.success, 'screen': const MedicinesScreen()},
+  {'icon': 'assets/images/icons/fast_services/Emergency.png', 'label': 'طوارئ', 'color': AppColors.error, 'screen': const EmergencyNumbers()},
+  {'icon': 'assets/images/icons/fast_services/Home medical services.png', 'label': 'خدمات منزلية', 'color': Colors.brown, 'screen': const ServicesScreen()},
+  {'icon': 'assets/images/icons/fast_services/Donate blood.png', 'label': 'تبرع بالدم', 'color': Colors.red, 'screen': const BloodDonationScreen()},
+  {'icon': 'assets/images/services/consultation.png', 'label': 'أطباء', 'color': AppColors.primary, 'screen': const DoctorsListScreen()},
+  {'icon': 'assets/images/services/laboratory.png', 'label': 'مختبرات', 'color': AppColors.purple, 'screen': const LabsListScreen()},
+  {'icon': 'assets/images/services/health_tips.png', 'label': 'صحة', 'color': AppColors.pink, 'screen': const HealthDashboard()},
+  {'icon': 'assets/images/services/wallet.png', 'label': 'محفظة', 'color': AppColors.amber, 'screen': const WalletScreen()},
+  {'icon': 'assets/images/services/consultation.png', 'label': 'استشارة', 'color': AppColors.teal, 'screen': const ConsultationScreen()},
+  {'icon': 'assets/images/services/map_location.png', 'label': 'بالقرب منك', 'color': Colors.orange, 'screen': const InteractiveMapScreen()},
+];
+
+// ✅ دالة عرض أيقونة الخدمة السريعة (مثل نظام Auth)
+Widget _buildQuickServiceIcon(Map<String, dynamic> service, bool isDark) {
+  return InkWell(
+    onTap: () => _goTo(context, service['screen'] as Widget),
+    borderRadius: BorderRadius.circular(16),
+    child: Container(
+      width: 70,
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: (service['color'] as Color).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Center(
+              child: Image.asset(
+                service['icon'] as String,
+                width: 28,
+                height: 28,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return Icon(
+                    Icons.circle,
+                    color: service['color'] as Color,
+                    size: 28,
+                  );
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            service['label'] as String,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+              color: isDark ? Colors.white70 : Colors.grey[800],
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+// ✅ عرض الخدمات السريعة - مثل نظام Auth
+Widget _buildQuickServicesRow() {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  
+  return SizedBox(
+    height: 90,
+    child: ListView.builder(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      itemCount: _quickServices.length,
+      itemBuilder: (context, index) {
+        final service = _quickServices[index];
+        return _buildQuickServiceIcon(service, isDark);
+      },
+    ),
+  );
+}
+
+// ✅ دالة عرض أيقونة الخدمة السريعة (مثل نظام Auth)
+Widget _buildQuickServiceIcon(Map<String, dynamic> service, bool isDark) {
+  return GestureDetector(
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => service['screen'] as Widget),
+      );
+    },
+    child: Container(
+      width: 72,
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: (service['color'] as Color).withOpacity(0.12),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Center(
+              child: Image.asset(
+                service['icon'] as String,
+                width: 28,
+                height: 28,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  // ✅ إذا فشل التحميل، استخدم أيقونة بديلة
+                  return Icon(
+                    Icons.circle,
+                    color: service['color'] as Color,
+                    size: 28,
+                  );
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            service['label'] as String,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+              color: isDark ? Colors.white70 : Colors.grey[800],
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+// ✅ أيقونات الخدمات السريعة - استخدام PNG من مجلد services
+final List<Map<String, dynamic>> _quickServices = [
+  {'icon': 'assets/images/services/pharmacy.png', 'label': 'صيدلية', 'color': AppColors.success, 'screen': const MedicinesScreen()},
+  {'icon': 'assets/images/services/emergency.png', 'label': 'طوارئ', 'color': AppColors.error, 'screen': const EmergencyNumbers()},
+  {'icon': 'assets/images/services/medical_community.png', 'label': 'خدمات منزلية', 'color': Colors.brown, 'screen': const ServicesScreen()},
+  {'icon': 'assets/images/services/blood_donation.png', 'label': 'تبرع بالدم', 'color': Colors.red, 'screen': const BloodDonationScreen()},
+  {'icon': 'assets/images/services/consultation.png', 'label': 'أطباء', 'color': AppColors.primary, 'screen': const DoctorsListScreen()},
+  {'icon': 'assets/images/services/laboratory.png', 'label': 'مختبرات', 'color': AppColors.purple, 'screen': const LabsListScreen()},
+  {'icon': 'assets/images/services/health_tips.png', 'label': 'صحة', 'color': AppColors.pink, 'screen': const HealthDashboard()},
+  {'icon': 'assets/images/services/wallet.png', 'label': 'محفظة', 'color': AppColors.amber, 'screen': const WalletScreen()},
+  {'icon': 'assets/images/services/video_consultation.png', 'label': 'استشارة فيديو', 'color': AppColors.teal, 'screen': const ConsultationScreen()},
+  {'icon': 'assets/images/services/map_location.png', 'label': 'بالقرب منك', 'color': Colors.orange, 'screen': const InteractiveMapScreen()},
+  {'icon': 'assets/images/services/health_insurance.png', 'label': 'تأمين صحي', 'color': Colors.blue, 'screen': const InsuranceCompanies()},
+];
+
+// ✅ أيقونات التتبع (Tracking) - للمؤشرات الحيوية
+final List<Map<String, dynamic>> _trackingIcons = [
+  {'icon': 'assets/images/tracking/blood_pressure.png', 'label': 'ضغط الدم', 'color': Colors.red},
+  {'icon': 'assets/images/tracking/blood_sugar.png', 'label': 'سكر الدم', 'color': Colors.orange},
+  {'icon': 'assets/images/tracking/fitness.png', 'label': 'لياقة بدنية', 'color': Colors.green},
+  {'icon': 'assets/images/tracking/weight_tracking.png', 'label': 'تتبع الوزن', 'color': Colors.purple},
+  {'icon': 'assets/images/tracking/ambulance.png', 'label': 'إسعاف', 'color': Colors.red.shade700},
+  {'icon': 'assets/images/tracking/mental_health.png', 'label': 'صحة نفسية', 'color': Colors.indigo},
+  {'icon': 'assets/images/tracking/nutrition.png', 'label': 'تغذية', 'color': Colors.teal},
+  {'icon': 'assets/images/tracking/vaccination.png', 'label': 'تطعيمات', 'color': Colors.blue},
+  {'icon': 'assets/images/tracking/medical_report.png', 'label': 'تقارير طبية', 'color': Colors.cyan},
+];
+
+// ✅ عرض أيقونات التتبع
+Widget _buildTrackingRow() {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Text(
+          'المؤشرات الحيوية',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : Colors.black87,
+          ),
+        ),
+      ),
+      const SizedBox(height: 8),
+      SizedBox(
+        height: 80,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          itemCount: _trackingIcons.length,
+          itemBuilder: (context, index) {
+            final item = _trackingIcons[index];
+            return _buildTrackingItem(item, isDark);
+          },
+        ),
+      ),
+    ],
+  );
+}
+
+// ✅ دالة عرض عنصر تتبع فردي
+Widget _buildTrackingItem(Map<String, dynamic> item, bool isDark) {
+  return GestureDetector(
+    onTap: () {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('📊 فتح: ${item['label']}'),
+          backgroundColor: item['color'] as Color,
+          duration: const Duration(seconds: 1),
+        ),
+      );
+    },
+    child: Container(
+      width: 60,
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: (item['color'] as Color).withOpacity(0.12),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Center(
+              child: Image.asset(
+                item['icon'] as String,
+                width: 24,
+                height: 24,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return Icon(
+                    Icons.circle,
+                    color: item['color'] as Color,
+                    size: 24,
+                  );
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            item['label'] as String,
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w500,
+              color: isDark ? Colors.white70 : Colors.grey[700],
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    if (_isLoading) {
+      return _buildShimmerLoader();
+    }
+
+    if (_hasError) {
+      return _buildErrorScreen();
+    }
+
+    return RefreshIndicator(
+      onRefresh: _refreshData,
+      child: Scaffold(
+        backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+        body: CustomScrollView(
+          controller: widget.scrollController,
+          slivers: [
+            SliverAppBar(
+              // ... (الكود الموجود)
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  _buildSearchBar(isDark),
+                  const SizedBox(height: 16),
+                  _buildBannerCarousel(isDark),
+                  const SizedBox(height: 16),
+                  _buildStatsRow(),
+                  const SizedBox(height: 16),
+                  
+                  // ✅ إضافة قسم المؤشرات الحيوية (Tracking)
+                  _buildTrackingRow(),
+                  const SizedBox(height: 16),
+                  
+                  _buildSectionTitleWithAction('خدمات سريعة', isDark, 'عرض الكل', 
+                    () => _goTo(context, const ServicesScreen())),
+                  const SizedBox(height: 8),
+                  _buildQuickServicesRow(),
+                  const SizedBox(height: 16),
+                  _buildSectionTitleWithAction('أفضل الأطباء', isDark, 'عرض الكل', 
+                    () => _goTo(context, const DoctorsListScreen())),
+                  const SizedBox(height: 8),
+                  _buildTopDoctorsGrid(isDark),
+                  const SizedBox(height: 16),
+                  _buildSectionTitleWithAction('منتجات صيدلية', isDark, 'عرض الكل', 
+                    () => _goTo(context, const MedicinesScreen())),
+                  const SizedBox(height: 8),
+                  _buildProductsRow(),
+                  const SizedBox(height: 16),
+                  _buildSectionTitleWithAction('مستشفيات مميزة', isDark, 'عرض الكل', 
+                    () => _goTo(context, const HospitalScreen())),
+                  const SizedBox(height: 8),
+                  _buildFeaturedHospitalsGrid(isDark),
+                  const SizedBox(height: 16),
+                  _buildSectionTitleWithAction('مختبرات مميزة', isDark, 'عرض الكل', 
+                    () => _goTo(context, const LabsListScreen())),
+                  const SizedBox(height: 8),
+                  _buildFeaturedLabsGrid(isDark),
+                  const SizedBox(height: 16),
+                  _buildSectionTitleWithAction('صيدليات مميزة', isDark, 'عرض الكل', 
+                    () => _goTo(context, const PharmacyScreen())),
+                  const SizedBox(height: 8),
+                  _buildFeaturedPharmaciesGrid(isDark),
+                  const SizedBox(height: 16),
+                  _buildSectionTitle('أحدث المقالات', isDark),
+                  const SizedBox(height: 8),
+                  _buildArticlesGrid(isDark),
+                  const SizedBox(height: 16),
+                  _buildSectionTitle('نصائح يومية', isDark),
+                  const SizedBox(height: 8),
+                  _buildDailyTipsGrid(),
+                  const SizedBox(height: 16),
+                  _buildSectionTitle('مجتمع صحتك', isDark),
+                  const SizedBox(height: 8),
+                  ..._communityPosts.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final post = entry.value;
+                    return _buildCommunityPostCard(post, index, isDark);
+                  }),
+                  const SizedBox(height: 80),
+                ]),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
