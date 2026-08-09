@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/presentation/bloc/chat_bloc/chat_bloc.dart';
 import 'package:sehatak/presentation/bloc/chat_bloc/chat_event.dart';
 import 'package:sehatak/presentation/bloc/chat_bloc/chat_state.dart';
@@ -32,7 +33,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
-  
+
   bool _isTyping = false;
   bool _isRecording = false;
   bool _showEmojiPicker = false;
@@ -46,7 +47,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
     WidgetsBinding.instance.addObserver(this);
     _chatBloc = context.read<ChatBloc>();
     _chatBloc.add(ListenToMessages(widget.chatId));
-    
+
     _focusNode.addListener(() {
       if (_focusNode.hasFocus) {
         _scrollToBottom();
@@ -220,33 +221,42 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
               ),
             ),
           Expanded(
-            child: BlocBuilder<ChatBloc, ChatState>(
-              builder: (context, state) {
-                if (state is ChatLoadingState) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (state is ChatLoadedState) {
-                  final messages = state.messages;
-                  if (messages.isEmpty) {
-                    return _buildEmptyState(isDark);
+            child: Container(
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: const AssetImage('assets/images/chat_background.svg'),
+                  fit: BoxFit.cover,
+                  opacity: isDark ? 0.1 : 0.3,
+                ),
+              ),
+              child: BlocBuilder<ChatBloc, ChatState>(
+                builder: (context, state) {
+                  if (state is ChatLoadingState) {
+                    return const Center(child: CircularProgressIndicator());
                   }
-                  return ListView.builder(
-                    controller: _scrollController,
-                    reverse: true,
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                    itemCount: messages.length,
-                    itemBuilder: (context, index) {
-                      final msg = messages[index];
-                      final isMe = msg['senderId'] == currentUserId;
-                      return _buildMessageBubble(msg, isMe, isDark);
-                    },
-                  );
-                }
-                if (state is ChatErrorState) {
-                  return _buildErrorState(state.message, isDark);
-                }
-                return const SizedBox.shrink();
-              },
+                  if (state is ChatLoadedState) {
+                    final messages = state.messages;
+                    if (messages.isEmpty) {
+                      return _buildEmptyState(isDark);
+                    }
+                    return ListView.builder(
+                      controller: _scrollController,
+                      reverse: true,
+                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                      itemCount: messages.length,
+                      itemBuilder: (context, index) {
+                        final msg = messages[index];
+                        final isMe = msg['senderId'] == currentUserId;
+                        return _buildMessageBubble(msg, isMe, isDark);
+                      },
+                    );
+                  }
+                  if (state is ChatErrorState) {
+                    return _buildErrorState(state.message, isDark);
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
             ),
           ),
           _buildInputField(isDark),
@@ -260,23 +270,33 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
       backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
       elevation: 0.5,
       title: Row(
+        textDirection: TextDirection.rtl,
         children: [
-          CircleAvatar(
-            radius: 18,
-            backgroundColor: AppColors.primary.withOpacity(0.1),
-            child: Text(
-              widget.userName.isNotEmpty ? widget.userName[0] : 'م',
-              style: TextStyle(
-                color: AppColors.primary,
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
+          ClipRRect(
+            borderRadius: BorderRadius.circular(18),
+            child: Image.network(
+              ImageKit.doctor1,
+              width: 36,
+              height: 36,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => CircleAvatar(
+                radius: 18,
+                backgroundColor: AppColors.primary.withOpacity(0.1),
+                child: Text(
+                  widget.userName.isNotEmpty ? widget.userName[0] : 'م',
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
                   widget.userName,
@@ -285,6 +305,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
                     color: isDark ? Colors.white : const Color(0xFF0D5257),
                     fontSize: 15,
                   ),
+                  textAlign: TextAlign.end,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -411,17 +432,27 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
       child: Row(
         mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
+        textDirection: TextDirection.rtl,
         children: [
           if (!isMe) ...[
-            CircleAvatar(
-              radius: 16,
-              backgroundColor: AppColors.primary.withOpacity(0.1),
-              child: Text(
-                widget.userName.isNotEmpty ? widget.userName[0] : 'م',
-                style: TextStyle(
-                  color: AppColors.primary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Image.network(
+                ImageKit.doctor1,
+                width: 32,
+                height: 32,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => CircleAvatar(
+                  radius: 16,
+                  backgroundColor: AppColors.primary.withOpacity(0.1),
+                  child: Text(
+                    widget.userName.isNotEmpty ? widget.userName[0] : 'م',
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -448,7 +479,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
                 ],
               ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (imageUrl != null && imageUrl.isNotEmpty)
@@ -464,6 +495,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
                           color: isMe ? Colors.white : (isDark ? Colors.white : Colors.black87),
                           fontSize: 14,
                         ),
+                        textAlign: TextAlign.end,
                       ),
                     ),
                   if (time.isNotEmpty)
@@ -475,6 +507,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
                           fontSize: 10,
                           color: isMe ? Colors.white70 : (isDark ? Colors.grey[500] : Colors.grey[600]),
                         ),
+                        textAlign: TextAlign.end,
                       ),
                     ),
                 ],
@@ -549,6 +582,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
 
   Widget _buildAudioMessage(bool isDark) {
     return Row(
+      textDirection: TextDirection.rtl,
       children: [
         IconButton(
           icon: Icon(
@@ -595,6 +629,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
         ],
       ),
       child: Row(
+        textDirection: TextDirection.rtl,
         children: [
           IconButton(
             icon: Icon(Icons.attach_file, color: isDark ? Colors.grey[400] : Colors.grey[600]),

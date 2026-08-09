@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/presentation/bloc/chat_bloc/chat_bloc.dart';
 import 'package:sehatak/presentation/bloc/chat_bloc/chat_event.dart';
 import 'package:sehatak/presentation/bloc/chat_bloc/chat_state.dart';
@@ -20,7 +21,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
   late TabController _tabController;
   final List<Map<String, dynamic>> _stories = [];
 
-  // ✅ أيقونات الدردشة
+  // ✅ أيقونات الدردشة الجديدة
   final List<Map<String, dynamic>> _chatIcons = [
     {'icon': 'assets/images/chat/audio_record.png', 'label': 'تسجيل صوتي', 'color': Colors.red},
     {'icon': 'assets/images/chat/phone_call.png', 'label': 'مكالمة', 'color': Colors.green},
@@ -29,6 +30,15 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     {'icon': 'assets/images/chat/calendar_booking.png', 'label': 'حجز موعد', 'color': Colors.orange},
     {'icon': 'assets/images/chat/microphone.png', 'label': 'ميكروفون', 'color': Colors.purple},
     {'icon': 'assets/images/chat/play_button.png', 'label': 'تشغيل', 'color': Colors.teal},
+  ];
+
+  // ✅ أطباء وهميون مع صور من ImageKit
+  final List<Map<String, dynamic>> _doctors = [
+    {'name': 'د. أحمد المولد', 'image': ImageKit.doctor1, 'id': 'doc1'},
+    {'name': 'د. خالد النخلاني', 'image': ImageKit.doctor2, 'id': 'doc2'},
+    {'name': 'د. أسماء الهندي', 'image': ImageKit.doctor3, 'id': 'doc3'},
+    {'name': 'د. محمد العلاي', 'image': ImageKit.doctor4, 'id': 'doc4'},
+    {'name': 'د. فاطمة صديقي', 'image': ImageKit.doctor5, 'id': 'doc5'},
   ];
 
   @override
@@ -94,47 +104,50 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0D5257)),
             ),
             const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey.shade200),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.search, color: Colors.teal),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: TextField(
-                      textAlign: TextAlign.right,
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        hintText: 'ابحث عن مستخدم...',
-                        hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            _buildSheetActionTile('محادثة فردية', Icons.person_add, () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('جاري البحث عن أطباء...'), backgroundColor: Colors.blue),
-              );
-            }),
-            const SizedBox(height: 12),
-            _buildSheetActionTile('إنشاء مجموعة', Icons.group_add, () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('جاري إنشاء المجموعة...'), backgroundColor: Colors.blue),
-              );
-            }),
+            _buildDoctorList(),
             const SizedBox(height: 20),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDoctorList() {
+    return SizedBox(
+      height: 200,
+      child: ListView.builder(
+        itemCount: _doctors.length,
+        itemBuilder: (context, index) {
+          final doctor = _doctors[index];
+          return ListTile(
+            leading: ClipRRect(
+              borderRadius: BorderRadius.circular(25),
+              child: Image.network(
+                doctor['image'] as String,
+                width: 40,
+                height: 40,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  width: 40,
+                  height: 40,
+                  color: Colors.grey[300],
+                  child: const Icon(Icons.person, color: Colors.grey),
+                ),
+              ),
+            ),
+            title: Text(doctor['name'] as String),
+            trailing: const Icon(Icons.chat_bubble_outline, color: Color(0xFF0D5257)),
+            onTap: () {
+              Navigator.pop(context);
+              _navigateToChat(
+                'chat_${DateTime.now().millisecondsSinceEpoch}',
+                doctor['name'] as String,
+                doctor['id'] as String,
+                true,
+              );
+            },
+          );
+        },
       ),
     );
   }
@@ -163,7 +176,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     );
   }
 
-  // ✅ دالة عرض عنصر دردشة فردي
+  // ✅ دالة عرض عنصر دردشة فردي مع أيقونات جديدة
   Widget _buildChatActionItem(Map<String, dynamic> item, bool isDark) {
     return GestureDetector(
       onTap: () {
@@ -186,16 +199,16 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
               height: 56,
               decoration: BoxDecoration(
                 color: (item['color'] as Color).withOpacity(0.12),
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(16),
               ),
               child: Center(
                 child: Image.asset(
                   item['icon'] as String,
-                  width: 28,
-                  height: 28,
+                  width: 32,
+                  height: 32,
                   fit: BoxFit.contain,
                   errorBuilder: (context, error, stackTrace) {
-                    return Icon(Icons.circle, color: item['color'] as Color, size: 28);
+                    return Icon(Icons.circle, color: item['color'] as Color, size: 32);
                   },
                 ),
               ),
@@ -300,6 +313,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
         reverse: true,
         itemCount: 5,
         itemBuilder: (context, index) {
+          final doctor = _doctors[index % _doctors.length];
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10),
             child: Column(
@@ -315,12 +329,22 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                           width: 2,
                         ),
                       ),
-                      child: CircleAvatar(
-                        radius: 26,
-                        backgroundColor: const Color(0xFF0D5257).withOpacity(0.1),
-                        child: Icon(
-                          index == 0 ? Icons.add : Icons.person,
-                          color: const Color(0xFF0D5257),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(28),
+                        child: Image.network(
+                          doctor['image'] as String,
+                          width: 52,
+                          height: 52,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            width: 52,
+                            height: 52,
+                            color: const Color(0xFF0D5257).withOpacity(0.1),
+                            child: Icon(
+                              index == 0 ? Icons.add : Icons.person,
+                              color: const Color(0xFF0D5257),
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -343,7 +367,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  index == 0 ? 'قصتي' : 'د. أحمد',
+                  index == 0 ? 'قصتي' : doctor['name']?.split(' ').last ?? 'طبيب',
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w500,
@@ -362,9 +386,9 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
 
   Widget _buildCallsTab(bool isDark) {
     final calls = [
-      {'name': 'د. أحمد المولد', 'type': 'audio', 'status': 'answered', 'time': '10:30 ص', 'duration': '5:23'},
-      {'name': 'د. خالد النخلاني', 'type': 'video', 'status': 'missed', 'time': 'أمس', 'duration': ''},
-      {'name': 'د. أسماء الهندي', 'type': 'audio', 'status': 'answered', 'time': 'منذ ساعة', 'duration': '2:45'},
+      {'name': 'د. أحمد المولد', 'type': 'audio', 'status': 'answered', 'time': '10:30 ص', 'duration': '5:23', 'image': ImageKit.doctor1},
+      {'name': 'د. خالد النخلاني', 'type': 'video', 'status': 'missed', 'time': 'أمس', 'duration': '', 'image': ImageKit.doctor2},
+      {'name': 'د. أسماء الهندي', 'type': 'audio', 'status': 'answered', 'time': 'منذ ساعة', 'duration': '2:45', 'image': ImageKit.doctor3},
     ];
 
     return ListView.builder(
@@ -383,24 +407,31 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
             borderRadius: BorderRadius.circular(16),
           ),
           child: Row(
+            textDirection: TextDirection.rtl,
             children: [
-              Container(
-                width: 45,
-                height: 45,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.primary.withOpacity(0.1),
-                ),
-                child: Icon(
-                  isVideo ? Icons.videocam : Icons.phone,
-                  color: AppColors.primary,
-                  size: 22,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(22),
+                child: Image.network(
+                  call['image'] as String,
+                  width: 45,
+                  height: 45,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    width: 45,
+                    height: 45,
+                    color: AppColors.primary.withOpacity(0.1),
+                    child: Icon(
+                      isVideo ? Icons.videocam : Icons.phone,
+                      color: AppColors.primary,
+                      size: 22,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
                       call['name'] as String,
@@ -408,9 +439,11 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                         color: isDark ? Colors.white : Colors.black87,
                         fontWeight: FontWeight.w500,
                       ),
+                      textAlign: TextAlign.end,
                     ),
                     const SizedBox(height: 2),
                     Row(
+                      textDirection: TextDirection.rtl,
                       children: [
                         Icon(
                           isMissed ? Icons.phone_missed : Icons.phone_callback,
@@ -559,15 +592,10 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                       ),
                   ]
                 ),
-                title: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text(
-                      otherName ?? 'مستخدم',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                      textAlign: TextAlign.right,
-                    ),
-                  ],
+                title: Text(
+                  otherName ?? 'مستخدم',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  textAlign: TextAlign.end,
                 ),
                 subtitle: Padding(
                   padding: const EdgeInsets.only(top: 4),
@@ -577,17 +605,26 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                       fontSize: 13,
                       color: Colors.grey.shade600,
                     ),
-                    textAlign: TextAlign.right,
+                    textAlign: TextAlign.end,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                trailing: CircleAvatar(
-                  radius: 24,
-                  backgroundColor: primaryColor.withOpacity(0.1),
-                  child: Icon(
-                    isDoctor ? Icons.person : Icons.local_hospital,
-                    color: primaryColor,
+                trailing: ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: Image.network(
+                    isDoctor ? '' : ImageKit.doctor1,
+                    width: 48,
+                    height: 48,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => CircleAvatar(
+                      radius: 24,
+                      backgroundColor: primaryColor.withOpacity(0.1),
+                      child: Icon(
+                        isDoctor ? Icons.person : Icons.local_hospital,
+                        color: primaryColor,
+                      ),
+                    ),
                   ),
                 ),
               ),

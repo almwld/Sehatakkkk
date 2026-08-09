@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:livekit_client/livekit_client.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:sehatak/core/services/livekit_service.dart';
 import 'package:sehatak/core/services/sound_manager.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/constants/imagekit.dart';
 
 class CallScreen extends StatefulWidget {
   final String chatId;
@@ -25,6 +27,8 @@ class CallScreen extends StatefulWidget {
 
 class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
   final LiveKitService _liveKit = LiveKitService();
+  final Connectivity _connectivity = Connectivity();
+
   bool _isMuted = false;
   bool _isCameraOn = true;
   bool _isSpeakerOn = false;
@@ -32,7 +36,8 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
   bool _isConnecting = true;
   String _errorMessage = '';
   bool _hasCameraPermission = false;
-  
+  bool _isConnected = false;
+
   VideoTrack? _remoteVideoTrack;
   VideoTrack? _localVideoTrack;
   bool _isRemoteVideoReady = false;
@@ -41,12 +46,53 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _checkConnectivity();
     _checkPermissions();
+  }
+
+  Future<void> _checkConnectivity() async {
+    final result = await _connectivity.checkConnectivity();
+    if (result == ConnectivityResult.none) {
+      setState(() {
+        _isConnecting = false;
+        _errorMessage = '⚠️ لا يوجد اتصال بالإنترنت. يرجى التحقق من الشبكة والمحاولة مرة أخرى.';
+      });
+      _showNoInternetDialog();
+    } else {
+      _isConnected = true;
+    }
+  }
+
+  void _showNoInternetDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        title: const Text('⚠️ لا يوجد إنترنت'),
+        content: const Text('يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pop(context); // العودة للشاشة السابقة
+            },
+            child: const Text('رجوع'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _checkConnectivity();
+              _checkPermissions();
+            },
+            child: const Text('إعادة المحاولة'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   void dispose() {
-    // ✅ إيقاف جميع النغمات عند الخروج
     SoundManager().stopAll();
     _liveKit.endCall();
     WidgetsBinding.instance.removeObserver(this);
@@ -71,16 +117,22 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
 
   void _startCall() async {
     try {
-      // ✅ تشغيل نغمة الرنين
+      if (!_isConnected) {
+        setState(() {
+          _isConnecting = false;
+          _errorMessage = '⚠️ لا يوجد اتصال بالإنترنت';
+        });
+        return;
+      }
+
       SoundManager().playCallRingtone();
-      
+
       await _liveKit.startCall(
         roomName: widget.chatId,
         callerName: widget.doctorName,
         isVideo: widget.isVideo && _hasCameraPermission,
       );
 
-      // ✅ إيقاف نغمة الرنين بعد الاتصال
       SoundManager().stopAll();
 
       final room = _liveKit.room;
@@ -89,13 +141,13 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
         if (localParticipant != null) {
           _handleParticipant(localParticipant);
         }
-        
+
         for (final participant in room.participants.values) {
           if (participant is! LocalParticipant) {
             _handleParticipant(participant);
           }
         }
-        
+
         room.events.on<ParticipantConnectedEvent>((event) {
           _handleParticipant(event.participant);
           print('✅ Participant connected: ${event.participant.identity}');
@@ -109,7 +161,6 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
         _startTimer();
       }
     } catch (e) {
-      // ✅ إيقاف النغمة عند الفشل
       SoundManager().stopAll();
       if (mounted) {
         setState(() {
@@ -174,13 +225,9 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
     });
   }
 
-  // ✅ دالة إنهاء المكالمة مع إيقاف النغمات
   void _endCall() {
-    // ✅ إيقاف جميع النغمات
     SoundManager().stopAll();
-    // ✅ تشغيل صوت إنهاء المكالمة
     SoundManager().playCallEnd();
-    // ✅ العودة للشاشة السابقة
     Navigator.pop(context);
   }
 
@@ -195,29 +242,7 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
             color: Colors.black87,
             child: _isRemoteVideoReady && _remoteVideoTrack != null
                 ? VideoTrackRenderer(_remoteVideoTrack!)
-                : Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (_errorMessage.isNotEmpty)
-                          const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 60),
-                        const SizedBox(height: 16),
-                        Text(
-                          _errorMessage.isNotEmpty ? _errorMessage : 'جاري الاتصال...',
-                          style: TextStyle(
-                            color: _errorMessage.isNotEmpty ? AppColors.error : Colors.white,
-                            fontSize: 18,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        if (_isConnecting)
-                          const Padding(
-                            padding: EdgeInsets.all(16.0),
-                            child: CircularProgressIndicator(color: Colors.white),
-                          ),
-                      ],
-                    ),
-                  ),
+                : _buildConnectingScreen(),
           ),
           // 🖼️ فيديو المستخدم (Picture-in-Picture)
           if (widget.isVideo && _hasCameraPermission && _localVideoTrack != null && _errorMessage.isEmpty)
@@ -278,33 +303,28 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      // 🎤 كتم الصوت
                       _callButton(
                         icon: _isMuted ? Icons.mic_off_rounded : Icons.mic_rounded,
                         color: _isMuted ? AppColors.error : Colors.white,
                         onTap: _toggleMute,
                       ),
-                      // 📹 كتم الكاميرا
                       if (widget.isVideo && _hasCameraPermission)
                         _callButton(
                           icon: _isCameraOn ? Icons.videocam_rounded : Icons.videocam_off_rounded,
                           color: _isCameraOn ? Colors.white : AppColors.error,
                           onTap: _toggleCamera,
                         ),
-                      // 📞 إنهاء المكالمة (مع إيقاف النغمات)
                       _callButton(
                         icon: Icons.call_end_rounded,
                         color: AppColors.error,
                         size: 60,
                         onTap: _endCall,
                       ),
-                      // 🔊 مكبر الصوت
                       _callButton(
                         icon: _isSpeakerOn ? Icons.volume_up_rounded : Icons.volume_off_rounded,
                         color: _isSpeakerOn ? AppColors.info : Colors.white,
                         onTap: () => setState(() => _isSpeakerOn = !_isSpeakerOn),
                       ),
-                      // 📷 تبديل الكاميرا
                       if (widget.isVideo && _hasCameraPermission)
                         _callButton(
                           icon: Icons.switch_camera_rounded,
@@ -339,6 +359,32 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                   ),
                 ],
               ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildConnectingScreen() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (_errorMessage.isNotEmpty)
+            const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 60),
+          const SizedBox(height: 16),
+          Text(
+            _errorMessage.isNotEmpty ? _errorMessage : 'جاري الاتصال...',
+            style: TextStyle(
+              color: _errorMessage.isNotEmpty ? AppColors.error : Colors.white,
+              fontSize: 18,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          if (_isConnecting && _errorMessage.isEmpty)
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: CircularProgressIndicator(color: Colors.white),
             ),
         ],
       ),
