@@ -687,7 +687,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         ),
         child: Row(
           children: [
-            Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey[500]),
+            Image.asset('assets/images/icons/search/Search button.png', width: 26, height: 26, color: isDark ? Colors.grey[400] : Colors.grey[500], errorBuilder: (context, error, stackTrace) => Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey[500])),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -698,7 +698,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                 ),
               ),
             ),
-            Icon(Icons.mic, color: isDark ? Colors.grey[500] : Colors.grey[400]),
+            Image.asset('assets/images/chat/microphone.png', width: 26, height: 26, color: isDark ? Colors.grey[500] : Colors.grey[400], errorBuilder: (context, error, stackTrace) => Icon(Icons.mic, color: isDark ? Colors.grey[500] : Colors.grey[400])),
           ],
         ),
       ),
