@@ -176,14 +176,14 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
         );
       },
       child: Container(
-        width: 70,
+        width: 80,
         margin: const EdgeInsets.symmetric(horizontal: 4),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 48,
-              height: 48,
+              width: 56,
+              height: 56,
               decoration: BoxDecoration(
                 color: (item['color'] as Color).withOpacity(0.12),
                 borderRadius: BorderRadius.circular(14),
@@ -204,7 +204,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
             Text(
               item['label'] as String,
               style: TextStyle(
-                fontSize: 9,
+                fontSize: 11,
                 fontWeight: FontWeight.w500,
                 color: isDark ? Colors.white70 : Colors.grey[700],
               ),

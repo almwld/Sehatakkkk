@@ -531,8 +531,8 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       onTap: () => _launchUrl('https://www.${social['id']}.com'),
       borderRadius: BorderRadius.circular(30),
       child: Container(
-        width: 54,
-        height: 54,
+        width: 64,
+        height: 64,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
@@ -551,7 +551,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
             return Icon(
               fallbackIcons[social['id']] ?? Icons.circle,
               color: social['color'] as Color,
-              size: 30,
+              size: 36,
             );
           },
         ),
@@ -1275,7 +1275,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                 ],
 
                 SizedBox(
-                  height: 54,
+                  height: 64,
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : (isSignUp ? _register : _login),
                     style: ElevatedButton.styleFrom(

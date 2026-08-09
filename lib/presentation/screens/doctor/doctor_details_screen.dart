@@ -161,14 +161,14 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
         else if (label == 'حجز موعد') _bookAppointment();
       },
       child: Container(
-        width: 70,
+        width: 80,
         margin: const EdgeInsets.symmetric(horizontal: 4),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 48,
-              height: 48,
+              width: 56,
+              height: 56,
               decoration: BoxDecoration(
                 color: (item['color'] as Color).withOpacity(0.12),
                 borderRadius: BorderRadius.circular(14),

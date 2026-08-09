@@ -115,7 +115,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
         // التنقل إلى شاشة التفاصيل
       },
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF1A2540) : Colors.white,
           borderRadius: BorderRadius.circular(12),
@@ -130,8 +130,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
         child: Column(
           children: [
             Container(
-              width: 40,
-              height: 40,
+              width: 56,
+              height: 56,
               decoration: BoxDecoration(
                 color: (item['color'] as Color).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
@@ -144,7 +144,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
             Text(
               item['title'] as String,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 13,
                 fontWeight: FontWeight.w500,
                 color: isDark ? Colors.white70 : Colors.grey[700],
               ),
@@ -154,7 +154,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
             Text(
               item['value'] as String,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: isDark ? Colors.white : Colors.black87,
               ),
@@ -475,7 +475,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
             children: [
               Expanded(
                 child: Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(12),
@@ -513,7 +513,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
               const SizedBox(width: 10),
               Expanded(
                 child: Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: AppColors.amber.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(12),
@@ -708,7 +708,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
         final isPast = appointment['status'] == 'منتهي';
         return Container(
           margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF1A2540) : Colors.white,
             borderRadius: BorderRadius.circular(12),
@@ -758,7 +758,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
                     Text(
                       '${appointment['date']} • ${appointment['time']}',
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: 13,
                         color: isDark ? Colors.grey[400] : Colors.grey[600],
                       ),
                     ),
@@ -799,7 +799,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
         final color = result['color'] as Color;
         return Container(
           margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF1A2540) : Colors.white,
             borderRadius: BorderRadius.circular(12),
@@ -837,7 +837,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
                     Text(
                       result['date'],
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: 13,
                         color: isDark ? Colors.grey[400] : Colors.grey[600],
                       ),
                     ),
