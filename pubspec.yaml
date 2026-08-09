@@ -116,34 +116,34 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
+  # ✅ فقط المجلدات الضرورية (الصور المستخدمة فعلاً)
   assets:
-    # ✅ فقط المجلدات الضرورية (بدون تكرار)
-    - assets/icons/
-    - assets/icons/services/
-    - assets/icons/social/
-    - assets/icons/core/
-    - assets/icons/navigation/
-    - assets/icons/specialties/
-    - assets/icons/mini_specialties/
-    - assets/icons/payment/
-    - assets/icons/offers/
-    - assets/icons/plans/
+    # أيقونات الخدمات
     - assets/images/services/
+    # أيقونات السوشيال ميديا
     - assets/images/social/
+    # أيقونات الدردشة
     - assets/images/chat/
+    # أيقونات التتبع
     - assets/images/tracking/
+    # أيقونات إضافية
     - assets/images/icons/
     - assets/images/icons/doctors/
     - assets/images/icons/fast_services/
     - assets/images/icons/roles/
     - assets/images/icons/search/
     - assets/images/icons/top_bar/
+    # المحافظ
     - assets/images/wallets/
+    # الرسوم المتحركة
     - assets/animations/
+    # الصوت
     - assets/audio/
+    # SVG
     - assets/svg/
-    - assets/images/chat_background.svg
+    # ملفات مفردة
     - assets/icons/app_icon.png
+    - assets/images/chat_background.svg
 
   fonts:
     - family: NotoSansArabicUI
