@@ -585,7 +585,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                         onTap: () => _goTo(context, const NotificationsScreen()),
                         child: Container(
                           padding: const EdgeInsets.all(8),
-                          child: _buildServiceIcon('assets/images/services/notifications.png', isDark ? Colors.white : Colors.black87, size: 24),
                         ),
                       ),
                       GestureDetector(
@@ -593,7 +592,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                         child: Container(
                           padding: const EdgeInsets.all(8),
                           child: _buildServiceIcon('assets/images/services/wallet.png', isDark ? Colors.white : Colors.black87, size: 24),
-                        ),
                       ),
                     ],
                   ),
