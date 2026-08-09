@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class AboutScreen extends StatefulWidget {
@@ -53,7 +54,7 @@ class _AboutScreenState extends State<AboutScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 20),
-            // ✅ شعار التطبيق
+            // ✅ شعار التطبيق - باستخدام SVG
             Container(
               width: 120,
               height: 120,
@@ -70,11 +71,16 @@ class _AboutScreenState extends State<AboutScreen> {
                   ),
                 ],
               ),
-              child: const Center(
-                child: Icon(
-                  Icons.health_and_safety,
-                  size: 60,
-                  color: Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: SvgPicture.asset(
+                  'assets/icons/app_icon.svg',
+                  width: 60,
+                  height: 60,
+                  fit: BoxFit.contain,
+                  colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                  placeholderBuilder: (_) => const Icon(Icons.health_and_safety, color: Colors.white, size: 60),
+                  errorBuilder: (context, error, stackTrace) => const Icon(Icons.health_and_safety, color: Colors.white, size: 60),
                 ),
               ),
             ),
@@ -157,7 +163,7 @@ class _AboutScreenState extends State<AboutScreen> {
             // ✅ الميزات
             _buildFeatureSection(isDark),
             const SizedBox(height: 24),
-            // ✅ روابط التواصل
+            // ✅ روابط التواصل - باستخدام SVG
             _buildSocialLinks(isDark),
             const SizedBox(height: 30),
             // ✅ حقوق النشر
@@ -270,9 +276,11 @@ class _AboutScreenState extends State<AboutScreen> {
 
   Widget _buildSocialLinks(bool isDark) {
     final socials = [
-      {'icon': Icons.web_rounded, 'label': 'الموقع', 'url': 'https://sehatak.com'},
-      {'icon': Icons.email_rounded, 'label': 'البريد', 'url': 'mailto:support@sehatak.com'},
-      {'icon': Icons.phone_rounded, 'label': 'اتصل بنا', 'url': 'tel:+967123456789'},
+      {'icon': 'assets/icons/social/facebook.svg', 'label': 'فيسبوك', 'url': 'https://www.facebook.com/'},
+      {'icon': 'assets/icons/social/instagram.svg', 'label': 'انستغرام', 'url': 'https://www.instagram.com/'},
+      {'icon': 'assets/icons/social/x_twitter.svg', 'label': 'تويتر', 'url': 'https://x.com/'},
+      {'icon': 'assets/icons/social/youtube.svg', 'label': 'يوتيوب', 'url': 'https://youtube.com/'},
+      {'icon': 'assets/icons/social/linkedin.svg', 'label': 'لينكد إن', 'url': 'https://linkedin.com/'},
     ];
 
     return Container(
@@ -299,8 +307,10 @@ class _AboutScreenState extends State<AboutScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 12,
+            runSpacing: 12,
             children: socials.map((social) {
               return GestureDetector(
                 onTap: () => _launchUrl(social['url'] as String),
@@ -313,10 +323,18 @@ class _AboutScreenState extends State<AboutScreen> {
                         color: AppColors.primary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Icon(
-                        social['icon'] as IconData,
-                        color: AppColors.primary,
-                        size: 24,
+                      child: Center(
+                        child: SvgPicture.asset(
+                          social['icon'] as String,
+                          width: 28,
+                          height: 28,
+                          colorFilter: ColorFilter.mode(
+                            isDark ? Colors.white : AppColors.primary,
+                            BlendMode.srcIn,
+                          ),
+                          placeholderBuilder: (_) => Icon(Icons.circle, color: AppColors.primary, size: 28),
+                          errorBuilder: (context, error, stackTrace) => Icon(Icons.circle, color: AppColors.primary, size: 28),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 6),
