@@ -897,3 +897,114 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 }
+
+// ✅ أيقونات المؤشرات الحيوية - من مجلد tracking
+final List<Map<String, dynamic>> _vitalIcons = [
+  {'icon': 'assets/images/tracking/blood_pressure.png', 'title': 'ضغط الدم', 'value': '120/80', 'unit': 'mmHg', 'color': Colors.red},
+  {'icon': 'assets/images/tracking/blood_sugar.png', 'title': 'سكر الدم', 'value': '95', 'unit': 'mg/dL', 'color': Colors.orange},
+  {'icon': 'assets/images/tracking/weight_tracking.png', 'title': 'الوزن', 'value': '72', 'unit': 'kg', 'color': Colors.green},
+  {'icon': 'assets/images/tracking/fitness.png', 'title': 'اللياقة', 'value': '85%', 'unit': '', 'color': Colors.blue},
+  {'icon': 'assets/images/tracking/mental_health.png', 'title': 'الصحة النفسية', 'value': 'جيد', 'unit': '', 'color': Colors.purple},
+  {'icon': 'assets/images/tracking/nutrition.png', 'title': 'التغذية', 'value': '5 وجبات', 'unit': 'يومياً', 'color': Colors.teal},
+  {'icon': 'assets/images/tracking/vaccination.png', 'title': 'التطعيمات', 'value': 'مكتمل', 'unit': '', 'color': Colors.indigo},
+];
+
+// ✅ دالة عرض أيقونة التتبع
+Widget _buildTrackingIcon(Map<String, dynamic> item, bool isDark) {
+  return GestureDetector(
+    onTap: () {
+      // التنقل إلى شاشة التفاصيل
+    },
+    child: Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2540) : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: (item['color'] as Color).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Center(
+              child: Image.asset(
+                item['icon'] as String,
+                width: 24,
+                height: 24,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return Icon(
+                    Icons.health_and_safety,
+                    color: item['color'] as Color,
+                    size: 24,
+                  );
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            item['title'] as String,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: isDark ? Colors.white70 : Colors.grey[700],
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            item['value'] as String,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          if (item['unit'] != null && (item['unit'] as String).isNotEmpty)
+            Text(
+              item['unit'] as String,
+              style: TextStyle(
+                fontSize: 9,
+                color: isDark ? Colors.grey[400] : Colors.grey[500],
+              ),
+              textAlign: TextAlign.center,
+            ),
+        ],
+      ),
+    ),
+  );
+}
+
+// ✅ عرض المؤشرات الحيوية في شبكة
+Widget _buildVitalsGrid() {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  
+  return GridView.builder(
+    shrinkWrap: true,
+    physics: const NeverScrollableScrollPhysics(),
+    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      crossAxisCount: 3,
+      crossAxisSpacing: 10,
+      mainAxisSpacing: 10,
+      childAspectRatio: 0.85,
+    ),
+    itemCount: _vitalIcons.length,
+    itemBuilder: (context, index) {
+      final item = _vitalIcons[index];
+      return _buildTrackingIcon(item, isDark);
+    },
+  );
+}
