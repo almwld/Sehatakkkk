@@ -1,4 +1,3 @@
-import 'package:sehatak/presentation/screens/auth/forgot_password_screen.dart';
 import "package:flutter/material.dart";
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -14,7 +13,7 @@ import 'package:sehatak/presentation/screens/terms/terms_screen.dart';
 import 'package:sehatak/presentation/screens/onboarding/role_onboarding_screen.dart';
 import 'package:sehatak/presentation/screens/verification/verification_screen.dart';
 import 'package:sehatak/presentation/screens/platform/dashboard/platform_dashboard.dart';
-import 'package:sehatak/core/constants/imagekit.dart';
+import 'package:sehatak/presentation/screens/auth/forgot_password_screen.dart';
 
 class AuthScreen extends StatefulWidget {
   final bool isSignUp;
@@ -84,6 +83,17 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     {'id': 'delivery', 'name': 'موصل طلبات', 'icon': Icons.delivery_dining, 'color': 0xFFFF5722},
     {'id': 'service', 'name': 'خدمي', 'icon': Icons.handyman, 'color': 0xFF607D8B},
     {'id': 'admin', 'name': 'مشرف', 'icon': Icons.admin_panel_settings, 'color': 0xFFFF5722},
+  ];
+
+  // ✅ أيقونات السوشيال ميديا - بنفس نظام الدفع
+  final List<Map<String, dynamic>> _socialIcons = [
+    {'id': 'google', 'name': 'Google', 'icon': 'assets/images/social/google.png', 'color': Colors.red},
+    {'id': 'apple', 'name': 'Apple', 'icon': 'assets/images/social/apple.png', 'color': Colors.black},
+    {'id': 'facebook', 'name': 'Facebook', 'icon': 'assets/images/social/facebook.png', 'color': Colors.blue.shade700},
+    {'id': 'instagram', 'name': 'Instagram', 'icon': 'assets/images/social/instagram.png', 'color': Colors.purple.shade700},
+    {'id': 'twitter', 'name': 'Twitter', 'icon': 'assets/images/social/x_twitter.png', 'color': Colors.blue.shade600},
+    {'id': 'youtube', 'name': 'YouTube', 'icon': 'assets/images/social/youtube.png', 'color': Colors.red.shade700},
+    {'id': 'tiktok', 'name': 'TikTok', 'icon': 'assets/images/social/tiktok.png', 'color': Colors.black},
   ];
 
   List<String> get _roleSpecialties {
@@ -503,421 +513,47 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     }
   }
 
-  // ✅ دالة لعرض أيقونات السوشيال ميديا بحجم أكبر
-  Widget _buildSocialImageButton({
-    required String url,
-    required VoidCallback onTap,
-    required bool isDark,
-  }) {
+  // ============================================================
+  // ✅ أيقونات السوشيال ميديا - بنفس نظام الدفع
+  // ============================================================
+  Widget _buildSocialIcon(Map<String, dynamic> social, bool isDark) {
+    final fallbackIcons = {
+      'google': Icons.g_mobiledata,
+      'apple': Icons.apple,
+      'facebook': Icons.facebook,
+      'instagram': Icons.photo_camera,
+      'twitter': Icons.timeline,
+      'youtube': Icons.youtube_searched_for,
+      'tiktok': Icons.music_note,
+    };
+
     return InkWell(
-      onTap: onTap,
+      onTap: () => _launchUrl('https://www.${social['id']}.com'),
       borderRadius: BorderRadius.circular(30),
       child: Container(
-        width: 56,  // ✅ تم التكبير من 48 إلى 56
-        height: 56, // ✅ تم التكبير من 48 إلى 56
-        padding: const EdgeInsets.all(14), // ✅ تم التكبير من 12 إلى 14
+        width: 54,
+        height: 54,
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(
             color: isDark ? Colors.white30 : Colors.grey[300]!,
             width: 1.5,
           ),
+          color: isDark ? Colors.transparent : Colors.white,
         ),
-        child: Image.network(
-          url,
-          width: 32,  // ✅ تم التكبير من 24 إلى 32
-          height: 32, // ✅ تم التكبير من 24 إلى 32
+        child: Image.asset(
+          social['icon'] as String,
+          width: 30,
+          height: 30,
           fit: BoxFit.contain,
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) return child;
-            return const Center(
-              child: SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            );
-          },
           errorBuilder: (context, error, stackTrace) {
             return Icon(
-              Icons.image,
-              size: 32, // ✅ تم التكبير من 24 إلى 32
-              color: isDark ? Colors.white70 : Colors.grey[600],
+              fallbackIcons[social['id']] ?? Icons.circle,
+              color: social['color'] as Color,
+              size: 30,
             );
           },
-        ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = const Color(0xFF0D5257);
-    final isSignUp = widget.isSignUp;
-
-    return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: isDark
-                ? [const Color(0xFF0B1121), const Color(0xFF1A2540)]
-                : [const Color(0xFFF8FAFC), primaryColor.withOpacity(0.15)],
-          ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 20),
-
-                Text(
-                  isSignUp
-                      ? 'إنشاء حساب جديد'
-                      : (_isFirstTimeUser ? 'أهلاً بك في منصة صحتك' : 'مرحباً بعودتك'),
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : const Color(0xFF1E293B),
-                    fontFamily: 'NotoSansArabicUI',
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  isSignUp
-                      ? 'اختر نوع حسابك وأدخل بياناتك للانضمام'
-                      : 'قم بتسجيل الدخول للمتابعة',
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: isDark ? Colors.white70 : Colors.grey[600],
-                    fontFamily: 'NotoSansArabicUI',
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 30),
-
-                if (!isSignUp) ...[
-                  _buildLoginRoleTabs(isDark, primaryColor),
-                  const SizedBox(height: 35),
-                ],
-
-                if (isSignUp) ...[
-                  _buildSignUpRoleTabs(isDark, primaryColor),
-                  const SizedBox(height: 16),
-                  _buildSelectedRoleDisplay(isDark, primaryColor),
-                  const SizedBox(height: 16),
-                ],
-
-                if (isSignUp && _roleSpecialties.isNotEmpty) ...[
-                  _buildSpecialtyDropdown(isDark, primaryColor),
-                  const SizedBox(height: 16),
-                ],
-
-                if (isSignUp) ...[
-                  _buildTextField(
-                    controller: _nameController,
-                    label: 'الاسم الكامل',
-                    icon: Icons.person_outline,
-                    isDark: isDark,
-                  ),
-                  const SizedBox(height: 16),
-                ],
-
-                _buildTextField(
-                  controller: _emailController,
-                  label: isSignUp ? 'البريد الإلكتروني' : 'رقم الموبايل أو البريد الإلكتروني',
-                  icon: Icons.alternate_email_outlined,
-                  isDark: isDark,
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                const SizedBox(height: 16),
-
-                if (isSignUp) ...[
-                  _buildTextField(
-                    controller: _phoneController,
-                    label: 'رقم الهاتف',
-                    icon: Icons.phone_android,
-                    isDark: isDark,
-                    keyboardType: TextInputType.phone,
-                  ),
-                  const SizedBox(height: 16),
-                ],
-
-                if (isSignUp) ...[
-                  ..._buildDynamicFields(isDark, primaryColor),
-                ],
-
-                _buildPasswordField(isDark, primaryColor),
-                if (isSignUp && _passwordController.text.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  _buildPasswordStrengthIndicator(),
-                ],
-                const SizedBox(height: 16),
-
-                if (isSignUp) ...[
-                  _buildConfirmPasswordField(isDark, primaryColor),
-                  const SizedBox(height: 16),
-                ],
-
-                if (!isSignUp) ...[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Checkbox(
-                            value: _rememberMe,
-                            onChanged: (v) => setState(() => _rememberMe = v ?? false),
-                            activeColor: primaryColor,
-                            visualDensity: VisualDensity.compact,
-                          ),
-                          Text(
-                            'تذكرني على هذا الجهاز',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: isDark ? Colors.white70 : Colors.grey[600],
-                              fontFamily: 'NotoSansArabicUI',
-                            ),
-                          ),
-                        ],
-                      ),
-                      TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
-                        );
-                      },
-                        child: Text(
-                          'نسيت كلمة المرور؟',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: primaryColor,
-                            fontFamily: 'NotoSansArabicUI',
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                ],
-
-                if (isSignUp) ...[
-                  Row(
-                    children: [
-                      Checkbox(
-                        value: _agreeTerms,
-                        onChanged: (v) => setState(() => _agreeTerms = v ?? false),
-                        activeColor: primaryColor,
-                        visualDensity: VisualDensity.compact,
-                      ),
-                      Text(
-                        'أوافق على ',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: isDark ? Colors.white70 : Colors.grey[600],
-                          fontFamily: 'NotoSansArabicUI',
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const TermsScreen()),
-                          );
-                        },
-                        child: Text(
-                          'الشروط والأحكام',
-                          style: TextStyle(
-                            color: primaryColor,
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            decoration: TextDecoration.underline,
-                            fontFamily: 'NotoSansArabicUI',
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                ],
-
-                SizedBox(
-                  height: 54,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : (isSignUp ? _register : _login),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryColor,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: Text(
-                      isSignUp
-                          ? 'إنشاء حساب ${_getRoleDisplayName(_selectedRole)}'
-                          : 'تسجيل الدخول',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'NotoSansArabicUI',
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                if (!isSignUp) ...[
-                  SizedBox(
-                    height: 50,
-                    child: OutlinedButton(
-                      onPressed: _guestLogin,
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: isDark ? Colors.white30 : Colors.grey[300]!),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        foregroundColor: isDark ? Colors.white : Colors.black87,
-                      ),
-                      child: const Text(
-                        'تصفح كضيف',
-                        style: TextStyle(fontSize: 15, fontFamily: 'NotoSansArabicUI'),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  const Text(
-                    'أو سجل الدخول عبر',
-                    style: TextStyle(fontSize: 12, color: Colors.grey, fontFamily: 'NotoSansArabicUI'),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildSocialImageButton(
-                        url: ImageKit.socialGoogle,
-                        onTap: () {},
-                        isDark: isDark,
-                      ),
-                      const SizedBox(width: 20),
-                      _buildSocialImageButton(
-                        url: ImageKit.socialApple,
-                        onTap: () {},
-                        isDark: isDark,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 28),
-
-                  const Text(
-                    'منصة شاملة تجمع كل ما يهم صحتك في آن واحد',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF0D5257),
-                      fontFamily: 'NotoSansArabicUI',
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'ندعم جميع خدمات الرعاية الصحية المتكاملة',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey,
-                      fontFamily: 'NotoSansArabicUI',
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 18),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildSocialImageButton(
-                        url: ImageKit.socialInstagram,
-                        onTap: () => _launchUrl(
-                            'https://www.instagram.com/platformsehatak.app?igsh=cXRlbmpjbnpiaXY5'),
-                        isDark: isDark,
-                      ),
-                      const SizedBox(width: 14),
-                      _buildSocialImageButton(
-                        url: ImageKit.socialTwitter,
-                        onTap: () => _launchUrl('https://www.x.com/sehatakplatfapp'),
-                        isDark: isDark,
-                      ),
-                      const SizedBox(width: 14),
-                      _buildSocialImageButton(
-                        url: ImageKit.socialFacebook,
-                        onTap: () => _launchUrl(
-                            'https://www.facebook.com/profile.php?id=61591326897936'),
-                        isDark: isDark,
-                      ),
-                      const SizedBox(width: 14),
-                      _buildSocialImageButton(
-                        url: ImageKit.socialYoutube,
-                        onTap: () => _launchUrl(
-                            'https://youtube.com/@sehatakplatform?si=-4Qy9EvKaOzSbIDs'),
-                        isDark: isDark,
-                      ),
-                      const SizedBox(width: 14),
-                      _buildSocialImageButton(
-                        url: ImageKit.socialTiktok,
-                        onTap: () => _launchUrl(
-                            'https://www.tiktok.com/@sehatak.platform?_r=1&_t=ZS-98S9X5X7kUU'),
-                        isDark: isDark,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 30),
-                ],
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      isSignUp ? 'لديك حساب بالفعل؟' : 'ليس لديك حساب؟',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: isDark ? Colors.white70 : Colors.grey[600],
-                        fontFamily: 'NotoSansArabicUI',
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => AuthScreen(isSignUp: !isSignUp),
-                          ),
-                        );
-                      },
-                      child: Text(
-                        isSignUp ? 'تسجيل الدخول' : 'أنشئ حسابك الآن',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: primaryColor,
-                          fontFamily: 'NotoSansArabicUI',
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-              ],
-            ),
-          ),
         ),
       ),
     );
@@ -1437,5 +1073,361 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
       ),
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = const Color(0xFF0D5257);
+    final isSignUp = widget.isSignUp;
+
+    return Scaffold(
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: isDark
+                ? [const Color(0xFF0B1121), const Color(0xFF1A2540)]
+                : [const Color(0xFFF8FAFC), primaryColor.withOpacity(0.15)],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 20),
+
+                Text(
+                  isSignUp
+                      ? 'إنشاء حساب جديد'
+                      : (_isFirstTimeUser ? 'أهلاً بك في منصة صحتك' : 'مرحباً بعودتك'),
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : const Color(0xFF1E293B),
+                    fontFamily: 'NotoSansArabicUI',
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  isSignUp
+                      ? 'اختر نوع حسابك وأدخل بياناتك للانضمام'
+                      : 'قم بتسجيل الدخول للمتابعة',
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: isDark ? Colors.white70 : Colors.grey[600],
+                    fontFamily: 'NotoSansArabicUI',
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 30),
+
+                if (!isSignUp) ...[
+                  _buildLoginRoleTabs(isDark, primaryColor),
+                  const SizedBox(height: 35),
+                ],
+
+                if (isSignUp) ...[
+                  _buildSignUpRoleTabs(isDark, primaryColor),
+                  const SizedBox(height: 16),
+                  _buildSelectedRoleDisplay(isDark, primaryColor),
+                  const SizedBox(height: 16),
+                ],
+
+                if (isSignUp && _roleSpecialties.isNotEmpty) ...[
+                  _buildSpecialtyDropdown(isDark, primaryColor),
+                  const SizedBox(height: 16),
+                ],
+
+                if (isSignUp) ...[
+                  _buildTextField(
+                    controller: _nameController,
+                    label: 'الاسم الكامل',
+                    icon: Icons.person_outline,
+                    isDark: isDark,
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
+                _buildTextField(
+                  controller: _emailController,
+                  label: isSignUp ? 'البريد الإلكتروني' : 'رقم الموبايل أو البريد الإلكتروني',
+                  icon: Icons.alternate_email_outlined,
+                  isDark: isDark,
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 16),
+
+                if (isSignUp) ...[
+                  _buildTextField(
+                    controller: _phoneController,
+                    label: 'رقم الهاتف',
+                    icon: Icons.phone_android,
+                    isDark: isDark,
+                    keyboardType: TextInputType.phone,
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
+                if (isSignUp) ...[
+                  ..._buildDynamicFields(isDark, primaryColor),
+                ],
+
+                _buildPasswordField(isDark, primaryColor),
+                if (isSignUp && _passwordController.text.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  _buildPasswordStrengthIndicator(),
+                ],
+                const SizedBox(height: 16),
+
+                if (isSignUp) ...[
+                  _buildConfirmPasswordField(isDark, primaryColor),
+                  const SizedBox(height: 16),
+                ],
+
+                if (!isSignUp) ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Checkbox(
+                            value: _rememberMe,
+                            onChanged: (v) => setState(() => _rememberMe = v ?? false),
+                            activeColor: primaryColor,
+                            visualDensity: VisualDensity.compact,
+                          ),
+                          Text(
+                            'تذكرني على هذا الجهاز',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: isDark ? Colors.white70 : Colors.grey[600],
+                              fontFamily: 'NotoSansArabicUI',
+                            ),
+                          ),
+                        ],
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
+                          );
+                        },
+                        child: Text(
+                          'نسيت كلمة المرور؟',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: primaryColor,
+                            fontFamily: 'NotoSansArabicUI',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                ],
+
+                if (isSignUp) ...[
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: _agreeTerms,
+                        onChanged: (v) => setState(() => _agreeTerms = v ?? false),
+                        activeColor: primaryColor,
+                        visualDensity: VisualDensity.compact,
+                      ),
+                      Text(
+                        'أوافق على ',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: isDark ? Colors.white70 : Colors.grey[600],
+                          fontFamily: 'NotoSansArabicUI',
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const TermsScreen()),
+                          );
+                        },
+                        child: Text(
+                          'الشروط والأحكام',
+                          style: TextStyle(
+                            color: primaryColor,
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            decoration: TextDecoration.underline,
+                            fontFamily: 'NotoSansArabicUI',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
+                SizedBox(
+                  height: 54,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : (isSignUp ? _register : _login),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      isSignUp
+                          ? 'إنشاء حساب ${_getRoleDisplayName(_selectedRole)}'
+                          : 'تسجيل الدخول',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'NotoSansArabicUI',
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                if (!isSignUp) ...[
+                  SizedBox(
+                    height: 50,
+                    child: OutlinedButton(
+                      onPressed: _guestLogin,
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: isDark ? Colors.white30 : Colors.grey[300]!),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        foregroundColor: isDark ? Colors.white : Colors.black87,
+                      ),
+                      child: const Text(
+                        'تصفح كضيف',
+                        style: TextStyle(fontSize: 15, fontFamily: 'NotoSansArabicUI'),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  const Text(
+                    'أو سجل الدخول عبر',
+                    style: TextStyle(fontSize: 12, color: Colors.grey, fontFamily: 'NotoSansArabicUI'),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // ✅ أيقونات السوشيال ميديا - صف أول (Google, Apple)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildSocialIcon(_socialIcons[0], isDark), // Google
+                      const SizedBox(width: 20),
+                      _buildSocialIcon(_socialIcons[1], isDark), // Apple
+                    ],
+                  ),
+                  const SizedBox(height: 28),
+
+                  const Text(
+                    'منصة شاملة تجمع كل ما يهم صحتك في آن واحد',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF0D5257),
+                      fontFamily: 'NotoSansArabicUI',
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'ندعم جميع خدمات الرعاية الصحية المتكاملة',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
+                      fontFamily: 'NotoSansArabicUI',
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 18),
+
+                  // ✅ أيقونات السوشيال ميديا - صف ثاني (Facebook, Instagram, Twitter, YouTube, TikTok)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildSocialIcon(_socialIcons[2], isDark), // Facebook
+                      const SizedBox(width: 10),
+                      _buildSocialIcon(_socialIcons[3], isDark), // Instagram
+                      const SizedBox(width: 10),
+                      _buildSocialIcon(_socialIcons[4], isDark), // Twitter
+                      const SizedBox(width: 10),
+                      _buildSocialIcon(_socialIcons[5], isDark), // YouTube
+                      const SizedBox(width: 10),
+                      _buildSocialIcon(_socialIcons[6], isDark), // TikTok
+                    ],
+                  ),
+                  const SizedBox(height: 30),
+                ],
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      isSignUp ? 'لديك حساب بالفعل؟' : 'ليس لديك حساب؟',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: isDark ? Colors.white70 : Colors.grey[600],
+                        fontFamily: 'NotoSansArabicUI',
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => AuthScreen(isSignUp: !isSignUp),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        isSignUp ? 'تسجيل الدخول' : 'أنشئ حسابك الآن',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: primaryColor,
+                          fontFamily: 'NotoSansArabicUI',
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _nameController.dispose();
+    _phoneController.dispose();
+    _confirmPasswordController.dispose();
+    _licenseController.dispose();
+    _experienceController.dispose();
+    super.dispose();
   }
 }
