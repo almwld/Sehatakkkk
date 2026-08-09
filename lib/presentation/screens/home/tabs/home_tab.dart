@@ -526,37 +526,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         body: CustomScrollView(
           controller: widget.scrollController,
           slivers: [
-            SliverAppBar(
-              expandedHeight: 90,
-              floating: true,
-              snap: true,
-              pinned: false,
-              backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
-              elevation: 0,
-              automaticallyImplyLeading: false,
-              flexibleSpace: FlexibleSpaceBar(
-                background: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Row(
-                    children: [
-                      Hero(
-                        tag: 'user_avatar',
-                        child: GestureDetector(
-                          onTap: () => _goTo(context, const PatientProfile()),
-                          child: CircleAvatar(
-                            radius: 20,
-                            backgroundColor: AppColors.primary.withOpacity(0.1),
-                            child: Text(
-                              _isLoggedIn ? _userName[0] : 'م',
-                              style: TextStyle(
-                                color: AppColors.primary,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
@@ -582,34 +551,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () => _goTo(context, const NotificationsScreen()),
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () => _goTo(context, const CartScreen()),
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          child: _buildServiceIcon('assets/images/services/wallet.png', isDark ? Colors.white : Colors.black87, size: 24),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  _buildSearchBar(isDark),
-                  const SizedBox(height: 16),
-                  _buildBannerCarousel(isDark),
-                  const SizedBox(height: 16),
-                  _buildStatsRow(),
-                  const SizedBox(height: 16),
-                  _buildSectionTitleWithAction('خدمات سريعة', isDark, 'عرض الكل', 
-                    () => _goTo(context, const ServicesScreen())),
                   const SizedBox(height: 8),
                   _buildQuickServicesRow(),
                   const SizedBox(height: 16),
@@ -1952,4 +1893,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       ),
     );
   }
+}
+  )
 }

@@ -54,7 +54,7 @@ class _AboutScreenState extends State<AboutScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 20),
-            // ✅ شعار التطبيق - باستخدام SVG
+            // ✅ شعار التطبيق - باستخدام SVG بدون errorBuilder
             Container(
               width: 120,
               height: 120,
@@ -79,8 +79,6 @@ class _AboutScreenState extends State<AboutScreen> {
                   height: 60,
                   fit: BoxFit.contain,
                   colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
-                  placeholderBuilder: (_) => const Icon(Icons.health_and_safety, color: Colors.white, size: 60),
-                  errorBuilder: (context, error, stackTrace) => const Icon(Icons.health_and_safety, color: Colors.white, size: 60),
                 ),
               ),
             ),
@@ -332,8 +330,6 @@ class _AboutScreenState extends State<AboutScreen> {
                             isDark ? Colors.white : AppColors.primary,
                             BlendMode.srcIn,
                           ),
-                          placeholderBuilder: (_) => Icon(Icons.circle, color: AppColors.primary, size: 28),
-                          errorBuilder: (context, error, stackTrace) => Icon(Icons.circle, color: AppColors.primary, size: 28),
                         ),
                       ),
                     ),
