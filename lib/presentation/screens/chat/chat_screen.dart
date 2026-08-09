@@ -669,3 +669,104 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     }
   }
 }
+
+// ✅ أيقونات الدردشة
+final List<Map<String, dynamic>> _chatIcons = [
+  {'icon': 'assets/images/chat/audio_record.png', 'label': 'تسجيل صوتي', 'color': Colors.red},
+  {'icon': 'assets/images/chat/phone_call.png', 'label': 'مكالمة', 'color': Colors.green},
+  {'icon': 'assets/images/chat/video_call.png', 'label': 'مكالمة فيديو', 'color': Colors.blue},
+  {'icon': 'assets/images/chat/chat_bubble.png', 'label': 'دردشة', 'color': AppColors.primary},
+  {'icon': 'assets/images/chat/calendar_booking.png', 'label': 'حجز موعد', 'color': Colors.orange},
+  {'icon': 'assets/images/chat/microphone.png', 'label': 'ميكروفون', 'color': Colors.purple},
+  {'icon': 'assets/images/chat/play_button.png', 'label': 'تشغيل', 'color': Colors.teal},
+];
+
+// ✅ عرض أيقونات الدردشة
+Widget _buildChatActionsRow() {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  
+  return SizedBox(
+    height: 80,
+    child: ListView.builder(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      itemCount: _chatIcons.length,
+      itemBuilder: (context, index) {
+        final item = _chatIcons[index];
+        return _buildChatActionItem(item, isDark);
+      },
+    ),
+  );
+}
+
+// ✅ دالة عرض عنصر دردشة فردي
+Widget _buildChatActionItem(Map<String, dynamic> item, bool isDark) {
+  return GestureDetector(
+    onTap: () {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('📱 ${item['label']}'),
+          backgroundColor: item['color'] as Color,
+          duration: const Duration(seconds: 1),
+        ),
+      );
+    },
+    child: Container(
+      width: 70,
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: (item['color'] as Color).withOpacity(0.12),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Center(
+              child: Image.asset(
+                item['icon'] as String,
+                width: 28,
+                height: 28,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return Icon(
+                    Icons.circle,
+                    color: item['color'] as Color,
+                    size: 28,
+                  );
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            item['label'] as String,
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w500,
+              color: isDark ? Colors.white70 : Colors.grey[700],
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+// ✅ استخدام خلفية الدردشة
+Widget _buildChatBackground() {
+  return Container(
+    decoration: BoxDecoration(
+      image: DecorationImage(
+        image: AssetImage('assets/images/chat_background.svg'),
+        fit: BoxFit.cover,
+        opacity: 0.1,
+      ),
+    ),
+  );
+}

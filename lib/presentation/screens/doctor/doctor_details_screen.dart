@@ -364,3 +364,88 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> with SingleTi
     );
   }
 }
+
+// ✅ أيقونات التواصل مع الطبيب
+final List<Map<String, dynamic>> _contactIcons = [
+  {'icon': 'assets/images/chat/phone_call.png', 'label': 'اتصال', 'color': Colors.green},
+  {'icon': 'assets/images/chat/video_call.png', 'label': 'مكالمة فيديو', 'color': Colors.blue},
+  {'icon': 'assets/images/chat/chat_bubble.png', 'label': 'رسالة', 'color': AppColors.primary},
+  {'icon': 'assets/images/chat/calendar_booking.png', 'label': 'حجز موعد', 'color': Colors.orange},
+];
+
+// ✅ عرض أيقونات التواصل
+Widget _buildContactActionsRow() {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  
+  return SizedBox(
+    height: 80,
+    child: ListView.builder(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      itemCount: _contactIcons.length,
+      itemBuilder: (context, index) {
+        final item = _contactIcons[index];
+        return _buildContactActionItem(item, isDark);
+      },
+    ),
+  );
+}
+
+// ✅ دالة عرض عنصر تواصل فردي
+Widget _buildContactActionItem(Map<String, dynamic> item, bool isDark) {
+  return GestureDetector(
+    onTap: () {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('📱 ${item['label']} مع الطبيب'),
+          backgroundColor: item['color'] as Color,
+          duration: const Duration(seconds: 1),
+        ),
+      );
+    },
+    child: Container(
+      width: 70,
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: (item['color'] as Color).withOpacity(0.12),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Center(
+              child: Image.asset(
+                item['icon'] as String,
+                width: 28,
+                height: 28,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return Icon(
+                    Icons.circle,
+                    color: item['color'] as Color,
+                    size: 28,
+                  );
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            item['label'] as String,
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w500,
+              color: isDark ? Colors.white70 : Colors.grey[700],
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    ),
+  );
+}
