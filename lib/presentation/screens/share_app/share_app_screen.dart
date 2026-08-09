@@ -10,15 +10,15 @@ class ShareAppScreen extends StatelessWidget {
   final String _appLink = 'https://github.com/almwld/Sehatakkkk';
   final String _shareMessage = 'مرحباً! أدعوك لتجربة تطبيق "صحتك" - منصة الرعاية الصحية الشاملة في اليمن. احجز مواعيدك، استشر الأطباء، واطلب أدويتك بكل سهولة. حمل التطبيق الآن من الرابط التالي:\n';
 
-  // ✅ أيقونات المشاركة - باستخدام SVG (بدون const)
-  final List<Map<String, dynamic>> _shareMethods = [
-    {'icon': 'assets/icons/social/whatsapp.svg', 'name': 'واتساب', 'color': const Color(0xFF25D366), 'url': 'https://wa.me/?text='},
-    {'icon': 'assets/icons/social/facebook.svg', 'name': 'فيسبوك', 'color': const Color(0xFF1877F2), 'url': 'https://www.facebook.com/sharer/sharer.php?u='},
-    {'icon': 'assets/icons/social/instagram.svg', 'name': 'انستغرام', 'color': const Color(0xFFE4405F), 'url': 'https://www.instagram.com/'},
-    {'icon': 'assets/icons/social/x_twitter.svg', 'name': 'تويتر', 'color': const Color(0xFF1DA1F2), 'url': 'https://twitter.com/intent/tweet?url='},
+  // ✅ أيقونات المشاركة - باستخدام const
+  final List<Map<String, dynamic>> _shareMethods = const [
+    {'icon': 'assets/icons/social/whatsapp.svg', 'name': 'واتساب', 'color': Color(0xFF25D366), 'url': 'https://wa.me/?text='},
+    {'icon': 'assets/icons/social/facebook.svg', 'name': 'فيسبوك', 'color': Color(0xFF1877F2), 'url': 'https://www.facebook.com/sharer/sharer.php?u='},
+    {'icon': 'assets/icons/social/instagram.svg', 'name': 'انستغرام', 'color': Color(0xFFE4405F), 'url': 'https://www.instagram.com/'},
+    {'icon': 'assets/icons/social/x_twitter.svg', 'name': 'تويتر', 'color': Color(0xFF1DA1F2), 'url': 'https://twitter.com/intent/tweet?url='},
     {'icon': 'assets/icons/social/chat_modern.svg', 'name': 'رسالة', 'color': AppColors.primary, 'url': 'mailto:?subject=تطبيق صحتك&body='},
-    {'icon': 'assets/icons/social/linkedin.svg', 'name': 'لينكد إن', 'color': const Color(0xFF0A66C2), 'url': 'https://www.linkedin.com/sharing/share-offsite/?url='},
-    {'icon': 'assets/icons/social/discord.svg', 'name': 'ديسكورد', 'color': const Color(0xFF5865F2), 'url': 'https://discord.com/'},
+    {'icon': 'assets/icons/social/linkedin.svg', 'name': 'لينكد إن', 'color': Color(0xFF0A66C2), 'url': 'https://www.linkedin.com/sharing/share-offsite/?url='},
+    {'icon': 'assets/icons/social/discord.svg', 'name': 'ديسكورد', 'color': Color(0xFF5865F2), 'url': 'https://discord.com/'},
   ];
 
   @override

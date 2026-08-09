@@ -138,7 +138,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   ];
 
   // ✅ منشورات المجتمع
-  final List<Map<String, dynamic>> _communityPosts = [
+  final List<Map<String, dynamic_communityPosts = [
     {'id': 1, 'author': 'د. سارة العمري', 'avatar': 'س', 'image': ImageKit.skinCare, 'title': 'نصائح للعناية بالبشرة', 'content': 'مع حلول فصل الصيف، احرصي على ترطيب بشرتك واستخدام واقي الشمس.', 'likes': 120, 'comments': 15, 'shares': 8, 'time': 'منذ ساعة', 'liked': false, 'commentList': ['نصائح رائعة!', 'شكراً دكتورة', 'مفيد جداً']},
     {'id': 2, 'author': 'د. خالد النخلاني', 'avatar': 'خ', 'image': ImageKit.morningWalk, 'title': 'فوائد المشي الصباحي', 'content': 'المشي 30 دقيقة يومياً يقلل خطر أمراض القلب والسكري.', 'likes': 95, 'comments': 8, 'shares': 5, 'time': 'منذ 3 ساعات', 'liked': false, 'commentList': ['معلومة قيمة', 'سأطبقها']},
     {'id': 3, 'author': 'د. أحمد المؤيد', 'avatar': 'أ', 'image': ImageKit.nutritionTips, 'title': 'تغذيتك سر صحتك', 'content': 'الطعام الصحي هو أساس المناعة القوية والجسم السليم.', 'likes': 210, 'comments': 22, 'shares': 12, 'time': 'منذ 5 ساعات', 'liked': true, 'commentList': ['أحسنت', 'مفيد جداً', 'شكراً دكتور']},
@@ -260,13 +260,13 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   // ✅ دوال المجتمع
   void _toggleLike(int index) {
     setState(() {
-      _communityPosts[index]['liked'] = !_communityPosts[index]['liked'];
-      _communityPosts[index]['likes'] += _communityPosts[index]['liked'] ? 1 : -1;
+   _communityPosts[index]['liked'] _communityPosts[index]['liked'];
+   _communityPosts[index]['likes'] _communityPosts[index]['liked'] ? 1 : -1;
     });
   }
 
   void _sharePost(int index) {
-    final post = _communityPosts[index];
+    final post_communityPosts[index];
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('✅ تم مشاركة: ${post['title']}'),
@@ -526,38 +526,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         body: CustomScrollView(
           controller: widget.scrollController,
           slivers: [
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              _isLoggedIn ? 'مرحباً، $_userName 👋' : 'منصة صحتك',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: isDark ? Colors.white : Colors.black87,
-                              ),
-                            ),
-                            Text(
-                              'كيف تشعر اليوم؟',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: isDark ? Colors.grey[400] : Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      GestureDetector(
-                  const SizedBox(height: 8),
-                  _buildQuickServicesRow(),
-                  const SizedBox(height: 16),
-                  _buildSectionTitleWithAction('أفضل الأطباء', isDark, 'عرض الكل', 
-                    () => _goTo(context, const DoctorsListScreen())),
-                  const SizedBox(height: 8),
-                  _buildTopDoctorsGrid(isDark),
                   const SizedBox(height: 16),
                   _buildSectionTitleWithAction('منتجات صيدلية', isDark, 'عرض الكل', 
                     () => _goTo(context, const MedicinesScreen())),
@@ -589,7 +557,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   const SizedBox(height: 16),
                   _buildSectionTitle('مجتمع صحتك', isDark),
                   const SizedBox(height: 8),
-                  ..._communityPosts.asMap().entries.map((entry) {
+                  _communityPosts.asMap().entries.map((entry) {
                     final index = entry.key;
                     final post = entry.value;
                     return _buildCommunityPostCard(post, index, isDark);
