@@ -117,67 +117,53 @@ flutter:
   uses-material-design: true
 
   assets:
-    # ✅ المجلدات الرئيسية
-    - assets/
+    # ✅ الأيقونات
     - assets/icons/
-    - assets/svg/
-    - assets/svg/صور الاطباء الافتراضيه/
-    - assets/delivery/
+    - assets/icons/services/
+    - assets/icons/social/
+    - assets/icons/core/
+    - assets/icons/navigation/
+    - assets/icons/specialties/
+    - assets/icons/mini_specialties/
+    - assets/icons/payment/
+    - assets/icons/offers/
+    - assets/icons/plans/
+    
+    # ✅ الصور
+    - assets/images/
+    - assets/images/services/
+    - assets/images/doctors/
+    - assets/images/doctors/placeholders/
+    - assets/images/medicines/
+    - assets/images/pharmacies/
+    - assets/images/labs/
+    - assets/images/hospitals/
+    - assets/images/banners/
+    - assets/images/delivery/
+    - assets/images/posts/
+    - assets/images/chat/
+    - assets/images/social/
+    - assets/images/tracking/
+    - assets/images/icons/
+    - assets/images/icons/doctors/
+    - assets/images/icons/search/
+    - assets/images/icons/top_bar/
+    - assets/images/icons/fast_services/
+    - assets/images/icons/roles/
+    - assets/images/wallets/
+    
+    # ✅ الرسوم المتحركة
     - assets/animations/
+    
+    # ✅ الصوت
     - assets/audio/
     
-    # ✅ صورة خلفية الدردشة (مرة واحدة)
+    # ✅ SVG
+    - assets/svg/
+    
+    # ✅ ملفات مفردة
     - assets/images/chat_background.svg
-    
-    # ✅ صور البانرات
-    - banners/
-    
-    # ✅ صور الأطباء
-    - doctors/
-    
-    # ✅ صور الأدوية
-    - medicines/
-    
-    # ✅ صور الصيدليات
-    - pharmacies/
-    
-    # ✅ صور المختبرات
-    - Labs/
-    
-    # ✅ صور المستشفيات
-    - hospitals/
-    
-    # ✅ صور التوصيل
-    - delivery/
-    
-    # ✅ صور المنشورات
-    - posts/
-    
-    # ✅ صور المحافظ
-    - Wallets/
-    
-    # ✅ مجلد images الرئيسي
-    - images/
-    - images/doctors/
-    - images/doctors/placeholders/
-    - images/medicines/
-    - images/delivery/
-    - images/posts/
-    - images/pharmacies/
-    - images/hospitals/
-    - images/labs/
-    - images/banners/
-    - images/icons/
-    - images/icons/doctors/
-    - images/icons/search/
-    - images/icons/top_bar/
-    - images/icons/fast_services/
-    
-    # ✅ مجلدات الصور الجديدة
-    - images/chat/
-    - images/services/
-    - images/social/
-    - images/tracking/
+    - assets/icons/app_icon.png
 
   fonts:
     - family: NotoSansArabicUI
