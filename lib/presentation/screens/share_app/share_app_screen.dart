@@ -147,7 +147,7 @@ class ShareAppScreen extends StatelessWidget {
           iconPath: method['icon'] as String,
           name: method['name'] as String,
           color: method['color'] as Color,
-          imageUrl: method['url'] as String,
+          url: method['url'] as String,
           isDark: isDark,
         );
       },
