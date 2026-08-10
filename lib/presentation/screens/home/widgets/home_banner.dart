@@ -1,42 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
+import 'package:sehatak/core/constants/app_colors.dart';
 
-class HomeBanner extends StatefulWidget {
+class HomeBanner extends StatelessWidget {
   final List<String> images;
-  final Function(int) onPageChanged;
+  final Function(int)? onPageChanged;
 
   const HomeBanner({
     super.key,
     required this.images,
-    required this.onPageChanged,
+    this.onPageChanged,
   });
 
   @override
-  State<HomeBanner> createState() => _HomeBannerState();
-}
-
-class _HomeBannerState extends State<HomeBanner> {
-  int _currentIndex = 0;
-
-  @override
-  Widget build(BuildContext context) const {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    if (widget.images.isEmpty) {
-      return Container(
-        height: 160,
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1A2540) : Colors.grey[200],
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: const Center(child: Text('لا توجد بانرات')),
-      );
+  Widget build(BuildContext context) {
+    if (images.isEmpty) {
+      return _buildPlaceholder();
     }
 
-    return Stack(
-      children: [
-        CarouselSlider(
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: CarouselSlider(
           options: CarouselOptions(
             height: 160,
             autoPlay: true,
@@ -46,12 +33,14 @@ class _HomeBannerState extends State<HomeBanner> {
             enlargeCenterPage: true,
             viewportFraction: 0.95,
             onPageChanged: (index, reason) {
-              setState(() => _currentIndex = index);
-              widget.onPageChanged(index);
+              if (onPageChanged != null) {
+                onPageChanged!(index);
+              }
             },
           ),
-          items: widget.images.map((url) {
+          items: images.map((url) {
             return Container(
+              width: double.infinity,
               margin: const EdgeInsets.symmetric(horizontal: 4),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
@@ -66,7 +55,7 @@ class _HomeBannerState extends State<HomeBanner> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: AppImage(
-                  url: url,
+                  imageUrl: url,
                   height: 160,
                   width: double.infinity,
                   fit: BoxFit.cover,
@@ -75,27 +64,49 @@ class _HomeBannerState extends State<HomeBanner> {
             );
           }).toList(),
         ),
-        Positioned(
-          bottom: 12,
-          left: 16,
-          child: Row(
-            children: widget.images.asMap().entries.map((entry) {
-              final index = entry.key;
-              final isActive = _currentIndex == index;
-              return AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                width: isActive ? 20 : 8,
-                height: 8,
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                decoration: BoxDecoration(
-                  color: isActive ? Colors.white : Colors.white.withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              );
-            }).toList(),
-          ),
+      ),
+    );
+  }
+
+  Widget _buildPlaceholder() {
+    return Container(
+      height: 160,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [AppColors.primary, AppColors.primaryDark],
         ),
-      ],
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            Icon(
+              Icons.health_and_safety,
+              color: Colors.white,
+              size: 48,
+            ),
+            SizedBox(height: 8),
+            Text(
+              'صحتك في أمان',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 4),
+            Text(
+              'احجز موعدك الطبي بضغطة زر',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
