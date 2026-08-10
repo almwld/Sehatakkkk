@@ -1,114 +1,91 @@
-import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:sehatak/core/constants/imagekit.dart';
 
 class AppImage extends StatelessWidget {
-  final String url;
+  final String? imageUrl;
   final double? width;
   final double? height;
   final BoxFit fit;
-  final BorderRadius? borderRadius;
-  final bool isSvg;
-  final Color? color;
-  final double? placeholderSize;
+  final BorderRadiusGeometry? borderRadius;
+  final String? placeholderAsset;
+  final Widget? errorWidget;
+  final Duration cacheDuration;
+  final bool isCircle;
 
   const AppImage({
     super.key,
-    required this.url,
+    required this.imageUrl,
     this.width,
     this.height,
     this.fit = BoxFit.cover,
     this.borderRadius,
-    this.isSvg = false,
-    this.color,
-    this.placeholderSize,
+    this.placeholderAsset,
+    this.errorWidget,
+    this.cacheDuration = const Duration(days: 7),
+    this.isCircle = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    Widget child;
-    
-    final isNetwork = url.startsWith('http');
-    final isSvgFile = url.endsWith('.svg') || isSvg;
+    final effectiveBorderRadius = borderRadius ?? BorderRadius.zero;
 
-    if (isSvgFile) {
-      // ✅ SVG من الإنترنت
-      if (isNetwork) {
-        child = SvgPicture.network(
-          url,
-          width: width,
-          height: height,
-          fit: fit,
-          colorFilter: color != null ? ColorFilter.mode(color!, BlendMode.srcIn) : null,
-          placeholderBuilder: (_) => _buildPlaceholder(),
-        );
-      } else {
-        // ✅ SVG من Assets
-        child = SvgPicture.asset(
-          url,
-          width: width,
-          height: height,
-          fit: fit,
-          colorFilter: color != null ? ColorFilter.mode(color!, BlendMode.srcIn) : null,
-          placeholderBuilder: (_) => _buildPlaceholder(),
-        );
-      }
-    } else if (isNetwork) {
-      // ✅ PNG/JPG من الإنترنت (ImageKit)
-      child = CachedNetworkImage(
-        imageUrl: url,
-        width: width,
-        height: height,
-        fit: fit,
-        color: color,
-        placeholder: (context, _) => _buildPlaceholder(),
-        errorWidget: (context, _, __) => _buildErrorWidget(),
-        fadeInDuration: const Duration(milliseconds: 300),
-        fadeOutDuration: const Duration(milliseconds: 300),
-        useOldImageOnUrlChange: true,
-      );
-    } else {
-      // ✅ Asset محلي
-      child = Image.asset(
-        url,
-        width: width,
-        height: height,
-        fit: fit,
-        color: color,
-        errorBuilder: (context, _, __) => _buildErrorWidget(),
-      );
+    if (imageUrl == null || imageUrl!.trim().isEmpty) {
+      return _buildErrorPlaceholder(effectiveBorderRadius);
     }
 
-    if (borderRadius != null) {
-      return ClipRRect(borderRadius: borderRadius!, child: child);
+    final Widget imageWidget = CachedNetworkImage(
+      imageUrl: imageUrl!,
+      width: width,
+      height: height,
+      fit: fit,
+      maxHeightDiskCache: 1000,
+      maxWidthDiskCache: 1000,
+      placeholder: (context, url) => _buildShimmerLoader(effectiveBorderRadius),
+      errorWidget: (context, url, error) =>
+          errorWidget ?? _buildErrorPlaceholder(effectiveBorderRadius),
+    );
+
+    if (isCircle) {
+      return ClipOval(child: imageWidget);
     }
-    return child;
+
+    return ClipRRect(
+      borderRadius: effectiveBorderRadius,
+      child: imageWidget,
+    );
   }
 
-  Widget _buildPlaceholder() {
+  Widget _buildShimmerLoader(BorderRadiusGeometry radius) {
     return Shimmer.fromColors(
       baseColor: Colors.grey[300]!,
       highlightColor: Colors.grey[100]!,
       child: Container(
-        width: width ?? 40,
-        height: height ?? 40,
-        color: Colors.white,
+        width: width,
+        height: height,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: radius,
+        ),
       ),
     );
   }
 
-  Widget _buildErrorWidget() {
+  Widget _buildErrorPlaceholder(BorderRadiusGeometry radius) {
     return Container(
-      width: width ?? 40,
-      height: height ?? 40,
-      color: Colors.grey[200],
-      child: Icon(
-        Icons.image_not_supported,
-        color: Colors.grey[400],
-        size: placeholderSize ?? 24,
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: radius,
       ),
+      child: placeholderAsset != null
+          ? Image.asset(placeholderAsset!, fit: fit)
+          : Icon(
+              Icons.image_not_supported_outlined,
+              color: Colors.grey[500],
+              size: (height != null && height! < 50) ? 20 : 32,
+            ),
     );
   }
 }
