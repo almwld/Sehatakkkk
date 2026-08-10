@@ -8,7 +8,7 @@ import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/core/services/health_score_service.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
-import 'package:sehatak/presentation/screens/services/services_screen.dart>';
+import 'package:sehatak/presentation/screens/services/services_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
 import 'package:sehatak/presentation/screens/medication/medicines_screen.dart';
