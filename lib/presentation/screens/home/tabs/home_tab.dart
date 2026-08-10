@@ -361,3 +361,11 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 }
+
+  @override
+  void dispose() {
+    if (widget.scrollController != null) {
+      widget.scrollController!.removeListener(_handleScroll);
+    }
+    super.dispose();
+  }
