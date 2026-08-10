@@ -25,7 +25,7 @@ class HomeAppBar extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) const {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -192,7 +192,7 @@ class SimpleHomeAppBar extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) const {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(

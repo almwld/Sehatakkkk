@@ -9,7 +9,7 @@ class DoctorCard extends StatelessWidget {
   const DoctorCard({super.key, required this.doctor, required this.onTap});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) const {
     return GestureDetector(
       onTap: onTap,
       child: Container(

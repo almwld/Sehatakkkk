@@ -20,7 +20,7 @@ class _HomeBannerState extends State<HomeBanner> {
   int _currentIndex = 0;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) const {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (widget.images.isEmpty) {

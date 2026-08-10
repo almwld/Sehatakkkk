@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
-import 'package:sehatak/core/services/health_score_service.dart';
-import 'package:sehatak/data/repositories/home_data_repository.dart';
+import 'package:sehatak/presentation/bloc/home_bloc/home_bloc.dart';
+import 'package:sehatak/presentation/bloc/home_bloc/home_event.dart';
+import 'package:sehatak/presentation/bloc/home_bloc/home_state.dart';
 import 'package:sehatak/presentation/screens/home/widgets/home_header.dart';
 import 'package:sehatak/presentation/screens/home/widgets/home_search_bar.dart';
 import 'package:sehatak/presentation/screens/home/widgets/home_banner.dart';
@@ -34,41 +36,16 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
 
-  bool _isLoading = true;
   bool _isLoggedIn = false;
   String _userName = 'مستخدم';
-  bool _hasError = false;
-  String _errorMessage = '';
-  double _healthScore = 0.0;
-
-  final List<String> _bannerImages = ImageKit.bannerList;
   int _currentBanner = 0;
+  final List<String> _bannerImages = ImageKit.bannerList;
 
   @override
   void initState() {
     super.initState();
-    _initializeData();
-  }
-
-  Future<void> _initializeData() async {
-    try {
-      _loadUserData();
-      await _loadHealthScore();
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _hasError = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _hasError = true;
-          _errorMessage = 'حدث خطأ في تحميل البيانات';
-        });
-      }
-    }
+    _loadUserData();
+    context.read<HomeBloc>().add(LoadHomeData());
   }
 
   void _loadUserData() {
@@ -80,19 +57,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
           _userName = user.displayName ?? user.email?.split('@')[0] ?? 'مستخدم';
         }
       });
-    }
-  }
-
-  Future<void> _loadHealthScore() async {
-    try {
-      final score = await HealthScoreService.calculateHealthScore();
-      if (mounted) {
-        setState(() => _healthScore = score);
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _healthScore = 0.0);
-      }
     }
   }
 
@@ -117,48 +81,14 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     }
   }
 
-  Future<void> _refreshData() async {
-    setState(() => _isLoading = true);
-    try {
-      _loadUserData();
-      await _loadHealthScore();
-      if (mounted) {
-        setState(() {
-          _hasError = false;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _hasError = true;
-          _errorMessage = 'حدث خطأ في تحديث البيانات';
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
   void _goTo(BuildContext context, Widget screen) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
-  }
-
-  void _onBannerChanged(int index) {
-    setState(() => _currentBanner = index);
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    if (_isLoading) {
-      return _buildShimmerLoader();
-    }
-
-    if (_hasError) {
-      return _buildErrorScreen();
-    }
 
     // ✅ مراقبة التمرير
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -167,79 +97,169 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       }
     });
 
-    return RefreshIndicator(
-      onRefresh: _refreshData,
-      color: AppColors.primary,
-      child: Scaffold(
-        backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-        body: CustomScrollView(
-          controller: widget.scrollController,
-          slivers: [
-            SliverAppBar(
-              expandedHeight: 90,
-              floating: true,
-              snap: true,
-              pinned: false,
-              backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
-              elevation: 0,
-              automaticallyImplyLeading: false,
-              flexibleSpace: FlexibleSpaceBar(
-                background: HomeHeader(
-                  isLoggedIn: _isLoggedIn,
-                  userName: _userName,
-                  onProfileTap: () => _goTo(context, const PatientProfile()),
+    return BlocBuilder<HomeBloc, HomeState>(
+      builder: (context, state) {
+        if (state.isLoading) {
+          return _buildShimmerLoader();
+        }
+
+        if (state.hasError) {
+          return _buildErrorScreen(state.errorMessage ?? 'حدث خطأ');
+        }
+
+        return RefreshIndicator(
+          onRefresh: () async {
+            context.read<HomeBloc>().add(RefreshHomeData());
+          },
+          color: AppColors.primary,
+          child: Scaffold(
+            backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+            body: CustomScrollView(
+              controller: widget.scrollController,
+              slivers: [
+                SliverAppBar(
+                  expandedHeight: 90,
+                  floating: true,
+                  snap: true,
+                  pinned: false,
+                  backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
+                  elevation: 0,
+                  automaticallyImplyLeading: false,
+                  flexibleSpace: FlexibleSpaceBar(
+                    background: HomeHeader(
+                      isLoggedIn: _isLoggedIn,
+                      userName: _userName,
+                      onProfileTap: () => _goTo(context, const PatientProfile()),
+                    ),
+                  ),
                 ),
-              ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      HomeSearchBar(isDark: isDark),
+                      const SizedBox(height: 16),
+                      HomeBanner(
+                        images: _bannerImages,
+                        onPageChanged: (index) => setState(() => _currentBanner = index),
+                      ),
+                      const SizedBox(height: 16),
+                      HomeHealthScore(
+                        score: state.healthScore,
+                        isDark: isDark,
+                      ),
+                      const SizedBox(height: 16),
+                      HomeStats(isDark: isDark),
+                      const SizedBox(height: 16),
+                      HomeQuickServices(
+                        isDark: isDark,
+                        services: _getQuickServices(),
+                        onServiceTap: (screen) => _goTo(context, screen),
+                      ),
+                      const SizedBox(height: 16),
+                      HomeDoctors(
+                        isDark: isDark,
+                        doctors: state.doctors,
+                        onDoctorTap: (id) => _goTo(context, DoctorDetailsScreen(doctorId: id)),
+                      ),
+                      const SizedBox(height: 16),
+                      HomeProducts(
+                        isDark: isDark,
+                        products: state.products,
+                      ),
+                      const SizedBox(height: 16),
+                      HomeHospitals(
+                        isDark: isDark,
+                        hospitals: state.hospitals,
+                      ),
+                      const SizedBox(height: 16),
+                      HomeLabs(
+                        isDark: isDark,
+                        labs: state.labs,
+                      ),
+                      const SizedBox(height: 16),
+                      HomePharmacies(
+                        isDark: isDark,
+                        pharmacies: state.pharmacies,
+                      ),
+                      const SizedBox(height: 16),
+                      HomeArticles(
+                        isDark: isDark,
+                        articles: state.articles,
+                      ),
+                      const SizedBox(height: 16),
+                      HomeDailyTips(isDark: isDark),
+                      const SizedBox(height: 16),
+                      HomeCommunity(
+                        isDark: isDark,
+                        posts: state.posts,
+                        onToggleLike: (id) => context.read<HomeBloc>().add(ToggleLikeEvent(id)),
+                      ),
+                      const SizedBox(height: 80),
+                    ]),
+                  ),
+                ),
+              ],
             ),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  HomeSearchBar(isDark: isDark),
-                  const SizedBox(height: 16),
-                  HomeBanner(
-                    images: _bannerImages,
-                    onPageChanged: _onBannerChanged,
-                  ),
-                  const SizedBox(height: 16),
-                  HomeHealthScore(
-                    score: _healthScore,
-                    isDark: isDark,
-                  ),
-                  const SizedBox(height: 16),
-                  HomeStats(isDark: isDark),
-                  const SizedBox(height: 16),
-                  HomeQuickServices(
-                    isDark: isDark,
-                    onServiceTap: (screen) => _goTo(context, screen),
-                  ),
-                  const SizedBox(height: 16),
-                  HomeDoctors(
-                    isDark: isDark,
-                    onDoctorTap: (doctorId) => _goTo(context, DoctorDetailsScreen(doctorId: doctorId)),
-                  ),
-                  const SizedBox(height: 16),
-                  HomeProducts(isDark: isDark),
-                  const SizedBox(height: 16),
-                  HomeHospitals(isDark: isDark),
-                  const SizedBox(height: 16),
-                  HomeLabs(isDark: isDark),
-                  const SizedBox(height: 16),
-                  HomePharmacies(isDark: isDark),
-                  const SizedBox(height: 16),
-                  HomeArticles(isDark: isDark),
-                  const SizedBox(height: 16),
-                  HomeDailyTips(isDark: isDark),
-                  const SizedBox(height: 16),
-                  HomeCommunity(isDark: isDark),
-                  const SizedBox(height: 80),
-                ]),
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
+  }
+
+  List<QuickServiceModel> _getQuickServices() {
+    return const [
+      QuickServiceModel(
+        icon: 'assets/images/services/pharmacy.png',
+        label: 'صيدلية',
+        screen: MedicinesScreen(),
+      ),
+      QuickServiceModel(
+        icon: 'assets/images/services/emergency.png',
+        label: 'طوارئ',
+        screen: EmergencyNumbers(),
+      ),
+      QuickServiceModel(
+        icon: 'assets/images/services/medical_community.png',
+        label: 'خدمات منزلية',
+        screen: ServicesScreen(),
+      ),
+      QuickServiceModel(
+        icon: 'assets/images/services/blood_donation.png',
+        label: 'تبرع بالدم',
+        screen: BloodDonationScreen(),
+      ),
+      QuickServiceModel(
+        icon: 'assets/images/services/consultation.png',
+        label: 'أطباء',
+        screen: DoctorsListScreen(),
+      ),
+      QuickServiceModel(
+        icon: 'assets/images/services/laboratory.png',
+        label: 'مختبرات',
+        screen: LabsListScreen(),
+      ),
+      QuickServiceModel(
+        icon: 'assets/images/services/health_tips.png',
+        label: 'صحة',
+        screen: HealthDashboard(),
+      ),
+      QuickServiceModel(
+        icon: 'assets/images/services/wallet.png',
+        label: 'محفظة',
+        screen: WalletScreen(),
+      ),
+      QuickServiceModel(
+        icon: 'assets/images/services/consultation.png',
+        label: 'استشارة',
+        screen: ConsultationScreen(),
+      ),
+      QuickServiceModel(
+        icon: 'assets/images/services/map_location.png',
+        label: 'بالقرب منك',
+        screen: InteractiveMapScreen(),
+      ),
+    ];
   }
 
   Widget _buildShimmerLoader() {
@@ -316,9 +336,11 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  Widget _buildErrorScreen() {
+  Widget _buildErrorScreen(String message) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -330,21 +352,21 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Colors.grey[800],
+                color: isDark ? Colors.white : Colors.grey[800],
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              _errorMessage,
+              message,
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey[600],
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: _refreshData,
+              onPressed: () => context.read<HomeBloc>().add(LoadHomeData()),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
@@ -360,7 +382,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       ),
     );
   }
-}
 
   @override
   void dispose() {
@@ -369,3 +390,4 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     }
     super.dispose();
   }
+}

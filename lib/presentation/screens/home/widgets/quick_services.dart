@@ -39,7 +39,7 @@ class QuickServices extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) const {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
     if (!isScrollable) {
@@ -166,7 +166,7 @@ class NetworkQuickServices extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) const {
     return QuickServices(
       services: services,
       height: 90,
@@ -188,7 +188,7 @@ class GridQuickServices extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) const {
     return QuickServices(
       services: services,
       height: 0,
@@ -209,7 +209,7 @@ class AnimatedQuickServices extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) const {
     return TweenAnimationBuilder(
       tween: Tween<double>(begin: 0, end: 1),
       duration: const Duration(milliseconds: 600),

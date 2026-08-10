@@ -7,7 +7,7 @@ class HomeSearchBar extends StatelessWidget {
   const HomeSearchBar({super.key, required this.isDark});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) const {
     return GestureDetector(
       onTap: () {
         Navigator.push(

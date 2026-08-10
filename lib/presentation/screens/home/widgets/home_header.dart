@@ -18,7 +18,7 @@ class HomeHeader extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) const {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Padding(
