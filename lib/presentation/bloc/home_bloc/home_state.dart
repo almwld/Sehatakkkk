@@ -64,37 +64,4 @@ class HomeState {
       healthScore: healthScore ?? this.healthScore,
     );
   }
-
-  HomeState loading() => copyWith(isLoading: true, hasError: false);
-  HomeState refreshing() => copyWith(isRefreshing: true);
-  HomeState success({
-    List<DoctorModel>? doctors,
-    List<ProductModel>? products,
-    List<HospitalModel>? hospitals,
-    List<LabModel>? labs,
-    List<PharmacyModel>? pharmacies,
-    List<ArticleModel>? articles,
-    List<CommunityPostModel>? posts,
-    double? healthScore,
-  }) =>
-      copyWith(
-        isLoading: false,
-        isRefreshing: false,
-        hasError: false,
-        errorMessage: null,
-        doctors: doctors ?? this.doctors,
-        products: products ?? this.products,
-        hospitals: hospitals ?? this.hospitals,
-        labs: labs ?? this.labs,
-        pharmacies: pharmacies ?? this.pharmacies,
-        articles: articles ?? this.articles,
-        posts: posts ?? this.posts,
-        healthScore: healthScore ?? this.healthScore,
-      );
-  HomeState error(String message) => copyWith(
-        isLoading: false,
-        isRefreshing: false,
-        hasError: true,
-        errorMessage: message,
-      );
 }

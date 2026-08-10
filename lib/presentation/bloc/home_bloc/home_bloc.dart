@@ -12,10 +12,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   }
 
   Future<void> _onLoad(LoadHomeData event, Emitter<HomeState> emit) async {
-    emit(state.loading());
+    emit(state.copyWith(isLoading: true, hasError: false));
     try {
       final data = await _fetchAllData();
-      emit(state.success(
+      emit(state.copyWith(
+        isLoading: false,
+        hasError: false,
         doctors: data.doctors,
         products: data.products,
         hospitals: data.hospitals,
@@ -26,15 +28,21 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         healthScore: data.healthScore,
       ));
     } catch (e) {
-      emit(state.error(e.toString()));
+      emit(state.copyWith(
+        isLoading: false,
+        hasError: true,
+        errorMessage: e.toString(),
+      ));
     }
   }
 
   Future<void> _onRefresh(RefreshHomeData event, Emitter<HomeState> emit) async {
-    emit(state.refreshing());
+    emit(state.copyWith(isRefreshing: true));
     try {
       final data = await _fetchAllData();
-      emit(state.success(
+      emit(state.copyWith(
+        isRefreshing: false,
+        hasError: false,
         doctors: data.doctors,
         products: data.products,
         hospitals: data.hospitals,
@@ -45,7 +53,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         healthScore: data.healthScore,
       ));
     } catch (e) {
-      emit(state.error(e.toString()));
+      emit(state.copyWith(
+        isRefreshing: false,
+        hasError: true,
+        errorMessage: e.toString(),
+      ));
     }
   }
 
