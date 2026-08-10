@@ -143,7 +143,7 @@ class _HospitalScreenState extends State<HospitalScreen> {
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: AppImage(
-                url: hospital['image'],
+                imageUrl: hospital['image'],
                 width: 80,
                 height: 80,
               ),

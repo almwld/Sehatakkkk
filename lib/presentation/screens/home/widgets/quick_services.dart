@@ -106,7 +106,7 @@ class QuickServices extends StatelessWidget {
                     ],
                   ),
                   child: AppImage(
-                    url: service.icon,
+                    imageUrl: service.icon,
                     width: iconSize,
                     height: iconSize,
                     fit: BoxFit.contain,

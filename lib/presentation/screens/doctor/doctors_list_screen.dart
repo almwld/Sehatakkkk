@@ -348,7 +348,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: AppImage(
-                url: doctor['image'],
+                imageUrl: doctor['image'],
                 width: 70,
                 height: 70,
               ),

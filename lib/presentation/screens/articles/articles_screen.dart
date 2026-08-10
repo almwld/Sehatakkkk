@@ -141,7 +141,7 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
             ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
               child: AppImage(
-                url: article['image'],
+                imageUrl: article['image'],
                 height: 150,
                 width: double.infinity,
               ),

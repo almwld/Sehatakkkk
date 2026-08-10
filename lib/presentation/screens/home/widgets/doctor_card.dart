@@ -32,7 +32,7 @@ class DoctorCard extends StatelessWidget {
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                   child: AppImage(
-                    url: doctor['image'] as String,
+                    imageUrl: doctor['image'] as String,
                     height: 120,
                     width: double.infinity,
                   ),

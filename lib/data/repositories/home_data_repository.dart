@@ -4,11 +4,12 @@ import 'package:sehatak/data/models/hospital_model.dart';
 import 'package:sehatak/data/models/lab_model.dart';
 import 'package:sehatak/data/models/pharmacy_model.dart';
 import 'package:sehatak/data/models/article_model.dart';
+import 'package:sehatak/data/models/community_post_model.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 
 class HomeDataRepository {
-  // ✅ دوال بدون const
-  List<DoctorModel> getDoctorsList() {
+  // ✅ الأطباء
+  static List<DoctorModel> getTopDoctors() {
     return [
       DoctorModel(
         id: '1',
@@ -53,7 +54,8 @@ class HomeDataRepository {
     ];
   }
 
-  List<ProductModel> getProductsList() {
+  // ✅ المنتجات
+  static List<ProductModel> getProducts() {
     return [
       ProductModel(
         name: 'باراسيتامول 500mg',
@@ -86,7 +88,8 @@ class HomeDataRepository {
     ];
   }
 
-  List<HospitalModel> getHospitalsList() {
+  // ✅ المستشفيات
+  static List<HospitalModel> getFeaturedHospitals() {
     return [
       HospitalModel(
         id: '1',
@@ -145,7 +148,8 @@ class HomeDataRepository {
     ];
   }
 
-  List<LabModel> getLabsList() {
+  // ✅ المختبرات
+  static List<LabModel> getFeaturedLabs() {
     return [
       LabModel(
         id: '1',
@@ -198,7 +202,8 @@ class HomeDataRepository {
     ];
   }
 
-  List<PharmacyModel> getPharmaciesList() {
+  // ✅ الصيدليات
+  static List<PharmacyModel> getFeaturedPharmacies() {
     return [
       PharmacyModel(
         id: '1',
@@ -251,7 +256,8 @@ class HomeDataRepository {
     ];
   }
 
-  List<ArticleModel> getArticlesList() {
+  // ✅ المقالات
+  static List<ArticleModel> getArticles() {
     return [
       ArticleModel(
         title: 'فوائد المشي اليومي',
@@ -281,78 +287,78 @@ class HomeDataRepository {
   }
 
   // ✅ منشورات المجتمع
-  List<Map<String, dynamic>> getCommunityPosts() {
+  static List<CommunityPostModel> getCommunityPosts() {
     return [
-      {
-        'id': 1,
-        'author': 'د. سارة العمري',
-        'avatar': 'س',
-        'image': ImageKit.skinCare,
-        'title': 'نصائح للعناية بالبشرة',
-        'content': 'مع حلول فصل الصيف، احرصي على ترطيب بشرتك واستخدام واقي الشمس.',
-        'likes': 120,
-        'comments': 15,
-        'shares': 8,
-        'time': 'منذ ساعة',
-        'liked': false,
-        'commentList': ['نصائح رائعة!', 'شكراً دكتورة', 'مفيد جداً'],
-      },
-      {
-        'id': 2,
-        'author': 'د. خالد النخلاني',
-        'avatar': 'خ',
-        'image': ImageKit.morningWalk,
-        'title': 'فوائد المشي الصباحي',
-        'content': 'المشي 30 دقيقة يومياً يقلل خطر أمراض القلب والسكري.',
-        'likes': 95,
-        'comments': 8,
-        'shares': 5,
-        'time': 'منذ 3 ساعات',
-        'liked': false,
-        'commentList': ['معلومة قيمة', 'سأطبقها'],
-      },
-      {
-        'id': 3,
-        'author': 'د. أحمد المؤيد',
-        'avatar': 'أ',
-        'image': ImageKit.nutritionTips,
-        'title': 'تغذيتك سر صحتك',
-        'content': 'الطعام الصحي هو أساس المناعة القوية والجسم السليم.',
-        'likes': 210,
-        'comments': 22,
-        'shares': 12,
-        'time': 'منذ 5 ساعات',
-        'liked': true,
-        'commentList': ['أحسنت', 'مفيد جداً', 'شكراً دكتور'],
-      },
-      {
-        'id': 4,
-        'author': 'د. أسماء الهندي',
-        'avatar': 'ه',
-        'image': ImageKit.immuneBoost,
-        'title': 'قوة المناعة',
-        'content': 'الفيتامينات والمعادن تلعب دوراً كبيراً في تقوية المناعة.',
-        'likes': 78,
-        'comments': 5,
-        'shares': 3,
-        'time': 'منذ يوم',
-        'liked': false,
-        'commentList': ['معلومات مفيدة', 'شكراً'],
-      },
-      {
-        'id': 5,
-        'author': 'د. محمد العلاي',
-        'avatar': 'م',
-        'image': ImageKit.sleepTips,
-        'title': 'نصائح النوم الصحي',
-        'content': 'النوم 7-8 ساعات يومياً يحسن الصحة النفسية والجسدية.',
-        'likes': 150,
-        'comments': 12,
-        'shares': 7,
-        'time': 'منذ يومين',
-        'liked': false,
-        'commentList': ['سأطبق هذه النصائح', 'مفيد'],
-      },
+      CommunityPostModel(
+        id: 1,
+        author: 'د. سارة العمري',
+        avatar: 'س',
+        image: ImageKit.skinCare,
+        title: 'نصائح للعناية بالبشرة',
+        content: 'مع حلول فصل الصيف، احرصي على ترطيب بشرتك واستخدام واقي الشمس.',
+        likes: 120,
+        comments: 15,
+        shares: 8,
+        time: 'منذ ساعة',
+        liked: false,
+        commentList: ['نصائح رائعة!', 'شكراً دكتورة', 'مفيد جداً'],
+      ),
+      CommunityPostModel(
+        id: 2,
+        author: 'د. خالد النخلاني',
+        avatar: 'خ',
+        image: ImageKit.morningWalk,
+        title: 'فوائد المشي الصباحي',
+        content: 'المشي 30 دقيقة يومياً يقلل خطر أمراض القلب والسكري.',
+        likes: 95,
+        comments: 8,
+        shares: 5,
+        time: 'منذ 3 ساعات',
+        liked: false,
+        commentList: ['معلومة قيمة', 'سأطبقها'],
+      ),
+      CommunityPostModel(
+        id: 3,
+        author: 'د. أحمد المؤيد',
+        avatar: 'أ',
+        image: ImageKit.nutritionTips,
+        title: 'تغذيتك سر صحتك',
+        content: 'الطعام الصحي هو أساس المناعة القوية والجسم السليم.',
+        likes: 210,
+        comments: 22,
+        shares: 12,
+        time: 'منذ 5 ساعات',
+        liked: true,
+        commentList: ['أحسنت', 'مفيد جداً', 'شكراً دكتور'],
+      ),
+      CommunityPostModel(
+        id: 4,
+        author: 'د. أسماء الهندي',
+        avatar: 'ه',
+        image: ImageKit.immuneBoost,
+        title: 'قوة المناعة',
+        content: 'الفيتامينات والمعادن تلعب دوراً كبيراً في تقوية المناعة.',
+        likes: 78,
+        comments: 5,
+        shares: 3,
+        time: 'منذ يوم',
+        liked: false,
+        commentList: ['معلومات مفيدة', 'شكراً'],
+      ),
+      CommunityPostModel(
+        id: 5,
+        author: 'د. محمد العلاي',
+        avatar: 'م',
+        image: ImageKit.sleepTips,
+        title: 'نصائح النوم الصحي',
+        content: 'النوم 7-8 ساعات يومياً يحسن الصحة النفسية والجسدية.',
+        likes: 150,
+        comments: 12,
+        shares: 7,
+        time: 'منذ يومين',
+        liked: false,
+        commentList: ['سأطبق هذه النصائح', 'مفيد'],
+      ),
     ];
   }
 }

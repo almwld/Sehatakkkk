@@ -226,7 +226,7 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
           ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: AppImage(
-              url: _lab['image'],
+              imageUrl: _lab['image'],
               height: 200,
               width: double.infinity,
             ),
@@ -757,7 +757,7 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: AppImage(
-              url: images[_selectedImageIndex],
+              imageUrl: images[_selectedImageIndex],
               height: 200,
               width: double.infinity,
             ),
@@ -787,7 +787,7 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(10),
                     child: AppImage(
-                      url: images[index],
+                      imageUrl: images[index],
                       width: 70,
                       height: 70,
                     ),

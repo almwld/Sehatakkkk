@@ -254,7 +254,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
           ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: AppImage(
-              url: pharmacy['image'] as String,
+              imageUrl: pharmacy['image'] as String,
               height: 180,
               width: double.infinity,
             ),

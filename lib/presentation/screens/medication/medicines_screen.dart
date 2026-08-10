@@ -155,7 +155,7 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
             child: ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
               child: AppImage(
-                url: medicine['image'],
+                imageUrl: medicine['image'],
                 width: double.infinity,
                 height: double.infinity,
                 fit: BoxFit.cover,

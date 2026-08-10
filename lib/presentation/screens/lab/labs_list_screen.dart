@@ -429,7 +429,7 @@ class _LabsListScreenState extends State<LabsListScreen> with SingleTickerProvid
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: AppImage(
-                    url: lab['image'],
+                    imageUrl: lab['image'],
                     width: 80,
                     height: 80,
                   ),

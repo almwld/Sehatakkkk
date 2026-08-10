@@ -120,7 +120,7 @@ class CartScreen extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: AppImage(
-              url: item.image ?? '',
+              imageUrl: item.image ?? '',
               width: 50,
               height: 50,
             ),
