@@ -116,7 +116,6 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # ✅ فقط المجلدات الضرورية (الصور المستخدمة فعلاً)
   assets:
     # أيقونات الخدمات
     - assets/images/services/
@@ -142,7 +141,7 @@ flutter:
     # SVG
     - assets/svg/
     # ملفات مفردة
-    - assets/icons/app_icon.png
+    - assets/icons/app_icon.svg
     - assets/images/chat_background.svg
 
   fonts:
@@ -163,11 +162,11 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: false
-  image_path: "assets/icons/app_icon.png"
+  image_path: "assets/icons/app_icon.svg"
   min_sdk_android: 21
 
 flutter_native_splash:
   color: "#FFFFFF"
-  image: assets/icons/app_icon.png
+  image: assets/icons/app_icon.svg
   android: true
   ios: false

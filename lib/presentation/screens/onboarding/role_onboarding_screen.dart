@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/models/user_model.dart';
 import 'package:sehatak/core/constants/roles.dart';
 
 class RoleOnboardingScreen extends StatefulWidget {
@@ -23,7 +22,6 @@ class _RoleOnboardingScreenState extends State<RoleOnboardingScreen> {
   int _currentPage = 0;
   final PageController _pageController = PageController();
 
-  // ✅ صفحات لكل دور
   List<OnboardingPage> get _pages {
     switch (widget.role) {
       case UserRole.doctor:
@@ -39,7 +37,6 @@ class _RoleOnboardingScreenState extends State<RoleOnboardingScreen> {
     }
   }
 
-  // ✅ صفحات المستخدم العادي
   List<OnboardingPage> _getUserPages() => [
     OnboardingPage(
       title: 'مرحباً بك في صحتك',
@@ -61,7 +58,6 @@ class _RoleOnboardingScreenState extends State<RoleOnboardingScreen> {
     ),
   ];
 
-  // ✅ صفحات الأطباء
   List<OnboardingPage> _getDoctorPages() {
     final specialty = widget.specialty ?? 'طبيب';
     return [
@@ -92,69 +88,84 @@ class _RoleOnboardingScreenState extends State<RoleOnboardingScreen> {
     ];
   }
 
-  // ✅ صفحات الصيادلة
   List<OnboardingPage> _getPharmacistPages() => [
     OnboardingPage(
-      title: 'مرحباً دكتور صيدلي',
-      description: 'أهلاً بك في منصة صحتك للصيادلة',
+      title: 'مرحباً صيدلي',
+      description: 'أهلاً بك في منصة صحتك للصيدليات',
       icon: Icons.local_pharmacy,
       color: Colors.green,
     ),
     OnboardingPage(
-      title: 'إدارة الطلبات',
-      description: 'استقبل طلبات الأدوية وقم بتوصيلها للمرضى',
-      icon: Icons.shopping_cart,
+      title: 'عرض منتجاتك',
+      description: 'أضف منتجاتك الصيدلانية وعرضها للعملاء',
+      icon: Icons.inventory,
       color: Colors.teal,
     ),
     OnboardingPage(
-      title: 'مخزون الأدوية',
-      description: 'قم بإدارة مخزون الأدوية والمستلزمات الطبية',
-      icon: Icons.inventory,
+      title: 'استقبال الطلبات',
+      description: 'استقبل طلبات العملاء وقم بتوصيلها بسهولة',
+      icon: Icons.shopping_cart,
       color: Colors.orange,
+    ),
+    OnboardingPage(
+      title: 'حساب موثق',
+      description: 'وثق حسابك لبناء ثقة العملاء في صيدليتك',
+      icon: Icons.verified,
+      color: Colors.blue,
     ),
   ];
 
-  // ✅ صفحات المختبرات
   List<OnboardingPage> _getLabPages() => [
     OnboardingPage(
-      title: 'مرحباً في المختبر',
+      title: 'مرحباً مختبر',
       description: 'أهلاً بك في منصة صحتك للمختبرات',
       icon: Icons.science,
       color: Colors.purple,
     ),
     OnboardingPage(
-      title: 'إدارة الفحوصات',
-      description: 'استقبل طلبات الفحوصات المخبرية',
-      icon: Icons.biotech,
+      title: 'عرض خدماتك',
+      description: 'أضف خدماتك المخبرية وعرضها للعملاء',
+      icon: Icons.list_alt,
       color: Colors.teal,
     ),
     OnboardingPage(
-      title: 'نتائج دقيقة',
-      description: 'قدم نتائج دقيقة وسريعة للمرضى',
-      icon: Icons.analytics,
+      title: 'استقبال الفحوصات',
+      description: 'استقبل طلبات الفحوصات من المرضى',
+      icon: Icons.bloodtype,
+      color: Colors.red,
+    ),
+    OnboardingPage(
+      title: 'حساب موثق',
+      description: 'وثق حسابك لزيادة ثقة المرضى في مختبرك',
+      icon: Icons.verified,
       color: Colors.orange,
     ),
   ];
 
-  // ✅ صفحات الأطباء البيطريين
   List<OnboardingPage> _getVeterinarianPages() => [
     OnboardingPage(
-      title: 'مرحباً دكتور بيطري',
-      description: 'أهلاً بك في منصة صحتك للرعاية البيطرية',
+      title: 'مرحباً بيطري',
+      description: 'أهلاً بك في منصة صحتك للطب البيطري',
       icon: Icons.pets,
       color: Colors.brown,
     ),
     OnboardingPage(
       title: 'رعاية الحيوانات',
-      description: 'قدم رعاية صحية متكاملة للحيوانات',
-      icon: Icons.health_and_safety,
+      description: 'قدم خدماتك البيطرية لأصحاب الحيوانات',
+      icon: Icons.favorite,
       color: Colors.teal,
     ),
     OnboardingPage(
       title: 'مواعيد العيادة',
-      description: 'قم بإدارة مواعيد العيادة البيطرية',
+      description: 'إدارة مواعيد العيادة البيطرية بسهولة',
       icon: Icons.calendar_month,
       color: Colors.orange,
+    ),
+    OnboardingPage(
+      title: 'حساب موثق',
+      description: 'وثق حسابك لبناء ثقة عملائك',
+      icon: Icons.verified,
+      color: Colors.green,
     ),
   ];
 
@@ -166,7 +177,6 @@ class _RoleOnboardingScreenState extends State<RoleOnboardingScreen> {
       backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
       body: Column(
         children: [
-          // ✅ زر التخطي
           Padding(
             padding: const EdgeInsets.all(16),
             child: Align(
@@ -188,7 +198,6 @@ class _RoleOnboardingScreenState extends State<RoleOnboardingScreen> {
               },
             ),
           ),
-          // ✅ المؤشرات
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(_pages.length, (index) {
@@ -206,7 +215,6 @@ class _RoleOnboardingScreenState extends State<RoleOnboardingScreen> {
             }),
           ),
           const SizedBox(height: 16),
-          // ✅ زر التالي / البدء
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             child: SizedBox(
