@@ -196,10 +196,10 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       context,
       MaterialPageRoute(
         builder: (_) => RoleOnboardingScreen(
-          role: userModel.role,
+          role: userModel.role.name,
           specialty: userModel.specialty ?? '',
           onComplete: () {
-            if (AppRoles.needsVerification(userModel.role)) {
+            if (AppRoles.needsVerification(userModel.role.name)) {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
@@ -1265,3 +1265,34 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     super.dispose();
   }
 }
+
+  // ✅ عرض الشاشة التعليمية بعد التسجيل
+  void _showOnboarding(UserModel userModel, BuildContext context) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RoleOnboardingScreen(
+          role: userModel.role,
+          specialty: userModel.specialty ?? '',
+          onComplete: () {
+            // ✅ بعد انتهاء الشاشة التعليمية
+            if (AppRoles.needsVerification(userModel.role)) {
+              // ✅ إذا كان الدور يحتاج توثيق
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => VerificationScreen(userModel: userModel),
+                ),
+              );
+            } else {
+              // ✅ الانتقال للرئيسية
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const HomeScreen()),
+              );
+            }
+          },
+        ),
+      ),
+    );
+  }

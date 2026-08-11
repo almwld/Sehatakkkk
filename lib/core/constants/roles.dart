@@ -1,71 +1,66 @@
 import 'package:flutter/material.dart';
 
-// ✅ تعريف UserRole
 enum UserRole {
-  user,        // مستخدم عادي
-  doctor,      // طبيب
-  pharmacist,  // صيدلي
-  lab,         // مختبر
-  veterinarian, // بيطري
-  admin,       // مشرف
-  superAdmin,  // مدير المنصة
+  user,
+  doctor,
+  pharmacist,
+  lab,
+  veterinarian,
+  admin,
 }
 
 class AppRoles {
-  // ✅ جميع الأدوار المتاحة في المنصة
-  static final List<Map<String, dynamic>> all = [
-    {'id': 'user', 'name': 'مستخدم', 'icon': Icons.person_outline, 'color': 0xFF0D5257, 'category': 'عام'},
-    {'id': 'doctor', 'name': 'طبيب', 'icon': Icons.local_hospital_outlined, 'color': 0xFF2196F3, 'category': 'طبي'},
-    {'id': 'nurse', 'name': 'ممرض', 'icon': Icons.medical_services_outlined, 'color': 0xFF00BCD4, 'category': 'طبي'},
-    {'id': 'midwife', 'name': 'قابلة وتوليد', 'icon': Icons.pregnant_woman, 'color': 0xFFE91E63, 'category': 'طبي'},
-    {'id': 'physiotherapist', 'name': 'علاج فيزيائي', 'icon': Icons.fitness_center, 'color': 0xFFFF9800, 'category': 'طبي'},
-    {'id': 'pharmacist', 'name': 'صيدلي', 'icon': Icons.local_pharmacy_outlined, 'color': 0xFF4CAF50, 'category': 'صيدلي'},
-    {'id': 'lab', 'name': 'مختبر', 'icon': Icons.science_outlined, 'color': 0xFF9C27B0, 'category': 'مختبر'},
-    {'id': 'paramedic', 'name': 'مسعف', 'icon': Icons.emergency, 'color': 0xFFF44336, 'category': 'طوارئ'},
-    {'id': 'delivery', 'name': 'موصل طلبات', 'icon': Icons.delivery_dining, 'color': 0xFFFF5722, 'category': 'خدمي'},
-    {'id': 'service', 'name': 'خدمي', 'icon': Icons.handyman, 'color': 0xFF607D8B, 'category': 'خدمي'},
-    {'id': 'veterinarian', 'name': 'بيطري', 'icon': Icons.pets, 'color': 0xFF795548, 'category': 'بيطري'},
-    {'id': 'admin', 'name': 'مشرف', 'icon': Icons.admin_panel_settings, 'color': 0xFFFF5722, 'category': 'إداري'},
-  ];
+  static const Map<UserRole, String> roleNames = {
+    UserRole.user: 'مستخدم',
+    UserRole.doctor: 'طبيب',
+    UserRole.pharmacist: 'صيدلي',
+    UserRole.lab: 'مختبر',
+    UserRole.veterinarian: 'بيطري',
+    UserRole.admin: 'مشرف',
+  };
 
-  // ✅ الأدوار التي تحتاج توثيق
-  static final List<String> verifiedRoles = [
-    'doctor', 'nurse', 'midwife', 'physiotherapist',
-    'pharmacist', 'lab', 'paramedic', 'veterinarian'
-  ];
+  static const Map<UserRole, IconData> roleIcons = {
+    UserRole.user: Icons.person_outline,
+    UserRole.doctor: Icons.local_hospital_outlined,
+    UserRole.pharmacist: Icons.local_pharmacy_outlined,
+    UserRole.lab: Icons.science_outlined,
+    UserRole.veterinarian: Icons.pets_outlined,
+    UserRole.admin: Icons.admin_panel_settings,
+  };
 
-  // ✅ الأدوار التي تظهر في لوحة التحكم
-  static final List<String> providerRoles = [
-    'doctor', 'nurse', 'midwife', 'physiotherapist',
-    'pharmacist', 'lab', 'paramedic', 'delivery', 'service',
-    'veterinarian'
-  ];
+  static const Map<UserRole, int> roleColors = {
+    UserRole.user: 0xFF0D5257,
+    UserRole.doctor: 0xFF2196F3,
+    UserRole.pharmacist: 0xFF4CAF50,
+    UserRole.lab: 0xFF9C27B0,
+    UserRole.veterinarian: 0xFFFF9800,
+    UserRole.admin: 0xFFFF5722,
+  };
 
-  // ✅ الحصول على اسم الدور
-  static String getRoleName(String id) {
-    final role = all.firstWhere((r) => r['id'] == id, orElse: () => {'name': id});
-    return role['name'] as String;
+  static bool needsVerification(UserRole role) {
+    return role == UserRole.doctor ||
+           role == UserRole.pharmacist ||
+           role == UserRole.lab ||
+           role == UserRole.veterinarian;
   }
 
-  // ✅ الحصول على أيقونة الدور
-  static IconData getRoleIcon(String id) {
-    final role = all.firstWhere((r) => r['id'] == id, orElse: () => {'icon': Icons.person});
-    return role['icon'] as IconData;
+  static String getRoleName(UserRole role) {
+    return roleNames[role] ?? 'مستخدم';
   }
 
-  // ✅ الحصول على لون الدور
-  static Color getRoleColor(String id) {
-    final role = all.firstWhere((r) => r['id'] == id, orElse: () => {'color': 0xFF0D5257});
-    return Color(role['color'] as int);
+  static IconData getRoleIcon(UserRole role) {
+    return roleIcons[role] ?? Icons.person_outline;
   }
 
-  // ✅ هل الدور يحتاج توثيق؟
-  static bool needsVerification(String roleId) {
-    return verifiedRoles.contains(roleId);
+  static Color getRoleColor(UserRole role) {
+    return Color(roleColors[role] ?? 0xFF0D5257);
   }
 
-  // ✅ هل الدور مقدم خدمة؟
-  static bool isProvider(String roleId) {
-    return providerRoles.contains(roleId);
+  // ✅ دالة للتحقق من الدور كـ String (للتوافق مع الكود القديم)
+  static bool needsVerificationString(String role) {
+    return role == 'doctor' ||
+           role == 'pharmacist' ||
+           role == 'lab' ||
+           role == 'veterinarian';
   }
 }
