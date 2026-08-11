@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/user_model.dart';
+import 'package:sehatak/core/constants/roles.dart';
 
 class RoleOnboardingScreen extends StatefulWidget {
   final UserRole role;
@@ -60,7 +61,7 @@ class _RoleOnboardingScreenState extends State<RoleOnboardingScreen> {
     ),
   ];
 
-  // ✅ صفحات الأطباء مع التخصص
+  // ✅ صفحات الأطباء
   List<OnboardingPage> _getDoctorPages() {
     final specialty = widget.specialty ?? 'طبيب';
     return [
@@ -91,87 +92,69 @@ class _RoleOnboardingScreenState extends State<RoleOnboardingScreen> {
     ];
   }
 
-  // ✅ صفحات الصيدلي
+  // ✅ صفحات الصيادلة
   List<OnboardingPage> _getPharmacistPages() => [
     OnboardingPage(
-      title: 'مرحباً صيدلي',
-      description: 'أهلاً بك في منصة صحتك للصيدليات',
+      title: 'مرحباً دكتور صيدلي',
+      description: 'أهلاً بك في منصة صحتك للصيادلة',
       icon: Icons.local_pharmacy,
       color: Colors.green,
     ),
     OnboardingPage(
-      title: 'عرض منتجاتك',
-      description: 'أضف منتجاتك الصيدلانية وعرضها للعملاء',
-      icon: Icons.inventory,
+      title: 'إدارة الطلبات',
+      description: 'استقبل طلبات الأدوية وقم بتوصيلها للمرضى',
+      icon: Icons.shopping_cart,
       color: Colors.teal,
     ),
     OnboardingPage(
-      title: 'استقبال الطلبات',
-      description: 'استقبل طلبات العملاء وقم بتوصيلها بسهولة',
-      icon: Icons.shopping_cart,
+      title: 'مخزون الأدوية',
+      description: 'قم بإدارة مخزون الأدوية والمستلزمات الطبية',
+      icon: Icons.inventory,
       color: Colors.orange,
-    ),
-    OnboardingPage(
-      title: 'حساب موثق',
-      description: 'وثق حسابك لبناء ثقة العملاء في صيدليتك',
-      icon: Icons.verified,
-      color: Colors.blue,
     ),
   ];
 
-  // ✅ صفحات المختبر
+  // ✅ صفحات المختبرات
   List<OnboardingPage> _getLabPages() => [
     OnboardingPage(
-      title: 'مرحباً مختبر',
+      title: 'مرحباً في المختبر',
       description: 'أهلاً بك في منصة صحتك للمختبرات',
       icon: Icons.science,
       color: Colors.purple,
     ),
     OnboardingPage(
-      title: 'عرض خدماتك',
-      description: 'أضف خدماتك المخبرية وعرضها للعملاء',
-      icon: Icons.list_alt,
+      title: 'إدارة الفحوصات',
+      description: 'استقبل طلبات الفحوصات المخبرية',
+      icon: Icons.biotech,
       color: Colors.teal,
     ),
     OnboardingPage(
-      title: 'استقبال الفحوصات',
-      description: 'استقبل طلبات الفحوصات من المرضى',
-      icon: Icons.bloodtype,
-      color: Colors.red,
-    ),
-    OnboardingPage(
-      title: 'حساب موثق',
-      description: 'وثق حسابك لزيادة ثقة المرضى في مختبرك',
-      icon: Icons.verified,
+      title: 'نتائج دقيقة',
+      description: 'قدم نتائج دقيقة وسريعة للمرضى',
+      icon: Icons.analytics,
       color: Colors.orange,
     ),
   ];
 
-  // ✅ صفحات البيطري
+  // ✅ صفحات الأطباء البيطريين
   List<OnboardingPage> _getVeterinarianPages() => [
     OnboardingPage(
-      title: 'مرحباً بيطري',
-      description: 'أهلاً بك في منصة صحتك للطب البيطري',
+      title: 'مرحباً دكتور بيطري',
+      description: 'أهلاً بك في منصة صحتك للرعاية البيطرية',
       icon: Icons.pets,
       color: Colors.brown,
     ),
     OnboardingPage(
       title: 'رعاية الحيوانات',
-      description: 'قدم خدماتك البيطرية لأصحاب الحيوانات',
-      icon: Icons.favorite,
+      description: 'قدم رعاية صحية متكاملة للحيوانات',
+      icon: Icons.health_and_safety,
       color: Colors.teal,
     ),
     OnboardingPage(
       title: 'مواعيد العيادة',
-      description: 'إدارة مواعيد العيادة البيطرية بسهولة',
+      description: 'قم بإدارة مواعيد العيادة البيطرية',
       icon: Icons.calendar_month,
       color: Colors.orange,
-    ),
-    OnboardingPage(
-      title: 'حساب موثق',
-      description: 'وثق حسابك لبناء ثقة عملائك',
-      icon: Icons.verified,
-      color: Colors.green,
     ),
   ];
 

@@ -409,6 +409,8 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       };
 
       await FirebaseFirestore.instance.collection('users').doc(user.uid).set(userData);
+      final userModel = UserModel.fromFirestore(userData, user.uid);
+      _showOnboarding(userModel);
 
       _hideLoading();
       await _showSuccessAnimation();
@@ -1431,3 +1433,36 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     super.dispose();
   }
 }
+import 'package:sehatak/presentation/screens/onboarding/role_onboarding_screen.dart';
+import 'package:sehatak/presentation/screens/verification/verification_screen.dart';
+
+  // ✅ عرض الشاشة التعليمية بعد التسجيل
+  void _showOnboarding(UserModel userModel) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RoleOnboardingScreen(
+          role: userModel.role,
+          specialty: userModel.specialty,
+          onComplete: () {
+            // ✅ بعد انتهاء الشاشة التعليمية
+            if (AppRoles.needsVerification(userModel.role)) {
+              // ✅ إذا كان الدور يحتاج توثيق
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => VerificationScreen(userModel: userModel),
+                ),
+              );
+            } else {
+              // ✅ الانتقال للرئيسية
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const HomeScreen()),
+              );
+            }
+          },
+        ),
+      ),
+    );
+  }
