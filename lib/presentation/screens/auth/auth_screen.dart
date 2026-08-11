@@ -10,7 +10,7 @@ import 'package:sehatak/core/models/user_model.dart';
 import 'package:sehatak/core/services/biometric_service.dart';
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
 import 'package:sehatak/presentation/screens/terms/terms_screen.dart';
-import 'package:sehatak/presentation/screens/onboarding/role_onboarding_screen.dart';
+import 'package:sehatak/presentation/screens/onboarding/role_onboarding_screen.dart>';
 import 'package:sehatak/presentation/screens/verification/verification_screen.dart';
 import 'package:sehatak/presentation/screens/platform/dashboard/platform_dashboard.dart';
 import 'package:sehatak/presentation/screens/auth/forgot_password_screen.dart';
@@ -199,9 +199,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
           role: userModel.role,
           specialty: userModel.specialty ?? '',
           onComplete: () {
-            // ✅ بعد انتهاء الشاشة التعليمية
             if (AppRoles.needsVerification(userModel.role)) {
-              // ✅ إذا كان الدور يحتاج توثيق
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
@@ -209,7 +207,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                 ),
               );
             } else {
-              // ✅ الانتقال للرئيسية
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (_) => const HomeScreen()),
@@ -284,7 +281,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     }
   }
 
-  // ✅ دوال المصادقة
   Future<void> _login() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       _showMessage('يرجى إدخال البريد الإلكتروني وكلمة المرور', true);
@@ -427,6 +423,13 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     }
   }
 
+  void _guestLogin() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const HomeScreen()),
+    );
+  }
+
   // ✅ دوائر أيقونات السوشيال ميديا - حجم متناسق
   Widget _buildSocialIcon(Map<String, dynamic> social, bool isDark) {
     final fallbackIcons = {
@@ -443,8 +446,8 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       onTap: () => _launchUrl('https://www.${social['id']}.com'),
       borderRadius: BorderRadius.circular(30),
       child: Container(
-        width: 45,  // ✅ تم التصغير من 64 إلى 45
-        height: 45, // ✅ تم التصغير من 64 إلى 45
+        width: 45,
+        height: 45,
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
@@ -457,8 +460,8 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         child: Center(
           child: Image.asset(
             social['icon'] as String,
-            width: 24,  // ✅ تم التصغير من 36 إلى 24
-            height: 24, // ✅ تم التصغير من 36 إلى 24
+            width: 24,
+            height: 24,
             fit: BoxFit.contain,
             errorBuilder: (context, error, stackTrace) {
               return Icon(
@@ -985,13 +988,13 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                 ),
                 const SizedBox(height: 24),
 
-                // ✅ أيقونات السوشيال ميديا - صف واحد فقط (Google, Apple)
+                // ✅ أيقونات السوشيال ميديا
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildSocialIcon(_socialIcons[0], isDark), // Google
+                    _buildSocialIcon(_socialIcons[0], isDark),
                     const SizedBox(width: 20),
-                    _buildSocialIcon(_socialIcons[1], isDark), // Apple
+                    _buildSocialIcon(_socialIcons[1], isDark),
                   ],
                 ),
                 const SizedBox(height: 20),
@@ -1247,13 +1250,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
           ),
         ),
       ),
-    );
-  }
-
-  void _guestLogin() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const HomeScreen()),
     );
   }
 
