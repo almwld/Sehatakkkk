@@ -153,3 +153,30 @@ class UserModel {
     }
   }
 }
+  // ✅ إضافة specialty
+  final String? specialty;
+
+  UserModel({
+    required this.id,
+    required this.name,
+    required this.email,
+    this.phone,
+    required this.role,
+    this.specialty,
+    this.photoUrl,
+    this.isVerified = false,
+  });
+
+  // ✅ تحديث fromFirestore
+  factory UserModel.fromFirestore(Map<String, dynamic> data, String id) {
+    return UserModel(
+      id: id,
+      name: data['name'] ?? '',
+      email: data['email'] ?? '',
+      phone: data['phone'] ?? '',
+      role: _parseRole(data['role'] ?? 'user'),
+      specialty: data['specialty'] ?? '',
+      photoUrl: data['photoUrl'] ?? '',
+      isVerified: data['isVerified'] ?? false,
+    );
+  }
