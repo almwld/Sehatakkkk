@@ -1,8 +1,9 @@
-import "package:sehatak/utils/image_utils.dart";
+import 'package:sehatak/utils/image_utils.dart';
 import 'package:sehatak/presentation/screens/ai/ai_chatbot_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:provider/provider.dart';
@@ -19,7 +20,7 @@ import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart'
 import 'package:sehatak/presentation/screens/health/health_dashboard.dart';
 import 'package:sehatak/presentation/screens/payment/wallet_screen.dart';
 import 'package:sehatak/presentation/screens/consultation/consultation_screen.dart';
-import 'package:sehatak/presentation/screens/services/services_screen.dart';
+import 'package:sehatak/presentation/screens/services/services_screen.dart>';
 import 'package:sehatak/presentation/screens/insurance/insurance_companies.dart';
 import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
 import 'package:sehatak/presentation/screens/blood_donation/blood_donation_screen.dart';
@@ -47,6 +48,7 @@ import 'package:sehatak/presentation/screens/privacy/privacy_screen.dart';
 import 'package:sehatak/presentation/screens/notifications/notifications_screen.dart';
 import 'package:sehatak/presentation/screens/subscriptions/subscriptions_screen.dart';
 import 'package:sehatak/presentation/screens/help_center/help_center_screen.dart';
+import 'package:sehatak/presentation/screens/platform/dashboard/platform_dashboard.dart';
 
 class MoreScreen extends StatefulWidget {
   const MoreScreen({super.key});
@@ -59,6 +61,9 @@ class _MoreScreenState extends State<MoreScreen> {
   String _selectedCategory = 'الكل';
   final ScrollController _scrollController = ScrollController();
   double _appBarOpacity = 1.0;
+  
+  bool _isAdmin = false;
+  bool _isCheckingAdmin = true;
 
   final List<String> _categories = [
     'الكل',
@@ -68,7 +73,13 @@ class _MoreScreenState extends State<MoreScreen> {
     'إعدادات',
   ];
 
-  // ✅ أيقونات المؤشرات الحيوية - من مجلد tracking
+  final List<String> _adminEmails = [
+    'admin@sehatak.com',
+    'superadmin@sehatak.com',
+    'almwld@gmail.com',
+  ];
+
+  // ✅ المؤشرات الحيوية - بحجم كبير مثل أفضل الأطباء
   final List<Map<String, dynamic>> _vitals = [
     {'title': 'عداد الخطوات', 'value': '5,230', 'unit': 'خطوة', 'icon': 'assets/images/tracking/fitness.png', 'color': Colors.orange, 'status': 'طبيعي', 'statusColor': Colors.green, 'screen': const SleepTrackerScreen()},
     {'title': 'ضغط الدم', 'value': '120/80', 'unit': 'ملم زئبق', 'icon': 'assets/images/tracking/blood_pressure.png', 'color': Colors.red, 'status': 'طبيعي', 'statusColor': Colors.green, 'screen': const BloodPressureScreen()},
@@ -80,13 +91,14 @@ class _MoreScreenState extends State<MoreScreen> {
     Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
   }
 
-  // ✅ دالة عرض أيقونة PNG
-  Widget _buildIcon(String iconPath, Color color, {double size = 24}) {
+  // ✅ دالة عرض أيقونة PNG بحجم كبير
+  Widget _buildIcon(String iconPath, Color color, {double size = 32}) {
     return Image.asset(
       iconPath,
       width: size,
       height: size,
       fit: BoxFit.contain,
+      color: color,
       errorBuilder: (context, error, stackTrace) {
         return Icon(Icons.circle, color: color, size: size);
       },
@@ -171,6 +183,75 @@ class _MoreScreenState extends State<MoreScreen> {
         _appBarOpacity = 1.0 - (currentScroll / maxScroll).clamp(0.0, 1.0);
       });
     });
+    _checkAdminStatus();
+  }
+
+  Future<void> _checkAdminStatus() async {
+    setState(() => _isCheckingAdmin = true);
+    
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      setState(() {
+        _isAdmin = false;
+        _isCheckingAdmin = false;
+      });
+      return;
+    }
+
+    if (_adminEmails.contains(user.email)) {
+      setState(() {
+        _isAdmin = true;
+        _isCheckingAdmin = false;
+      });
+      return;
+    }
+
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('user_roles')
+          .doc(user.uid)
+          .get();
+      
+      if (doc.exists) {
+        final data = doc.data() as Map<String, dynamic>?;
+        final role = data?['role'] ?? 'user';
+        if (role == 'admin' || role == 'superAdmin') {
+          setState(() {
+            _isAdmin = true;
+            _isCheckingAdmin = false;
+          });
+          return;
+        }
+      }
+    } catch (e) {
+      print('Error checking admin status: $e');
+    }
+
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      
+      if (doc.exists) {
+        final data = doc.data() as Map<String, dynamic>?;
+        final role = data?['role'] ?? 'user';
+        if (role == 'admin' || role == 'superAdmin') {
+          setState(() {
+            _isAdmin = true;
+            _isCheckingAdmin = false;
+          });
+          return;
+        }
+      }
+    } catch (e) {
+      print('Error checking user role: $e');
+    }
+
+    setState(() {
+      _isAdmin = false;
+      _isCheckingAdmin = false;
+    });
   }
 
   @override
@@ -179,10 +260,70 @@ class _MoreScreenState extends State<MoreScreen> {
     super.dispose();
   }
 
+  // ✅ زر لوحة التحكم للمشرفين
+  Widget _buildAdminButton() {
+    if (_isCheckingAdmin) {
+      return const SizedBox(
+        height: 20,
+        child: Center(
+          child: SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      );
+    }
+
+    if (!_isAdmin) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+      ),
+      child: ListTile(
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.1),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(
+            Icons.admin_panel_settings,
+            color: AppColors.primary,
+          ),
+        ),
+        title: const Text(
+          '🛡️ لوحة تحكم المنصة',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Text(
+          'إدارة المقدمين والإعلانات والحجوزات',
+          style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+        ),
+        trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const PlatformDashboard(),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = const Color(0xFF0D5257);
+    final primaryColor = AppColors.primary;
     final user = FirebaseAuth.instance.currentUser;
     final logged = user != null;
     final name = user?.displayName ?? user?.email?.split('@')[0] ?? 'مستخدم';
@@ -280,6 +421,8 @@ class _MoreScreenState extends State<MoreScreen> {
                 _buildFilterChips(primaryColor, fontScale),
                 SizedBox(height: 16),
                 ..._filteredServices.map((service) => _buildServiceCard(service, isDark, primaryColor, fontScale)),
+                SizedBox(height: 16),
+                _buildAdminButton(),
                 SizedBox(height: 16),
                 _buildPremiumFooter(isDark, primaryColor, fontScale),
                 SizedBox(height: 30 * fontScale),
@@ -418,6 +561,7 @@ class _MoreScreenState extends State<MoreScreen> {
     );
   }
 
+  // ✅ المؤشرات الحيوية - بحجم كبير مثل أفضل الأطباء
   Widget _buildVitalsGrid(double fontScale) {
     return GridView.builder(
       shrinkWrap: true,
@@ -426,7 +570,7 @@ class _MoreScreenState extends State<MoreScreen> {
         crossAxisCount: 2,
         mainAxisSpacing: 12 * fontScale,
         crossAxisSpacing: 12 * fontScale,
-        childAspectRatio: 1.4,
+        childAspectRatio: 1.2,
       ),
       itemCount: _vitals.length,
       itemBuilder: (context, index) {
@@ -457,57 +601,61 @@ class _MoreScreenState extends State<MoreScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      vital['title'] as String,
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontSize: 12 * fontScale,
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Center(
+                        child: _buildIcon(iconPath, color, size: 28),
                       ),
                     ),
-                    _buildIcon(iconPath, color, size: 20 * fontScale),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: statusColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        vital['status'] as String,
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: statusColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                const SizedBox(height: 6),
+                Text(
+                  vital['title'] as String,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+                Row(
                   children: [
                     Text(
                       vital['value'] as String,
                       style: TextStyle(
-                        fontSize: 20 * fontScale,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: const Color(0xFF0D5257),
                       ),
                     ),
-                    SizedBox(height: 2 * fontScale),
-                    Row(
-                      children: [
-                        Container(
-                          width: 6 * fontScale,
-                          height: 6 * fontScale,
-                          decoration: BoxDecoration(
-                            color: statusColor,
-                            shape: BoxShape.circle,
-                          ),
+                    if (vital['unit'] != null && (vital['unit'] as String).isNotEmpty)
+                      Text(
+                        ' ${vital['unit']}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
                         ),
-                        SizedBox(width: 4 * fontScale),
-                        Text(
-                          vital['status'] as String,
-                          style: TextStyle(
-                            color: statusColor,
-                            fontSize: 10 * fontScale,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        SizedBox(width: 4 * fontScale),
-                        Text(
-                          vital['unit'] as String,
-                          style: TextStyle(
-                            color: Colors.grey.shade400,
-                            fontSize: 9 * fontScale,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
                   ],
                 ),
               ],
@@ -586,7 +734,7 @@ class _MoreScreenState extends State<MoreScreen> {
             color: primaryColor.withOpacity(0.08),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: _buildIcon(iconPath, primaryColor, size: 24),
+          child: _buildIcon(iconPath, primaryColor, size: 28),
         ),
         title: Text(
           service['title'] as String,
