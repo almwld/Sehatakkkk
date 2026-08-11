@@ -25,3 +25,23 @@ class AppRoles {
     ).toList();
   }
 }
+
+// ✅ دالة التحقق من الحاجة للتوثيق
+extension AppRoles on UserRole {
+  bool needsVerification() {
+    return this == UserRole.doctor ||
+           this == UserRole.pharmacist ||
+           this == UserRole.lab ||
+           this == UserRole.veterinarian;
+  }
+}
+
+// ✅ دالة static للتحقق
+class RoleHelper {
+  static bool needsVerification(UserRole role) {
+    return role == UserRole.doctor ||
+           role == UserRole.pharmacist ||
+           role == UserRole.lab ||
+           role == UserRole.veterinarian;
+  }
+}

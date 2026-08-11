@@ -10,7 +10,7 @@ import 'package:sehatak/core/models/user_model.dart';
 import 'package:sehatak/core/services/biometric_service.dart';
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
 import 'package:sehatak/presentation/screens/terms/terms_screen.dart';
-import 'package:sehatak/presentation/screens/onboarding/role_onboarding_screen.dart>';
+import 'package:sehatak/presentation/screens/onboarding/role_onboarding_screen.dart';
 import 'package:sehatak/presentation/screens/verification/verification_screen.dart';
 import 'package:sehatak/presentation/screens/platform/dashboard/platform_dashboard.dart';
 import 'package:sehatak/presentation/screens/auth/forgot_password_screen.dart';
