@@ -1917,3 +1917,73 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     }
   }
 }
+
+  // ============================================================
+  // 🔍 شريط البحث - مع أيقونات PNG
+  // ============================================================
+
+  Widget _buildSearchBar(bool isDark) {
+    return GestureDetector(
+      onTap: () {
+        // ✅ فتح شاشة البحث
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const SearchScreen()),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1A2540) : Colors.white,
+          borderRadius: BorderRadius.circular(25),
+          border: Border.all(
+            color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            // ✅ أيقونة البحث من مجلد search
+            Image.asset(
+              'assets/images/icons/search/Search button.png',
+              width: 22,
+              height: 22,
+              color: isDark ? Colors.grey[400] : Colors.grey[500],
+              errorBuilder: (context, error, stackTrace) {
+                return Icon(
+                  Icons.search,
+                  color: isDark ? Colors.grey[400] : Colors.grey[500],
+                  size: 22,
+                );
+              },
+            ),
+            const SizedBox(width: 12),
+            // ✅ نص البحث
+            Expanded(
+              child: Text(
+                'ابحث عن طبيب، دواء، أو خدمة...',
+                style: TextStyle(
+                  color: isDark ? Colors.grey[500] : Colors.grey[400],
+                  fontSize: 14,
+                ),
+              ),
+            ),
+            // ✅ أيقونة الميكروفون من مجلد chat
+            Image.asset(
+              'assets/images/chat/microphone.png',
+              width: 22,
+              height: 22,
+              color: isDark ? Colors.grey[500] : Colors.grey[400],
+              errorBuilder: (context, error, stackTrace) {
+                return Icon(
+                  Icons.mic,
+                  color: isDark ? Colors.grey[500] : Colors.grey[400],
+                  size: 22,
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
