@@ -1893,6 +1893,11 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   // 🔍 شريط البحث
   // ============================================================
 
+
+  // ============================================================
+  // 🔍 شريط البحث - مع أيقونات PNG
+  // ============================================================
+
   Widget _buildSearchBar(BuildContext context, bool isDark) {
     return GestureDetector(
       onTap: () {
@@ -1913,10 +1918,19 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         ),
         child: Row(
           children: [
-            Icon(
-              Icons.search,
+            // ✅ أيقونة البحث من assets (مع fallback)
+            Image.asset(
+              'assets/images/icons/search/Search button.png',
+              width: 22,
+              height: 22,
               color: isDark ? Colors.grey[400] : Colors.grey[500],
-              size: 22,
+              errorBuilder: (context, error, stackTrace) {
+                return Icon(
+                  Icons.search,
+                  color: isDark ? Colors.grey[400] : Colors.grey[500],
+                  size: 22,
+                );
+              },
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -1928,10 +1942,19 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                 ),
               ),
             ),
-            Icon(
-              Icons.mic,
+            // ✅ أيقونة الميكروفون من assets (مع fallback)
+            Image.asset(
+              'assets/images/chat/microphone.png',
+              width: 22,
+              height: 22,
               color: isDark ? Colors.grey[500] : Colors.grey[400],
-              size: 22,
+              errorBuilder: (context, error, stackTrace) {
+                return Icon(
+                  Icons.mic,
+                  color: isDark ? Colors.grey[500] : Colors.grey[400],
+                  size: 22,
+                );
+              },
             ),
           ],
         ),
