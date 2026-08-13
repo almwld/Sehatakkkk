@@ -228,16 +228,6 @@ class _SplashScreenState extends State<SplashScreen>
                                 ),
                               ),
 
-
-                              // ✅ نص التحميل فقط (بدون أرقام)
-                              const Text(
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.white70,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-
                               SizedBox(height: screenHeight * 0.05),
 
                               // ============================================================
@@ -287,7 +277,7 @@ class _SplashScreenState extends State<SplashScreen>
               // ✅ خط تحميل متحرك في أسفل الشاشة (مرفوع 5%)
               // ============================================================
               Positioned(
-                bottom: screenHeight * 0.05, // ✅ رفع الخط 5% من الأسفل
+                bottom: screenHeight * 0.05,
                 left: 0,
                 right: 0,
                 child: AnimatedBuilder(
