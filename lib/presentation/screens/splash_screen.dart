@@ -228,11 +228,9 @@ class _SplashScreenState extends State<SplashScreen>
                                 ),
                               ),
 
-                              SizedBox(height: screenHeight * 0.08),
 
                               // ✅ نص التحميل فقط (بدون أرقام)
                               const Text(
-                                'جاري التحميل...',
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: Colors.white70,
