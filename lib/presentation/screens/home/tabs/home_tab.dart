@@ -386,46 +386,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ✅ دوال البناء الأساسية
-  Widget _buildSearchBar(bool isDark) {
-    return GestureDetector(
-      onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('🔍 فتح شاشة البحث'),
-            backgroundColor: AppColors.primary,
-            duration: Duration(seconds: 1),
-          ),
-        );
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1A2540) : Colors.white,
-          borderRadius: BorderRadius.circular(25),
-          border: Border.all(
-            color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
-            width: 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey[500], size: 22),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                'ابحث عن طبيب، دواء، أو خدمة...',
-                style: TextStyle(
-                  color: isDark ? Colors.grey[500] : Colors.grey[400],
-                  fontSize: 14,
-                ),
-              ),
-            ),
-            Icon(Icons.mic, color: isDark ? Colors.grey[500] : Colors.grey[400], size: 22),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildBannerCarousel(bool isDark) {
     if (_bannerImages.isEmpty) {
