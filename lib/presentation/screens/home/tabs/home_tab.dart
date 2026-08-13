@@ -83,10 +83,10 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   ];
 
   final List<Map<String, dynamic>> _stats = [
-    {'icon': Icons.local_fire_department, 'value': '2,450', 'label': 'سعرة حرارية', 'color': Colors.green, 'subtitle': 'اليوم'},
-    {'icon': Icons.directions_walk, 'value': '8,542', 'label': 'خطوة', 'color': Colors.green, 'subtitle': 'اليوم'},
-    {'icon': Icons.bedtime, 'value': '7.5', 'label': 'ساعات النوم', 'color': Colors.green, 'subtitle': 'الليلة الماضية'},
-    {'icon': Icons.favorite, 'value': '72', 'label': 'نبضة/دقيقة', 'color': Colors.green, 'subtitle': 'الآن'},
+    {'icon': Icons.local_fire_department, 'value': '2,450', 'label': 'سعرة حرارية', 'color': AppColors.primary, 'subtitle': 'اليوم'},
+    {'icon': Icons.directions_walk, 'value': '8,542', 'label': 'خطوة', 'color': AppColors.primary, 'subtitle': 'اليوم'},
+    {'icon': Icons.bedtime, 'value': '7.5', 'label': 'ساعات النوم', 'color': AppColors.primary, 'subtitle': 'الليلة الماضية'},
+    {'icon': Icons.favorite, 'value': '72', 'label': 'نبضة/دقيقة', 'color': AppColors.primary, 'subtitle': 'الآن'},
   ];
 
   final List<Map<String, dynamic>> _dailyTips = [
@@ -503,10 +503,10 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
 
   Widget _buildStatsRow() {
     final statsData = [
-      {'icon': Icons.local_fire_department, 'value': _caloriesAnim, 'label': 'سعرة حرارية', 'color': Colors.green, 'format': 'int'},
-      {'icon': Icons.directions_walk, 'value': _stepsAnim, 'label': 'خطوة', 'color': Colors.green, 'format': 'int'},
-      {'icon': Icons.bedtime, 'value': _sleepAnim, 'label': 'ساعات النوم', 'color': Colors.green, 'format': 'double'},
-      {'icon': Icons.favorite, 'value': _heartAnim, 'label': 'نبضة/دقيقة', 'color': Colors.green, 'format': 'int'},
+      {'icon': Icons.local_fire_department, 'value': _caloriesAnim, 'label': 'سعرة حرارية', 'color': AppColors.primary, 'format': 'int'},
+      {'icon': Icons.directions_walk, 'value': _stepsAnim, 'label': 'خطوة', 'color': AppColors.primary, 'format': 'int'},
+      {'icon': Icons.bedtime, 'value': _sleepAnim, 'label': 'ساعات النوم', 'color': AppColors.primary, 'format': 'double'},
+      {'icon': Icons.favorite, 'value': _heartAnim, 'label': 'نبضة/دقيقة', 'color': AppColors.primary, 'format': 'int'},
     ];
 
     return Row(
