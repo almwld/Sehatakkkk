@@ -225,7 +225,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       width: size,
       height: size,
       errorBuilder: (context, error, stackTrace) {
-        return Icon(Icons.circle, color: AppColors.primary, size: size);
+        return Icon(Icons.circle, color: Colors.green, size: size);
       },
     );
   }
@@ -273,7 +273,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                             child: Text(
                               _isLoggedIn ? _userName[0] : 'م',
                               style: TextStyle(
-                                color: AppColors.primary,
+                                color: Colors.green,
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -543,7 +543,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     ),
                     Text(
                       stat['label'] as String,
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                      style: const TextStyle(fontSize: 12, color: Colors.green),
                     ),
                   ],
                 ),
@@ -588,7 +588,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             child: Text(
               action,
               style: TextStyle(
-                color: AppColors.primary,
+                color: Colors.green,
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
               ),
@@ -823,7 +823,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: AppColors.primary,
+                              color: Colors.green,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
@@ -864,7 +864,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
-                      color: AppColors.primary,
+                      color: Colors.green,
                     ),
                   ),
                 ],
@@ -1265,7 +1265,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                           article['category'] as String,
                           style: TextStyle(
                             fontSize: 8,
-                            color: AppColors.primary,
+                            color: Colors.green,
                           ),
                         ),
                       ),
@@ -1326,14 +1326,14 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(tip['icon'] as IconData, color: AppColors.primary, size: 32),
+                Icon(tip['icon'] as IconData, color: Colors.green, size: 32),
                 const SizedBox(height: 8),
                 Text(
                   tip['title'] as String,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
-                    color: AppColors.primary,
+                    color: Colors.green,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -1356,7 +1356,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     'اقرأ المزيد',
                     style: TextStyle(
                       fontSize: 9,
-                      color: AppColors.primary,
+                      color: Colors.green,
                     ),
                   ),
                 ),
@@ -1398,7 +1398,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     child: Text(
                       post['avatar'] as String,
                       style: TextStyle(
-                        color: AppColors.primary,
+                        color: Colors.green,
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),
@@ -1582,7 +1582,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey[400],
+                    color: Colors.green[400],
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -1620,7 +1620,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                           child: Text(
                             'م',
                             style: TextStyle(
-                              color: AppColors.primary,
+                              color: Colors.green,
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),
@@ -1634,7 +1634,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                           'منذ دقيقة',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey[500],
+                            color: Colors.green[500],
                           ),
                         ),
                       );
@@ -1644,9 +1644,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.grey[50],
+                    color: Colors.green[50],
                     border: Border(
-                      top: BorderSide(color: Colors.grey[200]!),
+                      top: BorderSide(color: Colors.green[200]!),
                     ),
                   ),
                   child: Row(
@@ -1718,7 +1718,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey[400],
+                  color: Colors.green[400],
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -1726,7 +1726,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             const SizedBox(height: 16),
             Row(
               children: [
-                Icon(tip['icon'] as IconData, color: AppColors.primary, size: 28),
+                Icon(tip['icon'] as IconData, color: Colors.green, size: 28),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
@@ -1744,7 +1744,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               tip['subtitle'] as String,
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey[600],
+                color: Colors.green[600],
               ),
             ),
             const Divider(height: 24),
@@ -1863,7 +1863,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Colors.grey[800],
+                color: Colors.green[800],
               ),
             ),
             const SizedBox(height: 8),
@@ -1871,7 +1871,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               _errorMessage,
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey[600],
+                color: Colors.green[600],
               ),
               textAlign: TextAlign.center,
             ),
