@@ -73,10 +73,10 @@ class ImageKit {
   static const String chatPlayButton = '$baseUrl/images/chat/play_button.png';
 
   // ============================================================
-  // 🚚 أيقونات التوصيل (باستخدام الروابط الفعلية)
+  // 🚚 أيقونات التوصيل
   // ============================================================
   static const String deliverySehatak = 'https://ik.imagekit.io/fqcynk86c/images/delivery/delivery_1.png';
-  static const String deliveryNas = 'https://ik.imagekit.io/fqcynk86c/images/delivery/%D9%86%D8%A7%D8%B3%20%D8%AA%D9%88%D8%B5%D9%8A%D9%84.png';
+  static const String deliveryNas = 'https://ik.imagekit.io/fqcynk86c/images/delivery/delivery_2.png';
   static const String deliveryTasheel = 'https://ik.imagekit.io/fqcynk86c/images/delivery/delivery_3.png';
   static const String deliveryOther = 'https://ik.imagekit.io/fqcynk86c/images/delivery/delivery_4.png';
 }

@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
-import 'package:sehatak/core/models/order_model.dart';
-import 'package:sehatak/core/services/order_service.dart';
 import 'package:sehatak/presentation/screens/payment/payment_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -22,12 +19,36 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   String _notes = '';
   bool _isLoading = false;
 
-  // ✅ شركات التوصيل مع أيقونات ImageKit
+  // ✅ شركات التوصيل - فقط "توصيل صحتك" متاح، والباقي "قريباً"
   final List<Map<String, dynamic>> _deliveryCompanies = [
-    {'id': 'sehatak', 'name': 'توصيل صحتك', 'icon': ImageKit.deliverySehatak, 'available': true},
-    {'id': 'nas', 'name': 'ناس', 'icon': ImageKit.deliveryNas, 'available': false},
-    {'id': 'tasheel', 'name': 'تساهيل', 'icon': ImageKit.deliveryTasheel, 'available': false},
-    {'id': 'other', 'name': 'توصيل قريباً', 'icon': ImageKit.deliveryOther, 'available': false},
+    {
+      'id': 'sehatak',
+      'name': 'توصيل صحتك',
+      'icon': ImageKit.deliverySehatak,
+      'available': true,
+      'badge': 'متاح',
+    },
+    {
+      'id': 'nas',
+      'name': 'ناس',
+      'icon': ImageKit.deliveryNas,
+      'available': false,
+      'badge': 'قريباً',
+    },
+    {
+      'id': 'tasheel',
+      'name': 'تساهيل',
+      'icon': ImageKit.deliveryTasheel,
+      'available': false,
+      'badge': 'قريباً',
+    },
+    {
+      'id': 'other',
+      'name': 'توصيل',
+      'icon': ImageKit.deliveryOther,
+      'available': false,
+      'badge': 'قريباً',
+    },
   ];
 
   @override
@@ -37,7 +58,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('الدفع'),
+        title: const Text('اختيار التوصيل'),
         backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
         foregroundColor: isDark ? Colors.white : Colors.black87,
         elevation: 0,
@@ -49,7 +70,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ✅ عنوان التوصيل
                   const Text(
                     'طريقة التوصيل',
                     style: TextStyle(
@@ -57,73 +77,125 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
+                  Text(
+                    'اختر شركة التوصيل المناسبة لك',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // ✅ قائمة شركات التوصيل
                   ..._deliveryCompanies.map((company) {
                     final isSelected = _selectedDelivery == company['id'];
+                    final isAvailable = company['available'] as bool;
+
                     return Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.all(12),
+                      margin: const EdgeInsets.only(bottom: 10),
+                      padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: isDark ? const Color(0xFF1A2540) : Colors.white,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(14),
                         border: Border.all(
                           color: isSelected
                               ? AppColors.primary
                               : (isDark ? Colors.grey[800]! : Colors.grey[300]!),
                           width: isSelected ? 2 : 1,
                         ),
+                        boxShadow: [
+                          if (isSelected)
+                            BoxShadow(
+                              color: AppColors.primary.withOpacity(0.1),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                        ],
                       ),
                       child: Row(
                         children: [
                           // ✅ أيقونة التوصيل
                           Container(
-                            width: 40,
-                            height: 40,
+                            width: 50,
+                            height: 50,
                             decoration: BoxDecoration(
-                              color: AppColors.primary.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
+                              color: isAvailable
+                                  ? AppColors.primary.withOpacity(0.1)
+                                  : Colors.grey.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
                             ),
                             child: Center(
                               child: Image.network(
                                 company['icon'] as String,
-                                width: 28,
-                                height: 28,
+                                width: 32,
+                                height: 32,
                                 fit: BoxFit.contain,
                                 errorBuilder: (context, error, stackTrace) {
                                   return Icon(
                                     Icons.delivery_dining,
-                                    color: AppColors.primary,
-                                    size: 28,
+                                    color: isAvailable ? AppColors.primary : Colors.grey,
+                                    size: 32,
                                   );
                                 },
                               ),
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 14),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      company['name'] as String,
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w600,
+                                        color: isAvailable
+                                            ? (isDark ? Colors.white : Colors.black87)
+                                            : Colors.grey,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: isAvailable
+                                            ? Colors.green.withOpacity(0.15)
+                                            : Colors.orange.withOpacity(0.15),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        company['badge'] as String,
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                          color: isAvailable ? Colors.green : Colors.orange,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 2),
                                 Text(
-                                  company['name'] as String,
+                                  isAvailable
+                                      ? 'توصيل سريع وآمن'
+                                      : 'سيتم تفعيل هذه الخدمة قريباً',
                                   style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: isDark ? Colors.white : Colors.black87,
+                                    fontSize: 12,
+                                    color: isDark ? Colors.grey[400] : Colors.grey[500],
                                   ),
                                 ),
-                                if (!company['available'])
-                                  Text(
-                                    'قريباً',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: Colors.orange,
-                                    ),
-                                  ),
                               ],
                             ),
                           ),
-                          if (company['available'])
+                          // ✅ زر الاختيار
+                          if (isAvailable)
                             Radio<String>(
                               value: company['id'] as String,
                               groupValue: _selectedDelivery,
@@ -133,14 +205,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 });
                               },
                               activeColor: AppColors.primary,
+                              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            )
+                          else
+                            Icon(
+                              Icons.lock_outline,
+                              color: isDark ? Colors.grey[600] : Colors.grey[400],
+                              size: 20,
                             ),
                         ],
                       ),
                     );
                   }).toList(),
-                  const SizedBox(height: 16),
 
-                  // ✅ العنوان
+                  const SizedBox(height: 24),
+
+                  // ✅ عنوان التوصيل
                   const Text(
                     'عنوان التوصيل',
                     style: TextStyle(
@@ -153,9 +233,25 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     maxLines: 3,
                     onChanged: (value) => _address = value,
                     decoration: InputDecoration(
-                      hintText: 'أدخل عنوان التوصيل',
+                      hintText: 'أدخل عنوان التوصيل بالتفصيل',
+                      hintStyle: TextStyle(
+                        color: isDark ? Colors.grey[600] : Colors.grey[400],
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.primary),
                       ),
                       filled: true,
                       fillColor: isDark ? const Color(0xFF1A2540) : Colors.white,
@@ -179,9 +275,25 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     maxLines: 2,
                     onChanged: (value) => _notes = value,
                     decoration: InputDecoration(
-                      hintText: 'أي ملاحظات إضافية للطلب',
+                      hintText: 'أي ملاحظات إضافية للطلب (اختياري)',
+                      hintStyle: TextStyle(
+                        color: isDark ? Colors.grey[600] : Colors.grey[400],
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.primary),
                       ),
                       filled: true,
                       fillColor: isDark ? const Color(0xFF1A2540) : Colors.white,
@@ -190,87 +302,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       color: isDark ? Colors.white : Colors.black87,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
 
-                  // ✅ ملخص الطلب
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1A2540) : Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'ملخص الطلب',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        ...widget.items.map((item) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    '${item['name']} (${item['quantity']})',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: isDark ? Colors.grey[400] : Colors.grey[600],
-                                    ),
-                                  ),
-                                ),
-                                Text(
-                                  '${(item['price'] as int) * (item['quantity'] as int)} ر.ي',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500,
-                                    color: isDark ? Colors.white : Colors.black87,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                        const Divider(),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'الإجمالي',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              '${widget.total.toStringAsFixed(0)} ر.ي',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // ✅ زر الدفع
+                  // ✅ زر المتابعة
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -292,20 +326,33 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(14),
                         ),
+                        elevation: 2,
                       ),
-                      child: const Text(
-                        'اختيار طريقة الدفع',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'متابعة إلى الدفع',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.arrow_forward_ios,
+                            size: 16,
+                            color: Colors.white,
+                          ),
+                        ],
                       ),
                     ),
                   ),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
