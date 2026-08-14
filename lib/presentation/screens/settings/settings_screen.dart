@@ -15,7 +15,7 @@ import 'package:sehatak/presentation/screens/shared/notifications_screen.dart';
 import 'package:sehatak/presentation/screens/settings/change_password_screen.dart';
 import 'package:sehatak/presentation/screens/settings/language_screen.dart';
 import 'package:sehatak/presentation/screens/settings/privacy_screen.dart';
-import 'package:sehatak/presentation/screens/settings/about_screen.dart';
+import 'package:sehatak/presentation/screens/about/about_screen.dart';
 import 'package:sehatak/presentation/screens/settings/help_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -30,6 +30,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _isBiometricSupported = false;
   bool _isBiometricEnabled = false;
   bool _isDarkMode = false;
+  bool _isSystemMode = false;
 
   @override
   void initState() {
@@ -69,6 +70,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final state = context.read<ThemeBloc>().state;
     setState(() {
       _isDarkMode = state.themeMode == ThemeMode.dark;
+      _isSystemMode = state.themeMode == ThemeMode.system;
     });
   }
 
@@ -176,6 +178,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     );
                     setState(() {
                       _isDarkMode = value;
+                      _isSystemMode = false;
                     });
                   },
                   isDark: isDark,
@@ -185,11 +188,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   icon: Icons.brightness_auto_rounded,
                   title: 'الوضع التلقائي',
                   subtitle: 'متابعة إعدادات النظام',
-                  value: context.read<ThemeBloc>().state.themeMode == ThemeMode.system,
-                  onChanged: (_) {
+                  value: _isSystemMode,
+                  onChanged: (value) {
+                    // ✅ تفعيل الوضع التلقائي
+                    context.read<ThemeBloc>().add(const SetSystemTheme());
+                    setState(() {
+                      _isSystemMode = value;
+                      _isDarkMode = false;
+                    });
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('🔄 سيتم تفعيل الوضع التلقائي قريباً'),
+                        content: Text('🔄 تم تفعيل الوضع التلقائي - متابعة إعدادات النظام'),
                         backgroundColor: Colors.blue,
                       ),
                     );
