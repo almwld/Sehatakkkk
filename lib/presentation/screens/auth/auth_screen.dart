@@ -12,6 +12,7 @@ import 'package:sehatak/presentation/screens/terms/terms_screen.dart';
 import 'package:sehatak/presentation/screens/onboarding/role_onboarding_screen.dart';
 import 'package:sehatak/presentation/screens/verification/verification_screen.dart';
 import 'package:sehatak/presentation/screens/platform/dashboard/platform_dashboard.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AuthScreen extends StatefulWidget {
   final bool isSignUp;
@@ -43,33 +44,30 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
   String? _selectedSpecialty;
   bool _showAdminTab = false;
   bool _showAllSpecialties = false;
+  int _selectedTab = 0; // 0 = مستخدم, 1 = طبيب
 
-  // ✅ قائمة الأدوار
-  final List<Map<String, dynamic>> _allRoles = [
+  final BiometricService _biometricService = BiometricService();
+
+  // ✅ قائمة الأدوار المختصرة (مستخدم وطبيب فقط)
+  final List<Map<String, dynamic>> _roles = [
     {'id': 'user', 'name': 'مستخدم', 'icon': Icons.person_outline, 'color': 0xFF0D5257},
     {'id': 'doctor', 'name': 'طبيب', 'icon': Icons.local_hospital_outlined, 'color': 0xFF2196F3},
-    {'id': 'nurse', 'name': 'ممرض', 'icon': Icons.medical_services_outlined, 'color': 0xFF00BCD4},
-    {'id': 'midwife', 'name': 'قابلة وتوليد', 'icon': Icons.pregnant_woman, 'color': 0xFFE91E63},
-    {'id': 'physiotherapist', 'name': 'علاج فيزيائي', 'icon': Icons.fitness_center, 'color': 0xFFFF9800},
-    {'id': 'pharmacist', 'name': 'صيدلي', 'icon': Icons.local_pharmacy_outlined, 'color': 0xFF4CAF50},
-    {'id': 'lab', 'name': 'مختبر', 'icon': Icons.science_outlined, 'color': 0xFF9C27B0},
-    {'id': 'paramedic', 'name': 'مسعف', 'icon': Icons.emergency, 'color': 0xFFF44336},
-    {'id': 'delivery', 'name': 'موصل طلبات', 'icon': Icons.delivery_dining, 'color': 0xFFFF5722},
-    {'id': 'service', 'name': 'خدمي', 'icon': Icons.handyman, 'color': 0xFF607D8B},
-    {'id': 'veterinarian', 'name': 'بيطري', 'icon': Icons.pets, 'color': 0xFF795548},
-    {'id': 'admin', 'name': 'مشرف', 'icon': Icons.admin_panel_settings, 'color': 0xFFFF5722},
   ];
 
-  List<Map<String, dynamic>> get _availableRoles {
-    if (_showAdminTab) return _allRoles;
-    return _allRoles.where((role) => role['id'] != 'admin').toList();
-  }
+  // ✅ روابط السوشيال ميديا
+  final Map<String, String> _socialLinks = {
+    'google': 'https://accounts.google.com/signin',
+    'apple': 'https://appleid.apple.com/sign-in',
+    'facebook': 'https://www.facebook.com/login',
+    'instagram': 'https://www.instagram.com/accounts/login/',
+    'tiktok': 'https://www.tiktok.com/login',
+    'x_twitter': 'https://twitter.com/login',
+    'youtube': 'https://www.youtube.com/account',
+  };
 
   List<String> get _roleSpecialties {
     return MedicalSpecialties.getSpecialtiesForRole(_selectedRole);
   }
-
-  final BiometricService _biometricService = BiometricService();
 
   @override
   void initState() {
@@ -151,14 +149,14 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         password: _passwordController.text.trim(),
       );
       await _saveCredentials();
-      
+
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         final doc = await FirebaseFirestore.instance
             .collection('users')
             .doc(user.uid)
             .get();
-        
+
         if (doc.exists) {
           final role = doc.data()?['role'] ?? 'user';
           if (role == 'admin' || role == 'superAdmin') {
@@ -172,7 +170,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
           }
         }
       }
-      
+
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -240,14 +238,13 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
 
       if (mounted) {
         final userModel = UserModel.fromFirestore(userData, user.uid);
-        
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (_) => RoleOnboardingScreen(
               role: _getUserRole(_selectedRole),
               onComplete: () {
-                // ✅ التحقق من الحاجة للتوثيق
                 if (AppRoles.needsVerification(_selectedRole)) {
                   Navigator.pushReplacement(
                     context,
@@ -328,6 +325,18 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     );
   }
 
+  // ✅ فتح روابط السوشيال ميديا
+  void _launchSocialLink(String platform) async {
+    final url = _socialLinks[platform];
+    if (url != null) {
+      try {
+        await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      } catch (e) {
+        _showMessage('لا يمكن فتح الرابط', true);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -378,14 +387,14 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                 ),
                 const SizedBox(height: 30),
 
-                // ✅ اختيار الدور (للتسجيل فقط)
+                // ✅ تبويبات (مستخدم / طبيب) - للتسجيل فقط
                 if (isSignUp) ...[
-                  _buildRoleSelector(isDark, primaryColor),
+                  _buildTabs(isDark, primaryColor),
                   const SizedBox(height: 20),
                 ],
 
-                // ✅ اختيار التخصص
-                if (isSignUp && _roleSpecialties.isNotEmpty) ...[
+                // ✅ اختيار التخصص (لطبيب فقط)
+                if (isSignUp && _selectedRole == 'doctor') ...[
                   _buildSpecialtySelector(isDark, primaryColor),
                   const SizedBox(height: 16),
                 ],
@@ -421,7 +430,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                   const SizedBox(height: 16),
                 ],
 
-                if (isSignUp && AppRoles.needsVerification(_selectedRole)) ...[
+                if (isSignUp && _selectedRole == 'doctor') ...[
                   _buildTextField(
                     controller: _licenseController,
                     label: 'رقم الترخيص المهني',
@@ -429,9 +438,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                     isDark: isDark,
                   ),
                   const SizedBox(height: 16),
-                ],
-
-                if (isSignUp && _selectedRole == 'doctor') ...[
                   _buildTextField(
                     controller: _experienceController,
                     label: 'سنوات الخبرة',
@@ -551,8 +557,8 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                         : Text(
                             isSignUp
                                 ? 'إنشاء حساب'
-                                : (_selectedRole == 'admin' || _selectedRole == 'superAdmin' 
-                                    ? 'تسجيل الدخول كمشرف' 
+                                : (_selectedRole == 'admin' || _selectedRole == 'superAdmin'
+                                    ? 'تسجيل الدخول كمشرف'
                                     : 'تسجيل الدخول'),
                             style: TextStyle(
                               fontSize: 16,
@@ -589,18 +595,64 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
+
+                  // ✅ أيقونات السوشيال ميديا (Google و Apple أولاً)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      // ✅ Google
                       _buildSocialButton(
-                        icon: Icons.g_mobiledata,
-                        onTap: () {},
+                        icon: 'assets/images/social/google.png',
+                        platform: 'google',
                         isDark: isDark,
                       ),
                       const SizedBox(width: 20),
+                      // ✅ Apple
                       _buildSocialButton(
-                        icon: Icons.apple,
-                        onTap: () {},
+                        icon: 'assets/images/social/apple.png',
+                        platform: 'apple',
+                        isDark: isDark,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // ✅ باقي أيقونات السوشيال ميديا (أسفل)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // ✅ Facebook
+                      _buildSocialButton(
+                        icon: 'assets/images/social/facebook.png',
+                        platform: 'facebook',
+                        isDark: isDark,
+                      ),
+                      const SizedBox(width: 16),
+                      // ✅ Instagram
+                      _buildSocialButton(
+                        icon: 'assets/images/social/instagram.png',
+                        platform: 'instagram',
+                        isDark: isDark,
+                      ),
+                      const SizedBox(width: 16),
+                      // ✅ TikTok
+                      _buildSocialButton(
+                        icon: 'assets/images/social/tiktok.png',
+                        platform: 'tiktok',
+                        isDark: isDark,
+                      ),
+                      const SizedBox(width: 16),
+                      // ✅ X/Twitter
+                      _buildSocialButton(
+                        icon: 'assets/images/social/x_twitter.png',
+                        platform: 'x_twitter',
+                        isDark: isDark,
+                      ),
+                      const SizedBox(width: 16),
+                      // ✅ YouTube
+                      _buildSocialButton(
+                        icon: 'assets/images/social/youtube.png',
+                        platform: 'youtube',
                         isDark: isDark,
                       ),
                     ],
@@ -649,64 +701,78 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     );
   }
 
-  // ✅ منتقي الدور
-  Widget _buildRoleSelector(bool isDark, Color primaryColor) {
+  // ✅ تبويبات (مستخدم / طبيب)
+  Widget _buildTabs(bool isDark, Color primaryColor) {
     return Container(
-      padding: const EdgeInsets.all(6),
+      padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1A2540).withOpacity(0.5) : Colors.grey[100],
         borderRadius: BorderRadius.circular(16),
       ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        child: Row(
-          children: _availableRoles.map((role) {
-            final isSelected = _selectedRole == role['id'];
-            final color = Color(role['color'] as int);
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 2),
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _selectedRole = role['id'] as String;
-                    _selectedSpecialty = null;
-                  });
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: isSelected ? color.withOpacity(0.15) : Colors.transparent,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isSelected ? color : Colors.transparent,
-                      width: 2,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        role['icon'] as IconData,
-                        color: isSelected ? color : Colors.grey,
-                        size: 16,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        role['name'] as String,
-                        style: TextStyle(
-                          color: isSelected ? color : Colors.grey,
-                          fontSize: 11,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                          fontFamily: 'NotoSansArabicUI',
-                        ),
-                      ),
-                    ],
-                  ),
+      child: Row(
+        children: [
+          _buildTabItem(
+            index: 0,
+            label: 'مستخدم',
+            icon: Icons.person_outline,
+            isDark: isDark,
+            primaryColor: primaryColor,
+          ),
+          _buildTabItem(
+            index: 1,
+            label: 'طبيب',
+            icon: Icons.local_hospital_outlined,
+            isDark: isDark,
+            primaryColor: primaryColor,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabItem({
+    required int index,
+    required String label,
+    required IconData icon,
+    required bool isDark,
+    required Color primaryColor,
+  }) {
+    final isSelected = _selectedTab == index;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _selectedTab = index;
+            _selectedRole = index == 0 ? 'user' : 'doctor';
+            _selectedSpecialty = null;
+          });
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? primaryColor : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                color: isSelected ? Colors.white : (isDark ? Colors.white60 : Colors.grey[600]),
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  color: isSelected ? Colors.white : (isDark ? Colors.white60 : Colors.grey[600]),
+                  fontSize: 15,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  fontFamily: 'NotoSansArabicUI',
                 ),
               ),
-            );
-          }).toList(),
+            ],
+          ),
         ),
       ),
     );
@@ -715,14 +781,14 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
   // ✅ منتقي التخصص
   Widget _buildSpecialtySelector(bool isDark, Color primaryColor) {
     final specialties = _roleSpecialties;
-    
+
     if (specialties.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          _selectedRole == 'doctor' ? 'اختر تخصصك الطبي' : 'اختر مجال عملك',
+          'اختر تخصصك الطبي',
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w500,
@@ -755,9 +821,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     margin: const EdgeInsets.symmetric(horizontal: 2),
                     decoration: BoxDecoration(
-                      color: _showAllSpecialties 
-                          ? primaryColor.withOpacity(0.15) 
-                          : Colors.transparent,
+                      color: _showAllSpecialties ? primaryColor.withOpacity(0.15) : Colors.transparent,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: _showAllSpecialties ? primaryColor : Colors.grey,
@@ -910,26 +974,35 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     );
   }
 
+  // ✅ أيقونات السوشيال ميديا (باستخدام PNG مع روابط)
   Widget _buildSocialButton({
-    required IconData icon,
-    required VoidCallback onTap,
+    required String icon,
+    required String platform,
     required bool isDark,
   }) {
     return InkWell(
-      onTap: onTap,
+      onTap: () => _launchSocialLink(platform),
       borderRadius: BorderRadius.circular(30),
       child: Container(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(
             color: isDark ? Colors.white30 : Colors.grey[300]!,
           ),
         ),
-        child: Icon(
+        child: Image.asset(
           icon,
-          size: 28,
-          color: isDark ? Colors.white : Colors.black87,
+          width: 28,
+          height: 28,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) {
+            return Icon(
+              Icons.circle,
+              size: 28,
+              color: isDark ? Colors.white30 : Colors.grey[300],
+            );
+          },
         ),
       ),
     );
