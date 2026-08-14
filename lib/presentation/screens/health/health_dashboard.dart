@@ -521,7 +521,6 @@ class _HealthDashboardState extends State<HealthDashboard> {
                   title: metric['label'] as String,
                   icon: metric['icon'] as String,
                   color: metric['color'] as Color,
-                  data: metric['data'] as List<dynamic>,
                 ),
               ),
             );

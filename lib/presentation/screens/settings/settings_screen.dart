@@ -191,7 +191,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   value: _isSystemMode,
                   onChanged: (value) {
                     // ✅ تفعيل الوضع التلقائي
-                    context.read<ThemeBloc>().add(const SetSystemTheme());
                     setState(() {
                       _isSystemMode = value;
                       _isDarkMode = false;
