@@ -165,3 +165,11 @@ class ImageKit {
   static String get trackingVaccination => "$imagesBase/tracking/vaccination.png";
   static String get trackingWeight => "$imagesBase/tracking/weight_tracking.png";
 }
+
+// ============================================================
+// 🚚 أيقونات التوصيل
+// ============================================================
+static const String deliverySehatak = 'https://ik.imagekit.io/your_app/delivery/sehatak.png';
+static const String deliveryNas = 'https://ik.imagekit.io/your_app/delivery/nas.png';
+static const String deliveryTasheel = 'https://ik.imagekit.io/your_app/delivery/tasheel.png';
+static const String deliveryOther = 'https://ik.imagekit.io/your_app/delivery/other.png';
