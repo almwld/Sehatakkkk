@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/presentation/screens/health/health_dashboard.dart';
-import 'package:sehatak/presentation/screens/medical_records/medical_records_screen.dart';
 import 'package:sehatak/presentation/screens/appointments/appointments_screen.dart';
 import 'package:sehatak/presentation/screens/medication/medicines_screen.dart';
 import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
@@ -26,12 +24,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
 
   // ✅ بيانات الخدمات مع مسارات الأيقونات
   final List<Map<String, dynamic>> _services = [
-    {
-      'icon': 'assets/images/services/medical_records.png',
-      'label': 'السجل الطبي',
-      'screen': const MedicalRecordsScreen(),
-      'color': Colors.blue,
-    },
     {
       'icon': 'assets/images/services/calendar_booking.png',
       'label': 'المواعيد',
@@ -61,6 +53,12 @@ class _PatientDashboardState extends State<PatientDashboard> {
       'label': 'الصيدلية',
       'screen': const PharmacyScreen(),
       'color': Colors.red,
+    },
+    {
+      'icon': 'assets/images/services/health_tips.png',
+      'label': 'صفحتي الصحية',
+      'screen': const HealthDashboard(),
+      'color': Colors.teal,
     },
   ];
 
@@ -159,11 +157,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ✅ بطاقة الترحيب
                   _buildWelcomeCard(isDark),
                   const SizedBox(height: 16),
-
-                  // ✅ المؤشرات الحيوية
                   Text(
                     'المؤشرات الحيوية',
                     style: TextStyle(
@@ -175,8 +170,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
                   const SizedBox(height: 8),
                   _buildVitalsGrid(isDark),
                   const SizedBox(height: 16),
-
-                  // ✅ الخدمات
                   Text(
                     'الخدمات الطبية',
                     style: TextStyle(
@@ -193,9 +186,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ============================================================
-  // 🧑 بطاقة الترحيب
-  // ============================================================
   Widget _buildWelcomeCard(bool isDark) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -203,10 +193,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            AppColors.primary,
-            AppColors.primary.withOpacity(0.7),
-          ],
+          colors: [AppColors.primary, AppColors.primary.withOpacity(0.7)],
         ),
         borderRadius: BorderRadius.circular(16),
       ),
@@ -215,36 +202,23 @@ class _PatientDashboardState extends State<PatientDashboard> {
         children: [
           const Text(
             'مرحباً 👋',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
           ),
           const SizedBox(height: 4),
           Text(
             _userName,
-            style: const TextStyle(
-              fontSize: 18,
-              color: Colors.white70,
-            ),
+            style: const TextStyle(fontSize: 18, color: Colors.white70),
           ),
           const SizedBox(height: 8),
           Text(
             _userEmail,
-            style: const TextStyle(
-              fontSize: 12,
-              color: Colors.white60,
-            ),
+            style: const TextStyle(fontSize: 12, color: Colors.white60),
           ),
         ],
       ),
     );
   }
 
-  // ============================================================
-  // 📊 المؤشرات الحيوية
-  // ============================================================
   Widget _buildVitalsGrid(bool isDark) {
     return GridView.builder(
       shrinkWrap: true,
@@ -274,36 +248,20 @@ class _PatientDashboardState extends State<PatientDashboard> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // ✅ أيقونة مكبرة 500% (5 أضعاف)
-              _buildIcon(
-                vital['icon'] as String,
-                vital['color'] as Color,
-                size: 32, // الحجم الأساسي * 5 = 160
-                scale: 5.0,
-              ),
+              _buildIcon(vital['icon'] as String, vital['color'] as Color, size: 32, scale: 5.0),
               const SizedBox(height: 8),
               Text(
                 vital['value'] as String,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.black87,
-                ),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
               ),
               Text(
                 vital['unit'] as String,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: isDark ? Colors.grey[400] : Colors.grey[600],
-                ),
+                style: TextStyle(fontSize: 11, color: isDark ? Colors.grey[400] : Colors.grey[600]),
               ),
               const SizedBox(height: 2),
               Text(
                 vital['label'] as String,
-                style: TextStyle(
-                  fontSize: 10,
-                  color: isDark ? Colors.grey[500] : Colors.grey[500],
-                ),
+                style: TextStyle(fontSize: 10, color: isDark ? Colors.grey[500] : Colors.grey[500]),
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -315,9 +273,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ============================================================
-  // 🛠️ الخدمات
-  // ============================================================
   Widget _buildServicesGrid(bool isDark) {
     return GridView.builder(
       shrinkWrap: true,
@@ -354,13 +309,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // ✅ أيقونة مكبرة 500% (5 أضعاف)
-                _buildIcon(
-                  service['icon'] as String,
-                  service['color'] as Color,
-                  size: 36, // الحجم الأساسي * 5 = 180
-                  scale: 5.0,
-                ),
+                _buildIcon(service['icon'] as String, service['color'] as Color, size: 36, scale: 5.0),
                 const SizedBox(height: 8),
                 Text(
                   service['label'] as String,
@@ -381,13 +330,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ============================================================
-  // 🎨 دالة عرض الأيقونة (مع تكبير 500%)
-  // ============================================================
   Widget _buildIcon(String iconPath, Color fallbackColor, {double size = 32, double scale = 5.0}) {
-    final actualSize = size * scale; // تكبير بنسبة 500% (5 أضعاف)
-
-    // إذا كان مسار الأيقونة رابط شبكي
+    final actualSize = size * scale;
     if (iconPath.startsWith('http') || iconPath.startsWith('https')) {
       return Image.network(
         iconPath,
@@ -401,8 +345,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
         ),
       );
     }
-
-    // ملف محلي داخل assets - بدون تمرير color للحفاظ على تفاصيل PNG
     return Image.asset(
       iconPath,
       width: actualSize,
