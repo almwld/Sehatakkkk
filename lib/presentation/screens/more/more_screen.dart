@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
@@ -17,7 +16,6 @@ import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
 import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
 import 'package:sehatak/presentation/screens/services/services_screen.dart';
 import 'package:sehatak/presentation/screens/consultation/consultation_screen.dart';
-import 'package:sehatak/presentation/screens/insurance/insurance_companies.dart';
 import 'package:sehatak/presentation/screens/medical_records/medical_records_screen.dart';
 
 class MoreScreen extends StatefulWidget {
@@ -31,7 +29,7 @@ class _MoreScreenState extends State<MoreScreen> {
   late ScrollController _scrollController;
   bool _isScrolled = false;
 
-  // ✅ بيانات المؤشرات الحيوية (4 مؤشرات)
+  // ✅ بيانات المؤشرات الحيوية
   final List<Map<String, dynamic>> _vitals = [
     {'icon': 'assets/images/tracking/blood_pressure.png', 'label': 'ضغط الدم', 'value': '120/80', 'unit': 'مم زئبق', 'color': Colors.blue},
     {'icon': 'assets/images/tracking/blood_sugar.png', 'label': 'سكر الدم', 'value': '98', 'unit': 'مجم/دل', 'color': Colors.orange},
@@ -39,7 +37,7 @@ class _MoreScreenState extends State<MoreScreen> {
     {'icon': 'assets/images/tracking/weight_tracking.png', 'label': 'الوزن', 'value': '72', 'unit': 'كجم', 'color': Colors.purple},
   ];
 
-  // ✅ بيانات الخدمات (16 خدمة)
+  // ✅ بيانات الخدمات - كل الخدمات مرتبطة بشاشاتها
   final List<Map<String, dynamic>> _services = [
     {'icon': 'assets/images/services/medical_records.png', 'label': 'الملف الشخصي', 'screen': const PatientProfile()},
     {'icon': 'assets/images/services/health_tips.png', 'label': 'صفحتي الصحية', 'screen': const HealthDashboard()},
@@ -53,6 +51,8 @@ class _MoreScreenState extends State<MoreScreen> {
     {'icon': 'assets/images/services/pharmacy.png', 'label': 'الصيدلية', 'screen': const PharmacyScreen()},
     {'icon': 'assets/images/services/medical_community.png', 'label': 'خدمات صحية', 'screen': const ServicesScreen()},
     {'icon': 'assets/images/services/video_consultation.png', 'label': 'استشارة فيديو', 'screen': const ConsultationScreen()},
+    {'icon': 'assets/images/services/health_insurance.png', 'label': 'التأمين الصحي', 'screen': const InsuranceCompaniesScreen()},
+    {'icon': 'assets/images/services/medical_records.png', 'label': 'السجل الطبي', 'screen': const MedicalRecordsScreen()},
     {'icon': 'assets/images/services/medical_community.png', 'label': 'عن التطبيق', 'screen': const AboutScreen()},
     {'icon': 'settings_material', 'label': 'الإعدادات', 'screen': const SettingsScreen()},
   ];
@@ -238,7 +238,6 @@ class _MoreScreenState extends State<MoreScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // ✅ أيقونة PNG بدون تلوين
               Image.asset(
                 vital['icon'] as String,
                 width: 40,
@@ -304,10 +303,9 @@ class _MoreScreenState extends State<MoreScreen> {
         final service = _services[index];
         return GestureDetector(
           onTap: () {
-            final screen = service['screen'] as Widget;
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => screen),
+              MaterialPageRoute(builder: (_) => service['screen'] as Widget),
             );
           },
           child: Container(
@@ -326,12 +324,7 @@ class _MoreScreenState extends State<MoreScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // ✅ أيقونة الخدمة
-                _buildServiceIcon(
-                  service['icon'] as String,
-                  AppColors.primary,
-                  size: 48,
-                ),
+                _buildServiceIcon(service['icon'] as String, AppColors.primary, size: 48),
                 const SizedBox(height: 6),
                 Text(
                   service['label'] as String,
@@ -356,27 +349,16 @@ class _MoreScreenState extends State<MoreScreen> {
   // 🎨 دالة عرض أيقونة الخدمات
   // ============================================================
   Widget _buildServiceIcon(String iconPath, Color fallbackColor, {double size = 32}) {
-    // ✅ أيقونة الإعدادات: استخدام أيقونة Material
     if (iconPath == 'settings_material') {
-      return Icon(
-        Icons.settings,
-        color: AppColors.primary,
-        size: size,
-      );
+      return Icon(Icons.settings, color: AppColors.primary, size: size);
     }
-
-    // ✅ أيقونة PNG من assets
     return Image.asset(
       iconPath,
       width: size,
       height: size,
       fit: BoxFit.contain,
       errorBuilder: (context, error, stackTrace) {
-        return Icon(
-          Icons.circle,
-          color: fallbackColor,
-          size: size,
-        );
+        return Icon(Icons.circle, color: fallbackColor, size: size);
       },
     );
   }
