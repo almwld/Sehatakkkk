@@ -1,4 +1,3 @@
-import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:sehatak/presentation/widgets/app_search_delegate.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -249,8 +248,8 @@ class _LabsListScreenState extends State<LabsListScreen> with SingleTickerProvid
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: CustomAppBar(
-        title: ' المختبرات',
+      appBar: AppBar(
+        title: const Text(' المختبرات'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -694,7 +693,7 @@ class _LabsListScreenState extends State<LabsListScreen> with SingleTickerProvid
       builder: (context) {
         String tempSearch = '';
         return AlertDialog(
-          title: '🔍 البحث عن مختبر',
+          title: const Text('🔍 البحث عن مختبر'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [

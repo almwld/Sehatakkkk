@@ -1,8 +1,4 @@
-import 'package:sehatak/presentation/widgets/common/custom_bottom_nav_bar.dart';
-import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
@@ -20,85 +16,7 @@ class DoctorDetailsScreen extends StatefulWidget {
 class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
   bool _isFavorite = false;
   bool _isLoading = true;
-  bool _isFromFirebase = false;
   late Map<String, dynamic> _doctor;
-
-  // ✅ بيانات الأطباء الافتراضية (d1-d5)
-  final Map<String, Map<String, dynamic>> _defaultDoctors = {
-    'd1': {
-      'name': 'د. أحمد المولد',
-      'specialty': 'استشاري باطنية وأطفال',
-      'experience': '20+ سنة',
-      'rating': 4.9,
-      'reviews': 328,
-      'fee': '500',
-      'available': true,
-      'about': 'استشاري باطنية وأطفال مع خبرة واسعة في تشخيص وعلاج الأمراض المزمنة والحادة.',
-      'hospital': 'مستشفى الثورة العام',
-      'availability': ['السبت - الأربعاء: 9 ص - 5 م'],
-      'image': ImageKit.doctor1,
-    },
-    'd2': {
-      'name': 'د. خالد النخلاني',
-      'specialty': 'قلبية',
-      'experience': '12 سنة',
-      'rating': 4.8,
-      'reviews': 256,
-      'fee': '450',
-      'available': true,
-      'about': 'أخصائي قلوب ذو خبرة عالية في تشخيص وعلاج أمراض القلب والشرايين.',
-      'hospital': 'مستشفى الكويت',
-      'availability': ['الأحد - الخميس: 10 ص - 4 م'],
-      'image': ImageKit.doctor2,
-    },
-    'd3': {
-      'name': 'د. أسماء الهندي',
-      'specialty': 'أطفال',
-      'experience': '9 سنوات',
-      'rating': 4.7,
-      'reviews': 189,
-      'fee': '420',
-      'available': true,
-      'about': 'أخصائية أطفال متابعة التطور الصحي للأطفال من الولادة حتى المراهقة.',
-      'hospital': 'مستشفى السبعين',
-      'availability': ['السبت - الأربعاء: 8 ص - 2 م'],
-      'image': ImageKit.doctor3,
-    },
-    'd4': {
-      'name': 'د. محمد العلاي',
-      'specialty': 'أنف وأذن وحنجرة',
-      'experience': '8 سنوات',
-      'rating': 4.6,
-      'reviews': 89,
-      'fee': '400',
-      'available': true,
-      'about': 'أخصائي أنف وأذن وحنجرة مع خبرة في جراحات الأنف والأذن.',
-      'hospital': 'مستشفى الأنف والأذن',
-      'availability': ['الأحد - الخميس: 9 ص - 3 م'],
-      'image': ImageKit.doctor4,
-    },
-    'd5': {
-      'name': 'د. فاطمة صديقي',
-      'specialty': 'نساء وولادة',
-      'experience': '10 سنوات',
-      'rating': 4.8,
-      'reviews': 210,
-      'fee': '480',
-      'available': true,
-      'about': 'طبيبة نساء وولادة مختصة بالحالات الروتينية والمعقدة ورعاية الحمل.',
-      'hospital': 'المستشفى الجمهوري',
-      'availability': ['الإثنين - الجمعة: 9 ص - 1 م'],
-      'image': ImageKit.doctor5,
-    },
-  };
-
-  // ✅ أيقونات التواصل باستخدام PNG من مجلد chat
-  final List<Map<String, dynamic>> _contactIcons = [
-    {'icon': 'assets/images/chat/phone_call.png', 'label': 'اتصال', 'color': Colors.green},
-    {'icon': 'assets/images/chat/video_call.png', 'label': 'مكالمة فيديو', 'color': Colors.blue},
-    {'icon': 'assets/images/chat/chat_bubble.png', 'label': 'رسالة', 'color': AppColors.primary},
-    {'icon': 'assets/images/chat/calendar_booking.png', 'label': 'حجز موعد', 'color': Colors.orange},
-  ];
 
   @override
   void initState() {
@@ -106,62 +24,112 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
     _loadDoctorData();
   }
 
-  Future<void> _loadDoctorData() async {
+  void _loadDoctorData() {
     setState(() => _isLoading = true);
-
-    // ✅ أولاً: البحث في الأطباء الافتراضيين
-    if (_defaultDoctors.containsKey(widget.doctorId)) {
+    Future.delayed(const Duration(milliseconds: 300), () {
       setState(() {
-        _doctor = _defaultDoctors[widget.doctorId]!;
-        _isFromFirebase = false;
+        _doctor = _getDoctorData(widget.doctorId);
         _isLoading = false;
       });
-      return;
-    }
+    });
+  }
 
-    // ✅ ثانياً: البحث في Firebase (لإضافة أطباء جدد)
-    try {
-      final doc = await FirebaseFirestore.instance
-          .collection('doctors')
-          .doc(widget.doctorId)
-          .get();
-
-      if (doc.exists) {
-        final data = doc.data()!;
-        setState(() {
-          _doctor = {
-            'name': data['name'] ?? 'طبيب',
-            'specialty': data['specialty'] ?? 'تخصص',
-            'experience': data['experience'] ?? 'غير محدد',
-            'rating': data['rating']?.toDouble() ?? 0.0,
-            'reviews': data['reviews'] ?? 0,
-            'fee': data['fee']?.toString() ?? '0',
-            'available': data['available'] ?? true,
-            'about': data['about'] ?? 'لا توجد معلومات',
-            'hospital': data['hospital'] ?? 'غير محدد',
-            'availability': data['availability'] ?? [],
-            'image': data['image'] ?? ImageKit.doctor1,
-          };
-          _isFromFirebase = true;
-          _isLoading = false;
-        });
-      } else {
-        // ✅ إذا لم يتم العثور على الطبيب (افتراضي)
-        setState(() {
-          _doctor = _defaultDoctors['d1']!;
-          _isFromFirebase = false;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      // ✅ في حالة خطأ في Firebase، استخدام الطبيب الافتراضي الأول
-      setState(() {
-        _doctor = _defaultDoctors['d1']!;
-        _isFromFirebase = false;
-        _isLoading = false;
-      });
+  Map<String, dynamic> _getDoctorData(String doctorId) {
+    switch (doctorId) {
+      case 'd1':
+        return {
+          'name': 'د. أحمد المولد',
+          'specialty': 'استشاري باطنية وأطفال',
+          'experience': '20+ سنة',
+          'rating': 4.9,
+          'reviews': 328,
+          'fee': '500',
+          'available': true,
+          'about': 'استشاري باطنية وأطفال مع خبرة واسعة في تشخيص وعلاج الأمراض المزمنة والحادة.',
+          'hospital': 'مستشفى الثورة العام',
+          'availability': ['السبت - الأربعاء: 9 ص - 5 م'],
+          'image': ImageKit.doctor1,
+        };
+      case 'd2':
+        return {
+          'name': 'د. خالد النخلاني',
+          'specialty': 'قلبية',
+          'experience': '12 سنة',
+          'rating': 4.8,
+          'reviews': 256,
+          'fee': '450',
+          'available': true,
+          'about': 'أخصائي قلوب ذو خبرة عالية في تشخيص وعلاج أمراض القلب والشرايين.',
+          'hospital': 'مستشفى الكويت',
+          'availability': ['الأحد - الخميس: 10 ص - 4 م'],
+          'image': ImageKit.doctor2,
+        };
+      case 'd3':
+        return {
+          'name': 'د. أسماء الهندي',
+          'specialty': 'أطفال',
+          'experience': '9 سنوات',
+          'rating': 4.7,
+          'reviews': 189,
+          'fee': '420',
+          'available': true,
+          'about': 'أخصائية أطفال متابعة التطور الصحي للأطفال من الولادة حتى المراهقة.',
+          'hospital': 'مستشفى السبعين',
+          'availability': ['السبت - الأربعاء: 8 ص - 2 م'],
+          'image': ImageKit.doctor3,
+        };
+      case 'd4':
+        return {
+          'name': 'د. محمد العلاي',
+          'specialty': 'أنف وأذن وحنجرة',
+          'experience': '8 سنوات',
+          'rating': 4.6,
+          'reviews': 89,
+          'fee': '400',
+          'available': true,
+          'about': 'أخصائي أنف وأذن وحنجرة مع خبرة في جراحات الأنف والأذن.',
+          'hospital': 'مستشفى الأنف والأذن',
+          'availability': ['الأحد - الخميس: 9 ص - 3 م'],
+          'image': ImageKit.doctor4,
+        };
+      case 'd5':
+        return {
+          'name': 'د. فاطمة صديقي',
+          'specialty': 'نساء وولادة',
+          'experience': '10 سنوات',
+          'rating': 4.8,
+          'reviews': 210,
+          'fee': '480',
+          'available': true,
+          'about': 'طبيبة نساء وولادة مختصة بالحالات الروتينية والمعقدة ورعاية الحمل.',
+          'hospital': 'المستشفى الجمهوري',
+          'availability': ['الإثنين - الجمعة: 9 ص - 1 م'],
+          'image': ImageKit.doctor5,
+        };
+      default:
+        return {
+          'name': 'د. غير معروف',
+          'specialty': 'عام',
+          'experience': 'غير متوفر',
+          'rating': 0.0,
+          'reviews': 0,
+          'fee': '0',
+          'available': false,
+          'about': 'معلومات الطبيب غير متوفرة',
+          'hospital': '',
+          'availability': [],
+          'image': ImageKit.doctor1,
+        };
     }
   }
+
+  // أيقونات التواصل باستخدام ImageKit (روابط شبكية)
+  final List<Map<String, dynamic>> _contactIcons = [
+    {'icon': ImageKit.chatPhoneCall, 'label': 'اتصال', 'color': Colors.green},
+    {'icon': ImageKit.chatVideoCall, 'label': 'مكالمة فيديو', 'color': Colors.blue},
+    {'icon': ImageKit.chatBubble, 'label': 'رسالة', 'color': AppColors.primary},
+    {'icon': ImageKit.chatCalendarBooking, 'label': 'حجز موعد', 'color': Colors.orange},
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -176,10 +144,8 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: CustomAppBar(
-        title: 'تفاصيل الطبيب',
+      appBar: AppBar(
         backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
-        foregroundColor: isDark ? Colors.white : Colors.black87,
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios_new, color: isDark ? Colors.white : Colors.black87),
@@ -187,10 +153,8 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
         ),
         actions: [
           IconButton(
-            icon: Icon(
-              _isFavorite ? Icons.favorite : Icons.favorite_border,
-              color: _isFavorite ? Colors.red : (isDark ? Colors.white : Colors.black87),
-            ),
+            icon: Icon(_isFavorite ? Icons.favorite : Icons.favorite_border,
+                color: _isFavorite ? Colors.red : (isDark ? Colors.white : Colors.black87)),
             onPressed: () => setState(() => _isFavorite = !_isFavorite),
           ),
           IconButton(
@@ -204,7 +168,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ✅ صورة الطبيب
+            // صورة الطبيب
             Center(
               child: Stack(
                 children: [
@@ -235,27 +199,6 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                       child: const Icon(Icons.check, color: Colors.white, size: 16),
                     ),
                   ),
-                  // ✅ علامة Firebase (إذا كان من Firebase)
-                  if (_isFromFirebase)
-                    Positioned(
-                      top: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(0.9),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Text(
-                          'مضاف حديثاً',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 8,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
                 ],
               ),
             ),
@@ -324,7 +267,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
             ),
             const SizedBox(height: 16),
 
-            // ✅ أيقونات التواصل (باستخدام PNG)
+            // أيقونات التواصل (مكبرة - باستخدام Image.network)
             Container(
               padding: const EdgeInsets.symmetric(vertical: 8),
               decoration: BoxDecoration(
@@ -359,7 +302,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Center(
-                            child: Image.asset(
+                            child: Image.network(
                               item['icon'] as String,
                               width: 36,
                               height: 36,
@@ -391,7 +334,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
             ),
             const SizedBox(height: 16),
 
-            // ✅ معلومات الطبيب
+            // معلومات الطبيب
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -473,64 +416,60 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
             ),
             const SizedBox(height: 16),
 
-            // ✅ أوقات العمل
-            if (_doctor['availability'] != null && (_doctor['availability'] as List).isNotEmpty)
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1A2540) : Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
+            // أوقات العمل
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'أوقات العمل',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : Colors.black87,
                     ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'أوقات العمل',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    ...(_doctor['availability'] as List<dynamic>).map((time) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.access_time, color: AppColors.primary, size: 18),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                time as String,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: isDark ? Colors.grey[300] : Colors.grey[700],
-                                ),
+                  ),
+                  const SizedBox(height: 8),
+                  ...(_doctor['availability'] as List<dynamic>).map((time) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.access_time, color: AppColors.primary, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              time as String,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: isDark ? Colors.grey[300] : Colors.grey[700],
                               ),
                             ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                  ],
-                ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ],
               ),
+            ),
             const SizedBox(height: 16),
           ],
         ),
       ),
-            );
-          },
-          isVisible: true,
-        ),
+      bottomNavigationBar: _buildBottomBar(isDark),
     );
   }
 
