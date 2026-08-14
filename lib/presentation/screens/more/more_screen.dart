@@ -59,7 +59,7 @@ class MoreScreen extends StatefulWidget {
 
 class _MoreScreenState extends State<MoreScreen> {
   String _selectedCategory = 'الكل';
-  final ScrollController _scrollController = ScrollController();
+  final ScrollController _scroll_controller = ScrollController();
   double _appBarOpacity = 1.0;
   
   bool _isAdmin = false;
@@ -97,12 +97,13 @@ class _MoreScreenState extends State<MoreScreen> {
 
     // إذا كان مسار الأيقونة رابط شبكي
     if (iconPath.startsWith('http') || iconPath.startsWith('https')) {
-      return Image.network(
-        iconPath,
+      return CachedNetworkImage(
+        imageUrl: iconPath,
         width: actualSize,
         height: actualSize,
         fit: BoxFit.contain,
-        errorBuilder: (context, error, stackTrace) => Icon(Icons.broken_image, color: fallbackColor, size: actualSize),
+        placeholder: (context, url) => SizedBox(width: actualSize, height: actualSize, child: Center(child: CircularProgressIndicator(strokeWidth: 2, color: fallbackColor))),
+        errorWidget: (context, url, error) => Icon(Icons.broken_image, color: fallbackColor, size: actualSize),
       );
     }
 
@@ -114,6 +115,51 @@ class _MoreScreenState extends State<MoreScreen> {
       fit: BoxFit.contain,
       // لا نستخدم color: ... لأن ذلك يغيّر لون الـ PNG ويمحو تفاصيلها
       errorBuilder: (context, error, stackTrace) => Icon(Icons.image, color: fallbackColor, size: actualSize),
+    );
+  }
+
+  // ✅ بطاقة المساعد الذكي - شاملة لكل خدمات المنصة والمساعدات الصحية السريعة
+  Widget _buildAiAssistantCard(bool isDark, double fontScale) {
+    return GestureDetector(
+      onTap: () => _navigateTo(const AIChatbotScreen()),
+      child: Container(
+        margin: EdgeInsets.symmetric(horizontal: 12, vertical: 10 * fontScale),
+        padding: EdgeInsets.all(12 * fontScale),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF16203A) : AppColors.primary,
+          borderRadius: BorderRadius.circular(12 * fontScale),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 8 * fontScale)],
+        ),
+        child: Row(
+          children: [
+            _buildIcon('assets/images/services/ai_assistant.png', Colors.white, size: 48),
+            SizedBox(width: 12 * fontScale),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'مساعد صحتك الذكي',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16 * fontScale,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 6 * fontScale),
+                  Text(
+                    'دعم فوري، نصائح صحية، حجز مواعيد، استشارات، وإحالات ذكية - هنا لمساعدتك.',
+                    style: TextStyle(color: Colors.white70, fontSize: 12 * fontScale),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chat_bubble_outline, color: Colors.white.withOpacity(0.95)),
+          ],
+        ),
+      ),
     );
   }
 
@@ -245,136 +291,138 @@ class _MoreScreenState extends State<MoreScreen> {
       ),
       body: Column(
         children: [
-          // الفئات
-          SizedBox(
-            height: 52,
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              scrollDirection: Axis.horizontal,
-              itemCount: _categories.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
-              itemBuilder: (context, index) {
-                final cat = _categories[index];
-                final selected = cat == _selectedCategory;
-                return GestureDetector(
-                  onTap: () => setState(() => _selectedCategory = cat),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: selected ? AppColors.primary : (isDark ? const Color(0xFF0B1121) : Colors.white),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: selected ? AppColors.primary : Colors.transparent),
-                    ),
-                    child: Center(
-                      child: Text(cat, style: TextStyle(color: selected ? Colors.white : (isDark ? Colors.white70 : Colors.black87))),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
++          // بطاقة المساعد الذكي
++          _buildAiAssistantCard(isDark, fontProvider.fontScale),
+           // الفئات
+           SizedBox(
+             height: 52,
+             child: ListView.separated(
+               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+               scrollDirection: Axis.horizontal,
+               itemCount: _categories.length,
+               separatorBuilder: (_, __) => const SizedBox(width: 8),
+               itemBuilder: (context, index) {
+                 final cat = _categories[index];
+                 final selected = cat == _selectedCategory;
+                 return GestureDetector(
+                   onTap: () => setState(() => _selectedCategory = cat),
+                   child: Container(
+                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                     decoration: BoxDecoration(
+                       color: selected ? AppColors.primary : (isDark ? const Color(0xFF0B1121) : Colors.white),
+                       borderRadius: BorderRadius.circular(12),
+                       border: Border.all(color: selected ? AppColors.primary : Colors.transparent),
+                     ),
+                     child: Center(
+                       child: Text(cat, style: TextStyle(color: selected ? Colors.white : (isDark ? Colors.white70 : Colors.black87))),
+                     ),
+                   ),
+                 );
+               },
+             ),
+           ),
 
-          const SizedBox(height: 12),
+           const SizedBox(height: 12),
 
-          Expanded(
-            child: ListView(
-              controller: _scroll_controller,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              children: [
-                // المؤشرات الحيوية
-                SizedBox(
-                  height: 120,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: _vitals.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 12),
-                    itemBuilder: (context, index) {
-                      final v = _vitals[index];
-                      return Container(
-                        width: 220,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF1A2540) : Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)],
-                        ),
-                        child: Row(
-                          children: [
-                            _buildIcon(v['icon'] as String, v['color'] as Color, size: 36),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(v['title'], style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
-                                  const SizedBox(height: 6),
-                                  Text('${v['value']} ${v['unit']}', style: TextStyle(color: isDark ? Colors.grey[300] : Colors.grey[700], fontSize: 14)),
-                                ],
-                              ),
-                            ),
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(v['status'], style: TextStyle(color: v['statusColor'] as Color, fontWeight: FontWeight.bold)),
-                              ],
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
+           Expanded(
+             child: ListView(
+               controller: _scroll_controller,
+               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+               children: [
+                 // المؤشرات الحيوية
+                 SizedBox(
+                   height: 120,
+                   child: ListView.separated(
+                     scrollDirection: Axis.horizontal,
+                     itemCount: _vitals.length,
+                     separatorBuilder: (_, __) => const SizedBox(width: 12),
+                     itemBuilder: (context, index) {
+                       final v = _vitals[index];
+                       return Container(
+                         width: 220,
+                         padding: const EdgeInsets.all(12),
+                         decoration: BoxDecoration(
+                           color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                           borderRadius: BorderRadius.circular(12),
+                           boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)],
+                         ),
+                         child: Row(
+                           children: [
+                             _buildIcon(v['icon'] as String, v['color'] as Color, size: 36),
+                             const SizedBox(width: 12),
+                             Expanded(
+                               child: Column(
+                                 crossAxisAlignment: CrossAxisAlignment.start,
+                                 mainAxisAlignment: MainAxisAlignment.center,
+                                 children: [
+                                   Text(v['title'], style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
+                                   const SizedBox(height: 6),
+                                   Text('${v['value']} ${v['unit']}', style: TextStyle(color: isDark ? Colors.grey[300] : Colors.grey[700], fontSize: 14)),
+                                 ],
+                               ),
+                             ),
+                             Column(
+                               mainAxisAlignment: MainAxisAlignment.center,
+                               children: [
+                                 Text(v['status'], style: TextStyle(color: v['statusColor'] as Color, fontWeight: FontWeight.bold)),
+                               ],
+                             ),
+                           ],
+                         ),
+                       );
+                     },
+                   ),
+                 ),
 
-                const SizedBox(height: 16),
+                 const SizedBox(height: 16),
 
-                // قائمة الخدمات
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: _filteredServices.map((s) {
-                    return GestureDetector(
-                      onTap: () => _navigateTo(s['screen'] as Widget),
-                      child: Container(
-                        width: MediaQuery.of(context).size.width / 2 - 18,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF1A2540) : Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            _buildIcon(s['icon'] as String, AppColors.primary, size: 48),
-                            const SizedBox(height: 8),
-                            Text(s['title'], textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
-                            const SizedBox(height: 4),
-                            Text(s['subtitle'], textAlign: TextAlign.center, style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600], fontSize: 12)),
-                          ],
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
+                 // قائمة الخدمات
+                 Wrap(
+                   spacing: 12,
+                   runSpacing: 12,
+                   children: _filteredServices.map((s) {
+                     return GestureDetector(
+                       onTap: () => _navigateTo(s['screen'] as Widget),
+                       child: Container(
+                         width: MediaQuery.of(context).size.width / 2 - 18,
+                         padding: const EdgeInsets.all(12),
+                         decoration: BoxDecoration(
+                           color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                           borderRadius: BorderRadius.circular(12),
+                           boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)],
+                         ),
+                         child: Column(
+                           crossAxisAlignment: CrossAxisAlignment.center,
+                           children: [
+                             _buildIcon(s['icon'] as String, AppColors.primary, size: 48),
+                             const SizedBox(height: 8),
+                             Text(s['title'], textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
+                             const SizedBox(height: 4),
+                             Text(s['subtitle'], textAlign: TextAlign.center, style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600], fontSize: 12)),
+                           ],
+                         ),
+                       ),
+                     );
+                   }).toList(),
+                 ),
 
-                const SizedBox(height: 24),
+                 const SizedBox(height: 24),
 
-                // إعدادات إضافية ومجموعات
-                if (_isAdmin) ...[
-                  ListTile(
-                    leading: const Icon(Icons.dashboard),
-                    title: const Text('لوحة التحكم'),
-                    onTap: () => _navigateTo(const PlatformDashboard()),
-                  ),
-                ],
+                 // إعدادات إضافية ومجموعات
+                 if (_isAdmin) ...[
+                   ListTile(
+                     leading: const Icon(Icons.dashboard),
+                     title: const Text('لوحة التحكم'),
+                     onTap: () => _navigateTo(const PlatformDashboard()),
+                   ),
+                 ],
 
-                const SizedBox(height: 40),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+                 const SizedBox(height: 40),
+               ],
+             ),
+           ),
+         ],
+       ),
+     );
+   }
 }
