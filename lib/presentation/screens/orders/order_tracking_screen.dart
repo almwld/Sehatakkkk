@@ -1,166 +1,178 @@
-import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class OrderTrackingScreen extends StatefulWidget {
-  final String? orderId;
-  const OrderTrackingScreen({super.key, this.orderId});
+  final String orderId;
+  final String? deliveryMethod;
+
+  const OrderTrackingScreen({
+    super.key,
+    required this.orderId,
+    this.deliveryMethod,
+  });
 
   @override
   State<OrderTrackingScreen> createState() => _OrderTrackingScreenState();
 }
 
-class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
-  int _currentStep = 2;
-  bool _isLiveTracking = true;
-  late final MapController _mapController;
+class _OrderTrackingScreenState extends State<OrderTrackingScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _pulseAnimation;
+  int _currentStep = 0;
+  bool _isDelivered = false;
 
-  LatLng _driverLocation = const LatLng(15.3694, 44.1910);
-  LatLng _destination = const LatLng(15.3550, 44.2000);
-
-  final List<LatLng> _routePoints = [
-    const LatLng(15.3694, 44.1910),
-    const LatLng(15.3680, 44.1930),
-    const LatLng(15.3660, 44.1950),
-    const LatLng(15.3630, 44.1960),
-    const LatLng(15.3600, 44.1980),
-    const LatLng(15.3570, 44.1990),
-    const LatLng(15.3550, 44.2000),
+  // ✅ مراحل الطلب
+  final List<Map<String, dynamic>> _trackingSteps = [
+    {
+      'title': 'تم استلام الطلب',
+      'description': 'تم استلام طلبك بنجاح',
+      'icon': Icons.check_circle,
+      'time': '10:30 ص',
+      'date': 'اليوم',
+      'completed': true,
+    },
+    {
+      'title': 'جاري التجهيز',
+      'description': 'يتم تجهيز طلبك',
+      'icon': Icons.pending,
+      'time': '11:00 ص',
+      'date': 'اليوم',
+      'completed': true,
+    },
+    {
+      'title': 'تم التوصيل',
+      'description': 'طلبك في طريقه إليك',
+      'icon': Icons.local_shipping,
+      'time': '01:00 م',
+      'date': 'اليوم',
+      'completed': false,
+    },
+    {
+      'title': 'تم التسليم',
+      'description': 'تم تسليم الطلب بنجاح',
+      'icon': Icons.done_all,
+      'time': '03:00 م',
+      'date': 'اليوم',
+      'completed': false,
+    },
   ];
-
-  final List<Map<String, dynamic>> _steps = [
-    {'label': 'تم تأكيد الطلب', 'icon': Icons.check_circle, 'time': '10:30 ص', 'completed': true},
-    {'label': 'تم التجهيز', 'icon': Icons.pending, 'time': '10:45 ص', 'completed': true},
-    {'label': 'في الطريق إليك', 'icon': Icons.local_shipping, 'time': '11:00 ص', 'completed': false},
-    {'label': 'تم التوصيل', 'icon': Icons.home, 'time': 'جاري...', 'completed': false},
-  ];
-
-  final Map<String, dynamic> _driver = {
-    'name': 'أحمد علي',
-    'phone': '777888999',
-    'rating': 4.9,
-    'reviews': 328,
-    'vehicle': 'سيارة - صنعاء 1234',
-    'status': 'في الطريق',
-    'image': 'https://ui-avatars.com/api/?name=أحمد+علي&background=0D5257&color=fff',
-    'eta': '8 دقائق',
-  };
 
   @override
   void initState() {
     super.initState();
-    _mapController = MapController();
-    _startLiveTracking();
-  }
-
-  void _startLiveTracking() {
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() {
-          _driverLocation = const LatLng(15.3650, 44.1940);
-          _currentStep = 2;
-        });
-      }
-    });
-    Future.delayed(const Duration(seconds: 5), () {
-      if (mounted) {
-        setState(() {
-          _driverLocation = const LatLng(15.3600, 44.1970);
-        });
-      }
-    });
-    Future.delayed(const Duration(seconds: 8), () {
-      if (mounted) {
-        setState(() {
-          _driverLocation = const LatLng(15.3560, 44.1990);
-        });
-      }
-    });
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat(reverse: true);
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
   }
 
   @override
   void dispose() {
-    _mapController.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = const Color(0xFF0D5257);
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      body: Column(
-        children: [
-          // ✅ AppBar مخصص
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: primaryColor,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 8,
-                ),
-              ],
-            ),
-            child: SafeArea(
+      appBar: AppBar(
+        title: const Text('تتبع الطلب'),
+        backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
+        foregroundColor: isDark ? Colors.white : Colors.black87,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.refresh, color: isDark ? Colors.white : Colors.black87),
+            onPressed: () {
+              // تحديث حالة الطلب
+            },
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ✅ معلومات الطلب
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
               child: Row(
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
+                  Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.receipt_long,
+                      color: AppColors.primary,
+                      size: 28,
+                    ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'تتبع الطلب',
+                          'طلب رقم #${widget.orderId.substring(0, 8)}',
                           style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
+                            fontSize: 16,
                             fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : Colors.black87,
                           ),
                         ),
-                        Text(
-                          'رقم الطلب: ${widget.orderId ?? "#SHK-${DateTime.now().millisecondsSinceEpoch}"}',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.8),
-                            fontSize: 11,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.green.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 6,
-                          height: 6,
-                          decoration: const BoxDecoration(
-                            color: Colors.green,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        const Text(
-                          'مباشر',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.green.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Text(
+                                'قيد التوصيل',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.green,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              widget.deliveryMethod ?? 'توصيل صحتك',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: isDark ? Colors.grey[400] : Colors.grey[600],
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -168,327 +180,334 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                 ],
               ),
             ),
-          ),
+            const SizedBox(height: 20),
 
-          // ✅ الخريطة
-          Expanded(
-            flex: 2,
-            child: Stack(
-              children: [
-                FlutterMap(
-                  mapController: _mapController,
-                  options: MapOptions(
-                    initialCenter: _driverLocation,
-                    initialZoom: 15,
-                  ),
-                  children: [
-                    TileLayer(
-                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      userAgentPackageName: 'com.sehatak.app',
-                    ),
-                    MarkerLayer(
-                      markers: [
-                        Marker(
-                          point: _driverLocation,
-                          width: 40,
-                          height: 40,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.blue,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.blue.withOpacity(0.4),
-                                  blurRadius: 12,
-                                ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Icons.directions_car,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                        Marker(
-                          point: _destination,
-                          width: 30,
-                          height: 30,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.green,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.green.withOpacity(0.4),
-                                  blurRadius: 12,
-                                ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Icons.location_on,
-                              color: Colors.white,
-                              size: 14,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    PolylineLayer(
-                      polylines: [
-                        Polyline(
-                          points: _routePoints,
-                          color: primaryColor.withOpacity(0.6),
-                          strokeWidth: 4,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                // ✅ الوقت المتبقي
-                Positioned(
-                  top: 16,
-                  left: 16,
-                  right: 16,
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1A2540) : Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
-                          blurRadius: 8,
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.timer, color: primaryColor),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'الوقت المتوقع للتوصيل',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: isDark ? Colors.grey : Colors.grey,
-                                ),
-                              ),
-                              Text(
-                                '${_driver['eta']}',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: isDark ? Colors.white : Colors.black87,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: primaryColor,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                          ),
-                          child: const Text('تحديث'),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // ✅ معلومات السائق والمراحل
-          Expanded(
-            flex: 1,
-            child: Container(
-              padding: const EdgeInsets.all(16),
+            // ✅ خريطة التتبع (محاكاة)
+            Container(
+              height: 200,
               decoration: BoxDecoration(
                 color: isDark ? const Color(0xFF1A2540) : Colors.white,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.04),
                     blurRadius: 8,
-                    offset: const Offset(0, -4),
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
-              child: Column(
+              child: Stack(
+                alignment: Alignment.center,
                 children: [
-                  // ✅ معلومات السائق
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 24,
-                        backgroundColor: primaryColor.withOpacity(0.1),
-                        backgroundImage: NetworkImage(_driver['image']),
-                        child: const Icon(Icons.person, color: Colors.white),
+                  // ✅ خلفية الخريطة
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          AppColors.primary.withOpacity(0.1),
+                          AppColors.primary.withOpacity(0.05),
+                        ],
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.map_outlined,
+                          size: 60,
+                          color: AppColors.primary.withOpacity(0.3),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '📍 جاري تتبع موقع الطلب',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: AppColors.primary.withOpacity(0.6),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // ✅ نقطة الموقع المتحركة
+                  AnimatedBuilder(
+                    animation: _pulseAnimation,
+                    builder: (context, child) {
+                      return Transform.scale(
+                        scale: _pulseAnimation.value,
+                        child: Container(
+                          width: 20,
+                          height: 20,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primary.withOpacity(0.4),
+                                blurRadius: 12,
+                                spreadRadius: 4,
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // ✅ مراحل التتبع
+            const Text(
+              'مراحل الطلب',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            ..._trackingSteps.asMap().entries.map((entry) {
+              final index = entry.key;
+              final step = entry.value;
+              final isCompleted = step['completed'] as bool;
+              final isCurrent = index == _currentStep && !_isDelivered;
+              final isLast = index == _trackingSteps.length - 1;
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ✅ العمود الرأسي
+                    Column(
+                      children: [
+                        Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: isCompleted
+                                ? Colors.green
+                                : (isCurrent
+                                    ? AppColors.primary
+                                    : (isDark ? Colors.grey[700] : Colors.grey[300])),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            isCompleted
+                                ? Icons.check
+                                : (isCurrent
+                                    ? Icons.pending
+                                    : step['icon'] as IconData),
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                        ),
+                        if (!isLast)
+                          Container(
+                            width: 2,
+                            height: 40,
+                            color: isCompleted
+                                ? Colors.green
+                                : (isDark ? Colors.grey[700] : Colors.grey[300]),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
                               children: [
                                 Text(
-                                  _driver['name'],
+                                  step['title'] as String,
                                   style: TextStyle(
-                                    fontWeight: FontWeight.bold,
                                     fontSize: 14,
-                                    color: isDark ? Colors.white : Colors.black87,
+                                    fontWeight: FontWeight.w600,
+                                    color: isCompleted
+                                        ? Colors.green
+                                        : (isCurrent
+                                            ? AppColors.primary
+                                            : (isDark ? Colors.white : Colors.black87)),
                                   ),
                                 ),
-                                const SizedBox(width: 4),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                                  decoration: BoxDecoration(
-                                    color: Colors.green.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    _driver['status'],
-                                    style: TextStyle(
-                                      color: Colors.green,
-                                      fontSize: 8,
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                const Spacer(),
+                                Text(
+                                  '${step['time']} • ${step['date']}',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: isDark ? Colors.grey[500] : Colors.grey[400],
                                   ),
                                 ),
                               ],
                             ),
-                            Row(
-                              children: [
-                                const Icon(Icons.star, color: Colors.amber, size: 12),
-                                const SizedBox(width: 2),
-                                Text(
-                                  _driver['rating'].toString(),
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                    color: isDark ? Colors.white : Colors.black87,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '(${_driver['reviews']} تقييم)',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: isDark ? Colors.grey : Colors.grey,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Icon(Icons.directions_car, size: 12, color: isDark ? Colors.grey : Colors.grey),
-                                const SizedBox(width: 2),
-                                Text(
-                                  _driver['vehicle'],
-                                  style: TextStyle(
-                                    fontSize: 9,
-                                    color: isDark ? Colors.grey : Colors.grey,
-                                  ),
-                                ),
-                              ],
+                            const SizedBox(height: 2),
+                            Text(
+                              step['description'] as String,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: isDark ? Colors.grey[400] : Colors.grey[600],
+                              ),
                             ),
                           ],
                         ),
                       ),
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: Icon(Icons.call, color: Colors.green),
-                            onPressed: () {},
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                          ),
-                          const SizedBox(width: 4),
-                          IconButton(
-                            icon: Icon(Icons.message, color: primaryColor),
-                            onPressed: () {},
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  // ✅ مراحل التتبع
-                  Expanded(
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: _steps.length,
-                      itemBuilder: (context, index) {
-                        final step = _steps[index];
-                        final isCompleted = step['completed'] as bool;
-                        final isActive = index == _currentStep;
-                        final isLast = index == _steps.length - 1;
-
-                        return Row(
-                          children: [
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  width: 32,
-                                  height: 32,
-                                  decoration: BoxDecoration(
-                                    color: isCompleted
-                                        ? Colors.green
-                                        : (isActive ? primaryColor : Colors.grey.withOpacity(0.2)),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    isCompleted ? Icons.check : step['icon'] as IconData,
-                                    color: Colors.white,
-                                    size: 14,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  step['label'] as String,
-                                  style: TextStyle(
-                                    fontSize: 8,
-                                    fontWeight: isCompleted || isActive
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
-                                    color: isCompleted || isActive
-                                        ? (isDark ? Colors.white : Colors.black87)
-                                        : (isDark ? Colors.grey : Colors.grey),
-                                  ),
-                                  textAlign: TextAlign.center,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                            if (!isLast)
-                              Container(
-                                width: 30,
-                                height: 2,
-                                color: isCompleted
-                                    ? Colors.green
-                                    : (isActive ? primaryColor : Colors.grey.withOpacity(0.2)),
-                              ),
-                          ],
-                        );
-                      },
                     ),
+                  ],
+                ),
+              );
+            }).toList(),
+
+            const SizedBox(height: 20),
+
+            // ✅ معلومات التوصيل
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'معلومات التوصيل',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildInfoRow(
+                    Icons.person,
+                    'اسم المستلم',
+                    'أحمد علي',
+                    isDark,
+                  ),
+                  _buildInfoRow(
+                    Icons.phone,
+                    'رقم الهاتف',
+                    '+967 777 888 999',
+                    isDark,
+                  ),
+                  _buildInfoRow(
+                    Icons.location_on,
+                    'عنوان التوصيل',
+                    'صنعاء - شارع حدة - بجوار مستشفى الثورة',
+                    isDark,
+                  ),
+                  _buildInfoRow(
+                    Icons.note,
+                    'ملاحظات',
+                    'الرجاء الاتصال قبل الوصول',
+                    isDark,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // ✅ أزرار الإجراءات
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      // الاتصال بالدعم
+                    },
+                    icon: const Icon(Icons.headset_mic),
+                    label: const Text('الدعم'),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: AppColors.primary),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      // مشاركة التتبع
+                    },
+                    icon: const Icon(Icons.share),
+                    label: const Text('مشاركة'),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: AppColors.primary),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      // العودة للرئيسية
+                      Navigator.pop(context);
+                    },
+                    icon: const Icon(Icons.home, color: Colors.white),
+                    label: const Text('الرئيسية'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String label, String value, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: AppColors.primary),
+          const SizedBox(width: 8),
+          Text(
+            '$label: ',
+            style: TextStyle(
+              fontSize: 13,
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
