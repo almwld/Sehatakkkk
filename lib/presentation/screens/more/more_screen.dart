@@ -53,8 +53,6 @@ class _MoreScreenState extends State<MoreScreen> {
     {'icon': 'assets/images/services/pharmacy.png', 'label': 'الصيدلية', 'screen': const PharmacyScreen()},
     {'icon': 'assets/images/services/medical_community.png', 'label': 'خدمات صحية', 'screen': const ServicesScreen()},
     {'icon': 'assets/images/services/video_consultation.png', 'label': 'استشارة فيديو', 'screen': const ConsultationScreen()},
-    {'icon': 'assets/images/services/health_insurance.png', 'label': 'التأمين الصحي', 'screen': const InsuranceCompaniesScreen()},
-    {'icon': 'assets/images/services/medical_records.png', 'label': 'السجل الطبي', 'screen': const MedicalRecordsScreen()},
     {'icon': 'assets/images/services/medical_community.png', 'label': 'عن التطبيق', 'screen': const AboutScreen()},
     {'icon': 'settings_material', 'label': 'الإعدادات', 'screen': const SettingsScreen()},
   ];

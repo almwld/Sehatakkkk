@@ -28,7 +28,7 @@ class _HealthDashboardState extends State<HealthDashboard> {
       'color': Colors.red,
       'status': 'طبيعي',
       'data': [70, 75, 72, 78, 74, 72, 71],
-      'screen': HealthDetailScreen(
+      'screen': HealthDetailScreen(value: '0', 
         title: 'نبض القلب',
         icon: 'assets/images/tracking/heart_rate.png',
         color: Colors.red,
@@ -42,7 +42,7 @@ class _HealthDashboardState extends State<HealthDashboard> {
       'color': Colors.blue,
       'status': 'طبيعي',
       'data': [118, 120, 122, 119, 121, 120, 120],
-      'screen': HealthDetailScreen(
+      'screen': HealthDetailScreen(value: '0', 
         title: 'ضغط الدم',
         icon: 'assets/images/tracking/blood_pressure.png',
         color: Colors.blue,
@@ -56,7 +56,7 @@ class _HealthDashboardState extends State<HealthDashboard> {
       'color': Colors.orange,
       'status': 'طبيعي',
       'data': [90, 95, 100, 88, 92, 95, 97],
-      'screen': HealthDetailScreen(
+      'screen': HealthDetailScreen(value: '0', 
         title: 'السكر',
         icon: 'assets/images/tracking/blood_sugar.png',
         color: Colors.orange,
@@ -70,7 +70,7 @@ class _HealthDashboardState extends State<HealthDashboard> {
       'color': Colors.green,
       'status': 'طبيعي',
       'data': [73, 72.5, 72, 71.8, 72, 72.2, 72],
-      'screen': HealthDetailScreen(
+      'screen': HealthDetailScreen(value: '0', 
         title: 'الوزن',
         icon: 'assets/images/tracking/weight_tracking.png',
         color: Colors.green,
@@ -517,7 +517,7 @@ class _HealthDashboardState extends State<HealthDashboard> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => HealthDetailScreen(
+                builder: (_) => HealthDetailScreen(value: '0', 
                   title: metric['label'] as String,
                   icon: metric['icon'] as String,
                   color: metric['color'] as Color,
