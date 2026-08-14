@@ -54,7 +54,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with SingleTick
     final user = _auth.currentUser;
     if (user == null) {
       return Scaffold(
-        appBar: AppBar(title: 'المواعيد', backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+        appBar: AppBar(title: const Text('المواعيد'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
         body: const Center(child: Text('يرجى تسجيل الدخول لعرض مواعيدك')),
       );
     }
