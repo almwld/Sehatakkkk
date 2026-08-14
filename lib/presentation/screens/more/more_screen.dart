@@ -9,16 +9,16 @@ import 'package:sehatak/presentation/screens/notifications/notifications_screen.
 import 'package:sehatak/presentation/screens/payment/wallet_screen.dart';
 import 'package:sehatak/presentation/screens/about/about_screen.dart';
 import 'package:sehatak/presentation/screens/settings/settings_screen.dart';
-import 'package:sehatak/presentation/screens/medical_records/medical_records_screen.dart';
 import 'package:sehatak/presentation/screens/appointments/appointments_screen.dart';
 import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart';
 import 'package:sehatak/presentation/screens/blood_donation/blood_donation_screen.dart';
-import 'package:sehatak/presentation/screens/insurance/insurance_companies.dart';
 import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
 import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
 import 'package:sehatak/presentation/screens/services/services_screen.dart';
 import 'package:sehatak/presentation/screens/consultation/consultation_screen.dart';
+import 'package:sehatak/presentation/screens/insurance/insurance_companies.dart';
+import 'package:sehatak/presentation/screens/medical_records/medical_records_screen.dart';
 
 class MoreScreen extends StatefulWidget {
   const MoreScreen({super.key});
@@ -31,146 +31,32 @@ class _MoreScreenState extends State<MoreScreen> {
   late ScrollController _scrollController;
   bool _isScrolled = false;
 
-  // ✅ بيانات المؤشرات الحيوية (مع أيقونات PNG)
+  // ✅ بيانات المؤشرات الحيوية (4 مؤشرات)
   final List<Map<String, dynamic>> _vitals = [
-    {
-      'icon': 'assets/images/tracking/blood_pressure.png',
-      'label': 'ضغط الدم',
-      'value': '120/80',
-      'unit': 'مم زئبق',
-      'color': Colors.blue,
-      'screen': null,
-    },
-    {
-      'icon': 'assets/images/tracking/blood_sugar.png',
-      'label': 'سكر الدم',
-      'value': '98',
-      'unit': 'مجم/دل',
-      'color': Colors.orange,
-      'screen': null,
-    },
-    {
-      'icon': 'assets/images/tracking/fitness.png',
-      'label': 'اللياقة',
-      'value': '85',
-      'unit': '%',
-      'color': Colors.green,
-      'screen': null,
-    },
-    {
-      'icon': 'assets/images/tracking/weight_tracking.png',
-      'label': 'الوزن',
-      'value': '72',
-      'unit': 'كجم',
-      'color': Colors.purple,
-      'screen': null,
-    },
+    {'icon': 'assets/images/tracking/blood_pressure.png', 'label': 'ضغط الدم', 'value': '120/80', 'unit': 'مم زئبق', 'color': Colors.blue},
+    {'icon': 'assets/images/tracking/blood_sugar.png', 'label': 'سكر الدم', 'value': '98', 'unit': 'مجم/دل', 'color': Colors.orange},
+    {'icon': 'assets/images/tracking/fitness.png', 'label': 'اللياقة', 'value': '85', 'unit': '%', 'color': Colors.green},
+    {'icon': 'assets/images/tracking/weight_tracking.png', 'label': 'الوزن', 'value': '72', 'unit': 'كجم', 'color': Colors.purple},
   ];
 
-  // ✅ بيانات الخدمات (مع أيقونات PNG من assets)
+  // ✅ بيانات الخدمات (16 خدمة)
   final List<Map<String, dynamic>> _services = [
-    {
-      'icon': 'assets/images/services/medical_records.png',
-      'label': 'الملف الشخصي',
-      'screen': const PatientProfile(),
-      'color': Colors.blue,
-    },
-    {
-      'icon': 'assets/images/services/health_tips.png',
-      'label': 'صفحتي الصحية',
-      'screen': const HealthDashboard(),
-      'color': Colors.green,
-    },
-    {
-      'icon': 'assets/images/services/notifications.png',
-      'label': 'الإشعارات',
-      'screen': const NotificationsScreen(),
-      'color': Colors.orange,
-    },
-    {
-      'icon': 'assets/images/services/wallet.png',
-      'label': 'المحفظة',
-      'screen': const WalletScreen(),
-      'color': Colors.purple,
-    },
-    {
-      'icon': 'assets/images/services/medical_records.png',
-      'label': 'السجل الطبي',
-      'screen': const MedicalRecordsScreen(),
-      'color': Colors.teal,
-    },
-    {
-      'icon': 'assets/images/services/calendar_booking.png',
-      'label': 'مواعيدي',
-      'screen': const AppointmentsScreen(),
-      'color': Colors.indigo,
-    },
-    {
-      'icon': 'assets/images/services/emergency.png',
-      'label': 'طوارئ',
-      'screen': const EmergencyNumbers(),
-      'color': Colors.red,
-    },
-    {
-      'icon': 'assets/images/services/blood_donation.png',
-      'label': 'تبرع بالدم',
-      'screen': const BloodDonationScreen(),
-      'color': Colors.pink,
-    },
-    {
-      'icon': 'assets/images/services/health_insurance.png',
-      'label': 'التأمين الصحي',
-      'screen': const InsuranceCompaniesScreen(),
-      'color': Colors.cyan,
-    },
-    {
-      'icon': 'assets/images/services/laboratory.png',
-      'label': 'المختبرات',
-      'screen': const LabsListScreen(),
-      'color': Colors.brown,
-    },
-    {
-      'icon': 'assets/images/services/consultation.png',
-      'label': 'الأطباء',
-      'screen': const DoctorsListScreen(),
-      'color': AppColors.primary,
-    },
-    {
-      'icon': 'assets/images/services/pharmacy.png',
-      'label': 'الصيدلية',
-      'screen': const PharmacyScreen(),
-      'color': Colors.deepOrange,
-    },
-    {
-      'icon': 'assets/images/services/medical_community.png',
-      'label': 'خدمات صحية',
-      'screen': const ServicesScreen(),
-      'color': Colors.amber,
-    },
-    {
-      'icon': 'assets/images/services/video_consultation.png',
-      'label': 'استشارة فيديو',
-      'screen': const ConsultationScreen(),
-      'color': Colors.deepPurple,
-    },
-    {
-      'icon': 'assets/images/social/facebook.png',
-      'label': 'مشاركة',
-      'screen': null,
-      'color': Colors.blue,
-    },
-    {
-      'icon': 'assets/images/services/medical_community.png',
-      'label': 'عن التطبيق',
-      'screen': const AboutScreen(),
-      'color': Colors.grey,
-    },
-    {
-      'icon': 'settings_material',
-      'label': 'الإعدادات',
-      'screen': const SettingsScreen(),
-      'color': Colors.grey,
-    },
+    {'icon': 'assets/images/services/medical_records.png', 'label': 'الملف الشخصي', 'screen': const PatientProfile()},
+    {'icon': 'assets/images/services/health_tips.png', 'label': 'صفحتي الصحية', 'screen': const HealthDashboard()},
+    {'icon': 'assets/images/services/notifications.png', 'label': 'الإشعارات', 'screen': const NotificationsScreen()},
+    {'icon': 'assets/images/services/wallet.png', 'label': 'المحفظة', 'screen': const WalletScreen()},
+    {'icon': 'assets/images/services/calendar_booking.png', 'label': 'مواعيدي', 'screen': const AppointmentsScreen()},
+    {'icon': 'assets/images/services/emergency.png', 'label': 'طوارئ', 'screen': const EmergencyNumbers()},
+    {'icon': 'assets/images/services/blood_donation.png', 'label': 'تبرع بالدم', 'screen': const BloodDonationScreen()},
+    {'icon': 'assets/images/services/laboratory.png', 'label': 'المختبرات', 'screen': const LabsListScreen()},
+    {'icon': 'assets/images/services/consultation.png', 'label': 'الأطباء', 'screen': const DoctorsListScreen()},
+    {'icon': 'assets/images/services/pharmacy.png', 'label': 'الصيدلية', 'screen': const PharmacyScreen()},
+    {'icon': 'assets/images/services/medical_community.png', 'label': 'خدمات صحية', 'screen': const ServicesScreen()},
+    {'icon': 'assets/images/services/video_consultation.png', 'label': 'استشارة فيديو', 'screen': const ConsultationScreen()},
+    {'icon': 'assets/images/services/health_insurance.png', 'label': 'التأمين الصحي', 'screen': const InsuranceCompaniesScreen()},
+    {'icon': 'assets/images/services/medical_records.png', 'label': 'السجل الطبي', 'screen': const MedicalRecordsScreen()},
+    {'icon': 'assets/images/services/medical_community.png', 'label': 'عن التطبيق', 'screen': const AboutScreen()},
+    {'icon': 'settings_material', 'label': 'الإعدادات', 'screen': const SettingsScreen()},
   ];
 
   @override
@@ -403,7 +289,7 @@ class _MoreScreenState extends State<MoreScreen> {
   }
 
   // ============================================================
-  // 🛠️ الخدمات (مع أيقونات PNG وتكبير 50%)
+  // 🛠️ الخدمات
   // ============================================================
   Widget _buildServicesGrid(bool isDark) {
     return GridView.builder(
@@ -420,16 +306,11 @@ class _MoreScreenState extends State<MoreScreen> {
         final service = _services[index];
         return GestureDetector(
           onTap: () {
-            final screen = service['screen'] as Widget?;
-            if (screen != null) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => screen),
-              );
-            } else {
-              // مشاركة التطبيق
-              _shareApp();
-            }
+            final screen = service['screen'] as Widget;
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => screen),
+            );
           },
           child: Container(
             padding: const EdgeInsets.all(8),
@@ -447,12 +328,11 @@ class _MoreScreenState extends State<MoreScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // ✅ أيقونة PNG مكبرة 50%
+                // ✅ أيقونة الخدمة
                 _buildServiceIcon(
                   service['icon'] as String,
-                  service['color'] as Color,
+                  AppColors.primary,
                   size: 48,
-                  scale: 1.5,
                 ),
                 const SizedBox(height: 6),
                 Text(
@@ -475,31 +355,29 @@ class _MoreScreenState extends State<MoreScreen> {
   }
 
   // ============================================================
-  // 🎨 دالة عرض أيقونة الخدمات (مع تكبير 50%)
+  // 🎨 دالة عرض أيقونة الخدمات
   // ============================================================
-  Widget _buildServiceIcon(String iconPath, Color fallbackColor, {double size = 32, double scale = 1.5}) {
-    final actualSize = size * scale;
-
-    // ✅ أيقونة الإعدادات: استخدام أيقونة Material الافتراضية
+  Widget _buildServiceIcon(String iconPath, Color fallbackColor, {double size = 32}) {
+    // ✅ أيقونة الإعدادات: استخدام أيقونة Material
     if (iconPath == 'settings_material') {
       return Icon(
         Icons.settings,
         color: AppColors.primary,
-        size: actualSize,
+        size: size,
       );
     }
 
     // ✅ أيقونة PNG من assets
     return Image.asset(
       iconPath,
-      width: actualSize,
-      height: actualSize,
+      width: size,
+      height: size,
       fit: BoxFit.contain,
       errorBuilder: (context, error, stackTrace) {
         return Icon(
           Icons.circle,
           color: fallbackColor,
-          size: actualSize,
+          size: size,
         );
       },
     );
@@ -565,14 +443,5 @@ class _MoreScreenState extends State<MoreScreen> {
         MaterialPageRoute(builder: (_) => const AuthScreen()),
       );
     }
-  }
-
-  void _shareApp() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('🔗 جاري فتح المشاركة...'),
-        backgroundColor: AppColors.primary,
-      ),
-    );
   }
 }
