@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class AboutScreen extends StatefulWidget {
@@ -14,6 +13,24 @@ class AboutScreen extends StatefulWidget {
 class _AboutScreenState extends State<AboutScreen> {
   String _appVersion = '1.1.0';
   String _buildNumber = '2';
+
+  // ✅ روابط السوشيال ميديا الفعلية
+  final Map<String, String> _socialLinks = {
+    'facebook': 'https://www.facebook.com/sehatak',
+    'instagram': 'https://www.instagram.com/sehatak',
+    'tiktok': 'https://www.tiktok.com/@sehatak',
+    'x_twitter': 'https://twitter.com/sehatak',
+    'youtube': 'https://www.youtube.com/@sehatak',
+  };
+
+  // ✅ أيقونات السوشيال ميديا (PNG)
+  final List<Map<String, dynamic>> _socialIcons = [
+    {'icon': 'assets/images/social/facebook.png', 'label': 'فيسبوك', 'url': 'https://www.facebook.com/sehatak'},
+    {'icon': 'assets/images/social/instagram.png', 'label': 'انستغرام', 'url': 'https://www.instagram.com/sehatak'},
+    {'icon': 'assets/images/social/tiktok.png', 'label': 'تيك توك', 'url': 'https://www.tiktok.com/@sehatak'},
+    {'icon': 'assets/images/social/x_twitter.png', 'label': 'تويتر', 'url': 'https://twitter.com/sehatak'},
+    {'icon': 'assets/images/social/youtube.png', 'label': 'يوتيوب', 'url': 'https://www.youtube.com/@sehatak'},
+  ];
 
   @override
   void initState() {
@@ -54,7 +71,8 @@ class _AboutScreenState extends State<AboutScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 20),
-            // ✅ شعار التطبيق - باستخدام SVG بدون errorBuilder
+
+            // ✅ شعار التطبيق
             Container(
               width: 120,
               height: 120,
@@ -71,25 +89,22 @@ class _AboutScreenState extends State<AboutScreen> {
                   ),
                 ],
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: SvgPicture.asset(
-                  'assets/icons/app_icon.svg',
-                  width: 60,
-                  height: 60,
-                  fit: BoxFit.contain,
-                  colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+              child: Center(
+                child: Icon(
+                  Icons.health_and_safety,
+                  size: 60,
+                  color: Colors.white,
                 ),
               ),
             ),
             const SizedBox(height: 20),
+
             // ✅ اسم التطبيق
             const Text(
               'صحتك',
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-                fontFamily: 'Cairo',
               ),
             ),
             const SizedBox(height: 4),
@@ -98,11 +113,11 @@ class _AboutScreenState extends State<AboutScreen> {
               style: TextStyle(
                 fontSize: 16,
                 color: AppColors.grey,
-                fontFamily: 'Rubik',
                 letterSpacing: 2,
               ),
             ),
             const SizedBox(height: 8),
+
             // ✅ الإصدار
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -120,6 +135,7 @@ class _AboutScreenState extends State<AboutScreen> {
               ),
             ),
             const SizedBox(height: 30),
+
             // ✅ الوصف
             Container(
               padding: const EdgeInsets.all(20),
@@ -158,12 +174,15 @@ class _AboutScreenState extends State<AboutScreen> {
               ),
             ),
             const SizedBox(height: 24),
+
             // ✅ الميزات
             _buildFeatureSection(isDark),
             const SizedBox(height: 24),
-            // ✅ روابط التواصل - باستخدام SVG
+
+            // ✅ روابط التواصل (باستخدام PNG)
             _buildSocialLinks(isDark),
             const SizedBox(height: 30),
+
             // ✅ حقوق النشر
             Text(
               '© 2026 Sehatak Platform',
@@ -187,6 +206,9 @@ class _AboutScreenState extends State<AboutScreen> {
     );
   }
 
+  // ============================================================
+  // 🎯 قسم الميزات
+  // ============================================================
   Widget _buildFeatureSection(bool isDark) {
     final features = [
       {'icon': Icons.medical_services_rounded, 'title': 'أطباء', 'desc': 'استشر أفضل الأطباء'},
@@ -249,7 +271,7 @@ class _AboutScreenState extends State<AboutScreen> {
                     const SizedBox(height: 4),
                     Text(
                       feature['title'] as String,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                       ),
@@ -272,15 +294,10 @@ class _AboutScreenState extends State<AboutScreen> {
     );
   }
 
+  // ============================================================
+  // 🌐 روابط التواصل الاجتماعي (باستخدام PNG)
+  // ============================================================
   Widget _buildSocialLinks(bool isDark) {
-    final socials = [
-      {'icon': 'assets/icons/social/facebook.svg', 'label': 'فيسبوك', 'url': 'https://www.facebook.com/'},
-      {'icon': 'assets/icons/social/instagram.svg', 'label': 'انستغرام', 'url': 'https://www.instagram.com/'},
-      {'icon': 'assets/icons/social/x_twitter.svg', 'label': 'تويتر', 'url': 'https://x.com/'},
-      {'icon': 'assets/icons/social/youtube.svg', 'label': 'يوتيوب', 'url': 'https://youtube.com/'},
-      {'icon': 'assets/icons/social/linkedin.svg', 'label': 'لينكد إن', 'url': 'https://linkedin.com/'},
-    ];
-
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -309,7 +326,7 @@ class _AboutScreenState extends State<AboutScreen> {
             alignment: WrapAlignment.center,
             spacing: 12,
             runSpacing: 12,
-            children: socials.map((social) {
+            children: _socialIcons.map((social) {
               return GestureDetector(
                 onTap: () => _launchUrl(social['url'] as String),
                 child: Column(
@@ -322,14 +339,18 @@ class _AboutScreenState extends State<AboutScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Center(
-                        child: SvgPicture.asset(
+                        child: Image.asset(
                           social['icon'] as String,
                           width: 28,
                           height: 28,
-                          colorFilter: ColorFilter.mode(
-                            isDark ? Colors.white : AppColors.primary,
-                            BlendMode.srcIn,
-                          ),
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Icon(
+                              Icons.circle,
+                              color: AppColors.primary,
+                              size: 28,
+                            );
+                          },
                         ),
                       ),
                     ),
@@ -351,6 +372,9 @@ class _AboutScreenState extends State<AboutScreen> {
     );
   }
 
+  // ============================================================
+  // 🔗 فتح الروابط
+  // ============================================================
   Future<void> _launchUrl(String url) async {
     try {
       final uri = Uri.parse(url);
