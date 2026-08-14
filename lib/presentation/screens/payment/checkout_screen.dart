@@ -315,7 +315,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) => PaymentScreen(
-                                    total: widget.total,
                                     deliveryMethod: _selectedDelivery,
                                     address: _address,
                                     notes: _notes,

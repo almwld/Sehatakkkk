@@ -24,9 +24,6 @@ class _HospitalScreenState extends State<HospitalScreen> {
     {'id': '4', 'name': 'مستشفى السبعين للأمومة', 'location': 'صنعاء', 'specialty': 'تخصصي', 'rating': 4.6, 'reviews': 290, 'phone': '01-444444', 'image': ImageKit.hospital4, 'open': true, 'emergency': true, 'beds': 300},
     {'id': '5', 'name': 'المستشفى العسكري', 'location': 'صنعاء', 'specialty': 'حكومي', 'rating': 4.5, 'reviews': 310, 'phone': '01-777777', 'image': ImageKit.hospital5, 'open': true, 'emergency': true, 'beds': 600},
     {'id': '6', 'name': 'مستشفى آزال', 'location': 'صنعاء', 'specialty': 'خاص', 'rating': 4.4, 'reviews': 220, 'phone': '01-555555', 'image': ImageKit.hospital6, 'open': true, 'emergency': true, 'beds': 150},
-    {'id': '7', 'name': 'مستشفى اليمن الألماني', 'location': 'صنعاء', 'specialty': 'خاص', 'rating': 4.8, 'reviews': 410, 'phone': '01-111222', 'image': ImageKit.hospital7, 'open': true, 'emergency': true, 'beds': 200},
-    {'id': '8', 'name': 'مستشفى النقيب', 'location': 'صنعاء', 'specialty': 'خاص', 'rating': 4.3, 'reviews': 180, 'phone': '01-888888', 'image': ImageKit.hospital8, 'open': false, 'emergency': false, 'beds': 100},
-    {'id': '9', 'name': 'مستشفى العلوم الحديثة', 'location': 'صنعاء', 'specialty': 'خاص', 'rating': 4.6, 'reviews': 260, 'phone': '01-999999', 'image': ImageKit.hospital9, 'open': true, 'emergency': true, 'beds': 120},
   ];
 
   List<Map<String, dynamic>> get _filteredHospitals {
