@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_bottom_nav_bar.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -526,7 +527,29 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomBar(isDark),
+      bottomNavigationBar: CustomBottomNavBar(
+          currentIndex: 0,
+          onTap: (index) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) {
+                  switch (index) {
+                    case 0: return const HomeScreen();
+                    case 1: return const DoctorsListScreen();
+                    case 2: return const PharmacyScreen();
+                    case 3: return const ChatScreen();
+                    case 4: return const LabsListScreen();
+                    case 5: return const PatientDashboard();
+                    case 6: return const MoreScreen();
+                    default: return const HomeScreen();
+                  }
+                },
+              ),
+            );
+          },
+          isVisible: true,
+        ),
     );
   }
 

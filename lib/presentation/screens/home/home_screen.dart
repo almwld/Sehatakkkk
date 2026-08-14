@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_bottom_nav_bar.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -106,70 +107,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
-  Widget _buildBottomBar() {
-    return ValueListenableBuilder<bool>(
-      valueListenable: _isBottomBarVisible,
-      builder: (context, visible, child) {
-        return AnimatedSlide(
-          offset: visible ? Offset.zero : const Offset(0, 1),
-          duration: const Duration(milliseconds: 250),
-          child: AnimatedOpacity(
-            opacity: visible ? 1 : 0,
-            duration: const Duration(milliseconds: 200),
-            child: Container(
-              decoration: BoxDecoration(
-                color: _isDark ? const Color(0xFF0B1121) : Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.06),
-                    blurRadius: 10,
-                    offset: const Offset(0, -4),
-                  ),
-                ],
-              ),
-              child: SafeArea(
-                child: Container(
-                  height: 65,
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: _navItems.map((item) {
-                      final index = item['index'] as int;
-                      final isSelected = _currentIndex == index;
-                      final color = isSelected ? AppColors.primary : (_isDark ? Colors.grey[500] : Colors.grey[600]);
-                      
-                      return GestureDetector(
-                        onTap: () => _onTabTap(index),
-                        behavior: HitTestBehavior.opaque,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              item['icon'] as IconData,
-                              color: color,
-                              size: 24,
-                            ),
-                            Text(
-                              item['label'] as String,
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: color,
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -208,7 +145,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           physics: const NeverScrollableScrollPhysics(),
           children: List.generate(7, (index) => _buildTabContent(index)),
         ),
-        bottomNavigationBar: _buildBottomBar(),
+        bottomNavigationBar: CustomBottomNavBar(
+          currentIndex: _currentIndex,
+          onTap: _onTabTap,
+          isVisible: _isBottomBarVisible.value,
+        ),
       ),
     );
   }
