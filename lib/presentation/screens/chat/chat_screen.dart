@@ -9,7 +9,7 @@ import 'package:sehatak/presentation/bloc/chat_bloc/chat_bloc.dart';
 import 'package:sehatak/presentation/bloc/chat_bloc/chat_event.dart';
 import 'package:sehatak/presentation/bloc/chat_bloc/chat_state.dart';
 import 'package:sehatak/presentation/screens/chat/chat_detail_screen.dart';
-import 'package:sehatak/presentation/screens/assistant/assistant_screen.dart';
+import 'package:sehatak/presentation/ai/assistant_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
