@@ -21,6 +21,7 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _loadingCtrl;
   late Animation<double> _loadingAnimation;
   final AudioPlayer _audioPlayer = AudioPlayer();
+  bool _isNavigating = false;
 
   // ✅ دوائر متحركة
   final List<CircleData> _circles = [
@@ -37,10 +38,12 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
-
     _playSplashSound();
+    _initAnimations();
+    _checkAuthAndNavigate();
+  }
 
-    // ✅ التحكم الرئيسي
+  void _initAnimations() {
     _mainCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
@@ -54,7 +57,6 @@ class _SplashScreenState extends State<SplashScreen>
       CurvedAnimation(parent: _mainCtrl, curve: Curves.elasticOut),
     );
 
-    // ✅ التحكم لخط التحميل
     _loadingCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
@@ -66,12 +68,6 @@ class _SplashScreenState extends State<SplashScreen>
 
     _mainCtrl.forward();
     _loadingCtrl.repeat();
-
-    // ✅ مدة العرض: 10 ثواني
-    Future.delayed(const Duration(seconds: 10), () {
-      if (!mounted) return;
-      _navigateToNext();
-    });
   }
 
   Future<void> _playSplashSound() async {
@@ -85,14 +81,22 @@ class _SplashScreenState extends State<SplashScreen>
     }
   }
 
-  Future<void> _navigateToNext() async {
-    await _audioPlayer.stop();
+  void _checkAuthAndNavigate() async {
+    // ✅ انتظر 3 ثواني لعرض الشاشة
+    await Future.delayed(const Duration(seconds: 3));
+    
+    if (_isNavigating) return;
+    _isNavigating = true;
 
     final user = FirebaseAuth.instance.currentUser;
     final prefs = await SharedPreferences.getInstance();
+    
+    // ✅ حفظ أن المستخدم شاهد الشاشة
+    await prefs.setBool('has_seen_splash', true);
 
     if (!mounted) return;
 
+    // ✅ التنقل إلى الشاشة المناسبة
     if (user != null) {
       Navigator.pushReplacement(
         context,
@@ -131,14 +135,10 @@ class _SplashScreenState extends State<SplashScreen>
         child: SafeArea(
           child: Stack(
             children: [
-              // ============================================================
-              // ✅ دوائر متحركة في الخلفية
-              // ============================================================
+              // ✅ دوائر متحركة
               ..._circles.map((circle) => _buildAnimatedCircle(circle)),
 
-              // ============================================================
               // ✅ المحتوى الرئيسي
-              // ============================================================
               Center(
                 child: SingleChildScrollView(
                   physics: const ClampingScrollPhysics(),
@@ -230,9 +230,7 @@ class _SplashScreenState extends State<SplashScreen>
 
                               SizedBox(height: screenHeight * 0.05),
 
-                              // ============================================================
                               // ✅ "صحتك أولاً"
-                              // ============================================================
                               Column(
                                 children: [
                                   const Text(
@@ -273,9 +271,7 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
               ),
 
-              // ============================================================
-              // ✅ خط تحميل متحرك في أسفل الشاشة (مرفوع 5%)
-              // ============================================================
+              // ✅ خط تحميل متحرك
               Positioned(
                 bottom: screenHeight * 0.05,
                 left: 0,
@@ -308,9 +304,6 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
-  // ============================================================
-  // ✅ دوائر متحركة
-  // ============================================================
   Widget _buildAnimatedCircle(CircleData circle) {
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 0, end: 2 * 3.14159),
@@ -340,9 +333,6 @@ class _SplashScreenState extends State<SplashScreen>
   }
 }
 
-// ============================================================
-// ✅ بيانات الدوائر
-// ============================================================
 class CircleData {
   final double size;
   final int duration;

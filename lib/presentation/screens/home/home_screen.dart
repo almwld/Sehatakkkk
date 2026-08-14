@@ -1,29 +1,15 @@
-import "package:flutter/material.dart";
-import 'package:flutter/rendering.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/services/health_score_service.dart';
-import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
+import 'package:sehatak/presentation/screens/home/tabs/home_tab.dart';
 import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
-import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
 import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
 import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
 import 'package:sehatak/presentation/screens/patient/patient_dashboard.dart';
 import 'package:sehatak/presentation/screens/more/more_screen.dart';
-import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
-import 'package:sehatak/presentation/screens/medication/medicines_screen.dart';
-import 'package:sehatak/presentation/screens/services/services_screen.dart';
 import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
-import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart';
-import 'package:sehatak/presentation/screens/blood_donation/blood_donation_screen.dart';
-import 'package:sehatak/presentation/screens/hospital/hospital_screen.dart';
-import 'package:sehatak/presentation/screens/payment/wallet_screen.dart';
-import 'package:sehatak/presentation/screens/consultation/consultation_screen.dart';
-import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
-import 'package:sehatak/presentation/screens/insurance/insurance_companies.dart';
-import 'package:sehatak/presentation/screens/health/health_dashboard.dart';
-import 'package:sehatak/presentation/screens/home/tabs/home_tab.dart';
-import 'package:sehatak/app_router.dart';
+import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -32,257 +18,196 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int _currentIndex = 0;
+  late PageController _pageController;
+  late List<ScrollController> _scrollControllers;
   final ValueNotifier<bool> _isBottomBarVisible = ValueNotifier<bool>(true);
-  late final List<Widget> _screens;
-  late final List<ScrollController> _scrollControllers;
-  
-  double _healthScore = 0.0;
-  bool _isLoading = true;
+  bool _isDark = false;
+
+  final List<Map<String, dynamic>> _navItems = [
+    {'icon': Icons.home_rounded, 'label': 'الرئيسية', 'index': 0},
+    {'icon': Icons.person_search_rounded, 'label': 'الأطباء', 'index': 1},
+    {'icon': Icons.local_pharmacy_rounded, 'label': 'الصيدلية', 'index': 2},
+    {'icon': Icons.chat_rounded, 'label': 'الدردشة', 'index': 3},
+    {'icon': Icons.science_rounded, 'label': 'مختبرات', 'index': 4},
+    {'icon': Icons.folder_rounded, 'label': 'صحتي', 'index': 5},
+    {'icon': Icons.grid_view_rounded, 'label': 'المزيد', 'index': 6},
+  ];
 
   @override
   void initState() {
     super.initState();
-    
+    WidgetsBinding.instance.addObserver(this);
+    _pageController = PageController(initialPage: 0);
     _scrollControllers = List.generate(7, (index) => ScrollController());
     
-    for (int i = 0; i < _scrollControllers.length; i++) {
-      _scrollControllers[i].addListener(() {
-        _handleScroll(_scrollControllers[i]);
-      });
-    }
-
-    _screens = [
-      HomeTab(scrollController: _scrollControllers[0]),
-      const DoctorsListScreen(),
-      const PharmacyScreen(),
-      const ChatScreen(),
-      const LabsListScreen(),
-      const PatientDashboard(),
-      const MoreScreen(),
-    ];
-    
-    _loadHealthScore();
-    _loadData();
-  }
-
-  Future<void> _loadData() async {
-    setState(() => _isLoading = true);
-    await Future.delayed(const Duration(seconds: 1));
-    setState(() => _isLoading = false);
-  }
-
-  Future<void> _loadHealthScore() async {
-    final score = await HealthScoreService.calculateHealthScore();
-    setState(() => _healthScore = score);
+    // ✅ منع العودة إلى Splash
+    SystemChannels.platform.setMethodCallHandler((call) async {
+      if (call.method == 'SystemNavigator.pop') {
+        // ✅ منع الخروج من التطبيق عند الضغط على Back
+        return false;
+      }
+      return null;
+    });
   }
 
   @override
   void dispose() {
-    _isBottomBarVisible.dispose();
+    _pageController.dispose();
     for (var controller in _scrollControllers) {
       controller.dispose();
     }
+    _isBottomBarVisible.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
-  bool get _isLoggedIn => FirebaseAuth.instance.currentUser != null;
-
-  void _navigateWithAuth(VoidCallback action) {
-    if (_isLoggedIn) {
-      action();
-    } else {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const AuthScreen()));
-    }
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _isDark = Theme.of(context).brightness == Brightness.dark;
   }
 
   void _onTabTap(int index) {
-    _isBottomBarVisible.value = true;
-    
-    if (index == 3 || index == 4 || index == 5) {
-      _navigateWithAuth(() => setState(() => _currentIndex = index));
-    } else {
-      setState(() => _currentIndex = index);
+    setState(() => _currentIndex = index);
+    _pageController.jumpToPage(index);
+    if (_scrollControllers[index].hasClients) {
+      _scrollControllers[index].animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
     }
   }
 
-  void _handleScroll(ScrollController controller) {
-    if (!controller.hasClients) return;
-    
-    final position = controller.position;
-    final maxScroll = position.maxScrollExtent;
-    final currentScroll = position.pixels;
-    
-    if (currentScroll <= 10) {
-      _isBottomBarVisible.value = true;
-      return;
+  Widget _buildTabContent(int index) {
+    switch (index) {
+      case 0:
+        return HomeTab(
+          scrollController: _scrollControllers[0],
+          isBottomBarVisible: _isBottomBarVisible,
+        );
+      case 1:
+        return const DoctorsListScreen();
+      case 2:
+        return const PharmacyScreen();
+      case 3:
+        return const ChatScreen();
+      case 4:
+        return const LabsListScreen();
+      case 5:
+        return const PatientDashboard();
+      case 6:
+        return const MoreScreen();
+      default:
+        return const SizedBox();
     }
-    
-    if (currentScroll >= maxScroll - 10) {
-      _isBottomBarVisible.value = true;
-      return;
-    }
-    
-    if (position.userScrollDirection == ScrollDirection.reverse) {
-      _isBottomBarVisible.value = false;
-    } else if (position.userScrollDirection == ScrollDirection.forward) {
-      _isBottomBarVisible.value = true;
-    }
+  }
+
+  Widget _buildBottomBar() {
+    return ValueListenableBuilder<bool>(
+      valueListenable: _isBottomBarVisible,
+      builder: (context, visible, child) {
+        return AnimatedSlide(
+          offset: visible ? Offset.zero : const Offset(0, 1),
+          duration: const Duration(milliseconds: 250),
+          child: AnimatedOpacity(
+            opacity: visible ? 1 : 0,
+            duration: const Duration(milliseconds: 200),
+            child: Container(
+              decoration: BoxDecoration(
+                color: _isDark ? const Color(0xFF0B1121) : Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.06),
+                    blurRadius: 10,
+                    offset: const Offset(0, -4),
+                  ),
+                ],
+              ),
+              child: SafeArea(
+                child: Container(
+                  height: 65,
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: _navItems.map((item) {
+                      final index = item['index'] as int;
+                      final isSelected = _currentIndex == index;
+                      final color = isSelected ? AppColors.primary : (_isDark ? Colors.grey[500] : Colors.grey[600]);
+                      
+                      return GestureDetector(
+                        onTap: () => _onTabTap(index),
+                        behavior: HitTestBehavior.opaque,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              item['icon'] as IconData,
+                              color: color,
+                              size: 24,
+                            ),
+                            Text(
+                              item['label'] as String,
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: color,
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? const Color(0xFF1E293B) : Colors.white;
-
-    return Scaffold(
-      body: Stack(
-        children: [
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            switchInCurve: Curves.easeOut,
-            switchOutCurve: Curves.easeIn,
-            child: _screens[_currentIndex],
+    return WillPopScope(
+      onWillPop: () async {
+        // ✅ منع الخروج من التطبيق عند الضغط على Back
+        // ✅ بدلاً من ذلك، إظهار رسالة تأكيد الخروج
+        if (_currentIndex != 0) {
+          _onTabTap(0);
+          return false;
+        }
+        // ✅ طلب تأكيد الخروج من التطبيق
+        final shouldExit = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('خروج'),
+            content: const Text('هل تريد الخروج من التطبيق؟'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('إلغاء'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('خروج'),
+              ),
+            ],
           ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: ValueListenableBuilder<bool>(
-              valueListenable: _isBottomBarVisible,
-              builder: (context, isVisible, child) {
-                return AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                  height: isVisible ? 68 : 0,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: bgColor,
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.12),
-                          blurRadius: 12,
-                          offset: const Offset(0, -4),
-                        ),
-                      ],
-                    ),
-                    child: SafeArea(
-                      top: false,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          _buildNavItem(0, Icons.home_rounded, 'الرئيسية'),
-                          _buildNavItem(1, Icons.person_search_rounded, 'الأطباء'),
-                          _buildNavItem(2, Icons.local_pharmacy_rounded, 'الصيدلية'),
-                          _buildChatButton(),
-                          _buildNavItem(4, Icons.science_rounded, 'مختبرات'),
-                          _buildNavItem(5, Icons.folder_rounded, 'صحتي'),
-                          _buildNavItem(6, Icons.grid_view_rounded, 'المزيد'),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavItem(int index, IconData icon, String label) {
-    final selected = _currentIndex == index;
-    final color = selected ? AppColors.primary : Colors.grey;
-
-    return GestureDetector(
-      onTap: () => _onTabTap(index),
-      child: SizedBox(
-        width: 48,
-        height: 60,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: color, size: 22),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 9,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                color: color,
-              ),
-            ),
-            if (selected)
-              Container(
-                width: 32,
-                height: 3,
-                margin: const EdgeInsets.only(top: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              )
-            else
-              const SizedBox(height: 7),
-          ],
+        );
+        return shouldExit ?? false;
+      },
+      child: Scaffold(
+        backgroundColor: _isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+        body: PageView(
+          controller: _pageController,
+          physics: const NeverScrollableScrollPhysics(),
+          children: List.generate(7, (index) => _buildTabContent(index)),
         ),
-      ),
-    );
-  }
-
-  Widget _buildChatButton() {
-    final selected = _currentIndex == 3;
-    return GestureDetector(
-      onTap: () => _onTabTap(3),
-      child: SizedBox(
-        width: 56,
-        height: 60,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Transform.translate(
-              offset: const Offset(0, -22),
-              child: Container(
-                width: 60,
-                height: 60,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppColors.primary, AppColors.primaryDark],
-                  ),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary,
-                      blurRadius: 14,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.chat_rounded,
-                  color: Colors.white,
-                  size: 30,
-                ),
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              'الدردشة',
-              style: TextStyle(
-                fontSize: 9,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                color: selected ? AppColors.primary : Colors.grey,
-              ),
-            ),
-            const SizedBox(height: 7),
-          ],
-        ),
+        bottomNavigationBar: _buildBottomBar(),
       ),
     );
   }
