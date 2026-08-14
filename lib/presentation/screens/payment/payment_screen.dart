@@ -1,21 +1,21 @@
-import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/payment_service.dart';
-import 'package:sehatak/core/services/wallet_service.dart';
-import 'package:sehatak/data/models/transaction_model.dart';
+import 'package:sehatak/presentation/screens/payment/payment_success_screen.dart';
 
 class PaymentScreen extends StatefulWidget {
-  final double amount;
-  final String? orderId;
-  final String? description;
+  final double total;
+  final String deliveryMethod;
+  final String address;
+  final String notes;
 
   const PaymentScreen({
     super.key,
-    required this.amount,
-    this.orderId,
-    this.description,
+    required this.total,
+    required this.deliveryMethod,
+    required this.address,
+    required this.notes,
   });
 
   @override
@@ -23,329 +23,353 @@ class PaymentScreen extends StatefulWidget {
 }
 
 class _PaymentScreenState extends State<PaymentScreen> {
-  String? _selectedWalletId;
-  bool _isProcessing = false;
-  bool _isLoading = true;
-  double _balance = 0.0;
+  String _selectedPaymentMethod = 'wallet';
+  bool _isLoading = false;
+  double _walletBalance = 0.0;
+  bool _hasEnoughBalance = false;
+
+  final List<Map<String, dynamic>> _paymentMethods = [
+    {'id': 'wallet', 'name': 'المحفظة الرقمية', 'icon': Icons.account_balance_wallet, 'color': AppColors.primary},
+    {'id': 'cash', 'name': 'الدفع عند الاستلام', 'icon': Icons.money, 'color': Colors.green},
+    {'id': 'card', 'name': 'بطاقة ائتمان', 'icon': Icons.credit_card, 'color': Colors.blue},
+  ];
 
   @override
   void initState() {
     super.initState();
-    _loadBalance();
+    _loadWalletBalance();
   }
 
-  Future<void> _loadBalance() async {
-    setState(() => _isLoading = true);
+  Future<void> _loadWalletBalance() async {
     try {
-      _balance = await WalletService.getBalance();
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final balance = await PaymentService.getWalletBalance(user.uid);
+        setState(() {
+          _walletBalance = balance;
+          _hasEnoughBalance = balance >= widget.total;
+        });
+      }
     } catch (e) {
-      print('Error loading balance: $e');
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+      // تجاهل الأخطاء
     }
   }
 
   Future<void> _processPayment() async {
-    if (_selectedWalletId == null) {
-      _showMessage('يرجى اختيار محفظة', true);
-      return;
-    }
-
-    setState(() => _isProcessing = true);
+    setState(() => _isLoading = true);
 
     try {
-      final result = await PaymentService.processPayment(
-        amount: widget.amount,
-        walletId: _selectedWalletId!,
-        orderId: widget.orderId,
-        description: widget.description ?? 'دفع خدمات صحتك',
-      );
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('❌ يرجى تسجيل الدخول أولاً'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        setState(() => _isLoading = false);
+        return;
+      }
 
-      if (result.isSuccess) {
-        _showMessage('✅ تم الدفع بنجاح!', false);
-        await Future.delayed(const Duration(seconds: 1));
-        if (mounted) Navigator.pop(context, true);
+      if (_selectedPaymentMethod == 'wallet') {
+        // ✅ الدفع من المحفظة
+        if (!_hasEnoughBalance) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('❌ رصيد غير كافٍ. الرصيد الحالي: $_walletBalance ر.ي'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          setState(() => _isLoading = false);
+          return;
+        }
+
+        // ✅ معالجة الدفع
+        final result = await PaymentService.processPayment(
+          userId: user.uid,
+          amount: widget.total,
+          orderId: 'order_${DateTime.now().millisecondsSinceEpoch}',
+          notes: widget.notes,
+        );
+
+        if (result['success']) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => PaymentSuccessScreen(
+                amount: widget.total,
+                orderId: result['orderId'],
+                paymentMethod: 'المحفظة الرقمية',
+              ),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('❌ ${result['message']}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } else if (_selectedPaymentMethod == 'cash') {
+        // ✅ الدفع عند الاستلام
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => PaymentSuccessScreen(
+              amount: widget.total,
+              orderId: 'order_${DateTime.now().millisecondsSinceEpoch}',
+              paymentMethod: 'الدفع عند الاستلام',
+              isCash: true,
+            ),
+          ),
+        );
       } else {
-        _showMessage('❌ ${result.errorMessage}', true);
+        // ✅ بطاقة ائتمان (محاكاة)
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('💳 سيتم تفعيل الدفع بالبطاقة قريباً'),
+            backgroundColor: Colors.blue,
+          ),
+        );
       }
     } catch (e) {
-      _showMessage('❌ حدث خطأ: $e', true);
-    } finally {
-      if (mounted) setState(() => _isProcessing = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ حدث خطأ: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
-  }
 
-  void _showMessage(String message, bool isError) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? Colors.red : Colors.green,
-        duration: const Duration(seconds: 3),
-      ),
-    );
+    setState(() => _isLoading = false);
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final canPay = _selectedWalletId != null && !_isProcessing && _balance >= widget.amount;
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: CustomAppBar(
-        title: 'إتمام الدفع',
+      appBar: AppBar(
+        title: const Text('طريقة الدفع'),
         backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
         foregroundColor: isDark ? Colors.white : Colors.black87,
         elevation: 0,
       ),
-      body: Column(
-        children: [
-          // ✅ المبلغ
-          Container(
-            padding: const EdgeInsets.all(24),
-            margin: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1A2540) : Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                const Text(
-                  'المبلغ المطلوب',
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '${widget.amount} ريال',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'رقم نقطة الدفع: ${PaymentService.paymentPointNumber}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // ✅ الرصيد المتاح
-          Container(
-            padding: const EdgeInsets.all(16),
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1A2540) : Colors.white,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'الرصيد المتاح',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: isDark ? Colors.white70 : Colors.grey[600],
-                  ),
-                ),
-                _isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(
-                        '${_balance.toStringAsFixed(0)} ريال',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: _balance >= widget.amount ? Colors.green : Colors.red,
-                        ),
-                      ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // ✅ اختيار المحفظة
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: Text(
-                'اختر طريقة الدفع',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.black87,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 0.85,
-              ),
-              itemCount: PaymentService.supportedWallets.length,
-              itemBuilder: (context, index) {
-                final wallet = PaymentService.supportedWallets[index];
-                final isSelected = _selectedWalletId == wallet['id'];
-                final color = Color(wallet['color'] as int);
-
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedWalletId = wallet['id'] as String;
-                    });
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ✅ إجمالي المبلغ
+                  Container(
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: isDark ? const Color(0xFF1A2540) : Colors.white,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: isSelected ? color : (isDark ? Colors.grey[800]! : Colors.grey[200]!),
-                        width: isSelected ? 2 : 1,
-                      ),
-                      boxShadow: isSelected
-                          ? [
-                              BoxShadow(
-                                color: color.withOpacity(0.3),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ]
-                          : null,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.04),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // ✅ أيقونة المحفظة
-                        Container(
-                          width: 48,
-                          height: 48,
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: color.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Image.asset(
-                            wallet['icon'] as String,
-                            width: 32,
-                            height: 32,
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Icon(
-                                Icons.account_balance_wallet,
-                                color: color,
-                                size: 32,
-                              );
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          wallet['name'] as String,
+                        const Text(
+                          'إجمالي المبلغ',
                           style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                            color: isSelected ? color : (isDark ? Colors.white70 : Colors.grey[600]),
+                            fontSize: 14,
+                            color: Colors.grey,
                           ),
-                          textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 4),
-                        if (isSelected)
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.green,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Text(
-                              'مختار',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 8,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                        Text(
+                          '${widget.total.toStringAsFixed(0)} ر.ي',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
                           ),
+                        ),
                       ],
                     ),
                   ),
-                );
-              },
-            ),
-          ),
+                  const SizedBox(height: 16),
 
-          // ✅ زر الدفع
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: SizedBox(
-              width: double.infinity,
-              height: 54,
-              child: ElevatedButton(
-                onPressed: canPay ? _processPayment : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                child: _isProcessing
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
+                  // ✅ رصيد المحفظة
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: AppColors.primary.withOpacity(0.2),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.account_balance_wallet, color: AppColors.primary, size: 32),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'رصيد المحفظة',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              Text(
+                                '${_walletBalance.toStringAsFixed(0)} ر.ي',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      )
-                    : Text(
-                        'دفع ${widget.amount} ريال',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: _hasEnoughBalance ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            _hasEnoughBalance ? '✅ كافٍ' : '❌ غير كافٍ',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: _hasEnoughBalance ? Colors.green : Colors.red,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // ✅ طرق الدفع
+                  const Text(
+                    'اختر طريقة الدفع',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ..._paymentMethods.map((method) {
+                    final isSelected = _selectedPaymentMethod == method['id'];
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isSelected
+                              ? AppColors.primary
+                              : (isDark ? Colors.grey[800]! : Colors.grey[300]!),
+                          width: isSelected ? 2 : 1,
                         ),
                       ),
-              ),
-            ),
-          ),
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _selectedPaymentMethod = method['id'] as String;
+                          });
+                        },
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: (method['color'] as Color).withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Icon(
+                                method['icon'] as IconData,
+                                color: method['color'] as Color,
+                                size: 24,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                method['name'] as String,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
+                              ),
+                            ),
+                            Radio<String>(
+                              value: method['id'] as String,
+                              groupValue: _selectedPaymentMethod,
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectedPaymentMethod = value!;
+                                });
+                              },
+                              activeColor: AppColors.primary,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
 
-          // ✅ معلومات إضافية
-          Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: Text(
-              'سيتم خصم المبلغ من محفظتك',
-              style: TextStyle(
-                fontSize: 12,
-                color: isDark ? Colors.grey[500] : Colors.grey[400],
+                  const SizedBox(height: 24),
+
+                  // ✅ زر الدفع
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _processPayment,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'إتمام الدفع',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '${widget.total.toStringAsFixed(0)} ر.ي',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-        ],
-      ),
     );
   }
 }
