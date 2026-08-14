@@ -16,7 +16,6 @@ import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
 import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
 import 'package:sehatak/presentation/screens/services/services_screen.dart';
 import 'package:sehatak/presentation/screens/consultation/consultation_screen.dart';
-import 'package:sehatak/presentation/screens/medical_records/medical_records_screen.dart';
 
 class MoreScreen extends StatefulWidget {
   const MoreScreen({super.key});
@@ -52,7 +51,6 @@ class _MoreScreenState extends State<MoreScreen> {
     {'icon': 'assets/images/services/medical_community.png', 'label': 'خدمات صحية', 'screen': const ServicesScreen()},
     {'icon': 'assets/images/services/video_consultation.png', 'label': 'استشارة فيديو', 'screen': const ConsultationScreen()},
     {'icon': 'assets/images/services/health_insurance.png', 'label': 'التأمين الصحي', 'screen': const InsuranceCompaniesScreen()},
-    {'icon': 'assets/images/services/medical_records.png', 'label': 'السجل الطبي', 'screen': const MedicalRecordsScreen()},
     {'icon': 'assets/images/services/medical_community.png', 'label': 'عن التطبيق', 'screen': const AboutScreen()},
     {'icon': 'settings_material', 'label': 'الإعدادات', 'screen': const SettingsScreen()},
   ];

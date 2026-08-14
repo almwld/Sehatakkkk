@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/core/models/order_model.dart';
 import 'package:sehatak/core/services/order_service.dart';
 import 'package:sehatak/presentation/screens/payment/payment_screen.dart';
@@ -21,7 +22,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   String _notes = '';
   bool _isLoading = false;
 
-  // ✅ شركات التوصيل
+  // ✅ شركات التوصيل مع أيقونات ImageKit
   final List<Map<String, dynamic>> _deliveryCompanies = [
     {'id': 'sehatak', 'name': 'توصيل صحتك', 'icon': ImageKit.deliverySehatak, 'available': true},
     {'id': 'nas', 'name': 'ناس', 'icon': ImageKit.deliveryNas, 'available': false},
@@ -74,51 +75,65 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ),
                       child: Row(
                         children: [
+                          // ✅ أيقونة التوصيل
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Center(
+                              child: Image.network(
+                                company['icon'] as String,
+                                width: 28,
+                                height: 28,
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Icon(
+                                    Icons.delivery_dining,
+                                    color: AppColors.primary,
+                                    size: 28,
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
                           Expanded(
-                            child: Row(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(
-                                  company['available'] ? Icons.check_circle : Icons.hourglass_empty,
-                                  color: company['available'] ? Colors.green : Colors.orange,
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        company['name'] as String,
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w500,
-                                          color: isDark ? Colors.white : Colors.black87,
-                                        ),
-                                      ),
-                                      if (!company['available'])
-                                        Text(
-                                          'قريباً',
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color: Colors.orange,
-                                          ),
-                                        ),
-                                    ],
+                                Text(
+                                  company['name'] as String,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: isDark ? Colors.white : Colors.black87,
                                   ),
                                 ),
-                                if (company['available'])
-                                  Radio<String>(
-                                    value: company['id'] as String,
-                                    groupValue: _selectedDelivery,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        _selectedDelivery = value!;
-                                      });
-                                    },
-                                    activeColor: AppColors.primary,
+                                if (!company['available'])
+                                  Text(
+                                    'قريباً',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.orange,
+                                    ),
                                   ),
                               ],
                             ),
                           ),
+                          if (company['available'])
+                            Radio<String>(
+                              value: company['id'] as String,
+                              groupValue: _selectedDelivery,
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectedDelivery = value!;
+                                });
+                              },
+                              activeColor: AppColors.primary,
+                            ),
                         ],
                       ),
                     );
@@ -266,7 +281,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) => PaymentScreen(
-                                    items: widget.items,
                                     total: widget.total,
                                     deliveryMethod: _selectedDelivery,
                                     address: _address,
