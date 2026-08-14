@@ -1,61 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:sehatak/core/services/cache_service.dart';
+import 'package:sehatak/presentation/screens/splash_screen.dart';
 import 'firebase_options.dart';
-import 'core/providers/font_size_provider.dart';
-import 'core/providers/user_provider.dart';
-import 'core/providers/cart_provider.dart';
-import 'core/themes/theme_manager.dart';
-import 'presentation/bloc/auth_bloc/auth_bloc.dart';
-import 'presentation/bloc/theme_bloc/theme_bloc.dart';
-import 'presentation/bloc/chat_bloc/chat_bloc.dart';
-import 'presentation/bloc/doctor_bloc/doctor_bloc.dart';
-import 'presentation/screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
-
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    print('✅ Firebase initialized successfully');
-  } catch (e) {
-    print('❌ Firebase initialization error: $e');
-  }
-
-  runApp(
-    MultiProvider(
-      providers: [
-        // ✅ Providers الحالية
-        ChangeNotifierProvider(
-          create: (_) => UserProvider()..loadUser(),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => FontSizeProvider(),
-        ),
-        // ✅ إضافة CartProvider (إدارة السلة)
-        ChangeNotifierProvider(
-          create: (_) => CartProvider(),
-        ),
-        // ✅ Bloc Providers
-        BlocProvider(
-          create: (_) => AuthBloc()..add(CheckAuthStatus()),
-        ),
-        BlocProvider(create: (_) => ThemeBloc()),
-        BlocProvider(create: (_) => ChatBloc()),
-        BlocProvider(create: (_) => DoctorBloc()),
-      ],
-      child: const SehatakApp(),
-    ),
+  
+  // ✅ تهيئة Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
   );
+  
+  // ✅ تهيئة الكاش
+  await CacheService.init();
+  
+  runApp(const SehatakApp());
 }
 
 class SehatakApp extends StatelessWidget {
@@ -63,44 +23,29 @@ class SehatakApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ThemeBloc, ThemeState>(
-      builder: (context, themeState) {
-        return Consumer<FontSizeProvider>(
-          builder: (context, fontProvider, child) {
-            return MaterialApp(
-              title: 'صحتك',
-              debugShowCheckedModeBanner: false,
-              locale: const Locale('ar', 'SA'),
-              theme: ThemeManager.lightTheme,
-              darkTheme: ThemeManager.darkTheme,
-              themeMode: themeState.themeMode,
-              // ✅ حل مشكلة الشاشة البيضاء - منع إعادة البناء
-              builder: (context, child) {
-                // ✅ التحقق من وجود child قبل الإرجاع
-                if (child == null) {
-                  return const SizedBox.shrink();
-                }
-                // ✅ إضافة Keys لمنع إعادة البناء غير الضرورية
-                return MediaQuery(
-                  key: const ValueKey('app_media_query'),
-                  data: MediaQuery.of(context).copyWith(
-                    textScaleFactor: fontProvider.fontScale,
-                  ),
-                  child: Directionality(
-                    textDirection: TextDirection.rtl,
-                    child: child,
-                  ),
-                );
-              },
-              // ✅ إضافة GlobalKey لتحسين الأداء
-              navigatorKey: GlobalKey<NavigatorState>(),
-              // ✅ منع إعادة بناء التطبيق بالكامل
-              restorationScopeId: 'app',
-              home: const SplashScreen(),
-            );
-          },
-        );
-      },
+    return MaterialApp(
+      title: 'صحتك',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        fontFamily: 'NotoSansArabicUI',
+        primaryColor: const Color(0xFF0D5257),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF0D5257),
+          brightness: Brightness.light,
+        ),
+        useMaterial3: true,
+      ),
+      darkTheme: ThemeData(
+        fontFamily: 'NotoSansArabicUI',
+        brightness: Brightness.dark,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF0D5257),
+          brightness: Brightness.dark,
+        ),
+        useMaterial3: true,
+      ),
+      themeMode: ThemeMode.system,
+      home: const SplashScreen(),
     );
   }
 }
