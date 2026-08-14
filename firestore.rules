@@ -1,0 +1,52 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ✅ قراءة/كتابة المستخدمين
+    match /users/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // ✅ محفظة المستخدم
+    match /users/{userId}/meta/wallet {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if false; // فقط عبر Cloud Functions
+    }
+
+    // ✅ معاملات المستخدم
+    match /users/{userId}/transactions/{transactionId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if false; // فقط عبر Cloud Functions
+    }
+
+    // ✅ الطلبات
+    match /orders/{orderId} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow write: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+
+    // ✅ الأدوية
+    match /medicines/{medicineId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.admin == true;
+    }
+
+    // ✅ الأطباء
+    match /doctors/{doctorId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.admin == true;
+    }
+
+    // ✅ المقالات
+    match /articles/{articleId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.admin == true;
+    }
+
+    // ✅ المنشورات
+    match /posts/{postId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}
