@@ -26,7 +26,7 @@ class HealthDetailScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: CustomCustomAppBar(
+      appBar: AppBar(
         title: title,
         backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
         foregroundColor: isDark ? Colors.white : Colors.black87,

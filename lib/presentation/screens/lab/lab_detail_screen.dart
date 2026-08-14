@@ -74,7 +74,7 @@ class _LabDetailScreenState extends State<LabDetailScreen> with SingleTickerProv
             onPressed: () {},
           ),
         ],
-        bottom: const TabBar(
+        bottom: TabBar(
           controller: _tabController,
           tabs: const [
             Tab(text: 'نبذة'),

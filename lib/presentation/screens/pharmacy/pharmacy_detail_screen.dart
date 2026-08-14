@@ -208,7 +208,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: CustomAppBar(
-        title: Text(pharmacy['name'] as String),
+        title: pharmacy['name'] as String),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,

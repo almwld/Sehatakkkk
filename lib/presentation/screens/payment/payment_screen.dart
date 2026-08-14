@@ -6,16 +6,16 @@ import 'package:sehatak/presentation/screens/payment/payment_success_screen.dart
 
 class PaymentScreen extends StatefulWidget {
   final double total;
-  final String deliveryMethod;
   final String address;
   final String notes;
+  final String deliveryMethod;
 
   const PaymentScreen({
     super.key,
     required this.total,
-    required this.deliveryMethod,
     required this.address,
     required this.notes,
+    this.deliveryMethod = 'sehatak',
   });
 
   @override
@@ -50,29 +50,22 @@ class _PaymentScreenState extends State<PaymentScreen> {
           _hasEnoughBalance = balance >= widget.total;
         });
       }
-    } catch (e) {
-      // تجاهل الأخطاء
-    }
+    } catch (e) {}
   }
 
   Future<void> _processPayment() async {
     setState(() => _isLoading = true);
-
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('❌ يرجى تسجيل الدخول أولاً'),
-            backgroundColor: Colors.red,
-          ),
+          const SnackBar(content: Text('❌ يرجى تسجيل الدخول أولاً'), backgroundColor: Colors.red),
         );
         setState(() => _isLoading = false);
         return;
       }
 
       if (_selectedPaymentMethod == 'wallet') {
-        // ✅ الدفع من المحفظة
         if (!_hasEnoughBalance) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -84,7 +77,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
           return;
         }
 
-        // ✅ معالجة الدفع
         final result = await PaymentService.processPayment(
           userId: user.uid,
           amount: widget.total,
@@ -105,43 +97,27 @@ class _PaymentScreenState extends State<PaymentScreen> {
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('❌ ${result['message']}'),
-              backgroundColor: Colors.red,
-            ),
+            SnackBar(content: Text('❌ ${result['message']}'), backgroundColor: Colors.red),
           );
         }
-      } else if (_selectedPaymentMethod == 'cash') {
-        // ✅ الدفع عند الاستلام
+      } else {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (_) => PaymentSuccessScreen(
               amount: widget.total,
               orderId: 'order_${DateTime.now().millisecondsSinceEpoch}',
-              paymentMethod: 'الدفع عند الاستلام',
-              isCash: true,
+              paymentMethod: _selectedPaymentMethod == 'cash' ? 'الدفع عند الاستلام' : 'بطاقة ائتمان',
+              isCash: _selectedPaymentMethod == 'cash',
             ),
-          ),
-        );
-      } else {
-        // ✅ بطاقة ائتمان (محاكاة)
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('💳 سيتم تفعيل الدفع بالبطاقة قريباً'),
-            backgroundColor: Colors.blue,
           ),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('❌ حدث خطأ: $e'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text('❌ حدث خطأ: $e'), backgroundColor: Colors.red),
       );
     }
-
     setState(() => _isLoading = false);
   }
 
@@ -162,55 +138,30 @@ class _PaymentScreenState extends State<PaymentScreen> {
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ✅ إجمالي المبلغ
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: isDark ? const Color(0xFF1A2540) : Colors.white,
                       borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
                     ),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'إجمالي المبلغ',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
-                          ),
-                        ),
+                        const Text('إجمالي المبلغ', style: TextStyle(fontSize: 14, color: Colors.grey)),
                         const SizedBox(height: 4),
                         Text(
                           '${widget.total.toStringAsFixed(0)} ر.ي',
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
-                          ),
+                          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.primary),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 16),
-
-                  // ✅ رصيد المحفظة
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: AppColors.primary.withOpacity(0.08),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: AppColors.primary.withOpacity(0.2),
-                      ),
                     ),
                     child: Row(
                       children: [
@@ -220,20 +171,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'رصيد المحفظة',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey,
-                                ),
-                              ),
+                              const Text('رصيد المحفظة', style: TextStyle(fontSize: 14, color: Colors.grey)),
                               Text(
                                 '${_walletBalance.toStringAsFixed(0)} ر.ي',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.primary,
-                                ),
+                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.primary),
                               ),
                             ],
                           ),
@@ -246,26 +187,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           ),
                           child: Text(
                             _hasEnoughBalance ? '✅ كافٍ' : '❌ غير كافٍ',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: _hasEnoughBalance ? Colors.green : Colors.red,
-                              fontWeight: FontWeight.w500,
-                            ),
+                            style: TextStyle(fontSize: 11, color: _hasEnoughBalance ? Colors.green : Colors.red),
                           ),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 24),
-
-                  // ✅ طرق الدفع
-                  const Text(
-                    'اختر طريقة الدفع',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  const Text('اختر طريقة الدفع', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 12),
                   ..._paymentMethods.map((method) {
                     final isSelected = _selectedPaymentMethod == method['id'];
@@ -275,19 +204,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       decoration: BoxDecoration(
                         color: isDark ? const Color(0xFF1A2540) : Colors.white,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: isSelected
-                              ? AppColors.primary
-                              : (isDark ? Colors.grey[800]! : Colors.grey[300]!),
-                          width: isSelected ? 2 : 1,
-                        ),
+                        border: Border.all(color: isSelected ? AppColors.primary : (isDark ? Colors.grey[800]! : Colors.grey[300]!), width: isSelected ? 2 : 1),
                       ),
                       child: GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _selectedPaymentMethod = method['id'] as String;
-                          });
-                        },
+                        onTap: () => setState(() => _selectedPaymentMethod = method['id'] as String),
                         child: Row(
                           children: [
                             Container(
@@ -297,31 +217,19 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                 color: (method['color'] as Color).withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: Icon(
-                                method['icon'] as IconData,
-                                color: method['color'] as Color,
-                                size: 24,
-                              ),
+                              child: Icon(method['icon'] as IconData, color: method['color'] as Color, size: 24),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
                                 method['name'] as String,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: isDark ? Colors.white : Colors.black87,
-                                ),
+                                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: isDark ? Colors.white : Colors.black87),
                               ),
                             ),
                             Radio<String>(
                               value: method['id'] as String,
                               groupValue: _selectedPaymentMethod,
-                              onChanged: (value) {
-                                setState(() {
-                                  _selectedPaymentMethod = value!;
-                                });
-                              },
+                              onChanged: (value) => setState(() => _selectedPaymentMethod = value!),
                               activeColor: AppColors.primary,
                             ),
                           ],
@@ -329,10 +237,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       ),
                     );
                   }).toList(),
-
                   const SizedBox(height: 24),
-
-                  // ✅ زر الدفع
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -341,28 +246,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text(
-                            'إتمام الدفع',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          const Text('إتمام الدفع', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                           const SizedBox(width: 8),
-                          Text(
-                            '${widget.total.toStringAsFixed(0)} ر.ي',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          Text('${widget.total.toStringAsFixed(0)} ر.ي', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ),

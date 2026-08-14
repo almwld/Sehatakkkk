@@ -17,7 +17,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
     return Scaffold(
       appBar: CustomAppBar(
-        title: const Text('الإشعارات', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: 'الإشعارات',
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         actions: [
