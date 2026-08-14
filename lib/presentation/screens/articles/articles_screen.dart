@@ -290,7 +290,7 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
       builder: (context) {
         String tempSearch = '';
         return AlertDialog(
-          title: 'بحث عن مقالات',
+          title: const Text('بحث عن مقالات'),
           content: TextField(
             onChanged: (value) => tempSearch = value,
             autofocus: true,

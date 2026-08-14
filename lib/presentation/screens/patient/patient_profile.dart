@@ -486,7 +486,7 @@ class _PatientProfileState extends State<PatientProfile> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: 'تسجيل الخروج',
+        title: Text('تسجيل الخروج'),
         content: const Text('هل أنت متأكد من رغبتك في تسجيل الخروج؟'),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         actions: [

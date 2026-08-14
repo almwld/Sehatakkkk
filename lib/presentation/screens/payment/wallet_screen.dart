@@ -136,7 +136,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                     context,
                                     MaterialPageRoute(
                                       builder: (_) => const PaymentScreen(
-                                        amount: 1000,
+                                        
                                         description: 'شحن المحفظة',
                                       ),
                                     ),

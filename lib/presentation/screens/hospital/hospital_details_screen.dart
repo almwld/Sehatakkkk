@@ -565,25 +565,6 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen>
           ],
         ),
       ),
-      bottomNavigationBar: CustomBottomNavBar(
-          currentIndex: 0,
-          onTap: (index) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) {
-                  switch (index) {
-                    case 0: return const HomeScreen();
-                    case 1: return const DoctorsListScreen();
-                    case 2: return const PharmacyScreen();
-                    case 3: return const ChatScreen();
-                    case 4: return const LabsListScreen();
-                    case 5: return const PatientDashboard();
-                    case 6: return const MoreScreen();
-                    default: return const HomeScreen();
-                  }
-                },
-              ),
             );
           },
           isVisible: true,

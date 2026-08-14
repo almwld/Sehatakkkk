@@ -277,7 +277,7 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
       builder: (context) {
         String tempSearch = '';
         return AlertDialog(
-          title: 'بحث عن دواء',
+          title: const Text('بحث عن دواء'),
           content: TextField(
             onChanged: (value) => tempSearch = value,
             autofocus: true,

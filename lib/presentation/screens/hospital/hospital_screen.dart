@@ -312,7 +312,7 @@ class _HospitalScreenState extends State<HospitalScreen> {
       builder: (context) {
         String tempSearch = '';
         return AlertDialog(
-          title: 'بحث عن مستشفى',
+          title: const Text('بحث عن مستشفى'),
           content: TextField(
             onChanged: (value) => tempSearch = value,
             autofocus: true,
