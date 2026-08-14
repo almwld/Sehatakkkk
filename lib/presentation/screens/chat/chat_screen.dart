@@ -9,6 +9,7 @@ import 'package:sehatak/presentation/bloc/chat_bloc/chat_bloc.dart';
 import 'package:sehatak/presentation/bloc/chat_bloc/chat_event.dart';
 import 'package:sehatak/presentation/bloc/chat_bloc/chat_state.dart';
 import 'package:sehatak/presentation/screens/chat/chat_detail_screen.dart';
+import 'package:sehatak/presentation/screens/assistant/assistant_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -19,20 +20,8 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final List<Map<String, dynamic>> _stories = [];
-
-  // ✅ أيقونات الدردشة الجديدة
-  final List<Map<String, dynamic>> _chatIcons = [
-    {'icon': 'assets/images/chat/audio_record.png', 'label': 'تسجيل صوتي', 'color': Colors.red},
-    {'icon': 'assets/images/chat/phone_call.png', 'label': 'مكالمة', 'color': Colors.green},
-    {'icon': 'assets/images/chat/video_call.png', 'label': 'مكالمة فيديو', 'color': Colors.blue},
-    {'icon': 'assets/images/chat/chat_bubble.png', 'label': 'دردشة', 'color': AppColors.primary},
-    {'icon': 'assets/images/chat/calendar_booking.png', 'label': 'حجز موعد', 'color': Colors.orange},
-    {'icon': 'assets/images/chat/microphone.png', 'label': 'ميكروفون', 'color': Colors.purple},
-    {'icon': 'assets/images/chat/play_button.png', 'label': 'تشغيل', 'color': Colors.teal},
-  ];
-
-  // ✅ أطباء وهميون مع صور من ImageKit
+  
+  // ✅ بيانات الأطباء الافتراضية من ImageKit
   final List<Map<String, dynamic>> _doctors = [
     {'name': 'د. أحمد المولد', 'image': ImageKit.doctor1, 'id': 'doc1'},
     {'name': 'د. خالد النخلاني', 'image': ImageKit.doctor2, 'id': 'doc2'},
@@ -40,6 +29,13 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     {'name': 'د. محمد العلاي', 'image': ImageKit.doctor4, 'id': 'doc4'},
     {'name': 'د. فاطمة صديقي', 'image': ImageKit.doctor5, 'id': 'doc5'},
   ];
+
+  // ✅ المساعد الذكي
+  final Map<String, dynamic> _assistant = {
+    'name': 'المساعد الصحي',
+    'image': 'assets/images/services/ai_assistant.png',
+    'id': 'assistant',
+  };
 
   @override
   void initState() {
@@ -96,19 +92,79 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
             Container(
               width: 50,
               height: 4,
-              decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
             const SizedBox(height: 16),
             const Text(
               'بدء محادثة جديدة',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0D5257)),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF0D5257),
+              ),
             ),
             const SizedBox(height: 16),
+            
+            // ✅ المساعد الذكي
+            _buildAssistantTile(),
+            const Divider(),
+            
+            // ✅ قائمة الأطباء
             _buildDoctorList(),
             const SizedBox(height: 20),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildAssistantTile() {
+    return ListTile(
+      leading: ClipRRect(
+        borderRadius: BorderRadius.circular(25),
+        child: Image.asset(
+          'assets/images/services/ai_assistant.png',
+          width: 40,
+          height: 40,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.medical_services, color: AppColors.primary),
+          ),
+        ),
+      ),
+      title: const Text('المساعد الصحي الذكي'),
+      subtitle: const Text('اسألني عن صحتك وأدويتك'),
+      trailing: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        decoration: BoxDecoration(
+          color: Colors.green.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Text(
+          'متاح',
+          style: TextStyle(
+            fontSize: 10,
+            color: Colors.green,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+      onTap: () {
+        Navigator.pop(context);
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AIChatbotScreen()),
+        );
+      },
     );
   }
 
@@ -152,85 +208,6 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildSheetActionTile(String title, IconData icon, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-            const SizedBox(width: 16),
-            CircleAvatar(
-              backgroundColor: const Color(0xFFE2F4F4),
-              child: Icon(icon, color: const Color(0xFF0D5257)),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ✅ دالة عرض عنصر دردشة فردي مع أيقونات جديدة
-  Widget _buildChatActionItem(Map<String, dynamic> item, bool isDark) {
-    return GestureDetector(
-      onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('📱 ${item['label']}'),
-            backgroundColor: item['color'] as Color,
-            duration: const Duration(seconds: 1),
-          ),
-        );
-      },
-      child: Container(
-        width: 80,
-        margin: const EdgeInsets.symmetric(horizontal: 4),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: (item['color'] as Color).withOpacity(0.12),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Center(
-                child: Image.asset(
-                  item['icon'] as String,
-                  width: 32,
-                  height: 32,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Icon(Icons.circle, color: item['color'] as Color, size: 32);
-                  },
-                ),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              item['label'] as String,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-                color: isDark ? Colors.white70 : Colors.grey[700],
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -244,7 +221,11 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
         centerTitle: true,
         title: const Text(
           'المحادثات',
-          style: TextStyle(color: Color(0xFF0D5257), fontWeight: FontWeight.bold, fontSize: 20),
+          style: TextStyle(
+            color: Color(0xFF0D5257),
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
         ),
         actions: [
           IconButton(
@@ -268,28 +249,38 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
         builder: (context, state) {
           return Column(
             children: [
-              _buildStoriesRow(isDark),
-              TabBar(
-                controller: _tabController,
-                labelColor: primaryColor,
-                unselectedLabelColor: Colors.grey,
-                indicatorColor: primaryColor,
-                indicatorSize: TabBarIndicatorSize.label,
-                labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, fontFamily: 'NotoSansArabicUI'),
-                tabs: const [
-                  Tab(text: 'الحالات'),
-                  Tab(text: 'المكالمات'),
-                  Tab(text: 'المحادثات'),
-                ],
+              // ✅ تبويبات RTL
+              Directionality(
+                textDirection: TextDirection.rtl,
+                child: TabBar(
+                  controller: _tabController,
+                  labelColor: primaryColor,
+                  unselectedLabelColor: Colors.grey,
+                  indicatorColor: primaryColor,
+                  indicatorSize: TabBarIndicatorSize.label,
+                  labelStyle: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    fontFamily: 'NotoSansArabicUI',
+                  ),
+                  tabs: const [
+                    Tab(text: 'حالة'),
+                    Tab(text: 'مكالمات'),
+                    Tab(text: 'محادثات'),
+                  ],
+                ),
               ),
               Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    _buildStatusTab(isDark),
-                    _buildCallsTab(isDark),
-                    _buildChatsTab(state, isDark, primaryColor),
-                  ],
+                child: Directionality(
+                  textDirection: TextDirection.rtl,
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildStatusTab(isDark),
+                      _buildCallsTab(isDark),
+                      _buildChatsTab(state, isDark, primaryColor),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -304,91 +295,66 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildStoriesRow(bool isDark) {
-    return Container(
-      height: 100,
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        reverse: true,
-        itemCount: 5,
-        itemBuilder: (context, index) {
-          final doctor = _doctors[index % _doctors.length];
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: Column(
-              children: [
-                Stack(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(2.5),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: index == 0 ? Colors.grey.shade300 : const Color(0xFF0D5257),
-                          width: 2,
-                        ),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(28),
-                        child: Image.network(
-                          doctor['image'] as String,
-                          width: 52,
-                          height: 52,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
-                            width: 52,
-                            height: 52,
-                            color: const Color(0xFF0D5257).withOpacity(0.1),
-                            child: Icon(
-                              index == 0 ? Icons.add : Icons.person,
-                              color: const Color(0xFF0D5257),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (index == 0)
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: Container(
-                          width: 18,
-                          height: 18,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF0D5257),
-                            shape: BoxShape.circle,
-                            border: Border.fromBorderSide(BorderSide(color: Colors.white, width: 2)),
-                          ),
-                          child: const Icon(Icons.add, color: Colors.white, size: 12),
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  index == 0 ? 'قصتي' : doctor['name']?.split(' ').last ?? 'طبيب',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                )
-              ],
+  // ============================================================
+  // 📱 تبويب الحالة
+  // ============================================================
+  Widget _buildStatusTab(bool isDark) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.circle_outlined,
+            size: 80,
+            color: isDark ? Colors.grey[600] : Colors.grey[300],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'لا توجد حالات',
+            style: TextStyle(
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
+              fontSize: 16,
             ),
-          );
-        },
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'شارك حالتك مع الآخرين',
+            style: TextStyle(
+              color: isDark ? Colors.grey[500] : Colors.grey[400],
+              fontSize: 13,
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('جاري إضافة حالة...'), backgroundColor: Colors.blue),
+              );
+            },
+            icon: const Icon(Icons.add_photo_alternate_rounded),
+            label: const Text('إضافة حالة'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0D5257),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
+  // ============================================================
+  // 📱 تبويب المكالمات
+  // ============================================================
   Widget _buildCallsTab(bool isDark) {
     final calls = [
       {'name': 'د. أحمد المولد', 'type': 'audio', 'status': 'answered', 'time': '10:30 ص', 'duration': '5:23', 'image': ImageKit.doctor1},
       {'name': 'د. خالد النخلاني', 'type': 'video', 'status': 'missed', 'time': 'أمس', 'duration': '', 'image': ImageKit.doctor2},
       {'name': 'د. أسماء الهندي', 'type': 'audio', 'status': 'answered', 'time': 'منذ ساعة', 'duration': '2:45', 'image': ImageKit.doctor3},
+      {'name': 'د. محمد العلاي', 'type': 'video', 'status': 'answered', 'time': 'منذ يوم', 'duration': '10:12', 'image': ImageKit.doctor4},
     ];
 
     return ListView.builder(
@@ -478,54 +444,9 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildStatusTab(bool isDark) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.circle_outlined,
-            size: 80,
-            color: isDark ? Colors.grey[600] : Colors.grey[300],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'لا توجد حالات',
-            style: TextStyle(
-              color: isDark ? Colors.grey[400] : Colors.grey[600],
-              fontSize: 16,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'شارك حالتك مع الآخرين',
-            style: TextStyle(
-              color: isDark ? Colors.grey[500] : Colors.grey[400],
-              fontSize: 13,
-            ),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('جاري إضافة حالة...'), backgroundColor: Colors.blue),
-              );
-            },
-            icon: const Icon(Icons.add_photo_alternate_rounded),
-            label: const Text('إضافة حالة'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0D5257),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
+  // ============================================================
+  // 📱 تبويب المحادثات
+  // ============================================================
   Widget _buildChatsTab(ChatState state, bool isDark, Color primaryColor) {
     if (state is ChatLoadingState) {
       return const Center(child: CircularProgressIndicator());
@@ -584,17 +505,27 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                     if (unreadCount > 0)
                       Container(
                         padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(color: primaryColor, shape: BoxShape.circle),
+                        decoration: BoxDecoration(
+                          color: primaryColor,
+                          shape: BoxShape.circle,
+                        ),
                         child: Text(
                           '$unreadCount',
-                          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                  ]
+                  ],
                 ),
                 title: Text(
                   otherName ?? 'مستخدم',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
                   textAlign: TextAlign.end,
                 ),
                 subtitle: Padding(
@@ -641,6 +572,9 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     return const SizedBox.shrink();
   }
 
+  // ============================================================
+  // 📱 حالات فارغة وخطأ
+  // ============================================================
   Widget _buildEmptyState(bool isDark) {
     return Center(
       child: Column(
@@ -732,6 +666,9 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     );
   }
 
+  // ============================================================
+  // 🛠️ دوال مساعدة
+  // ============================================================
   String _formatTime(dynamic timestamp) {
     if (timestamp == null) return '';
     try {
