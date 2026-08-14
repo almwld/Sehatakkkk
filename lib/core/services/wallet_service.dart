@@ -30,7 +30,8 @@ class WalletService {
       try {
         final doc = await _getWalletRef(userId).get();
         if (doc.exists) {
-          return (doc.data()?['balance'] ?? 0).toDouble();
+          final data = doc.data() as Map<String, dynamic>?;
+          return (data?['balance'] ?? 0).toDouble();
         }
       } catch (e) {
         print('⚠️ Error reading wallet from Firestore: $e');
@@ -57,7 +58,8 @@ class WalletService {
     await _db.runTransaction((transaction) async {
       final ref = _getWalletRef(userId);
       final doc = await transaction.get(ref);
-      final currentBalance = doc.exists ? (doc.data()?['balance'] ?? 0).toDouble() : 0.0;
+      final data = doc.data() as Map<String, dynamic>?;
+      final currentBalance = doc.exists ? (data?['balance'] ?? 0).toDouble() : 0.0;
       transaction.set(ref, {
         'balance': currentBalance + amount,
         'currency': 'YER',
@@ -76,7 +78,8 @@ class WalletService {
       final result = await _db.runTransaction((transaction) async {
         final ref = _getWalletRef(userId);
         final doc = await transaction.get(ref);
-        final currentBalance = doc.exists ? (doc.data()?['balance'] ?? 0).toDouble() : 0.0;
+        final data = doc.data() as Map<String, dynamic>?;
+        final currentBalance = doc.exists ? (data?['balance'] ?? 0).toDouble() : 0.0;
 
         if (currentBalance < amount) {
           return false;
@@ -170,15 +173,14 @@ class WalletService {
       'updatedAt': FieldValue.serverTimestamp(),
     });
   }
-}
 
-// ============================================================
-// ✅ إضافات جديدة لـ WalletService
-// ============================================================
+  // ============================================================
+  // ✅ دوال جديدة لـ realtime و pagination
+  // ============================================================
 
   // ✅ Stream لملف wallet (realtime UI)
   static Stream<DocumentSnapshot> walletStream(String uid) {
-    return _db.collection('users').doc(uid).collection('meta').doc('wallet').snapshots();
+    return _getWalletRef(uid).snapshots();
   }
 
   // ✅ الحصول على الرصيد من Firestore مباشرة
@@ -186,7 +188,8 @@ class WalletService {
     try {
       final doc = await _getWalletRef(uid).get();
       if (doc.exists) {
-        return (doc.data()?['balance'] ?? 0).toDouble();
+        final data = doc.data() as Map<String, dynamic>?;
+        return (data?['balance'] ?? 0).toDouble();
       }
       return 0.0;
     } catch (e) {
@@ -211,3 +214,4 @@ class WalletService {
 
     return q.get();
   }
+}
