@@ -379,7 +379,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: 'تعديل $label',
+        title: Text('تعديل $label'),
         content: TextField(
           controller: controller,
           decoration: InputDecoration(
@@ -436,7 +436,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: 'تسجيل الخروج',
+        title: Text('تسجيل الخروج'),
         content: const Text('هل أنت متأكد من رغبتك في تسجيل الخروج؟'),
         actions: [
           TextButton(

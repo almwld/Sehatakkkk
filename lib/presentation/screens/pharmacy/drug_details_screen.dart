@@ -28,8 +28,8 @@ class DrugDetailsScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: CustomAppBar(
-        title: Text(drugInfo['name']),
+      appBar: CustomCustomAppBar(
+        title: drugInfo['name']),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,

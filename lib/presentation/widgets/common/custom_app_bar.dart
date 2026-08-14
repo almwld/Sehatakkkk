@@ -11,6 +11,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final double elevation;
   final Widget? leading;
   final VoidCallback? onBackPressed;
+  final PreferredSizeWidget? bottom;
 
   const CustomAppBar({
     super.key,
@@ -22,6 +23,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.elevation = 0,
     this.leading,
     this.onBackPressed,
+    this.bottom,
   });
 
   @override
@@ -34,6 +36,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: bgColor,
       foregroundColor: fgColor,
       elevation: elevation,
+      bottom: bottom,
       leading: showBackButton
           ? IconButton(
               icon: Icon(Icons.arrow_back_ios_new, color: fgColor),
@@ -80,5 +83,5 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => Size.fromHeight(bottom != null ? kToolbarHeight + bottom!.preferredSize.height : kToolbarHeight);
 }

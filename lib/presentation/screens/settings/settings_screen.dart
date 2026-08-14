@@ -653,7 +653,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
-        title: 'تسجيل الخروج',
+        title: Text('تسجيل الخروج'),
         content: const Text('هل أنت متأكد من رغبتك في تسجيل الخروج؟'),
         actions: [
           TextButton(

@@ -331,7 +331,7 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: 'جاري الحجز...',
+        title: Text('جاري الحجز...'),
         content: const Column(
           mainAxisSize: MainAxisSize.min,
           children: [
