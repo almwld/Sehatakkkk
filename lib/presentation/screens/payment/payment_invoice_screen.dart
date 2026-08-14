@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/theme/app_theme.dart';
 
@@ -46,7 +47,7 @@ class _PaymentInvoiceScreenState extends State<PaymentInvoiceScreen> {
 
     return Scaffold(
       backgroundColor: bgColor,
-      appBar: AppBar(
+      appBar: CustomAppBar(
         backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
         elevation: 0.5,
         title: const Text(

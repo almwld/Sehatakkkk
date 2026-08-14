@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -72,8 +73,8 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: Text('تقييمات ${widget.targetName}'),
+      appBar: CustomAppBar(
+        title: 'تقييمات ${widget.targetName}',
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -560,7 +561,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('حذف التقييم'),
+        title: 'حذف التقييم',
         content: const Text('هل أنت متأكد من حذف هذا التقييم؟'),
         actions: [
           TextButton(
@@ -590,7 +591,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('رد على التقييم'),
+        title: 'رد على التقييم',
         content: TextField(
           controller: responseController,
           maxLines: 4,

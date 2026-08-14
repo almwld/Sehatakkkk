@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:sehatak/presentation/widgets/app_search_delegate.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -49,8 +50,8 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text('المقالات الصحية'),
+      appBar: CustomAppBar(
+        title: 'المقالات الصحية',
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -289,7 +290,7 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
       builder: (context) {
         String tempSearch = '';
         return AlertDialog(
-          title: const Text('بحث عن مقالات'),
+          title: 'بحث عن مقالات',
           content: TextField(
             onChanged: (value) => tempSearch = value,
             autofocus: true,

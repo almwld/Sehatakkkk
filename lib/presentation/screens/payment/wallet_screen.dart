@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -41,7 +42,7 @@ class _WalletScreenState extends State<WalletScreen> {
     final uid = _uid;
     if (uid == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('المحفظة')),
+        appBar: CustomAppBar(title: 'المحفظة'),
         body: const Center(
           child: Text('يرجى تسجيل الدخول لعرض المحفظة'),
         ),
@@ -56,8 +57,8 @@ class _WalletScreenState extends State<WalletScreen> {
             backgroundColor: Theme.of(context).brightness == Brightness.dark
                 ? const Color(0xFF0B1121)
                 : const Color(0xFFF8FAFC),
-            appBar: AppBar(
-              title: const Text('المحفظة'),
+            appBar: CustomAppBar(
+              title: 'المحفظة',
               backgroundColor: Theme.of(context).brightness == Brightness.dark
                   ? const Color(0xFF0B1121)
                   : Colors.white,

@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -8,8 +9,8 @@ class PlatformDashboard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text('لوحة التحكم'),
+      appBar: CustomAppBar(
+        title: 'لوحة التحكم',
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,

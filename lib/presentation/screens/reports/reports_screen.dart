@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -48,8 +49,8 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text('التقارير والإحصائيات'),
+      appBar: CustomAppBar(
+        title: 'التقارير والإحصائيات',
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,

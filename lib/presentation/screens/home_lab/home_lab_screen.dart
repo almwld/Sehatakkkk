@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -21,7 +22,7 @@ class _HomeLabScreenState extends State<HomeLabScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('فحص منزلي', style: TextStyle(fontWeight: FontWeight.bold))),
+      appBar: CustomAppBar(title: const Text('فحص منزلي', style: TextStyle(fontWeight: FontWeight.bold))),
       body: Column(children: [
         Container(margin: const EdgeInsets.all(14), padding: const EdgeInsets.all(16), decoration: BoxDecoration(gradient: const LinearGradient(colors: [AppColors.primary, AppColors.primaryDark]), borderRadius: BorderRadius.circular(16)), child: const Row(children: [Icon(Icons.home_work, color: Colors.white, size: 32), SizedBox(width: 10), Expanded(child: Text('فحوصات في منزلك', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)))])),
         Expanded(

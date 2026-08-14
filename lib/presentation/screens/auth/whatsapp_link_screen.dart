@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
@@ -25,7 +26,7 @@ class _WhatsAppLinkScreenState extends State<WhatsAppLinkScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('ربط واتساب'), backgroundColor: const Color(0xFF075E54)),
+      appBar: CustomAppBar(title: 'ربط واتساب', backgroundColor: const Color(0xFF075E54)),
       body: Padding(padding: const EdgeInsets.all(24), child: Column(children: [
         const SizedBox(height: 40), const Icon(Icons.chat, color: Color(0xFF25D366), size: 80),
         const SizedBox(height: 20), const Text('أدخل رقم الواتساب', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),

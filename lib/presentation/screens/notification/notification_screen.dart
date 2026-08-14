@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 
@@ -15,7 +16,7 @@ class NotificationScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      appBar: AppBar(title: const Text('الإشعارات', style: TextStyle(fontWeight: FontWeight.bold)), actions: [TextButton(onPressed: () {}, child: const Text('تعليم الكل', style: TextStyle(fontSize: 12)))],),
+      appBar: CustomAppBar(title: const Text('الإشعارات', style: TextStyle(fontWeight: FontWeight.bold)), actions: [TextButton(onPressed: () {}, child: const Text('تعليم الكل', style: TextStyle(fontSize: 12)))],),
       body: ListView.builder(
         padding: const EdgeInsets.all(14),
         itemCount: _notifications.length,

@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -23,7 +24,7 @@ class _PillOrganizerScreenState extends State<PillOrganizerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('منظم الأدوية', style: TextStyle(fontWeight: FontWeight.bold))),
+      appBar: CustomAppBar(title: const Text('منظم الأدوية', style: TextStyle(fontWeight: FontWeight.bold))),
       body: Column(children: [
         Container(margin: const EdgeInsets.all(12), decoration: BoxDecoration(color: AppColors.surfaceContainerLow, borderRadius: BorderRadius.circular(16)), child: Row(children: List.generate(7, (i) => Expanded(child: GestureDetector(
           onTap: () => setState(() => _day = i),

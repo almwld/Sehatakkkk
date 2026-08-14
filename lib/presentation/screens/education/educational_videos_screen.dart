@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -22,7 +23,7 @@ class _EducationalVideosScreenState extends State<EducationalVideosScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: const Text('الفيديوهات التثقيفية', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,

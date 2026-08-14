@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -598,8 +599,8 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
       child: Scaffold(
         key: const ValueKey('interactive_map_screen'),
         backgroundColor: bgColor,
-        appBar: AppBar(
-          title: const Text('الخريطة التفاعلية'),
+        appBar: CustomAppBar(
+          title: 'الخريطة التفاعلية',
           backgroundColor: bgColor,
           foregroundColor: textColor,
           elevation: 0,

@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -77,7 +78,7 @@ class _MedicalImageAnalysisScreenState extends State<MedicalImageAnalysisScreen>
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: const Text('تحليل الصور الطبية', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,

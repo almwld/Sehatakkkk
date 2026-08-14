@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import '../../../core/constants/app_colors.dart';
@@ -31,7 +32,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('رمز التحقق')),
+      appBar: CustomAppBar(title: 'رمز التحقق'),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [

@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import "package:sehatak/utils/image_utils.dart";
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -141,8 +142,8 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
           ),
         ),
       ),
-      title: const Text('المساعد الصحي الذكي'),
-      subtitle: const Text('اسألني عن صحتك وأدويتك'),
+      title: 'المساعد الصحي الذكي',
+      subtitle: 'اسألني عن صحتك وأدويتك',
       trailing: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         decoration: BoxDecoration(
@@ -215,7 +216,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(
+      appBar: CustomAppBar(
         backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
         elevation: 0,
         centerTitle: true,

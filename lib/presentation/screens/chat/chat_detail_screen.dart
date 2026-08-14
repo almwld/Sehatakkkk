@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -200,7 +201,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
 
     return Scaffold(
       backgroundColor: bgColor,
-      appBar: _buildAppBar(isDark),
+      appBar: _buildCustomAppBar(isDark),
       body: Column(
         children: [
           if (!_isConnected)
@@ -265,8 +266,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
     );
   }
 
-  PreferredSizeWidget _buildAppBar(bool isDark) {
-    return AppBar(
+  PreferredSizeWidget _buildCustomAppBar(bool isDark) {
+    return CustomAppBar(
       backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
       elevation: 0.5,
       title: Row(

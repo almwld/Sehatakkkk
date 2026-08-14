@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -125,8 +126,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     if (_isLoading) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('تعديل الملف الشخصي'),
+        appBar: CustomAppBar(
+          title: 'تعديل الملف الشخصي',
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
         ),
@@ -136,8 +137,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
-      appBar: AppBar(
-        title: const Text('تعديل الملف الشخصي'),
+      appBar: CustomAppBar(
+        title: 'تعديل الملف الشخصي',
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,

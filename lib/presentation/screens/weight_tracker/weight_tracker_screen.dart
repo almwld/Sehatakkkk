@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -124,7 +125,7 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen> {
       builder: (context) {
         final controller = TextEditingController(text: _targetWeight.toString());
         return AlertDialog(
-          title: const Text('الوزن المستهدف'),
+          title: 'الوزن المستهدف',
           content: TextField(
             controller: controller,
             keyboardType: TextInputType.number,
@@ -204,8 +205,8 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text('تتبع الوزن'),
+      appBar: CustomAppBar(
+        title: 'تتبع الوزن',
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,

@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
@@ -41,8 +42,8 @@ class _PharmacyProductsScreenState extends State<PharmacyProductsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('المنتجات'),
+      appBar: CustomAppBar(
+        title: 'المنتجات',
         actions: [
           Stack(
             children: [

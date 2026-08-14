@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -73,8 +74,8 @@ class _PatientProfileState extends State<PatientProfile> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text('ملفي الشخصي'),
+      appBar: CustomAppBar(
+        title: 'ملفي الشخصي',
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -485,7 +486,7 @@ class _PatientProfileState extends State<PatientProfile> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('تسجيل الخروج'),
+        title: 'تسجيل الخروج',
         content: const Text('هل أنت متأكد من رغبتك في تسجيل الخروج؟'),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         actions: [

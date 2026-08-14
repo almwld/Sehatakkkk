@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
@@ -16,7 +17,7 @@ class InsurancePlans extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('خطط التأمين')),
+      appBar: CustomAppBar(title: 'خطط التأمين'),
       body: ListView.builder(
         padding: const EdgeInsets.all(AppDimensions.paddingL),
         itemCount: plans.length,

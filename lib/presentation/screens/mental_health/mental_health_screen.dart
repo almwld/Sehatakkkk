@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -29,7 +30,7 @@ class _MentalHealthScreenState extends State<MentalHealthScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: const Text('الصحة النفسية', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.purple,
         foregroundColor: Colors.white,

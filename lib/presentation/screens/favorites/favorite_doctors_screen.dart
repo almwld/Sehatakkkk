@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/shared/chat_navigation.dart';
@@ -14,8 +15,8 @@ class FavoriteDoctorsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('الأطباء المفضلين'),
+      appBar: CustomAppBar(
+        title: 'الأطباء المفضلين',
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),

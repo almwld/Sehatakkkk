@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -26,7 +27,7 @@ class _DrugCompareScreenState extends State<DrugCompareScreen> {
     final i1 = _info(_d1);
     final i2 = _info(_d2);
     return Scaffold(
-      appBar: AppBar(title: const Text('مقارنة الأدوية')),
+      appBar: CustomAppBar(title: 'مقارنة الأدوية'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(14),
         child: Column(children: [

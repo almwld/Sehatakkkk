@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/cart_item_model.dart';
@@ -65,7 +66,7 @@ class _CartScreenState extends State<CartScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('مسح السلة'),
+        title: 'مسح السلة',
         content: const Text('هل أنت متأكد من رغبتك في مسح جميع العناصر من السلة؟'),
         actions: [
           TextButton(
@@ -124,8 +125,8 @@ class _CartScreenState extends State<CartScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text('سلة المشتريات'),
+      appBar: CustomAppBar(
+        title: 'سلة المشتريات',
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,

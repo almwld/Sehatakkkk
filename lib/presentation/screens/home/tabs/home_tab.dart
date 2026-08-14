@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -310,7 +311,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         body: CustomScrollView(
           controller: widget.scrollController,
           slivers: [
-            _buildAppBar(isDark),
+            _buildCustomAppBar(isDark),
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               sliver: SliverList(
@@ -377,8 +378,8 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   // ============================================================
   // 📱 الشريط العلوي
   // ============================================================
-  SliverAppBar _buildAppBar(bool isDark) {
-    return SliverAppBar(
+  SliverAppBar _buildCustomAppBar(bool isDark) {
+    return SliverCustomAppBar(
       expandedHeight: 90,
       floating: true,
       snap: true,
@@ -1881,7 +1882,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       body: CustomScrollView(
         slivers: [
-          SliverAppBar(
+          SliverCustomAppBar(
             expandedHeight: 90,
             floating: true,
             snap: true,

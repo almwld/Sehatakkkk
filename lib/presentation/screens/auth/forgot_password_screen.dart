@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -20,8 +21,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text('نسيت كلمة المرور'),
+      appBar: CustomAppBar(
+        title: 'نسيت كلمة المرور',
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -173,7 +174,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('خطأ'),
+        title: 'خطأ',
         content: Text(message),
         actions: [
           TextButton(

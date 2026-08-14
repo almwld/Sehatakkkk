@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 
 class FirstAidScreen extends StatelessWidget {
@@ -39,8 +40,8 @@ class FirstAidScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('الإسعافات الأولية'),
+      appBar: CustomAppBar(
+        title: 'الإسعافات الأولية',
         backgroundColor: Colors.orange,
         foregroundColor: Colors.white,
       ),

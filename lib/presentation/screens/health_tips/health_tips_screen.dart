@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -23,7 +24,7 @@ class _HealthTipsScreenState extends State<HealthTipsScreen> {
   Widget build(BuildContext context) {
     final currentTips = _tips[_selectedCategory] ?? [];
     return Scaffold(
-      appBar: AppBar(title: const Text('نصائح صحية', style: TextStyle(fontWeight: FontWeight.bold))),
+      appBar: CustomAppBar(title: const Text('نصائح صحية', style: TextStyle(fontWeight: FontWeight.bold))),
       body: Column(children: [
         SizedBox(
           height: 90,

@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -15,7 +16,7 @@ class SubscriptionPaymentScreen extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('اشتراك')),
+      appBar: CustomAppBar(title: 'اشتراك'),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

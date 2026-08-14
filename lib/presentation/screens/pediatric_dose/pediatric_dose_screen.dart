@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -34,7 +35,7 @@ class _PediatricDoseScreenState extends State<PediatricDoseScreen> {
     final maxDaily = (med['max'] as double) * _weight;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('حاسبة جرعات الأطفال', style: TextStyle(fontWeight: FontWeight.bold))),
+      appBar: CustomAppBar(title: const Text('حاسبة جرعات الأطفال', style: TextStyle(fontWeight: FontWeight.bold))),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(14),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

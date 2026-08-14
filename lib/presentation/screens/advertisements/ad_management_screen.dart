@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -43,7 +44,7 @@ class _AdManagementScreenState extends State<AdManagementScreen> with SingleTick
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: Text(_getAppBarTitle()),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
@@ -442,7 +443,7 @@ class _AdManagementScreenState extends State<AdManagementScreen> with SingleTick
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: Text('إضافة ${_getAddButtonText()} جديد'),
+          title: 'إضافة ${_getAddButtonText()} جديد',
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -675,7 +676,7 @@ class _AdManagementScreenState extends State<AdManagementScreen> with SingleTick
       await showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('سبب الرفض'),
+          title: 'سبب الرفض',
           content: TextField(
             controller: notesController,
             decoration: const InputDecoration(hintText: 'اكتب سبب الرفض...'),

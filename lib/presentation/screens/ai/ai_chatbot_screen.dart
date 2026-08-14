@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/services/local_ai/local_medical_ai.dart';
 
@@ -28,7 +29,7 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: Row(
           children: [
             Container(
@@ -276,17 +277,17 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
           children: [
             ListTile(
               leading: Icon(Icons.image, color: Colors.teal),
-              title: Text('إرفاق صورة'),
+              title: 'إرفاق صورة',
               onTap: () => Navigator.pop(context),
             ),
             ListTile(
               leading: Icon(Icons.description, color: Colors.teal),
-              title: Text('إرفاق ملف'),
+              title: 'إرفاق ملف',
               onTap: () => Navigator.pop(context),
             ),
             ListTile(
               leading: Icon(Icons.mic, color: Colors.teal),
-              title: Text('تسجيل صوتي'),
+              title: 'تسجيل صوتي',
               onTap: () => Navigator.pop(context),
             ),
           ],

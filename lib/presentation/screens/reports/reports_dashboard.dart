@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -49,8 +50,8 @@ class _ReportsDashboardState extends State<ReportsDashboard> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text('التقارير والإحصائيات'),
+      appBar: CustomAppBar(
+        title: 'التقارير والإحصائيات',
         backgroundColor: const Color(0xFF0D5257),
         foregroundColor: Colors.white,
         elevation: 0,

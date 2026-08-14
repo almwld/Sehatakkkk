@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 
@@ -104,7 +105,7 @@ class _DeliveryOptionsScreenState extends State<DeliveryOptionsScreen> {
     final total = _getTotal();
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: const Text('خيارات التوصيل', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,

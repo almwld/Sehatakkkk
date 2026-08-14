@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -27,7 +28,7 @@ class _DueDateCalculatorScreenState extends State<DueDateCalculatorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('حاسبة موعد الولادة')),
+      appBar: CustomAppBar(title: 'حاسبة موعد الولادة'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -38,7 +39,7 @@ class _DueDateCalculatorScreenState extends State<DueDateCalculatorScreen> {
           ),
           const SizedBox(height: 18),
           ListTile(
-            title: const Text('تاريخ آخر دورة'),
+            title: 'تاريخ آخر دورة',
             subtitle: Text(_lastPeriod != null ? '${_lastPeriod!.day}/${_lastPeriod!.month}/${_lastPeriod!.year}' : 'اضغطي للاختيار'),
             leading: const Icon(Icons.calendar_today, color: AppColors.primary),
             onTap: () async {

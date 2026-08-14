@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -26,7 +27,7 @@ class _VoiceSearchScreenState extends State<VoiceSearchScreen> with SingleTicker
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('بحث صوتي 🎤')),
+      appBar: CustomAppBar(title: 'بحث صوتي 🎤'),
       body: Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
         AnimatedBuilder(animation: _anim, builder: (c, _) => Container(width: 120 + (_anim.value * 40), height: 120 + (_anim.value * 40), decoration: BoxDecoration(color: _listening ? AppColors.primary.withOpacity(0.1) : AppColors.primary.withOpacity(0.04), shape: BoxShape.circle), child: const Icon(Icons.mic, size: 60, color: AppColors.primary))),
         const SizedBox(height: 30),

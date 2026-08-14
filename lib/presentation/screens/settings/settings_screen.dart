@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
@@ -142,8 +143,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
-      appBar: AppBar(
-        title: const Text('الإعدادات'),
+      appBar: CustomAppBar(
+        title: 'الإعدادات',
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -652,7 +653,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
-        title: const Text('تسجيل الخروج'),
+        title: 'تسجيل الخروج',
         content: const Text('هل أنت متأكد من رغبتك في تسجيل الخروج؟'),
         actions: [
           TextButton(

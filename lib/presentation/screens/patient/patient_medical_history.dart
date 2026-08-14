@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
@@ -22,7 +23,7 @@ class _PatientMedicalHistoryState extends State<PatientMedicalHistory> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('التحاليل والأشعة', style: TextStyle(fontWeight: FontWeight.bold)), actions: [IconButton(icon: const Icon(Icons.filter_list), onPressed: () {})]),
+      appBar: CustomAppBar(title: const Text('التحاليل والأشعة', style: TextStyle(fontWeight: FontWeight.bold)), actions: [IconButton(icon: const Icon(Icons.filter_list), onPressed: () {})]),
       body: Column(children: [
         Container(margin: const EdgeInsets.all(12), decoration: BoxDecoration(color: AppColors.surfaceContainerLow, borderRadius: BorderRadius.circular(12)), child: Row(children: [
           _tabBtn('تحاليل', _tab == 'تحاليل'), _tabBtn('أشعة', _tab == 'أشعة'),

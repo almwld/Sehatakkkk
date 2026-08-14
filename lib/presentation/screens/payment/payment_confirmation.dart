@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/payment_service.dart';
@@ -23,7 +24,7 @@ class PaymentConfirmationScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: Text(success ? '✅ تأكيد الدفع' : '❌ فشل الدفع'),
         backgroundColor: success ? Colors.green : Colors.red,
         foregroundColor: Colors.white,

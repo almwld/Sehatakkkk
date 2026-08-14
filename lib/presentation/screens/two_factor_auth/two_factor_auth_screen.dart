@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -49,7 +50,7 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         icon: const Icon(Icons.check_circle, color: AppColors.success, size: 56),
-        title: const Text('تم التفعيل بنجاح'),
+        title: 'تم التفعيل بنجاح',
         content: const Text('تم تفعيل المصادقة الثنائية. احفظ رموز الاسترداد في مكان آمن.'),
         actions: [
           TextButton(onPressed: () { Navigator.pop(context); setState(() { _isEnabled = true; _verificationStep = 3; }); }, child: const Text('حسناً')),
@@ -63,7 +64,7 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
       context: context,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('تعطيل المصادقة الثنائية'),
+        title: 'تعطيل المصادقة الثنائية',
         content: const Text('هل أنت متأكد من تعطيل المصادقة الثنائية؟ سيصبح حسابك أقل أماناً.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
@@ -80,7 +81,7 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('المصادقة الثنائية', style: TextStyle(fontWeight: FontWeight.bold))),
+      appBar: CustomAppBar(title: const Text('المصادقة الثنائية', style: TextStyle(fontWeight: FontWeight.bold))),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(14),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -191,9 +192,9 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
               decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6)]),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 const Text('خيارات', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                ListTile(leading: const Icon(Icons.refresh, color: AppColors.info), title: const Text('إعادة تعيين'), subtitle: const Text('توليد رموز استرداد جديدة'), onTap: () {}),
-                ListTile(leading: const Icon(Icons.phone_android, color: AppColors.primary), title: const Text('تغيير الجهاز'), subtitle: const Text('إعداد على جهاز جديد'), onTap: () {}),
-                ListTile(leading: const Icon(Icons.close, color: AppColors.error), title: const Text('تعطيل', style: TextStyle(color: AppColors.error)), subtitle: const Text('إلغاء المصادقة الثنائية'), onTap: _disable2FA),
+                ListTile(leading: const Icon(Icons.refresh, color: AppColors.info), title: 'إعادة تعيين', subtitle: 'توليد رموز استرداد جديدة', onTap: () {}),
+                ListTile(leading: const Icon(Icons.phone_android, color: AppColors.primary), title: 'تغيير الجهاز', subtitle: 'إعداد على جهاز جديد', onTap: () {}),
+                ListTile(leading: const Icon(Icons.close, color: AppColors.error), title: const Text('تعطيل', style: TextStyle(color: AppColors.error)), subtitle: 'إلغاء المصادقة الثنائية', onTap: _disable2FA),
               ]),
             ),
           ],
@@ -217,9 +218,9 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6)]),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const Text('طريقة المصادقة', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-        RadioListTile<String>(value: 'منصة المصادقة', groupValue: _selectedMethod, title: const Text('منصة المصادقة'), subtitle: const Text('Google Authenticator'), activeColor: AppColors.primary, onChanged: (v) => setState(() => _selectedMethod = v!)),
-        RadioListTile<String>(value: 'رسالة نصية', groupValue: _selectedMethod, title: const Text('رسالة نصية SMS'), subtitle: const Text('رمز عبر رسالة نصية'), activeColor: AppColors.primary, onChanged: (v) => setState(() => _selectedMethod = v!)),
-        RadioListTile<String>(value: 'بريد إلكتروني', groupValue: _selectedMethod, title: const Text('البريد الإلكتروني'), subtitle: const Text('رمز عبر البريد'), activeColor: AppColors.primary, onChanged: (v) => setState(() => _selectedMethod = v!)),
+        RadioListTile<String>(value: 'منصة المصادقة', groupValue: _selectedMethod, title: 'منصة المصادقة', subtitle: 'Google Authenticator', activeColor: AppColors.primary, onChanged: (v) => setState(() => _selectedMethod = v!)),
+        RadioListTile<String>(value: 'رسالة نصية', groupValue: _selectedMethod, title: 'رسالة نصية SMS', subtitle: 'رمز عبر رسالة نصية', activeColor: AppColors.primary, onChanged: (v) => setState(() => _selectedMethod = v!)),
+        RadioListTile<String>(value: 'بريد إلكتروني', groupValue: _selectedMethod, title: 'البريد الإلكتروني', subtitle: 'رمز عبر البريد', activeColor: AppColors.primary, onChanged: (v) => setState(() => _selectedMethod = v!)),
       ]),
     );
   }

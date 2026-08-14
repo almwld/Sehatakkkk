@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -206,7 +207,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: Text(pharmacy['name'] as String),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,

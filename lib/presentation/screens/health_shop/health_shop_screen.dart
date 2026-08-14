@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -30,7 +31,7 @@ class _HealthShopScreenState extends State<HealthShopScreen> {
   Widget build(BuildContext context) {
     final filtered = _cat == 'الكل' ? _products : _products.where((p) => p['cat'] == _cat).toList();
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: const Text('المتجر الصحي', style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [Stack(children: [IconButton(icon: const Icon(Icons.shopping_cart), onPressed: () {}), if (_cart > 0) Positioned(right: 4, top: 4, child: Container(padding: const EdgeInsets.all(3), decoration: const BoxDecoration(color: AppColors.error, shape: BoxShape.circle), child: Text('$_cart', style: const TextStyle(color: Colors.white, fontSize: 9))))])],
       ),

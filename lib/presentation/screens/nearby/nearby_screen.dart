@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -127,7 +128,7 @@ class _NearbyScreenState extends State<NearbyScreen> {
   Widget build(BuildContext context) {
     final facilities = _filtered;
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: Text('بالقرب منك 🗺️ (${_all.length})', style: const TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,

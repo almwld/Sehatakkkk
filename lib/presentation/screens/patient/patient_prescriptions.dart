@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -107,7 +108,7 @@ ${prescription['notes'].isNotEmpty ? '📝 ملاحظات: ${prescription['notes
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: const Text('الوصفات الطبية', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,

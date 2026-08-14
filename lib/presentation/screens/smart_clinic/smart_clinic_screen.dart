@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/medical_ai_local.dart';
@@ -39,7 +40,7 @@ class _SmartClinicScreenState extends State<SmartClinicScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('المساعد الذكي 🤖'), backgroundColor: AppColors.primary),
+      appBar: CustomAppBar(title: 'المساعد الذكي 🤖', backgroundColor: AppColors.primary),
       body: Column(children: [
         Container(
           padding: const EdgeInsets.all(8),

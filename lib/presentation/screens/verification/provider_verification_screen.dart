@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 
@@ -27,7 +28,7 @@ class _ProviderVerificationScreenState extends State<ProviderVerificationScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: const Text('توثيق مقدمي الخدمة', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,

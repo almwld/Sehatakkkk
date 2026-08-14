@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -87,7 +88,7 @@ class _VoiceAssistantScreenState extends State<VoiceAssistantScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: const Text('المساعد الصوتي', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.purple,
         foregroundColor: Colors.white,

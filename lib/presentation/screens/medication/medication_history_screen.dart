@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -8,8 +9,8 @@ class MedicationHistoryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text('سجل الأدوية'),
+      appBar: CustomAppBar(
+        title: 'سجل الأدوية',
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),

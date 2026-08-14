@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -18,7 +19,7 @@ class _AdvancedReminderScreenState extends State<AdvancedReminderScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('التذكير المتقدم', style: TextStyle(fontWeight: FontWeight.bold))),
+      appBar: CustomAppBar(title: const Text('التذكير المتقدم', style: TextStyle(fontWeight: FontWeight.bold))),
       body: ListView.builder(
         padding: const EdgeInsets.all(14),
         itemCount: _medications.length,

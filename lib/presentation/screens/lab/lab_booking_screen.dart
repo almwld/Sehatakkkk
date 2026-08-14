@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/mock/sample_labs.dart';
@@ -79,8 +80,8 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text('حجز فحص'),
+      appBar: CustomAppBar(
+        title: 'حجز فحص',
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -330,7 +331,7 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: const Text('جاري الحجز...'),
+        title: 'جاري الحجز...',
         content: const Column(
           mainAxisSize: MainAxisSize.min,
           children: [

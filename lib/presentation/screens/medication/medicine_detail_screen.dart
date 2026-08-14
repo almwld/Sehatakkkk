@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -25,8 +26,8 @@ class MedicineDetailScreen extends StatelessWidget {
 
     if (medicine == null) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('الدواء'),
+        appBar: CustomAppBar(
+          title: 'الدواء',
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
         ),
@@ -47,7 +48,7 @@ class MedicineDetailScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: Text(medicine['name'] ?? 'الدواء'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,

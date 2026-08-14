@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -33,7 +34,7 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
     final filtered = _query.isEmpty ? _foods : _foods.where((f) => (f['name'] as String).contains(_query)).toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('حاسبة السعرات', style: TextStyle(fontWeight: FontWeight.bold))),
+      appBar: CustomAppBar(title: const Text('حاسبة السعرات', style: TextStyle(fontWeight: FontWeight.bold))),
       body: Column(children: [
         Container(
           margin: const EdgeInsets.all(14), padding: const EdgeInsets.all(18),

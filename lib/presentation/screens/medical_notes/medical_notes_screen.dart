@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:sehatak/presentation/widgets/app_search_delegate.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -69,7 +70,7 @@ class _MedicalNotesScreenState extends State<MedicalNotesScreen> {
       context: context,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('حذف الملاحظة'),
+        title: 'حذف الملاحظة',
         content: const Text('هل أنت متأكد من حذف هذه الملاحظة؟'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
@@ -239,7 +240,7 @@ class _MedicalNotesScreenState extends State<MedicalNotesScreen> {
     final filtered = _filteredNotes;
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: const Text('ملاحظاتي الطبية', style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [IconButton(icon: const Icon(Icons.search), onPressed: () => _showSearch())],
       ),
@@ -316,7 +317,7 @@ class _MedicalNotesScreenState extends State<MedicalNotesScreen> {
       context: context,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('بحث في الملاحظات'),
+        title: 'بحث في الملاحظات',
         content: TextField(
           autofocus: true,
           textAlign: TextAlign.right,

@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -10,8 +11,8 @@ class VerificationScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text('توثيق الحساب'),
+      appBar: CustomAppBar(
+        title: 'توثيق الحساب',
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,

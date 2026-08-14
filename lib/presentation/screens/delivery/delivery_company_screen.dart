@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/delivery/delivery_company_model.dart';
@@ -59,8 +60,8 @@ class _DeliveryCompanyScreenState extends State<DeliveryCompanyScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text('اختر شركة التوصيل'),
+      appBar: CustomAppBar(
+        title: 'اختر شركة التوصيل',
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,

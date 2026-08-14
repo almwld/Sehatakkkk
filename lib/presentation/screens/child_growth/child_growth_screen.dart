@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -16,7 +17,7 @@ class ChildGrowthScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('نمو الطفل', style: TextStyle(fontWeight: FontWeight.bold))),
+      appBar: CustomAppBar(title: const Text('نمو الطفل', style: TextStyle(fontWeight: FontWeight.bold))),
       body: SingleChildScrollView(padding: const EdgeInsets.all(14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(gradient: const LinearGradient(colors: [AppColors.pink, AppColors.purple]), borderRadius: BorderRadius.circular(16)), child: const Row(children: [Icon(Icons.child_care, color: Colors.white, size: 40), SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('مراحل نمو طفلك', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)), Text('تابع تطور طفلك خطوة بخطوة', style: TextStyle(color: Colors.white70, fontSize: 12))]))])),
         const SizedBox(height: 16),

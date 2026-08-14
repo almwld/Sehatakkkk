@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 
 class VisionTestScreen extends StatefulWidget {
@@ -36,8 +37,8 @@ class _VisionTestScreenState extends State<VisionTestScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('اختبار النظر'),
+      appBar: CustomAppBar(
+        title: 'اختبار النظر',
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
       ),

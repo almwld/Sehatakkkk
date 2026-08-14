@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -19,7 +20,7 @@ class _HeartRateScreenState extends State<HeartRateScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('معدل ضربات القلب')),
+      appBar: CustomAppBar(title: 'معدل ضربات القلب'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(14),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -56,7 +57,7 @@ class _HeartRateScreenState extends State<HeartRateScreen> {
           // إعدادات
           _sliderSetting('العمر', _age.toDouble(), 1, 100, (v) => setState(() => _age = v.toInt())),
           _sliderSetting('معدل الراحة', _restingHR.toDouble(), 40, 100, (v) => setState(() => _restingHR = v.toInt())),
-          SwitchListTile(title: const Text('رياضي محترف'), value: _isAthlete, activeColor: AppColors.primary, onChanged: (v) => setState(() => _isAthlete = v)),
+          SwitchListTile(title: 'رياضي محترف', value: _isAthlete, activeColor: AppColors.primary, onChanged: (v) => setState(() => _isAthlete = v)),
         ]),
       ),
     );

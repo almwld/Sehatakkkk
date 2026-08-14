@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:sehatak/presentation/widgets/app_search_delegate.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -29,7 +30,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: const Text('المحادثات', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,

@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 
@@ -13,7 +14,7 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('المصادقة الثنائية')),
+      appBar: CustomAppBar(title: 'المصادقة الثنائية'),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
@@ -24,7 +25,7 @@ class _TwoFactorAuthScreenState extends State<TwoFactorAuthScreen> {
           const SizedBox(height: 8),
           const Text('حماية إضافية لحسابك', style: TextStyle(color: Colors.grey, fontSize: 14)),
           const SizedBox(height: 40),
-          SwitchListTile(title: const Text('تفعيل المصادقة الثنائية'), subtitle: const Text('رمز تحقق إضافي عند تسجيل الدخول'), value: _enabled, activeColor: AppColors.primary, onChanged: (v) => setState(() => _enabled = v)),
+          SwitchListTile(title: 'تفعيل المصادقة الثنائية', subtitle: 'رمز تحقق إضافي عند تسجيل الدخول', value: _enabled, activeColor: AppColors.primary, onChanged: (v) => setState(() => _enabled = v)),
         ]),
       ),
     );

@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -30,7 +31,7 @@ class _DrugDictionaryScreenState extends State<DrugDictionaryScreen> {
     final filtered = _query.isEmpty ? _drugs : _drugs.where((d) => d['name']!.contains(_query) || d['cat']!.contains(_query)).toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('قاموس الأدوية', style: TextStyle(fontWeight: FontWeight.bold))),
+      appBar: CustomAppBar(title: const Text('قاموس الأدوية', style: TextStyle(fontWeight: FontWeight.bold))),
       body: Column(children: [
         Padding(
           padding: const EdgeInsets.all(12),

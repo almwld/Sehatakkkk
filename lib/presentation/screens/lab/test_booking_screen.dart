@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -56,8 +57,8 @@ class _TestBookingScreenState extends State<TestBookingScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text('حجز تحليل'),
+      appBar: CustomAppBar(
+        title: 'حجز تحليل',
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -271,8 +272,8 @@ class _TestBookingScreenState extends State<TestBookingScreen> {
                 ],
               ),
               child: SwitchListTile(
-                title: const Text('زيارة منزلية'),
-                subtitle: const Text('سيصلك فريق المختبر إلى منزلك'),
+                title: 'زيارة منزلية',
+                subtitle: 'سيصلك فريق المختبر إلى منزلك',
                 value: _homeVisit,
                 onChanged: (value) => setState(() => _homeVisit = value),
                 activeColor: AppColors.primary,

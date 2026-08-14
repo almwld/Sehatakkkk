@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -16,7 +17,7 @@ class PhysiotherapyScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('العلاج الطبيعي', style: TextStyle(fontWeight: FontWeight.bold))),
+      appBar: CustomAppBar(title: const Text('العلاج الطبيعي', style: TextStyle(fontWeight: FontWeight.bold))),
       body: SingleChildScrollView(padding: const EdgeInsets.all(14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Container(padding: const EdgeInsets.all(18), decoration: BoxDecoration(gradient: const LinearGradient(colors: [AppColors.primary, AppColors.primaryDark]), borderRadius: BorderRadius.circular(16)), child: const Column(children: [Icon(Icons.accessibility_new, color: Colors.white, size: 48), SizedBox(height: 8), Text('علاج طبيعي في منزلك', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)), Text('جلسات مخصصة مع أفضل الأخصائيين', style: TextStyle(color: Colors.white70, fontSize: 12))])),
         const SizedBox(height: 16),

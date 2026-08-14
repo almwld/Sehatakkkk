@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -56,7 +57,7 @@ class _AboutScreenState extends State<AboutScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: const Text(
           'عن التطبيق',
           style: TextStyle(fontWeight: FontWeight.bold),

@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:sehatak/presentation/widgets/app_search_delegate.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -141,8 +142,8 @@ class _HomeServicesScreenState extends State<HomeServicesScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text('الخدمات المنزلية'),
+      appBar: CustomAppBar(
+        title: 'الخدمات المنزلية',
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -430,7 +431,7 @@ class _HomeServicesScreenState extends State<HomeServicesScreen> {
       builder: (context) {
         String tempSearch = '';
         return AlertDialog(
-          title: const Text('بحث في الخدمات المنزلية'),
+          title: 'بحث في الخدمات المنزلية',
           content: TextField(
             onChanged: (value) => tempSearch = value,
             autofocus: true,

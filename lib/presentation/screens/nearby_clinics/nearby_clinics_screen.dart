@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -15,7 +16,7 @@ class NearbyClinicsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('عيادات قريبة', style: TextStyle(fontWeight: FontWeight.bold)), actions: [IconButton(icon: const Icon(Icons.map), onPressed: () {})]),
+      appBar: CustomAppBar(title: const Text('عيادات قريبة', style: TextStyle(fontWeight: FontWeight.bold)), actions: [IconButton(icon: const Icon(Icons.map), onPressed: () {})]),
       body: ListView.builder(
         padding: const EdgeInsets.all(14),
         itemCount: _clinics.length,

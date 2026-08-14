@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -26,7 +27,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
   Widget build(BuildContext context) {
     final done = _items.where((i) => i['done']).length;
     return Scaffold(
-      appBar: AppBar(title: const Text('قائمة التسوق الصحي', style: TextStyle(fontWeight: FontWeight.bold)), actions: [IconButton(icon: const Icon(Icons.delete_outline), onPressed: () {})]),
+      appBar: CustomAppBar(title: const Text('قائمة التسوق الصحي', style: TextStyle(fontWeight: FontWeight.bold)), actions: [IconButton(icon: const Icon(Icons.delete_outline), onPressed: () {})]),
       body: Column(children: [
         Container(
           margin: const EdgeInsets.all(14),

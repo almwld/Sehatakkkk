@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -26,8 +27,8 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text('التبرع بالدم'),
+      appBar: CustomAppBar(
+        title: 'التبرع بالدم',
         backgroundColor: Colors.red,
         foregroundColor: Colors.white,
         elevation: 0,

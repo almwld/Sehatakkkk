@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -24,13 +25,13 @@ class _MedicalReportsScreenState extends State<MedicalReportsScreen> {
     final user = _auth.currentUser;
     if (user == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('التقارير الطبية'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+        appBar: CustomAppBar(title: 'التقارير الطبية', backgroundColor: AppColors.primary, foregroundColor: Colors.white),
         body: const Center(child: Text('يرجى تسجيل الدخول')),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: const Text('التقارير الطبية', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,

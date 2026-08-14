@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
@@ -9,7 +10,7 @@ class PaymentMethods extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(AppStrings.paymentMethods)),
+      appBar: CustomAppBar(title: Text(AppStrings.paymentMethods)),
       body: ListView(
         padding: const EdgeInsets.all(AppDimensions.paddingL),
         children: [

@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/booking/booking_service.dart';
@@ -63,8 +64,8 @@ class _BookingScreenState extends State<BookingScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text('حجز موعد'),
+      appBar: CustomAppBar(
+        title: 'حجز موعد',
         backgroundColor: primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,

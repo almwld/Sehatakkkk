@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -22,8 +23,8 @@ class _NotificationsSettingsScreenState extends State<NotificationsSettingsScree
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text('إعدادات الإشعارات'),
+      appBar: CustomAppBar(
+        title: 'إعدادات الإشعارات',
         backgroundColor: const Color(0xFF0D5257),
         foregroundColor: Colors.white,
         elevation: 0,

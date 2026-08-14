@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
@@ -57,8 +58,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text('اختيار التوصيل'),
+      appBar: CustomAppBar(
+        title: 'اختيار التوصيل',
         backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
         foregroundColor: isDark ? Colors.white : Colors.black87,
         elevation: 0,

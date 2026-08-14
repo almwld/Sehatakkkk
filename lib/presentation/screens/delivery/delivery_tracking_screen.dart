@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/delivery/delivery_service.dart';
@@ -46,8 +47,8 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text('تتبع الطلب'),
+      appBar: CustomAppBar(
+        title: 'تتبع الطلب',
         backgroundColor: primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,

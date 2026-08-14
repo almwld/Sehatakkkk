@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
@@ -239,8 +240,8 @@ class _HeartRateCameraScreenState extends State<HeartRateCameraScreen> with Sing
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text('❤️ فحص النبض'),
+      appBar: CustomAppBar(
+        title: '❤️ فحص النبض',
         backgroundColor: primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,

@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -31,7 +32,7 @@ class _PersonalMedicScreenState extends State<PersonalMedicScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('المسعف الشخصي ⛑️'), backgroundColor: AppColors.teal, foregroundColor: Colors.white),
+      appBar: CustomAppBar(title: 'المسعف الشخصي ⛑️', backgroundColor: AppColors.teal, foregroundColor: Colors.white),
       body: Column(children: [
         Expanded(child: ListView.builder(padding: const EdgeInsets.all(12), itemCount: _chat.length, itemBuilder: (c, i) {
           final m = _chat[i]; final isU = m['role'] == 'user';

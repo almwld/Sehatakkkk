@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -65,7 +66,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: const Text(
           'إعدادات الإشعارات',
           style: TextStyle(fontWeight: FontWeight.bold),

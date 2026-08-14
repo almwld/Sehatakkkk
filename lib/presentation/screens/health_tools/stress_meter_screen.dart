@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -27,8 +28,8 @@ class _StressMeterScreenState extends State<StressMeterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('مقياس التوتر'),
+      appBar: CustomAppBar(
+        title: 'مقياس التوتر',
         backgroundColor: AppColors.purple,
         foregroundColor: Colors.white,
       ),

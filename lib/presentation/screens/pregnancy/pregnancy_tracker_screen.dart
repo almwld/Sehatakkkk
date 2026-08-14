@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -30,7 +31,7 @@ class _PregnancyTrackerScreenState extends State<PregnancyTrackerScreen> {
     final daysLeft = _dueDate.difference(DateTime.now()).inDays;
     final tip = _currentTip;
     return Scaffold(
-      appBar: AppBar(title: const Text('متابعة الحمل', style: TextStyle(fontWeight: FontWeight.bold))),
+      appBar: CustomAppBar(title: const Text('متابعة الحمل', style: TextStyle(fontWeight: FontWeight.bold))),
       body: SingleChildScrollView(padding: const EdgeInsets.all(14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Container(
           padding: const EdgeInsets.all(18),

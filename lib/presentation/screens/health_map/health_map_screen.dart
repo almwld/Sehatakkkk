@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -45,7 +46,7 @@ class _HealthMapScreenState extends State<HealthMapScreen> {
   Widget build(BuildContext context) {
     final filtered = _filtered;
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: const Text('خرائط المرافق الصحية 🗺️', style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [IconButton(icon: const Icon(Icons.map), onPressed: () {}), IconButton(icon: const Icon(Icons.search), onPressed: () {})],
       ),

@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -53,13 +54,13 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with SingleTick
     final user = _auth.currentUser;
     if (user == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('المواعيد'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+        appBar: CustomAppBar(title: 'المواعيد', backgroundColor: AppColors.primary, foregroundColor: Colors.white),
         body: const Center(child: Text('يرجى تسجيل الدخول لعرض مواعيدك')),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: const Text('المواعيد', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,

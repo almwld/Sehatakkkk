@@ -1,3 +1,4 @@
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/medication/medication_model.dart';
@@ -35,8 +36,8 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text('➕ إضافة دواء جديد'),
+      appBar: CustomAppBar(
+        title: '➕ إضافة دواء جديد',
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -195,8 +196,8 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                   // ✅ تاريخ البدء
                   ListTile(
                     leading: const Icon(Icons.calendar_today),
-                    title: const Text('تاريخ البدء'),
-                    subtitle: Text('${_startDate.day}/${_startDate.month}/${_startDate.year}'),
+                    title: 'تاريخ البدء',
+                    subtitle: '${_startDate.day}/${_startDate.month}/${_startDate.year}',
                     onTap: () => _selectDate(true),
                   ),
                   const SizedBox(height: 8),
@@ -204,7 +205,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                   // ✅ تاريخ الانتهاء
                   ListTile(
                     leading: const Icon(Icons.calendar_today),
-                    title: const Text('تاريخ الانتهاء (اختياري)'),
+                    title: 'تاريخ الانتهاء (اختياري)',
                     subtitle: Text(
                       _endDate != null
                           ? '${_endDate!.day}/${_endDate!.month}/${_endDate!.year}'
