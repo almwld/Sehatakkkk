@@ -1,19 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/models/lab/lab_booking_model.dart';
-import 'package:sehatak/core/models/lab/sample_collection_method.dart';
-import 'package:sehatak/core/services/lab_service.dart';
+import 'package:sehatak/core/mock/sample_labs.dart';
 
 class LabBookingScreen extends StatefulWidget {
-  final String? consultationId;
-  final String? labId;
+  final String labId;
   final String? testId;
 
   const LabBookingScreen({
     super.key,
-    this.consultationId,
-    this.labId,
+    required this.labId,
     this.testId,
   });
 
@@ -22,54 +17,51 @@ class LabBookingScreen extends StatefulWidget {
 }
 
 class _LabBookingScreenState extends State<LabBookingScreen> {
-  final LabService _labService = LabService();
-  final TextEditingController _patientNameController = TextEditingController();
-  final TextEditingController _patientPhoneController = TextEditingController();
-  final TextEditingController _patientAddressController = TextEditingController();
-  final TextEditingController _notesController = TextEditingController();
-
-  SampleCollectionMethod _collectionMethod = SampleCollectionMethod.atLab;
+  Map<String, dynamic> _lab = {};
+  List<Map<String, dynamic>> _availableTests = [];
   List<Map<String, dynamic>> _selectedTests = [];
-  bool _isLoading = false;
-  bool _isSuccess = false;
-
-  // ✅ بيانات الفحوصات
-  final List<Map<String, dynamic>> _availableTests = [
-    {'id': 't1', 'name': 'CBC', 'price': 150},
-    {'id': 't2', 'name': 'سكر الدم', 'price': 100},
-    {'id': 't3', 'name': 'دهون ثلاثية', 'price': 120},
-    {'id': 't4', 'name': 'فيتامين د', 'price': 250},
-    {'id': 't5', 'name': 'وظائف الكبد', 'price': 180},
-    {'id': 't6', 'name': 'وظائف الكلى', 'price': 160},
-  ];
+  bool _isLoading = true;
+  String? _selectedTestId;
 
   @override
   void initState() {
     super.initState();
-    _loadPatientData();
+    _loadData();
+  }
+
+  void _loadData() {
+    // ✅ البحث عن المختبر من البيانات المشتركة
+    final lab = sampleLabs.firstWhere(
+      (l) => l['id'] == widget.labId,
+      orElse: () => sampleLabs[0],
+    );
     
-    // ✅ إذا تم تمرير testId، تحديده تلقائياً
-    if (widget.testId != null) {
-      final test = _availableTests.firstWhere(
-        (t) => t['id'] == widget.testId,
-        orElse: () => _availableTests.first,
-      );
-      _selectedTests.add(test);
-    }
+    setState(() {
+      _lab = lab;
+      _availableTests = List<Map<String, dynamic>>.from(lab['tests'] ?? []);
+      
+      // ✅ إذا تم تمرير testId، حدد هذا الفحص تلقائياً
+      if (widget.testId != null) {
+        _selectedTestId = widget.testId;
+        final test = _availableTests.firstWhere(
+          (t) => t['id'] == widget.testId,
+          orElse: () => {},
+        );
+        if (test.isNotEmpty && !_selectedTests.contains(test)) {
+          _selectedTests.add(test);
+        }
+      }
+      
+      _isLoading = false;
+    });
   }
 
-  Future<void> _loadPatientData() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      _patientNameController.text = user.displayName ?? '';
-      _patientPhoneController.text = user.phoneNumber ?? '';
-    }
-  }
-
+  // ✅ حساب السعر الإجمالي بطريقة آمنة
   double get _totalPrice {
     double total = 0;
     for (var test in _selectedTests) {
-      total += test['price'] as double;
+      // استخدام num بدلاً من double لتجنب TypeError
+      total += (test['price'] as num).toDouble();
     }
     return total;
   }
@@ -78,297 +70,287 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+        body: const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+      );
+    }
+
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('حجز مختبر'),
+        title: const Text('حجز فحص'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _isSuccess
-              ? _buildSuccessScreen(isDark)
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
+      body: Column(
+        children: [
+          // ✅ معلومات المختبر
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1A2540) : Colors.white,
+              boxShadow: [
+                BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
+              ],
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 28,
+                  backgroundColor: AppColors.primary.withOpacity(0.1),
+                  child: Icon(Icons.science, color: AppColors.primary, size: 28),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildPatientInfo(isDark),
-                      const SizedBox(height: 16),
-                      _buildTestsSelection(isDark),
-                      const SizedBox(height: 16),
-                      _buildCollectionMethod(isDark),
-                      const SizedBox(height: 16),
-                      _buildNotes(isDark),
-                      const SizedBox(height: 16),
-                      _buildSubmitButton(isDark),
+                      Text(
+                        _lab['name'] ?? 'مختبر',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _lab['location'] ?? 'صنعاء',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        ),
+                      ),
                     ],
                   ),
                 ),
-    );
-  }
-
-  Widget _buildSuccessScreen(bool isDark) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.check_circle,
-            color: Colors.green,
-            size: 80,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            '✅ تم الحجز بنجاح!',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : Colors.black87,
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: _lab['open'] == true ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    _lab['open'] == true ? 'مفتوح' : 'مغلق',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: _lab['open'] == true ? Colors.green : Colors.red,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            'سيتم التواصل معك قريباً',
-            style: TextStyle(
-              fontSize: 14,
-              color: isDark ? Colors.grey[400] : Colors.grey[600],
+          // ✅ قائمة الفحوصات
+          Expanded(
+            child: _availableTests.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.science, size: 60, color: Colors.grey[400]),
+                        const SizedBox(height: 16),
+                        Text(
+                          'لا توجد فحوصات متاحة',
+                          style: TextStyle(fontSize: 16, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _availableTests.length,
+                    itemBuilder: (context, index) {
+                      final test = _availableTests[index];
+                      final isSelected = _selectedTests.contains(test);
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isSelected ? AppColors.primary : (isDark ? Colors.grey[800]! : Colors.grey[300]!),
+                            width: isSelected ? 2 : 1,
+                          ),
+                          boxShadow: [
+                            BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
+                          ],
+                        ),
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              if (isSelected) {
+                                _selectedTests.remove(test);
+                              } else {
+                                _selectedTests.add(test);
+                              }
+                            });
+                          },
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Icon(
+                                  isSelected ? Icons.check_circle : Icons.science,
+                                  color: isSelected ? AppColors.primary : AppColors.primary,
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      test['name'] as String? ?? 'فحص',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark ? Colors.white : Colors.black87,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      test['description'] as String? ?? '',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Text(
+                                '${test['price']} ر.ي',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                              if (isSelected)
+                                const Padding(
+                                  padding: EdgeInsets.only(left: 8),
+                                  child: Icon(Icons.check_circle, color: AppColors.primary, size: 20),
+                                ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+          // ✅ زر الحجز والإجمالي
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1A2540) : Colors.white,
+              boxShadow: [
+                BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 10, offset: const Offset(0, -4)),
+              ],
             ),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: const Text('العودة'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPatientInfo(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2540) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('معلومات المريض', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const Divider(height: 16),
-          TextField(
-            controller: _patientNameController,
-            decoration: const InputDecoration(labelText: 'اسم المريض'),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _patientPhoneController,
-            decoration: const InputDecoration(labelText: 'رقم الهاتف'),
-            keyboardType: TextInputType.phone,
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _patientAddressController,
-            decoration: const InputDecoration(labelText: 'العنوان (اختياري)'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTestsSelection(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2540) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('الفحوصات المطلوبة', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const Divider(height: 16),
-          ..._availableTests.map((test) {
-            final isSelected = _selectedTests.contains(test);
-            return CheckboxListTile(
-              value: isSelected,
-              onChanged: (_) {
-                setState(() {
-                  if (isSelected) {
-                    _selectedTests.remove(test);
-                  } else {
-                    _selectedTests.add(test);
-                  }
-                });
-              },
-              title: Text(test['name'] as String),
-              subtitle: Text('${test['price']} ريال'),
-              controlAffinity: ListTileControlAffinity.leading,
-              activeColor: AppColors.primary,
-            );
-          }).toList(),
-          const Divider(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('الإجمالي', style: TextStyle(fontWeight: FontWeight.bold)),
-              Text(
-                '${_totalPrice.toStringAsFixed(0)} ريال',
-                style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCollectionMethod(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2540) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('طريقة جمع العينة', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const Divider(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: ChoiceChip(
-                  label: const Text('في المختبر'),
-                  selected: _collectionMethod == SampleCollectionMethod.atLab,
-                  onSelected: (_) => setState(() => _collectionMethod = SampleCollectionMethod.atLab),
-                  selectedColor: AppColors.primary,
-                  backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[200],
-                  labelStyle: TextStyle(
-                    color: _collectionMethod == SampleCollectionMethod.atLab 
-                        ? Colors.white 
-                        : (isDark ? Colors.white70 : Colors.black87),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'الإجمالي',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${_totalPrice.toStringAsFixed(0)} ر.ي',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      Text(
+                        '${_selectedTests.length} فحص',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isDark ? Colors.grey[500] : Colors.grey[400],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: ChoiceChip(
-                  label: const Text('في المنزل'),
-                  selected: _collectionMethod == SampleCollectionMethod.atHome,
-                  onSelected: (_) => setState(() => _collectionMethod = SampleCollectionMethod.atHome),
-                  selectedColor: AppColors.primary,
-                  backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[200],
-                  labelStyle: TextStyle(
-                    color: _collectionMethod == SampleCollectionMethod.atHome 
-                        ? Colors.white 
-                        : (isDark ? Colors.white70 : Colors.black87),
+                SizedBox(
+                  width: 140,
+                  child: ElevatedButton(
+                    onPressed: _selectedTests.isEmpty
+                        ? null
+                        : () {
+                            _bookAppointment();
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      disabledBackgroundColor: Colors.grey[400],
+                    ),
+                    child: const Text(
+                      'تأكيد الحجز',
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          if (_collectionMethod == SampleCollectionMethod.atHome)
-            const Padding(
-              padding: EdgeInsets.only(top: 8),
-              child: Text(
-                'سيتم إرسال فريق لأخذ العينة من المنزل',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
-              ),
+              ],
             ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildNotes(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2540) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: TextField(
-        controller: _notesController,
-        maxLines: 3,
-        decoration: const InputDecoration(
-          labelText: 'ملاحظات إضافية (اختياري)',
-          border: OutlineInputBorder(),
+  void _bookAppointment() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('جاري الحجز...'),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(color: AppColors.primary),
+            SizedBox(height: 16),
+            Text('يتم تأكيد حجز الفحوصات...'),
+          ],
         ),
       ),
     );
-  }
 
-  Widget _buildSubmitButton(bool isDark) {
-    return SizedBox(
-      width: double.infinity,
-      height: 50,
-      child: ElevatedButton(
-        onPressed: _selectedTests.isEmpty ? null : _submitBooking,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: _selectedTests.isEmpty ? Colors.grey : AppColors.primary,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-        child: Text(
-          _selectedTests.isEmpty 
-              ? 'اختر فحصاً أولاً' 
-              : 'تأكيد الحجز (${_totalPrice.toStringAsFixed(0)} ريال)',
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _submitBooking() async {
-    if (_patientNameController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('الرجاء إدخال اسم المريض'), backgroundColor: Colors.orange),
-      );
-      return;
-    }
-
-    if (_patientPhoneController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('الرجاء إدخال رقم الهاتف'), backgroundColor: Colors.orange),
-      );
-      return;
-    }
-
-    setState(() => _isLoading = true);
-
-    try {
-      await Future.delayed(const Duration(seconds: 2));
-      
-      setState(() {
-        _isLoading = false;
-        _isSuccess = true;
-      });
-
-      // ✅ إظهار رسالة نجاح
+    Future.delayed(const Duration(seconds: 2), () {
+      Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('✅ تم حجز المختبر بنجاح!'),
+          content: Text('✅ تم حجز الفحوصات بنجاح!'),
           backgroundColor: Colors.green,
         ),
       );
-    } catch (e) {
-      setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('❌ حدث خطأ: $e'), backgroundColor: Colors.red),
-      );
-    }
+      Navigator.pop(context);
+    });
   }
 }
