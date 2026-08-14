@@ -305,8 +305,8 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
       padding: const EdgeInsets.only(
         top: 8,
         bottom: 8,
-        left: isUser ? 48 : 8,
-        right: isUser ? 8 : 48,
+        left: 48,
+        right: 8,
       ),
       child: Row(
         mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
