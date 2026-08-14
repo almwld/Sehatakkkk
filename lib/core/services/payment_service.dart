@@ -13,14 +13,14 @@ class PaymentService {
 
   // ✅ المحافظ المدعومة (8 محافظ - تم حذف الكريمي)
   static final List<Map<String, dynamic>> supportedWallets = [
-    {'id': 'jeeb', 'name': 'جيب', 'icon': 'assets/icons/payment/جيب_icon.png', 'color': 0xFF6C63FF},
-    {'id': 'jawali', 'name': 'جوالي', 'icon': 'assets/icons/payment/Jawali_icon.png', 'color': 0xFF00BCD4},
-    {'id': 'cash', 'name': 'كاش', 'icon': 'assets/icons/payment/كاش_icon.png', 'color': 0xFFFF9800},
-    {'id': 'easy', 'name': 'إيزي', 'icon': 'assets/icons/payment/ايزي_icon.png', 'color': 0xFF2196F3},
-    {'id': 'floosak', 'name': 'فلوسك', 'icon': 'assets/icons/payment/floosak_icon.png', 'color': 0xFF0D5257},
-    {'id': 'yemen_wallet', 'name': 'يمن وولت', 'icon': 'assets/icons/payment/Yemen Wallet_icon.png', 'color': 0xFF4CAF50},
-    {'id': 'mobile_money', 'name': 'موبايل موني', 'icon': 'assets/icons/payment/موبايل موني انترنت_icon.png', 'color': 0xFFFF5722},
-    {'id': 'cash_one', 'name': 'كاش ONE', 'icon': 'assets/icons/payment/كاش ONE_icon.png', 'color': 0xFF3F51B5},
+    {'id': 'jeeb', 'name': 'جيب', 'icon': 'assets/icons/payment/jeeb.png', 'color': 0xFF6C63FF},
+    {'id': 'jawali', 'name': 'جوالي', 'icon': 'assets/icons/payment/jawali.png', 'color': 0xFF00BCD4},
+    {'id': 'cash', 'name': 'كاش', 'icon': 'assets/icons/payment/kash.png', 'color': 0xFFFF9800},
+    {'id': 'easy', 'name': 'إيزي', 'icon': 'assets/icons/payment/easy.png', 'color': 0xFF2196F3},
+    {'id': 'floosak', 'name': 'فلوسك', 'icon': 'assets/icons/payment/floosak.png', 'color': 0xFF0D5257},
+    {'id': 'yemen_wallet', 'name': 'يمن وولت', 'icon': 'assets/icons/payment/yemen_wallet.png', 'color': 0xFF4CAF50},
+    {'id': 'mobile_money', 'name': 'موبايل موني', 'icon': 'assets/icons/payment/mobile_money.png', 'color': 0xFFFF5722},
+    {'id': 'cash_one', 'name': 'كاش ONE', 'icon': 'assets/icons/payment/kash_one.png', 'color': 0xFF3F51B5},
   ];
 
   // ✅ معالجة الدفع
