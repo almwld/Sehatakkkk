@@ -42,6 +42,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
 
+  // ============================================================
+  // 📊 متغيرات الحالة
+  // ============================================================
   bool _isLoading = true;
   bool _isLoggedIn = false;
   String _userName = 'مستخدم';
@@ -54,19 +57,18 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   double _sleepAnim = 0;
   double _heartAnim = 0;
   bool _isOffline = false;
-  bool _hasCachedData = false;
 
-  // ✅ بيانات الكاش
-  Map<String, dynamic> _cachedData = {};
-
+  // ============================================================
+  // 📦 البيانات
+  // ============================================================
   final List<String> _bannerImages = ImageKit.bannerList;
 
   final List<Map<String, dynamic>> _topDoctors = [
-    {'id': '1', 'name': 'د. أحمد المؤيد', 'specialty': 'باطنية', 'rating': 4.9, 'reviews': 328, 'image': ImageKit.doctor1},
-    {'id': '2', 'name': 'د. خالد النخلاني', 'specialty': 'قلبية', 'rating': 4.8, 'reviews': 256, 'image': ImageKit.doctor2},
-    {'id': '3', 'name': 'د. أسماء الهندي', 'specialty': 'أطفال', 'rating': 4.7, 'reviews': 189, 'image': ImageKit.doctor3},
-    {'id': '4', 'name': 'د. محمد العلاي', 'specialty': 'أنف وأذن وحنجرة', 'rating': 4.6, 'reviews': 89, 'image': ImageKit.doctor4},
-    {'id': '5', 'name': 'د. فاطمة صديقي', 'specialty': 'نساء وولادة', 'rating': 4.8, 'reviews': 210, 'image': ImageKit.doctor5},
+    {'id': 'd1', 'name': 'د. أحمد المولد', 'specialty': 'باطنية', 'rating': 4.9, 'reviews': 328, 'image': ImageKit.doctor1},
+    {'id': 'd2', 'name': 'د. خالد النخلاني', 'specialty': 'قلبية', 'rating': 4.8, 'reviews': 256, 'image': ImageKit.doctor2},
+    {'id': 'd3', 'name': 'د. أسماء الهندي', 'specialty': 'أطفال', 'rating': 4.7, 'reviews': 189, 'image': ImageKit.doctor3},
+    {'id': 'd4', 'name': 'د. محمد العلاي', 'specialty': 'أنف وأذن وحنجرة', 'rating': 4.6, 'reviews': 89, 'image': ImageKit.doctor4},
+    {'id': 'd5', 'name': 'د. فاطمة صديقي', 'specialty': 'نساء وولادة', 'rating': 4.8, 'reviews': 210, 'image': ImageKit.doctor5},
   ];
 
   final List<Map<String, dynamic>> _quickServices = [
@@ -82,14 +84,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'icon': 'assets/images/services/map_location.png', 'label': 'بالقرب منك', 'screen': const InteractiveMapScreen()},
   ];
 
-  final List<Map<String, dynamic>> _stats = [
-    {'icon': Icons.local_fire_department, 'value': '2,450', 'label': 'سعرة حرارية', 'color': AppColors.primary, 'subtitle': 'اليوم'},
-    {'icon': Icons.directions_walk, 'value': '8,542', 'label': 'خطوة', 'color': AppColors.primary, 'subtitle': 'اليوم'},
-    {'icon': Icons.bedtime, 'value': '7.5', 'label': 'ساعات النوم', 'color': AppColors.primary, 'subtitle': 'الليلة الماضية'},
-    {'icon': Icons.favorite, 'value': '72', 'label': 'نبضة/دقيقة', 'color': AppColors.primary, 'subtitle': 'الآن'},
-  ];
-
-
   final List<Map<String, dynamic>> _products = [
     {'name': 'باراسيتامول 500mg', 'price': 500, 'image': ImageKit.medicine1, 'category': 'مسكنات', 'discount': 20, 'rating': 4.5},
     {'name': 'فيتامين د 1000IU', 'price': 1200, 'image': ImageKit.medicine2, 'category': 'فيتامينات', 'discount': 15, 'rating': 4.8},
@@ -102,90 +96,68 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   ];
 
   final List<Map<String, dynamic>> _featuredHospitals = [
-    {'id': '1', 'name': 'مستشفى 22 مايو', 'location': 'صنعاء - حدة', 'image': ImageKit.hospital1, 'rating': 4.9, 'open': true},
-    {'id': '2', 'name': 'مستشفى آزال', 'location': 'صنعاء', 'image': ImageKit.hospital2, 'rating': 4.8, 'open': true},
-    {'id': '3', 'name': 'مستشفى السبعين', 'location': 'صنعاء', 'image': ImageKit.hospital3, 'rating': 4.7, 'open': true},
-    {'id': '4', 'name': 'مستشفى الكويت', 'location': 'صنعاء', 'image': ImageKit.hospital4, 'rating': 4.8, 'open': true},
-    {'id': '5', 'name': 'المستشفى الجمهوري', 'location': 'صنعاء', 'image': ImageKit.hospital5, 'rating': 4.6, 'open': true},
-    {'id': '6', 'name': 'مستشفى الثورة العام', 'location': 'صنعاء', 'image': ImageKit.hospital6, 'rating': 4.5, 'open': true},
+    {'id': 'h1', 'name': 'مستشفى 22 مايو', 'location': 'صنعاء - حدة', 'image': ImageKit.hospital1, 'rating': 4.9, 'open': true},
+    {'id': 'h2', 'name': 'مستشفى آزال', 'location': 'صنعاء', 'image': ImageKit.hospital2, 'rating': 4.8, 'open': true},
+    {'id': 'h3', 'name': 'مستشفى السبعين', 'location': 'صنعاء', 'image': ImageKit.hospital3, 'rating': 4.7, 'open': true},
+    {'id': 'h4', 'name': 'مستشفى الكويت', 'location': 'صنعاء', 'image': ImageKit.hospital4, 'rating': 4.8, 'open': true},
+    {'id': 'h5', 'name': 'المستشفى الجمهوري', 'location': 'صنعاء', 'image': ImageKit.hospital5, 'rating': 4.6, 'open': true},
+    {'id': 'h6', 'name': 'مستشفى الثورة العام', 'location': 'صنعاء', 'image': ImageKit.hospital6, 'rating': 4.5, 'open': true},
   ];
 
   final List<Map<String, dynamic>> _featuredLabs = [
-    {'id': '1', 'name': 'مختبرات الرازي', 'location': 'صنعاء', 'image': ImageKit.lab1, 'rating': 4.9, 'open': true},
-    {'id': '2', 'name': 'مختبرات العولقي', 'location': 'صنعاء', 'image': ImageKit.lab2, 'rating': 4.8, 'open': true},
-    {'id': '3', 'name': 'مختبرات المأمون', 'location': 'صنعاء', 'image': ImageKit.lab3, 'rating': 4.7, 'open': true},
-    {'id': '4', 'name': 'مختبرات الذبحاني', 'location': 'صنعاء', 'image': ImageKit.lab1, 'rating': 4.6, 'open': true},
-    {'id': '5', 'name': 'مختبرات النخبة', 'location': 'صنعاء', 'image': ImageKit.lab2, 'rating': 4.5, 'open': true},
-    {'id': '6', 'name': 'مختبرات اليمن الحديثة', 'location': 'صنعاء', 'image': ImageKit.lab3, 'rating': 4.4, 'open': true},
+    {'id': 'l1', 'name': 'مختبرات الرازي', 'location': 'صنعاء', 'image': ImageKit.lab1, 'rating': 4.9, 'open': true},
+    {'id': 'l2', 'name': 'مختبرات العولقي', 'location': 'صنعاء', 'image': ImageKit.lab2, 'rating': 4.8, 'open': true},
+    {'id': 'l3', 'name': 'مختبرات المأمون', 'location': 'صنعاء', 'image': ImageKit.lab3, 'rating': 4.7, 'open': true},
+    {'id': 'l4', 'name': 'مختبرات الذبحاني', 'location': 'صنعاء', 'image': ImageKit.lab1, 'rating': 4.6, 'open': true},
+    {'id': 'l5', 'name': 'مختبرات النخبة', 'location': 'صنعاء', 'image': ImageKit.lab2, 'rating': 4.5, 'open': true},
+    {'id': 'l6', 'name': 'مختبرات اليمن الحديثة', 'location': 'صنعاء', 'image': ImageKit.lab3, 'rating': 4.4, 'open': true},
   ];
 
   final List<Map<String, dynamic>> _featuredPharmacies = [
-    {'id': '1', 'name': 'صيدلية ابن حيان', 'location': 'صنعاء', 'image': ImageKit.pharmacy1, 'rating': 4.9, 'open': true},
-    {'id': '2', 'name': 'صيدلية عالم الصيدلة', 'location': 'صنعاء', 'image': ImageKit.pharmacy2, 'rating': 4.8, 'open': true},
-    {'id': '3', 'name': 'صيدلية النهضة', 'location': 'صنعاء', 'image': ImageKit.pharmacy3, 'rating': 4.7, 'open': true},
-    {'id': '4', 'name': 'صيدلية اليمن الحديثة', 'location': 'صنعاء', 'image': ImageKit.pharmacy1, 'rating': 4.6, 'open': true},
-    {'id': '5', 'name': 'صيدلية الشفاء', 'location': 'صنعاء', 'image': ImageKit.pharmacy2, 'rating': 4.5, 'open': false},
-    {'id': '6', 'name': 'صيدلية الأمانة', 'location': 'صنعاء', 'image': ImageKit.pharmacy3, 'rating': 4.4, 'open': true},
+    {'id': 'p1', 'name': 'صيدلية ابن حيان', 'location': 'صنعاء', 'image': ImageKit.pharmacy1, 'rating': 4.9, 'open': true},
+    {'id': 'p2', 'name': 'صيدلية عالم الصيدلة', 'location': 'صنعاء', 'image': ImageKit.pharmacy2, 'rating': 4.8, 'open': true},
+    {'id': 'p3', 'name': 'صيدلية النهضة', 'location': 'صنعاء', 'image': ImageKit.pharmacy3, 'rating': 4.7, 'open': true},
+    {'id': 'p4', 'name': 'صيدلية اليمن الحديثة', 'location': 'صنعاء', 'image': ImageKit.pharmacy1, 'rating': 4.6, 'open': true},
+    {'id': 'p5', 'name': 'صيدلية الشفاء', 'location': 'صنعاء', 'image': ImageKit.pharmacy2, 'rating': 4.5, 'open': false},
+    {'id': 'p6', 'name': 'صيدلية الأمانة', 'location': 'صنعاء', 'image': ImageKit.pharmacy3, 'rating': 4.4, 'open': true},
   ];
 
+  final List<Map<String, dynamic>> _healthArticles = [
+    {'title': 'فوائد المشي اليومي', 'category': 'صحة عامة', 'time': 'منذ ساعة', 'image': ImageKit.morningWalk},
+    {'title': 'نصائح لتقوية المناعة', 'category': 'تغذية', 'time': 'منذ 3 ساعات', 'image': ImageKit.immuneBoost},
+    {'title': 'أهمية النوم الصحي', 'category': 'صحة نفسية', 'time': 'منذ 5 ساعات', 'image': ImageKit.sleepTips},
+    {'title': 'العناية بالبشرة في الصيف', 'category': 'جلدية', 'time': 'منذ يوم', 'image': ImageKit.skinCare},
+  ];
 
+  final List<Map<String, dynamic>> _dailyTips = [
+    {'title': 'شرب الماء', 'subtitle': '8 أكواب يومياً', 'icon': Icons.water_drop, 'content': 'شرب 8 أكواب من الماء يومياً يحسن صحة البشرة ويساعد في التخلص من السموم.'},
+    {'title': 'المشي', 'subtitle': '30 دقيقة يومياً', 'icon': Icons.directions_walk, 'content': 'المشي 30 دقيقة يومياً يقلل خطر أمراض القلب والسكري.'},
+    {'title': 'النوم', 'subtitle': '7-8 ساعات ليلاً', 'icon': Icons.nights_stay, 'content': 'النوم 7-8 ساعات يومياً يحسن الصحة النفسية والجسدية.'},
+    {'title': 'الفواكه', 'subtitle': '5 حصص يومياً', 'icon': Icons.apple, 'content': 'تناول 5 حصص من الفواكه والخضار يومياً يوفر الفيتامينات.'},
+  ];
 
+  final List<Map<String, dynamic>> _communityPosts = [
+    {'id': 1, 'author': 'د. سارة العمري', 'avatar': 'س', 'image': ImageKit.skinCare, 'title': 'نصائح للعناية بالبشرة', 'content': 'مع حلول فصل الصيف، احرصي على ترطيب بشرتك واستخدام واقي الشمس.', 'likes': 120, 'comments': 15, 'shares': 8, 'time': 'منذ ساعة', 'liked': false, 'commentList': ['نصائح رائعة!', 'شكراً دكتورة', 'مفيد جداً']},
+    {'id': 2, 'author': 'د. خالد النخلاني', 'avatar': 'خ', 'image': ImageKit.morningWalk, 'title': 'فوائد المشي الصباحي', 'content': 'المشي 30 دقيقة يومياً يقلل خطر أمراض القلب والسكري.', 'likes': 95, 'comments': 8, 'shares': 5, 'time': 'منذ 3 ساعات', 'liked': false, 'commentList': ['معلومة قيمة', 'سأطبقها']},
+    {'id': 3, 'author': 'د. أحمد المؤيد', 'avatar': 'أ', 'image': ImageKit.nutritionTips, 'title': 'تغذيتك سر صحتك', 'content': 'الطعام الصحي هو أساس المناعة القوية والجسم السليم.', 'likes': 210, 'comments': 22, 'shares': 12, 'time': 'منذ 5 ساعات', 'liked': true, 'commentList': ['أحسنت', 'مفيد جداً', 'شكراً دكتور']},
+    {'id': 4, 'author': 'د. أسماء الهندي', 'avatar': 'ه', 'image': ImageKit.immuneBoost, 'title': 'قوة المناعة', 'content': 'الفيتامينات والمعادن تلعب دوراً كبيراً في تقوية المناعة.', 'likes': 78, 'comments': 5, 'shares': 3, 'time': 'منذ يوم', 'liked': false, 'commentList': ['معلومات مفيدة', 'شكراً']},
+    {'id': 5, 'author': 'د. محمد العلاي', 'avatar': 'م', 'image': ImageKit.sleepTips, 'title': 'نصائح النوم الصحي', 'content': 'النوم 7-8 ساعات يومياً يحسن الصحة النفسية والجسدية.', 'likes': 150, 'comments': 12, 'shares': 7, 'time': 'منذ يومين', 'liked': false, 'commentList': ['سأطبق هذه النصائح', 'مفيد']},
+  ];
+
+  // ============================================================
+  // 🔄 دورة الحياة
+  // ============================================================
   @override
   void initState() {
     super.initState();
     _initializeData();
   }
 
-  // ✅ حفظ البيانات في الكاش
-  Future<void> _saveDataToCache() async {
-    try {
-      await CacheService.saveData('home_data', {
-        'topDoctors': _topDoctors,
-        'quickServices': _quickServices,
-        'products': _products,
-        'featuredHospitals': _featuredHospitals,
-        'featuredLabs': _featuredLabs,
-        'featuredPharmacies': _featuredPharmacies,
-        'healthArticles': _healthArticles,
-        'dailyTips': _dailyTips,
-        'communityPosts': _communityPosts,
-      });
-    } catch (e) {
-      print('❌ خطأ في حفظ الكاش: $e');
-    }
-  }
-
-  // ✅ تحميل البيانات من الكاش
-  void _loadDataFromCache() {
-    try {
-      final cached = CacheService.getData('home_data');
-      if (cached != null) {
-        _cachedData = cached;
-        _hasCachedData = true;
-      }
-    } catch (e) {
-      print('❌ خطأ في تحميل الكاش: $e');
-    }
-  }
-
-  // ✅ التحقق من وجود بيانات في الكاش
-  bool _hasValidCache() {
-    return _hasCachedData && _cachedData.isNotEmpty;
-  }
-
   Future<void> _initializeData() async {
-    // ✅ أولاً: تحميل البيانات من الكاش
-    _loadDataFromCache();
-
-    // ✅ ثانياً: محاولة تحميل البيانات من الإنترنت
     try {
       _loadUserData();
       await _loadHealthScore();
       _startAnimation();
-
-      // ✅ حفظ البيانات في الكاش بعد التحميل
-      await _saveDataToCache();
-
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -194,25 +166,13 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         });
       }
     } catch (e) {
-      // ✅ إذا فشل التحميل من الإنترنت ولكن يوجد كاش
-      if (_hasValidCache()) {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-            _hasError = false;
-            _isOffline = true; // ✅ وضع Offline ولكن مع عرض البيانات المخزنة
-          });
-        }
-      } else {
-        // ✅ لا يوجد إنترنت ولا كاش
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-            _hasError = true;
-            _errorMessage = 'لا يوجد اتصال بالإنترنت ولا بيانات مخزنة';
-            _isOffline = true;
-          });
-        }
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _hasError = true;
+          _errorMessage = 'حدث خطأ في تحميل البيانات';
+          _isOffline = true;
+        });
       }
     }
   }
@@ -255,6 +215,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     });
   }
 
+  void _goTo(BuildContext context, Widget screen) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
+  }
 
   Widget _buildServiceIcon(String iconPath, {double size = 32}) {
     return Image.asset(
@@ -325,24 +288,21 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ============================================================
-  // 🏠 بناء الواجهة الرئيسية
+  // 🏠 بناء الواجهة
   // ============================================================
   @override
   Widget build(BuildContext context) {
     super.build(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // ✅ حالة التحميل
     if (_isLoading) {
       return _buildShimmerLoader(isDark);
     }
 
-    // ✅ حالة الخطأ (لا يوجد إنترنت ولا كاش)
     if (_hasError) {
       return _buildErrorScreen(isDark);
     }
 
-    // ✅ عرض البيانات المخزنة (حتى في وضع Offline)
     return RefreshIndicator(
       onRefresh: _refreshData,
       child: Scaffold(
@@ -350,115 +310,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         body: CustomScrollView(
           controller: widget.scrollController,
           slivers: [
-            SliverAppBar(
-              expandedHeight: 90,
-              floating: true,
-              snap: true,
-              pinned: false,
-              backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
-              elevation: 0,
-              automaticallyImplyLeading: false,
-              flexibleSpace: FlexibleSpaceBar(
-                background: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Row(
-                    children: [
-                      Hero(
-                        tag: 'user_avatar',
-                        child: GestureDetector(
-                          onTap: () => _goTo(context, const PatientProfile()),
-                          child: CircleAvatar(
-                            radius: 20,
-                            backgroundColor: AppColors.primary.withOpacity(0.1),
-                            child: Text(
-                              _isLoggedIn ? _userName[0].toUpperCase() : 'م',
-                              style: TextStyle(
-                                color: AppColors.primary,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              _isLoggedIn ? 'مرحباً، $_userName 👋' : 'منصة صحتك',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: isDark ? Colors.white : Colors.black87,
-                              ),
-                            ),
-                            Text(
-                              _isLoggedIn ? 'كيف تشعر اليوم؟' : 'سجل دخولك للاستفادة',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: isDark ? Colors.grey[400] : Colors.grey[600],
-                              ),
-                            ),
-                            // ✅ عرض حالة الاتصال (Offline)
-                            if (_isOffline)
-                              Container(
-                                margin: const EdgeInsets.only(top: 2),
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                                decoration: BoxDecoration(
-                                  color: Colors.orange.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: const Text(
-                                  '📶 غير متصل - عرض البيانات المخزنة',
-                                  style: TextStyle(
-                                    fontSize: 9,
-                                    color: Colors.orange,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                      // ✅ أيقونة الإشعارات
-                      GestureDetector(
-                        onTap: () => _goTo(context, const NotificationsScreen()),
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          child: Image.asset(
-                            'assets/images/icons/top_bar/notifications.png',
-                            width: 28,
-                            height: 28,
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Icon(Icons.notifications, color: isDark ? Colors.white : Colors.black87, size: 28);
-                            },
-                          ),
-                        ),
-                      ),
-                      // ✅ أيقونة السلة
-                      GestureDetector(
-                        onTap: () => _goTo(context, const CartScreen()),
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          child: Image.asset(
-                            'assets/images/icons/top_bar/Shopping cart.png',
-                            width: 28,
-                            height: 28,
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Icon(Icons.shopping_cart, color: isDark ? Colors.white : Colors.black87, size: 28);
-                            },
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+            _buildAppBar(isDark),
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               sliver: SliverList(
@@ -467,7 +319,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   const SizedBox(height: 16),
                   _buildBannerCarousel(isDark),
                   const SizedBox(height: 16),
-                  // ✅ الإحصائيات - تظهر فقط للمستخدمين المسجلين
                   if (_isLoggedIn) ...[
                     _buildStatsRow(),
                     const SizedBox(height: 16),
@@ -524,182 +375,244 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ============================================================
-  // 📱 شاشة Shimmer
+  // 📱 الشريط العلوي
   // ============================================================
-  Widget _buildShimmerLoader(bool isDark) {
-    return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 90,
-            floating: true,
-            snap: true,
-            backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
-            elevation: 0,
-            automaticallyImplyLeading: false,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Shimmer.fromColors(
-                  baseColor: isDark ? Colors.grey[800]! : Colors.grey[300]!,
-                  highlightColor: isDark ? Colors.grey[700]! : Colors.grey[100]!,
-                  child: Row(
-                    children: [
-                      CircleAvatar(radius: 20, backgroundColor: Colors.white),
-                      const SizedBox(width: 12),
-                      Expanded(child: Container(height: 16, color: Colors.white)),
-                      Container(width: 28, height: 28, color: Colors.white),
-                      const SizedBox(width: 8),
-                      Container(width: 28, height: 28, color: Colors.white),
-                    ],
+  SliverAppBar _buildAppBar(bool isDark) {
+    return SliverAppBar(
+      expandedHeight: 90,
+      floating: true,
+      snap: true,
+      pinned: false,
+      backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
+      elevation: 0,
+      automaticallyImplyLeading: false,
+      flexibleSpace: FlexibleSpaceBar(
+        background: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              Hero(
+                tag: 'user_avatar',
+                child: GestureDetector(
+                  onTap: () => _goTo(context, const PatientProfile()),
+                  child: CircleAvatar(
+                    radius: 20,
+                    backgroundColor: AppColors.primary.withOpacity(0.1),
+                    child: Text(
+                      _isLoggedIn ? _userName[0].toUpperCase() : 'م',
+                      style: TextStyle(
+                        color: AppColors.primary,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      _isLoggedIn ? 'مرحباً، $_userName 👋' : 'منصة صحتك',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                    Text(
+                      _isLoggedIn ? 'كيف تشعر اليوم؟' : 'سجل دخولك للاستفادة',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      ),
+                    ),
+                    if (_isOffline)
+                      Container(
+                        margin: const EdgeInsets.only(top: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          '📶 غير متصل - عرض البيانات المخزنة',
+                          style: TextStyle(fontSize: 9, color: Colors.orange),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              GestureDetector(
+                onTap: () => _goTo(context, const NotificationsScreen()),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  child: Image.asset(
+                    'assets/images/icons/top_bar/notifications.png',
+                    width: 28,
+                    height: 28,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Icon(Icons.notifications, color: isDark ? Colors.white : Colors.black87, size: 28);
+                    },
+                  ),
+                ),
+              ),
+              GestureDetector(
+                onTap: () => _goTo(context, const CartScreen()),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  child: Image.asset(
+                    'assets/images/icons/top_bar/Shopping cart.png',
+                    width: 28,
+                    height: 28,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Icon(Icons.shopping_cart, color: isDark ? Colors.white : Colors.black87, size: 28);
+                    },
+                  ),
+                ),
+              ),
+            ],
           ),
-          SliverPadding(
-            padding: const EdgeInsets.all(16),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                _buildShimmerBox(height: 50, radius: 25),
-                const SizedBox(height: 16),
-                _buildShimmerBox(height: 160, radius: 16),
-                const SizedBox(height: 20),
-                _buildShimmerBox(height: 80, radius: 10),
-                const SizedBox(height: 24),
-                _buildShimmerBox(height: 90, radius: 14),
-                const SizedBox(height: 24),
-                _buildShimmerBox(height: 200, radius: 14),
-                const SizedBox(height: 24),
-                _buildShimmerBox(height: 120, radius: 14),
-              ]),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildShimmerBox({double width = double.infinity, double height = 200, double radius = 16}) {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
-      child: Container(
-        width: width,
-        height: height,
+  // ============================================================
+  // 📊 دوال البناء
+  // ============================================================
+  Widget _buildBannerCarousel(bool isDark) {
+    if (_bannerImages.isEmpty) {
+      return Container(
+        height: 160,
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(radius),
+          color: isDark ? const Color(0xFF1A2540) : Colors.grey[200],
+          borderRadius: BorderRadius.circular(16),
         ),
-      ),
-    );
-  }
-
-  // ============================================================
-  // 📱 شاشة الخطأ
-  // ============================================================
-  Widget _buildErrorScreen(bool isDark) {
-    return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
-            const SizedBox(height: 16),
-            Text(
-              'لا يوجد اتصال بالإنترنت',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _errorMessage,
-              style: TextStyle(
-                fontSize: 14,
-                color: isDark ? Colors.grey[400] : Colors.grey[600],
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _refreshData,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              child: const Text('إعادة المحاولة'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ============================================================
-  // 📊 دوال البناء (مختصرة)
-  // ============================================================
-  // ... (باقي الدوال كما هي: _buildBannerCarousel, _buildStatsRow, _buildQuickServicesRow,
-  // _buildTopDoctorsGrid, _buildProductsRow, _buildFeaturedHospitalsGrid,
-  // _buildFeaturedLabsGrid, _buildFeaturedPharmaciesGrid, _buildArticlesGrid,
-  // _buildDailyTipsGrid, _buildCommunityPosts, _toggleLike, _sharePost,
-  // _showComments, _showTipDetails, _refreshData)
-
-  // ... (جميع الدوال الموجودة سابقاً تبقى كما هي)
-
-  // ============================================================
-  // 🔄 تحديث البيانات
-  // ============================================================
-  Future<void> _refreshData() async {
-    setState(() => _isLoading = true);
-    try {
-      _loadUserData();
-      await Future.delayed(const Duration(seconds: 1));
-      await _loadHealthScore();
-      
-      // ✅ حفظ البيانات في الكاش بعد التحديث
-      await _saveDataToCache();
-      
-      if (mounted) {
-        setState(() {
-          _hasError = false;
-          _isLoading = false;
-          _isOffline = false;
-        });
-      }
-    } catch (e) {
-      // ✅ إذا فشل التحديث ولكن يوجد كاش
-      if (_hasValidCache()) {
-        if (mounted) {
-          setState(() {
-            _hasError = false;
-            _isLoading = false;
-            _isOffline = true;
-          });
-        }
-      } else {
-        if (mounted) {
-          setState(() {
-            _hasError = true;
-            _errorMessage = 'حدث خطأ في تحديث البيانات';
-            _isLoading = false;
-            _isOffline = true;
-          });
-        }
-      }
+        child: const Center(child: Text('لا توجد بانرات')),
+      );
     }
-  }
-}
 
-  // ============================================================
-  // 📦 دوال البناء المفقودة
-  // ============================================================
+    return Stack(
+      children: [
+        CarouselSlider(
+          options: CarouselOptions(
+            height: 160,
+            autoPlay: true,
+            autoPlayInterval: const Duration(seconds: 4),
+            autoPlayAnimationDuration: const Duration(milliseconds: 800),
+            autoPlayCurve: Curves.fastOutSlowIn,
+            enlargeCenterPage: true,
+            viewportFraction: 0.95,
+            onPageChanged: (index, reason) => setState(() => _currentBanner = index),
+          ),
+          items: _bannerImages.map((url) {
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: AppImage(
+                  imageUrl: url,
+                  height: 160,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+        Positioned(
+          bottom: 12,
+          left: 16,
+          child: Row(
+            children: _bannerImages.asMap().entries.map((entry) {
+              final index = entry.key;
+              final isActive = _currentBanner == index;
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                width: isActive ? 20 : 8,
+                height: 8,
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                decoration: BoxDecoration(
+                  color: isActive ? Colors.white : Colors.white.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatsRow() {
+    final statsData = [
+      {'icon': Icons.local_fire_department, 'value': _caloriesAnim, 'label': 'سعرة حرارية', 'color': AppColors.primary, 'format': 'int'},
+      {'icon': Icons.directions_walk, 'value': _stepsAnim, 'label': 'خطوة', 'color': AppColors.primary, 'format': 'int'},
+      {'icon': Icons.bedtime, 'value': _sleepAnim, 'label': 'ساعات النوم', 'color': AppColors.primary, 'format': 'double'},
+      {'icon': Icons.favorite, 'value': _heartAnim, 'label': 'نبضة/دقيقة', 'color': AppColors.primary, 'format': 'int'},
+    ];
+
+    return Row(
+      children: statsData.map((stat) {
+        final color = stat['color'] as Color;
+        final value = stat['value'] as double;
+        final isInt = stat['format'] == 'int';
+
+        return Expanded(
+          child: TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 0, end: value),
+            duration: const Duration(milliseconds: 1500),
+            curve: Curves.easeOutCubic,
+            builder: (context, val, child) {
+              final displayVal = isInt ? val.toInt().toString() : val.toStringAsFixed(1);
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 3),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Column(
+                  children: [
+                    Icon(stat['icon'] as IconData, color: color, size: 22),
+                    const SizedBox(height: 4),
+                    Text(
+                      displayVal,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: color,
+                      ),
+                    ),
+                    Text(
+                      stat['label'] as String,
+                      style: const TextStyle(fontSize: 12, color: AppColors.primary),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      }).toList(),
+    );
+  }
 
   Widget _buildSectionTitle(String title, bool isDark) {
     return Padding(
@@ -742,6 +655,181 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildQuickServicesRow() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return SizedBox(
+      height: 120,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        itemCount: _quickServices.length,
+        itemBuilder: (context, index) {
+          final service = _quickServices[index];
+          return GestureDetector(
+            onTap: () => _goTo(context, service['screen'] as Widget),
+            child: Container(
+              width: 86,
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 62,
+                    height: 62,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+                    ),
+                    child: Center(
+                      child: _buildServiceIcon(service['icon'] as String, size: 28),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    service['label'] as String,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: isDark ? Colors.grey[400] : Colors.grey[800],
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildTopDoctorsGrid() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 0.78,
+      ),
+      itemCount: _topDoctors.length,
+      itemBuilder: (context, index) {
+        final doctor = _topDoctors[index];
+        return GestureDetector(
+          onTap: () => _goTo(context, DoctorDetailsScreen(doctorId: doctor['id'] as String)),
+          child: Container(
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1A2540) : Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+                      child: AppImage(
+                        imageUrl: doctor['image'] as String,
+                        height: 90,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    Positioned(
+                      top: 6,
+                      right: 6,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.7),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.star, color: Colors.amber, size: 10),
+                            const SizedBox(width: 2),
+                            Text(
+                              doctor['rating'].toString(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        doctor['name'] as String,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        doctor['specialty'] as String,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () => _goTo(context, DoctorDetailsScreen(doctorId: doctor['id'] as String)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                            minimumSize: const Size(0, 28),
+                          ),
+                          child: const Text(
+                            'حجز موعد',
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -1547,53 +1635,385 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
+  // ============================================================
+  // ❤️ دوال التفاعل
+  // ============================================================
+  void _toggleLike(int index) {
+    setState(() {
+      _communityPosts[index]['liked'] = !_communityPosts[index]['liked'];
+      _communityPosts[index]['likes'] += _communityPosts[index]['liked'] ? 1 : -1;
+    });
+  }
 
+  void _sharePost(int index) {
+    final post = _communityPosts[index];
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('✅ تم مشاركة: ${post['title']}'),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
 
+  void _showComments(Map<String, dynamic> post, int index) {
+    final TextEditingController commentController = TextEditingController();
 
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setStateModal) {
+          return Container(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+            height: MediaQuery.of(context).size.height * 0.7,
+            child: Column(
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(top: 8),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.4),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'التعليقات (${post['comments']})',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(),
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: (post['commentList'] as List).length,
+                    itemBuilder: (context, i) {
+                      final comment = (post['commentList'] as List)[i];
+                      return ListTile(
+                        leading: CircleAvatar(
+                          radius: 16,
+                          backgroundColor: AppColors.primary.withOpacity(0.1),
+                          child: Text(
+                            'م',
+                            style: TextStyle(
+                              color: AppColors.primary,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        title: Text(
+                          comment,
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        subtitle: Text(
+                          'منذ دقيقة',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.primary.withOpacity(0.6),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.05),
+                    border: Border(
+                      top: BorderSide(color: AppColors.primary.withOpacity(0.2)),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: commentController,
+                          decoration: InputDecoration(
+                            hintText: 'أضف تعليقاً...',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(24),
+                              borderSide: BorderSide.none,
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      CircleAvatar(
+                        backgroundColor: AppColors.primary,
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.send,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                          onPressed: () {
+                            if (commentController.text.isNotEmpty) {
+                              setStateModal(() {
+                                (post['commentList'] as List).add(commentController.text);
+                                post['comments'] = (post['comments'] as int) + 1;
+                              });
+                              commentController.clear();
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _showTipDetails(Map<String, dynamic> tip) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.4),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Icon(tip['icon'] as IconData, color: AppColors.primary, size: 28),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    tip['title'] as String,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              tip['subtitle'] as String,
+              style: TextStyle(
+                fontSize: 14,
+                color: AppColors.primary.withOpacity(0.6),
+              ),
+            ),
+            const Divider(height: 24),
+            Text(
+              tip['content'] as String,
+              style: const TextStyle(
+                fontSize: 16,
+                height: 1.6,
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text('أغلقت'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   // ============================================================
-  // 📦 المتغيرات المفقودة
+  // 📱 شاشات المساعدة
   // ============================================================
+  Widget _buildShimmerLoader(bool isDark) {
+    return Scaffold(
+      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 90,
+            floating: true,
+            snap: true,
+            backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
+            elevation: 0,
+            automaticallyImplyLeading: false,
+            flexibleSpace: FlexibleSpaceBar(
+              background: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Shimmer.fromColors(
+                  baseColor: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+                  highlightColor: isDark ? Colors.grey[700]! : Colors.grey[100]!,
+                  child: Row(
+                    children: [
+                      CircleAvatar(radius: 20, backgroundColor: Colors.white),
+                      const SizedBox(width: 12),
+                      Expanded(child: Container(height: 16, color: Colors.white)),
+                      Container(width: 28, height: 28, color: Colors.white),
+                      const SizedBox(width: 8),
+                      Container(width: 28, height: 28, color: Colors.white),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.all(16),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                _buildShimmerBox(height: 50, radius: 25),
+                const SizedBox(height: 16),
+                _buildShimmerBox(height: 160, radius: 16),
+                const SizedBox(height: 20),
+                _buildShimmerBox(height: 80, radius: 10),
+                const SizedBox(height: 24),
+                _buildShimmerBox(height: 90, radius: 14),
+                const SizedBox(height: 24),
+                _buildShimmerBox(height: 200, radius: 14),
+                const SizedBox(height: 24),
+                _buildShimmerBox(height: 120, radius: 14),
+              ]),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
+  Widget _buildShimmerBox({double width = double.infinity, double height = 200, double radius = 16}) {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: Container(
+        width: width,
+        height: height,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(radius),
+        ),
+      ),
+    );
+  }
 
+  Widget _buildErrorScreen(bool isDark) {
+    return Scaffold(
+      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+            const SizedBox(height: 16),
+            Text(
+              'حدث خطأ',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _errorMessage,
+              style: TextStyle(
+                fontSize: 14,
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: _refreshData,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('إعادة المحاولة'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   // ============================================================
-  // 📦 المتغيرات المفقودة
+  // 🔄 تحديث البيانات
   // ============================================================
-  final List<Map<String, dynamic>> _featuredHospitals = [
-    {'id': '1', 'name': 'مستشفى 22 مايو', 'location': 'صنعاء - حدة', 'image': ImageKit.hospital1, 'rating': 4.9, 'open': true},
-    {'id': '2', 'name': 'مستشفى آزال', 'location': 'صنعاء', 'image': ImageKit.hospital2, 'rating': 4.8, 'open': true},
-    {'id': '3', 'name': 'مستشفى السبعين', 'location': 'صنعاء', 'image': ImageKit.hospital3, 'rating': 4.7, 'open': true},
-    {'id': '4', 'name': 'مستشفى الكويت', 'location': 'صنعاء', 'image': ImageKit.hospital4, 'rating': 4.8, 'open': true},
-    {'id': '5', 'name': 'المستشفى الجمهوري', 'location': 'صنعاء', 'image': ImageKit.hospital5, 'rating': 4.6, 'open': true},
-    {'id': '6', 'name': 'مستشفى الثورة العام', 'location': 'صنعاء', 'image': ImageKit.hospital6, 'rating': 4.5, 'open': true},
-  ];
-
-  final List<Map<String, dynamic>> _featuredLabs = [
-    {'id': '1', 'name': 'مختبرات الرازي', 'location': 'صنعاء', 'image': ImageKit.lab1, 'rating': 4.9, 'open': true},
-    {'id': '2', 'name': 'مختبرات العولقي', 'location': 'صنعاء', 'image': ImageKit.lab2, 'rating': 4.8, 'open': true},
-    {'id': '3', 'name': 'مختبرات المأمون', 'location': 'صنعاء', 'image': ImageKit.lab3, 'rating': 4.7, 'open': true},
-    {'id': '4', 'name': 'مختبرات الذبحاني', 'location': 'صنعاء', 'image': ImageKit.lab1, 'rating': 4.6, 'open': true},
-    {'id': '5', 'name': 'مختبرات النخبة', 'location': 'صنعاء', 'image': ImageKit.lab2, 'rating': 4.5, 'open': true},
-    {'id': '6', 'name': 'مختبرات اليمن الحديثة', 'location': 'صنعاء', 'image': ImageKit.lab3, 'rating': 4.4, 'open': true},
-  ];
-
-  final List<Map<String, dynamic>> _featuredPharmacies = [
-    {'id': '1', 'name': 'صيدلية ابن حيان', 'location': 'صنعاء', 'image': ImageKit.pharmacy1, 'rating': 4.9, 'open': true},
-    {'id': '2', 'name': 'صيدلية عالم الصيدلة', 'location': 'صنعاء', 'image': ImageKit.pharmacy2, 'rating': 4.8, 'open': true},
-    {'id': '3', 'name': 'صيدلية النهضة', 'location': 'صنعاء', 'image': ImageKit.pharmacy3, 'rating': 4.7, 'open': true},
-    {'id': '4', 'name': 'صيدلية اليمن الحديثة', 'location': 'صنعاء', 'image': ImageKit.pharmacy1, 'rating': 4.6, 'open': true},
-    {'id': '5', 'name': 'صيدلية الشفاء', 'location': 'صنعاء', 'image': ImageKit.pharmacy2, 'rating': 4.5, 'open': false},
-    {'id': '6', 'name': 'صيدلية الأمانة', 'location': 'صنعاء', 'image': ImageKit.pharmacy3, 'rating': 4.4, 'open': true},
-  ];
-
-
-
-
-  // ============================================================
-  // 🔧 دوال مساعدة
-  // ============================================================
-
-
-
-
+  Future<void> _refreshData() async {
+    setState(() => _isLoading = true);
+    try {
+      _loadUserData();
+      await Future.delayed(const Duration(seconds: 1));
+      await _loadHealthScore();
+      if (mounted) {
+        setState(() {
+          _hasError = false;
+          _isLoading = false;
+          _isOffline = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _hasError = true;
+          _errorMessage = 'حدث خطأ في تحديث البيانات';
+          _isLoading = false;
+          _isOffline = true;
+        });
+      }
+    }
+  }
+}
