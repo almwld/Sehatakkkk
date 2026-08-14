@@ -81,27 +81,39 @@ class _MoreScreenState extends State<MoreScreen> {
 
   // ✅ المؤشرات الحيوية - بحجم كبير مثل أفضل الأطباء
   final List<Map<String, dynamic>> _vitals = [
-    {'title': 'عداد الخطوات', 'value': '5,230', 'unit': 'خطوة', 'icon': 'assets/images/tracking/fitness.png', 'color': Colors.orange, 'status': 'طبيعي', 'statusColor': Colors.green, 'screen': const SleepTrackerScreen()},
-    {'title': 'ضغط الدم', 'value': '120/80', 'unit': 'ملم زئبق', 'icon': 'assets/images/tracking/blood_pressure.png', 'color': Colors.red, 'status': 'طبيعي', 'statusColor': Colors.green, 'screen': const BloodPressureScreen()},
-    {'title': 'معدل القلب', 'value': '72', 'unit': 'نبضة/د', 'icon': 'assets/images/tracking/blood_pressure.png', 'color': Colors.pink, 'status': 'طبيعي', 'statusColor': Colors.green, 'screen': const HealthDashboard()},
-    {'title': 'نسبة السكر', 'value': '95', 'unit': 'مغ/دسل', 'icon': 'assets/images/tracking/blood_sugar.png', 'color': Colors.blue, 'status': 'مرتفع', 'statusColor': Colors.red, 'screen': const GlucoseTrackerScreen()},
+    {'title': 'عداد الخطوات', 'value': '5,230', 'unit': 'خطوة', 'icon': 'assets/images/tracking/fitness.png', 'color': Colors.orange, 'status': 'طبيعي', 'statusColor': Colors.green},
+    {'title': 'ضغط الدم', 'value': '120/80', 'unit': 'ملم زئبق', 'icon': 'assets/images/tracking/blood_pressure.png', 'color': Colors.red, 'status': 'طبيعي', 'statusColor': Colors.green},
+    {'title': 'معدل القلب', 'value': '72', 'unit': 'نبضة/د', 'icon': 'assets/images/tracking/blood_pressure.png', 'color': Colors.pink, 'status': 'طبيعي', 'statusColor': Colors.green},
+    {'title': 'نسبة السكر', 'value': '95', 'unit': 'مغ/دسل', 'icon': 'assets/images/tracking/blood_sugar.png', 'color': Colors.blue, 'status': 'مرتفع', 'statusColor': Colors.red},
   ];
 
   void _navigateTo(Widget screen) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
   }
 
-  // ✅ دالة عرض أيقونة PNG بحجم كبير
-  Widget _buildIcon(String iconPath, Color color, {double size = 32}) {
+  // ✅ دالة عرض أيقونة PNG/URL بحجم أكبر وبألوانها الأصلية (إلغاء الـ tint)
+  Widget _buildIcon(String iconPath, Color fallbackColor, {double size = 32}) {
+    final actualSize = size * 1.25; // زيادة الحجم بنسبة 25%
+
+    // إذا كان مسار الأيقونة رابط شبكي
+    if (iconPath.startsWith('http') || iconPath.startsWith('https')) {
+      return Image.network(
+        iconPath,
+        width: actualSize,
+        height: actualSize,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) => Icon(Icons.broken_image, color: fallbackColor, size: actualSize),
+      );
+    }
+
+    // افتراض أنه ملف محلي داخل assets — لا نمرر اللون لكي لا يتم تلطيخ الأيقونة
     return Image.asset(
       iconPath,
-      width: size,
-      height: size,
+      width: actualSize,
+      height: actualSize,
       fit: BoxFit.contain,
-      color: color,
-      errorBuilder: (context, error, stackTrace) {
-        return Icon(Icons.circle, color: color, size: size);
-      },
+      // لا نستخدم color: ... لأن ذلك يغيّر لون الـ PNG ويمحو تفاصيلها
+      errorBuilder: (context, error, stackTrace) => Icon(Icons.image, color: fallbackColor, size: actualSize),
     );
   }
 
@@ -176,9 +188,9 @@ class _MoreScreenState extends State<MoreScreen> {
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(() {
-      final maxScroll = _scrollController.position.maxScrollExtent;
-      final currentScroll = _scrollController.position.pixels;
+    _scroll_controller.addListener(() {
+      final maxScroll = _scroll_controller.position.maxScrollExtent;
+      final currentScroll = _scroll_controller.position.pixels;
       setState(() {
         _appBarOpacity = 1.0 - (currentScroll / maxScroll).clamp(0.0, 1.0);
       });
@@ -198,643 +210,168 @@ class _MoreScreenState extends State<MoreScreen> {
       return;
     }
 
-    if (_adminEmails.contains(user.email)) {
-      setState(() {
-        _isAdmin = true;
-        _isCheckingAdmin = false;
-      });
-      return;
-    }
-
-    try {
-      final doc = await FirebaseFirestore.instance
-          .collection('user_roles')
-          .doc(user.uid)
-          .get();
-      
-      if (doc.exists) {
-        final data = doc.data() as Map<String, dynamic>?;
-        final role = data?['role'] ?? 'user';
-        if (role == 'admin' || role == 'superAdmin') {
-          setState(() {
-            _isAdmin = true;
-            _isCheckingAdmin = false;
-          });
-          return;
-        }
-      }
-    } catch (e) {
-      print('Error checking admin status: $e');
-    }
-
-    try {
-      final doc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
-      
-      if (doc.exists) {
-        final data = doc.data() as Map<String, dynamic>?;
-        final role = data?['role'] ?? 'user';
-        if (role == 'admin' || role == 'superAdmin') {
-          setState(() {
-            _isAdmin = true;
-            _isCheckingAdmin = false;
-          });
-          return;
-        }
-      }
-    } catch (e) {
-      print('Error checking user role: $e');
-    }
-
     setState(() {
-      _isAdmin = false;
+      _isAdmin = _adminEmails.contains(user.email);
       _isCheckingAdmin = false;
     });
   }
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    _scroll_controller.dispose();
     super.dispose();
-  }
-
-  // ✅ زر لوحة التحكم للمشرفين
-  Widget _buildAdminButton() {
-    if (_isCheckingAdmin) {
-      return const SizedBox(
-        height: 20,
-        child: Center(
-          child: SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-        ),
-      );
-    }
-
-    if (!_isAdmin) {
-      return const SizedBox.shrink();
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
-      ),
-      child: ListTile(
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.1),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(
-            Icons.admin_panel_settings,
-            color: AppColors.primary,
-          ),
-        ),
-        title: const Text(
-          '🛡️ لوحة تحكم المنصة',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text(
-          'إدارة المقدمين والإعلانات والحجوزات',
-          style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
-        ),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 14),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const PlatformDashboard(),
-            ),
-          );
-        },
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final fontProvider = Provider.of<FontSizeProvider>(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = AppColors.primary;
-    final user = FirebaseAuth.instance.currentUser;
-    final logged = user != null;
-    final name = user?.displayName ?? user?.email?.split('@')[0] ?? 'مستخدم';
-    final fontScale = context.watch<FontSizeProvider>().fontScale;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF5F7FA),
-      body: CustomScrollView(
-        controller: _scrollController,
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 100 * fontScale,
-            floating: true,
-            pinned: true,
-            backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF5F7FA),
-            foregroundColor: primaryColor,
-            elevation: 0,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Opacity(
-                opacity: _appBarOpacity,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          if (logged) _navigateTo(const PatientProfile());
-                          else _navigateTo(BlocProvider(create: (_) => AuthBloc(), child: const AuthScreen()));
-                        },
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(14),
-                          child: CachedNetworkImage(
-                            imageUrl: user?.photoURL ?? '',
-                            width: 45,
-                            height: 45,
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) => _shimmerPlaceholder(45, 45, 14 * fontScale),
-                            errorWidget: (_, __, ___) => Container(
-                              width: 45,
-                              height: 45,
-                              decoration: BoxDecoration(
-                                color: primaryColor.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: Icon(Icons.person, color: primaryColor, size: 24),
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 12 * fontScale),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              logged ? name : 'زائر',
-                              style: TextStyle(
-                                color: primaryColor,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              logged ? 'رقم الملف: #${user?.uid.substring(0, 8) ?? '00000000'}' : 'تسجيل الدخول للمزيد',
-                              style: TextStyle(
-                                color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
-                                fontSize: 11,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.settings_outlined, color: primaryColor),
-                        onPressed: () => _navigateTo(const SettingsScreen()),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+      backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
+      appBar: AppBar(
+        backgroundColor: AppColors.primary,
+        elevation: 0,
+        title: const Text('المزيد', style: TextStyle(fontWeight: FontWeight.bold)),
+        actions: [
+          if (_isCheckingAdmin)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
             ),
-          ),
-          SliverPadding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                SizedBox(height: 8 * fontScale),
-                _buildAISmartSuite(primaryColor, fontScale),
-                SizedBox(height: 20 * fontScale),
-                _sectionTitle('المؤشرات الحيوية', isDark, fontScale),
-                SizedBox(height: 10 * fontScale),
-                _buildVitalsGrid(fontScale),
-                SizedBox(height: 20 * fontScale),
-                _buildFilterChips(primaryColor, fontScale),
-                SizedBox(height: 16),
-                ..._filteredServices.map((service) => _buildServiceCard(service, isDark, primaryColor, fontScale)),
-                SizedBox(height: 16),
-                _buildAdminButton(),
-                SizedBox(height: 16),
-                _buildPremiumFooter(isDark, primaryColor, fontScale),
-                SizedBox(height: 30 * fontScale),
-              ]),
-            ),
-          ),
+          if (_isAdmin && !_isCheckingAdmin)
+            IconButton(onPressed: () => _navigateTo(const PlatformDashboard()), icon: const Icon(Icons.admin_panel_settings)),
         ],
       ),
-    );
-  }
-
-  Widget _shimmerPlaceholder(double width, double height, double radius) {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey.shade300!,
-      highlightColor: Colors.grey.shade100!,
-      child: Container(
-        width: width,
-        height: height,
-        decoration: BoxDecoration(
-          color: Colors.grey.shade300,
-          borderRadius: BorderRadius.circular(radius),
-        ),
-      ),
-    );
-  }
-
-  Widget _sectionTitle(String title, bool isDark, double fontScale) {
-    return Text(
-      title,
-      style: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
-        color: isDark ? Colors.white : Colors.black87,
-      ),
-    );
-  }
-
-  Widget _buildAISmartSuite(Color primaryColor, double fontScale) {
-    return Container(
-      padding: EdgeInsets.all(20 * fontScale),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [primaryColor, primaryColor.withOpacity(0.85)],
-          begin: Alignment.topRight,
-          end: Alignment.bottomLeft,
-        ),
-        borderRadius: BorderRadius.circular(20 * fontScale),
-        boxShadow: [
-          BoxShadow(
-            color: primaryColor.withOpacity(0.3),
-            blurRadius: 15 * fontScale,
-            offset: Offset(0, 8 * fontScale),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      body: Column(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 12 * fontScale, vertical: 6 * fontScale),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.psychology, color: Colors.white, size: 18 * fontScale),
-                    SizedBox(width: 6 * fontScale),
-                    Text(
-                      'عيادة الذكاء الاصطناعي',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12 * fontScale,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(Icons.blur_on, color: Colors.white54, size: 20 * fontScale),
-            ],
-          ),
-          SizedBox(height: 16),
-          Text(
-            'هل تشعر بأي أعراض صحية حالياً؟',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18 * fontScale,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          SizedBox(height: 6 * fontScale),
-          Text(
-            'ابدأ فحصاً فورياً مدعوماً بالذكاء الاصطناعي لتحليل حالتك وتوجيهك للطبيب المناسب.',
-            style: TextStyle(
-              color: Colors.white70,
-              fontSize: 13 * fontScale,
-              height: 1.4,
-            ),
-          ),
-          SizedBox(height: 16),
+          // الفئات
           SizedBox(
-            width: double.infinity,
-            height: 48 * fontScale,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: primaryColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                elevation: 0,
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AIChatbotScreen(),
+            height: 52,
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              scrollDirection: Axis.horizontal,
+              itemCount: _categories.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              itemBuilder: (context, index) {
+                final cat = _categories[index];
+                final selected = cat == _selectedCategory;
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedCategory = cat),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: selected ? AppColors.primary : (isDark ? const Color(0xFF0B1121) : Colors.white),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: selected ? AppColors.primary : Colors.transparent),
+                    ),
+                    child: Center(
+                      child: Text(cat, style: TextStyle(color: selected ? Colors.white : (isDark ? Colors.white70 : Colors.black87))),
+                    ),
                   ),
                 );
               },
-              child: Text(
-                'ابدأ الفحص الذكي الآن',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14 * fontScale,
-                ),
-              ),
             ),
           ),
-        ],
-      ),
-    );
-  }
 
-  // ✅ المؤشرات الحيوية - بحجم كبير مثل أفضل الأطباء
-  Widget _buildVitalsGrid(double fontScale) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 12 * fontScale,
-        crossAxisSpacing: 12 * fontScale,
-        childAspectRatio: 1.2,
-      ),
-      itemCount: _vitals.length,
-      itemBuilder: (context, index) {
-        final vital = _vitals[index];
-        final color = vital['color'] as Color;
-        final statusColor = vital['statusColor'] as Color;
-        final screen = vital['screen'] as Widget;
-        final iconPath = vital['icon'] as String;
-        return GestureDetector(
-          onTap: () => _navigateTo(screen),
-          child: Container(
-            padding: EdgeInsets.all(14 * fontScale),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
-                  blurRadius: 10 * fontScale,
-                  offset: Offset(0, 4 * fontScale),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          const SizedBox(height: 12),
+
+          Expanded(
+            child: ListView(
+              controller: _scroll_controller,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: color.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Center(
-                        child: _buildIcon(iconPath, color, size: 28),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        vital['status'] as String,
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: statusColor,
-                          fontWeight: FontWeight.w600,
+                // المؤشرات الحيوية
+                SizedBox(
+                  height: 120,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _vitals.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 12),
+                    itemBuilder: (context, index) {
+                      final v = _vitals[index];
+                      return Container(
+                        width: 220,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)],
                         ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  vital['title'] as String,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey.shade700,
+                        child: Row(
+                          children: [
+                            _buildIcon(v['icon'] as String, v['color'] as Color, size: 36),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(v['title'], style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
+                                  const SizedBox(height: 6),
+                                  Text('${v['value']} ${v['unit']}', style: TextStyle(color: isDark ? Colors.grey[300] : Colors.grey[700], fontSize: 14)),
+                                ],
+                              ),
+                            ),
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(v['status'], style: TextStyle(color: v['statusColor'] as Color, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
                 ),
-                Row(
-                  children: [
-                    Text(
-                      vital['value'] as String,
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF0D5257),
-                      ),
-                    ),
-                    if (vital['unit'] != null && (vital['unit'] as String).isNotEmpty)
-                      Text(
-                        ' ${vital['unit']}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
+
+                const SizedBox(height: 16),
+
+                // قائمة الخدمات
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: _filteredServices.map((s) {
+                    return GestureDetector(
+                      onTap: () => _navigateTo(s['screen'] as Widget),
+                      child: Container(
+                        width: MediaQuery.of(context).size.width / 2 - 18,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            _buildIcon(s['icon'] as String, AppColors.primary, size: 48),
+                            const SizedBox(height: 8),
+                            Text(s['title'], textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
+                            const SizedBox(height: 4),
+                            Text(s['subtitle'], textAlign: TextAlign.center, style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600], fontSize: 12)),
+                          ],
                         ),
                       ),
-                  ],
+                    );
+                  }).toList(),
                 ),
+
+                const SizedBox(height: 24),
+
+                // إعدادات إضافية ومجموعات
+                if (_isAdmin) ...[
+                  ListTile(
+                    leading: const Icon(Icons.dashboard),
+                    title: const Text('لوحة التحكم'),
+                    onTap: () => _navigateTo(const PlatformDashboard()),
+                  ),
+                ],
+
+                const SizedBox(height: 40),
               ],
             ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildFilterChips(Color primaryColor, double fontScale) {
-    return SizedBox(
-      height: 40 * fontScale,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: _categories.length,
-        itemBuilder: (context, index) {
-          final category = _categories[index];
-          final isSelected = _selectedCategory == category;
-          return Padding(
-            padding: EdgeInsets.only(
-              right: index == 0 ? 0 : 8 * fontScale,
-              left: index == _categories.length - 1 ? 0 : 0,
-            ),
-            child: ChoiceChip(
-              label: Text(category),
-              selected: isSelected,
-              onSelected: (val) {
-                setState(() {
-                  _selectedCategory = category;
-                });
-              },
-              selectedColor: primaryColor,
-              backgroundColor: Colors.white,
-              labelStyle: TextStyle(
-                color: isSelected ? Colors.white : primaryColor,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                fontSize: 13 * fontScale,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: BorderSide(
-                  color: isSelected ? Colors.transparent : primaryColor.withOpacity(0.2),
-                ),
-              ),
-              elevation: 0,
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildServiceCard(Map<String, dynamic> service, bool isDark, Color primaryColor, double fontScale) {
-    final screen = service['screen'] as Widget;
-    final iconPath = service['icon'] as String;
-    return Container(
-      margin: EdgeInsets.only(bottom: 8 * fontScale),
-      padding: EdgeInsets.all(12 * fontScale),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2540) : Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 4 * fontScale,
-            offset: Offset(0, 2 * fontScale),
-          ),
-        ],
-      ),
-      child: ListTile(
-        contentPadding: EdgeInsets.zero,
-        leading: Container(
-          padding: EdgeInsets.all(10 * fontScale),
-          decoration: BoxDecoration(
-            color: primaryColor.withOpacity(0.08),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: _buildIcon(iconPath, primaryColor, size: 28),
-        ),
-        title: Text(
-          service['title'] as String,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 14 * fontScale,
-            color: isDark ? Colors.white : Colors.black87,
-          ),
-        ),
-        subtitle: Text(
-          service['subtitle'] as String,
-          style: TextStyle(
-            fontSize: 11,
-            color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
-          ),
-        ),
-        trailing: Icon(
-          Icons.arrow_forward_ios,
-          size: 14 * fontScale,
-          color: isDark ? Colors.grey.shade500 : Colors.grey.shade400,
-        ),
-        onTap: () => _navigateTo(screen),
-      ),
-    );
-  }
-
-  Widget _buildPremiumFooter(bool isDark, Color primaryColor, double fontScale) {
-    return Column(
-      children: [
-        GestureDetector(
-          onTap: () {
-            _showLogoutDialog();
-          },
-          child: Container(
-            padding: EdgeInsets.symmetric(vertical: 12 * fontScale),
-            decoration: BoxDecoration(
-              color: Colors.red.withOpacity(0.06),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Center(
-              child: Text(
-                'تسجيل الخروج',
-                style: TextStyle(
-                  color: Colors.red.withOpacity(0.7),
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14 * fontScale,
-                ),
-              ),
-            ),
-          ),
-        ),
-        SizedBox(height: 12 * fontScale),
-        Text(
-          'صحتك - v1.0.0 (Build 240)',
-          style: TextStyle(
-            color: isDark ? Colors.grey.shade600 : Colors.grey.shade400,
-            fontSize: 11,
-          ),
-        ),
-        SizedBox(height: 8 * fontScale),
-        Text(
-          '© 2026 Sehatak Platform. All rights reserved.',
-          style: TextStyle(
-            color: isDark ? Colors.grey.shade700 : Colors.grey.shade400,
-            fontSize: 10 * fontScale,
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _showLogoutDialog() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: isDark ? const Color(0xFF1A2540) : Colors.white,
-        title: Text(
-          'تسجيل الخروج',
-          style: TextStyle(color: isDark ? Colors.white : Colors.black87),
-        ),
-        content: Text(
-          'هل أنت متأكد من رغبتك في تسجيل الخروج؟',
-          style: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade700),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(_),
-            child: Text(
-              'إلغاء',
-              style: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade700),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(_);
-              FirebaseAuth.instance.signOut();
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('تسجيل الخروج'),
           ),
         ],
       ),
