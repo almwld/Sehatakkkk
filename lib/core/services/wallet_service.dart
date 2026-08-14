@@ -171,3 +171,43 @@ class WalletService {
     });
   }
 }
+
+// ============================================================
+// ✅ إضافات جديدة لـ WalletService
+// ============================================================
+
+  // ✅ Stream لملف wallet (realtime UI)
+  static Stream<DocumentSnapshot> walletStream(String uid) {
+    return _db.collection('users').doc(uid).collection('meta').doc('wallet').snapshots();
+  }
+
+  // ✅ الحصول على الرصيد من Firestore مباشرة
+  static Future<double> getBalanceFirestore(String uid) async {
+    try {
+      final doc = await _getWalletRef(uid).get();
+      if (doc.exists) {
+        return (doc.data()?['balance'] ?? 0).toDouble();
+      }
+      return 0.0;
+    } catch (e) {
+      print('❌ Error getting balance from Firestore: $e');
+      return 0.0;
+    }
+  }
+
+  // ✅ Pagination: جلب صفحة من المعاملات
+  static Future<QuerySnapshot> getTransactionsFirestore({
+    required String uid,
+    required int limit,
+    DocumentSnapshot? startAfter,
+  }) {
+    Query q = _getTransactionsRef(uid)
+        .orderBy('createdAt', descending: true)
+        .limit(limit);
+
+    if (startAfter != null) {
+      q = q.startAfterDocument(startAfter);
+    }
+
+    return q.get();
+  }
