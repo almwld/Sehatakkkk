@@ -16,6 +16,9 @@ import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
 import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
 import 'package:sehatak/presentation/screens/services/services_screen.dart';
 import 'package:sehatak/presentation/screens/consultation/consultation_screen.dart';
+import 'package:sehatak/presentation/screens/insurance/insurance_companies.dart';
+import 'package:sehatak/presentation/screens/medical_records/medical_records_screen.dart';
+import 'package:sehatak/presentation/ai/assistant_screen.dart';
 
 class MoreScreen extends StatefulWidget {
   const MoreScreen({super.key});
@@ -36,7 +39,7 @@ class _MoreScreenState extends State<MoreScreen> {
     {'icon': 'assets/images/tracking/weight_tracking.png', 'label': 'الوزن', 'value': '72', 'unit': 'كجم', 'color': Colors.purple},
   ];
 
-  // ✅ بيانات الخدمات - كل الخدمات مرتبطة بشاشاتها
+  // ✅ بيانات الخدمات - جميع الخدمات مربوطه
   final List<Map<String, dynamic>> _services = [
     {'icon': 'assets/images/services/medical_records.png', 'label': 'الملف الشخصي', 'screen': const PatientProfile()},
     {'icon': 'assets/images/services/health_tips.png', 'label': 'صفحتي الصحية', 'screen': const HealthDashboard()},
@@ -50,6 +53,9 @@ class _MoreScreenState extends State<MoreScreen> {
     {'icon': 'assets/images/services/pharmacy.png', 'label': 'الصيدلية', 'screen': const PharmacyScreen()},
     {'icon': 'assets/images/services/medical_community.png', 'label': 'خدمات صحية', 'screen': const ServicesScreen()},
     {'icon': 'assets/images/services/video_consultation.png', 'label': 'استشارة فيديو', 'screen': const ConsultationScreen()},
+    {'icon': 'assets/images/services/health_insurance.png', 'label': 'التأمين الصحي', 'screen': const InsuranceCompaniesScreen()},
+    {'icon': 'assets/images/services/medical_records.png', 'label': 'السجل الطبي', 'screen': const MedicalRecordsScreen()},
+    {'icon': 'assets/images/services/ai_assistant.png', 'label': 'المساعد الصحي', 'screen': const AIChatbotScreen()},
     {'icon': 'assets/images/services/medical_community.png', 'label': 'عن التطبيق', 'screen': const AboutScreen()},
     {'icon': 'settings_material', 'label': 'الإعدادات', 'screen': const SettingsScreen()},
   ];
@@ -96,37 +102,22 @@ class _MoreScreenState extends State<MoreScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ✅ بطاقة المستخدم
             _buildUserCard(user, isDark),
             const SizedBox(height: 16),
-
-            // ✅ المؤشرات الحيوية
             Text(
               'المؤشرات الحيوية',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : Colors.black87,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
             ),
             const SizedBox(height: 8),
             _buildVitalsGrid(isDark),
             const SizedBox(height: 16),
-
-            // ✅ الخدمات
             Text(
               'الخدمات',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : Colors.black87,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
             ),
             const SizedBox(height: 8),
             _buildServicesGrid(isDark),
             const SizedBox(height: 16),
-
-            // ✅ زر تسجيل الخروج
             _buildLogoutButton(isDark),
           ],
         ),
@@ -134,9 +125,6 @@ class _MoreScreenState extends State<MoreScreen> {
     );
   }
 
-  // ============================================================
-  // 🧑 بطاقة المستخدم
-  // ============================================================
   Widget _buildUserCard(User? user, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -144,11 +132,7 @@ class _MoreScreenState extends State<MoreScreen> {
         color: isDark ? const Color(0xFF1A2540) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
+          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
         ],
       ),
       child: Row(
@@ -158,11 +142,7 @@ class _MoreScreenState extends State<MoreScreen> {
             backgroundColor: AppColors.primary.withOpacity(0.1),
             child: Text(
               user?.displayName?.substring(0, 1) ?? 'م',
-              style: TextStyle(
-                fontSize: 24,
-                color: AppColors.primary,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 24, color: AppColors.primary, fontWeight: FontWeight.bold),
             ),
           ),
           const SizedBox(width: 12),
@@ -172,19 +152,12 @@ class _MoreScreenState extends State<MoreScreen> {
               children: [
                 Text(
                   user?.displayName ?? 'مستخدم',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   user?.email ?? 'user@email.com',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[400] : Colors.grey[600]),
                 ),
               ],
             ),
@@ -192,10 +165,7 @@ class _MoreScreenState extends State<MoreScreen> {
           IconButton(
             icon: Icon(Icons.edit, color: AppColors.primary),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const PatientProfile()),
-              );
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const PatientProfile()));
             },
           ),
         ],
@@ -203,18 +173,12 @@ class _MoreScreenState extends State<MoreScreen> {
     );
   }
 
-  // ============================================================
-  // 📊 المؤشرات الحيوية
-  // ============================================================
   Widget _buildVitalsGrid(bool isDark) {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 1.2,
+        crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 1.2,
       ),
       itemCount: _vitals.length,
       itemBuilder: (context, index) {
@@ -225,11 +189,7 @@ class _MoreScreenState extends State<MoreScreen> {
             color: isDark ? const Color(0xFF1A2540) : Colors.white,
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
+              BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
             ],
           ),
           child: Column(
@@ -241,36 +201,22 @@ class _MoreScreenState extends State<MoreScreen> {
                 height: 40,
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) {
-                  return Icon(
-                    Icons.circle,
-                    color: vital['color'] as Color,
-                    size: 40,
-                  );
+                  return Icon(Icons.circle, color: vital['color'] as Color, size: 40);
                 },
               ),
               const SizedBox(height: 6),
               Text(
                 vital['value'] as String,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.black87,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
               ),
               Text(
                 vital['unit'] as String,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: isDark ? Colors.grey[400] : Colors.grey[600],
-                ),
+                style: TextStyle(fontSize: 11, color: isDark ? Colors.grey[400] : Colors.grey[600]),
               ),
               const SizedBox(height: 2),
               Text(
                 vital['label'] as String,
-                style: TextStyle(
-                  fontSize: 10,
-                  color: isDark ? Colors.grey[500] : Colors.grey[500],
-                ),
+                style: TextStyle(fontSize: 10, color: isDark ? Colors.grey[500] : Colors.grey[500]),
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -282,28 +228,19 @@ class _MoreScreenState extends State<MoreScreen> {
     );
   }
 
-  // ============================================================
-  // 🛠️ الخدمات
-  // ============================================================
   Widget _buildServicesGrid(bool isDark) {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        childAspectRatio: 0.9,
+        crossAxisCount: 3, crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 0.9,
       ),
       itemCount: _services.length,
       itemBuilder: (context, index) {
         final service = _services[index];
         return GestureDetector(
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => service['screen'] as Widget),
-            );
+            Navigator.push(context, MaterialPageRoute(builder: (_) => service['screen'] as Widget));
           },
           child: Container(
             padding: const EdgeInsets.all(8),
@@ -311,11 +248,7 @@ class _MoreScreenState extends State<MoreScreen> {
               color: isDark ? const Color(0xFF1A2540) : Colors.white,
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
+                BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
               ],
             ),
             child: Column(
@@ -326,9 +259,7 @@ class _MoreScreenState extends State<MoreScreen> {
                 Text(
                   service['label'] as String,
                   style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: isDark ? Colors.white : Colors.black87,
+                    fontSize: 11, fontWeight: FontWeight.w500, color: isDark ? Colors.white : Colors.black87,
                   ),
                   textAlign: TextAlign.center,
                   maxLines: 2,
@@ -342,9 +273,6 @@ class _MoreScreenState extends State<MoreScreen> {
     );
   }
 
-  // ============================================================
-  // 🎨 دالة عرض أيقونة الخدمات
-  // ============================================================
   Widget _buildServiceIcon(String iconPath, Color fallbackColor, {double size = 32}) {
     if (iconPath == 'settings_material') {
       return Icon(Icons.settings, color: AppColors.primary, size: size);
@@ -360,34 +288,23 @@ class _MoreScreenState extends State<MoreScreen> {
     );
   }
 
-  // ============================================================
-  // 🚪 زر تسجيل الخروج
-  // ============================================================
   Widget _buildLogoutButton(bool isDark) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
         onPressed: _showLogoutDialog,
         icon: const Icon(Icons.logout, color: Colors.white),
-        label: const Text(
-          'تسجيل الخروج',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
+        label: const Text('تسجيل الخروج', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.red,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       ),
     );
   }
 
-  // ============================================================
-  // 📦 دوال مساعدة
-  // ============================================================
   void _showLogoutDialog() {
     showDialog(
       context: context,
@@ -395,15 +312,9 @@ class _MoreScreenState extends State<MoreScreen> {
         title: const Text('تسجيل الخروج'),
         content: const Text('هل أنت متأكد من رغبتك في تسجيل الخروج؟'),
         actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _logout();
-            },
+            onPressed: () { Navigator.pop(context); _logout(); },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('تسجيل الخروج'),
           ),
@@ -415,10 +326,7 @@ class _MoreScreenState extends State<MoreScreen> {
   void _logout() async {
     await FirebaseAuth.instance.signOut();
     if (mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const AuthScreen()),
-      );
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AuthScreen()));
     }
   }
 }
