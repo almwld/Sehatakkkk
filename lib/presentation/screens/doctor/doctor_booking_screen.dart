@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:table_calendar/table_calendar.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_strings.dart';
-import '../../../core/constants/app_dimensions.dart';
-import '../../bloc/appointment_bloc/appointment_bloc.dart';
+import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/constants/imagekit.dart';
+import 'package:sehatak/presentation/widgets/common/app_image.dart';
 
 class DoctorBookingScreen extends StatefulWidget {
   final String doctorId;
@@ -16,210 +13,476 @@ class DoctorBookingScreen extends StatefulWidget {
 
 class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
   DateTime _selectedDate = DateTime.now();
-  DateTime _focusedDay = DateTime.now();
-  String? _selectedTime;
-  final TextEditingController _notesController = TextEditingController();
+  TimeOfDay _selectedTime = const TimeOfDay(hour: 10, minute: 0);
+  String _selectedType = 'استشارة عامة';
+  bool _isLoading = false;
 
-  final List<String> _availableTimes = [
-    '9:00 ص', '9:30 ص', '10:00 ص', '10:30 ص', '11:00 ص', '11:30 ص',
-    '2:00 م', '2:30 م', '3:00 م', '3:30 م', '4:00 م', '4:30 م',
+  final List<String> _consultationTypes = [
+    'استشارة عامة',
+    'استشارة تخصصية',
+    'متابعة',
+    'فحص دوري',
   ];
 
-  @override
-  void dispose() {
-    _notesController.dispose();
-    super.dispose();
-  }
-
-  void _bookAppointment() {
-    if (_selectedTime != null) {
-      context.read<AppointmentBloc>().add(BookAppointment(
-        doctorId: widget.doctorId,
-        date: _selectedDate,
-        time: _selectedTime!,
-        notes: _notesController.text.isEmpty ? null : _notesController.text,
-      ));
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.check_circle, color: AppColors.success, size: 80),
-              const SizedBox(height: 16),
-              Text(
-                AppStrings.appointmentConfirmed,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'تم حجز موعدك بنجاح',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grey),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.pop(context);
-              },
-              child: Text(AppStrings.ok),
-            ),
-          ],
-        ),
-      );
+  Map<String, dynamic> _getDoctorData(String doctorId) {
+    switch (doctorId) {
+      case 'd1':
+        return {'name': 'د. أحمد المولد', 'specialty': 'باطنية', 'image': ImageKit.doctor1};
+      case 'd2':
+        return {'name': 'د. خالد النخلاني', 'specialty': 'قلبية', 'image': ImageKit.doctor2};
+      case 'd3':
+        return {'name': 'د. أسماء الهندي', 'specialty': 'أطفال', 'image': ImageKit.doctor3};
+      case 'd4':
+        return {'name': 'د. محمد العلاي', 'specialty': 'أنف وأذن وحنجرة', 'image': ImageKit.doctor4};
+      case 'd5':
+        return {'name': 'د. فاطمة صديقي', 'specialty': 'نساء وولادة', 'image': ImageKit.doctor5};
+      default:
+        return {'name': 'د. غير معروف', 'specialty': 'عام', 'image': ImageKit.doctor1};
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final doctor = _getDoctorData(widget.doctorId);
+
     return Scaffold(
-      appBar: AppBar(title: Text(AppStrings.bookNow)),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppDimensions.paddingL),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
+      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        title: const Text('حجز موعد'),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+          : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CircleAvatar(
-                    radius: 28,
-                    backgroundColor: AppColors.primary.withOpacity(0.2),
-                    child: const Icon(Icons.person, color: AppColors.primary),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'د. أحمد علي',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                  // معلومات الطبيب
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.04),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
                         ),
-                        Text(
-                          'طب القلب',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grey),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 36,
+                          backgroundColor: AppColors.primary.withOpacity(0.15),
+                          child: ClipOval(
+                            child: AppImage(
+                              imageUrl: doctor['image'],
+                              width: 72,
+                              height: 72,
+                              fit: BoxFit.cover,
+                              errorWidget: const Icon(
+                                Icons.person,
+                                size: 36,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                doctor['name'],
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                doctor['specialty'],
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.green.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Text(
+                                  'متاح',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.green,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  Text(
-                    '5000 ${AppStrings.currencyYER}',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w600,
+                  const SizedBox(height: 16),
+
+                  // تاريخ الموعد
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.04),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
                         ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'تاريخ الموعد',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          height: 120,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: 7,
+                            itemBuilder: (context, index) {
+                              final date = DateTime.now().add(Duration(days: index));
+                              final isSelected = date.day == _selectedDate.day &&
+                                  date.month == _selectedDate.month &&
+                                  date.year == _selectedDate.year;
+                              return GestureDetector(
+                                onTap: () => setState(() => _selectedDate = date),
+                                child: Container(
+                                  width: 60,
+                                  margin: const EdgeInsets.only(right: 8),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? AppColors.primary
+                                        : (isDark ? const Color(0xFF0B1121) : Colors.grey[100]),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: isSelected
+                                          ? AppColors.primary
+                                          : (isDark ? Colors.grey[800]! : Colors.grey[300]!),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        ['أحد', 'إثن', 'ثلاث', 'أربع', 'خميس', 'جمعة', 'سبت'][date.weekday % 7],
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: isSelected
+                                              ? Colors.white
+                                              : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        date.day.toString(),
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: isSelected
+                                              ? Colors.white
+                                              : (isDark ? Colors.white : Colors.black87),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // الوقت
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.04),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'وقت الموعد',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          children: [
+                            '09:00',
+                            '09:30',
+                            '10:00',
+                            '10:30',
+                            '11:00',
+                            '11:30',
+                            '12:00',
+                            '12:30',
+                            '13:00',
+                            '13:30',
+                            '14:00',
+                            '14:30',
+                          ].map((time) {
+                            final parts = time.split(':');
+                            final isSelected = parts[0] == _selectedTime.hour.toString() &&
+                                parts[1] == _selectedTime.minute.toString();
+                            return GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _selectedTime = TimeOfDay(
+                                    hour: int.parse(parts[0]),
+                                    minute: int.parse(parts[1]),
+                                  );
+                                });
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? AppColors.primary
+                                      : (isDark ? const Color(0xFF0B1121) : Colors.grey[100]),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? AppColors.primary
+                                        : (isDark ? Colors.grey[800]! : Colors.grey[300]!),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Text(
+                                  time,
+                                  style: TextStyle(
+                                    color: isSelected
+                                        ? Colors.white
+                                        : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // نوع الاستشارة
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.04),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'نوع الاستشارة',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          children: _consultationTypes.map((type) {
+                            final isSelected = type == _selectedType;
+                            return GestureDetector(
+                              onTap: () => setState(() => _selectedType = type),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? AppColors.primary
+                                      : (isDark ? const Color(0xFF0B1121) : Colors.grey[100]),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? AppColors.primary
+                                        : (isDark ? Colors.grey[800]! : Colors.grey[300]!),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Text(
+                                  type,
+                                  style: TextStyle(
+                                    color: isSelected
+                                        ? Colors.white
+                                        : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // ملاحظات
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.04),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'ملاحظات',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          maxLines: 3,
+                          decoration: InputDecoration(
+                            hintText: 'اكتب أي ملاحظات إضافية...',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppColors.primary),
+                            ),
+                            filled: true,
+                            fillColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
+                          ),
+                          style: TextStyle(
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // زر الحجز
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _bookAppointment,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'تأكيد الحجز',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 24),
-            Text(
-              AppStrings.selectDate,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: TableCalendar(
-                firstDay: DateTime.now(),
-                lastDay: DateTime.now().add(const Duration(days: 30)),
-                focusedDay: _focusedDay,
-                selectedDayPredicate: (day) => isSameDay(_selectedDate, day),
-                onDaySelected: (selectedDay, focusedDay) {
-                  setState(() {
-                    _selectedDate = selectedDay;
-                    _focusedDay = focusedDay;
-                    _selectedTime = null;
-                  });
-                },
-                calendarFormat: CalendarFormat.week,
-                availableCalendarFormats: const {CalendarFormat.week: 'Week'},
-                headerStyle: const HeaderStyle(
-                  formatButtonVisible: false,
-                  titleCentered: true,
-                ),
-                calendarStyle: CalendarStyle(
-                  selectedDecoration: const BoxDecoration(
-                    color: AppColors.primary,
-                    shape: BoxShape.circle,
-                  ),
-                  todayDecoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.3),
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              AppStrings.selectTime,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _availableTimes.map((time) {
-                final isSelected = _selectedTime == time;
-                return ChoiceChip(
-                  selected: isSelected,
-                  label: Text(time),
-                  onSelected: (selected) {
-                    setState(() => _selectedTime = selected ? time : null);
-                  },
-                  selectedColor: AppColors.primary,
-                  labelStyle: TextStyle(
-                    color: isSelected ? AppColors.white : AppColors.darkGrey,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                  ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'ملاحظات (اختياري)',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _notesController,
-              maxLines: 3,
-              decoration: const InputDecoration(
-                hintText: 'أضف أي ملاحظات خاصة بالموعد...',
-              ),
-            ),
-            const SizedBox(height: 32),
-          ],
-        ),
-      ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(AppDimensions.paddingL),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          boxShadow: [BoxShadow(color: AppColors.shadow.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, -2))],
-        ),
-        child: SafeArea(
-          child: ElevatedButton(
-            onPressed: _selectedTime != null ? _bookAppointment : null,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _selectedTime != null ? AppColors.primary : AppColors.grey,
-            ),
-            child: Text(AppStrings.confirmBooking),
-          ),
-        ),
-      ),
     );
+  }
+
+  void _bookAppointment() {
+    setState(() => _isLoading = true);
+    Future.delayed(const Duration(seconds: 2), () {
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✅ تم حجز الموعد بنجاح!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      Navigator.pop(context);
+    });
   }
 }
