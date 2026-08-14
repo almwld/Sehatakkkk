@@ -1,19 +1,19 @@
-import 'package:sehatak/presentation/widgets/app_search_delegate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/core/services/health_score_service.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
+import 'package:sehatak/presentation/widgets/app_search_delegate.dart';
 import 'package:sehatak/presentation/screens/services/services_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
 import 'package:sehatak/presentation/screens/medication/medicines_screen.dart';
 import 'package:sehatak/presentation/screens/hospital/hospital_screen.dart';
+import 'package:sehatak/presentation/screens/hospital/hospital_details_screen.dart';
 import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
 import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
 import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart';
@@ -24,15 +24,8 @@ import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
 import 'package:sehatak/presentation/screens/health/health_dashboard.dart';
 import 'package:sehatak/presentation/screens/articles/articles_screen.dart';
 import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
-import 'package:sehatak/presentation/screens/shared/notifications_screen.dart';
+import 'package:sehatak/presentation/screens/notifications/notifications_screen.dart';
 import 'package:sehatak/presentation/screens/pharmacy/cart_screen.dart';
-import 'package:sehatak/data/models/doctor_model.dart';
-import 'package:sehatak/data/models/product_model.dart';
-import 'package:sehatak/data/models/hospital_model.dart';
-import 'package:sehatak/data/models/lab_model.dart';
-import 'package:sehatak/data/models/pharmacy_model.dart';
-import 'package:sehatak/data/models/article_model.dart';
-import 'package:sehatak/data/models/community_post_model.dart';
 
 class HomeTab extends StatefulWidget {
   final ScrollController? scrollController;
@@ -59,6 +52,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   double _stepsAnim = 0;
   double _sleepAnim = 0;
   double _heartAnim = 0;
+  bool _isOffline = false;
 
   final List<String> _bannerImages = ImageKit.bannerList;
 
@@ -71,7 +65,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   ];
 
   final List<Map<String, dynamic>> _quickServices = [
-    {'icon': 'assets/images/services/pharmacy.png', 'label': 'صيدلية', 'screen': const MedicinesScreen()},
+    {'icon': 'assets/images/services/pharmacy.png', 'label': 'صيدلية', 'screen': const PharmacyScreen()},
     {'icon': 'assets/images/services/emergency.png', 'label': 'طوارئ', 'screen': const EmergencyNumbers()},
     {'icon': 'assets/images/services/medical_community.png', 'label': 'خدمات منزلية', 'screen': const ServicesScreen()},
     {'icon': 'assets/images/services/blood_donation.png', 'label': 'تبرع بالدم', 'screen': const BloodDonationScreen()},
@@ -98,18 +92,18 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   ];
 
   final List<Map<String, dynamic>> _products = [
-    {'name': 'باراسيتامول 500mg', 'price': 500, 'image': ImageKit.medicine1, 'category': 'مسكنات', 'discount': 20},
-    {'name': 'فيتامين د 1000IU', 'price': 1200, 'image': ImageKit.medicine2, 'category': 'فيتامينات', 'discount': 15},
-    {'name': 'جهاز قياس ضغط', 'price': 8500, 'image': ImageKit.medicine3, 'category': 'أجهزة طبية', 'discount': 10},
-    {'name': 'أموكسيسيلين 500mg', 'price': 1500, 'image': ImageKit.medicine4, 'category': 'مضادات حيوية', 'discount': 0},
-    {'name': 'ديكلوفيناك 50mg', 'price': 650, 'image': ImageKit.medicine1, 'category': 'مسكنات', 'discount': 5},
-    {'name': 'نابروكسين 250mg', 'price': 550, 'image': ImageKit.medicine2, 'category': 'مضادات التهابية', 'discount': 10},
-    {'name': 'أسبرين 100mg', 'price': 300, 'image': ImageKit.medicine3, 'category': 'مسكنات', 'discount': 0},
-    {'name': 'إيبوبروفين 400mg', 'price': 750, 'image': ImageKit.medicine4, 'category': 'مسكنات', 'discount': 5},
+    {'name': 'باراسيتامول 500mg', 'price': 500, 'image': ImageKit.medicine1, 'category': 'مسكنات', 'discount': 20, 'rating': 4.5},
+    {'name': 'فيتامين د 1000IU', 'price': 1200, 'image': ImageKit.medicine2, 'category': 'فيتامينات', 'discount': 15, 'rating': 4.8},
+    {'name': 'جهاز قياس ضغط', 'price': 8500, 'image': ImageKit.medicine3, 'category': 'أجهزة طبية', 'discount': 10, 'rating': 4.7},
+    {'name': 'أموكسيسيلين 500mg', 'price': 1500, 'image': ImageKit.medicine4, 'category': 'مضادات حيوية', 'discount': 0, 'rating': 4.3},
+    {'name': 'ديكلوفيناك 50mg', 'price': 650, 'image': ImageKit.medicine1, 'category': 'مسكنات', 'discount': 5, 'rating': 4.2},
+    {'name': 'نابروكسين 250mg', 'price': 550, 'image': ImageKit.medicine2, 'category': 'مضادات التهابية', 'discount': 10, 'rating': 4.4},
+    {'name': 'أسبرين 100mg', 'price': 300, 'image': ImageKit.medicine3, 'category': 'مسكنات', 'discount': 0, 'rating': 4.1},
+    {'name': 'إيبوبروفين 400mg', 'price': 750, 'image': ImageKit.medicine4, 'category': 'مسكنات', 'discount': 5, 'rating': 4.6},
   ];
 
   final List<Map<String, dynamic>> _featuredHospitals = [
-    {'id': '1', 'name': 'مستشفى 22 مايو', 'location': 'صنعاء', 'image': ImageKit.hospital1, 'rating': 4.9, 'open': true},
+    {'id': '1', 'name': 'مستشفى 22 مايو', 'location': 'صنعاء - حدة', 'image': ImageKit.hospital1, 'rating': 4.9, 'open': true},
     {'id': '2', 'name': 'مستشفى آزال', 'location': 'صنعاء', 'image': ImageKit.hospital2, 'rating': 4.8, 'open': true},
     {'id': '3', 'name': 'مستشفى السبعين', 'location': 'صنعاء', 'image': ImageKit.hospital3, 'rating': 4.7, 'open': true},
     {'id': '4', 'name': 'مستشفى الكويت', 'location': 'صنعاء', 'image': ImageKit.hospital4, 'rating': 4.8, 'open': true},
@@ -165,6 +159,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         setState(() {
           _isLoading = false;
           _hasError = false;
+          _isOffline = false;
         });
       }
     } catch (e) {
@@ -173,6 +168,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
           _isLoading = false;
           _hasError = true;
           _errorMessage = 'حدث خطأ في تحميل البيانات';
+          _isOffline = true;
         });
       }
     }
@@ -226,22 +222,87 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       width: size,
       height: size,
       errorBuilder: (context, error, stackTrace) {
-        return Icon(Icons.circle, color: Colors.green, size: size);
+        return Icon(Icons.circle, color: AppColors.primary, size: size);
       },
     );
   }
 
+  // ============================================================
+  // 🔍 شريط البحث
+  // ============================================================
+  Widget _buildSearchBar(BuildContext context, bool isDark) {
+    return GestureDetector(
+      onTap: () {
+        showSearch(
+          context: context,
+          delegate: AppSearchDelegate(),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1A2540) : Colors.white,
+          borderRadius: BorderRadius.circular(25),
+          border: Border.all(
+            color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Image.asset(
+              'assets/images/icons/search/Search button.png',
+              width: 22,
+              height: 22,
+              color: AppColors.primary,
+              errorBuilder: (context, error, stackTrace) {
+                return Icon(Icons.search, color: AppColors.primary, size: 22);
+              },
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'ابحث عن طبيب، دواء، أو خدمة...',
+                style: TextStyle(
+                  color: isDark ? Colors.grey[500] : Colors.grey[400],
+                  fontSize: 14,
+                ),
+              ),
+            ),
+            Image.asset(
+              'assets/images/chat/microphone.png',
+              width: 22,
+              height: 22,
+              color: AppColors.primary,
+              errorBuilder: (context, error, stackTrace) {
+                return Icon(Icons.mic, color: AppColors.primary, size: 22);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // 🏠 بناء الواجهة الرئيسية
+  // ============================================================
   @override
   Widget build(BuildContext context) {
     super.build(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (_isLoading) {
-      return _buildShimmerLoader();
+      return _buildShimmerLoader(isDark);
     }
 
     if (_hasError) {
-      return _buildErrorScreen();
+      return _buildErrorScreen(isDark);
+    }
+
+    // ✅ عرض الشاشة البيضاء عند عدم وجود بيانات (حالة Offline)
+    if (_isOffline || !_isLoggedIn) {
+      return _buildOfflineScreen(isDark);
     }
 
     return RefreshIndicator(
@@ -272,9 +333,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                             radius: 20,
                             backgroundColor: AppColors.primary.withOpacity(0.1),
                             child: Text(
-                              _isLoggedIn ? _userName[0] : 'م',
+                              _isLoggedIn ? _userName[0].toUpperCase() : 'م',
                               style: TextStyle(
-                                color: Colors.green,
+                                color: AppColors.primary,
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -297,7 +358,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                               ),
                             ),
                             Text(
-                              'كيف تشعر اليوم؟',
+                              _isLoggedIn ? 'كيف تشعر اليوم؟' : 'سجل دخولك للاستفادة',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -306,18 +367,36 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                           ],
                         ),
                       ),
+                      // ✅ أيقونة الإشعارات
                       GestureDetector(
                         onTap: () => _goTo(context, const NotificationsScreen()),
                         child: Container(
                           padding: const EdgeInsets.all(8),
-                          child: _buildServiceIcon('assets/images/services/notifications.png', size: 24),
+                          child: Image.asset(
+                            'assets/images/icons/top_bar/notifications.png',
+                            width: 28,
+                            height: 28,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(Icons.notifications, color: isDark ? Colors.white : Colors.black87, size: 28);
+                            },
+                          ),
                         ),
                       ),
+                      // ✅ أيقونة السلة
                       GestureDetector(
                         onTap: () => _goTo(context, const CartScreen()),
                         child: Container(
                           padding: const EdgeInsets.all(8),
-                          child: _buildServiceIcon('assets/images/services/wallet.png', size: 24),
+                          child: Image.asset(
+                            'assets/images/icons/top_bar/Shopping cart.png',
+                            width: 28,
+                            height: 28,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(Icons.shopping_cart, color: isDark ? Colors.white : Colors.black87, size: 28);
+                            },
+                          ),
                         ),
                       ),
                     ],
@@ -333,34 +412,37 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   const SizedBox(height: 16),
                   _buildBannerCarousel(isDark),
                   const SizedBox(height: 16),
-                  _buildStatsRow(),
-                  const SizedBox(height: 16),
-                  _buildSectionTitleWithAction('خدمات سريعة', isDark, 'عرض الكل', 
+                  // ✅ الإحصائيات - تظهر فقط للمستخدمين المسجلين
+                  if (_isLoggedIn) ...[
+                    _buildStatsRow(),
+                    const SizedBox(height: 16),
+                  ],
+                  _buildSectionTitleWithAction('خدمات سريعة', isDark, 'عرض الكل',
                     () => _goTo(context, const ServicesScreen())),
                   const SizedBox(height: 8),
                   _buildQuickServicesRow(),
                   const SizedBox(height: 16),
-                  _buildSectionTitleWithAction('أفضل الأطباء', isDark, 'عرض الكل', 
+                  _buildSectionTitleWithAction('أفضل الأطباء', isDark, 'عرض الكل',
                     () => _goTo(context, const DoctorsListScreen())),
                   const SizedBox(height: 8),
                   _buildTopDoctorsGrid(),
                   const SizedBox(height: 16),
-                  _buildSectionTitleWithAction('منتجات صيدلية', isDark, 'عرض الكل', 
+                  _buildSectionTitleWithAction('منتجات صيدلية', isDark, 'عرض الكل',
                     () => _goTo(context, const MedicinesScreen())),
                   const SizedBox(height: 8),
                   _buildProductsRow(),
                   const SizedBox(height: 16),
-                  _buildSectionTitleWithAction('مستشفيات مميزة', isDark, 'عرض الكل', 
+                  _buildSectionTitleWithAction('مستشفيات مميزة', isDark, 'عرض الكل',
                     () => _goTo(context, const HospitalScreen())),
                   const SizedBox(height: 8),
                   _buildFeaturedHospitalsGrid(),
                   const SizedBox(height: 16),
-                  _buildSectionTitleWithAction('مختبرات مميزة', isDark, 'عرض الكل', 
+                  _buildSectionTitleWithAction('مختبرات مميزة', isDark, 'عرض الكل',
                     () => _goTo(context, const LabsListScreen())),
                   const SizedBox(height: 8),
                   _buildFeaturedLabsGrid(),
                   const SizedBox(height: 16),
-                  _buildSectionTitleWithAction('صيدليات مميزة', isDark, 'عرض الكل', 
+                  _buildSectionTitleWithAction('صيدليات مميزة', isDark, 'عرض الكل',
                     () => _goTo(context, const PharmacyScreen())),
                   const SizedBox(height: 8),
                   _buildFeaturedPharmaciesGrid(),
@@ -386,8 +468,174 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  // ✅ دوال البناء الأساسية
+  // ============================================================
+  // 📱 شاشة Offline
+  // ============================================================
+  Widget _buildOfflineScreen(bool isDark) {
+    return Scaffold(
+      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.wifi_off, size: 64, color: isDark ? Colors.grey[600] : Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              'لا يوجد اتصال بالإنترنت',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'يرجى التحقق من اتصالك بالإنترنت وإعادة المحاولة',
+              style: TextStyle(
+                fontSize: 14,
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: _refreshData,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('إعادة المحاولة'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
+  // ============================================================
+  // 📱 شاشة Shimmer
+  // ============================================================
+  Widget _buildShimmerLoader(bool isDark) {
+    return Scaffold(
+      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 90,
+            floating: true,
+            snap: true,
+            backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
+            elevation: 0,
+            automaticallyImplyLeading: false,
+            flexibleSpace: FlexibleSpaceBar(
+              background: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Shimmer.fromColors(
+                  baseColor: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+                  highlightColor: isDark ? Colors.grey[700]! : Colors.grey[100]!,
+                  child: Row(
+                    children: [
+                      CircleAvatar(radius: 20, backgroundColor: Colors.white),
+                      const SizedBox(width: 12),
+                      Expanded(child: Container(height: 16, color: Colors.white)),
+                      Container(width: 28, height: 28, color: Colors.white),
+                      const SizedBox(width: 8),
+                      Container(width: 28, height: 28, color: Colors.white),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.all(16),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                _buildShimmerBox(height: 50, radius: 25),
+                const SizedBox(height: 16),
+                _buildShimmerBox(height: 160, radius: 16),
+                const SizedBox(height: 20),
+                _buildShimmerBox(height: 80, radius: 10),
+                const SizedBox(height: 24),
+                _buildShimmerBox(height: 90, radius: 14),
+                const SizedBox(height: 24),
+                _buildShimmerBox(height: 200, radius: 14),
+                const SizedBox(height: 24),
+                _buildShimmerBox(height: 120, radius: 14),
+              ]),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildShimmerBox({double width = double.infinity, double height = 200, double radius = 16}) {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: Container(
+        width: width,
+        height: height,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(radius),
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // 📱 شاشة الخطأ
+  // ============================================================
+  Widget _buildErrorScreen(bool isDark) {
+    return Scaffold(
+      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+            const SizedBox(height: 16),
+            Text(
+              'حدث خطأ',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _errorMessage,
+              style: TextStyle(
+                fontSize: 14,
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: _refreshData,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('إعادة المحاولة'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // 📊 دوال البناء
+  // ============================================================
   Widget _buildBannerCarousel(bool isDark) {
     if (_bannerImages.isEmpty) {
       return Container(
@@ -475,7 +723,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         final color = stat['color'] as Color;
         final value = stat['value'] as double;
         final isInt = stat['format'] == 'int';
-        
+
         return Expanded(
           child: TweenAnimationBuilder<double>(
             tween: Tween<double>(begin: 0, end: value),
@@ -504,7 +752,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     ),
                     Text(
                       stat['label'] as String,
-                      style: const TextStyle(fontSize: 12, color: Colors.green),
+                      style: const TextStyle(fontSize: 12, color: AppColors.primary),
                     ),
                   ],
                 ),
@@ -549,7 +797,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             child: Text(
               action,
               style: TextStyle(
-                color: Colors.green,
+                color: AppColors.primary,
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
               ),
@@ -562,7 +810,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
 
   Widget _buildQuickServicesRow() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return SizedBox(
       height: 120,
       child: ListView.builder(
@@ -715,9 +963,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                             backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 4),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(6),
-                            ),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                             minimumSize: const Size(0, 28),
                           ),
                           child: const Text(
@@ -738,14 +984,20 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   Widget _buildProductsRow() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SizedBox(
-      height: 200,
+      height: 220,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 8),
         itemCount: _products.length,
         itemBuilder: (context, index) {
           final product = _products[index];
+          final hasDiscount = (product['discount'] as int) > 0;
+          final priceAfterDiscount = hasDiscount
+              ? (product['price'] as int) * (1 - (product['discount'] as int) / 100)
+              : product['price'] as int;
+
           return GestureDetector(
             onTap: () => _goTo(context, const MedicinesScreen()),
             child: Container(
@@ -753,7 +1005,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               margin: const EdgeInsets.only(right: 10),
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: isDark ? const Color(0xFF1A2540) : Colors.white,
                 borderRadius: BorderRadius.circular(14),
                 boxShadow: [
                   BoxShadow(
@@ -777,14 +1029,14 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                           fit: BoxFit.contain,
                         ),
                       ),
-                      if (product['discount'] > 0)
+                      if (hasDiscount)
                         Positioned(
                           top: 4,
                           right: 4,
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: Colors.green,
+                              color: Colors.red,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
@@ -802,7 +1054,10 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   const SizedBox(height: 8),
                   Text(
                     product['name'] as String,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
                     textAlign: TextAlign.center,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -820,13 +1075,29 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     ),
                   ),
                   const Spacer(),
-                  Text(
-                    '${product['price']} ر.ي',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: Colors.green,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (hasDiscount) ...[
+                        Text(
+                          '${product['price']} ر.ي',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: isDark ? Colors.grey[500] : Colors.grey[400],
+                            decoration: TextDecoration.lineThrough,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                      ],
+                      Text(
+                        '${priceAfterDiscount.toInt()} ر.ي',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -837,6 +1108,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
+  // ============================================================
+  // 🏥 المستشفيات المميزة (مع ربط شاشة التفاصيل)
+  // ============================================================
   Widget _buildFeaturedHospitalsGrid() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return GridView.builder(
@@ -852,7 +1126,13 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       itemBuilder: (context, index) {
         final hospital = _featuredHospitals[index];
         return GestureDetector(
-          onTap: () => _goTo(context, const HospitalScreen()),
+          onTap: () {
+            // ✅ فتح شاشة تفاصيل المستشفى
+            _goTo(context, HospitalDetailsScreen(
+              hospitalId: hospital['id'] as String,
+              hospitalData: hospital,
+            ));
+          },
           child: Container(
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1A2540) : Colors.white,
@@ -910,7 +1190,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: hospital['open'] == true 
+                          color: hospital['open'] == true
                               ? Colors.green.withOpacity(0.9)
                               : Colors.red.withOpacity(0.9),
                           borderRadius: BorderRadius.circular(8),
@@ -954,7 +1234,12 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () => _goTo(context, const HospitalScreen()),
+                          onPressed: () {
+                            _goTo(context, HospitalDetailsScreen(
+                              hospitalId: hospital['id'] as String,
+                              hospitalData: hospital,
+                            ));
+                          },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
@@ -965,7 +1250,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                             minimumSize: const Size(0, 28),
                           ),
                           child: const Text(
-                            'حجز',
+                            'تفاصيل',
                             style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                           ),
                         ),
@@ -1226,7 +1511,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                           article['category'] as String,
                           style: TextStyle(
                             fontSize: 8,
-                            color: Colors.green,
+                            color: AppColors.primary,
                           ),
                         ),
                       ),
@@ -1260,7 +1545,85 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
+  // ============================================================
+  // 💡 النصائح اليومية
+  // ============================================================
+  Widget _buildDailyTipsGrid() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 1.2,
+      ),
+      itemCount: _dailyTips.length,
+      itemBuilder: (context, index) {
+        final tip = _dailyTips[index];
+        return GestureDetector(
+          onTap: () => _showTipDetails(tip),
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  tip['icon'] as IconData,
+                  color: AppColors.primary,
+                  size: 32,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  tip['title'] as String,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: AppColors.primary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                Text(
+                  tip['subtitle'] as String,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'اقرأ المزيد',
+                    style: TextStyle(
+                      fontSize: 9,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // ============================================================
+  // 📝 منشورات المجتمع
+  // ============================================================
   Widget _buildCommunityPosts() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
@@ -1291,7 +1654,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     child: Text(
                       post['avatar'] as String,
                       style: TextStyle(
-                        color: Colors.green,
+                        color: AppColors.primary,
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),
@@ -1433,7 +1796,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  // ✅ دوال التفاعل
+  // ============================================================
+  // ❤️ دوال التفاعل
+  // ============================================================
   void _toggleLike(int index) {
     setState(() {
       _communityPosts[index]['liked'] = !_communityPosts[index]['liked'];
@@ -1454,7 +1819,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
 
   void _showComments(Map<String, dynamic> post, int index) {
     final TextEditingController commentController = TextEditingController();
-    
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -1475,7 +1840,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.green[400],
+                    color: AppColors.primary.withOpacity(0.4),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -1513,7 +1878,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                           child: Text(
                             'م',
                             style: TextStyle(
-                              color: Colors.green,
+                              color: AppColors.primary,
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),
@@ -1527,7 +1892,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                           'منذ دقيقة',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.green[500],
+                            color: AppColors.primary.withOpacity(0.6),
                           ),
                         ),
                       );
@@ -1537,9 +1902,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.green[50],
+                    color: AppColors.primary.withOpacity(0.05),
                     border: Border(
-                      top: BorderSide(color: Colors.green[200]!),
+                      top: BorderSide(color: AppColors.primary.withOpacity(0.2)),
                     ),
                   ),
                   child: Row(
@@ -1611,7 +1976,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.green[400],
+                  color: AppColors.primary.withOpacity(0.4),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -1619,7 +1984,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             const SizedBox(height: 16),
             Row(
               children: [
-                Icon(tip['icon'] as IconData, color: Colors.green, size: 28),
+                Icon(tip['icon'] as IconData, color: AppColors.primary, size: 28),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
@@ -1637,7 +2002,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               tip['subtitle'] as String,
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.green[600],
+                color: AppColors.primary.withOpacity(0.6),
               ),
             ),
             const Divider(height: 24),
@@ -1669,124 +2034,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  // ✅ دوال التحميل والأخطاء
-  Widget _buildShimmerLoader() {
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 90,
-            floating: true,
-            snap: true,
-            backgroundColor: Colors.white,
-            elevation: 0,
-            automaticallyImplyLeading: false,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Shimmer.fromColors(
-                  baseColor: Colors.grey[300]!,
-                  highlightColor: Colors.grey[100]!,
-                  child: Row(
-                    children: [
-                      CircleAvatar(radius: 20, backgroundColor: Colors.white),
-                      const SizedBox(width: 12),
-                      Expanded(child: Container(height: 16, color: Colors.white)),
-                      Container(width: 40, height: 40, color: Colors.white),
-                      const SizedBox(width: 8),
-                      Container(width: 40, height: 40, color: Colors.white),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.all(16),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                _buildShimmerBox(height: 50, radius: 25),
-                const SizedBox(height: 16),
-                _buildShimmerBox(height: 180),
-                const SizedBox(height: 20),
-                _buildShimmerBox(height: 80),
-                const SizedBox(height: 24),
-                _buildShimmerBox(height: 90),
-                const SizedBox(height: 24),
-                _buildShimmerBox(height: 110),
-                const SizedBox(height: 24),
-                _buildShimmerBox(height: 200),
-                const SizedBox(height: 24),
-                _buildShimmerBox(height: 120),
-              ]),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildShimmerBox({double width = double.infinity, double height = 200, double radius = 16}) {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
-      child: Container(
-        width: width,
-        height: height,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(radius),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildErrorScreen() {
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
-            const SizedBox(height: 16),
-            Text(
-              'حدث خطأ',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.green[800],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _errorMessage,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.green[600],
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _refreshData,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: const Text('إعادة المحاولة'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
+  // ============================================================
+  // 🔄 تحديث البيانات
+  // ============================================================
   Future<void> _refreshData() async {
     setState(() => _isLoading = true);
     try {
@@ -1797,6 +2047,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         setState(() {
           _hasError = false;
           _isLoading = false;
+          _isOffline = false;
         });
       }
     } catch (e) {
@@ -1805,28 +2056,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
           _hasError = true;
           _errorMessage = 'حدث خطأ في تحديث البيانات';
           _isLoading = false;
+          _isOffline = true;
         });
       }
     }
   }
 }
-
-  // ============================================================
-  // 🔍 شريط البحث - مع أيقونات PNG
-  // ============================================================
-
-
-  // ============================================================
-  // 🔍 شريط البحث
-  // ============================================================
-
-
-  // ============================================================
-  // 🔍 شريط البحث
-  // ============================================================
-
-
-  // ============================================================
-  // 🔍 شريط البحث - مع أيقونات PNG
-  // ============================================================
-
