@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/constants/app_dimensions.dart';
+import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/presentation/screens/health/health_detail_screen.dart';
 
 class HealthDashboard extends StatefulWidget {
@@ -18,7 +18,7 @@ class _HealthDashboardState extends State<HealthDashboard> {
   bool _isLoading = true;
   int _selectedTab = 0;
 
-  // ✅ بيانات المؤشرات الصحية (4 مؤشرات رئيسية) - مع مسارات PNG
+  // ✅ بيانات المؤشرات الصحية (4 مؤشرات رئيسية) - مع أيقونات PNG
   final List<Map<String, dynamic>> _healthMetrics = [
     {
       'icon': 'assets/images/tracking/heart_rate.png',
@@ -28,11 +28,6 @@ class _HealthDashboardState extends State<HealthDashboard> {
       'color': Colors.red,
       'status': 'طبيعي',
       'data': [70, 75, 72, 78, 74, 72, 71],
-      'screen': HealthDetailScreen(value: '0', unit: 'مؤشر', data: [], 
-        title: 'نبض القلب',
-        icon: 'assets/images/tracking/heart_rate.png',
-        color: Colors.red,
-      ),
     },
     {
       'icon': 'assets/images/tracking/blood_pressure.png',
@@ -42,25 +37,15 @@ class _HealthDashboardState extends State<HealthDashboard> {
       'color': Colors.blue,
       'status': 'طبيعي',
       'data': [118, 120, 122, 119, 121, 120, 120],
-      'screen': HealthDetailScreen(value: '0', unit: 'مؤشر', data: [], 
-        title: 'ضغط الدم',
-        icon: 'assets/images/tracking/blood_pressure.png',
-        color: Colors.blue,
-      ),
     },
     {
       'icon': 'assets/images/tracking/blood_sugar.png',
-      'label': 'السكر',
+      'label': 'سكر الدم',
       'value': '95',
-      'unit': 'مج/دل',
+      'unit': 'مجم/دل',
       'color': Colors.orange,
       'status': 'طبيعي',
       'data': [90, 95, 100, 88, 92, 95, 97],
-      'screen': HealthDetailScreen(value: '0', unit: 'مؤشر', data: [], 
-        title: 'السكر',
-        icon: 'assets/images/tracking/blood_sugar.png',
-        color: Colors.orange,
-      ),
     },
     {
       'icon': 'assets/images/tracking/weight_tracking.png',
@@ -70,48 +55,15 @@ class _HealthDashboardState extends State<HealthDashboard> {
       'color': Colors.green,
       'status': 'طبيعي',
       'data': [73, 72.5, 72, 71.8, 72, 72.2, 72],
-      'screen': HealthDetailScreen(value: '0', unit: 'مؤشر', data: [], 
-        title: 'الوزن',
-        icon: 'assets/images/tracking/weight_tracking.png',
-        color: Colors.green,
-      ),
     },
   ];
 
-  // ✅ نصائح صحية (أيقونات مصغرة) - مع مسارات PNG
+  // ✅ نصائح صحية - مع أيقونات PNG
   final List<Map<String, dynamic>> _healthTips = [
-    {
-      'title': 'شرب الماء',
-      'value': '1.5',
-      'unit': 'لتر',
-      'icon': 'assets/images/tracking/water.png',
-      'color': Colors.blue,
-      'data': [1.2, 1.5, 1.8, 1.5, 1.0, 1.5, 1.5],
-    },
-    {
-      'title': 'خطوات المشي',
-      'value': '8,542',
-      'unit': 'خطوة',
-      'icon': 'assets/images/tracking/steps.png',
-      'color': Colors.green,
-      'data': [7000, 8000, 8542, 8200, 7800, 9000, 8542],
-    },
-    {
-      'title': 'ساعات النوم',
-      'value': '7.5',
-      'unit': 'ساعة',
-      'icon': 'assets/images/tracking/sleep.png',
-      'color': Colors.indigo,
-      'data': [6.5, 7.0, 7.5, 8.0, 7.0, 7.5, 7.5],
-    },
-    {
-      'title': 'السعرات الحرارية',
-      'value': '2,450',
-      'unit': 'سعرة',
-      'icon': 'assets/images/tracking/calories.png',
-      'color': Colors.orange,
-      'data': [2000, 2200, 2450, 2300, 2100, 2500, 2450],
-    },
+    {'icon': 'assets/images/tracking/water.png', 'title': 'شرب الماء', 'subtitle': '8 أكواب يومياً', 'color': Colors.blue},
+    {'icon': 'assets/images/tracking/steps.png', 'title': 'المشي', 'subtitle': '30 دقيقة يومياً', 'color': Colors.green},
+    {'icon': 'assets/images/tracking/sleep.png', 'title': 'النوم', 'subtitle': '7-8 ساعات ليلاً', 'color': Colors.indigo},
+    {'icon': 'assets/images/tracking/apple.png', 'title': 'الفواكه', 'subtitle': '5 حصص يومياً', 'color': Colors.red},
   ];
 
   // ✅ سجل الفحوصات
@@ -121,21 +73,18 @@ class _HealthDashboardState extends State<HealthDashboard> {
       'date': '2024-01-15',
       'lab': 'مختبرات الذبحاني',
       'status': 'مكتمل',
-      'color': Colors.green,
     },
     {
       'title': 'تحليل وظائف الكبد',
       'date': '2024-01-10',
       'lab': 'مختبرات العولقي',
       'status': 'مكتمل',
-      'color': Colors.green,
     },
     {
       'title': 'تحليل سكر تراكمي',
       'date': '2024-01-05',
       'lab': 'مختبرات المأمون',
       'status': 'قيد الانتظار',
-      'color': Colors.orange,
     },
   ];
 
@@ -175,6 +124,10 @@ class _HealthDashboardState extends State<HealthDashboard> {
         if (doc.exists) {
           setState(() {
             _userName = doc.data()?['name'] ?? user.displayName ?? 'مستخدم';
+          });
+        } else {
+          setState(() {
+            _userName = user.displayName ?? 'مستخدم';
           });
         }
       } catch (e) {
@@ -245,7 +198,7 @@ class _HealthDashboardState extends State<HealthDashboard> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(AppDimensions.paddingL),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -257,11 +210,11 @@ class _HealthDashboardState extends State<HealthDashboard> {
                   _buildHealthScoreCard(isDark),
                   const SizedBox(height: 16),
 
-                  // ✅ 4 مؤشرات صحية رئيسية (مع ربطها بشاشاتها)
+                  // ✅ 4 مؤشرات صحية رئيسية
                   _buildMetricsGrid(isDark),
                   const SizedBox(height: 16),
 
-                  // ✅ النصائح الصحية (أيقونات مصغرة)
+                  // ✅ النصائح الصحية
                   _buildTipsGrid(isDark),
                   const SizedBox(height: 16),
 
@@ -496,7 +449,7 @@ class _HealthDashboardState extends State<HealthDashboard> {
   }
 
   // ============================================================
-  // 📊 شبكة المؤشرات الصحية (4 مؤشرات رئيسية)
+  // 📊 شبكة المؤشرات الصحية - مع أيقونات PNG
   // ============================================================
   Widget _buildMetricsGrid(bool isDark) {
     return GridView.builder(
@@ -513,14 +466,16 @@ class _HealthDashboardState extends State<HealthDashboard> {
         final metric = _healthMetrics[index];
         return GestureDetector(
           onTap: () {
-            // ✅ فتح شاشة التفاصيل عند الضغط
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => HealthDetailScreen(value: '0', unit: 'مؤشر', data: [], 
+                builder: (_) => HealthDetailScreen(
                   title: metric['label'] as String,
                   icon: metric['icon'] as String,
                   color: metric['color'] as Color,
+                  value: metric['value'] as String,
+                  unit: metric['unit'] as String,
+                  data: metric['data'] as List<dynamic>,
                 ),
               ),
             );
@@ -529,7 +484,7 @@ class _HealthDashboardState extends State<HealthDashboard> {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1A2540) : Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.04),
@@ -544,14 +499,15 @@ class _HealthDashboardState extends State<HealthDashboard> {
                 // ✅ أيقونة PNG
                 Image.asset(
                   metric['icon'] as String,
-                  width: 48,
-                  height: 48,
+                  width: 40,
+                  height: 40,
                   fit: BoxFit.contain,
+                  color: metric['color'] as Color,
                   errorBuilder: (context, error, stackTrace) {
                     return Icon(
-                      Icons.favorite,
+                      Icons.circle,
                       color: metric['color'] as Color,
-                      size: 48,
+                      size: 40,
                     );
                   },
                 ),
@@ -608,7 +564,7 @@ class _HealthDashboardState extends State<HealthDashboard> {
   }
 
   // ============================================================
-  // 📊 شبكة النصائح الصحية (أيقونات مصغرة)
+  // 💡 النصائح الصحية - مع أيقونات PNG
   // ============================================================
   Widget _buildTipsGrid(bool isDark) {
     return GridView.builder(
@@ -639,45 +595,40 @@ class _HealthDashboardState extends State<HealthDashboard> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // ✅ أيقونة PNG مصغرة (نصف الحجم)
+              // ✅ أيقونة PNG مصغرة
               Image.asset(
                 tip['icon'] as String,
-                width: 24,
-                height: 24,
+                width: 28,
+                height: 28,
                 fit: BoxFit.contain,
+                color: tip['color'] as Color,
                 errorBuilder: (context, error, stackTrace) {
                   return Icon(
                     Icons.circle,
                     color: tip['color'] as Color,
-                    size: 24,
+                    size: 28,
                   );
                 },
               ),
               const SizedBox(height: 4),
               Text(
-                tip['value'] as String,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.black87,
-                ),
-              ),
-              Text(
-                tip['unit'] as String,
-                style: TextStyle(
-                  fontSize: 8,
-                  color: isDark ? Colors.grey[400] : Colors.grey[600],
-                ),
-              ),
-              Text(
                 tip['title'] as String,
                 style: TextStyle(
-                  fontSize: 8,
-                  color: isDark ? Colors.grey[500] : Colors.grey[500],
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                  color: isDark ? Colors.white : Colors.black87,
                 ),
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                tip['subtitle'] as String,
+                style: TextStyle(
+                  fontSize: 8,
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                ),
+                textAlign: TextAlign.center,
               ),
             ],
           ),
