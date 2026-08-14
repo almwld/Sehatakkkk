@@ -379,7 +379,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   // 📱 الشريط العلوي
   // ============================================================
   SliverAppBar _buildCustomAppBar(bool isDark) {
-    return SliverCustomAppBar(
+    return SliverAppBar(
       expandedHeight: 90,
       floating: true,
       snap: true,
@@ -1882,7 +1882,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       body: CustomScrollView(
         slivers: [
-          SliverCustomAppBar(
+          SliverAppBar(
             expandedHeight: 90,
             floating: true,
             snap: true,

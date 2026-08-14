@@ -142,8 +142,8 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
           ),
         ),
       ),
-      title: 'المساعد الصحي الذكي',
-      subtitle: 'اسألني عن صحتك وأدويتك',
+      title: const Text('المساعد الصحي الذكي'),
+      subtitle: const Text('اسألني عن صحتك وأدويتك'),
       trailing: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         decoration: BoxDecoration(
@@ -219,7 +219,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
       appBar: CustomAppBar(
         backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
         elevation: 0,
-        centerTitle: true,
+        
         title: const Text(
           'المحادثات',
           style: TextStyle(
