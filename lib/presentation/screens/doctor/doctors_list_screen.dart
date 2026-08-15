@@ -1,9 +1,5 @@
-import 'package:sehatak/presentation/widgets/common/custom_bottom_nav_bar.dart';
-import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:shimmer/shimmer.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
@@ -19,32 +15,98 @@ class DoctorsListScreen extends StatefulWidget {
 class _DoctorsListScreenState extends State<DoctorsListScreen> {
   String _searchQuery = '';
   String _selectedSpecialty = 'الكل';
-  String _selectedSort = 'التقييم';
   bool _isLoading = false;
-  bool _isBottomBarVisible = true;
-  final ScrollController _scrollController = ScrollController();
 
   final List<String> _specialties = [
-    'الكل', 'باطنية', 'قلبية', 'أطفال', 'نساء وولادة', 'عظام', 
+    'الكل', 'باطنية', 'قلبية', 'أطفال', 'نساء وولادة', 'عظام',
     'أنف وأذن وحنجرة', 'جلدية', 'عيون', 'نفسية', 'جراحة', 'مسالك بولية'
   ];
 
   final List<Map<String, dynamic>> _allDoctors = [
-    {'id': '1', 'name': 'د. أحمد المولد', 'specialty': 'باطنية', 'experience': '20+ سنة', 'rating': 4.9, 'reviews': 328, 'price': 500, 'available': true, 'image': ImageKit.doctor1, 'hospital': 'مستشفى الثورة العام', 'online': true, 'gender': 'male', 'badge': 'استشاري'},
-    {'id': '2', 'name': 'د. خالد النخلاني', 'specialty': 'قلبية', 'experience': '15 سنة', 'rating': 4.8, 'reviews': 256, 'price': 600, 'available': true, 'image': ImageKit.doctor2, 'hospital': 'مركز قلب العاصمة', 'online': false, 'gender': 'male', 'badge': 'أستاذ'},
-    {'id': '3', 'name': 'د. أسماء الهندي', 'specialty': 'أطفال', 'experience': '12 سنة', 'rating': 4.9, 'reviews': 189, 'price': 450, 'available': true, 'image': ImageKit.doctor3, 'hospital': 'مستشفى السبعين', 'online': true, 'gender': 'female', 'badge': 'استشارية'},
-    {'id': '4', 'name': 'د. محمد العلاي', 'specialty': 'أنف وأذن وحنجرة', 'experience': '8 سنوات', 'rating': 4.7, 'reviews': 89, 'price': 400, 'available': false, 'image': ImageKit.doctor4, 'hospital': 'مستشفى الأنف والأذن', 'online': false, 'gender': 'male', 'badge': 'أخصائي'},
-    {'id': '5', 'name': 'د. فاطمة صديقي', 'specialty': 'نساء وولادة', 'experience': '18 سنة', 'rating': 4.8, 'reviews': 210, 'price': 550, 'available': true, 'image': ImageKit.doctor5, 'hospital': 'مستشفى الولادة', 'online': true, 'gender': 'female', 'badge': 'استشارية'},
-    {'id': '6', 'name': 'د. سعيد العمري', 'specialty': 'جلدية', 'experience': '14 سنة', 'rating': 4.7, 'reviews': 178, 'price': 480, 'available': true, 'image': ImageKit.doctor1, 'hospital': 'مركز الجلدية', 'online': true, 'gender': 'male', 'badge': 'استشاري'},
+    {
+      'id': '1',
+      'name': 'د. أحمد المولد',
+      'specialty': 'باطنية',
+      'experience': '20+ سنة',
+      'rating': 4.9,
+      'reviews': 328,
+      'price': 500,
+      'available': true,
+      'image': ImageKit.doctor1,
+      'hospital': 'مستشفى الثورة العام',
+      'online': true,
+      'gender': 'male',
+      'badge': 'استشاري'
+    },
+    {
+      'id': '2',
+      'name': 'د. خالد النخلاني',
+      'specialty': 'قلبية',
+      'experience': '15 سنة',
+      'rating': 4.8,
+      'reviews': 256,
+      'price': 600,
+      'available': true,
+      'image': ImageKit.doctor2,
+      'hospital': 'مركز قلب العاصمة',
+      'online': false,
+      'gender': 'male',
+      'badge': 'أستاذ'
+    },
+    {
+      'id': '3',
+      'name': 'د. أسماء الهندي',
+      'specialty': 'أطفال',
+      'experience': '12 سنة',
+      'rating': 4.9,
+      'reviews': 189,
+      'price': 450,
+      'available': true,
+      'image': ImageKit.doctor3,
+      'hospital': 'مستشفى السبعين',
+      'online': true,
+      'gender': 'female',
+      'badge': 'استشارية'
+    },
+    {
+      'id': '4',
+      'name': 'د. محمد العلاي',
+      'specialty': 'أنف وأذن وحنجرة',
+      'experience': '8 سنوات',
+      'rating': 4.7,
+      'reviews': 89,
+      'price': 400,
+      'available': false,
+      'image': ImageKit.doctor4,
+      'hospital': 'مستشفى الأنف والأذن',
+      'online': false,
+      'gender': 'male',
+      'badge': 'أخصائي'
+    },
+    {
+      'id': '5',
+      'name': 'د. فاطمة صديقي',
+      'specialty': 'نساء وولادة',
+      'experience': '18 سنة',
+      'rating': 4.8,
+      'reviews': 210,
+      'price': 550,
+      'available': true,
+      'image': ImageKit.doctor5,
+      'hospital': 'مستشفى الولادة',
+      'online': true,
+      'gender': 'female',
+      'badge': 'استشارية'
+    },
   ];
 
   List<Map<String, dynamic>> get _filteredDoctors {
     var list = _allDoctors;
     if (_searchQuery.isNotEmpty) {
       list = list.where((d) =>
-        d['name'].toString().contains(_searchQuery) ||
-        d['specialty'].toString().contains(_searchQuery) ||
-        d['hospital'].toString().contains(_searchQuery)
+          d['name'].toString().contains(_searchQuery) ||
+          d['specialty'].toString().contains(_searchQuery) ||
+          d['hospital'].toString().contains(_searchQuery)
       ).toList();
     }
     if (_selectedSpecialty != 'الكل') {
@@ -54,37 +116,14 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(() {
-      final direction = _scrollController.position.userScrollDirection;
-      if (direction == ScrollDirection.reverse) {
-        if (_isBottomBarVisible) {
-          setState(() => _isBottomBarVisible = false);
-        }
-      } else if (direction == ScrollDirection.forward) {
-        if (!_isBottomBarVisible) {
-          setState(() => _isBottomBarVisible = true);
-        }
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final filtered = _filteredDoctors;
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: CustomAppBar(
-        title: ' الأطباء',
+      appBar: AppBar(
+        title: const Text('الأطباء'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -179,7 +218,6 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
             child: filtered.isEmpty
                 ? _buildEmptyState(isDark)
                 : ListView.builder(
-                    controller: _scrollController,
                     padding: const EdgeInsets.all(12),
                     itemCount: filtered.length,
                     itemBuilder: (context, index) {
@@ -189,132 +227,6 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                   ),
           ),
         ],
-      ),
-        height: _isBottomBarVisible ? 68 : 0,
-        child: Container(
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E293B) : Colors.white,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.12),
-                blurRadius: 12,
-                offset: const Offset(0, -4),
-              ),
-            ],
-          ),
-          child: SafeArea(
-            top: false,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                _buildNavItem(Icons.home_rounded, 'الرئيسية', 0),
-                _buildNavItem(Icons.person_search_rounded, 'الأطباء', 1, selected: true),
-                _buildNavItem(Icons.local_pharmacy_rounded, 'الصيدلية', 2),
-                _buildChatButton(),
-                _buildNavItem(Icons.science_rounded, 'مختبرات', 4),
-                _buildNavItem(Icons.folder_rounded, 'صحتي', 5),
-                _buildNavItem(Icons.grid_view_rounded, 'المزيد', 6),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(IconData icon, String label, int index, {bool selected = false}) {
-    final color = selected ? AppColors.primary : Colors.grey;
-
-    return GestureDetector(
-      onTap: () {
-        if (index == 0) {
-          Navigator.pop(context);
-        }
-      },
-      child: SizedBox(
-        width: 48,
-        height: 60,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: color, size: 22),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 9,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                color: color,
-              ),
-            ),
-            if (selected)
-              Container(
-                width: 32,
-                height: 3,
-                margin: const EdgeInsets.only(top: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              )
-            else
-              const SizedBox(height: 7),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildChatButton() {
-    return GestureDetector(
-      onTap: () {},
-      child: SizedBox(
-        width: 56,
-        height: 60,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Transform.translate(
-              offset: const Offset(0, -22),
-              child: Container(
-                width: 60,
-                height: 60,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppColors.primary, AppColors.primaryDark],
-                  ),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary,
-                      blurRadius: 14,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.chat_rounded,
-                  color: Colors.white,
-                  size: 30,
-                ),
-              ),
-            ),
-            const SizedBox(height: 2),
-            const Text(
-              'الدردشة',
-              style: TextStyle(
-                fontSize: 9,
-                fontWeight: FontWeight.normal,
-                color: Colors.grey,
-              ),
-            ),
-            const SizedBox(height: 7),
-          ],
-        ),
       ),
     );
   }
@@ -545,44 +457,38 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setStateSheet) {
-            return Container(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'ترتيب حسب',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 12),
-                  ...['التقييم', 'السعر (منخفض)', 'السعر (مرتفع)'].map((option) {
-                    return RadioListTile<String>(
-                      title: Text(option),
-                      value: option,
-                      groupValue: _selectedSort,
-                      onChanged: (value) {
-                        setStateSheet(() => _selectedSort = value!);
-                        setState(() {});
-                        Navigator.pop(context);
-                      },
-                      activeColor: AppColors.primary,
-                    );
-                  }).toList(),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('إغلاق'),
-                    ),
-                  ),
-                ],
+        return Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'ترتيب حسب',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
-            );
-          },
+              const SizedBox(height: 12),
+              ...['التقييم', 'السعر (منخفض)', 'السعر (مرتفع)'].map((option) {
+                return RadioListTile<String>(
+                  title: Text(option),
+                  value: option,
+                  groupValue: 'التقييم',
+                  onChanged: (value) {
+                    Navigator.pop(context);
+                  },
+                  activeColor: AppColors.primary,
+                );
+              }).toList(),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('إغلاق'),
+                ),
+              ),
+            ],
+          ),
         );
       },
     );

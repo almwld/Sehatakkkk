@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
-import 'package:sehatak/presentation/screens/doctor/doctor_booking_screen.dart';
-import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
 
 class DoctorDetailsScreen extends StatefulWidget {
   final String doctorId;
-  const DoctorDetailsScreen({super.key, required this.doctorId});
+
+  const DoctorDetailsScreen({
+    super.key,
+    required this.doctorId,
+  });
 
   @override
   State<DoctorDetailsScreen> createState() => _DoctorDetailsScreenState();
@@ -17,6 +19,34 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
   bool _isFavorite = false;
   bool _isLoading = true;
   late Map<String, dynamic> _doctor;
+
+  // ✅ الأيقونات الأربعة المحلية من مجلد chat
+  final List<Map<String, dynamic>> _contactIcons = [
+    {
+      'icon': 'assets/images/chat/phone_call.png',
+      'label': 'اتصال',
+      'color': Colors.green,
+      'action': 'call'
+    },
+    {
+      'icon': 'assets/images/chat/video_call.png',
+      'label': 'مكالمة فيديو',
+      'color': Colors.blue,
+      'action': 'video'
+    },
+    {
+      'icon': 'assets/images/chat/chat_bubble.png',
+      'label': 'رسالة',
+      'color': AppColors.primary,
+      'action': 'chat'
+    },
+    {
+      'icon': 'assets/images/chat/calendar_booking.png',
+      'label': 'حجز موعد',
+      'color': Colors.orange,
+      'action': 'book'
+    },
+  ];
 
   @override
   void initState() {
@@ -36,7 +66,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
 
   Map<String, dynamic> _getDoctorData(String doctorId) {
     switch (doctorId) {
-      case 'd1':
+      case '1':
         return {
           'name': 'د. أحمد المولد',
           'specialty': 'استشاري باطنية وأطفال',
@@ -50,7 +80,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
           'availability': ['السبت - الأربعاء: 9 ص - 5 م'],
           'image': ImageKit.doctor1,
         };
-      case 'd2':
+      case '2':
         return {
           'name': 'د. خالد النخلاني',
           'specialty': 'قلبية',
@@ -64,7 +94,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
           'availability': ['الأحد - الخميس: 10 ص - 4 م'],
           'image': ImageKit.doctor2,
         };
-      case 'd3':
+      case '3':
         return {
           'name': 'د. أسماء الهندي',
           'specialty': 'أطفال',
@@ -78,7 +108,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
           'availability': ['السبت - الأربعاء: 8 ص - 2 م'],
           'image': ImageKit.doctor3,
         };
-      case 'd4':
+      case '4':
         return {
           'name': 'د. محمد العلاي',
           'specialty': 'أنف وأذن وحنجرة',
@@ -92,7 +122,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
           'availability': ['الأحد - الخميس: 9 ص - 3 م'],
           'image': ImageKit.doctor4,
         };
-      case 'd5':
+      case '5':
         return {
           'name': 'د. فاطمة صديقي',
           'specialty': 'نساء وولادة',
@@ -123,13 +153,86 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
     }
   }
 
-  // أيقونات التواصل باستخدام ImageKit (روابط شبكية)
-  final List<Map<String, dynamic>> _contactIcons = [
-    {'icon': ImageKit.chatPhoneCall, 'label': 'اتصال', 'color': Colors.green},
-    {'icon': ImageKit.chatVideoCall, 'label': 'مكالمة فيديو', 'color': Colors.blue},
-    {'icon': ImageKit.chatBubble, 'label': 'رسالة', 'color': AppColors.primary},
-    {'icon': ImageKit.chatCalendarBooking, 'label': 'حجز موعد', 'color': Colors.orange},
-  ];
+  void _callDoctor() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('📞 جاري الاتصال بالطبيب...'), backgroundColor: Colors.green),
+    );
+  }
+
+  void _videoCallDoctor() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('📹 جاري بدء مكالمة فيديو...'), backgroundColor: Colors.blue),
+    );
+  }
+
+  void _openChat() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('💬 جاري فتح الدردشة...'), backgroundColor: AppColors.primary),
+    );
+  }
+
+  void _bookAppointment() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('📅 جاري فتح حجز الموعد...'), backgroundColor: Colors.orange),
+    );
+  }
+
+  Widget _buildContactIcon(Map<String, dynamic> item, bool isDark) {
+    return GestureDetector(
+      onTap: () {
+        final action = item['action'] as String;
+        switch (action) {
+          case 'call':
+            _callDoctor();
+            break;
+          case 'video':
+            _videoCallDoctor();
+            break;
+          case 'chat':
+            _openChat();
+            break;
+          case 'book':
+            _bookAppointment();
+            break;
+        }
+      },
+      child: Column(
+        children: [
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: (item['color'] as Color).withOpacity(0.16),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Center(
+              child: Image.asset(
+                item['icon'] as String,
+                width: 36,
+                height: 36,
+                errorBuilder: (context, error, stackTrace) {
+                  return Icon(
+                    Icons.circle,
+                    color: item['color'] as Color,
+                    size: 36,
+                  );
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            item['label'] as String,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: isDark ? Colors.white70 : Colors.grey[800],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -153,8 +256,10 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
         ),
         actions: [
           IconButton(
-            icon: Icon(_isFavorite ? Icons.favorite : Icons.favorite_border,
-                color: _isFavorite ? Colors.red : (isDark ? Colors.white : Colors.black87)),
+            icon: Icon(
+              _isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: _isFavorite ? Colors.red : (isDark ? Colors.white : Colors.black87),
+            ),
             onPressed: () => setState(() => _isFavorite = !_isFavorite),
           ),
           IconButton(
@@ -267,7 +372,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
             ),
             const SizedBox(height: 16),
 
-            // أيقونات التواصل (مكبرة - باستخدام Image.network)
+            // ✅ الأيقونات الأربعة المحلية
             Container(
               padding: const EdgeInsets.symmetric(vertical: 8),
               decoration: BoxDecoration(
@@ -284,51 +389,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: _contactIcons.map((item) {
-                  return GestureDetector(
-                    onTap: () {
-                      final label = item['label'] as String;
-                      if (label == 'اتصال') _callDoctor();
-                      else if (label == 'مكالمة فيديو') _videoCallDoctor();
-                      else if (label == 'رسالة') _openChat();
-                      else if (label == 'حجز موعد') _bookAppointment();
-                    },
-                    child: Column(
-                      children: [
-                        Container(
-                          width: 72,
-                          height: 72,
-                          decoration: BoxDecoration(
-                            color: (item['color'] as Color).withOpacity(0.16),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Center(
-                            child: Image.network(
-                              item['icon'] as String,
-                              width: 36,
-                              height: 36,
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Icon(
-                                  Icons.circle,
-                                  color: item['color'] as Color,
-                                  size: 36,
-                                );
-                              },
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          item['label'] as String,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                            color: isDark ? Colors.white70 : Colors.grey[800],
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
+                  return _buildContactIcon(item, isDark);
                 }).toList(),
               ),
             ),
@@ -468,66 +529,6 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
             const SizedBox(height: 16),
           ],
         ),
-      ),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0B1121) : Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 10,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: ElevatedButton.icon(
-              onPressed: _bookAppointment,
-              icon: const Icon(Icons.calendar_today, color: Colors.white),
-              label: const Text(
-                'حجز موعد',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _callDoctor() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('📞 جاري الاتصال بالطبيب...'), backgroundColor: Colors.green),
-    );
-  }
-
-  void _videoCallDoctor() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('📹 جاري بدء مكالمة فيديو...'), backgroundColor: Colors.blue),
-    );
-  }
-
-  void _openChat() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const ChatScreen()),
-    );
-  }
-
-  void _bookAppointment() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => DoctorBookingScreen(doctorId: widget.doctorId),
       ),
     );
   }
