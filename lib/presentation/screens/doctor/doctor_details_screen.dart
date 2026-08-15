@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
+import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
+import 'package:sehatak/presentation/screens/doctor/doctor_booking_screen.dart';
 
 class DoctorDetailsScreen extends StatefulWidget {
   final String doctorId;
@@ -15,36 +17,42 @@ class DoctorDetailsScreen extends StatefulWidget {
   State<DoctorDetailsScreen> createState() => _DoctorDetailsScreenState();
 }
 
-class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
+class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
+    with SingleTickerProviderStateMixin {
   bool _isFavorite = false;
   bool _isLoading = true;
   late Map<String, dynamic> _doctor;
+  int _selectedIndex = -1;
 
-  // ✅ الأيقونات الأربعة المحلية من مجلد chat
+  // ✅ الأيقونات الأربعة المحلية من مجلد chat (مكبرة بنسبة 10%)
   final List<Map<String, dynamic>> _contactIcons = [
     {
       'icon': 'assets/images/chat/phone_call.png',
       'label': 'اتصال',
       'color': Colors.green,
-      'action': 'call'
+      'action': 'call',
+      'screen': null,
     },
     {
       'icon': 'assets/images/chat/video_call.png',
       'label': 'مكالمة فيديو',
       'color': Colors.blue,
-      'action': 'video'
+      'action': 'video',
+      'screen': null,
     },
     {
       'icon': 'assets/images/chat/chat_bubble.png',
       'label': 'رسالة',
       'color': AppColors.primary,
-      'action': 'chat'
+      'action': 'chat',
+      'screen': const ChatScreen(),
     },
     {
       'icon': 'assets/images/chat/calendar_booking.png',
       'label': 'حجز موعد',
       'color': Colors.orange,
-      'action': 'book'
+      'action': 'book',
+      'screen': DoctorBookingScreen(doctorId: '1'),
     },
   ];
 
@@ -153,83 +161,125 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
     }
   }
 
-  void _callDoctor() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('📞 جاري الاتصال بالطبيب...'), backgroundColor: Colors.green),
-    );
-  }
+  void _handleAction(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
 
-  void _videoCallDoctor() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('📹 جاري بدء مكالمة فيديو...'), backgroundColor: Colors.blue),
-    );
-  }
+    final action = _contactIcons[index]['action'] as String;
+    final screen = _contactIcons[index]['screen'] as Widget?;
 
-  void _openChat() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('💬 جاري فتح الدردشة...'), backgroundColor: AppColors.primary),
-    );
-  }
-
-  void _bookAppointment() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('📅 جاري فتح حجز الموعد...'), backgroundColor: Colors.orange),
-    );
-  }
-
-  Widget _buildContactIcon(Map<String, dynamic> item, bool isDark) {
-    return GestureDetector(
-      onTap: () {
-        final action = item['action'] as String;
-        switch (action) {
-          case 'call':
-            _callDoctor();
-            break;
-          case 'video':
-            _videoCallDoctor();
-            break;
-          case 'chat':
-            _openChat();
-            break;
-          case 'book':
-            _bookAppointment();
-            break;
+    switch (action) {
+      case 'call':
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('📞 جاري الاتصال بالطبيب...'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+        break;
+      case 'video':
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('📹 جاري بدء مكالمة فيديو...'),
+            backgroundColor: Colors.blue,
+            duration: Duration(seconds: 2),
+          ),
+        );
+        break;
+      case 'chat':
+        if (screen != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => screen),
+          );
         }
-      },
-      child: Column(
-        children: [
-          Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-              color: (item['color'] as Color).withOpacity(0.16),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Center(
-              child: Image.asset(
-                item['icon'] as String,
-                width: 36,
-                height: 36,
-                errorBuilder: (context, error, stackTrace) {
-                  return Icon(
-                    Icons.circle,
-                    color: item['color'] as Color,
-                    size: 36,
-                  );
-                },
+        break;
+      case 'book':
+        if (screen != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => screen),
+          );
+        }
+        break;
+    }
+
+    // إعادة تعيين التحديد بعد 300ms
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) {
+        setState(() {
+          _selectedIndex = -1;
+        });
+      }
+    });
+  }
+
+  Widget _buildContactIcon(Map<String, dynamic> item, int index, bool isDark) {
+    final isSelected = _selectedIndex == index;
+    final color = item['color'] as Color;
+
+    return GestureDetector(
+      onTap: () => _handleAction(index),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        transform: isSelected
+            ? Matrix4.identity()..scale = const Offset(0.9, 0.9)
+            : Matrix4.identity(),
+        child: Column(
+          children: [
+            Container(
+              width: 80, // ✅ زيادة الحجم من 72 إلى 80 (زيادة 10%)
+              height: 80, // ✅ زيادة الحجم من 72 إلى 80 (زيادة 10%)
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? color.withOpacity(0.3)
+                    : color.withOpacity(0.16),
+                borderRadius: BorderRadius.circular(18),
+                border: isSelected
+                    ? Border.all(color: color, width: 2)
+                    : null,
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: color.withOpacity(0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Center(
+                child: Image.asset(
+                  item['icon'] as String,
+                  width: 40, // ✅ زيادة من 36 إلى 40 (زيادة 10%)
+                  height: 40, // ✅ زيادة من 36 إلى 40 (زيادة 10%)
+                  color: isSelected ? color : null,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Icon(
+                      Icons.circle,
+                      color: color,
+                      size: 40,
+                    );
+                  },
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            item['label'] as String,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              color: isDark ? Colors.white70 : Colors.grey[800],
+            const SizedBox(height: 6),
+            Text(
+              item['label'] as String,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: isSelected
+                    ? color
+                    : (isDark ? Colors.white70 : Colors.grey[800]),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -264,7 +314,14 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
           ),
           IconButton(
             icon: Icon(Icons.share, color: isDark ? Colors.white : Colors.black87),
-            onPressed: () {},
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('🔗 تم نسخ الرابط'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -372,9 +429,9 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
             ),
             const SizedBox(height: 16),
 
-            // ✅ الأيقونات الأربعة المحلية
+            // ✅ الأيقونات الأربعة المحلية (مكبرة بنسبة 10%)
             Container(
-              padding: const EdgeInsets.symmetric(vertical: 8),
+              padding: const EdgeInsets.symmetric(vertical: 12),
               decoration: BoxDecoration(
                 color: isDark ? const Color(0xFF1A2540) : Colors.white,
                 borderRadius: BorderRadius.circular(16),
@@ -388,9 +445,10 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: _contactIcons.map((item) {
-                  return _buildContactIcon(item, isDark);
-                }).toList(),
+                children: List.generate(
+                  _contactIcons.length,
+                  (index) => _buildContactIcon(_contactIcons[index], index, isDark),
+                ),
               ),
             ),
             const SizedBox(height: 16),
