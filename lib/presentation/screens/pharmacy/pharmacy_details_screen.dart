@@ -1,4 +1,3 @@
-import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -13,7 +12,7 @@ class PharmacyDetailsScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: CustomAppBar(
+      appBar: AppBar(
         title: Text(pharmacy['name']),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,

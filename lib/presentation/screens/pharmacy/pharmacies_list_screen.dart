@@ -1,4 +1,3 @@
-import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
@@ -19,7 +18,7 @@ class PharmaciesListScreen extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: CustomAppBar(
+      appBar: AppBar(
         title: Text(AppStrings.pharmacies),
         actions: [IconButton(icon: const Icon(Icons.filter_list), onPressed: () {})],
       ),
