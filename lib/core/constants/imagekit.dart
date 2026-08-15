@@ -43,13 +43,13 @@ class ImageKit {
   static const String pharmacy3 = '$baseUrl/images/pharmacies/pharmacy_3.png';
 
   // ============================================================
-  // 📰 صور المقالات
+  // 📰 صور المقالات والمنشورات الصحية
   // ============================================================
-  static const String morningWalk = '$baseUrl/images/articles/morning_walk.png';
-  static const String immuneBoost = '$baseUrl/images/articles/immune_boost.png';
-  static const String sleepTips = '$baseUrl/images/articles/sleep_tips.png';
-  static const String skinCare = '$baseUrl/images/articles/skin_care.png';
-  static const String nutritionTips = '$baseUrl/images/articles/nutrition_tips.png';
+  static const String morningWalk = '$baseUrl/images/posts/morning_walk.png';
+  static const String immuneBoost = '$baseUrl/images/posts/immune_boost.png';
+  static const String sleepTips = '$baseUrl/images/posts/sleep_tips.png';
+  static const String skinCare = '$baseUrl/images/posts/skin_care.png';
+  static const String nutritionTips = '$baseUrl/images/posts/nutrition_tips.png';
 
   // ============================================================
   // 📸 البانرات
@@ -75,8 +75,8 @@ class ImageKit {
   // ============================================================
   // 🚚 أيقونات التوصيل
   // ============================================================
-  static const String deliverySehatak = 'https://ik.imagekit.io/fqcynk86c/images/delivery/delivery_1.png';
-  static const String deliveryNas = 'https://ik.imagekit.io/fqcynk86c/images/delivery/delivery_2.png';
-  static const String deliveryTasheel = 'https://ik.imagekit.io/fqcynk86c/images/delivery/delivery_3.png';
-  static const String deliveryOther = 'https://ik.imagekit.io/fqcynk86c/images/delivery/delivery_4.png';
+  static const String deliverySehatak = '$baseUrl/images/delivery/delivery_1.png';
+  static const String deliveryNas = '$baseUrl/images/delivery/delivery_2.png';
+  static const String deliveryTasheel = '$baseUrl/images/delivery/delivery_3.png';
+  static const String deliveryOther = '$baseUrl/images/delivery/delivery_4.png';
 }
