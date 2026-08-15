@@ -52,7 +52,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
       'label': 'حجز موعد',
       'color': Colors.orange,
       'action': 'book',
-      'screen': DoctorBookingScreen(doctorId: '1'),
+      'screen': const DoctorBookingScreen(doctorId: '1'),
     },
   ];
 
@@ -226,13 +226,13 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
         transform: isSelected
-            ? Matrix4.identity()..scale = const Offset(0.9, 0.9)
+            ? Matrix4.diagonal3Values(0.9, 0.9, 1.0)
             : Matrix4.identity(),
         child: Column(
           children: [
             Container(
-              width: 80, // ✅ زيادة الحجم من 72 إلى 80 (زيادة 10%)
-              height: 80, // ✅ زيادة الحجم من 72 إلى 80 (زيادة 10%)
+              width: 80,
+              height: 80,
               decoration: BoxDecoration(
                 color: isSelected
                     ? color.withOpacity(0.3)
@@ -254,8 +254,8 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
               child: Center(
                 child: Image.asset(
                   item['icon'] as String,
-                  width: 40, // ✅ زيادة من 36 إلى 40 (زيادة 10%)
-                  height: 40, // ✅ زيادة من 36 إلى 40 (زيادة 10%)
+                  width: 40,
+                  height: 40,
                   color: isSelected ? color : null,
                   errorBuilder: (context, error, stackTrace) {
                     return Icon(
@@ -429,7 +429,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
             ),
             const SizedBox(height: 16),
 
-            // ✅ الأيقونات الأربعة المحلية (مكبرة بنسبة 10%)
+            // ✅ الأيقونات الأربعة
             Container(
               padding: const EdgeInsets.symmetric(vertical: 12),
               decoration: BoxDecoration(
