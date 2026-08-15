@@ -291,8 +291,6 @@ class _TestBookingScreenState extends State<TestBookingScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF0B1121) : Colors.white,
           boxShadow: [

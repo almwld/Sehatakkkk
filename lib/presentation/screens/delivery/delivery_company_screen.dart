@@ -287,9 +287,6 @@ class _DeliveryCompanyScreenState extends State<DeliveryCompanyScreen> {
                     );
                   },
                 ),
-      bottomNavigationBar: _selectedCompanyId != null
-          ? Container(
-              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: isDark ? const Color(0xFF1A2540) : Colors.white,
                 boxShadow: [

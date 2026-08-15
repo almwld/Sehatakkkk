@@ -190,8 +190,6 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
         height: _isBottomBarVisible ? 68 : 0,
         child: Container(
           decoration: BoxDecoration(

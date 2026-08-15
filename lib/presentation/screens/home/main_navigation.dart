@@ -58,12 +58,6 @@ class _MainNavigationState extends State<MainNavigation> {
         index: _currentIndex,
         children: _screens,
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.shadow.withOpacity(0.1),
               blurRadius: 10,
               offset: const Offset(0, -2),
             ),

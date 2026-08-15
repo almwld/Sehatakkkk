@@ -469,13 +469,6 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomBar(isDark),
-    );
-  }
-
-  Widget _buildBottomBar(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF0B1121) : Colors.white,
         boxShadow: [
