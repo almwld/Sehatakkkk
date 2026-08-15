@@ -1,4 +1,3 @@
-import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
@@ -63,7 +62,7 @@ class _OTPScreenState extends State<OTPScreen> {
           builder: (_) => AlertDialog(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             icon: const Icon(Icons.check_circle, color: AppColors.success, size: 60),
-            title: '✅ تم التحقق بنجاح',
+            title: const Text('✅ تم التحقق بنجاح'),
             content: Text(widget.isRegister ? 'تم إنشاء حسابك بنجاح' : 'مرحباً بعودتك'),
             actions: [TextButton(onPressed: () { Navigator.pop(context); Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const HomeScreen()), (route) => false); }, child: const Text('دخول'))],
           ),
@@ -88,7 +87,7 @@ class _OTPScreenState extends State<OTPScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: 'التحقق من الرقم'),
+      appBar: AppBar(title: const Text('التحقق من الرقم')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(children: [
