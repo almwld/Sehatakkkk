@@ -17,11 +17,9 @@ import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
 import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
 import 'package:sehatak/presentation/screens/services/services_screen.dart';
 import 'package:sehatak/presentation/screens/consultation/consultation_screen.dart';
-import 'package:sehatak/presentation/screens/ai/ai_chatbot_screen.dart';
 import 'package:sehatak/presentation/screens/blood_pressure/blood_pressure_screen.dart';
 import 'package:sehatak/presentation/screens/glucose_tracker/glucose_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/weight_tracker/weight_tracker_screen.dart';
-import 'package:sehatak/presentation/screens/fitness/fitness_screen.dart';
 import 'package:sehatak/presentation/screens/sleep_tracker/sleep_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/medication/medication_reminder_screen.dart';
 import 'package:sehatak/presentation/screens/medical_reports/medical_reports_screen.dart';
@@ -43,6 +41,7 @@ import 'package:sehatak/presentation/screens/download_data/download_data_screen.
 import 'package:sehatak/presentation/screens/font_size/font_size_screen.dart';
 import 'package:sehatak/presentation/screens/privacy/privacy_screen.dart';
 import 'package:sehatak/presentation/screens/terms/terms_screen.dart';
+import 'package:sehatak/presentation/screens/ai/ai_chatbot_screen.dart';
 
 class MoreScreen extends StatefulWidget {
   const MoreScreen({super.key});
@@ -56,7 +55,6 @@ class _MoreScreenState extends State<MoreScreen> {
   bool _isScrolled = false;
   String _selectedCategory = 'الكل';
 
-  // ✅ الفئات
   final List<String> _categories = [
     'الكل',
     'رعاية عائلية',
@@ -65,7 +63,7 @@ class _MoreScreenState extends State<MoreScreen> {
     'إعدادات',
   ];
 
-  // ✅ بيانات المؤشرات الحيوية مع الربط بالشاشات
+  // ✅ بيانات المؤشرات الحيوية
   final List<Map<String, dynamic>> _vitals = [
     {
       'icon': 'assets/images/tracking/blood_pressure.png',
@@ -89,7 +87,7 @@ class _MoreScreenState extends State<MoreScreen> {
       'value': '85',
       'unit': '%',
       'color': Colors.green,
-      'screen': const FitnessScreen()
+      'screen': const SleepTrackerScreen()
     },
     {
       'icon': 'assets/images/tracking/weight_tracking.png',
@@ -101,7 +99,7 @@ class _MoreScreenState extends State<MoreScreen> {
     },
   ];
 
-  // ✅ الخدمات المفلترة حسب الفئة
+  // ✅ الخدمات المفلترة
   List<Map<String, dynamic>> get _filteredServices {
     switch (_selectedCategory) {
       case 'رعاية عائلية':
@@ -151,7 +149,7 @@ class _MoreScreenState extends State<MoreScreen> {
           {'icon': Icons.download, 'title': 'تحميل البيانات', 'subtitle': 'تحميل بياناتك الصحية', 'screen': const DownloadDataScreen()},
           {'icon': Icons.text_fields, 'title': 'حجم الخط', 'subtitle': 'تغيير حجم الخط', 'screen': const FontSizeScreen()},
         ];
-      default: // الكل
+      default:
         return [
           {'icon': Icons.medical_services, 'title': 'الأطباء', 'subtitle': 'استشر أفضل الأطباء', 'screen': const DoctorsListScreen()},
           {'icon': Icons.local_pharmacy, 'title': 'الصيدلية', 'subtitle': 'طلب الأدوية وتوصيلها', 'screen': const PharmacyScreen()},
@@ -229,11 +227,8 @@ class _MoreScreenState extends State<MoreScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ✅ بطاقة المستخدم
             _buildUserCard(user, isDark),
             const SizedBox(height: 16),
-
-            // ✅ المؤشرات الحيوية
             Text(
               'المؤشرات الحيوية',
               style: TextStyle(
@@ -245,8 +240,6 @@ class _MoreScreenState extends State<MoreScreen> {
             const SizedBox(height: 8),
             _buildVitalsGrid(isDark),
             const SizedBox(height: 16),
-
-            // ✅ الخدمات
             Text(
               'الخدمات',
               style: TextStyle(
@@ -256,16 +249,10 @@ class _MoreScreenState extends State<MoreScreen> {
               ),
             ),
             const SizedBox(height: 8),
-
-            // ✅ الفئات (تاب بار)
             _buildCategoriesBar(isDark),
             const SizedBox(height: 12),
-
-            // ✅ الخدمات المفلترة
             _buildFilteredServicesGrid(isDark),
             const SizedBox(height: 16),
-
-            // ✅ زر تسجيل الخروج
             _buildLogoutButton(isDark),
           ],
         ),
@@ -273,7 +260,6 @@ class _MoreScreenState extends State<MoreScreen> {
     );
   }
 
-  // ✅ بطاقة المستخدم
   Widget _buildUserCard(User? user, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -337,7 +323,6 @@ class _MoreScreenState extends State<MoreScreen> {
     );
   }
 
-  // ✅ شريط الفئات
   Widget _buildCategoriesBar(bool isDark) {
     return SizedBox(
       height: 45,
@@ -378,7 +363,6 @@ class _MoreScreenState extends State<MoreScreen> {
     );
   }
 
-  // ✅ المؤشرات الحيوية
   Widget _buildVitalsGrid(bool isDark) {
     return GridView.builder(
       shrinkWrap: true,
@@ -461,7 +445,6 @@ class _MoreScreenState extends State<MoreScreen> {
     );
   }
 
-  // ✅ الخدمات المفلترة
   Widget _buildFilteredServicesGrid(bool isDark) {
     final services = _filteredServices;
 
@@ -554,7 +537,6 @@ class _MoreScreenState extends State<MoreScreen> {
     );
   }
 
-  // ✅ زر تسجيل الخروج
   Widget _buildLogoutButton(bool isDark) {
     return SizedBox(
       width: double.infinity,
