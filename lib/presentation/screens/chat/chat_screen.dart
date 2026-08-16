@@ -181,7 +181,9 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
   Widget _buildChatActionItem(Map<String, dynamic> item, bool isDark) {
     return GestureDetector(
       onTap: () {
-        ToastService.showError(context, '📱 ${item['label']}'),
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('📱 ${item['label']}'),
             backgroundColor: item['color'] as Color,
             duration: const Duration(seconds: 1),
           ),

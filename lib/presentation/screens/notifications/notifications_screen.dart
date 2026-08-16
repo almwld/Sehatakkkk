@@ -26,7 +26,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             icon: const Icon(Icons.done_all),
             onPressed: () {
               ToastService.showSuccess(context, 'تم تحديد الكل كمقروء');
-          }
+            },
+          ),
+        ],
+      ),
           if (snapshot.hasError) {
             return Center(child: Text('حدث خطأ: ${snapshot.error}'));
           }

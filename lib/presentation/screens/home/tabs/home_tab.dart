@@ -1657,8 +1657,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
           _isLoading = false;
           _isOffline = false;
         });
-      }
-    } catch (e) {
+      } catch (e) {
       if (mounted) {
         setState(() {
           _hasError = true;
