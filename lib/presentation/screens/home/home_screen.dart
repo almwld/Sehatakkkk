@@ -7,7 +7,7 @@ import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
 import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
 import 'package:sehatak/presentation/screens/patient/patient_dashboard.dart';
 import 'package:sehatak/presentation/screens/more/more_screen.dart';
-import 'package:sehatak/presentation/screens/home/tabs/home_tab.dart'; // ✅ استيراد HomeTab الحقيقي
+import 'package:sehatak/presentation/screens/home/tabs/home_tab.dart';
 import 'package:sehatak/presentation/widgets/common/custom_bottom_nav_bar.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -24,7 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late final List<ScrollController> _scrollControllers;
 
   final List<Widget> _screens = [
-    HomeTab( // ✅ الآن يستخدم HomeTab الحقيقي
+    HomeTab(
       scrollController: ScrollController(),
       isBottomBarVisible: ValueNotifier<bool>(true),
     ),
@@ -41,8 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _pageController = PageController();
     _scrollControllers = List.generate(7, (index) => ScrollController());
-    
-    // ✅ تحديث HomeTab مع الـ scrollController الصحيح
+
     _screens[0] = HomeTab(
       scrollController: _scrollControllers[0],
       isBottomBarVisible: _isBottomBarVisible,
@@ -76,20 +75,22 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Stack(
         children: [
           NotificationListener<UserScrollNotification>(
-          onNotification: (notification) {
-            if (notification.direction == ScrollDirection.reverse) {
-              if (isVisible) setState(() => isVisible = false);
-            } else if (notification.direction == ScrollDirection.forward) {
-            }
-            return true;
-          },
-          child: PageView(
-            controller: _pageController,
-            physics: const NeverScrollableScrollPhysics(),
-            children: _screens,
-            onPageChanged: (index) {
-              setState(() => _currentIndex = index);
+            onNotification: (notification) {
+              if (notification.direction == ScrollDirection.reverse) {
+                if (_isBottomBarVisible.value) _isBottomBarVisible.value = false;
+              } else if (notification.direction == ScrollDirection.forward) {
+                if (!_isBottomBarVisible.value) _isBottomBarVisible.value = true;
+              }
+              return true;
             },
+            child: PageView(
+              controller: _pageController,
+              physics: const NeverScrollableScrollPhysics(),
+              children: _screens,
+              onPageChanged: (index) {
+                setState(() => _currentIndex = index);
+              },
+            ),
           ),
           Positioned(
             bottom: 0,
