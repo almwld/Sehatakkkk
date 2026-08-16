@@ -75,7 +75,15 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          PageView(
+          NotificationListener<UserScrollNotification>(
+          onNotification: (notification) {
+            if (notification.direction == ScrollDirection.reverse) {
+              if (isVisible) setState(() => isVisible = false);
+            } else if (notification.direction == ScrollDirection.forward) {
+            }
+            return true;
+          },
+          child: PageView(
             controller: _pageController,
             physics: const NeverScrollableScrollPhysics(),
             children: _screens,
