@@ -427,7 +427,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     Text(
                       _isLoggedIn ? 'كيف تشعر اليوم؟' : 'سجل دخولك للاستفادة',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 14,
                         color: isDark ? Colors.grey[400] : Colors.grey[600],
                       ),
                     ),
@@ -490,7 +490,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   Widget _buildBannerCarousel(bool isDark) {
     if (_bannerImages.isEmpty) {
       return Container(
-        height: 160,
+        height: 200,
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF1A2540) : Colors.grey[200],
           borderRadius: BorderRadius.circular(16),
@@ -503,7 +503,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       children: [
         CarouselSlider(
           options: CarouselOptions(
-            height: 160,
+            height: 200,
             autoPlay: true,
             autoPlayInterval: const Duration(seconds: 4),
             autoPlayAnimationDuration: const Duration(milliseconds: 800),
@@ -529,7 +529,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                 borderRadius: BorderRadius.circular(16),
                 child: AppImage(
                   imageUrl: url,
-                  height: 160,
+                  height: 200,
                   width: double.infinity,
                   fit: BoxFit.cover,
                 ),
@@ -603,7 +603,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     ),
                     Text(
                       stat['label'] as String,
-                      style: const TextStyle(fontSize: 12, color: AppColors.primary),
+                      style: const TextStyle(fontSize: 14, color: AppColors.primary),
                     ),
                   ],
                 ),
@@ -679,22 +679,22 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    width: 62,
-                    height: 62,
+                    width: 80,
+                    height: 80,
                     decoration: BoxDecoration(
                       color: AppColors.primary.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: AppColors.primary.withOpacity(0.2)),
                     ),
                     child: Center(
-                      child: _buildServiceIcon(service['icon'] as String, size: 28),
+                      child: _buildServiceIcon(service['icon'] as String, size: 40),
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     service['label'] as String,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 14,
                       fontWeight: FontWeight.w500,
                       color: isDark ? Colors.grey[400] : Colors.grey[800],
                     ),
@@ -770,7 +770,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                               doctor['rating'].toString(),
                               style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 12,
+                                fontSize: 14,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -789,7 +789,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                         doctor['name'] as String,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 12,
+                          fontSize: 14,
                           color: isDark ? Colors.white : Colors.black87,
                         ),
                         maxLines: 1,
@@ -799,7 +799,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                       Text(
                         doctor['specialty'] as String,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 14,
                           color: isDark ? Colors.grey[400] : Colors.grey[600],
                         ),
                         maxLines: 1,
@@ -819,7 +819,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                           ),
                           child: const Text(
                             'حجز موعد',
-                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                           ),
                         ),
                       ),
@@ -907,7 +907,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     product['name'] as String,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 12,
+                      fontSize: 14,
                     ),
                     textAlign: TextAlign.center,
                     maxLines: 1,
@@ -1023,7 +1023,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                               hospital['rating'].toString(),
                               style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 12,
+                                fontSize: 14,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -1098,7 +1098,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                           ),
                           child: const Text(
                             'تفاصيل',
-                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                           ),
                         ),
                       ),
@@ -1193,7 +1193,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                           ),
                           child: const Text(
                             'حجز',
-                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                           ),
                         ),
                       ),
@@ -1288,7 +1288,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                           ),
                           child: const Text(
                             'طلب',
-                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                           ),
                         ),
                       ),
@@ -1516,7 +1516,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                         Text(
                           post['time'] as String,
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 14,
                             color: isDark ? Colors.grey[400] : Colors.grey[600],
                           ),
                         ),
@@ -1719,7 +1719,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                             'م',
                             style: TextStyle(
                               color: AppColors.primary,
-                              fontSize: 12,
+                              fontSize: 14,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -1731,7 +1731,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                         subtitle: Text(
                           'منذ دقيقة',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 14,
                             color: AppColors.primary.withOpacity(0.6),
                           ),
                         ),
@@ -1915,7 +1915,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               delegate: SliverChildListDelegate([
                 _buildShimmerBox(height: 50, radius: 25),
                 const SizedBox(height: 16),
-                _buildShimmerBox(height: 160, radius: 16),
+                _buildShimmerBox(height: 200, radius: 16),
                 const SizedBox(height: 20),
                 _buildShimmerBox(height: 80, radius: 10),
                 const SizedBox(height: 24),
