@@ -13,13 +13,15 @@ class HealthDashboard extends StatefulWidget {
   State<HealthDashboard> createState() => _HealthDashboardState();
 }
 
-class _HealthDashboardState extends State<HealthDashboard> {
+class _HealthDashboardState extends State<HealthDashboard>
+    with SingleTickerProviderStateMixin {
   String _userName = 'مستخدم';
   double _healthScore = 0.0;
   bool _isLoading = true;
   int _selectedTab = 0;
+  late TabController _tabController;
 
-  // ✅ بيانات المؤشرات الصحية (4 مؤشرات رئيسية) - مع أيقونات PNG
+  // ✅ بيانات المؤشرات الصحية
   final List<Map<String, dynamic>> _healthMetrics = [
     {
       'icon': 'assets/images/tracking/heart_rate.png',
@@ -28,7 +30,10 @@ class _HealthDashboardState extends State<HealthDashboard> {
       'unit': 'نبضة/دقيقة',
       'color': Colors.red,
       'status': 'طبيعي',
+      'statusColor': Colors.green,
       'data': [70, 75, 72, 78, 74, 72, 71],
+      'trend': '+2%',
+      'trendUp': true,
     },
     {
       'icon': 'assets/images/tracking/blood_pressure.png',
@@ -37,7 +42,10 @@ class _HealthDashboardState extends State<HealthDashboard> {
       'unit': 'مم زئبق',
       'color': Colors.blue,
       'status': 'طبيعي',
+      'statusColor': Colors.green,
       'data': [118, 120, 122, 119, 121, 120, 120],
+      'trend': '0%',
+      'trendUp': false,
     },
     {
       'icon': 'assets/images/tracking/blood_sugar.png',
@@ -46,7 +54,10 @@ class _HealthDashboardState extends State<HealthDashboard> {
       'unit': 'مجم/دل',
       'color': Colors.orange,
       'status': 'طبيعي',
+      'statusColor': Colors.green,
       'data': [90, 95, 100, 88, 92, 95, 97],
+      'trend': '-3%',
+      'trendUp': false,
     },
     {
       'icon': 'assets/images/tracking/weight_tracking.png',
@@ -54,17 +65,48 @@ class _HealthDashboardState extends State<HealthDashboard> {
       'value': '72',
       'unit': 'كجم',
       'color': Colors.green,
-      'status': 'طبيعي',
+      'status': 'مثالي',
+      'statusColor': Colors.green,
       'data': [73, 72.5, 72, 71.8, 72, 72.2, 72],
+      'trend': '-0.5%',
+      'trendUp': false,
     },
   ];
 
-  // ✅ نصائح صحية - مع أيقونات PNG
+  // ✅ نصائح صحية
   final List<Map<String, dynamic>> _healthTips = [
-    {'icon': 'assets/images/tracking/water.png', 'title': 'شرب الماء', 'subtitle': '8 أكواب يومياً', 'color': Colors.blue},
-    {'icon': 'assets/images/tracking/steps.png', 'title': 'المشي', 'subtitle': '30 دقيقة يومياً', 'color': Colors.green},
-    {'icon': 'assets/images/tracking/sleep.png', 'title': 'النوم', 'subtitle': '7-8 ساعات ليلاً', 'color': Colors.indigo},
-    {'icon': 'assets/images/tracking/apple.png', 'title': 'الفواكه', 'subtitle': '5 حصص يومياً', 'color': Colors.red},
+    {
+      'icon': 'assets/images/tracking/water.png',
+      'title': 'شرب الماء',
+      'subtitle': '8 أكواب يومياً',
+      'color': Colors.blue,
+      'progress': 0.75,
+      'target': '2.4/3 لتر',
+    },
+    {
+      'icon': 'assets/images/tracking/steps.png',
+      'title': 'المشي',
+      'subtitle': '30 دقيقة يومياً',
+      'color': Colors.green,
+      'progress': 0.6,
+      'target': '18/30 دقيقة',
+    },
+    {
+      'icon': 'assets/images/tracking/sleep.png',
+      'title': 'النوم',
+      'subtitle': '7-8 ساعات ليلاً',
+      'color': Colors.indigo,
+      'progress': 0.8,
+      'target': '6.4/8 ساعات',
+    },
+    {
+      'icon': 'assets/images/tracking/apple.png',
+      'title': 'الفواكه',
+      'subtitle': '5 حصص يومياً',
+      'color': Colors.red,
+      'progress': 0.4,
+      'target': '2/5 حصص',
+    },
   ];
 
   // ✅ سجل الفحوصات
@@ -74,18 +116,28 @@ class _HealthDashboardState extends State<HealthDashboard> {
       'date': '2024-01-15',
       'lab': 'مختبرات الذبحاني',
       'status': 'مكتمل',
+      'statusColor': Colors.green,
     },
     {
       'title': 'تحليل وظائف الكبد',
       'date': '2024-01-10',
       'lab': 'مختبرات العولقي',
       'status': 'مكتمل',
+      'statusColor': Colors.green,
     },
     {
       'title': 'تحليل سكر تراكمي',
       'date': '2024-01-05',
       'lab': 'مختبرات المأمون',
       'status': 'قيد الانتظار',
+      'statusColor': Colors.orange,
+    },
+    {
+      'title': 'تحليل فيتامين د',
+      'date': '2024-01-01',
+      'lab': 'مختبرات الرازي',
+      'status': 'مكتمل',
+      'statusColor': Colors.green,
     },
   ];
 
@@ -97,6 +149,7 @@ class _HealthDashboardState extends State<HealthDashboard> {
       'date': '2024-01-20',
       'time': '10:00 ص',
       'status': 'مؤكد',
+      'statusColor': Colors.green,
     },
     {
       'doctor': 'د. خالد النخلاني',
@@ -104,14 +157,35 @@ class _HealthDashboardState extends State<HealthDashboard> {
       'date': '2024-01-25',
       'time': '02:00 م',
       'status': 'قيد الانتظار',
+      'statusColor': Colors.orange,
+    },
+    {
+      'doctor': 'د. أسماء الهندي',
+      'specialty': 'أطفال',
+      'date': '2024-01-28',
+      'time': '09:30 ص',
+      'status': 'مؤكد',
+      'statusColor': Colors.green,
     },
   ];
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      setState(() {
+        _selectedTab = _tabController.index;
+      });
+    });
     _loadUserData();
     _loadHealthScore();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadUserData() async {
@@ -149,7 +223,6 @@ class _HealthDashboardState extends State<HealthDashboard> {
             .collection('health_metrics')
             .doc('current')
             .get();
-
         if (doc.exists) {
           final data = doc.data();
           setState(() {
@@ -189,10 +262,14 @@ class _HealthDashboardState extends State<HealthDashboard> {
         elevation: 0,
         actions: [
           IconButton(
-            icon: Icon(Icons.notifications, color: isDark ? Colors.white : Colors.black87),
-            onPressed: () {
-              // فتح شاشة الإشعارات
-            },
+            icon: Icon(Icons.notifications_outlined,
+                color: isDark ? Colors.white : Colors.black87),
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: Icon(Icons.more_vert,
+                color: isDark ? Colors.white : Colors.black87),
+            onPressed: () {},
           ),
         ],
       ),
@@ -203,63 +280,73 @@ class _HealthDashboardState extends State<HealthDashboard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ✅ بطاقة الترحيب
                   _buildWelcomeCard(isDark),
                   const SizedBox(height: 16),
-
-                  // ✅ درجة الصحة
                   _buildHealthScoreCard(isDark),
-                  const SizedBox(height: 16),
-
-                  // ✅ 4 مؤشرات صحية رئيسية
+                  const SizedBox(height: 20),
+                  _buildSectionHeader('المؤشرات الحيوية', isDark),
+                  const SizedBox(height: 12),
                   _buildMetricsGrid(isDark),
-                  const SizedBox(height: 16),
-
-                  // ✅ النصائح الصحية
+                  const SizedBox(height: 20),
+                  _buildSectionHeader('النصائح الصحية', isDark),
+                  const SizedBox(height: 12),
                   _buildTipsGrid(isDark),
-                  const SizedBox(height: 16),
-
-                  // ✅ أقسام التبويب
+                  const SizedBox(height: 20),
                   _buildTabBar(isDark),
-                  const SizedBox(height: 16),
-
-                  // ✅ محتوى التبويب
+                  const SizedBox(height: 12),
                   _buildTabContent(isDark),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
     );
   }
 
-  // ============================================================
-  // 🧑 بطاقة الترحيب
-  // ============================================================
+  // ✅ بطاقة الترحيب
   Widget _buildWelcomeCard(bool isDark) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [AppColors.primary, AppColors.primary.withOpacity(0.7)],
+          colors: [
+            AppColors.primary,
+            AppColors.primary.withOpacity(0.6),
+            const Color(0xFF0D5257),
+          ],
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 30,
-            backgroundColor: Colors.white.withOpacity(0.2),
-            child: Text(
-              _userName.substring(0, 1).toUpperCase(),
-              style: const TextStyle(
-                fontSize: 24,
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+          Container(
+            padding: const EdgeInsets.all(2),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2),
+            ),
+            child: CircleAvatar(
+              radius: 30,
+              backgroundColor: Colors.white.withOpacity(0.2),
+              child: Text(
+                _userName.substring(0, 1).toUpperCase(),
+                style: const TextStyle(
+                  fontSize: 24,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -267,7 +354,7 @@ class _HealthDashboardState extends State<HealthDashboard> {
                 const Text(
                   'مرحباً 👋',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 14,
                     color: Colors.white70,
                   ),
                 ),
@@ -283,7 +370,7 @@ class _HealthDashboardState extends State<HealthDashboard> {
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.2),
               borderRadius: BorderRadius.circular(20),
@@ -297,6 +384,7 @@ class _HealthDashboardState extends State<HealthDashboard> {
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
+                    fontSize: 14,
                   ),
                 ),
               ],
@@ -307,113 +395,98 @@ class _HealthDashboardState extends State<HealthDashboard> {
     );
   }
 
-  // ============================================================
-  // 📊 بطاقة درجة الصحة
-  // ============================================================
+  // ✅ بطاقة درجة الصحة
   Widget _buildHealthScoreCard(bool isDark) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1A2540) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          const Text(
-            'درجة صحتي',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              // ✅ الدائرة
-              SizedBox(
-                width: 80,
-                height: 80,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    CircularProgressIndicator(
-                      value: _healthScore / 100,
-                      strokeWidth: 8,
-                      backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200],
-                      color: _getScoreColor(_healthScore),
-                    ),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          _healthScore.toStringAsFixed(0),
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: _getScoreColor(_healthScore),
-                          ),
-                        ),
-                        Text(
-                          'من 100',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: isDark ? Colors.grey[400] : Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+          SizedBox(
+            width: 90,
+            height: 90,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                CircularProgressIndicator(
+                  value: _healthScore / 100,
+                  strokeWidth: 8,
+                  backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200],
+                  color: _getScoreColor(_healthScore),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      _getScoreStatus(_healthScore),
+                      _healthScore.toStringAsFixed(0),
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 24,
                         fontWeight: FontWeight.bold,
                         color: _getScoreColor(_healthScore),
                       ),
                     ),
-                    const SizedBox(height: 4),
                     Text(
-                      _getScoreDescription(_healthScore),
+                      'من 100',
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 10,
                         color: isDark ? Colors.grey[400] : Colors.grey[600],
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      children: [
-                        _buildStatusChip('ممتاز', Colors.green),
-                        _buildStatusChip('جيد', Colors.blue),
-                        _buildStatusChip('يحتاج تحسين', Colors.orange),
-                      ],
-                    ),
                   ],
                 ),
-              ),
-            ],
+              ],
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _getScoreStatus(_healthScore),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: _getScoreColor(_healthScore),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _getScoreDescription(_healthScore),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 6,
+                  children: [
+                    _buildStatusChip('ممتاز', Colors.green, isDark),
+                    _buildStatusChip('جيد', Colors.blue, isDark),
+                    _buildStatusChip('يحتاج تحسين', Colors.orange, isDark),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildStatusChip(String label, Color color) {
+  Widget _buildStatusChip(String label, Color color, bool isDark) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
@@ -423,7 +496,7 @@ class _HealthDashboardState extends State<HealthDashboard> {
       child: Text(
         label,
         style: TextStyle(
-          fontSize: 10,
+          fontSize: 9,
           color: color,
           fontWeight: FontWeight.w500,
         ),
@@ -431,36 +504,43 @@ class _HealthDashboardState extends State<HealthDashboard> {
     );
   }
 
-  Color _getScoreColor(double score) {
-    if (score >= 80) return Colors.green;
-    if (score >= 60) return Colors.orange;
-    return Colors.red;
+  // ✅ قسم العنوان
+  Widget _buildSectionHeader(String title, bool isDark) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : Colors.black87,
+          ),
+        ),
+        TextButton(
+          onPressed: () {},
+          child: const Text(
+            'عرض الكل',
+            style: TextStyle(
+              fontSize: 12,
+              color: AppColors.primary,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
-  String _getScoreStatus(double score) {
-    if (score >= 80) return 'ممتاز';
-    if (score >= 60) return 'جيد';
-    return 'يحتاج تحسين';
-  }
-
-  String _getScoreDescription(double score) {
-    if (score >= 80) return 'صحتك في أفضل حالاتها، استمر على هذا المنوال!';
-    if (score >= 60) return 'صحتك جيدة، يمكنك تحسين بعض العادات.';
-    return 'يجب الانتباه لبعض المؤشرات، استشر طبيبك.';
-  }
-
-  // ============================================================
-  // 📊 شبكة المؤشرات الصحية - مع أيقونات PNG
-  // ============================================================
+  // ✅ شبكة المؤشرات الصحية - أيقونات بدون تأثير لوني
   Widget _buildMetricsGrid(bool isDark) {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 1.1,
+        crossAxisSpacing: 14,
+        mainAxisSpacing: 14,
+        childAspectRatio: 0.95,
       ),
       itemCount: _healthMetrics.length,
       itemBuilder: (context, index) {
@@ -482,13 +562,24 @@ class _HealthDashboardState extends State<HealthDashboard> {
             );
           },
           child: Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1A2540) : Colors.white,
-              borderRadius: BorderRadius.circular(12),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  (metric['color'] as Color).withOpacity(0.08),
+                  (metric['color'] as Color).withOpacity(0.02),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: (metric['color'] as Color).withOpacity(0.15),
+                width: 1,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
+                  color: Colors.black.withOpacity(0.02),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -497,22 +588,29 @@ class _HealthDashboardState extends State<HealthDashboard> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // ✅ أيقونة PNG
-                Image.asset(
-                  metric['icon'] as String,
-                  width: 40,
-                  height: 40,
-                  fit: BoxFit.contain,
-                  color: metric['color'] as Color,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Icon(
-                      Icons.circle,
-                      color: metric['color'] as Color,
-                      size: 40,
-                    );
-                  },
+                // ✅ أيقونة بدون تأثير لوني
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: (metric['color'] as Color).withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Image.asset(
+                    metric['icon'] as String,
+                    width: 36,
+                    height: 36,
+                    fit: BoxFit.contain,
+                    // ❌ تم إزالة color لتظهر الأيقونة بشكلها الأصلي
+                    errorBuilder: (context, error, stackTrace) {
+                      return Icon(
+                        Icons.circle,
+                        color: metric['color'] as Color,
+                        size: 36,
+                      );
+                    },
+                  ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 Text(
                   metric['value'] as String,
                   style: TextStyle(
@@ -524,37 +622,59 @@ class _HealthDashboardState extends State<HealthDashboard> {
                 Text(
                   metric['unit'] as String,
                   style: TextStyle(
-                    fontSize: 11,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  metric['label'] as String,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    fontSize: 10,
+                    color: isDark ? Colors.grey[400] : Colors.grey[500],
                   ),
                 ),
                 const SizedBox(height: 4),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: (metric['status'] as String) == 'طبيعي'
-                        ? Colors.green.withOpacity(0.1)
-                        : Colors.orange.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    color: (metric['statusColor'] as Color).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Text(
-                    metric['status'] as String,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: (metric['status'] as String) == 'طبيعي'
-                          ? Colors.green
-                          : Colors.orange,
-                      fontWeight: FontWeight.w500,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 5,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: metric['statusColor'] as Color,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        metric['status'] as String,
+                        style: TextStyle(
+                          fontSize: 9,
+                          color: metric['statusColor'] as Color,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      (metric['trendUp'] as bool) ? Icons.trending_up : Icons.trending_down,
+                      color: (metric['trendUp'] as bool) ? Colors.green : Colors.red,
+                      size: 14,
                     ),
-                  ),
+                    const SizedBox(width: 2),
+                    Text(
+                      metric['trend'] as String,
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: (metric['trendUp'] as bool) ? Colors.green : Colors.red,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -564,31 +684,29 @@ class _HealthDashboardState extends State<HealthDashboard> {
     );
   }
 
-  // ============================================================
-  // 💡 النصائح الصحية - مع أيقونات PNG
-  // ============================================================
+  // ✅ النصائح الصحية - أيقونات بدون تأثير لوني
   Widget _buildTipsGrid(bool isDark) {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-        childAspectRatio: 0.9,
+        crossAxisCount: 2,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 1.1,
       ),
       itemCount: _healthTips.length,
       itemBuilder: (context, index) {
         final tip = _healthTips[index];
         return Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF1A2540) : Colors.white,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 4,
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
             ],
@@ -596,40 +714,69 @@ class _HealthDashboardState extends State<HealthDashboard> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // ✅ أيقونة PNG مصغرة
-              Image.asset(
-                tip['icon'] as String,
-                width: 28,
-                height: 28,
-                fit: BoxFit.contain,
-                color: tip['color'] as Color,
-                errorBuilder: (context, error, stackTrace) {
-                  return Icon(
-                    Icons.circle,
-                    color: tip['color'] as Color,
-                    size: 28,
-                  );
-                },
+              // ✅ أيقونة بدون تأثير لوني
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: (tip['color'] as Color).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Image.asset(
+                  tip['icon'] as String,
+                  width: 30,
+                  height: 30,
+                  fit: BoxFit.contain,
+                  // ❌ تم إزالة color لتظهر الأيقونة بشكلها الأصلي
+                  errorBuilder: (context, error, stackTrace) {
+                    return Icon(
+                      Icons.circle,
+                      color: tip['color'] as Color,
+                      size: 30,
+                    );
+                  },
+                ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Text(
                 tip['title'] as String,
                 style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w500,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
                   color: isDark ? Colors.white : Colors.black87,
                 ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
               ),
               Text(
                 tip['subtitle'] as String,
                 style: TextStyle(
-                  fontSize: 8,
+                  fontSize: 9,
                   color: isDark ? Colors.grey[400] : Colors.grey[600],
                 ),
-                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 6),
+              Container(
+                height: 4,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.grey[800] : Colors.grey[200],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+                child: FractionallySizedBox(
+                  widthFactor: tip['progress'] as double,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: tip['color'] as Color,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                tip['target'] as String,
+                style: TextStyle(
+                  fontSize: 8,
+                  color: isDark ? Colors.grey[500] : Colors.grey[400],
+                ),
               ),
             ],
           ),
@@ -638,11 +785,10 @@ class _HealthDashboardState extends State<HealthDashboard> {
     );
   }
 
-  // ============================================================
-  // 📱 التبويبات
-  // ============================================================
+  // ✅ التبويبات
   Widget _buildTabBar(bool isDark) {
     return Container(
+      padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1A2540) : Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -667,43 +813,33 @@ class _HealthDashboardState extends State<HealthDashboard> {
     final isSelected = _selectedTab == index;
     return Expanded(
       child: GestureDetector(
-        onTap: () => setState(() => _selectedTab = index),
+        onTap: () {
+          setState(() {
+            _selectedTab = index;
+            _tabController.animateTo(index);
+          });
+        },
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
+            color: isSelected ? AppColors.primary : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
           ),
-          child: Column(
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  color: isSelected ? AppColors.primary : (isDark ? Colors.grey[400] : Colors.grey[600]),
-                ),
-              ),
-              if (isSelected)
-                Container(
-                  margin: const EdgeInsets.only(top: 4),
-                  width: 20,
-                  height: 2,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(1),
-                  ),
-                ),
-            ],
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              color: isSelected ? Colors.white : (isDark ? Colors.grey[400] : Colors.grey[600]),
+            ),
+            textAlign: TextAlign.center,
           ),
         ),
       ),
     );
   }
 
-  // ============================================================
-  // 📄 محتوى التبويبات
-  // ============================================================
+  // ✅ محتوى التبويبات
   Widget _buildTabContent(bool isDark) {
     switch (_selectedTab) {
       case 0:
@@ -724,14 +860,14 @@ class _HealthDashboardState extends State<HealthDashboard> {
       itemBuilder: (context, index) {
         final record = _medicalRecords[index];
         return Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.all(12),
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF1A2540) : Colors.white,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
+                color: Colors.black.withOpacity(0.03),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -743,10 +879,10 @@ class _HealthDashboardState extends State<HealthDashboard> {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
+                  color: AppColors.primary.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.science, color: AppColors.primary, size: 24),
+                child: const Icon(Icons.science, color: AppColors.primary, size: 22),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -765,7 +901,7 @@ class _HealthDashboardState extends State<HealthDashboard> {
                     Text(
                       '${record['lab']} • ${record['date']}',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 11,
                         color: isDark ? Colors.grey[400] : Colors.grey[600],
                       ),
                     ),
@@ -773,20 +909,16 @@ class _HealthDashboardState extends State<HealthDashboard> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: (record['status'] as String) == 'مكتمل'
-                      ? Colors.green.withOpacity(0.1)
-                      : Colors.orange.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  color: (record['statusColor'] as Color).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   record['status'] as String,
                   style: TextStyle(
                     fontSize: 10,
-                    color: (record['status'] as String) == 'مكتمل'
-                        ? Colors.green
-                        : Colors.orange,
+                    color: record['statusColor'] as Color,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -807,14 +939,14 @@ class _HealthDashboardState extends State<HealthDashboard> {
       itemBuilder: (context, index) {
         final appointment = _upcomingAppointments[index];
         return Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.all(12),
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF1A2540) : Colors.white,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
+                color: Colors.black.withOpacity(0.03),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -826,10 +958,10 @@ class _HealthDashboardState extends State<HealthDashboard> {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
+                  color: AppColors.primary.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.calendar_today, color: AppColors.primary, size: 24),
+                child: const Icon(Icons.calendar_today, color: AppColors.primary, size: 22),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -848,7 +980,7 @@ class _HealthDashboardState extends State<HealthDashboard> {
                     Text(
                       '${appointment['specialty']} • ${appointment['date']}',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 11,
                         color: isDark ? Colors.grey[400] : Colors.grey[600],
                       ),
                     ),
@@ -865,20 +997,16 @@ class _HealthDashboardState extends State<HealthDashboard> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: (appointment['status'] as String) == 'مؤكد'
-                      ? Colors.green.withOpacity(0.1)
-                      : Colors.orange.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  color: (appointment['statusColor'] as Color).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   appointment['status'] as String,
                   style: TextStyle(
                     fontSize: 10,
-                    color: (appointment['status'] as String) == 'مؤكد'
-                        ? Colors.green
-                        : Colors.orange,
+                    color: appointment['statusColor'] as Color,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -888,5 +1016,24 @@ class _HealthDashboardState extends State<HealthDashboard> {
         );
       },
     );
+  }
+
+  // ✅ دوال مساعدة
+  Color _getScoreColor(double score) {
+    if (score >= 80) return Colors.green;
+    if (score >= 60) return Colors.orange;
+    return Colors.red;
+  }
+
+  String _getScoreStatus(double score) {
+    if (score >= 80) return 'ممتاز';
+    if (score >= 60) return 'جيد';
+    return 'يحتاج تحسين';
+  }
+
+  String _getScoreDescription(double score) {
+    if (score >= 80) return 'صحتك في أفضل حالاتها، استمر على هذا المنوال!';
+    if (score >= 60) return 'صحتك جيدة، يمكنك تحسين بعض العادات.';
+    return 'يجب الانتباه لبعض المؤشرات، استشر طبيبك.';
   }
 }
