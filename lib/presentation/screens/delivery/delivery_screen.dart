@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
@@ -339,12 +340,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> with SingleTickerProvid
           if (company['active'] == true)
             ElevatedButton(
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('✅ تم اختيار خدمة ${company['name']}'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
+                ToastService.showSuccess(context, '✅ تم اختيار خدمة ${company['name']}');
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,

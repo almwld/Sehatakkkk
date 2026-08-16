@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -32,9 +33,7 @@ class _DietPlanScreenState extends State<DietPlanScreen> {
           IconButton(
             icon: const Icon(Icons.calendar_today),
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('سيتم إضافة تقويم النظام الغذائي قريباً'), backgroundColor: AppColors.info),
-              );
+              ToastService.showSuccess(context, 'سيتم إضافة تقويم النظام الغذائي قريباً');
             },
           ),
         ],

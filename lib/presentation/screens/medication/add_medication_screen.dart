@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -330,22 +331,12 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
 
   Future<void> _saveMedication() async {
     if (_nameController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('الرجاء إدخال اسم الدواء'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      ToastService.showError(context, 'الرجاء إدخال اسم الدواء');
       return;
     }
 
     if (_selectedTimes.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('الرجاء تحديد وقت للجرعة'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      ToastService.showError(context, 'الرجاء تحديد وقت للجرعة');
       return;
     }
 
@@ -372,20 +363,10 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
       setState(() => _isLoading = false);
       
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('✅ تم إضافة الدواء بنجاح'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      ToastService.showSuccess(context, '✅ تم إضافة الدواء بنجاح');
     } catch (e) {
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('❌ حدث خطأ: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ToastService.showError(context, '❌ حدث خطأ: ${e.toString();
     }
   }
 }

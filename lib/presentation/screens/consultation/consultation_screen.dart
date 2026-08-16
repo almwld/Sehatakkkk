@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -65,11 +66,6 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
   }
 
   Future<void> _selectLabOption(LabChoice choice) async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('تم اختيار خيار المختبر: ${choice.toString()}'),
-        backgroundColor: Colors.green,
-      ),
-    );
+    ToastService.showSuccess(context, 'تم اختيار خيار المختبر: ${choice.toString();
   }
 }

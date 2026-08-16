@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -99,12 +100,7 @@ class _LabReviewScreenState extends State<LabReviewScreen> {
                     child: ElevatedButton(
                       onPressed: _rating > 0
                           ? () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('✅ تم إضافة تقييمك بنجاح'),
-                                  backgroundColor: Colors.green,
-                                ),
-                              );
+                              ToastService.showSuccess(context, '✅ تم إضافة تقييمك بنجاح');
                               setState(() {
                                 _rating = 0;
                                 _reviewController.clear();

@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -30,19 +31,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         listener: (context, state) {
           if (state is OtpSent) {
             // ✅ تم إرسال OTP، ننتقل للتحقق
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('✅ تم إرسال رمز التحقق'),
-                backgroundColor: Colors.green,
-              ),
-            );
-          } else if (state is AuthError) {
-            _showErrorDialog(state.message);
-          }
-        },
-        builder: (context, state) {
-          if (state is AuthLoading) {
-            return const Center(child: CircularProgressIndicator());
+            ToastService.showError(context, '✅ تم إرسال رمز التحقق');
           }
 
           return Padding(

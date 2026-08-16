@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -52,12 +53,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     await prefs.setBool('notif_vibration', _vibration);
     await prefs.setBool('notif_popup', _popup);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('✅ تم حفظ إعدادات الإشعارات'),
-        backgroundColor: AppColors.success,
-      ),
-    );
+    ToastService.showSuccess(context, '✅ تم حفظ إعدادات الإشعارات');
   }
 
   @override

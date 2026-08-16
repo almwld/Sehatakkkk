@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -95,12 +96,7 @@ class _StressMeterScreenState extends State<StressMeterScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('تم تسجيل مستوى التوتر: ${_stressLevel.round()}/10'),
-                      backgroundColor: _getStressColor(),
-                    ),
-                  );
+                  ToastService.showSuccess(context, 'تم تسجيل مستوى التوتر: ${_stressLevel.round();
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.purple,

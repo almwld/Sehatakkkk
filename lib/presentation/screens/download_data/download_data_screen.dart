@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -21,21 +22,11 @@ class _DownloadDataScreenState extends State<DownloadDataScreen> {
     final selected = _selectedItems.entries.where((e) => e.value).map((e) => e.key).toList();
 
     if (selected.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('❌ يرجى اختيار البيانات للتحميل'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ToastService.showError(context, '❌ يرجى اختيار البيانات للتحميل');
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('📥 جاري تحميل البيانات...'),
-        backgroundColor: Colors.green,
-      ),
-    );
+    ToastService.showSuccess(context, '📥 جاري تحميل البيانات...');
   }
 
   @override

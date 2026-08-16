@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -36,7 +37,7 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
           _permissionCard(Icons.contacts, 'جهات الاتصال', 'لإضافة جهات اتصال الطوارئ', _contacts, false, (v) => setState(() => _contacts = v)),
           _permissionCard(Icons.storage, 'التخزين', 'لحفظ التقارير والملفات', _storage, false, (v) => setState(() => _storage = v)),
           const SizedBox(height: 24),
-          SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () { Navigator.pop(context); ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حفظ إعدادات الأذونات'), backgroundColor: AppColors.success)); }, style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, padding: const EdgeInsets.symmetric(vertical: 14)), child: const Text('حفظ'))),
+          SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () { Navigator.pop(context); ToastService.showSuccess(context, 'تم حفظ إعدادات الأذونات'); }, style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, padding: const EdgeInsets.symmetric(vertical: 14)), child: const Text('حفظ'))),
         ]),
       ),
     );

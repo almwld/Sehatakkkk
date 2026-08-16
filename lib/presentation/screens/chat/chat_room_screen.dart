@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -207,21 +208,11 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✅ تم إنشاء المجموعة بنجاح'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        ToastService.showSuccess(context, '✅ تم إنشاء المجموعة بنجاح');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('❌ فشل إنشاء المجموعة: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ToastService.showError(context, '❌ فشل إنشاء المجموعة: $e');
       }
     }
   }

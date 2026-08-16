@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -281,12 +282,7 @@ class _HealthNewsScreenState extends State<HealthNewsScreen> {
                   child: ElevatedButton.icon(
                     onPressed: () {
                       Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('📰 جاري فتح الخبر: ${news['title']}'),
-                          backgroundColor: AppColors.primary,
-                        ),
-                      );
+                      ToastService.showSuccess(context, '📰 جاري فتح الخبر: ${news['title']}');
                     },
                     icon: const Icon(Icons.open_in_browser_rounded),
                     label: const Text('قراءة الخبر'),

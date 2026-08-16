@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -276,20 +277,10 @@ class _HelpScreenState extends State<HelpScreen> {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('لا يمكن فتح الرابط'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ToastService.showError(context, 'لا يمكن فتح الرابط');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('حدث خطأ: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ToastService.showError(context, 'حدث خطأ: $e');
     }
   }
 }

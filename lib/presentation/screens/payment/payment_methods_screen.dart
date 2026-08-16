@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -27,7 +28,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
     final a = int.tryParse(_amountCtrl.text);
     if (a == null || a <= 0) return;
     setState(() { _balance += a; _showTopUp = false; _amountCtrl.clear(); });
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تم شحن $a ر.ي'), backgroundColor: AppColors.success));
+    ToastService.showSuccess(context, 'تم شحن $a ر.ي');
   }
 
   @override

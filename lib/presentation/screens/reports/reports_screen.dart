@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -429,12 +430,7 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
 
   Future<void> _exportReport() async {
     // TODO: تصدير التقرير
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('📥 جاري تصدير التقرير...'),
-        backgroundColor: Colors.blue,
-      ),
-    );
+    ToastService.showSuccess(context, '📥 جاري تصدير التقرير...');
   }
 
   @override

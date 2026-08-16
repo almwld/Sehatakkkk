@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/theme/app_theme.dart';
@@ -245,13 +246,7 @@ class _PaymentInvoiceScreenState extends State<PaymentInvoiceScreen> {
                     // محاكاة معالجة الدفع
                     Future.delayed(const Duration(seconds: 2), () {
                       setState(() => _isProcessing = false);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('✅ تم تأكيد الطلب بنجاح!'),
-                          backgroundColor: Colors.green,
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
+                      ToastService.showSuccess(context, '✅ تم تأكيد الطلب بنجاح!');
                     });
                   },
                   style: ElevatedButton.styleFrom(

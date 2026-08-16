@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -23,21 +24,11 @@ class _RateAppScreenState extends State<RateAppScreen> {
 
   void _submitRating() {
     if (_rating == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('❌ يرجى اختيار تقييم'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ToastService.showError(context, '❌ يرجى اختيار تقييم');
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('✅ شكراً لتقييمك! (${_rating} نجوم)'),
-        backgroundColor: Colors.green,
-      ),
-    );
+    ToastService.showSuccess(context, '✅ شكراً لتقييمك! (${_rating} نجوم);
   }
 
   @override

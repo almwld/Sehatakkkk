@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
@@ -29,8 +30,7 @@ class _OTPScreenState extends State<OTPScreen> {
   void _generateOTP() {
     _generatedOTP = (100000 + (DateTime.now().millisecondsSinceEpoch % 900000)).toString();
     debugPrint('🔑 OTP for ${widget.phone}: $_generatedOTP');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('رمز التحقق: $_generatedOTP'), backgroundColor: AppColors.info, duration: const Duration(seconds: 10)),
+    ToastService.showError(context, 'رمز التحقق: $_generatedOTP'), backgroundColor: AppColors.info, duration: const Duration(seconds: 10)),
     );
   }
 
@@ -46,7 +46,7 @@ class _OTPScreenState extends State<OTPScreen> {
   void _verifyOTP() {
     final entered = _controllers.map((c) => c.text).join();
     if (entered.length != 6) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('أدخل الرمز كاملاً')));
+      ToastService.showSuccess(context, 'أدخل الرمز كاملاً');
       return;
     }
 
@@ -68,7 +68,7 @@ class _OTPScreenState extends State<OTPScreen> {
           ),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('الرمز غير صحيح'), backgroundColor: AppColors.error));
+        ToastService.showError(context, 'الرمز غير صحيح');
       }
     });
   }
@@ -77,11 +77,11 @@ class _OTPScreenState extends State<OTPScreen> {
     _generateOTP();
     setState(() => _timer = 60);
     _startTimer();
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم إرسال رمز جديد'), backgroundColor: AppColors.success));
+    ToastService.showError(context, 'تم إرسال رمز جديد');
   }
 
   void _openWhatsApp() {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('سيتم فتح واتساب للتحقق'), backgroundColor: Color(0xFF25D366)));
+    ToastService.showSuccess(context, 'سيتم فتح واتساب للتحقق');
   }
 
   @override

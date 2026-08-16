@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
@@ -231,12 +232,7 @@ class AppSearchDelegate extends SearchDelegate<String?> {
         );
         break;
       default:
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('جاري التوجيه...'),
-            backgroundColor: AppColors.primary,
-          ),
-        );
+        ToastService.showSuccess(context, 'جاري التوجيه...');
     }
   }
 }

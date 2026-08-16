@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -322,11 +323,6 @@ class _MedicationReminderScreenState extends State<MedicationReminderScreen> {
   Future<void> _takeMedication(MedicationModel med) async {
     await _medicationService.logMedication(med.id, true);
     await _loadData();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('✅ تم تسجيل تناول الدواء'),
-        backgroundColor: Colors.green,
-      ),
-    );
+    ToastService.showSuccess(context, '✅ تم تسجيل تناول الدواء');
   }
 }

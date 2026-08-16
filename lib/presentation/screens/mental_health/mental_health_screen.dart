@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -123,12 +124,7 @@ class _MentalHealthScreenState extends State<MentalHealthScreen> {
                 final color = s['color'] as Color;
                 return GestureDetector(
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('جاري تحميل ${s['name']}...'),
-                        backgroundColor: color,
-                      ),
-                    );
+                    ToastService.showSuccess(context, 'جاري تحميل ${s['name']}...');
                   },
                   child: Container(
                     padding: const EdgeInsets.all(16),

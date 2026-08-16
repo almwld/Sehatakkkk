@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:sehatak/presentation/widgets/app_search_delegate.dart';
 import 'package:flutter/material.dart';
@@ -117,12 +118,7 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
   Widget _buildArticleCard(Map<String, dynamic> article, bool isDark) {
     return GestureDetector(
       onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('جاري عرض: ${article['title']}'),
-            backgroundColor: AppColors.primary,
-          ),
-        );
+        ToastService.showSuccess(context, 'جاري عرض: ${article['title']}');
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),

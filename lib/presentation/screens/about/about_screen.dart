@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -357,18 +358,10 @@ class _AboutScreenState extends State<AboutScreen> {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('لا يمكن فتح الرابط'),
-          ),
-        );
+        ToastService.showSuccess(context, 'لا يمكن فتح الرابط');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('حدث خطأ: $e'),
-        ),
-      );
+      ToastService.showError(context, 'حدث خطأ: $e');
     }
   }
 }

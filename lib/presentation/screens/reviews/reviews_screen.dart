@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -608,141 +609,10 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
           ElevatedButton(
             onPressed: () async {
               if (responseController.text.trim().isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('يرجى كتابة الرد'),
-                    backgroundColor: Colors.orange,
-                  ),
-                );
-                return;
-              }
-
-              await FirebaseFirestore.instance
-                  .collection('reviews')
-                  .doc(review.id)
-                  .update({
-                'providerResponse': responseController.text.trim(),
-                'providerResponseAt': FieldValue.serverTimestamp(),
-              });
-
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('✅ تم إرسال الرد'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            },
-            child: const Text('إرسال الرد'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showAddReviewDialog() {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('يرجى تسجيل الدخول لإضافة تقييم'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
-    double rating = 0;
-    final commentController = TextEditingController();
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => Container(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Center(
-                  child: Text(
-                    'أضف تقييمك',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(5, (index) {
-                    return IconButton(
-                      icon: Icon(
-                        index < rating ? Icons.star : Icons.star_border,
-                        color: Colors.amber,
-                        size: 36,
-                      ),
-                      onPressed: () => setState(() => rating = index + 1),
-                    );
-                  }),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: commentController,
-                  maxLines: 4,
-                  decoration: const InputDecoration(
-                    hintText: 'اكتب رأيك عن الخدمة...',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Checkbox(
-                      value: false,
-                      onChanged: (value) {},
-                    ),
-                    const Text('إخفاء الاسم'),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: rating == 0
-                        ? null
-                        : () async {
-                            final review = ReviewModel(
-                              id: DateTime.now().millisecondsSinceEpoch.toString(),
-                              userId: user.uid,
-                              userName: user.displayName ?? 'مستخدم',
-                              userPhoto: user.photoURL,
-                              target: widget.target,
-                              targetId: widget.targetId,
-                              targetName: widget.targetName,
-                              rating: rating,
-                              comment: commentController.text,
-                              isVerified: false,
-                              createdAt: DateTime.now(),
-                            );
-
-                            await FirebaseFirestore.instance
-                                .collection('reviews')
-                                .add(review.toFirestore());
+                ToastService.showSuccess(context, 'يرجى كتابة الرد');
 
                             Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('✅ تم إضافة تقييمك'),
-                                backgroundColor: Colors.green,
-                              ),
-                            );
+                            ToastService.showSuccess(context, '✅ تم إضافة تقييمك');
                           },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,

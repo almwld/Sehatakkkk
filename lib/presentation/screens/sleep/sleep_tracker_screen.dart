@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -87,12 +88,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> with SingleTick
       setState(() {
         _todayRecord = record;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('✅ تم حفظ سجل النوم بنجاح'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      ToastService.showSuccess(context, '✅ تم حفظ سجل النوم بنجاح');
       await _loadData();
     }
   }

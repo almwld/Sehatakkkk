@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -168,12 +169,7 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
           _isConnecting = false;
           _errorMessage = 'فشل الاتصال: $e';
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('❌ ${_errorMessage}'),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        ToastService.showError(context, '❌ ${_errorMessage}');
         Future.delayed(const Duration(seconds: 3), () {
           if (mounted) Navigator.pop(context);
         });

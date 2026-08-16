@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -294,12 +295,7 @@ class _HealthEducationScreenState extends State<HealthEducationScreen> {
                   child: ElevatedButton.icon(
                     onPressed: () {
                       Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('▶️ جاري تشغيل: ${video['title']}'),
-                          backgroundColor: AppColors.primary,
-                        ),
-                      );
+                      ToastService.showSuccess(context, '▶️ جاري تشغيل: ${video['title']}');
                     },
                     icon: const Icon(Icons.play_arrow_rounded),
                     label: const Text('تشغيل الفيديو'),

@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -162,13 +163,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProvid
     final isInCart = cartProvider.isInCart(product['id']);
     if (isInCart) {
       cartProvider.removeItem(product['id']);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('تم إزالة ${product['name']} من السلة'),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 1),
-        ),
-      );
+      ToastService.showError(context, 'تم إزالة ${product['name']} من السلة');
     } else {
       cartProvider.addItem(
         CartItem(
@@ -182,13 +177,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProvid
           unit: product['unit'],
         ),
       );
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('✅ تم إضافة ${product['name']} إلى السلة'),
-          backgroundColor: Colors.green,
-          duration: const Duration(seconds: 1),
-        ),
-      );
+      ToastService.showSuccess(context, '✅ تم إضافة ${product['name']} إلى السلة');
     }
   }
 

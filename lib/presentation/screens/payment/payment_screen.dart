@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -58,21 +59,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('❌ يرجى تسجيل الدخول أولاً'), backgroundColor: Colors.red),
-        );
+        ToastService.showError(context, '❌ يرجى تسجيل الدخول أولاً');
         setState(() => _isLoading = false);
         return;
       }
 
       if (_selectedPaymentMethod == 'wallet') {
         if (!_hasEnoughBalance) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('❌ رصيد غير كافٍ. الرصيد الحالي: $_walletBalance ر.ي'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          ToastService.showError(context, '❌ رصيد غير كافٍ. الرصيد الحالي: $_walletBalance ر.ي');
           setState(() => _isLoading = false);
           return;
         }
@@ -96,9 +90,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
           );
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('❌ ${result['message']}'), backgroundColor: Colors.red),
-          );
+          ToastService.showError(context, '❌ ${result['message']}');
         }
       } else {
         Navigator.pushReplacement(
@@ -114,9 +106,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('❌ حدث خطأ: $e'), backgroundColor: Colors.red),
-      );
+      ToastService.showError(context, '❌ حدث خطأ: $e');
     }
     setState(() => _isLoading = false);
   }

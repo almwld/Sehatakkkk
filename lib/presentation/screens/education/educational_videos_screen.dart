@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -224,9 +225,7 @@ class _EducationalVideosScreenState extends State<EducationalVideosScreen> {
                     const Spacer(),
                     ElevatedButton(
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('▶️ جاري تشغيل الفيديو...'), backgroundColor: AppColors.primary),
-                        );
+                        ToastService.showSuccess(context, '▶️ جاري تشغيل الفيديو...');
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,

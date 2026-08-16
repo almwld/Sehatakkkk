@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -746,13 +747,7 @@ class _BookingScreenState extends State<BookingScreen> {
 
   Future<void> _confirmBooking() async {
     // ✅ محاكاة تأكيد الحجز
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('✅ تم حجز الموعد بنجاح!'),
-        backgroundColor: Colors.green,
-        duration: Duration(seconds: 2),
-      ),
-    );
+    ToastService.showSuccess(context, '✅ تم حجز الموعد بنجاح!');
     Future.delayed(const Duration(seconds: 1), () {
       Navigator.pop(context, true);
     });

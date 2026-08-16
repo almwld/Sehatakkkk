@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -57,23 +58,13 @@ class MedicineDetailScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.favorite_border),
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('تمت إضافة الدواء إلى المفضلة'),
-                  backgroundColor: Colors.green,
-                ),
-              );
+              ToastService.showSuccess(context, 'تمت إضافة الدواء إلى المفضلة');
             },
           ),
           IconButton(
             icon: const Icon(Icons.share),
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('جاري مشاركة الدواء...'),
-                  backgroundColor: Colors.blue,
-                ),
-              );
+              ToastService.showSuccess(context, 'جاري مشاركة الدواء...');
             },
           ),
         ],
@@ -280,12 +271,7 @@ class MedicineDetailScreen extends StatelessWidget {
                         child: ElevatedButton.icon(
                           onPressed: inStock
                               ? () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('✅ تمت إضافة الدواء إلى السلة'),
-                                      backgroundColor: Colors.green,
-                                    ),
-                                  );
+                                  ToastService.showSuccess(context, '✅ تمت إضافة الدواء إلى السلة');
                                 }
                               : null,
                           icon: const Icon(Icons.shopping_cart),
@@ -304,12 +290,7 @@ class MedicineDetailScreen extends StatelessWidget {
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('📋 تم نسخ معلومات الدواء'),
-                                backgroundColor: Colors.blue,
-                              ),
-                            );
+                            ToastService.showSuccess(context, '📋 تم نسخ معلومات الدواء');
                           },
                           icon: const Icon(Icons.copy),
                           label: const Text('نسخ المعلومات'),

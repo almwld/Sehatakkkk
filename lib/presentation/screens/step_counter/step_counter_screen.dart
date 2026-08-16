@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -80,12 +81,7 @@ class _StepCounterScreenState extends State<StepCounterScreen> with SingleTicker
         return true;
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('❌ خطأ: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ToastService.showError(context, '❌ خطأ: ${e.toString();
     }
   }
 
@@ -95,12 +91,7 @@ class _StepCounterScreenState extends State<StepCounterScreen> with SingleTicker
       _isTracking = false;
     });
     await _loadData();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('✅ تم حفظ البيانات بنجاح'),
-        backgroundColor: Colors.green,
-      ),
-    );
+    ToastService.showSuccess(context, '✅ تم حفظ البيانات بنجاح');
   }
 
   @override

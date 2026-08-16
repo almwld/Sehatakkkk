@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -164,12 +165,7 @@ class _HealthCommunityScreenState extends State<HealthCommunityScreen>
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('✅ تم نشر المنشور بنجاح'),
-                          backgroundColor: AppColors.success,
-                        ),
-                      );
+                      ToastService.showSuccess(context, '✅ تم نشر المنشور بنجاح');
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
@@ -471,12 +467,7 @@ class _HealthCommunityScreenState extends State<HealthCommunityScreen>
               const Spacer(),
               GestureDetector(
                 onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('✅ تم المشاركة'),
-                      backgroundColor: AppColors.success,
-                    ),
-                  );
+                  ToastService.showSuccess(context, '✅ تم المشاركة');
                 },
                 child: Row(
                   children: [

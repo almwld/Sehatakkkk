@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -266,7 +267,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
             onPressed: () async {
               final user = _auth.currentUser;
               if (user == null || titleCtrl.text.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('يرجى إدخال البيانات'), backgroundColor: AppColors.warning));
+                ToastService.showSuccess(context, 'يرجى إدخال البيانات'), backgroundColor: AppColors.warning));
                 return;
               }
               await _firestore.collection('medical_records').add({
@@ -281,13 +282,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                 'createdAt': FieldValue.serverTimestamp(),
               });
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✅ تم إضافة الملف'), backgroundColor: AppColors.success));
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-            child: const Text('إضافة'),
-          ),
-        ],
-      ),
+              ToastService.showSuccess(context, '✅ تم إضافة الملف');,
     );
   }
 }

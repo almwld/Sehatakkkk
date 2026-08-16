@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -26,12 +27,7 @@ class CartScreen extends StatelessWidget {
               icon: const Icon(Icons.delete_outline),
               onPressed: () {
                 cartProvider.clearCart();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('تم تفريغ السلة'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
+                ToastService.showError(context, 'تم تفريغ السلة');
               },
             ),
         ],
@@ -268,12 +264,7 @@ class CartScreen extends StatelessWidget {
               onPressed: cartProvider.isEmpty
                   ? null
                   : () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('✅ تم تأكيد الطلب!'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
+                      ToastService.showSuccess(context, '✅ تم تأكيد الطلب!');
                     },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,

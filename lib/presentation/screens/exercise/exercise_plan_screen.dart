@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -32,9 +33,7 @@ class _ExercisePlanScreenState extends State<ExercisePlanScreen> {
           IconButton(
             icon: const Icon(Icons.timer),
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('سيتم إضافة مؤقت التمارين قريباً'), backgroundColor: AppColors.info),
-              );
+              ToastService.showSuccess(context, 'سيتم إضافة مؤقت التمارين قريباً');
             },
           ),
         ],
@@ -95,9 +94,7 @@ class _ExercisePlanScreenState extends State<ExercisePlanScreen> {
               height: 50,
               child: ElevatedButton.icon(
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('🚀 بدء التمرين...'), backgroundColor: AppColors.primary),
-                  );
+                  ToastService.showSuccess(context, '🚀 بدء التمرين...');
                 },
                 icon: const Icon(Icons.play_arrow),
                 label: const Text('بدء التمرين', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),

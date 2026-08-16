@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -87,12 +88,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
 
         if (!isAuthenticated) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('❌ فشل التحقق من البصمة، حاول مرة أخرى'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          ToastService.showError(context, '❌ فشل التحقق من البصمة، حاول مرة أخرى');
           setState(() {
             _isBiometricEnabled = false;
           });
@@ -102,22 +98,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('biometric_enabled', true);
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✅ تم تفعيل تسجيل الدخول بالبصمة بنجاح'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        ToastService.showSuccess(context, '✅ تم تفعيل تسجيل الدخول بالبصمة بنجاح');
       } else {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('biometric_enabled', false);
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('❌ تم إلغاء تفعيل تسجيل الدخول بالبصمة'),
-            backgroundColor: Colors.orange,
-          ),
-        );
+        ToastService.showError(context, '❌ تم إلغاء تفعيل تسجيل الدخول بالبصمة');
       }
 
       setState(() {
@@ -125,12 +111,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       });
     } catch (e) {
       print('Error toggling biometric: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('❌ حدث خطأ: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ToastService.showError(context, '❌ حدث خطأ: $e');
       await _loadBiometricPrefs();
     }
   }
@@ -196,12 +177,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       _isSystemMode = value;
                       _isDarkMode = false;
                     });
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('🔄 تم تفعيل الوضع التلقائي - متابعة إعدادات النظام'),
-                        backgroundColor: Colors.blue,
-                      ),
-                    );
+                    ToastService.showSuccess(context, '🔄 تم تفعيل الوضع التلقائي - متابعة إعدادات النظام');
                   },
                   isDark: isDark,
                 ),
@@ -236,12 +212,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         title: 'المصادقة الثنائية',
                         subtitle: 'تفعيل المصادقة الثنائية لمزيد من الأمان',
                         onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('🔐 سيتم تفعيل المصادقة الثنائية قريباً'),
-                              backgroundColor: Colors.blue,
-                            ),
-                          );
+                          ToastService.showSuccess(context, '🔐 سيتم تفعيل المصادقة الثنائية قريباً');
                         },
                         isDark: isDark,
                       ),
@@ -671,12 +642,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   );
                 }
               } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('خطأ في تسجيل الخروج: $e'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
+                ToastService.showError(context, 'خطأ في تسجيل الخروج: $e');
               }
             },
             style: TextButton.styleFrom(

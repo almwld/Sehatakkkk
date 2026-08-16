@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -39,24 +40,18 @@ class _DepositScreenState extends State<DepositScreen> {
     final walletNumber = _walletNumberController.text.trim();
 
     if (amount <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('الرجاء إدخال مبلغ صحيح')),
-      );
+      ToastService.showError(context, 'الرجاء إدخال مبلغ صحيح');
       return;
     }
 
     if (walletNumber.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('الرجاء إدخال رقم المحفظة')),
-      );
+      ToastService.showError(context, 'الرجاء إدخال رقم المحفظة');
       return;
     }
 
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('الرجاء تسجيل الدخول')),
-      );
+      ToastService.showError(context, 'الرجاء تسجيل الدخول');
       return;
     }
 
@@ -72,32 +67,17 @@ class _DepositScreenState extends State<DepositScreen> {
 
       if (result['success'] == true) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('✅ تم شحن ${amount.toStringAsFixed(0)} ريال بنجاح'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          ToastService.showSuccess(context, '✅ تم شحن ${amount.toStringAsFixed(0);
           Navigator.pop(context, true);
         }
       } else {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('❌ فشل الشحن: ${result['error']}'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          ToastService.showError(context, '❌ فشل الشحن: ${result['error']}');
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('❌ حدث خطأ: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ToastService.showError(context, '❌ حدث خطأ: $e');
       }
     }
 

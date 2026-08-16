@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -261,9 +262,7 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
 
   Future<void> _registerDonor() async {
     if (_nameController.text.isEmpty || _phoneController.text.isEmpty || _ageController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('الرجاء ملء جميع الحقول')),
-      );
+      ToastService.showError(context, 'الرجاء ملء جميع الحقول');
       return;
     }
 
@@ -279,23 +278,13 @@ class _BloodDonationScreenState extends State<BloodDonationScreen> {
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('✅ تم التسجيل كمتبرع! شكراً لك'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      ToastService.showSuccess(context, '✅ تم التسجيل كمتبرع! شكراً لك');
 
       _nameController.clear();
       _phoneController.clear();
       _ageController.clear();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('❌ خطأ: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ToastService.showError(context, '❌ خطأ: $e');
     }
 
     setState(() => _isLoading = false);

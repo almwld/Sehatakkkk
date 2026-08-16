@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
@@ -140,9 +141,7 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('جاري حجز موعد...'), backgroundColor: AppColors.primary),
-                  );
+                  ToastService.showSuccess(context, 'جاري حجز موعد...');
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,

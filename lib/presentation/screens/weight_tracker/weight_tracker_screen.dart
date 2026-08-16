@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -74,54 +75,14 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen> {
 
     final weight = double.tryParse(_weightController.text);
     if (weight == null || weight <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('يرجى إدخال وزن صحيح'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    setState(() {
-      _weightHistory.add({
-        'weight': weight,
-        'date': DateTime.now(),
-        'note': _noteController.text.trim(),
-      });
-      _currentWeight = weight;
-      _weightHistory.sort((a, b) => a['date'].compareTo(b['date']));
+      ToastService.showError(context, 'يرجى إدخال وزن صحيح');
     });
 
     _weightController.clear();
     _noteController.clear();
     _saveWeightData();
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('✅ تم تسجيل الوزن: $weight كجم'),
-        backgroundColor: Colors.green,
-      ),
-    );
-  }
-
-  void _deleteWeight(int index) {
-    setState(() {
-      _weightHistory.removeAt(index);
-      if (_weightHistory.isNotEmpty) {
-        _currentWeight = _weightHistory.last['weight'];
-      } else {
-        _currentWeight = _initialWeight;
-      }
-    });
-    _saveWeightData();
-  }
-
-  void _setTargetWeight() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        final controller = TextEditingController(text: _targetWeight.toString());
+    ToastService.showSuccess(context, '✅ تم تسجيل الوزن: $weight كجم');
         return AlertDialog(
           title: const Text('الوزن المستهدف'),
           content: TextField(

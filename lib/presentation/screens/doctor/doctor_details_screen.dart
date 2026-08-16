@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
@@ -171,22 +172,10 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
 
     switch (action) {
       case 'call':
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('📞 جاري الاتصال بالطبيب...'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
-        );
+        ToastService.showSuccess(context, '📞 جاري الاتصال بالطبيب...');
         break;
       case 'video':
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('📹 جاري بدء مكالمة فيديو...'),
-            backgroundColor: Colors.blue,
-            duration: Duration(seconds: 2),
-          ),
-        );
+        ToastService.showSuccess(context, '📹 جاري بدء مكالمة فيديو...');
         break;
       case 'chat':
         if (screen != null) {
@@ -315,12 +304,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
           IconButton(
             icon: Icon(Icons.share, color: isDark ? Colors.white : Colors.black87),
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('🔗 تم نسخ الرابط'),
-                  backgroundColor: Colors.green,
-                ),
-              );
+              ToastService.showSuccess(context, '🔗 تم نسخ الرابط');
             },
           ),
         ],

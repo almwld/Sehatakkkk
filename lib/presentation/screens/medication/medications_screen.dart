@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -208,9 +209,7 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
           IconButton(
             icon: const Icon(Icons.shopping_cart),
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('🛒 تم إضافة المنتجات إلى السلة'), backgroundColor: AppColors.success),
-              );
+              ToastService.showSuccess(context, '🛒 تم إضافة المنتجات إلى السلة');
             },
           ),
         ],
@@ -462,12 +461,7 @@ class _MedicationsScreenState extends State<MedicationsScreen> with SingleTicker
                   height: 28,
                   child: ElevatedButton(
                     onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('✅ تم إضافة ${item['name']} إلى السلة'),
-                          backgroundColor: AppColors.success,
-                        ),
-                      );
+                      ToastService.showSuccess(context, '✅ تم إضافة ${item['name']} إلى السلة');
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,

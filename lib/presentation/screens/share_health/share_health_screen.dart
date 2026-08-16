@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
@@ -90,12 +91,7 @@ class _ShareHealthScreenState extends State<ShareHealthScreen> {
     }
 
     if (shareTargets.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('⚠️ يرجى اختيار جهة مشاركة واحدة على الأقل'),
-          backgroundColor: AppColors.warning,
-        ),
-      );
+      ToastService.showError(context, '⚠️ يرجى اختيار جهة مشاركة واحدة على الأقل');
       return;
     }
 

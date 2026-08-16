@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -215,12 +216,7 @@ class _HealthChallengesScreenState extends State<HealthChallengesScreen> {
                 child: ElevatedButton.icon(
                   onPressed: () {
                     Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('✅ انضممت إلى تحدي ${challenge['title']}'),
-                        backgroundColor: AppColors.success,
-                      ),
-                    );
+                    ToastService.showSuccess(context, '✅ انضممت إلى تحدي ${challenge['title']}');
                   },
                   icon: const Icon(Icons.play_arrow_rounded),
                   label: const Text('انضم إلى التحدي'),

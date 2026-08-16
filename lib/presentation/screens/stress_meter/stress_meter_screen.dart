@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -100,7 +101,7 @@ class _StressMeterScreenState extends State<StressMeterScreen> {
   void _submitTest() {
     bool allAnswered = _answers.every((a) => a >= 0);
     if (!allAnswered) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('يرجى الإجابة على جميع الأسئلة')));
+      ToastService.showError(context, 'يرجى الإجابة على جميع الأسئلة');
       return;
     }
     setState(() { _score = _totalScore; _currentStep = 2; });

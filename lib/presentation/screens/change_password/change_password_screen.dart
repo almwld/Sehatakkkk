@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -59,7 +60,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
   void _savePassword() {
     if (!_canSave()) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('يرجى التأكد من صحة البيانات')));
+      ToastService.showError(context, 'يرجى التأكد من صحة البيانات');
       return;
     }
     showDialog(

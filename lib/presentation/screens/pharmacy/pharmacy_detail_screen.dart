@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -85,12 +86,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
 
   void _submitOrder() {
     if (_selectedImage == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('يرجى رفع روشتة أو صورة الدواء'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      ToastService.showError(context, 'يرجى رفع روشتة أو صورة الدواء');
       return;
     }
 

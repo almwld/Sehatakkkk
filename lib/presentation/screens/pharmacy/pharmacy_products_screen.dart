@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
@@ -33,8 +34,7 @@ class _PharmacyProductsScreenState extends State<PharmacyProductsScreen> {
         _cart.add({...product, 'quantity': 1});
       }
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('تمت إضافة ${product['name']} إلى السلة')),
+    ToastService.showError(context, 'تمت إضافة ${product['name']} إلى السلة')),
     );
   }
 
@@ -49,7 +49,7 @@ class _PharmacyProductsScreenState extends State<PharmacyProductsScreen> {
               IconButton(
                 icon: const Icon(Icons.shopping_cart_outlined),
                 onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen()));
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen();
                 },
               ),
               if (_cart.isNotEmpty)

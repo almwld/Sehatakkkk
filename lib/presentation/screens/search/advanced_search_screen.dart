@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -79,12 +80,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen>
 
     } catch (e) {
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('❌ حدث خطأ: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ToastService.showError(context, '❌ حدث خطأ: $e');
     }
   }
 

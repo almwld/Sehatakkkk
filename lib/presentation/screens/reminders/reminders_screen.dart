@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -230,7 +231,7 @@ class _RemindersScreenState extends State<RemindersScreen> {
             onPressed: () async {
               final user = _auth.currentUser;
               if (user == null || _titleCtrl.text.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('يرجى إدخال العنوان'), backgroundColor: AppColors.warning));
+                ToastService.showSuccess(context, 'يرجى إدخال العنوان'), backgroundColor: AppColors.warning));
                 return;
               }
               final dateTime = DateTime(
@@ -251,13 +252,7 @@ class _RemindersScreenState extends State<RemindersScreen> {
               _titleCtrl.clear();
               _descCtrl.clear();
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✅ تم إضافة التذكير'), backgroundColor: AppColors.success));
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-            child: const Text('إضافة'),
-          ),
-        ],
-      ),
+              ToastService.showSuccess(context, '✅ تم إضافة التذكير');,
     );
   }
 }

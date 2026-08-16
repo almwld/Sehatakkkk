@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/wallet/deposit_screen.dart';
@@ -180,12 +181,7 @@ class _WalletScreenState extends State<WalletScreen> {
                   final wallet = _localWallets[index];
                   return GestureDetector(
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('✅ تم اختيار ${wallet['name']}'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
+                      ToastService.showSuccess(context, '✅ تم اختيار ${wallet['name']}');
                     },
                     child: Container(
                       padding: const EdgeInsets.all(8),

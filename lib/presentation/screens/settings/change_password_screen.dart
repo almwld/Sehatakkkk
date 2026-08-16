@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -21,22 +22,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
   Future<void> _changePassword() async {
     if (_newPasswordController.text != _confirmPasswordController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('كلمة المرور الجديدة غير متطابقة'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ToastService.showError(context, 'كلمة المرور الجديدة غير متطابقة');
       return;
     }
 
     if (_newPasswordController.text.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('كلمة المرور يجب أن تكون 6 أحرف على الأقل'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ToastService.showError(context, 'كلمة المرور يجب أن تكون 6 أحرف على الأقل');
       return;
     }
 
@@ -58,22 +49,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       await user.updatePassword(_newPasswordController.text);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✅ تم تغيير كلمة المرور بنجاح'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        ToastService.showSuccess(context, '✅ تم تغيير كلمة المرور بنجاح');
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('❌ خطأ: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ToastService.showError(context, '❌ خطأ: ${e.toString();
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

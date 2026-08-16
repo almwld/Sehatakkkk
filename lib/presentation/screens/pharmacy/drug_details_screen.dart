@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -177,12 +178,7 @@ class DrugDetailsScreen extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('✅ تم إضافة الدواء إلى السلة'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
+                  ToastService.showSuccess(context, '✅ تم إضافة الدواء إلى السلة');
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,

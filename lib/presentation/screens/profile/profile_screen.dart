@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -306,12 +307,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final action = actions[index];
         return GestureDetector(
           onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('جاري فتح ${action['label']}...'),
-                backgroundColor: action['color'] as Color,
-              ),
-            );
+            ToastService.showSuccess(context, 'جاري فتح ${action['label']}...');
           },
           child: Container(
             decoration: BoxDecoration(
@@ -403,20 +399,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         .doc(user.uid)
                         .update({label == 'الاسم' ? 'name' : 'phone': controller.text});
                     _loadUserData();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('✅ تم التحديث بنجاح'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
+                    ToastService.showSuccess(context, '✅ تم التحديث بنجاح');
                   }
                 } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('❌ حدث خطأ: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
+                  ToastService.showError(context, '❌ حدث خطأ: $e');
                 }
                 Navigator.pop(context);
               }

@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
@@ -246,12 +247,7 @@ class _DeliveryOptionsScreenState extends State<DeliveryOptionsScreen> {
                   'total': total,
                   'time': deliveryTime,
                 });
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('✅ تم تأكيد الطلب! التوصيل عبر ${company['name']} - $deliveryTime'),
-                    backgroundColor: AppColors.success,
-                  ),
-                );
+                ToastService.showSuccess(context, '✅ تم تأكيد الطلب! التوصيل عبر ${company['name']} - $deliveryTime');
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.success,

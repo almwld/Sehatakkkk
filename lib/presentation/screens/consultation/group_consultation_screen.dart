@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -135,9 +136,7 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
               const Spacer(),
               ElevatedButton(
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('جاري الانضمام...'), backgroundColor: AppColors.primary),
-                  );
+                  ToastService.showSuccess(context, 'جاري الانضمام...');
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: status == 'مفتوحة' ? AppColors.primary : Colors.grey,
@@ -193,9 +192,7 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
           ElevatedButton(
             onPressed: () async {
               if (_topicCtrl.text.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('يرجى إدخال العنوان'), backgroundColor: AppColors.warning),
-                );
+                ToastService.showError(context, 'يرجى إدخال العنوان');
                 return;
               }
               final user = _auth.currentUser;
@@ -213,9 +210,7 @@ class _GroupConsultationScreenState extends State<GroupConsultationScreen> {
               _topicCtrl.clear();
               _descCtrl.clear();
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('✅ تم إنشاء الاستشارة'), backgroundColor: AppColors.success),
-              );
+              ToastService.showSuccess(context, '✅ تم إنشاء الاستشارة');
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
             child: const Text('إنشاء'),

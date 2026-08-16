@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -89,22 +90,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('✅ تم تحديث الملف الشخصي بنجاح'),
-          backgroundColor: AppColors.success,
-        ),
-      );
+      ToastService.showSuccess(context, '✅ تم تحديث الملف الشخصي بنجاح');
 
       Navigator.pop(context, true);
 
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('❌ فشل التحديث: $e'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      ToastService.showError(context, '❌ فشل التحديث: $e');
     }
 
     setState(() => _isSaving = false);

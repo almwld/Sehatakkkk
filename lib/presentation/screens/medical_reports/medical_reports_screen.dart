@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -67,20 +68,10 @@ ${report['result']}
   }
 
   void _downloadPDF(Map<String, dynamic> report) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('✅ جاري تحميل ملف PDF...'),
-        backgroundColor: AppColors.success,
-      ),
-    );
+    ToastService.showSuccess(context, '✅ جاري تحميل ملف PDF...');
     Future.delayed(const Duration(seconds: 2), () {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('📄 تم تحميل التقرير بنجاح'),
-          backgroundColor: AppColors.success,
-        ),
-      );
+      ToastService.showSuccess(context, '📄 تم تحميل التقرير بنجاح');
     });
   }
 

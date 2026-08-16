@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -23,21 +24,11 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
 
   void _submitReport() {
     if (_issueController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('❌ يرجى كتابة تفاصيل المشكلة'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ToastService.showError(context, '❌ يرجى كتابة تفاصيل المشكلة');
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('✅ تم إرسال البلاغ. سنراجعه ونتواصل معك.'),
-        backgroundColor: Colors.green,
-      ),
-    );
+    ToastService.showSuccess(context, '✅ تم إرسال البلاغ. سنراجعه ونتواصل معك.');
     Navigator.pop(context);
   }
 

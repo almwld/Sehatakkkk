@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -477,12 +478,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
     setState(() => _isLoading = true);
     Future.delayed(const Duration(seconds: 2), () {
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('✅ تم حجز الموعد بنجاح!'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      ToastService.showSuccess(context, '✅ تم حجز الموعد بنجاح!');
       Navigator.pop(context);
     });
   }

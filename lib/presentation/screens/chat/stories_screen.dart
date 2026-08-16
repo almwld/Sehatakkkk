@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -291,12 +292,7 @@ class _AddStorySheetState extends State<_AddStorySheet> {
 
   void _submitStory() async {
     if (_textController.text.isEmpty && _selectedImage == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('يرجى إضافة نص أو صورة'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      ToastService.showError(context, 'يرجى إضافة نص أو صورة');
       return;
     }
 
@@ -317,22 +313,12 @@ class _AddStorySheetState extends State<_AddStorySheet> {
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✅ تم إضافة القصة بنجاح'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        ToastService.showSuccess(context, '✅ تم إضافة القصة بنجاح');
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('❌ فشل إضافة القصة: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ToastService.showError(context, '❌ فشل إضافة القصة: $e');
       }
     } finally {
       setState(() => _isLoading = false);

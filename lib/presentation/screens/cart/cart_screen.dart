@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -53,13 +54,7 @@ class _CartScreenState extends State<CartScreen> {
     await _cartService.removeItem(item.id);
     await _loadCart();
     
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('🗑️ تم إزالة ${item.name} من السلة'),
-        backgroundColor: Colors.red,
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    ToastService.showError(context, '🗑️ تم إزالة ${item.name} من السلة');
   }
 
   void _clearCart() async {
@@ -85,23 +80,13 @@ class _CartScreenState extends State<CartScreen> {
     if (confirm == true) {
       await _cartService.clearCart();
       await _loadCart();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('🗑️ تم مسح السلة'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ToastService.showError(context, '🗑️ تم مسح السلة');
     }
   }
 
   void _proceedToCheckout() {
     if (_items.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('السلة فارغة، أضف منتجات أولاً'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      ToastService.showSuccess(context, 'السلة فارغة، أضف منتجات أولاً');
       return;
     }
 

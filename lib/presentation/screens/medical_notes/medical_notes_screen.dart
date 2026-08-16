@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:sehatak/presentation/widgets/app_search_delegate.dart';
 import 'package:flutter/material.dart';
@@ -74,7 +75,7 @@ class _MedicalNotesScreenState extends State<MedicalNotesScreen> {
         content: const Text('هل أنت متأكد من حذف هذه الملاحظة؟'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
-          ElevatedButton(onPressed: () { setState(() => _notes.removeAt(index)); Navigator.pop(context); ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حذف الملاحظة'), backgroundColor: AppColors.error)); }, style: ElevatedButton.styleFrom(backgroundColor: AppColors.error), child: const Text('حذف')),
+          ElevatedButton(onPressed: () { setState(() => _notes.removeAt(index)); Navigator.pop(context); ToastService.showError(context, 'تم حذف الملاحظة'); }, style: ElevatedButton.styleFrom(backgroundColor: AppColors.error), child: const Text('حذف')),
         ],
       ),
     );
@@ -158,7 +159,7 @@ class _MedicalNotesScreenState extends State<MedicalNotesScreen> {
                   child: ElevatedButton(
                     onPressed: () {
                       if (titleController.text.trim().isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('يرجى إدخال العنوان')));
+                        ToastService.showError(context, 'يرجى إدخال العنوان');
                         return;
                       }
                       final note = {
@@ -178,7 +179,7 @@ class _MedicalNotesScreenState extends State<MedicalNotesScreen> {
                         }
                       });
                       Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(isEdit ? 'تم تعديل الملاحظة' : 'تمت إضافة الملاحظة'), backgroundColor: AppColors.success));
+                      ToastService.showSuccess(context, isEdit ? 'تم تعديل الملاحظة' : 'تمت إضافة الملاحظة');
                     },
                     style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, padding: const EdgeInsets.symmetric(vertical: 14)),
                     child: Text(isEdit ? 'حفظ التعديلات' : 'إضافة'),

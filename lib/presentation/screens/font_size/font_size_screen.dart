@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -29,12 +30,7 @@ class _FontSizeScreenState extends State<FontSizeScreen> {
 
   void _resetFontSize() {
     _updateFontSize(1.0);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('✅ تم إعادة حجم الخط للافتراضي'),
-        backgroundColor: Colors.green,
-      ),
-    );
+    ToastService.showSuccess(context, '✅ تم إعادة حجم الخط للافتراضي');
   }
 
   @override
@@ -198,12 +194,7 @@ class _FontSizeScreenState extends State<FontSizeScreen> {
     return ElevatedButton(
       onPressed: () {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✅ تم حفظ حجم الخط'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        ToastService.showSuccess(context, '✅ تم حفظ حجم الخط');
       },
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.primary,

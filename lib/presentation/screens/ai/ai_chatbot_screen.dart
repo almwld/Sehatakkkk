@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -237,12 +238,7 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
           IconButton(
             icon: Icon(Icons.attach_file, color: isDark ? Colors.grey[400] : Colors.grey[600]),
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('📎 جاري إرفاق ملف...'),
-                  backgroundColor: AppColors.primary,
-                ),
-              );
+              ToastService.showSuccess(context, '📎 جاري إرفاق ملف...');
             },
           ),
           Expanded(

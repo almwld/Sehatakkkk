@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -511,31 +512,7 @@ class _AdManagementScreenState extends State<AdManagementScreen> with SingleTick
             ElevatedButton(
               onPressed: () {
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('✅ تم إرسال ${_getAddButtonText()} للمراجعة'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-              },
-              child: Text('إرسال للمراجعة'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPlatformReviewTab() {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('advertisements')
-          .where('status', isEqualTo: 'pending')
-          .orderBy('createdAt', ascending: true)
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return Center(child: Text('خطأ: ${snapshot.error}'));
+                ToastService.showError(context, '✅ تم إرسال ${_getAddButtonText();
         }
 
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -718,21 +695,11 @@ class _AdManagementScreenState extends State<AdManagementScreen> with SingleTick
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(approve ? '✅ تمت الموافقة على ${_getAddButtonText()}' : '❌ تم رفض ${_getAddButtonText()}'),
-            backgroundColor: approve ? Colors.green : Colors.red,
-          ),
-        );
+        ToastService.showError(context, approve ? '✅ تمت الموافقة على ${_getAddButtonText();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('❌ حدث خطأ: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ToastService.showError(context, '❌ حدث خطأ: $e');
       }
     }
   }

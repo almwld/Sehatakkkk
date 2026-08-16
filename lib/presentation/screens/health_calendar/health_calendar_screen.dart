@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -205,12 +206,7 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
                           'notes': '',
                         });
                         Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('✅ تم إضافة الحدث'),
-                            backgroundColor: AppColors.success,
-                          ),
-                        );
+                        ToastService.showSuccess(context, '✅ تم إضافة الحدث');
                       }
                     },
                     style: ElevatedButton.styleFrom(

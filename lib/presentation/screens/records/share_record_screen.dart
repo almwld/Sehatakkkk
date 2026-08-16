@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -23,9 +24,7 @@ class _ShareRecordScreenState extends State<ShareRecordScreen> {
 
   Future<void> _shareWithEmail() async {
     if (_emailCtrl.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى إدخال البريد الإلكتروني'), backgroundColor: AppColors.warning),
-      );
+      ToastService.showError(context, 'يرجى إدخال البريد الإلكتروني');
       return;
     }
 
@@ -38,9 +37,7 @@ class _ShareRecordScreenState extends State<ShareRecordScreen> {
           .get();
 
       if (userQuery.docs.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('المستخدم غير موجود'), backgroundColor: AppColors.error),
-        );
+        ToastService.showError(context, 'المستخدم غير موجود');
         setState(() => _isLoading = false);
         return;
       }
@@ -57,14 +54,10 @@ class _ShareRecordScreenState extends State<ShareRecordScreen> {
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('✅ تم مشاركة الملف بنجاح'), backgroundColor: AppColors.success),
-      );
+      ToastService.showSuccess(context, '✅ تم مشاركة الملف بنجاح');
       Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('❌ فشل المشاركة: $e'), backgroundColor: AppColors.error),
-      );
+      ToastService.showError(context, '❌ فشل المشاركة: $e');
     } finally {
       setState(() => _isLoading = false);
     }

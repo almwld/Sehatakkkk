@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:sehatak/presentation/widgets/app_search_delegate.dart';
 import 'package:flutter/material.dart';
@@ -116,12 +117,7 @@ class _HospitalScreenState extends State<HospitalScreen> {
   Widget _buildHospitalCard(Map<String, dynamic> hospital, bool isDark) {
     return GestureDetector(
       onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('جاري عرض تفاصيل ${hospital['name']}'),
-            backgroundColor: AppColors.primary,
-          ),
-        );
+        ToastService.showSuccess(context, 'جاري عرض تفاصيل ${hospital['name']}');
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),

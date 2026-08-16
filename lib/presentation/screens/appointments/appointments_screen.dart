@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -36,74 +37,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with SingleTick
         'status': 'cancelled',
         'cancelledAt': FieldValue.serverTimestamp(),
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('✅ تم إلغاء الموعد بنجاح'), backgroundColor: AppColors.success),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('❌ فشل الإلغاء: $e'), backgroundColor: AppColors.error),
-      );
-    } finally {
-      setState(() => _isLoading = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final user = _auth.currentUser;
-    if (user == null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('المواعيد'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-        body: const Center(child: Text('يرجى تسجيل الدخول لعرض مواعيدك')),
-      );
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('المواعيد', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: Colors.white,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white70,
-          tabs: const [
-            Tab(text: '📅 القادمة', icon: Icon(Icons.calendar_today)),
-            Tab(text: '📋 السابقة', icon: Icon(Icons.history)),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => _showAddAppointmentDialog(context),
-          ),
-        ],
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildAppointmentsList('upcoming'),
-          _buildAppointmentsList('past'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAppointmentsList(String type) {
-    final user = _auth.currentUser;
-    final now = DateTime.now();
-    final startOfDay = DateTime(now.year, now.month, now.day);
-
-    return StreamBuilder<QuerySnapshot>(
-      stream: _firestore
-          .collection('appointments')
-          .where('patientId', isEqualTo: user!.uid)
-          .orderBy('dateTime', descending: type == 'past')
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+      ToastService.showError(context, '✅ تم إلغاء الموعد بنجاح');
         }
 
         if (snapshot.hasError) {
@@ -359,9 +293,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with SingleTick
             ElevatedButton(
               onPressed: () async {
                 if (doctorCtrl.text.isEmpty || selectedDate == null || selectedTime == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('يرجى ملء جميع الحقول'), backgroundColor: AppColors.warning),
-                  );
+                  ToastService.showError(context, 'يرجى ملء جميع الحقول');
                   return;
                 }
 
@@ -388,13 +320,9 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with SingleTick
                   });
 
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('✅ تم إضافة الموعد بنجاح'), backgroundColor: AppColors.success),
-                  );
+                  ToastService.showSuccess(context, '✅ تم إضافة الموعد بنجاح');
                 } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('❌ فشل الإضافة: $e'), backgroundColor: AppColors.error),
-                  );
+                  ToastService.showError(context, '❌ فشل الإضافة: $e');
                 }
               },
               style: ElevatedButton.styleFrom(

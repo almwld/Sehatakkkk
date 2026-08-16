@@ -1,3 +1,4 @@
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -287,17 +288,13 @@ class _VideoConsultScreenState extends State<VideoConsultScreen> {
         'doctorName': 'طبيب', // يمكن جلب اسم الطبيب من Firestore
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('✅ تم طلب الاستشارة بنجاح'), backgroundColor: AppColors.success),
-      );
+      ToastService.showSuccess(context, '✅ تم طلب الاستشارة بنجاح');
       setState(() {
         _selectedDoctor = '';
         _selectedTime = null;
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('❌ فشل الطلب: $e'), backgroundColor: AppColors.error),
-      );
+      ToastService.showError(context, '❌ فشل الطلب: $e');
     }
   }
 }
