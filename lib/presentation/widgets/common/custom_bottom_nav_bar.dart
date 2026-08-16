@@ -77,7 +77,6 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar>
     super.dispose();
   }
 
-  // ✅ أيقونة السلة
   Widget _buildCartIcon(bool isDark) {
     return Stack(
       children: [
@@ -111,7 +110,6 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar>
     );
   }
 
-  // ✅ أيقونة الدردشة البارزة (الخضراء)
   Widget _buildSpecialChatButton(bool isDark, bool isSelected) {
     return GestureDetector(
       onTap: () => widget.onTap(3),
@@ -144,7 +142,6 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar>
                     color: Colors.white,
                     size: 28,
                   ),
-                  // ✅ نقطة إشعار للدردشة
                   if (widget.currentIndex == 3)
                     Positioned(
                       right: 0,
@@ -206,7 +203,6 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar>
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // ✅ زر الرئيسية
                       _buildNavItem(
                         icon: Icons.home_rounded,
                         label: 'الرئيسية',
@@ -214,7 +210,6 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar>
                         isSelected: widget.currentIndex == 0,
                         isDark: isDark,
                       ),
-                      // ✅ زر الأطباء
                       _buildNavItem(
                         icon: Icons.person_search_rounded,
                         label: 'الأطباء',
@@ -222,7 +217,6 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar>
                         isSelected: widget.currentIndex == 1,
                         isDark: isDark,
                       ),
-                      // ✅ زر الصيدلية مع عداد السلة
                       _buildNavItem(
                         icon: Icons.local_pharmacy_rounded,
                         label: 'الصيدلية',
@@ -231,9 +225,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar>
                         isDark: isDark,
                         trailing: _buildCartIcon(isDark),
                       ),
-                      // ✅ زر الدردشة البارز
                       _buildSpecialChatButton(isDark, widget.currentIndex == 3),
-                      // ✅ زر مختبرات
                       _buildNavItem(
                         icon: Icons.science_rounded,
                         label: 'مختبرات',
@@ -241,7 +233,6 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar>
                         isSelected: widget.currentIndex == 4,
                         isDark: isDark,
                       ),
-                      // ✅ زر صحتي
                       _buildNavItem(
                         icon: Icons.folder_rounded,
                         label: 'صحتي',
@@ -249,7 +240,6 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar>
                         isSelected: widget.currentIndex == 5,
                         isDark: isDark,
                       ),
-                      // ✅ زر المزيد
                       _buildNavItem(
                         icon: Icons.grid_view_rounded,
                         label: 'المزيد',
