@@ -77,6 +77,105 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar>
     super.dispose();
   }
 
+  // ✅ أيقونة السلة
+  Widget _buildCartIcon(bool isDark) {
+    return Stack(
+      children: [
+        Icon(
+          Icons.shopping_cart_rounded,
+          color: widget.currentIndex == 2 ? AppColors.primary : (isDark ? Colors.grey[400] : Colors.grey[600]),
+          size: 22,
+        ),
+        Positioned(
+          right: -4,
+          top: -4,
+          child: Container(
+            padding: const EdgeInsets.all(2),
+            decoration: const BoxDecoration(
+              color: Colors.red,
+              shape: BoxShape.circle,
+            ),
+            constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+            child: const Text(
+              '3',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 9,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ✅ أيقونة الدردشة البارزة (الخضراء)
+  Widget _buildSpecialChatButton(bool isDark, bool isSelected) {
+    return GestureDetector(
+      onTap: () => widget.onTap(3),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.green.withOpacity(0.4),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Center(
+              child: Stack(
+                children: [
+                  Icon(
+                    Icons.chat_rounded,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                  // ✅ نقطة إشعار للدردشة
+                  if (widget.currentIndex == 3)
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: Container(
+                        width: 10,
+                        height: 10,
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            'الدردشة',
+            style: TextStyle(
+              fontSize: 9,
+              color: isSelected ? Colors.green : (isDark ? Colors.grey[500] : Colors.grey[600]),
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -106,106 +205,59 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar>
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     crossAxisAlignment: CrossAxisAlignment.center,
-                    children: _navItems.map((item) {
-                      final index = item['index'] as int;
-                      final isSelected = widget.currentIndex == index;
-                      final isSpecial = item['isSpecial'] ?? false;
-                      final color = isSelected
-                          ? AppColors.primary
-                          : (isDark ? Colors.grey[500] : Colors.grey[600]);
-
-                      // ✅ زر الدردشة الخاص (البارز)
-                      if (isSpecial) {
-                        return GestureDetector(
-                          onTap: () => widget.onTap(index),
-                          behavior: HitTestBehavior.opaque,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: 60,
-                                height: 60,
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [Colors.green, Color(0xFF2E7D32)],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.green.withOpacity(0.4),
-                                      blurRadius: 12,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                child: Center(
-                                  child: Icon(
-                                    item['icon'] as IconData,
-                                    color: Colors.white,
-                                    size: 30,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                item['label'] as String,
-                                style: TextStyle(
-                                  fontSize: 9,
-                                  color: isSelected ? Colors.green : (isDark ? Colors.grey[500] : Colors.grey[600]),
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }
-
-                      // ✅ الأزرار العادية
-                      return GestureDetector(
-                        onTap: () => widget.onTap(index),
-                        behavior: HitTestBehavior.opaque,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? AppColors.primary.withOpacity(0.12)
-                                    : Colors.transparent,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Icon(
-                                item['icon'] as IconData,
-                                color: color,
-                                size: 26,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              item['label'] as String,
-                              style: TextStyle(
-                                fontSize: 9,
-                                color: color,
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                              ),
-                            ),
-                            if (isSelected)
-                              Container(
-                                margin: const EdgeInsets.only(top: 2),
-                                width: 16,
-                                height: 3,
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary,
-                                  borderRadius: BorderRadius.circular(2),
-                                ),
-                              ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
+                    children: [
+                      // ✅ زر الرئيسية
+                      _buildNavItem(
+                        icon: Icons.home_rounded,
+                        label: 'الرئيسية',
+                        index: 0,
+                        isSelected: widget.currentIndex == 0,
+                        isDark: isDark,
+                      ),
+                      // ✅ زر الأطباء
+                      _buildNavItem(
+                        icon: Icons.person_search_rounded,
+                        label: 'الأطباء',
+                        index: 1,
+                        isSelected: widget.currentIndex == 1,
+                        isDark: isDark,
+                      ),
+                      // ✅ زر الصيدلية مع عداد السلة
+                      _buildNavItem(
+                        icon: Icons.local_pharmacy_rounded,
+                        label: 'الصيدلية',
+                        index: 2,
+                        isSelected: widget.currentIndex == 2,
+                        isDark: isDark,
+                        trailing: _buildCartIcon(isDark),
+                      ),
+                      // ✅ زر الدردشة البارز
+                      _buildSpecialChatButton(isDark, widget.currentIndex == 3),
+                      // ✅ زر مختبرات
+                      _buildNavItem(
+                        icon: Icons.science_rounded,
+                        label: 'مختبرات',
+                        index: 4,
+                        isSelected: widget.currentIndex == 4,
+                        isDark: isDark,
+                      ),
+                      // ✅ زر صحتي
+                      _buildNavItem(
+                        icon: Icons.folder_rounded,
+                        label: 'صحتي',
+                        index: 5,
+                        isSelected: widget.currentIndex == 5,
+                        isDark: isDark,
+                      ),
+                      // ✅ زر المزيد
+                      _buildNavItem(
+                        icon: Icons.grid_view_rounded,
+                        label: 'المزيد',
+                        index: 6,
+                        isSelected: widget.currentIndex == 6,
+                        isDark: isDark,
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -213,6 +265,60 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar>
           ),
         );
       },
+    );
+  }
+
+  Widget _buildNavItem({
+    required IconData icon,
+    required String label,
+    required int index,
+    required bool isSelected,
+    required bool isDark,
+    Widget? trailing,
+  }) {
+    final color = isSelected ? AppColors.primary : (isDark ? Colors.grey[500] : Colors.grey[600]);
+
+    return GestureDetector(
+      onTap: () => widget.onTap(index),
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: Icon(
+                  icon,
+                  color: color,
+                  size: 24,
+                ),
+              ),
+              if (trailing != null) trailing,
+            ],
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 9,
+              color: color,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+            ),
+          ),
+          if (isSelected)
+            Container(
+              margin: const EdgeInsets.only(top: 2),
+              width: 16,
+              height: 3,
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
