@@ -1,4 +1,3 @@
-import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -33,6 +32,17 @@ class _MedicalReportsScreenState extends State<MedicalReportsScreen> {
       'status': 'طبيعي',
       'size': '0.8 MB',
       'result': 'جميع المؤشرات ضمن المعدل الطبيعي. الهيموجلوبين 14.5، الكريات البيضاء 7.2.',
+    },
+    {
+      'id': '3',
+      'title': 'تخطيط القلب',
+      'lab': 'مركز القلب المتقدم',
+      'doctor': 'د. خالد النخلاني',
+      'date': '20 أبريل 2026',
+      'type': 'قلب',
+      'status': 'تحت المراجعة',
+      'size': '2.1 MB',
+      'result': 'جاري تحليل نتائج تخطيط القلب من قبل الأخصائي.',
     },
   ];
 
@@ -80,8 +90,8 @@ ${report['result']}
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
-      appBar: CustomAppBar(
-        title: const Text('التقارير الطبية', style: TextStyle(fontWeight: FontWeight.bold)),
+      appBar: AppBar(
+        title: const Text('التقارير الطبية'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -104,6 +114,12 @@ ${report['result']}
   }
 
   Widget _buildReportCard(Map<String, dynamic> report, bool isDark) {
+    final statusColor = report['status'] == 'طبيعي'
+        ? Colors.green
+        : report['status'] == 'تحت المراجعة'
+            ? Colors.orange
+            : Colors.red;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -124,7 +140,6 @@ ${report['result']}
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ✅ العنوان والمعلومات
           Row(
             children: [
               Container(
@@ -146,11 +161,12 @@ ${report['result']}
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
+                        color: isDark ? Colors.white : Colors.black87,
                       ),
                     ),
                     Text(
                       '${report['lab']} • ${report['date']}',
-                      style: TextStyle(fontSize: 11, color: AppColors.grey),
+                      style: TextStyle(fontSize: 11, color: Colors.grey[600]),
                     ),
                   ],
                 ),
@@ -158,14 +174,14 @@ ${report['result']}
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.success.withOpacity(0.1),
+                  color: statusColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   report['status'],
                   style: TextStyle(
                     fontSize: 10,
-                    color: AppColors.success,
+                    color: statusColor,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -173,18 +189,15 @@ ${report['result']}
             ],
           ),
           const SizedBox(height: 12),
-          // ✅ التفاصيل
-          Row(
+          Wrap(
+            spacing: 6,
             children: [
               _detailChip('👨‍⚕️ ${report['doctor']}'),
-              const SizedBox(width: 6),
               _detailChip('📊 ${report['type']}'),
-              const SizedBox(width: 6),
               _detailChip('📁 ${report['size']}'),
             ],
           ),
           const SizedBox(height: 12),
-          // ✅ النتيجة
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -201,10 +214,8 @@ ${report['result']}
             ),
           ),
           const SizedBox(height: 12),
-          // ✅ الأزرار
           Row(
             children: [
-              // ✅ مشاركة
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: () => _shareReport(report),
@@ -221,7 +232,6 @@ ${report['result']}
                 ),
               ),
               const SizedBox(width: 8),
-              // ✅ تحميل PDF
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: () => _downloadPDF(report),

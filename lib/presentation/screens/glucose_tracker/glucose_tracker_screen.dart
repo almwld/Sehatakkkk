@@ -1,4 +1,3 @@
-import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -68,8 +67,8 @@ class _GlucoseTrackerScreenState extends State<GlucoseTrackerScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
-      appBar: CustomAppBar(
-        title: const Text('تتبع السكر', style: TextStyle(fontWeight: FontWeight.bold)),
+      appBar: AppBar(
+        title: const Text('تتبع السكر'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -82,20 +81,16 @@ class _GlucoseTrackerScreenState extends State<GlucoseTrackerScreen> {
       ),
       body: Stack(
         children: [
-          // ✅ المحتوى الرئيسي
           SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                // ✅ متوسط السكر التراكمي
                 _buildAverageCard(isDark),
                 const SizedBox(height: 20),
-                // ✅ قراءات اليوم
                 _buildReadingsList(isDark),
               ],
             ),
           ),
-          // ✅ حقل الإدخال في منتصف الشاشة (عند الضغط على إضافة)
           if (_isAdding) _buildAddReadingDialog(isDark),
         ],
       ),
@@ -190,7 +185,7 @@ class _GlucoseTrackerScreenState extends State<GlucoseTrackerScreen> {
                         reading['time'],
                         style: TextStyle(
                           fontSize: 11,
-                          color: AppColors.grey,
+                          color: Colors.grey[600],
                         ),
                       ),
                     ],
@@ -226,7 +221,6 @@ class _GlucoseTrackerScreenState extends State<GlucoseTrackerScreen> {
     );
   }
 
-  // ✅ حقل الإدخال في منتصف الشاشة
   Widget _buildAddReadingDialog(bool isDark) {
     return GestureDetector(
       onTap: () => setState(() => _isAdding = false),
@@ -253,10 +247,7 @@ class _GlucoseTrackerScreenState extends State<GlucoseTrackerScreen> {
                 children: [
                   const Text(
                     'إضافة قراءة',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(

@@ -1,9 +1,8 @@
-import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import 'package:sehatak/core/constants/app_colors.dart';
 
 class WeightTrackerScreen extends StatefulWidget {
   const WeightTrackerScreen({super.key});
@@ -21,7 +20,6 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen> {
   double _initialWeight = 0;
   bool _isLoading = true;
   String _selectedPeriod = 'أسبوع';
-
   final List<String> _periods = ['أسبوع', 'شهر', '3 أشهر', 'سنة'];
 
   @override
@@ -125,7 +123,7 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen> {
       builder: (context) {
         final controller = TextEditingController(text: _targetWeight.toString());
         return AlertDialog(
-          title: 'الوزن المستهدف',
+          title: const Text('الوزن المستهدف'),
           content: TextField(
             controller: controller,
             keyboardType: TextInputType.number,
@@ -205,8 +203,8 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: CustomAppBar(
-        title: 'تتبع الوزن',
+      appBar: AppBar(
+        title: const Text('تتبع الوزن'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -222,7 +220,6 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ✅ الوزن الحالي
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -239,10 +236,7 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen> {
                     children: [
                       const Text(
                         'الوزن الحالي',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 14,
-                        ),
+                        style: TextStyle(color: Colors.white70, fontSize: 14),
                       ),
                       Text(
                         '${_currentWeight.toStringAsFixed(1)} كجم',
@@ -279,10 +273,7 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen> {
                     children: [
                       const Text(
                         'الوزن المستهدف',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: Colors.white70, fontSize: 12),
                       ),
                       Text(
                         '${_targetWeight.toStringAsFixed(1)} كجم',
@@ -314,8 +305,6 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen> {
               ),
             ),
             const SizedBox(height: 20),
-
-            // ✅ شريط التقدم
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
@@ -353,8 +342,6 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen> {
               ),
             ),
             const SizedBox(height: 20),
-
-            // ✅ إضافة وزن جديد
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -415,18 +402,13 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen> {
               ),
             ),
             const SizedBox(height: 20),
-
-            // ✅ الرسم البياني
             if (_weightHistory.isNotEmpty) ...[
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
                     'تقدم الوزن',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   DropdownButton<String>(
                     value: _selectedPeriod,
@@ -488,14 +470,9 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen> {
               ),
               const SizedBox(height: 20),
             ],
-
-            // ✅ سجل الوزن
             const Text(
               'سجل الوزن',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             if (_weightHistory.isEmpty)
@@ -589,7 +566,7 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen> {
                         IconButton(
                           icon: Icon(
                             Icons.delete_outline,
-                            color: Colors.red,
+                            color: Colors.red[300],
                             size: 20,
                           ),
                           onPressed: () => _deleteWeight(reversedIndex),

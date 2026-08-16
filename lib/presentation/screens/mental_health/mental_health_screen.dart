@@ -1,4 +1,3 @@
-import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -30,17 +29,17 @@ class _MentalHealthScreenState extends State<MentalHealthScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(
-        title: const Text('الصحة النفسية', style: TextStyle(fontWeight: FontWeight.bold)),
+      appBar: AppBar(
+        title: const Text('الصحة النفسية'),
         backgroundColor: AppColors.purple,
         foregroundColor: Colors.white,
+        elevation: 0,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ✅ حالة المزاج
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -56,7 +55,10 @@ class _MentalHealthScreenState extends State<MentalHealthScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('كيف تشعر اليوم؟', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        const Text(
+                          'كيف تشعر اليوم؟',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
                         const SizedBox(height: 4),
                         Row(
                           children: [
@@ -97,7 +99,14 @@ class _MentalHealthScreenState extends State<MentalHealthScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('مرتاح', style: TextStyle(fontSize: 11, color: AppColors.grey)),
-                Text('${_stressLevel}/10', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: _stressLevel > 7 ? AppColors.error : _stressLevel > 4 ? AppColors.warning : AppColors.success)),
+                Text(
+                  '$_stressLevel/10',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: _stressLevel > 7 ? AppColors.error : _stressLevel > 4 ? AppColors.warning : AppColors.success,
+                  ),
+                ),
                 Text('متوتر', style: TextStyle(fontSize: 11, color: AppColors.grey)),
               ],
             ),
@@ -115,7 +124,10 @@ class _MentalHealthScreenState extends State<MentalHealthScreen> {
                 return GestureDetector(
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('جاري تحميل ${s['name']}...'), backgroundColor: color),
+                      SnackBar(
+                        content: Text('جاري تحميل ${s['name']}...'),
+                        backgroundColor: color,
+                      ),
                     );
                   },
                   child: Container(
@@ -130,9 +142,24 @@ class _MentalHealthScreenState extends State<MentalHealthScreen> {
                       children: [
                         Text(s['icon'], style: const TextStyle(fontSize: 32)),
                         const SizedBox(height: 8),
-                        Text(s['name'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: color), textAlign: TextAlign.center),
+                        Text(
+                          s['name'],
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: color,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
                         const SizedBox(height: 4),
-                        Text(s['desc'], style: TextStyle(color: AppColors.grey, fontSize: 10), textAlign: TextAlign.center),
+                        Text(
+                          s['desc'],
+                          style: TextStyle(
+                            color: AppColors.grey,
+                            fontSize: 10,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
                       ],
                     ),
                   ),
@@ -166,8 +193,14 @@ class _MentalHealthScreenState extends State<MentalHealthScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(tip['title'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                        Text(tip['desc'], style: TextStyle(fontSize: 11, color: AppColors.grey)),
+                        Text(
+                          tip['title'],
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        ),
+                        Text(
+                          tip['desc'],
+                          style: TextStyle(fontSize: 11, color: AppColors.grey),
+                        ),
                       ],
                     ),
                   ),
@@ -196,7 +229,13 @@ class _MentalHealthScreenState extends State<MentalHealthScreen> {
           children: [
             Text(emoji, style: const TextStyle(fontSize: 20)),
             const SizedBox(width: 4),
-            Text(label, style: TextStyle(fontSize: 10, color: selected ? AppColors.purple : AppColors.grey)),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                color: selected ? AppColors.purple : AppColors.grey,
+              ),
+            ),
           ],
         ),
       ),

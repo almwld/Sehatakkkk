@@ -1,4 +1,3 @@
-import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -14,7 +13,6 @@ class _BloodPressureScreenState extends State<BloodPressureScreen> {
   final TextEditingController _diastolicCtrl = TextEditingController();
   final TextEditingController _pulseCtrl = TextEditingController();
   bool _isAdding = false;
-
   final List<Map<String, dynamic>> _readings = [
     {'date': '1 مايو', 'time': 'صباحاً', 'systolic': 128, 'diastolic': 82, 'pulse': 72},
     {'date': '28 أبريل', 'time': 'مساءً', 'systolic': 135, 'diastolic': 88, 'pulse': 75},
@@ -44,8 +42,8 @@ class _BloodPressureScreenState extends State<BloodPressureScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
-      appBar: CustomAppBar(
-        title: const Text('ضغط الدم', style: TextStyle(fontWeight: FontWeight.bold)),
+      appBar: AppBar(
+        title: const Text('ضغط الدم'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -58,20 +56,16 @@ class _BloodPressureScreenState extends State<BloodPressureScreen> {
       ),
       body: Stack(
         children: [
-          // ✅ المحتوى الرئيسي
           SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                // ✅ آخر قراءة
                 _buildLastReading(isDark),
                 const SizedBox(height: 20),
-                // ✅ سجل القراءات
                 _buildReadingsList(isDark),
               ],
             ),
           ),
-          // ✅ حقل الإدخال في منتصف الشاشة (عند الضغط على إضافة)
           if (_isAdding) _buildAddReadingDialog(isDark),
         ],
       ),
@@ -80,6 +74,7 @@ class _BloodPressureScreenState extends State<BloodPressureScreen> {
 
   Widget _buildLastReading(bool isDark) {
     final last = _readings.isNotEmpty ? _readings.first : null;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -100,7 +95,7 @@ class _BloodPressureScreenState extends State<BloodPressureScreen> {
             children: [
               Column(
                 children: [
-                  Text(
+                  const Text(
                     'الانقباضي',
                     style: TextStyle(color: Colors.white70, fontSize: 12),
                   ),
@@ -123,7 +118,7 @@ class _BloodPressureScreenState extends State<BloodPressureScreen> {
               const SizedBox(width: 20),
               Column(
                 children: [
-                  Text(
+                  const Text(
                     'الانبساطي',
                     style: TextStyle(color: Colors.white70, fontSize: 12),
                   ),
@@ -190,14 +185,14 @@ class _BloodPressureScreenState extends State<BloodPressureScreen> {
                         '${reading['date']} • ${reading['time']}',
                         style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.grey,
+                          color: Colors.grey[600],
                         ),
                       ),
                       Text(
                         'نبض: ${reading['pulse']} bpm',
                         style: TextStyle(
                           fontSize: 11,
-                          color: AppColors.grey,
+                          color: Colors.grey[600],
                         ),
                       ),
                     ],
@@ -225,7 +220,6 @@ class _BloodPressureScreenState extends State<BloodPressureScreen> {
     );
   }
 
-  // ✅ حقل الإدخال في منتصف الشاشة
   Widget _buildAddReadingDialog(bool isDark) {
     return GestureDetector(
       onTap: () => setState(() => _isAdding = false),
@@ -233,7 +227,7 @@ class _BloodPressureScreenState extends State<BloodPressureScreen> {
         color: Colors.black54,
         child: Center(
           child: GestureDetector(
-            onTap: () {}, // منع الإغلاق عند الضغط على الحقل
+            onTap: () {},
             child: Container(
               margin: const EdgeInsets.all(24),
               padding: const EdgeInsets.all(24),
@@ -252,10 +246,7 @@ class _BloodPressureScreenState extends State<BloodPressureScreen> {
                 children: [
                   const Text(
                     'إضافة قراءة',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
                   Row(
@@ -272,7 +263,7 @@ class _BloodPressureScreenState extends State<BloodPressureScreen> {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      Text('/', style: TextStyle(fontSize: 20, color: AppColors.grey)),
+                      const Text('/', style: TextStyle(fontSize: 20, color: AppColors.grey)),
                       const SizedBox(width: 12),
                       Expanded(
                         child: TextField(
