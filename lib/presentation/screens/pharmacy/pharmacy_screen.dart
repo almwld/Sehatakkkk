@@ -1,5 +1,5 @@
+import 'package:sehatak/presentation/screens/pharmacy/cart_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -7,7 +7,6 @@ import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/core/providers/cart_provider.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 import 'package:sehatak/presentation/screens/pharmacy/pharmacy_detail_screen.dart';
-import 'package:sehatak/presentation/screens/pharmacy/cart_screen.dart';
 
 class PharmacyScreen extends StatefulWidget {
   const PharmacyScreen({super.key});
@@ -16,8 +15,7 @@ class PharmacyScreen extends StatefulWidget {
   State<PharmacyScreen> createState() => _PharmacyScreenState();
 }
 
-class _PharmacyScreenState extends State<PharmacyScreen>
-    with SingleTickerProviderStateMixin {
+class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   String _searchQuery = '';
   String _selectedCategory = 'الكل';
@@ -28,7 +26,12 @@ class _PharmacyScreenState extends State<PharmacyScreen>
   List<Map<String, dynamic>> _beautyProducts = [];
 
   // ✅ تبويبات الصيدلية
-  final List<String> _tabs = ['صيدليات', 'أدوية', 'مستلزمات', 'عناية'];
+  final List<String> _tabs = [
+    'صيدليات',
+    'أدوية',
+    'مستلزمات',
+    'عناية',
+  ];
 
   // ✅ بيانات الصيدليات
   final List<Map<String, dynamic>> _mockPharmacies = [
@@ -40,7 +43,7 @@ class _PharmacyScreenState extends State<PharmacyScreen>
     {'id': '6', 'name': 'صيدلية اليمن الحديثة', 'address': 'صنعاء - حدة', 'rating': 4.4, 'reviews': 180, 'phone': '01-234585', 'image': ImageKit.pharmacy3, 'open': true, 'delivery': false, 'distance': '6.2 كم'},
   ];
 
-  // ✅ بيانات الأدوية
+  // ✅ بيانات الأدوية (مع إضافة pharmacyName)
   final List<Map<String, dynamic>> _mockMedicines = [
     {'id': 'm1', 'name': 'باراسيتامول 500mg', 'category': 'مسكنات', 'price': 500, 'image': ImageKit.medicine1, 'pharmacyName': 'صيدلية ابن حيان', 'stock': 50, 'unit': 'قرص', 'rating': 4.8, 'discount': 20, 'prescription': false},
     {'id': 'm2', 'name': 'فيتامين د 1000IU', 'category': 'فيتامينات', 'price': 1200, 'image': ImageKit.medicine2, 'pharmacyName': 'عالم الصيدلة', 'stock': 30, 'unit': 'كبسولة', 'rating': 4.7, 'discount': 15, 'prescription': false},
@@ -107,8 +110,9 @@ class _PharmacyScreenState extends State<PharmacyScreen>
     var list = _pharmacies;
     if (_searchQuery.isNotEmpty) {
       list = list.where((p) =>
-          p['name'].toString().contains(_searchQuery) ||
-          p['address'].toString().contains(_searchQuery)).toList();
+        p['name'].toString().contains(_searchQuery) ||
+        p['address'].toString().contains(_searchQuery)
+      ).toList();
     }
     return list;
   }
@@ -117,9 +121,10 @@ class _PharmacyScreenState extends State<PharmacyScreen>
     var list = _medicines;
     if (_searchQuery.isNotEmpty) {
       list = list.where((m) =>
-          m['name'].toString().contains(_searchQuery) ||
-          m['category'].toString().contains(_searchQuery) ||
-          m['pharmacyName'].toString().contains(_searchQuery)).toList();
+        m['name'].toString().contains(_searchQuery) ||
+        m['category'].toString().contains(_searchQuery) ||
+        m['pharmacyName'].toString().contains(_searchQuery)
+      ).toList();
     }
     if (_selectedCategory != 'الكل') {
       list = list.where((m) => m['category'] == _selectedCategory).toList();
@@ -131,8 +136,9 @@ class _PharmacyScreenState extends State<PharmacyScreen>
     var list = _medicalSupplies;
     if (_searchQuery.isNotEmpty) {
       list = list.where((s) =>
-          s['name'].toString().contains(_searchQuery) ||
-          s['category'].toString().contains(_searchQuery)).toList();
+        s['name'].toString().contains(_searchQuery) ||
+        s['category'].toString().contains(_searchQuery)
+      ).toList();
     }
     return list;
   }
@@ -141,8 +147,9 @@ class _PharmacyScreenState extends State<PharmacyScreen>
     var list = _beautyProducts;
     if (_searchQuery.isNotEmpty) {
       list = list.where((b) =>
-          b['name'].toString().contains(_searchQuery) ||
-          b['category'].toString().contains(_searchQuery)).toList();
+        b['name'].toString().contains(_searchQuery) ||
+        b['category'].toString().contains(_searchQuery)
+      ).toList();
     }
     return list;
   }
@@ -153,85 +160,6 @@ class _PharmacyScreenState extends State<PharmacyScreen>
       MaterialPageRoute(
         builder: (_) => PharmacyDetailScreen(pharmacy: pharmacy),
       ),
-    );
-  }
-
-  // ✅ دالة موحدة لإضافة/إزالة المنتج من السلة
-  void _toggleCartItem(Map<String, dynamic> product, CartProvider cartProvider) {
-    final isInCart = cartProvider.isInCart(product['id']);
-    if (isInCart) {
-      cartProvider.removeItem(product['id']);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('تم إزالة ${product['name']} من السلة'),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 1),
-        ),
-      );
-    } else {
-      final hasDiscount = product['discount'] > 0;
-      final price = product['price'].toDouble();
-      final discount = hasDiscount ? product['discount'].toDouble() : 0.0;
-      
-      cartProvider.addItem(
-        CartItem(
-          id: product['id'],
-          name: product['name'],
-          price: price,
-          image: product['image'],
-          category: product['category'],
-          discount: discount,
-          pharmacyName: product['pharmacyName'] ?? 'صيدلية',
-          unit: product['unit'] ?? 'قطعة',
-        ),
-      );
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('✅ تم إضافة ${product['name']} إلى السلة'),
-          backgroundColor: Colors.green,
-          duration: const Duration(seconds: 1),
-        ),
-      );
-    }
-  }
-
-  // ✅ دالة مساعدة لبناء زر السلة
-  Widget _buildAddToCartButton(Map<String, dynamic> product, bool isDark) {
-    return Consumer<CartProvider>(
-      builder: (context, cartProvider, child) {
-        final isInCart = cartProvider.isInCart(product['id']);
-        return GestureDetector(
-          onTap: () => _toggleCartItem(product, cartProvider),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: isInCart
-                  ? Colors.red.withOpacity(0.1)
-                  : AppColors.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  isInCart ? Icons.remove_shopping_cart : Icons.add_shopping_cart,
-                  color: isInCart ? Colors.red : AppColors.primary,
-                  size: 14,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  isInCart ? 'إزالة' : 'أضف',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: isInCart ? Colors.red : AppColors.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 
@@ -246,18 +174,15 @@ class _PharmacyScreenState extends State<PharmacyScreen>
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
-        centerTitle: true,
         bottom: TabBar(
           controller: _tabController,
           tabs: _tabs.map((tab) => Tab(text: tab)).toList(),
           indicatorColor: Colors.white,
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white70,
-          labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-          unselectedLabelStyle: const TextStyle(fontSize: 12),
+          labelStyle: const TextStyle(fontSize: 12),
+          tabAlignment: TabAlignment.fill,
           isScrollable: true,
-          indicatorSize: TabBarIndicatorSize.label,
-          indicatorWeight: 3,
         ),
         actions: [
           // ✅ أيقونة السلة مع عداد
@@ -544,9 +469,10 @@ class _PharmacyScreenState extends State<PharmacyScreen>
   // ============================================================
   Widget _buildMedicinesTab(bool isDark) {
     final categories = ['الكل', 'مسكنات', 'مضادات حيوية', 'فيتامينات', 'أدوية ضغط', 'أدوية سكر', 'مكملات غذائية'];
-
+    
     return Column(
       children: [
+        // ✅ تصنيفات الأدوية
         Container(
           height: 40,
           padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -578,6 +504,7 @@ class _PharmacyScreenState extends State<PharmacyScreen>
             },
           ),
         ),
+        // ✅ قائمة الأدوية
         Expanded(
           child: _filteredMedicines.isEmpty
               ? _buildEmptyState(isDark, 'لا توجد أدوية')
@@ -596,165 +523,229 @@ class _PharmacyScreenState extends State<PharmacyScreen>
 
   // ✅ بطاقة الدواء مع زر السلة
   Widget _buildMedicineCard(Map<String, dynamic> medicine, bool isDark) {
-    final hasDiscount = medicine['discount'] > 0;
-    final priceAfterDiscount = hasDiscount
-        ? medicine['price'] * (1 - medicine['discount'] / 100)
-        : medicine['price'];
+    // ✅ استخدام Consumer لمراقبة تغييرات السلة
+    return Consumer<CartProvider>(
+      builder: (context, cartProvider, child) {
+        final isInCart = cartProvider.isInCart(medicine['id']);
+        final hasDiscount = medicine['discount'] > 0;
+        final priceAfterDiscount = hasDiscount ? medicine['price'] * (1 - medicine['discount'] / 100) : medicine['price'];
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2540) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+        return Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1A2540) : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: AppImage(
-              imageUrl: medicine['image'],
-              width: 60,
-              height: 60,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        medicine['name'],
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    if (medicine['prescription'] == true)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          'وصفة',
-                          style: TextStyle(
-                            fontSize: 8,
-                            color: Colors.red,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                  ],
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: AppImage(
+                  imageUrl: medicine['image'],
+                  width: 60,
+                  height: 60,
                 ),
-                const SizedBox(height: 2),
-                Row(
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        medicine['category'],
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 4),
                     Row(
                       children: [
-                        const Icon(Icons.star, color: Colors.amber, size: 12),
-                        const SizedBox(width: 2),
+                        Expanded(
+                          child: Text(
+                            medicine['name'],
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (medicine['prescription'] == true)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              'وصفة',
+                              style: TextStyle(
+                                fontSize: 8,
+                                color: Colors.red,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            medicine['category'],
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Row(
+                          children: [
+                            const Icon(Icons.star, color: Colors.amber, size: 12),
+                            const SizedBox(width: 2),
+                            Text(
+                              medicine['rating'].toString(),
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.white : Colors.black87,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      medicine['pharmacyName'],
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        if (hasDiscount) ...[
+                          Text(
+                            '${medicine['price']} ر.ي',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: isDark ? Colors.grey[400] : Colors.grey[600],
+                              decoration: TextDecoration.lineThrough,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              'خصم ${medicine['discount']}%',
+                              style: TextStyle(
+                                fontSize: 8,
+                                color: Colors.green,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                        ],
                         Text(
-                          medicine['rating'].toString(),
+                          '${priceAfterDiscount.toStringAsFixed(0)} ر.ي',
                           style: TextStyle(
-                            fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: isDark ? Colors.white : Colors.black87,
+                            fontSize: 14,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        const Spacer(),
+                        // ✅ زر إضافة/إزالة من السلة
+                        GestureDetector(
+                          onTap: () {
+                            if (isInCart) {
+                              // ✅ إزالة من السلة
+                              cartProvider.removeItem(medicine['id']);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('تم إزالة ${medicine['name']} من السلة'),
+                                  backgroundColor: Colors.red,
+                                  duration: const Duration(seconds: 1),
+                                ),
+                              );
+                            } else {
+                              // ✅ إضافة إلى السلة
+                              cartProvider.addItem(
+                                CartItem(
+                                  id: medicine['id'],
+                                  name: medicine['name'],
+                                  price: medicine['price'].toDouble(),
+                                  image: medicine['image'],
+                                  category: medicine['category'],
+                                  discount: medicine['discount']?.toDouble(),
+                                  pharmacyName: medicine['pharmacyName'],
+                                  unit: medicine['unit'],
+                                ),
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('✅ تم إضافة ${medicine['name']} إلى السلة'),
+                                  backgroundColor: Colors.green,
+                                  duration: const Duration(seconds: 1),
+                                ),
+                              );
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: isInCart ? Colors.red.withOpacity(0.1) : AppColors.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  isInCart ? Icons.remove_shopping_cart : Icons.add_shopping_cart,
+                                  color: isInCart ? Colors.red : AppColors.primary,
+                                  size: 14,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  isInCart ? 'إزالة' : 'أضف',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: isInCart ? Colors.red : AppColors.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ],
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  medicine['pharmacyName'],
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    if (hasDiscount) ...[
-                      Text(
-                        '${medicine['price']} ر.ي',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: isDark ? Colors.grey[400] : Colors.grey[600],
-                          decoration: TextDecoration.lineThrough,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                        decoration: BoxDecoration(
-                          color: Colors.green.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          'خصم ${medicine['discount']}%',
-                          style: TextStyle(
-                            fontSize: 8,
-                            color: Colors.green,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                    ],
-                    Text(
-                      '${priceAfterDiscount.toStringAsFixed(0)} ر.ي',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    const Spacer(),
-                    // ✅ زر إضافة/إزالة من السلة
-                    _buildAddToCartButton(medicine, isDark),
-                  ],
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -784,9 +775,7 @@ class _PharmacyScreenState extends State<PharmacyScreen>
 
   Widget _buildSupplyCard(Map<String, dynamic> item, bool isDark) {
     final hasDiscount = item['discount'] > 0;
-    final priceAfterDiscount = hasDiscount
-        ? item['price'] * (1 - item['discount'] / 100)
-        : item['price'];
+    final priceAfterDiscount = hasDiscount ? item['price'] * (1 - item['discount'] / 100) : item['price'];
 
     return Container(
       decoration: BoxDecoration(
@@ -889,8 +878,14 @@ class _PharmacyScreenState extends State<PharmacyScreen>
                           ),
                         ],
                       ),
-                      // ✅ زر إضافة/إزالة من السلة
-                      _buildAddToCartButton(item, isDark),
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Icon(Icons.add_shopping_cart, color: AppColors.primary, size: 16),
+                      ),
                     ],
                   ),
                 ],
@@ -928,9 +923,7 @@ class _PharmacyScreenState extends State<PharmacyScreen>
 
   Widget _buildBeautyCard(Map<String, dynamic> item, bool isDark) {
     final hasDiscount = item['discount'] > 0;
-    final priceAfterDiscount = hasDiscount
-        ? item['price'] * (1 - item['discount'] / 100)
-        : item['price'];
+    final priceAfterDiscount = hasDiscount ? item['price'] * (1 - item['discount'] / 100) : item['price'];
 
     return Container(
       decoration: BoxDecoration(
@@ -1033,8 +1026,14 @@ class _PharmacyScreenState extends State<PharmacyScreen>
                           ),
                         ],
                       ),
-                      // ✅ زر إضافة/إزالة من السلة
-                      _buildAddToCartButton(item, isDark),
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Icon(Icons.add_shopping_cart, color: AppColors.primary, size: 16),
+                      ),
                     ],
                   ),
                 ],
@@ -1051,11 +1050,7 @@ class _PharmacyScreenState extends State<PharmacyScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.search_off_rounded,
-            size: 64,
-            color: isDark ? Colors.grey[600] : Colors.grey[300],
-          ),
+          Icon(Icons.search_off_rounded, size: 64, color: isDark ? Colors.grey[600] : Colors.grey[300]),
           const SizedBox(height: 16),
           Text(
             message,
@@ -1078,3 +1073,5 @@ class _PharmacyScreenState extends State<PharmacyScreen>
     );
   }
 }
+
+// ✅ استيراد CartScreen
