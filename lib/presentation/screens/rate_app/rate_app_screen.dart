@@ -1,6 +1,6 @@
-import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/services/toast_service.dart';
 
 class RateAppScreen extends StatefulWidget {
   const RateAppScreen({super.key});
@@ -11,25 +11,6 @@ class RateAppScreen extends StatefulWidget {
 
 class _RateAppScreenState extends State<RateAppScreen> {
   int _rating = 0;
-  String _selectedEmoji = '😊';
-  final TextEditingController _feedbackController = TextEditingController();
-
-  final List<Map<String, dynamic>> _ratingOptions = [
-    {'emoji': '😊', 'label': 'ممتاز', 'value': 5},
-    {'emoji': '🙂', 'label': 'جيد', 'value': 4},
-    {'emoji': '😐', 'label': 'متوسط', 'value': 3},
-    {'emoji': '😔', 'label': 'سيئ', 'value': 2},
-    {'emoji': '😡', 'label': 'سيء جداً', 'value': 1},
-  ];
-
-  void _submitRating() {
-    if (_rating == 0) {
-      ToastService.showError(context, '❌ يرجى اختيار تقييم');
-      return;
-    }
-
-    ToastService.showSuccess(context, '✅ شكراً لتقييمك! (${_rating} نجوم);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,163 +24,57 @@ class _RateAppScreenState extends State<RateAppScreen> {
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1A2540) : Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'قيم التطبيق',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-              child: Column(
-                children: [
-                  Text(
-                    _selectedEmoji,
-                    style: const TextStyle(fontSize: 56),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'كيف تقيم تجربتك مع تطبيق صحتك؟',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'تقييمك يساعدنا في تحسين التطبيق',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: _ratingOptions.map((option) {
-                      final isSelected = _selectedEmoji == option['emoji'];
-                      return GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _selectedEmoji = option['emoji'] as String;
-                            _rating = option['value'] as int;
-                          });
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? AppColors.primary.withOpacity(0.1)
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: isSelected
-                                  ? AppColors.primary
-                                  : Colors.transparent,
-                              width: 2,
-                            ),
-                          ),
-                          child: Column(
-                            children: [
-                              Text(
-                                option['emoji'] as String,
-                                style: const TextStyle(fontSize: 28),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                option['label'] as String,
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: isSelected
-                                      ? AppColors.primary
-                                      : Colors.grey,
-                                  fontWeight: isSelected
-                                      ? FontWeight.bold
-                                      : FontWeight.normal,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ],
+              const SizedBox(height: 16),
+              const Text(
+                'ساعدنا في تحسين التطبيق بتقييمك',
+                style: TextStyle(fontSize: 14, color: Colors.grey),
               ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1A2540) : Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(5, (index) {
+                  return IconButton(
+                    icon: Icon(
+                      index < _rating ? Icons.star : Icons.star_border,
+                      color: Colors.amber,
+                      size: 40,
+                    ),
+                    onPressed: () {
+                      setState(() => _rating = index + 1);
+                    },
+                  );
+                }),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'شاركنا رأيك',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _feedbackController,
-                    maxLines: 3,
-                    decoration: InputDecoration(
-                      hintText: 'اكتب ملاحظاتك هنا...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _submitRating,
+              const SizedBox(height: 32),
+              ElevatedButton(
+                onPressed: _rating > 0
+                    ? () {
+                        ToastService.showSuccess(context, '✅ شكراً لتقييمك! $_rating نجوم');
+                        Navigator.pop(context);
+                      }
+                    : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text(
-                  'إرسال التقييم',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                child: const Text('إرسال التقييم'),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

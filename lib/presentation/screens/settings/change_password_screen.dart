@@ -1,8 +1,7 @@
-import 'package:sehatak/core/services/toast_service.dart';
-import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/services/toast_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -21,8 +20,15 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   bool _obscureConfirm = true;
 
   Future<void> _changePassword() async {
+    if (_currentPasswordController.text.isEmpty ||
+        _newPasswordController.text.isEmpty ||
+        _confirmPasswordController.text.isEmpty) {
+      ToastService.showError(context, 'يرجى ملء جميع الحقول');
+      return;
+    }
+
     if (_newPasswordController.text != _confirmPasswordController.text) {
-      ToastService.showError(context, 'كلمة المرور الجديدة غير متطابقة');
+      ToastService.showError(context, 'كلمات المرور غير متطابقة');
       return;
     }
 
@@ -36,28 +42,18 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
-        throw Exception('المستخدم غير مسجل الدخول');
+        ToastService.showError(context, 'يرجى تسجيل الدخول أولاً');
+        setState(() => _isLoading = false);
+        return;
       }
 
-      // ✅ إعادة المصادقة أولاً
-      final credential = EmailAuthProvider.credential(
-        email: user.email!,
-        password: _currentPasswordController.text,
-      );
-
-      await user.reauthenticateWithCredential(credential);
       await user.updatePassword(_newPasswordController.text);
-
-      if (mounted) {
-        ToastService.showSuccess(context, '✅ تم تغيير كلمة المرور بنجاح');
-        Navigator.pop(context);
-      }
+      ToastService.showSuccess(context, '✅ تم تغيير كلمة المرور بنجاح');
+      Navigator.pop(context);
     } catch (e) {
-      if (mounted) {
-        ToastService.showError(context, '❌ خطأ: ${e.toString();
-      }
+      ToastService.showError(context, '❌ خطأ: ${e.toString()}');
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      setState(() => _isLoading = false);
     }
   }
 
@@ -67,145 +63,81 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: CustomAppBar(
-        title: 'تغيير كلمة المرور',
+      appBar: AppBar(
+        title: const Text('تغيير كلمة المرور'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  // ✅ أيقونة
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.lock_outline,
-                      size: 40,
-                      color: AppColors.primary,
-                    ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            _buildPasswordField(
+              'كلمة المرور الحالية',
+              _currentPasswordController,
+              _obscureCurrent,
+              () => setState(() => _obscureCurrent = !_obscureCurrent),
+              isDark,
+            ),
+            const SizedBox(height: 16),
+            _buildPasswordField(
+              'كلمة المرور الجديدة',
+              _newPasswordController,
+              _obscureNew,
+              () => setState(() => _obscureNew = !_obscureNew),
+              isDark,
+            ),
+            const SizedBox(height: 16),
+            _buildPasswordField(
+              'تأكيد كلمة المرور',
+              _confirmPasswordController,
+              _obscureConfirm,
+              () => setState(() => _obscureConfirm = !_obscureConfirm),
+              isDark,
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _changePassword,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  const SizedBox(height: 24),
-
-                  // ✅ كلمة المرور الحالية
-                  TextField(
-                    controller: _currentPasswordController,
-                    obscureText: _obscureCurrent,
-                    decoration: InputDecoration(
-                      labelText: 'كلمة المرور الحالية',
-                      hintText: 'أدخل كلمة المرور الحالية',
-                      prefixIcon: const Icon(Icons.lock_outline),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscureCurrent ? Icons.visibility_off : Icons.visibility,
-                        ),
-                        onPressed: () {
-                          setState(() => _obscureCurrent = !_obscureCurrent);
-                        },
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      filled: true,
-                      fillColor: isDark ? const Color(0xFF1A2540) : Colors.white,
-                    ),
-                    style: TextStyle(color: isDark ? Colors.white : Colors.black87),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // ✅ كلمة المرور الجديدة
-                  TextField(
-                    controller: _newPasswordController,
-                    obscureText: _obscureNew,
-                    decoration: InputDecoration(
-                      labelText: 'كلمة المرور الجديدة',
-                      hintText: 'أدخل كلمة المرور الجديدة',
-                      prefixIcon: const Icon(Icons.lock_outline),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscureNew ? Icons.visibility_off : Icons.visibility,
-                        ),
-                        onPressed: () {
-                          setState(() => _obscureNew = !_obscureNew);
-                        },
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      filled: true,
-                      fillColor: isDark ? const Color(0xFF1A2540) : Colors.white,
-                    ),
-                    style: TextStyle(color: isDark ? Colors.white : Colors.black87),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // ✅ تأكيد كلمة المرور
-                  TextField(
-                    controller: _confirmPasswordController,
-                    obscureText: _obscureConfirm,
-                    decoration: InputDecoration(
-                      labelText: 'تأكيد كلمة المرور',
-                      hintText: 'أعد إدخال كلمة المرور الجديدة',
-                      prefixIcon: const Icon(Icons.lock_outline),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscureConfirm ? Icons.visibility_off : Icons.visibility,
-                        ),
-                        onPressed: () {
-                          setState(() => _obscureConfirm = !_obscureConfirm);
-                        },
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      filled: true,
-                      fillColor: isDark ? const Color(0xFF1A2540) : Colors.white,
-                    ),
-                    style: TextStyle(color: isDark ? Colors.white : Colors.black87),
-                  ),
-                  const SizedBox(height: 32),
-
-                  // ✅ زر تغيير كلمة المرور
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: _changePassword,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        'تغيير كلمة المرور',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
+                child: _isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text('تغيير كلمة المرور'),
               ),
             ),
+          ],
+        ),
+      ),
     );
   }
 
-  @override
-  void dispose() {
-    _currentPasswordController.dispose();
-    _newPasswordController.dispose();
-    _confirmPasswordController.dispose();
-    super.dispose();
+  Widget _buildPasswordField(String label, TextEditingController controller, bool obscure, VoidCallback toggle, bool isDark) {
+    return TextField(
+      controller: controller,
+      obscureText: obscure,
+      style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),
+        suffixIcon: IconButton(
+          icon: Icon(obscure ? Icons.visibility_off : Icons.visibility),
+          onPressed: toggle,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        filled: true,
+        fillColor: isDark ? const Color(0xFF1A2540) : Colors.white,
+      ),
+    );
   }
 }
