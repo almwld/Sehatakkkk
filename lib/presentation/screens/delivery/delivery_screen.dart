@@ -1,6 +1,7 @@
-import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/constants/imagekit.dart';
+import 'package:sehatak/presentation/widgets/common/app_image.dart';
 
 class DeliveryScreen extends StatefulWidget {
   const DeliveryScreen({super.key});
@@ -13,19 +14,56 @@ class _DeliveryScreenState extends State<DeliveryScreen> with SingleTickerProvid
   String _selectedType = 'standard';
   late TabController _tabController;
 
+  // ✅ شركات التوصيل مع أيقونات ImageKit
   final List<Map<String, dynamic>> _deliveryCompanies = [
-    {'name': '🚚 توصيل صحتك', 'type': 'standard', 'rating': 4.9, 'deliveryTime': '30-60 دقيقة', 'price': 500, 'image': 'assets/images/delivery/delivery_1.png', 'active': true},
-    {'name': '🚀 توصيل السريع', 'type': 'express', 'rating': 4.8, 'deliveryTime': '15-30 دقيقة', 'price': 800, 'image': 'assets/images/delivery/delivery_2.png', 'active': true},
-    {'name': '🏠 توصيل ناس', 'type': 'standard', 'rating': 4.7, 'deliveryTime': '45-90 دقيقة', 'price': 400, 'image': 'assets/images/delivery/delivery_3.png', 'active': true},
-    {'name': '🌟 توصيل صحتك بلس', 'type': 'premium', 'rating': 4.9, 'deliveryTime': '20-40 دقيقة', 'price': 1000, 'image': 'assets/images/delivery/delivery_4.png', 'active': true},
+    {
+      'name': 'واصل',
+      'type': 'standard',
+      'rating': 4.9,
+      'deliveryTime': '30-60 دقيقة',
+      'price': 500,
+      'image': ImageKit.delivery1,
+      'active': true,
+      'desc': 'توصيل سريع وموثوق'
+    },
+    {
+      'name': 'توصيل صحتك',
+      'type': 'express',
+      'rating': 4.8,
+      'deliveryTime': '15-30 دقيقة',
+      'price': 800,
+      'image': ImageKit.delivery2,
+      'active': true,
+      'desc': 'أسرع خدمة توصيل'
+    },
+    {
+      'name': 'توصيل ون',
+      'type': 'standard',
+      'rating': 4.7,
+      'deliveryTime': '45-90 دقيقة',
+      'price': 400,
+      'image': ImageKit.delivery3,
+      'active': true,
+      'desc': 'توصيل اقتصادي'
+    },
+    {
+      'name': 'ناس توصيل',
+      'type': 'premium',
+      'rating': 4.9,
+      'deliveryTime': '20-40 دقيقة',
+      'price': 1000,
+      'image': ImageKit.delivery4,
+      'active': true,
+      'desc': 'خدمة متميزة'
+    },
   ];
 
   // ✅ شركات توصيل قريباً
   final List<Map<String, dynamic>> _comingSoon = [
-    {'name': '🛵 واصل', 'type': 'standard', 'rating': 4.6, 'deliveryTime': '30-60 دقيقة', 'price': 450, 'comingSoon': true},
-    {'name': '🚗 سريع', 'type': 'express', 'rating': 4.5, 'deliveryTime': '15-30 دقيقة', 'price': 750, 'comingSoon': true},
-    {'name': '🏍️ موتومان', 'type': 'express', 'rating': 4.4, 'deliveryTime': '20-40 دقيقة', 'price': 700, 'comingSoon': true},
-    {'name': '🚕 تاكسي', 'type': 'standard', 'rating': 4.3, 'deliveryTime': '30-60 دقيقة', 'price': 500, 'comingSoon': true},
+    {'name': 'سريع', 'type': 'express', 'rating': 4.6, 'deliveryTime': '15-30 دقيقة', 'price': 750, 'image': ImageKit.delivery1, 'comingSoon': true},
+    {'name': 'موتومان', 'type': 'express', 'rating': 4.5, 'deliveryTime': '20-40 دقيقة', 'price': 700, 'image': ImageKit.delivery2, 'comingSoon': true},
+    {'name': 'تاكسي', 'type': 'standard', 'rating': 4.4, 'deliveryTime': '30-60 دقيقة', 'price': 500, 'image': ImageKit.delivery3, 'comingSoon': true},
+    {'name': 'توصيل بلس', 'type': 'premium', 'rating': 4.7, 'deliveryTime': '20-40 دقيقة', 'price': 900, 'image': ImageKit.delivery4, 'comingSoon': true},
   ];
 
   @override
@@ -46,20 +84,21 @@ class _DeliveryScreenState extends State<DeliveryScreen> with SingleTickerProvid
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: CustomAppBar(
-        title: '🚚 خدمة التوصيل',
+      appBar: AppBar(
+        title: const Text('خدمة التوصيل'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(text: '🚚 شركات التوصيل'),
-            Tab(text: '⏳ قريباً'),
+            Tab(text: 'شركات التوصيل'),
+            Tab(text: 'قريباً'),
           ],
           indicatorColor: Colors.white,
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white70,
+          indicatorWeight: 3,
         ),
       ),
       body: TabBarView(
@@ -101,22 +140,40 @@ class _DeliveryScreenState extends State<DeliveryScreen> with SingleTickerProvid
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
-              style: BorderStyle.solid,
             ),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              // ✅ صورة مصغرة
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF0B1121) : Colors.grey[100],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: AppImage(
+                    imageUrl: company['image'],
+                    width: 60,
+                    height: 60,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
               Text(
                 company['name'],
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
                   color: isDark ? Colors.white : Colors.black87,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
@@ -176,16 +233,19 @@ class _DeliveryScreenState extends State<DeliveryScreen> with SingleTickerProvid
         children: [
           // ✅ صورة الشركة
           Container(
-            width: 60,
-            height: 60,
+            width: 70,
+            height: 70,
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF0B1121) : Colors.grey[100],
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Center(
-              child: Text(
-                company['name'].split(' ')[0],
-                style: const TextStyle(fontSize: 28),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: AppImage(
+                imageUrl: company['image'],
+                width: 70,
+                height: 70,
+                fit: BoxFit.cover,
               ),
             ),
           ),
@@ -201,11 +261,28 @@ class _DeliveryScreenState extends State<DeliveryScreen> with SingleTickerProvid
                       company['name'],
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 15,
+                        fontSize: 16,
                         color: isDark ? Colors.white : Colors.black87,
                       ),
                     ),
                     const SizedBox(width: 8),
+                    if (company['active'] == true)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'نشط',
+                          style: TextStyle(
+                            fontSize: 9,
+                            color: Colors.green,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    const Spacer(),
                     Row(
                       children: [
                         const Icon(Icons.star, color: Colors.amber, size: 14),
@@ -214,6 +291,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> with SingleTickerProvid
                           company['rating'].toString(),
                           style: TextStyle(
                             fontSize: 12,
+                            fontWeight: FontWeight.bold,
                             color: isDark ? Colors.white : Colors.black87,
                           ),
                         ),
@@ -222,6 +300,14 @@ class _DeliveryScreenState extends State<DeliveryScreen> with SingleTickerProvid
                   ],
                 ),
                 const SizedBox(height: 4),
+                Text(
+                  company['desc'] ?? 'خدمة توصيل موثوقة',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 6),
                 Row(
                   children: [
                     Icon(Icons.access_time, size: 14, color: isDark ? Colors.grey[400] : Colors.grey[600]),
@@ -233,11 +319,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> with SingleTickerProvid
                         color: isDark ? Colors.grey[400] : Colors.grey[600],
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
+                    const SizedBox(width: 12),
                     Icon(Icons.money, size: 14, color: isDark ? Colors.grey[400] : Colors.grey[600]),
                     const SizedBox(width: 4),
                     Text(
@@ -258,8 +340,8 @@ class _DeliveryScreenState extends State<DeliveryScreen> with SingleTickerProvid
             ElevatedButton(
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('✅ تم اختيار خدمة التوصيل'),
+                  SnackBar(
+                    content: Text('✅ تم اختيار خدمة ${company['name']}'),
                     backgroundColor: Colors.green,
                   ),
                 );
