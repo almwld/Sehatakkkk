@@ -52,6 +52,7 @@ class _FontSizeScreenState extends State<FontSizeScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _buildPreviewCard(isDark),
             const SizedBox(height: 16),
@@ -82,21 +83,18 @@ class _FontSizeScreenState extends State<FontSizeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
               Container(
                 width: 4,
                 height: 20,
                 decoration: BoxDecoration(
                   color: AppColors.primary,
-                  borderRadius: BorderRadius.only(
-                    topRight: Radius.circular(2),
-                    bottomRight: Radius.circular(2),
-                  ),
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              SizedBox(width: 8),
-              Text(
+              const SizedBox(width: 8),
+              const Text(
                 'معاينة',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
@@ -109,7 +107,7 @@ class _FontSizeScreenState extends State<FontSizeScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.surfaceContainerLow.withOpacity(0.3),
+              color: isDark ? Colors.grey[800] : Colors.grey[100],
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
@@ -197,47 +195,41 @@ class _FontSizeScreenState extends State<FontSizeScreen> {
   }
 
   Widget _buildSaveButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: () {
-          Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('✅ تم حفظ حجم الخط'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+    return ElevatedButton(
+      onPressed: () {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ تم حفظ حجم الخط'),
+            backgroundColor: Colors.green,
           ),
+        );
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
         ),
-        child: const Text(
-          'حفظ',
-          style: TextStyle(fontSize: 16),
-        ),
+      ),
+      child: const Text(
+        'حفظ',
+        style: TextStyle(fontSize: 16),
       ),
     );
   }
 
   Widget _buildResetButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton(
-        onPressed: _resetFontSize,
-        style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+    return OutlinedButton(
+      onPressed: _resetFontSize,
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
         ),
-        child: const Text('إعادة للافتراضي'),
       ),
+      child: const Text('إعادة للافتراضي'),
     );
   }
 }
