@@ -1,12 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/presentation/screens/home/home_screen.dart';
-import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
-import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
-import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
-import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
-import 'package:sehatak/presentation/screens/patient/patient_dashboard.dart';
-import 'package:sehatak/presentation/screens/more/more_screen.dart';
 
 class CustomBottomNavBar extends StatefulWidget {
   final int currentIndex;
@@ -34,7 +27,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar>
     {'icon': Icons.home_rounded, 'label': 'الرئيسية', 'index': 0},
     {'icon': Icons.person_search_rounded, 'label': 'الأطباء', 'index': 1},
     {'icon': Icons.local_pharmacy_rounded, 'label': 'الصيدلية', 'index': 2},
-    {'icon': Icons.chat_rounded, 'label': 'الدردشة', 'index': 3},
+    {'icon': Icons.chat_rounded, 'label': 'الدردشة', 'index': 3, 'isSpecial': true},
     {'icon': Icons.science_rounded, 'label': 'مختبرات', 'index': 4},
     {'icon': Icons.folder_rounded, 'label': 'صحتي', 'index': 5},
     {'icon': Icons.grid_view_rounded, 'label': 'المزيد', 'index': 6},
@@ -108,36 +101,107 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar>
               ),
               child: SafeArea(
                 child: Container(
-                  height: 65,
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  height: 70,
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: _navItems.map((item) {
                       final index = item['index'] as int;
                       final isSelected = widget.currentIndex == index;
+                      final isSpecial = item['isSpecial'] ?? false;
                       final color = isSelected
                           ? AppColors.primary
                           : (isDark ? Colors.grey[500] : Colors.grey[600]);
 
+                      // ✅ زر الدردشة الخاص (البارز)
+                      if (isSpecial) {
+                        return GestureDetector(
+                          onTap: () => widget.onTap(index),
+                          behavior: HitTestBehavior.opaque,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 60,
+                                height: 60,
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [Colors.green, Color(0xFF2E7D32)],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.green.withOpacity(0.4),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Center(
+                                  child: Icon(
+                                    item['icon'] as IconData,
+                                    color: Colors.white,
+                                    size: 30,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                item['label'] as String,
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  color: isSelected ? Colors.green : (isDark ? Colors.grey[500] : Colors.grey[600]),
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      // ✅ الأزرار العادية
                       return GestureDetector(
                         onTap: () => widget.onTap(index),
                         behavior: HitTestBehavior.opaque,
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
-                              item['icon'] as IconData,
-                              color: color,
-                              size: 24,
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? AppColors.primary.withOpacity(0.12)
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                item['icon'] as IconData,
+                                color: color,
+                                size: 26,
+                              ),
                             ),
+                            const SizedBox(height: 2),
                             Text(
                               item['label'] as String,
                               style: TextStyle(
-                                fontSize: 10,
+                                fontSize: 9,
                                 color: color,
                                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                               ),
                             ),
+                            if (isSelected)
+                              Container(
+                                margin: const EdgeInsets.only(top: 2),
+                                width: 16,
+                                height: 3,
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary,
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
                           ],
                         ),
                       );
