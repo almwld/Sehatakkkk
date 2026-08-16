@@ -123,6 +123,13 @@ class CartScreen extends StatelessWidget {
               imageUrl: item.image ?? '',
               width: 50,
               height: 50,
+              fit: BoxFit.cover,
+              errorWidget: Container(
+                width: 50,
+                height: 50,
+                color: AppColors.primary.withOpacity(0.1),
+                child: const Icon(Icons.medication, color: AppColors.primary),
+              ),
             ),
           ),
           const SizedBox(width: 12),
@@ -148,6 +155,7 @@ class CartScreen extends StatelessWidget {
                       color: isDark ? Colors.grey[400] : Colors.grey[600],
                     ),
                   ),
+                const SizedBox(height: 4),
                 Row(
                   children: [
                     Text(
@@ -191,8 +199,11 @@ class CartScreen extends StatelessWidget {
                 },
                 style: IconButton.styleFrom(
                   backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200],
+                  minimumSize: const Size(30, 30),
+                  padding: EdgeInsets.zero,
                 ),
               ),
+              const SizedBox(width: 8),
               Text(
                 '${item.quantity}',
                 style: TextStyle(
@@ -201,6 +212,7 @@ class CartScreen extends StatelessWidget {
                   color: isDark ? Colors.white : Colors.black87,
                 ),
               ),
+              const SizedBox(width: 8),
               IconButton(
                 icon: const Icon(Icons.add, size: 18),
                 onPressed: () {
@@ -209,14 +221,19 @@ class CartScreen extends StatelessWidget {
                 },
                 style: IconButton.styleFrom(
                   backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200],
+                  minimumSize: const Size(30, 30),
+                  padding: EdgeInsets.zero,
                 ),
               ),
+              const SizedBox(width: 4),
               IconButton(
                 icon: Icon(Icons.delete_outline, color: Colors.red[300]),
                 onPressed: () {
                   final provider = Provider.of<CartProvider>(context, listen: false);
                   provider.removeItem(item.id);
                 },
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
               ),
             ],
           ),
@@ -260,6 +277,30 @@ class CartScreen extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 12),
+          if (cartProvider.discount > 0) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'الخصم',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                ),
+                Text(
+                  '-${cartProvider.discount.toStringAsFixed(0)} ر.ي',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.green,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+          ],
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
