@@ -197,12 +197,9 @@ class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProvid
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? Color(0xFF0B1121) : Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: Text(
-          'الصيدلية',
-          style: TextStyle(color: Colors.white),
-        ),
+        title: const Text('الصيدلية'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -210,16 +207,19 @@ class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProvid
           statusBarColor: AppColors.primary,
           statusBarIconBrightness: Brightness.light,
         ),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: _tabs.map((tab) => Tab(text: tab)).toList(),
-          indicatorColor: Colors.white,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white70,
-          labelStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-          unselectedLabelStyle: TextStyle(fontSize: 12),
-          isScrollable: true,
-          indicatorWeight: 3,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(48),
+          child: TabBar(
+            controller: _tabController,
+            tabs: _tabs.map((tab) => Tab(text: tab)).toList(),
+            indicatorColor: Colors.white,
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.white70,
+            labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+            unselectedLabelStyle: const TextStyle(fontSize: 12),
+            isScrollable: true,
+            indicatorWeight: 3,
+          ),
         ),
         actions: [
           Consumer<CartProvider>(
@@ -251,7 +251,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProvid
                         ),
                         child: Text(
                           '${cart.itemCount}',
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
@@ -270,13 +270,12 @@ class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProvid
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                // ✅ شريط البحث
                 Padding(
                   padding: const EdgeInsets.all(12),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
-                      color: isDark ? Color(0xFF1A2540) : Colors.white,
+                      color: isDark ? const Color(0xFF1A2540) : Colors.white,
                       borderRadius: BorderRadius.circular(25),
                       boxShadow: [
                         BoxShadow(
@@ -352,7 +351,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProvid
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isDark ? Color(0xFF1A2540) : Colors.white,
+          color: isDark ? const Color(0xFF1A2540) : Colors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -522,7 +521,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProvid
                   label: Text(category, style: TextStyle(fontSize: 11, color: isDark ? Colors.white : Colors.black87)),
                   selected: isSelected,
                   onSelected: (_) => setState(() => _selectedCategory = category),
-                  backgroundColor: isDark ? Color(0xFF1A2540) : Colors.white,
+                  backgroundColor: isDark ? const Color(0xFF1A2540) : Colors.white,
                   selectedColor: AppColors.primary,
                   labelStyle: TextStyle(
                     color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
@@ -565,7 +564,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProvid
           margin: const EdgeInsets.only(bottom: 10),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: isDark ? Color(0xFF1A2540) : Colors.white,
+            color: isDark ? const Color(0xFF1A2540) : Colors.white,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
@@ -779,7 +778,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProvid
         final isInCart = cartProvider.isInCart(item['id']);
         return Container(
           decoration: BoxDecoration(
-            color: isDark ? Color(0xFF1A2540) : Colors.white,
+            color: isDark ? const Color(0xFF1A2540) : Colors.white,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
@@ -832,7 +831,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProvid
                             ),
                             child: Text(
                               item['category'],
-                              style: TextStyle(fontSize: 8, color: AppColors.primary),
+                              style: const TextStyle(fontSize: 8, color: AppColors.primary),
                             ),
                           ),
                           const Spacer(),
@@ -939,7 +938,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProvid
         final isInCart = cartProvider.isInCart(item['id']);
         return Container(
           decoration: BoxDecoration(
-            color: isDark ? Color(0xFF1A2540) : Colors.white,
+            color: isDark ? const Color(0xFF1A2540) : Colors.white,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
@@ -992,7 +991,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProvid
                             ),
                             child: Text(
                               item['category'],
-                              style: TextStyle(fontSize: 8, color: AppColors.primary),
+                              style: const TextStyle(fontSize: 8, color: AppColors.primary),
                             ),
                           ),
                           const Spacer(),
