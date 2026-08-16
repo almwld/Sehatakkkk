@@ -2,200 +2,110 @@ import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class DrugDetailsScreen extends StatelessWidget {
-  final Map<String, dynamic> drug;
-
-  const DrugDetailsScreen({super.key, required this.drug});
+  final Map<String, dynamic> drugInfo;
+  const DrugDetailsScreen({super.key, required this.drugInfo});
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // ✅ معلومات الدواء التجريبية
-    final drugInfo = {
-      'name': drug['name'],
-      'category': drug['category'],
-      'price': drug['price'],
-      'prescription': drug['prescription'],
-      'usage': 'يستخدم لعلاج الألم والحمى والالتهابات',
-      'sideEffects': 'قد يسبب غثيان، دوار، أو حساسية',
-      'interactions': 'تجنب استخدامه مع الكحول أو أدوية أخرى',
-      'dosage': 'قرص كل 6-8 ساعات حسب الحاجة',
-      'storage': 'يحفظ في مكان جاف وبارد',
-      'manufacturer': 'شركة الدواء',
-      'expiry': '2025-12-31',
-    };
-
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: Text(drugInfo['name']),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+        title: Text(drugInfo['name'] as String? ?? 'تفاصيل الدواء'),
+        backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
+        foregroundColor: isDark ? Colors.white : Colors.black87,
         elevation: 0,
       ),
-      body: SingleChildScrollView(
+      body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ✅ صورة الدواء
             Container(
-              height: 150,
-              width: double.infinity,
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1A2540) : Colors.grey[100],
+                color: isDark ? const Color(0xFF1A2540) : Colors.white,
                 borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
+                ],
               ),
-              child: const Center(
-                child: Icon(Icons.medication, size: 60, color: AppColors.primary),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // ✅ الاسم والسعر
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    drugInfo['name'],
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    drugInfo['name'] as String? ?? 'دواء',
                     style: TextStyle(
-                      fontSize: 22,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: isDark ? Colors.white : Colors.black87,
                     ),
                   ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    '${drugInfo['price']} ر.ي',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-
-            // ✅ التصنيف والوصفة
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    drugInfo['category'],
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                if (drugInfo['prescription'])
+                  const SizedBox(height: 4),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      color: AppColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Text(
-                      '⚠️ يحتاج وصفة',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.red,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    child: Text(
+                      drugInfo['category'] as String? ?? 'تصنيف',
+                      style: TextStyle(fontSize: 11, color: AppColors.primary),
                     ),
                   ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            const Divider(),
-            const SizedBox(height: 16),
-
-            // ✅ التفاصيل
-            _buildDetailItem('💊 الاستخدام', drugInfo['usage'], isDark),
-            _buildDetailItem('⚠️ الآثار الجانبية', drugInfo['sideEffects'], isDark),
-            _buildDetailItem('🔄 التفاعلات', drugInfo['interactions'], isDark),
-            _buildDetailItem('💉 الجرعة', drugInfo['dosage'], isDark),
-            _buildDetailItem('🏷️ الشركة المصنعة', drugInfo['manufacturer'], isDark),
-            _buildDetailItem('📅 تاريخ الانتهاء', drugInfo['expiry'], isDark),
-            _buildDetailItem('❄️ التخزين', drugInfo['storage'], isDark),
-
-            const SizedBox(height: 24),
-
-            // ✅ بدائل الدواء
-            const Text(
-              '💊 بدائل الدواء',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+                  const SizedBox(height: 12),
+                  _buildInfoRow('السعر', '${drugInfo['price']} ر.ي', isDark),
+                  _buildInfoRow('الشركة', drugInfo['company'] as String? ?? 'غير معروف', isDark),
+                  _buildInfoRow('التصنيف', drugInfo['category'] as String? ?? 'عام', isDark),
+                ],
               ),
             ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              children: [
-                'دواء بديل 1',
-                'دواء بديل 2',
-                'دواء بديل 3',
-              ].map((alt) {
-                return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.05),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'الوصف',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                  child: Text(
-                    alt,
+                  const SizedBox(height: 8),
+                  Text(
+                    drugInfo['description'] as String? ?? 'لا توجد معلومات متاحة عن هذا الدواء',
                     style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.primary,
+                      fontSize: 14,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      height: 1.6,
                     ),
                   ),
-                );
-              }).toList(),
+                ],
+              ),
             ),
-            const SizedBox(height: 24),
-
-            // ✅ زر الطلب
+            const Spacer(),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('✅ تم إضافة الدواء إلى السلة'),
-                      backgroundColor: Colors.green,
-                    ),
+                    const SnackBar(content: Text('تم إضافة الدواء إلى السلة'), backgroundColor: Colors.green),
                   );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text(
-                  '🛒 إضافة إلى السلة',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
+                child: const Text('إضافة إلى السلة', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
             ),
           ],
@@ -204,31 +114,22 @@ class DrugDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailItem(String label, String value, bool isDark) {
+  Widget _buildInfoRow(String label, String value, bool isDark) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          SizedBox(
-            width: 100,
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: isDark ? Colors.grey[400] : Colors.grey[600],
-              ),
-            ),
+          Text(
+            label,
+            style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[400] : Colors.grey[600]),
           ),
-          Expanded(
-            child: Text(
-              value,
-              style: TextStyle(
-                fontSize: 13,
-                color: isDark ? Colors.white : Colors.black87,
-                height: 1.5,
-              ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: isDark ? Colors.white : Colors.black87,
             ),
           ),
         ],
