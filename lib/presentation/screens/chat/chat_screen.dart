@@ -257,117 +257,130 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
       body: BlocConsumer<ChatBloc, ChatState>(
         listener: (context, state) {
           if (state is ChatErrorState) {
-            ToastService.showSuccess(context, "تمت العملية");
-    }
+            ToastService.showError(context, state.message);
+          }
+        },
+        builder: (context, state) {
+          if (state is ChatLoadingState) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-    if (state is ChatListLoadedState) {
-      final chats = state.chats;
-      if (chats.isEmpty) {
-        return _buildEmptyState(isDark);
-      }
+          if (state is ChatListLoadedState) {
+            final chats = state.chats;
+            if (chats.isEmpty) {
+              return _buildEmptyState(isDark);
+            }
 
-      return ListView.builder(
-        padding: const EdgeInsets.all(12),
-        itemCount: chats.length,
-        itemBuilder: (context, index) {
-          final chat = chats[index];
-          final currentUser = FirebaseAuth.instance.currentUser;
-          final isDoctor = chat['doctorId'] == currentUser?.uid;
-          final otherName = isDoctor ? chat['patientName'] : chat['doctorName'];
-          final otherId = isDoctor ? chat['patientId'] : chat['doctorId'];
-          final lastMessage = chat['lastMessage'] ?? 'ابدأ المحادثة';
-          final lastTime = _formatTime(chat['lastMessageTime']);
-          final unreadCount = chat['unreadCount'] ?? 0;
+            return ListView.builder(
+              padding: const EdgeInsets.all(12),
+              itemCount: chats.length,
+              itemBuilder: (context, index) {
+                final chat = chats[index];
+                final currentUser = FirebaseAuth.instance.currentUser;
+                final isDoctor = chat['doctorId'] == currentUser?.uid;
+                final otherName = isDoctor ? chat['patientName'] : chat['doctorName'];
+                final otherId = isDoctor ? chat['patientId'] : chat['doctorId'];
+                final lastMessage = chat['lastMessage'] ?? 'ابدأ المحادثة';
+                final lastTime = _formatTime(chat['lastMessageTime']);
+                final unreadCount = chat['unreadCount'] ?? 0;
 
-          return GestureDetector(
-            onTap: () => _navigateToChat(
-              chat['id'],
-              otherName ?? 'مستخدم',
-              otherId ?? '',
-              isDoctor,
-            ),
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1A2540) : Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  )
-                ],
-              ),
-              child: ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-                leading: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      lastTime,
-                      style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                return GestureDetector(
+                  onTap: () => _navigateToChat(
+                    chat['id'],
+                    otherName ?? 'مستخدم',
+                    otherId ?? '',
+                    isDoctor,
+                  ),
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.03),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        )
+                      ],
                     ),
-                    const SizedBox(height: 6),
-                    if (unreadCount > 0)
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(color: primaryColor, shape: BoxShape.circle),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                      leading: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            lastTime,
+                            style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                          ),
+                          const SizedBox(height: 6),
+                          if (unreadCount > 0)
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(color: primaryColor, shape: BoxShape.circle),
+                              child: Text(
+                                '$unreadCount',
+                                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                        ],
+                      ),
+                      title: Text(
+                        otherName ?? 'مستخدم',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        textAlign: TextAlign.end,
+                      ),
+                      subtitle: Padding(
+                        padding: const EdgeInsets.only(top: 4),
                         child: Text(
-                          '$unreadCount',
-                          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                          lastMessage,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey.shade600,
+                          ),
+                          textAlign: TextAlign.end,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                  ]
-                ),
-                title: Text(
-                  otherName ?? 'مستخدم',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                  textAlign: TextAlign.end,
-                ),
-                subtitle: Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text(
-                    lastMessage,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey.shade600,
-                    ),
-                    textAlign: TextAlign.end,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                trailing: ClipRRect(
-                  borderRadius: BorderRadius.circular(24),
-                  child: Image.network(
-                    isDoctor ? '' : ImageKit.doctor1,
-                    width: 48,
-                    height: 48,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => CircleAvatar(
-                      radius: 24,
-                      backgroundColor: primaryColor.withOpacity(0.1),
-                      child: Icon(
-                        isDoctor ? Icons.person : Icons.local_hospital,
-                        color: primaryColor,
+                      trailing: ClipRRect(
+                        borderRadius: BorderRadius.circular(24),
+                        child: Image.network(
+                          isDoctor ? '' : ImageKit.doctor1,
+                          width: 48,
+                          height: 48,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => CircleAvatar(
+                            radius: 24,
+                            backgroundColor: primaryColor.withOpacity(0.1),
+                            child: Icon(
+                              isDoctor ? Icons.person : Icons.local_hospital,
+                              color: primaryColor,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-            ),
-          );
+                );
+              },
+            );
+          }
+
+          if (state is ChatErrorState) {
+            return _buildErrorState(state.message, isDark);
+          }
+
+          return _buildEmptyState(isDark);
         },
-      );
-    }
-
-    if (state is ChatErrorState) {
-      return _buildErrorState(state.message, isDark);
-    }
-
-    return const SizedBox.shrink();
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showNewChatSheet,
+        backgroundColor: primaryColor,
+        child: const Icon(Icons.add_comment, color: Colors.white),
+      ),
+    );
   }
 
   Widget _buildEmptyState(bool isDark) {

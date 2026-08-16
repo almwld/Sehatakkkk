@@ -3,7 +3,6 @@ import "package:flutter/material.dart";
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/roles.dart';
 import 'package:sehatak/core/constants/medical_specialties.dart';
@@ -120,9 +119,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     });
   }
 
-  // ============================================================
-  // ✅ دالة التحقق من قوة كلمة المرور
-  // ============================================================
   void _checkPasswordStrength(String password) {
     if (password.isEmpty) {
       setState(() {
@@ -187,9 +183,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     return _passwordController.text == _confirmPasswordController.text;
   }
 
-  // ============================================================
-  // ✅ تحميل البيانات المحفوظة
-  // ============================================================
   Future<void> _checkFirstTime() async {
     final prefs = await SharedPreferences.getInstance();
     final isFirst = prefs.getBool('is_first_time') ?? true;
@@ -236,19 +229,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     });
   }
 
-  Future<void> _saveCredentials() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (_rememberMe) {
-      await prefs.setString('remember_email', _emailController.text.trim());
-      await prefs.setString('remember_password', _passwordController.text.trim());
-      await prefs.setBool('remember_me', true);
-    } else {
-      await prefs.remove('remember_email');
-      await prefs.remove('remember_password');
-      await prefs.setBool('remember_me', false);
-    }
-  }
-
   Future<void> _checkBiometric() async {
     final available = await _biometricService.isAvailable();
     if (available) {
@@ -264,9 +244,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     return role == 'doctor' || role == 'pharmacist' || role == 'lab';
   }
 
-  // ============================================================
-  // ✅ دوال التحميل والعرض
-  // ============================================================
   void _showLoading() {
     showDialog(
       context: context,
@@ -312,59 +289,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     }
   }
 
-  // ============================================================
-  // ✅ دالة التحقق من الجلسة وحفظها
-  // ============================================================
-  Future<void> _checkRememberedUser() async {
-    final prefs = await SharedPreferences.getInstance();
-    final remember = prefs.getBool('remember_me') ?? false;
-    final email = prefs.getString('remember_email') ?? '';
-    final password = prefs.getString('remember_password') ?? '';
-
-    if (remember && email.isNotEmpty && password.isNotEmpty) {
-      try {
-        await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: email,
-          password: password,
-        );
-        if (mounted) {
-          _navigateToHome();
-        }
-        return;
-      } catch (e) {
-        // في حالة فشل تسجيل الدخول، نستمر في عرض شاشة Auth
-      }
-    }
-
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      try {
-        final doc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .get();
-        if (doc.exists) {
-          final role = doc.data()?['role'] ?? 'user';
-          if (role == 'admin' || role == 'superAdmin') {
-            if (mounted) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (_) => const PlatformDashboard()),
-              );
-            }
-            return;
-          }
-        }
-        if (mounted) {
-          _navigateToHome();
-        }
-        return;
-      } catch (e) {
-        // في حالة خطأ، نستمر في عرض شاشة Auth
-      }
-    }
-  }
-
   void _navigateToHome() {
     Navigator.pushReplacement(
       context,
@@ -372,9 +296,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     );
   }
 
-  // ============================================================
-  // ✅ دوال تسجيل الدخول والتسجيل
-  // ============================================================
   Future<void> _login() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       _showMessage('يرجى إدخال البريد الإلكتروني وكلمة المرور', true);
@@ -388,7 +309,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         password: _passwordController.text.trim(),
       );
 
-      // ✅ حفظ التفضيلات
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('remember_me', _rememberMe);
       if (_rememberMe) {
@@ -587,6 +507,17 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
 
   void _showMessage(String message, bool isError) {
     ToastService.showError(context, message);
+  }
+
+  List<Widget> _buildDynamicFields(bool isDark, Color primaryColor) {
+    List<Widget> fields = [];
+    if (_needsVerification(_selectedRole)) {
+      fields.add(_buildTextField(
+        controller: _licenseController,
+        label: 'رقم الترخيص الطبي',
+        icon: Icons.badge_outlined,
+        isDark: isDark,
+      ));
       fields.add(const SizedBox(height: 16));
     }
     if (_selectedRole == 'doctor') {
@@ -610,9 +541,126 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     return role['name'] as String;
   }
 
-  // ============================================================
-  // ✅ دوال بناء الحقول
-  // ============================================================
+  Widget _buildLoginRoleTabs(bool isDark, Color primaryColor) {
+    return Row(
+      children: _primaryRoles.map((role) {
+        final isSelected = _selectedRole == role['id'];
+        return Expanded(
+          child: GestureDetector(
+            onTap: () => setState(() => _selectedRole = role['id']),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              decoration: BoxDecoration(
+                color: isSelected ? primaryColor : (isDark ? const Color(0xFF1A2540) : Colors.white),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isSelected ? primaryColor : (isDark ? Colors.grey[800]! : Colors.grey[300]!),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    role['icon'],
+                    color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.grey[700]),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    role['name'],
+                    style: TextStyle(
+                      color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.grey[700]),
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'NotoSansArabicUI',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildSignUpRoleTabs(bool isDark, Color primaryColor) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: _allRoles.map((role) {
+          final isSelected = _selectedRole == role['id'];
+          return Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: ChoiceChip(
+              label: Text(role['name']),
+              selected: isSelected,
+              onSelected: (selected) {
+                if (selected) {
+                  setState(() {
+                    _selectedRole = role['id'];
+                    _selectedSpecialty = null;
+                  });
+                }
+              },
+              selectedColor: primaryColor,
+              labelStyle: TextStyle(
+                color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
+                fontFamily: 'NotoSansArabicUI',
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildSelectedRoleDisplay(bool isDark, Color primaryColor) {
+    return Text(
+      'الحساب المحدد: ${_getRoleDisplayName(_selectedRole)}',
+      style: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: primaryColor,
+        fontFamily: 'NotoSansArabicUI',
+      ),
+      textAlign: TextAlign.center,
+    );
+  }
+
+  Widget _buildSpecialtyDropdown(bool isDark, Color primaryColor) {
+    return DropdownButtonFormField<String>(
+      value: _selectedSpecialty,
+      decoration: InputDecoration(
+        labelText: 'اختر التخصص',
+        labelStyle: TextStyle(
+          color: isDark ? Colors.white70 : Colors.grey[600],
+          fontFamily: 'NotoSansArabicUI',
+        ),
+        prefixIcon: Icon(Icons.medical_information, color: isDark ? Colors.white70 : primaryColor),
+        filled: true,
+        fillColor: isDark ? const Color(0xFF1A2540) : Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+      ),
+      dropdownColor: isDark ? const Color(0xFF1A2540) : Colors.white,
+      items: _roleSpecialties.map((specialty) {
+        return DropdownMenuItem(
+          value: specialty,
+          child: Text(
+            specialty,
+            style: TextStyle(
+              color: isDark ? Colors.white : Colors.black87,
+              fontFamily: 'NotoSansArabicUI',
+            ),
+          ),
+        );
+      }).toList(),
+      onChanged: (val) => setState(() => _selectedSpecialty = val),
+    );
+  }
+
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -804,9 +852,35 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     );
   }
 
-  // ============================================================
-  // ✅ بناء الواجهة الرئيسية
-  // ============================================================
+  Widget _buildSocialIcon(
+    Map<String, dynamic> social,
+    bool isDark, {
+    double containerSize = 40,
+    double iconSize = 24,
+    double padding = 6,
+  }) {
+    return Container(
+      width: containerSize,
+      height: containerSize,
+      padding: EdgeInsets.all(padding),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2540) : Colors.white,
+        shape: BoxShape.circle,
+        border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[300]!),
+      ),
+      child: Image.asset(
+        social['icon'],
+        width: iconSize,
+        height: iconSize,
+        errorBuilder: (_, __, ___) => Icon(
+          Icons.link,
+          size: iconSize - 4,
+          color: social['color'],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -833,8 +907,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 20),
-
-                // ✅ عنوان الشاشة
                 Text(
                   isSignUp
                       ? 'إنشاء حساب جديد'
@@ -848,8 +920,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 6),
-
-                // ✅ النص التعريفي
                 Text(
                   isSignUp
                       ? 'اختر نوع حسابك وأدخل بياناتك للانضمام'
@@ -863,13 +933,11 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                 ),
                 const SizedBox(height: 30),
 
-                // ✅ اختيار الدور (تسجيل الدخول)
                 if (!isSignUp) ...[
                   _buildLoginRoleTabs(isDark, primaryColor),
                   const SizedBox(height: 35),
                 ],
 
-                // ✅ اختيار الدور (إنشاء حساب)
                 if (isSignUp) ...[
                   _buildSignUpRoleTabs(isDark, primaryColor),
                   const SizedBox(height: 16),
@@ -877,13 +945,11 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                   const SizedBox(height: 16),
                 ],
 
-                // ✅ اختيار التخصص
                 if (isSignUp && _roleSpecialties.isNotEmpty) ...[
                   _buildSpecialtyDropdown(isDark, primaryColor),
                   const SizedBox(height: 16),
                 ],
 
-                // ✅ الحقول الديناميكية
                 if (isSignUp) ...[
                   _buildTextField(
                     controller: _nameController,
@@ -894,7 +960,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                   const SizedBox(height: 16),
                 ],
 
-                // ✅ البريد الإلكتروني
                 _buildTextField(
                   controller: _emailController,
                   label: isSignUp ? 'البريد الإلكتروني' : 'رقم الموبايل أو البريد الإلكتروني',
@@ -904,7 +969,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                 ),
                 const SizedBox(height: 16),
 
-                // ✅ رقم الهاتف (للتسجيل فقط)
                 if (isSignUp) ...[
                   _buildTextField(
                     controller: _phoneController,
@@ -916,28 +980,23 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                   const SizedBox(height: 16),
                 ],
 
-                // ✅ الحقول الديناميكية (ترخيص وخبرة)
                 if (isSignUp) ...[
                   ..._buildDynamicFields(isDark, primaryColor),
                 ],
 
-                // ✅ كلمة المرور
                 _buildPasswordField(isDark, primaryColor),
 
-                // ✅ مؤشر قوة كلمة المرور
                 if (isSignUp && _passwordController.text.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   _buildPasswordStrengthIndicator(),
                 ],
                 const SizedBox(height: 16),
 
-                // ✅ تأكيد كلمة المرور (للتسجيل فقط)
                 if (isSignUp) ...[
                   _buildConfirmPasswordField(isDark, primaryColor),
                   const SizedBox(height: 16),
                 ],
 
-                // ✅ تذكرني ونسيت كلمة المرور (لتسجيل الدخول فقط)
                 if (!isSignUp) ...[
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -981,7 +1040,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                   const SizedBox(height: 8),
                 ],
 
-                // ✅ الموافقة على الشروط (للتسجيل فقط)
                 if (isSignUp) ...[
                   Row(
                     children: [
@@ -1022,7 +1080,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                   const SizedBox(height: 16),
                 ],
 
-                // ✅ زر تسجيل الدخول / إنشاء حساب
                 SizedBox(
                   height: 54,
                   child: ElevatedButton(
@@ -1039,7 +1096,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                       isSignUp
                           ? 'إنشاء حساب ${_getRoleDisplayName(_selectedRole)}'
                           : 'تسجيل الدخول',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         fontFamily: 'NotoSansArabicUI',
@@ -1049,7 +1106,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                 ),
                 const SizedBox(height: 12),
 
-                // ✅ زر الدخول كضيف (لتسجيل الدخول فقط)
                 if (!isSignUp) ...[
                   SizedBox(
                     height: 50,
@@ -1071,7 +1127,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                   const SizedBox(height: 24),
                 ],
 
-                // ✅ نص "أو سجل الدخول عبر"
                 const Text(
                   'أو سجل الدخول عبر',
                   style: TextStyle(fontSize: 12, color: Colors.grey, fontFamily: 'NotoSansArabicUI'),
@@ -1079,7 +1134,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                 ),
                 const SizedBox(height: 16),
 
-                // ✅ الصف الأول: Google و Apple (مكبرين)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -1089,7 +1143,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                       containerSize: 48,
                       iconSize: 34,
                       padding: 6,
-                    ), // Google
+                    ),
                     const SizedBox(width: 20),
                     _buildSocialIcon(
                       _socialIcons[1],
@@ -1097,12 +1151,11 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                       containerSize: 48,
                       iconSize: 34,
                       padding: 6,
-                    ), // Apple
+                    ),
                   ],
                 ),
                 const SizedBox(height: 28),
 
-                // ✅ النص التعريفي السفلي
                 const Text(
                   'منصة شاملة تجمع كل ما يهم صحتك في آن واحد',
                   style: TextStyle(
@@ -1125,54 +1178,22 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                 ),
                 const SizedBox(height: 18),
 
-                // ✅ الصف الثاني: باقي منصات التواصل (بحجم أصغر)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildSocialIcon(
-                      _socialIcons[2],
-                      isDark,
-                      containerSize: 40,
-                      iconSize: 24,
-                      padding: 7,
-                    ), // Facebook
+                    _buildSocialIcon(_socialIcons[2], isDark, containerSize: 40, iconSize: 24, padding: 7),
                     const SizedBox(width: 8),
-                    _buildSocialIcon(
-                      _socialIcons[3],
-                      isDark,
-                      containerSize: 40,
-                      iconSize: 24,
-                      padding: 7,
-                    ), // Instagram
+                    _buildSocialIcon(_socialIcons[3], isDark, containerSize: 40, iconSize: 24, padding: 7),
                     const SizedBox(width: 8),
-                    _buildSocialIcon(
-                      _socialIcons[4],
-                      isDark,
-                      containerSize: 40,
-                      iconSize: 24,
-                      padding: 7,
-                    ), // Twitter
+                    _buildSocialIcon(_socialIcons[4], isDark, containerSize: 40, iconSize: 24, padding: 7),
                     const SizedBox(width: 8),
-                    _buildSocialIcon(
-                      _socialIcons[5],
-                      isDark,
-                      containerSize: 40,
-                      iconSize: 24,
-                      padding: 7,
-                    ), // YouTube
+                    _buildSocialIcon(_socialIcons[5], isDark, containerSize: 40, iconSize: 24, padding: 7),
                     const SizedBox(width: 8),
-                    _buildSocialIcon(
-                      _socialIcons[6],
-                      isDark,
-                      containerSize: 40,
-                      iconSize: 24,
-                      padding: 7,
-                    ), // TikTok
+                    _buildSocialIcon(_socialIcons[6], isDark, containerSize: 40, iconSize: 24, padding: 7),
                   ],
                 ),
                 const SizedBox(height: 30),
 
-                // ✅ تبديل بين تسجيل الدخول وإنشاء حساب
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
