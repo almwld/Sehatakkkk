@@ -105,6 +105,7 @@ class _WalletScreenState extends State<WalletScreen> {
                       Expanded(
                         child: ElevatedButton(
                           onPressed: () {
+                            // ✅ ربط زر شحن الرصيد بشاشة الإيداع
                             Navigator.push(
                               context,
                               MaterialPageRoute(
