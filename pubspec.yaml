@@ -110,8 +110,6 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^3.0.1
   retrofit_generator: ^8.0.6
-  flutter_launcher_icons: ^0.13.1
-  flutter_native_splash: ^2.3.10
 
 flutter:
   uses-material-design: true
@@ -159,14 +157,6 @@ flutter:
         - asset: assets/fonts/NotoSansArabicUI-Black.ttf
           weight: 900
 
-flutter_launcher_icons:
-  android: true
-  ios: false
-  image_path: "assets/icons/app_icon.svg"
-  min_sdk_android: 21
+# ✅ إزالة flutter_launcher_icons لأننا نستخدم Vector Drawable
+# ✅ إزالة flutter_native_splash لأننا نستخدم Vector Drawable
 
-flutter_native_splash:
-  color: "#FFFFFF"
-  image: assets/icons/app_icon.svg
-  android: true
-  ios: false
