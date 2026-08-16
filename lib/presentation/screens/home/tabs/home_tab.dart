@@ -1669,3 +1669,112 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     }
   }
 }
+
+  Widget _buildShimmerLoader(bool isDark) {
+    return Center(
+      child: Shimmer.fromColors(
+        baseColor: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+        highlightColor: isDark ? Colors.grey[700]! : Colors.grey[100]!,
+        child: Column(
+          children: [
+            Container(height: 200, margin: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16))),
+            const SizedBox(height: 8),
+            Container(height: 100, margin: const EdgeInsets.symmetric(horizontal: 16), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16))),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorScreen(bool isDark) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline, size: 60, color: Colors.red[300]),
+          const SizedBox(height: 16),
+          Text(_errorMessage, style: TextStyle(fontSize: 16, color: isDark ? Colors.white : Colors.black87)),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: _initializeData,
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            child: const Text('إعادة المحاولة', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _refreshData() async {
+    await _initializeData();
+  }
+
+  void _showTipDetails(Map<String, dynamic> tip) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[400], borderRadius: BorderRadius.circular(2)))),
+            const SizedBox(height: 16),
+            Row(children: [
+              Icon(tip['icon'] as IconData, color: AppColors.primary, size: 28),
+              const SizedBox(width: 12),
+              Expanded(child: Text(tip['title'] as String, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
+            ]),
+            const SizedBox(height: 8),
+            Text(tip['subtitle'] as String, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+            const Divider(height: 24),
+            Text(tip['content'] as String, style: const TextStyle(fontSize: 16, height: 1.6)),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                child: const Text('إغلاق'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showComments(Map<String, dynamic> post, int index) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(16),
+        height: MediaQuery.of(context).size.height * 0.6,
+        child: Column(
+          children: [
+            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[400], borderRadius: BorderRadius.circular(2)))),
+            const SizedBox(height: 16),
+            Text('التعليقات (${post['comments']})', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Divider(),
+            Expanded(
+              child: ListView.builder(
+                itemCount: (post['commentList'] as List).length,
+                itemBuilder: (context, i) {
+                  final comment = (post['commentList'] as List)[i];
+                  return ListTile(
+                    leading: CircleAvatar(backgroundColor: AppColors.primary.withOpacity(0.1), child: Text('م', style: TextStyle(color: AppColors.primary))),
+                    title: Text(comment),
+                    subtitle: Text('منذ دقيقة', style: TextStyle(color: Colors.grey[500])),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
