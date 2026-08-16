@@ -243,6 +243,21 @@ class CartScreen extends StatelessWidget {
   }
 
   Widget _buildCartSummary(CartProvider cartProvider, bool isDark, BuildContext context) {
+    // ✅ حساب الخصم يدوياً من العناصر
+    final totalBeforeDiscount = cartProvider.items.fold<double>(
+      0,
+      (sum, item) => sum + (item.price * item.quantity),
+    );
+    final totalAfterDiscount = cartProvider.items.fold<double>(
+      0,
+      (sum, item) {
+        final discount = item.discount ?? 0;
+        final priceAfterDiscount = item.price * (1 - discount / 100);
+        return sum + (priceAfterDiscount * item.quantity);
+      },
+    );
+    final discountAmount = totalBeforeDiscount - totalAfterDiscount;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -277,8 +292,8 @@ class CartScreen extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          if (cartProvider.discount > 0) ...[
+          if (discountAmount > 0) ...[
+            const SizedBox(height: 4),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -290,7 +305,7 @@ class CartScreen extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '-${cartProvider.discount.toStringAsFixed(0)} ر.ي',
+                  '-${discountAmount.toStringAsFixed(0)} ر.ي',
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.green,
@@ -299,7 +314,6 @@ class CartScreen extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 4),
           ],
           const SizedBox(height: 12),
           SizedBox(

@@ -41,7 +41,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
                 gradient: LinearGradient(
                   colors: [Color(0xFF1A237E), Color(0xFF3949AB)],
                 ),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.all(Radius.circular(16)),
               ),
               child: Column(
                 children: [
