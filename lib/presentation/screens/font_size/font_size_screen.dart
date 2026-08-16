@@ -74,7 +74,7 @@ class _FontSizeScreenState extends State<FontSizeScreen> {
                         height: 20,
                         decoration: BoxDecoration(
                           color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(2),
+                          borderRadius: BorderRadius.all(Radius.circular(2)),
                         ),
                       ),
                       SizedBox(width: 8),

@@ -71,6 +71,8 @@ class ContactUsScreen extends StatelessWidget {
   }
 
   Widget _buildContactItem(IconData icon, String label, String value, VoidCallback onTap, bool isDark) {
+    final borderColor = isDark ? const Color(0xFF2D3A54) : Colors.grey[200]!;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -78,7 +80,7 @@ class ContactUsScreen extends StatelessWidget {
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
-              color: isDark ? const Color(0xFF2D3A54) : Colors.grey[200],
+              color: borderColor,
             ),
           ),
         ),

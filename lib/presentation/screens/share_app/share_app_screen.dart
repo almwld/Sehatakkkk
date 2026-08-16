@@ -6,12 +6,12 @@ class ShareAppScreen extends StatelessWidget {
   const ShareAppScreen({super.key});
 
   final List<Map<String, dynamic>> _socialPlatforms = const [
-    {'icon': 'assets/icons/social/whatsapp.svg', 'name': 'واتساب', 'color': Color(0xFF25D366)},
-    {'icon': 'assets/icons/social/facebook.svg', 'name': 'فيسبوك', 'color': Color(0xFF1877F2)},
-    {'icon': 'assets/icons/social/instagram.svg', 'name': 'انستغرام', 'color': Color(0xFFE4405F)},
-    {'icon': 'assets/icons/social/x_twitter.svg', 'name': 'تويتر', 'color': Color(0xFF1DA1F2)},
-    {'icon': 'assets/icons/social/linkedin.svg', 'name': 'لينكد إن', 'color': Color(0xFF0A66C2)},
-    {'icon': 'assets/icons/social/discord.svg', 'name': 'ديسكورد', 'color': Color(0xFF5865F2)},
+    {'icon': Icons.chat, 'name': 'واتساب', 'color': Color(0xFF25D366)},
+    {'icon': Icons.facebook, 'name': 'فيسبوك', 'color': Color(0xFF1877F2)},
+    {'icon': Icons.photo_camera, 'name': 'انستغرام', 'color': Color(0xFFE4405F)},
+    {'icon': Icons.timeline, 'name': 'تويتر', 'color': Color(0xFF1DA1F2)},
+    {'icon': Icons.people, 'name': 'لينكد إن', 'color': Color(0xFF0A66C2)},
+    {'icon': Icons.games, 'name': 'ديسكورد', 'color': Color(0xFF5865F2)},
   ];
 
   void _shareApp() {
@@ -133,7 +133,7 @@ class ShareAppScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Icon(
-                            Icons.share_rounded,
+                            platform['icon'] as IconData,
                             color: platform['color'] as Color,
                             size: 28,
                           ),
