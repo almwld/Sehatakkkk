@@ -34,7 +34,7 @@ class PharmacyDetailsScreen extends StatelessWidget {
                 ),
                 errorWidget: (_, __, ___) => Container(
                   color: Colors.grey[200],
-                  child: const Icon(Icons.local_pharmacy, size: 80, color: AppColors.grey),
+                  child: const Icon(Icons.local_pharmacy, size: 80, color: Colors.grey),
                 ),
               ),
             ),
@@ -46,7 +46,7 @@ class PharmacyDetailsScreen extends StatelessWidget {
                   // ✅ معلومات الصيدلية
                   Text(
                     pharmacy['name'],
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   Row(
@@ -55,7 +55,7 @@ class PharmacyDetailsScreen extends StatelessWidget {
                       const SizedBox(width: 4),
                       Text(
                         '${pharmacy['rating']} (${pharmacy['reviews']} تقييم)',
-                        style: const TextStyle(fontSize: 14),
+                        style: TextStyle(fontSize: 14),
                       ),
                     ],
                   ),
@@ -102,12 +102,12 @@ class PharmacyDetailsScreen extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             '$label: ',
-            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
+            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
           ),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(fontSize: 13, color: AppColors.grey),
+              style: TextStyle(fontSize: 13, color: Colors.grey),
             ),
           ),
         ],

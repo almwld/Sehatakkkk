@@ -62,7 +62,7 @@ class PharmaciesListScreen extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           pharmacy['address'] as String,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.grey),
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey),
                         ),
                         const SizedBox(height: 8),
                         Row(
@@ -90,7 +90,7 @@ class PharmaciesListScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.grey),
+                  const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
                 ],
               ),
             ),

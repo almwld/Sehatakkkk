@@ -63,7 +63,7 @@ class _PharmacyProductsScreenState extends State<PharmacyProductsScreen> {
                     child: Center(
                       child: Text(
                         '${_cart.length}',
-                        style: const TextStyle(color: AppColors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: AppColors.white, fontSize: 10, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
@@ -111,7 +111,7 @@ class _PharmacyProductsScreenState extends State<PharmacyProductsScreen> {
                 const SizedBox(height: 4),
                 Text(
                   product['category'] as String,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.grey),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey),
                 ),
                 const Spacer(),
                 if (product['requiresPrescription'] as bool)
@@ -142,7 +142,7 @@ class _PharmacyProductsScreenState extends State<PharmacyProductsScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: (product['inStock'] as bool) ? AppColors.primary : AppColors.grey,
+                          color: (product['inStock'] as bool) ? AppColors.primary : Colors.grey,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Icon(Icons.add_shopping_cart, color: AppColors.white, size: 18),
