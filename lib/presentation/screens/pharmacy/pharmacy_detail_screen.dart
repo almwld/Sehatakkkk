@@ -1,4 +1,3 @@
-import 'package:sehatak/core/services/toast_service.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -86,7 +85,12 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
 
   void _submitOrder() {
     if (_selectedImage == null) {
-      ToastService.showError(context, 'يرجى رفع روشتة أو صورة الدواء');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('يرجى رفع روشتة أو صورة الدواء'),
+          backgroundColor: Colors.orange,
+        ),
+      );
       return;
     }
 
@@ -219,9 +223,9 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(text: ' معلومات'),
-            Tab(text: ' أدوية'),
-            Tab(text: ' طلب'),
+            Tab(text: '📋 معلومات'),
+            Tab(text: '💊 أدوية'),
+            Tab(text: '📦 طلب'),
           ],
           indicatorColor: Colors.white,
           labelColor: Colors.white,
@@ -250,7 +254,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
           ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: AppImage(
-              imageUrl: pharmacy['image'] as String,
+              url: pharmacy['image'] as String,
               height: 180,
               width: double.infinity,
             ),
@@ -371,7 +375,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
                     const Icon(Icons.delivery_dining, size: 14, color: Colors.blue),
                     const SizedBox(width: 4),
                     Text(
-                      (pharmacy['delivery'] as bool) ? '🚚 توصيل' : ' استلام',
+                      (pharmacy['delivery'] as bool) ? '🚚 توصيل' : '📦 استلام',
                       style: TextStyle(
                         color: Colors.blue,
                         fontWeight: FontWeight.w600,
@@ -460,7 +464,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
           }).toList(),
           const SizedBox(height: 16),
           const Text(
-            ' بدائل الأدوية',
+            '💊 بدائل الأدوية',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
@@ -889,7 +893,7 @@ class _PharmacyDetailScreenState extends State<PharmacyDetailScreen> with Single
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        ' متابعة الطلبات',
+                        '📦 متابعة الطلبات',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
