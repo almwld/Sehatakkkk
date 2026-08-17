@@ -30,7 +30,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar>
       duration: const Duration(milliseconds: 250),
     );
     _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 1.2), // إخفاء تام تحت الشاشة
+      begin: const Offset(0, 1.2),
       end: Offset.zero,
     ).animate(CurvedAnimation(
       parent: _animationController,
@@ -107,37 +107,36 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar>
           clipBehavior: Clip.none,
           children: [
             Transform.translate(
-              offset: const Offset(0, -18),
+              offset: const Offset(0, -14), // ✅ تقليل الارتفاع
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: 52,
-                    height: 52,
+                    width: 46, // ✅ تصغير الحجم
+                    height: 46,
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+                      // ✅ تغيير اللون إلى AppColors.primary
+                      color: isSelected ? AppColors.primary : Colors.grey[300],
                       shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF2E7D32).withOpacity(0.45),
-                          blurRadius: 10,
-                          spreadRadius: 2,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: AppColors.primary.withOpacity(0.4),
+                                blurRadius: 8,
+                                spreadRadius: 1,
+                                offset: const Offset(0, 3),
+                              ),
+                            ]
+                          : null,
                       border: Border.all(
                         color: isDark ? const Color(0xFF0B1121) : Colors.white,
-                        width: 3,
+                        width: 2,
                       ),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.chat_rounded,
-                      color: Colors.white,
-                      size: 26,
+                      color: isSelected ? Colors.white : Colors.grey[500],
+                      size: 22, // ✅ تصغير حجم الأيقونة
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -146,10 +145,9 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar>
                     style: TextStyle(
                       fontSize: 9,
                       color: isSelected
-                          ? const Color(0xFF2E7D32)
+                          ? AppColors.primary
                           : (isDark ? Colors.grey[400] : Colors.grey[600]),
-                      fontWeight:
-                          isSelected ? FontWeight.bold : FontWeight.w500,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                     ),
                   ),
                 ],
@@ -181,13 +179,13 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar>
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            customIcon ?? Icon(icon, color: color, size: 22),
-            const SizedBox(height: 3),
+            customIcon ?? Icon(icon, color: color, size: 20), // ✅ تصغير حجم الأيقونة
+            const SizedBox(height: 2),
             Text(
               label,
               maxLines: 1,
               style: TextStyle(
-                fontSize: 9,
+                fontSize: 8, // ✅ تصغير حجم النص
                 color: color,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
               ),
@@ -195,7 +193,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar>
             const SizedBox(height: 2),
             AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              width: isSelected ? 12 : 0,
+              width: isSelected ? 10 : 0,
               height: 2,
               decoration: BoxDecoration(
                 color: AppColors.primary,
@@ -215,7 +213,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar>
     return SlideTransition(
       position: _slideAnimation,
       child: Container(
-        height: 65,
+        height: 55, // ✅ تقليل ارتفاع الشريط من 65 إلى 55
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF0B1121) : Colors.white,
           boxShadow: [
