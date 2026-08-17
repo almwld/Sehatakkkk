@@ -488,6 +488,45 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   // ============================================================
   // 📊 دوال البناء
   // ============================================================
+  Widget _buildShimmerLoader(bool isDark) {
+    return Center(
+      child: Shimmer.fromColors(
+        baseColor: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+        highlightColor: isDark ? Colors.grey[700]! : Colors.grey[100]!,
+        child: Column(
+          children: [
+            Container(height: 200, margin: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16))),
+            const SizedBox(height: 8),
+            Container(height: 100, margin: const EdgeInsets.symmetric(horizontal: 16), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16))),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorScreen(bool isDark) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline, size: 60, color: Colors.red[300]),
+          const SizedBox(height: 16),
+          Text(_errorMessage, style: TextStyle(fontSize: 16, color: isDark ? Colors.white : Colors.black87)),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: _initializeData,
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            child: const Text('إعادة المحاولة', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _refreshData() async {
+    await _initializeData();
+  }
+
   Widget _buildBannerCarousel(bool isDark) {
     if (_bannerImages.isEmpty) {
       return Container(
@@ -1649,64 +1688,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
 
   void _sharePost(int index) {
     final post = _communityPosts[index];
-    ToastService.showError(context, '✅ تم مشاركة: ${post['title']}');
-      await _loadHealthScore();
-      if (mounted) {
-        setState(() {
-          _hasError = false;
-          _isLoading = false;
-          _isOffline = false;
-        });
-      } catch (e) {
-      if (mounted) {
-        setState(() {
-          _hasError = true;
-          _errorMessage = 'حدث خطأ في تحديث البيانات';
-          _isLoading = false;
-          _isOffline = true;
-        });
-      }
-    }
-  }
-}
-
-  Widget _buildShimmerLoader(bool isDark) {
-    return Center(
-      child: Shimmer.fromColors(
-        baseColor: isDark ? Colors.grey[800]! : Colors.grey[300]!,
-        highlightColor: isDark ? Colors.grey[700]! : Colors.grey[100]!,
-        child: Column(
-          children: [
-            Container(height: 200, margin: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16))),
-            const SizedBox(height: 8),
-            Container(height: 100, margin: const EdgeInsets.symmetric(horizontal: 16), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16))),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildErrorScreen(bool isDark) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.error_outline, size: 60, color: Colors.red[300]),
-          const SizedBox(height: 16),
-          Text(_errorMessage, style: TextStyle(fontSize: 16, color: isDark ? Colors.white : Colors.black87)),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: _initializeData,
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            child: const Text('إعادة المحاولة', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _refreshData() async {
-    await _initializeData();
+    ToastService.showSuccess(context, '✅ تم مشاركة: ${post['title']}');
   }
 
   void _showTipDetails(Map<String, dynamic> tip) {
@@ -1778,3 +1760,4 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       ),
     );
   }
+}
