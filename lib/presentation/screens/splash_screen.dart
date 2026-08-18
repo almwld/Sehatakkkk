@@ -1,4 +1,3 @@
-import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -22,41 +21,26 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _loadingCtrl;
   late Animation<double> _loadingAnimation;
   final AudioPlayer _audioPlayer = AudioPlayer();
-  bool _isNavigating = false;
 
-  // ✅ دوائر متحركة (زيادة العدد إلى 15 دائرة)
+  // ✅ دوائر متحركة
   final List<CircleData> _circles = [
-    // ✅ دوائر كبيرة
-    CircleData(size: 150, duration: 25, dx: -120, dy: -180, color: Colors.white.withOpacity(0.02)),
-    CircleData(size: 130, duration: 20, dx: 140, dy: -220, color: Colors.white.withOpacity(0.025)),
-    CircleData(size: 110, duration: 18, dx: -180, dy: 120, color: Colors.white.withOpacity(0.03)),
-    CircleData(size: 100, duration: 22, dx: 200, dy: 180, color: Colors.white.withOpacity(0.035)),
-    
-    // ✅ دوائر متوسطة
-    CircleData(size: 80, duration: 16, dx: -100, dy: -250, color: Colors.white.withOpacity(0.04)),
-    CircleData(size: 75, duration: 14, dx: 160, dy: -280, color: Colors.white.withOpacity(0.045)),
-    CircleData(size: 70, duration: 12, dx: -220, dy: 80, color: Colors.white.withOpacity(0.05)),
-    CircleData(size: 65, duration: 15, dx: 250, dy: 130, color: Colors.white.withOpacity(0.055)),
-    CircleData(size: 60, duration: 11, dx: -150, dy: 280, color: Colors.white.withOpacity(0.06)),
-    CircleData(size: 55, duration: 13, dx: 180, dy: -150, color: Colors.white.withOpacity(0.065)),
-    
-    // ✅ دوائر صغيرة
-    CircleData(size: 45, duration: 9, dx: -80, dy: 300, color: Colors.white.withOpacity(0.07)),
-    CircleData(size: 40, duration: 8, dx: 220, dy: 320, color: Colors.white.withOpacity(0.075)),
-    CircleData(size: 35, duration: 7, dx: -250, dy: -80, color: Colors.white.withOpacity(0.08)),
-    CircleData(size: 30, duration: 6, dx: 280, dy: -100, color: Colors.white.withOpacity(0.085)),
-    CircleData(size: 25, duration: 5, dx: -300, dy: 50, color: Colors.white.withOpacity(0.09)),
+    CircleData(size: 120, duration: 20, dx: -100, dy: -150, color: Colors.white.withOpacity(0.03)),
+    CircleData(size: 80, duration: 15, dx: 120, dy: -200, color: Colors.white.withOpacity(0.04)),
+    CircleData(size: 60, duration: 12, dx: -150, dy: 100, color: Colors.white.withOpacity(0.05)),
+    CircleData(size: 40, duration: 8, dx: 180, dy: 150, color: Colors.white.withOpacity(0.06)),
+    CircleData(size: 100, duration: 18, dx: -80, dy: 250, color: Colors.white.withOpacity(0.03)),
+    CircleData(size: 50, duration: 10, dx: 200, dy: -100, color: Colors.white.withOpacity(0.04)),
+    CircleData(size: 70, duration: 14, dx: -200, dy: -50, color: Colors.white.withOpacity(0.05)),
+    CircleData(size: 30, duration: 6, dx: 100, dy: 280, color: Colors.white.withOpacity(0.06)),
   ];
 
   @override
   void initState() {
     super.initState();
-    _playSplashSound();
-    _initAnimations();
-    _checkAuthAndNavigate();
-  }
 
-  void _initAnimations() {
+    _playSplashSound();
+
+    // ✅ التحكم الرئيسي
     _mainCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
@@ -70,6 +54,7 @@ class _SplashScreenState extends State<SplashScreen>
       CurvedAnimation(parent: _mainCtrl, curve: Curves.elasticOut),
     );
 
+    // ✅ التحكم لخط التحميل
     _loadingCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
@@ -81,6 +66,12 @@ class _SplashScreenState extends State<SplashScreen>
 
     _mainCtrl.forward();
     _loadingCtrl.repeat();
+
+    // ✅ مدة العرض: 5 ثواني (تم التعديل من 10 إلى 5)
+    Future.delayed(const Duration(seconds: 5), () {
+      if (!mounted) return;
+      _navigateToNext();
+    });
   }
 
   Future<void> _playSplashSound() async {
@@ -94,16 +85,11 @@ class _SplashScreenState extends State<SplashScreen>
     }
   }
 
-  void _checkAuthAndNavigate() async {
-    await Future.delayed(const Duration(seconds: 3));
-    
-    if (_isNavigating) return;
-    _isNavigating = true;
+  Future<void> _navigateToNext() async {
+    await _audioPlayer.stop();
 
     final user = FirebaseAuth.instance.currentUser;
     final prefs = await SharedPreferences.getInstance();
-    
-    await prefs.setBool('has_seen_splash', true);
 
     if (!mounted) return;
 
@@ -145,10 +131,14 @@ class _SplashScreenState extends State<SplashScreen>
         child: SafeArea(
           child: Stack(
             children: [
-              // ✅ دوائر متحركة (15 دائرة)
+              // ============================================================
+              // ✅ دوائر متحركة في الخلفية
+              // ============================================================
               ..._circles.map((circle) => _buildAnimatedCircle(circle)),
 
+              // ============================================================
               // ✅ المحتوى الرئيسي
+              // ============================================================
               Center(
                 child: SingleChildScrollView(
                   physics: const ClampingScrollPhysics(),
@@ -238,41 +228,42 @@ class _SplashScreenState extends State<SplashScreen>
                                 ),
                               ),
 
-                              SizedBox(height: screenHeight * 0.04),
+                              SizedBox(height: screenHeight * 0.05),
 
-                              // ✅ "صحتك أولاً" (رفعها فوق الشريط المتحرك)
-                              const Text(
-                                'صحتك أولاً',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 5,
-                                  height: 1.5,
-                                ),
+                              // ============================================================
+                              // ✅ "صحتك أولاً"
+                              // ============================================================
+                              Column(
+                                children: [
+                                  const Text(
+                                    'صحتك أولاً',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: 4,
+                                      height: 1.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Container(
+                                    width: 60,
+                                    height: 1,
+                                    color: Colors.white.withOpacity(0.3),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    '© 2026 Sehatak Platform',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 9,
+                                      color: Colors.white.withOpacity(0.3),
+                                      letterSpacing: 2,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(height: 4),
-                              Container(
-                                width: 80,
-                                height: 1.5,
-                                color: Colors.white.withOpacity(0.3),
-                              ),
-                              const SizedBox(height: 8),
-
-                              // ✅ "Sehatak Platform ©" فوق الشريط المتحرك
-                              Text(
-                                '© 2026 Sehatak Platform',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.white.withOpacity(0.4),
-                                  letterSpacing: 3,
-                                  fontWeight: FontWeight.w300,
-                                ),
-                              ),
-
-                              SizedBox(height: screenHeight * 0.03),
                             ],
                           ),
                         ),
@@ -282,7 +273,9 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
               ),
 
-              // ✅ خط تحميل متحرك (أسفل الشاشة)
+              // ============================================================
+              // ✅ خط تحميل متحرك في أسفل الشاشة (مرفوع 5%)
+              // ============================================================
               Positioned(
                 bottom: screenHeight * 0.05,
                 left: 0,
@@ -315,14 +308,17 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
+  // ============================================================
+  // ✅ دوائر متحركة
+  // ============================================================
   Widget _buildAnimatedCircle(CircleData circle) {
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 0, end: 2 * 3.14159),
       duration: Duration(seconds: circle.duration),
       curve: Curves.linear,
       builder: (context, angle, child) {
-        final x = circle.dx + 180 * (angle / (2 * 3.14159) * 2 - 1);
-        final y = circle.dy + 180 * (angle / (2 * 3.14159) * 2 - 1);
+        final x = circle.dx + 150 * (angle / (2 * 3.14159) * 2 - 1);
+        final y = circle.dy + 150 * (angle / (2 * 3.14159) * 2 - 1);
         return Positioned(
           left: MediaQuery.of(context).size.width / 2 + x - circle.size / 2,
           top: MediaQuery.of(context).size.height / 2 + y - circle.size / 2,
@@ -344,6 +340,9 @@ class _SplashScreenState extends State<SplashScreen>
   }
 }
 
+// ============================================================
+// ✅ بيانات الدوائر
+// ============================================================
 class CircleData {
   final double size;
   final int duration;
