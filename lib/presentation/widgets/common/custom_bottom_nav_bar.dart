@@ -1,226 +1,189 @@
+// ============================================================
+// 📱 CustomBottomNavigationBar - شريط التنقل السفلي المخصص
+// ============================================================
+
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
-class CustomBottomNavBar extends StatefulWidget {
+class CustomBottomNavigationBar extends StatefulWidget {
   final int currentIndex;
   final Function(int) onTap;
-  final bool isVisible;
+  final ScrollController scrollController;
+  final bool isLoggedIn;
+  final VoidCallback onAuthRequired;
 
-  const CustomBottomNavBar({
+  const CustomBottomNavigationBar({
     super.key,
     required this.currentIndex,
     required this.onTap,
-    this.isVisible = true,
+    required this.scrollController,
+    required this.isLoggedIn,
+    required this.onAuthRequired,
   });
 
   @override
-  State<CustomBottomNavBar> createState() => _CustomBottomNavBarState();
+  State<CustomBottomNavigationBar> createState() =>
+      _CustomBottomNavigationBarState();
 }
 
-class _CustomBottomNavBarState extends State<CustomBottomNavBar>
+class _CustomBottomNavigationBarState
+    extends State<CustomBottomNavigationBar>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
-  late Animation<Offset> _slideAnimation;
+  late Animation<double> _slideAnimation;
+  bool _isVisible = true;
+  double _lastScrollOffset = 0;
+
+  // قائمة عناصر التنقل
+  final List<NavItem> _navItems = [
+    NavItem(
+      index: 0,
+      icon: Icons.home_rounded,
+      label: 'الرئيسية',
+      isProtected: false,
+    ),
+    NavItem(
+      index: 1,
+      icon: Icons.person_search_rounded,
+      label: 'الأطباء',
+      isProtected: false,
+    ),
+    NavItem(
+      index: 2,
+      icon: Icons.local_pharmacy_rounded,
+      label: 'الصيدلية',
+      isProtected: false,
+    ),
+    NavItem(
+      index: 3,
+      icon: Icons.chat_rounded,
+      label: 'الدردشة',
+      isProtected: true,
+      isSpecial: true,
+    ),
+    NavItem(
+      index: 4,
+      icon: Icons.science_rounded,
+      label: 'مختبرات',
+      isProtected: true,
+    ),
+    NavItem(
+      index: 5,
+      icon: Icons.folder_rounded,
+      label: 'صحتي',
+      isProtected: true,
+    ),
+    NavItem(
+      index: 6,
+      icon: Icons.grid_view_rounded,
+      label: 'المزيد',
+      isProtected: false,
+    ),
+  ];
 
   @override
   void initState() {
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 250),
+      duration: const Duration(milliseconds: 300),
     );
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 1.2),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.fastOutSlowIn,
-    ));
+    _slideAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeInOut,
+      ),
+    );
 
-    if (widget.isVisible) {
-      _animationController.forward();
-    }
-  }
-
-  @override
-  void didUpdateWidget(CustomBottomNavBar oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.isVisible != oldWidget.isVisible) {
-      if (widget.isVisible) {
-        _animationController.forward();
-      } else {
-        _animationController.reverse();
-      }
-    }
+    // إضافة مستمع للتمرير
+    widget.scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
+    widget.scrollController.removeListener(_onScroll);
     _animationController.dispose();
     super.dispose();
   }
 
-  Widget _buildCartIcon(bool isDark) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Icon(
-          Icons.local_pharmacy_rounded,
-          color: widget.currentIndex == 2
-              ? AppColors.primary
-              : (isDark ? Colors.grey[400] : Colors.grey[600]),
-          size: 22,
-        ),
-        Positioned(
-          right: -6,
-          top: -4,
-          child: Container(
-            padding: const EdgeInsets.all(2),
-            decoration: const BoxDecoration(
-              color: Colors.red,
-              shape: BoxShape.circle,
-            ),
-            constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
-            child: const Text(
-              '3',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 8,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
-      ],
-    );
+  // ============================================================
+  // 🎯 معالجة التمرير لإخفاء/إظهار الشريط
+  // ============================================================
+
+  void _onScroll() {
+    if (!widget.scrollController.hasClients) return;
+
+    final currentOffset = widget.scrollController.offset;
+    final maxExtent = widget.scrollController.position.maxScrollExtent;
+
+    // منع التمرير عندما يكون المحتوى أقل من الشاشة
+    if (maxExtent <= 0) return;
+
+    final delta = currentOffset - _lastScrollOffset;
+    final isScrollingDown = delta > 0;
+    final isAtTop = currentOffset < 50;
+
+    // إظهار الشريط عند الوصول للأعلى
+    if (isAtTop && !_isVisible) {
+      _showBar();
+      _lastScrollOffset = currentOffset;
+      return;
+    }
+
+    // إخفاء الشريط عند التمرير للأسفل
+    if (isScrollingDown && _isVisible && currentOffset > 100) {
+      _hideBar();
+    }
+    // إظهار الشريط عند التمرير للأعلى
+    else if (!isScrollingDown && !_isVisible && currentOffset > 50) {
+      _showBar();
+    }
+
+    _lastScrollOffset = currentOffset;
   }
 
-  Widget _buildFloatingChatButton(bool isDark) {
-    final isSelected = widget.currentIndex == 3;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => widget.onTap(3),
-        behavior: HitTestBehavior.opaque,
-        child: Stack(
-          alignment: Alignment.center,
-          clipBehavior: Clip.none,
-          children: [
-            Transform.translate(
-              offset: const Offset(0, -14), // ✅ تقليل الارتفاع
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 46, // ✅ تصغير الحجم
-                    height: 46,
-                    decoration: BoxDecoration(
-                      // ✅ تغيير اللون إلى AppColors.primary
-                      color: isSelected ? AppColors.primary : Colors.grey[300],
-                      shape: BoxShape.circle,
-                      boxShadow: isSelected
-                          ? [
-                              BoxShadow(
-                                color: AppColors.primary.withOpacity(0.4),
-                                blurRadius: 8,
-                                spreadRadius: 1,
-                                offset: const Offset(0, 3),
-                              ),
-                            ]
-                          : null,
-                      border: Border.all(
-                        color: isDark ? const Color(0xFF0B1121) : Colors.white,
-                        width: 2,
-                      ),
-                    ),
-                    child: Icon(
-                      Icons.chat_rounded,
-                      color: isSelected ? Colors.white : Colors.grey[500],
-                      size: 22, // ✅ تصغير حجم الأيقونة
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'الدردشة',
-                    style: TextStyle(
-                      fontSize: 9,
-                      color: isSelected
-                          ? AppColors.primary
-                          : (isDark ? Colors.grey[400] : Colors.grey[600]),
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  void _hideBar() {
+    if (!_isVisible) return;
+    setState(() => _isVisible = false);
+    _animationController.reverse();
   }
 
-  Widget _buildNavItem({
-    required IconData icon,
-    required String label,
-    required int index,
-    required bool isDark,
-    Widget? customIcon,
-  }) {
-    final isSelected = widget.currentIndex == index;
-    final color = isSelected
-        ? AppColors.primary
-        : (isDark ? Colors.grey[400] : Colors.grey[600]);
-
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => widget.onTap(index),
-        behavior: HitTestBehavior.opaque,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            customIcon ?? Icon(icon, color: color, size: 20), // ✅ تصغير حجم الأيقونة
-            const SizedBox(height: 2),
-            Text(
-              label,
-              maxLines: 1,
-              style: TextStyle(
-                fontSize: 8, // ✅ تصغير حجم النص
-                color: color,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 2),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: isSelected ? 10 : 0,
-              height: 2,
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  void _showBar() {
+    if (_isVisible) return;
+    setState(() => _isVisible = true);
+    _animationController.forward();
   }
+
+  // ============================================================
+  // 🎨 بناء الواجهة
+  // ============================================================
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor = isDark ? const Color(0xFF1E293B) : Colors.white;
 
-    return SlideTransition(
-      position: _slideAnimation,
+    return AnimatedBuilder(
+      animation: _slideAnimation,
+      builder: (context, child) {
+        final slideOffset = (1 - _slideAnimation.value) *
+            100; // مسافة الانزلاق للأسفل
+        return Transform.translate(
+          offset: Offset(0, _isVisible ? 0 : slideOffset),
+          child: child,
+        );
+      },
       child: Container(
-        height: 55, // ✅ تقليل ارتفاع الشريط من 65 إلى 55
+        height: 75,
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF0B1121) : Colors.white,
+          color: backgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.08),
-              blurRadius: 12,
-              offset: const Offset(0, -3),
+              blurRadius: 16,
+              offset: const Offset(0, -4),
+              spreadRadius: 2,
             ),
           ],
         ),
@@ -228,50 +191,220 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar>
           top: false,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              _buildNavItem(
-                icon: Icons.home_rounded,
-                label: 'الرئيسية',
-                index: 0,
-                isDark: isDark,
-              ),
-              _buildNavItem(
-                icon: Icons.person_search_rounded,
-                label: 'الأطباء',
-                index: 1,
-                isDark: isDark,
-              ),
-              _buildNavItem(
-                icon: Icons.local_pharmacy_rounded,
-                label: 'الصيدلية',
-                index: 2,
-                isDark: isDark,
-                customIcon: _buildCartIcon(isDark),
-              ),
-              _buildFloatingChatButton(isDark),
-              _buildNavItem(
-                icon: Icons.science_rounded,
-                label: 'مختبرات',
-                index: 4,
-                isDark: isDark,
-              ),
-              _buildNavItem(
-                icon: Icons.folder_rounded,
-                label: 'صحتي',
-                index: 5,
-                isDark: isDark,
-              ),
-              _buildNavItem(
-                icon: Icons.grid_view_rounded,
-                label: 'المزيد',
-                index: 6,
-                isDark: isDark,
-              ),
-            ],
+            children: _navItems.map((item) {
+              // زر الدردشة الخاص
+              if (item.isSpecial) {
+                return _buildSpecialChatButton(item);
+              }
+              return _buildNavItem(item);
+            }).toList(),
           ),
         ),
       ),
     );
   }
+
+  // ============================================================
+  // 🔘 عناصر التنقل
+  // ============================================================
+
+  Widget _buildNavItem(NavItem item) {
+    final isSelected = widget.currentIndex == item.index;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return GestureDetector(
+      onTap: () => _handleTap(item),
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        width: 50,
+        height: 60,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // الأيقونة مع تأثير التحجيم
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut,
+              transform: Matrix4.identity()
+                ..scale(isSelected ? 1.1 : 1.0),
+              child: Icon(
+                item.icon,
+                color: isSelected
+                    ? AppColors.primary
+                    : (isDark ? Colors.grey.shade500 : Colors.grey.shade400),
+                size: isSelected ? 26 : 24,
+              ),
+            ),
+            const SizedBox(height: 4),
+            // النص مع تأثير التلاشي
+            AnimatedOpacity(
+              duration: const Duration(milliseconds: 200),
+              opacity: isSelected ? 1 : 0.7,
+              child: Text(
+                item.label,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  color: isSelected
+                      ? AppColors.primary
+                      : (isDark ? Colors.grey.shade400 : Colors.grey.shade500),
+                ),
+              ),
+            ),
+            // المؤشر السفلي
+            if (isSelected)
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                height: 3,
+                width: 20,
+                margin: const EdgeInsets.only(top: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.4),
+                      blurRadius: 6,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+              )
+            else
+              const SizedBox(height: 5),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // 💬 زر الدردشة الخاص (بارز)
+  // ============================================================
+
+  Widget _buildSpecialChatButton(NavItem item) {
+    final isSelected = widget.currentIndex == item.index;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return GestureDetector(
+      onTap: () => _handleTap(item),
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        width: 60,
+        height: 75,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            // الزر الدائري البارز
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              transform: Matrix4.identity()
+                ..scale(isSelected ? 1.1 : 1.0),
+              child: Container(
+                width: 54,
+                height: 54,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppColors.primary, AppColors.primaryDark],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.4),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // الأيقونة
+                    Icon(
+                      item.icon,
+                      color: Colors.white,
+                      size: 30,
+                    ),
+                    // تأثير التموج (Ripple)
+                    if (isSelected)
+                      Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: AppColors.primary.withOpacity(0.3),
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 2),
+            // النص
+            AnimatedOpacity(
+              duration: const Duration(milliseconds: 200),
+              opacity: isSelected ? 1 : 0.7,
+              child: Text(
+                item.label,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  color: isSelected
+                      ? AppColors.primary
+                      : (isDark ? Colors.grey.shade400 : Colors.grey.shade500),
+                ),
+              ),
+            ),
+            const SizedBox(height: 2),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // 🎯 معالجة الضغط
+  // ============================================================
+
+  void _handleTap(NavItem item) {
+    // التحقق من المصادقة للعناصر المحمية
+    if (item.isProtected && !widget.isLoggedIn) {
+      widget.onAuthRequired();
+      return;
+    }
+
+    // إضافة تأثير اهتزاز عند الضغط
+    HapticFeedback.lightImpact();
+
+    // تغيير التبويب
+    widget.onTap(item.index);
+  }
+}
+
+// ============================================================
+// 📦 نموذج عنصر التنقل
+// ============================================================
+
+class NavItem {
+  final int index;
+  final IconData icon;
+  final String label;
+  final bool isProtected;
+  final bool isSpecial;
+
+  const NavItem({
+    required this.index,
+    required this.icon,
+    required this.label,
+    this.isProtected = false,
+    this.isSpecial = false,
+  });
 }
