@@ -3,6 +3,7 @@
 // ============================================================
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // ✅ إضافة import لـ HapticFeedback
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class CustomBottomNavigationBar extends StatefulWidget {

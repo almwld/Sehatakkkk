@@ -99,7 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: ValueListenableBuilder<bool>(
               valueListenable: _isBottomBarVisible,
               builder: (context, isVisible, child) {
-                return CustomBottomNavBar(
+                return CustomBottomNavigationBar(
                   currentIndex: _currentIndex,
                   onTap: _onTabTap,
                   isVisible: isVisible,
