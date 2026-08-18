@@ -160,3 +160,13 @@ flutter:
 # ✅ إزالة flutter_launcher_icons لأننا نستخدم Vector Drawable
 # ✅ إزالة flutter_native_splash لأننا نستخدم Vector Drawable
 
+
+# ✅ مكتبات التخزين المحلي
+dependencies:
+  sqflite: ^2.3.0
+  path: ^1.8.3
+  shared_preferences: ^2.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
