@@ -1761,3 +1761,98 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 }
+
+  // ============================================================
+  // 🔄 دورة الحياة - الإضافات المهمة
+  // ============================================================
+
+  // ✅ 1️⃣ didChangeDependencies - لتتبع تغيرات الثيم واللغة
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // يمكن إضافة منطق لتحديث الواجهة عند تغير الثيم
+  }
+
+  // ✅ 2️⃣ didUpdateWidget - لتتبع تغيرات الـ Widget
+  @override
+  void didUpdateWidget(HomeTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.scrollController != oldWidget.scrollController) {
+      // تحديث الـ scroll controller إذا تغير
+    }
+  }
+
+  // ✅ 3️⃣ dispose - تنظيف الموارد
+  @override
+  void dispose() {
+    // تنظيف أي Controllers أو Streams إذا وجدت
+    super.dispose();
+  }
+
+  // ✅ 4️⃣ دالة التحديث اليدوي
+  Future<void> _refreshData() async {
+    setState(() => _isLoading = true);
+    await _initializeData();
+    setState(() => _isLoading = false);
+  }
+
+  // ✅ 5️⃣ دوال الـ Shimmer و Error
+  Widget _buildShimmerLoader(bool isDark) {
+    return Center(
+      child: Shimmer.fromColors(
+        baseColor: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+        highlightColor: isDark ? Colors.grey[700]! : Colors.grey[100]!,
+        child: Column(
+          children: [
+            Container(
+              height: 200,
+              margin: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              height: 100,
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorScreen(bool isDark) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline, size: 60, color: Colors.red[300]),
+          const SizedBox(height: 16),
+          Text(
+            _errorMessage,
+            style: TextStyle(
+              fontSize: 16,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: _initializeData,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+            ),
+            child: const Text(
+              'إعادة المحاولة',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
