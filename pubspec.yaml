@@ -151,11 +151,12 @@ dependencies:
   retrofit_generator: ^8.0.6
 
   # ============================================================
-  # 🍞 Toast & Messages (الرسائل العائمة)
+  # 🍞 Toast & Messages (الرسائل العائمة) - البدائل
   # ============================================================
-  fluttertoast: ^8.2.4
-  overlay_support: ^2.1.0
-  flutter_native_toast: ^1.0.1
+  fluttertoast: ^8.2.4          # ✅ أشهر مكتبة توست
+  overlay_support: ^2.1.0       # ✅ دعم التراكب
+  bot_toast: ^4.1.3             # ✅ بديل ممتاز للتوست
+  flutter_smart_dialog: ^4.9.0+1 # ✅ حوارات ذكية
 
 dev_dependencies:
   flutter_test:
