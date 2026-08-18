@@ -30,6 +30,29 @@ import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
 import 'package:sehatak/presentation/screens/notifications/notifications_screen.dart';
 import 'package:sehatak/presentation/screens/pharmacy/cart_screen.dart';
 
+// ============================================================
+// 📐 CustomClipper للشريط العلوي المنحني
+// ============================================================
+class BottomCurvedClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    var path = Path();
+    path.lineTo(0, size.height - 40);
+    var firstControlPoint = Offset(size.width / 2, size.height);
+    var firstEndPoint = Offset(size.width, size.height - 40);
+    path.quadraticBezierTo(
+      firstControlPoint.dx, firstControlPoint.dy,
+      firstEndPoint.dx, firstEndPoint.dy,
+    );
+    path.lineTo(size.width, 0);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+}
+
 class HomeTab extends StatefulWidget {
   final ScrollController? scrollController;
   final ValueNotifier<bool>? isBottomBarVisible;
@@ -59,6 +82,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   double _sleepAnim = 0;
   double _heartAnim = 0;
   bool _isOffline = false;
+  double _appBarOpacity = 1.0;
 
   // ============================================================
   // 📦 البيانات
@@ -153,6 +177,22 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   void initState() {
     super.initState();
     _initializeData();
+    widget.scrollController?.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    widget.scrollController?.removeListener(_onScroll);
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!mounted) return;
+    final maxScroll = widget.scrollController?.position.maxScrollExtent ?? 0;
+    final currentScroll = widget.scrollController?.position.pixels ?? 0;
+    setState(() {
+      _appBarOpacity = 1.0 - (currentScroll / maxScroll).clamp(0.0, 0.5);
+    });
   }
 
   Future<void> _initializeData() async {
@@ -177,6 +217,11 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         });
       }
     }
+  }
+
+  Future<void> _refreshData() async {
+    setState(() => _isLoading = true);
+    await _initializeData();
   }
 
   void _loadUserData() {
@@ -233,9 +278,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ============================================================
-  // 🔍 شريط البحث
+  // ✅ شريط البحث العائم
   // ============================================================
-  Widget _buildSearchBar(BuildContext context, bool isDark) {
+  Widget _buildFloatingSearchBar(bool isDark) {
     return GestureDetector(
       onTap: () {
         showSearch(
@@ -244,12 +289,20 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         );
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF1A2540) : Colors.white,
-          borderRadius: BorderRadius.circular(25),
+          borderRadius: BorderRadius.circular(30),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
           border: Border.all(
-            color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+            color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
             width: 1,
           ),
         ),
@@ -259,9 +312,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               'assets/images/icons/search/Search button.png',
               width: 22,
               height: 22,
-              color: AppColors.primary,
+              color: isDark ? Colors.grey[400] : Colors.grey[500],
               errorBuilder: (context, error, stackTrace) {
-                return Icon(Icons.search, color: AppColors.primary, size: 22);
+                return Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey[500], size: 22);
               },
             ),
             const SizedBox(width: 12),
@@ -278,12 +331,141 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               'assets/images/chat/microphone.png',
               width: 22,
               height: 22,
-              color: AppColors.primary,
+              color: isDark ? Colors.grey[500] : Colors.grey[400],
               errorBuilder: (context, error, stackTrace) {
-                return Icon(Icons.mic, color: AppColors.primary, size: 22);
+                return Icon(Icons.mic, color: isDark ? Colors.grey[500] : Colors.grey[400], size: 22);
               },
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // 📱 الشريط العلوي المنحني
+  // ============================================================
+  Widget _buildCurvedAppBar(bool isDark) {
+    return Opacity(
+      opacity: _appBarOpacity,
+      child: ClipPath(
+        clipper: BottomCurvedClipper(),
+        child: Container(
+          height: 120,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppColors.primary,
+                AppColors.primary.withOpacity(0.8),
+              ],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withOpacity(0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  // ✅ الصورة الرمزية
+                  Hero(
+                    tag: 'user_avatar',
+                    child: GestureDetector(
+                      onTap: () => _goTo(context, const PatientProfile()),
+                      child: CircleAvatar(
+                        radius: 22,
+                        backgroundColor: Colors.white.withOpacity(0.2),
+                        child: Text(
+                          _isLoggedIn ? _userName[0].toUpperCase() : 'م',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // ✅ النصوص
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          _isLoggedIn ? 'مرحباً، $_userName 👋' : 'مرحباً بك في صحتك',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          _isLoggedIn ? 'كيف تشعر اليوم؟' : 'سجل دخولك للاستفادة',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.8),
+                            fontSize: 13,
+                          ),
+                        ),
+                        if (_isOffline)
+                          Container(
+                            margin: const EdgeInsets.only(top: 2),
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              '📶 غير متصل',
+                              style: TextStyle(fontSize: 9, color: Colors.orange),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  // ✅ أيقونات الإشعارات والسلة
+                  GestureDetector(
+                    onTap: () => _goTo(context, const NotificationsScreen()),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      child: Image.asset(
+                        'assets/images/icons/top_bar/notifications.png',
+                        width: 26,
+                        height: 26,
+                        color: Colors.white,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Icon(Icons.notifications, color: Colors.white, size: 26);
+                        },
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => _goTo(context, const CartScreen()),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      child: Image.asset(
+                        'assets/images/icons/top_bar/Shopping cart.png',
+                        width: 26,
+                        height: 26,
+                        color: Colors.white,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Icon(Icons.shopping_cart, color: Colors.white, size: 26);
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -312,13 +494,23 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         body: CustomScrollView(
           controller: widget.scrollController,
           slivers: [
-            _buildCustomAppBar(isDark),
+            // ✅ الشريط العلوي المنحني
+            SliverToBoxAdapter(
+              child: _buildCurvedAppBar(isDark),
+            ),
+            // ✅ شريط البحث العائم (بـ margin سالب)
+            SliverToBoxAdapter(
+              child: Transform.translate(
+                offset: const Offset(0, -20),
+                child: _buildFloatingSearchBar(isDark),
+              ),
+            ),
+            // ✅ باقي المحتوى
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                  _buildSearchBar(context, isDark),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
                   _buildBannerCarousel(isDark),
                   const SizedBox(height: 16),
                   if (_isLoggedIn) ...[
@@ -377,117 +569,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ============================================================
-  // 📱 الشريط العلوي
+  // 📊 دوال البناء (جميع الدوال كاملة)
   // ============================================================
-  SliverAppBar _buildCustomAppBar(bool isDark) {
-    return SliverAppBar(
-      expandedHeight: 90,
-      floating: true,
-      snap: true,
-      pinned: false,
-      backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
-      elevation: 0,
-      automaticallyImplyLeading: false,
-      flexibleSpace: FlexibleSpaceBar(
-        background: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            children: [
-              Hero(
-                tag: 'user_avatar',
-                child: GestureDetector(
-                  onTap: () => _goTo(context, const PatientProfile()),
-                  child: CircleAvatar(
-                    radius: 20,
-                    backgroundColor: AppColors.primary.withOpacity(0.1),
-                    child: Text(
-                      _isLoggedIn ? _userName[0].toUpperCase() : 'م',
-                      style: TextStyle(
-                        color: AppColors.primary,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      _isLoggedIn ? 'مرحباً، $_userName 👋' : 'منصة صحتك',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black87,
-                      ),
-                    ),
-                    Text(
-                      _isLoggedIn ? 'كيف تشعر اليوم؟' : 'سجل دخولك للاستفادة',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: isDark ? Colors.grey[400] : Colors.grey[600],
-                      ),
-                    ),
-                    if (_isOffline)
-                      Container(
-                        margin: const EdgeInsets.only(top: 2),
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                        decoration: BoxDecoration(
-                          color: Colors.orange.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: const Text(
-                          '📶 غير متصل - عرض البيانات المخزنة',
-                          style: TextStyle(fontSize: 9, color: Colors.orange),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              GestureDetector(
-                onTap: () => _goTo(context, const NotificationsScreen()),
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  child: Image.asset(
-                    'assets/images/icons/top_bar/notifications.png',
-                    width: 28,
-                    height: 28,
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Icon(Icons.notifications, color: isDark ? Colors.white : Colors.black87, size: 28);
-                    },
-                  ),
-                ),
-              ),
-              GestureDetector(
-                onTap: () => _goTo(context, const CartScreen()),
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  child: Image.asset(
-                    'assets/images/icons/top_bar/Shopping cart.png',
-                    width: 28,
-                    height: 28,
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Icon(Icons.shopping_cart, color: isDark ? Colors.white : Colors.black87, size: 28);
-                    },
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
-  // ============================================================
-  // 📊 دوال البناء
-  // ============================================================
   Widget _buildShimmerLoader(bool isDark) {
     return Center(
       child: Shimmer.fromColors(
@@ -495,7 +579,11 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         highlightColor: isDark ? Colors.grey[700]! : Colors.grey[100]!,
         child: Column(
           children: [
-            Container(height: 200, margin: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16))),
+            Container(height: 120, margin: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16))),
+            const SizedBox(height: 8),
+            Container(height: 60, margin: const EdgeInsets.symmetric(horizontal: 16), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16))),
+            const SizedBox(height: 8),
+            Container(height: 200, margin: const EdgeInsets.symmetric(horizontal: 16), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16))),
             const SizedBox(height: 8),
             Container(height: 100, margin: const EdgeInsets.symmetric(horizontal: 16), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16))),
           ],
@@ -521,10 +609,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         ],
       ),
     );
-  }
-
-  Future<void> _refreshData() async {
-    await _initializeData();
   }
 
   Widget _buildBannerCarousel(bool isDark) {
@@ -1761,98 +1845,3 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 }
-
-  // ============================================================
-  // 🔄 دورة الحياة - الإضافات المهمة
-  // ============================================================
-
-  // ✅ 1️⃣ didChangeDependencies - لتتبع تغيرات الثيم واللغة
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // يمكن إضافة منطق لتحديث الواجهة عند تغير الثيم
-  }
-
-  // ✅ 2️⃣ didUpdateWidget - لتتبع تغيرات الـ Widget
-  @override
-  void didUpdateWidget(HomeTab oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.scrollController != oldWidget.scrollController) {
-      // تحديث الـ scroll controller إذا تغير
-    }
-  }
-
-  // ✅ 3️⃣ dispose - تنظيف الموارد
-  @override
-  void dispose() {
-    // تنظيف أي Controllers أو Streams إذا وجدت
-    super.dispose();
-  }
-
-  // ✅ 4️⃣ دالة التحديث اليدوي
-  Future<void> _refreshData() async {
-    setState(() => _isLoading = true);
-    await _initializeData();
-    setState(() => _isLoading = false);
-  }
-
-  // ✅ 5️⃣ دوال الـ Shimmer و Error
-  Widget _buildShimmerLoader(bool isDark) {
-    return Center(
-      child: Shimmer.fromColors(
-        baseColor: isDark ? Colors.grey[800]! : Colors.grey[300]!,
-        highlightColor: isDark ? Colors.grey[700]! : Colors.grey[100]!,
-        child: Column(
-          children: [
-            Container(
-              height: 200,
-              margin: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              height: 100,
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildErrorScreen(bool isDark) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.error_outline, size: 60, color: Colors.red[300]),
-          const SizedBox(height: 16),
-          Text(
-            _errorMessage,
-            style: TextStyle(
-              fontSize: 16,
-              color: isDark ? Colors.white : Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: _initializeData,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-            ),
-            child: const Text(
-              'إعادة المحاولة',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
