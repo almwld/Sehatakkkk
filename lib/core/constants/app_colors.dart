@@ -18,6 +18,11 @@ class AppColors {
   static const Color amber = Color(0xFFF59E0B);
   static const Color darkGrey = Color(0xFF334155);
   static const Color surfaceContainerLow = Color(0xFFF1F5F9);
+  
+  // ✅ إضافة الألوان المفقودة للتأمين والدايت
+  static const Color teal = Color(0xFF14B8A6);
+  static const Color orange = Color(0xFFF97316);
+  static const Color indigo = Color(0xFF4F46E5);
 
   static const LinearGradient primaryGradient = LinearGradient(
     colors: [Color(0xFF0D9488), Color(0xFF0F766E)],
@@ -33,6 +38,25 @@ class AppColors {
 
   static const LinearGradient gradientRed = LinearGradient(
     colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  // ✅ إضافة تدرجات للألوان الجديدة
+  static const LinearGradient tealGradient = LinearGradient(
+    colors: [Color(0xFF14B8A6), Color(0xFF0D9488)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const LinearGradient orangeGradient = LinearGradient(
+    colors: [Color(0xFFF97316), Color(0xFFEA580C)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const LinearGradient indigoGradient = LinearGradient(
+    colors: [Color(0xFF4F46E5), Color(0xFF4338CA)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );

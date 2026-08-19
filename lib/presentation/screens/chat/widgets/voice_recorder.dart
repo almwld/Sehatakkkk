@@ -96,7 +96,7 @@ class _VoiceRecorderState extends State<VoiceRecorder> {
                         return Container(
                           margin: const EdgeInsets.symmetric(horizontal: 2),
                           width: 4,
-                          height: _amplitude > 0 ? height : 8,
+                          height: (_amplitude > 0 ? height : 8).toDouble(),
                           decoration: BoxDecoration(
                             color: Colors.green,
                             borderRadius: BorderRadius.circular(2),

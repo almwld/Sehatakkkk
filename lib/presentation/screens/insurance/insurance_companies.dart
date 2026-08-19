@@ -17,9 +17,9 @@ class _InsuranceCompaniesState extends State<InsuranceCompanies> {
     {'name': 'جوبيلي للتأمين الصحي', 'type': 'صحي', 'coverage': 'حتى 1,000,000 ر.ي', 'hospitals': '500+', 'rating': 4.7, 'premium': 'من 2,500 ر.ي/شهر', 'color': AppColors.primary, 'icon': Icons.health_and_safety},
     {'name': 'أدامجي للتأمين', 'type': 'صحي', 'coverage': 'حتى 800,000 ر.ي', 'hospitals': '400+', 'rating': 4.5, 'premium': 'من 2,000 ر.ي/شهر', 'color': AppColors.info, 'icon': Icons.shield},
     {'name': 'أليانز إي إف يو', 'type': 'عائلي', 'coverage': 'حتى 2,000,000 ر.ي', 'hospitals': '700+', 'rating': 4.8, 'premium': 'من 3,500 ر.ي/شهر', 'color': AppColors.success, 'icon': Icons.family_restroom},
-    {'name': 'آي جي آي للتأمين', 'type': 'سفر', 'coverage': 'حتى 500,000 ر.ي', 'hospitals': '200+', 'rating': 4.3, 'premium': 'من 1,500 ر.ي/شهر', 'color': AppColors.teal, 'icon': Icons.flight},
+    {'name': 'آي جي آي للتأمين', 'type': 'سفر', 'coverage': 'حتى 500,000 ر.ي', 'hospitals': '200+', 'rating': 4.3, 'premium': 'من 1,500 ر.ي/شهر', 'color': AppColors.primary, 'icon': Icons.flight},
     {'name': 'تي بي إل', 'type': 'صحي', 'coverage': 'حتى 1,500,000 ر.ي', 'hospitals': '600+', 'rating': 4.6, 'premium': 'من 3,000 ر.ي/شهر', 'color': AppColors.purple, 'icon': Icons.medical_services},
-    {'name': 'ستيت لايف', 'type': 'عائلي', 'coverage': 'حتى 5,000,000 ر.ي', 'hospitals': '1000+', 'rating': 4.9, 'premium': 'من 5,000 ر.ي/شهر', 'color': AppColors.orange, 'icon': Icons.star},
+    {'name': 'ستيت لايف', 'type': 'عائلي', 'coverage': 'حتى 5,000,000 ر.ي', 'hospitals': '1000+', 'rating': 4.9, 'premium': 'من 5,000 ر.ي/شهر', 'color': AppColors.warning, 'icon': Icons.star},
   ];
 
   @override
@@ -54,7 +54,7 @@ class _InsuranceCompaniesState extends State<InsuranceCompanies> {
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [AppColors.indigo, AppColors.indigo.withOpacity(0.7)],
+                  colors: [AppColors.purple, AppColors.purple.withOpacity(0.7)],
                 ),
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -86,7 +86,7 @@ class _InsuranceCompaniesState extends State<InsuranceCompanies> {
                     label: const Text('قارن الآن'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
-                      foregroundColor: AppColors.indigo,
+                      foregroundColor: AppColors.purple,
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),

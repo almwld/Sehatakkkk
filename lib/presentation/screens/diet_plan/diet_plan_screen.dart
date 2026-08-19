@@ -81,7 +81,7 @@ class _DietPlanScreenState extends State<DietPlanScreen> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [AppColors.success, AppColors.teal],
+                  colors: [AppColors.success, AppColors.primary],
                 ),
                 borderRadius: BorderRadius.circular(14),
               ),
