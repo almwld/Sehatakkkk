@@ -1,81 +1,50 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:sehatak/data/models/transaction_model.dart';
 import 'package:sehatak/core/services/wallet_service.dart';
 
 class WalletProvider extends ChangeNotifier {
   final String uid;
-  double balance = 0.0;
-  bool loadingBalance = false;
-
-  List<TransactionModel> transactions = [];
-  bool loadingTransactions = false;
-  bool hasMore = true;
-  DocumentSnapshot? lastDoc;
-  final int pageSize = 20;
+  double _balance = 0;
+  List<Map<String, dynamic>> _transactions = [];
+  bool _isLoading = false;
 
   WalletProvider({required this.uid}) {
-    init();
+    loadWallet();
   }
 
-  Future<void> init() async {
-    await loadBalance();
-    await refreshTransactions();
-    
-    // ✅ الاستماع لتحديثات المحفظة في الوقت الفعلي
-    WalletService.walletStream(uid).listen((doc) {
-      final data = doc.data() as Map<String, dynamic>?;
-      if (data != null) {
-        balance = (data['balance'] ?? 0).toDouble();
-        notifyListeners();
+  double get balance => _balance;
+  List<Map<String, dynamic>> get transactions => _transactions;
+  bool get isLoading => _isLoading;
+
+  Future<void> loadWallet() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final wallet = await WalletService().getWallet(uid);
+      if (wallet != null) {
+        _balance = wallet.balance;
+        _transactions = wallet.transactions;
       }
-    });
-  }
-
-  Future<void> loadBalance() async {
-    loadingBalance = true;
-    notifyListeners();
-    balance = await WalletService.getBalanceFirestore(uid);
-    loadingBalance = false;
-    notifyListeners();
-  }
-
-  Future<void> refreshTransactions() async {
-    transactions = [];
-    lastDoc = null;
-    hasMore = true;
-    await loadMoreTransactions();
-  }
-
-  Future<void> loadMoreTransactions() async {
-    if (!hasMore || loadingTransactions) return;
-    loadingTransactions = true;
-    notifyListeners();
-
-    final page = await WalletService.getTransactionsFirestore(
-      uid: uid,
-      limit: pageSize,
-      startAfter: lastDoc,
-    );
-
-    if (page.docs.isEmpty) {
-      hasMore = false;
-    } else {
-      lastDoc = page.docs.last;
-      transactions.addAll(
-        page.docs.map((doc) {
-          final data = doc.data() as Map<String, dynamic>;
-          return TransactionModel.fromMap(data);
-        }).toList()
-      );
+    } catch (e) {
+      print('❌ Error loading wallet: $e');
     }
 
-    loadingTransactions = false;
+    _isLoading = false;
     notifyListeners();
   }
 
-  // ✅ تحديث الرصيد بعد الدفع أو الشحن
-  Future<void> refreshBalance() async {
-    await loadBalance();
+  Future<void> addBalance(double amount) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await WalletService().addBalance(uid, amount);
+      await loadWallet();
+    } catch (e) {
+      print('❌ Error adding balance: $e');
+    }
+
+    _isLoading = false;
+    notifyListeners();
   }
 }

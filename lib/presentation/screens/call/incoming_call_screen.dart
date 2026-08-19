@@ -56,7 +56,6 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
     if (await Vibrate.canVibrate) {
       _isVibrating = true;
       Vibrate.feedback(FeedbackType.medium);
-      // اهتزاز متقطع
       Future.delayed(const Duration(seconds: 1), () {
         if (_isVibrating && mounted) {
           Vibrate.feedback(FeedbackType.medium);

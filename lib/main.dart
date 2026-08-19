@@ -3,17 +3,18 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart'; // ✅ إضافة
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
 import 'core/providers/font_size_provider.dart';
 import 'core/providers/user_provider.dart';
 import 'core/providers/bot_provider.dart';
-import 'core/providers/wallet_provider.dart'; // ✅ إضافة
-import 'core/providers/cart_provider.dart'; // ✅ إضافة
+import 'core/providers/wallet_provider.dart';
+import 'core/providers/cart_provider.dart';
 import 'core/themes/theme_manager.dart';
 import 'core/services/cache_service.dart';
-import 'core/services/notification_service.dart'; // ✅ إضافة
-import 'core/services/call_service.dart'; // ✅ إضافة
+import 'core/services/notification_service.dart';
+import 'core/services/call_service.dart';
 import 'presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'presentation/bloc/theme_bloc/theme_bloc.dart';
 import 'presentation/bloc/chat_bloc/chat_bloc.dart';
@@ -24,7 +25,6 @@ import 'presentation/screens/splash_screen.dart';
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print('📩 Handling background message: ${message.messageId}');
-  // يمكن إضافة منطق إضافي هنا
 }
 
 void main() async {
@@ -85,7 +85,10 @@ void main() async {
           create: (_) => BotProvider(),
         ),
         ChangeNotifierProvider(
-          create: (_) => WalletProvider(),
+          create: (_) {
+            final user = FirebaseAuth.instance.currentUser;
+            return WalletProvider(uid: user?.uid ?? '');
+          },
         ),
         ChangeNotifierProvider(
           create: (_) => CartProvider(),
@@ -131,7 +134,7 @@ class _SehatakAppState extends State<SehatakApp> {
 
   void _handleMessage(RemoteMessage message) {
     print('📩 New message: ${message.notification?.title}');
-    _notificationService.showLocalNotification(
+    _notificationService.showNotification(
       title: message.notification?.title ?? 'إشعار جديد',
       body: message.notification?.body ?? '',
       payload: message.data['chatId'] ?? '',
@@ -159,7 +162,6 @@ class _SehatakAppState extends State<SehatakApp> {
               theme: ThemeManager.lightTheme,
               darkTheme: ThemeManager.darkTheme,
               themeMode: themeState.themeMode,
-              // ✅ تطبيق حجم الخط على التطبيق كامل
               builder: (context, child) {
                 return MediaQuery(
                   data: MediaQuery.of(context).copyWith(

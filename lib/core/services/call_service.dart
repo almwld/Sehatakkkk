@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:sehatak/presentation/screens/call/call_screen.dart';
 import 'package:sehatak/presentation/screens/call/incoming_call_screen.dart';
 
 class CallService {
@@ -8,8 +10,8 @@ class CallService {
   factory CallService() => _instance;
   CallService._internal();
 
-  final FirebaseMessaging _fcm = FirebaseMessaging.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // ✅ بدء مكالمة
   Future<void> startCall({
@@ -17,10 +19,12 @@ class CallService {
     required String callerName,
     required bool isVideo,
     required String chatId,
+    required BuildContext context,
   }) async {
     try {
+      final user = _auth.currentUser;
       final callData = {
-        'callerId': FirebaseAuth.instance.currentUser?.uid ?? '',
+        'callerId': user?.uid ?? '',
         'callerName': callerName,
         'receiverId': receiverId,
         'isVideo': isVideo,
@@ -48,7 +52,7 @@ class CallService {
           builder: (_) => CallScreen(
             chatId: chatId,
             doctorName: callerName,
-            doctorId: FirebaseAuth.instance.currentUser?.uid ?? '',
+            doctorId: user?.uid ?? '',
             isVideo: isVideo,
           ),
         ),
@@ -73,26 +77,28 @@ class CallService {
 
       if (fcmToken != null) {
         // ✅ إرسال الإشعار عبر FCM
-        await _fcm.send(
-          message: RemoteMessage(
-            notification: RemoteNotification(
-              title: '📞 مكالمة ${isVideo ? 'فيديو' : 'صوتية'} واردة',
-              body: 'من $callerName',
-              android: AndroidNotification(
-                channelId: 'call_channel',
-                priority: Priority.high,
-                sound: 'call_ringtone',
-              ),
+        final message = RemoteMessage(
+          notification: RemoteNotification(
+            title: '📞 مكالمة ${isVideo ? 'فيديو' : 'صوتية'} واردة',
+            body: 'من $callerName',
+          )..android = const AndroidNotification(
+              channelId: 'call_channel',
+              priority: Priority.high,
+              sound: 'call_ringtone',
             ),
-            data: {
-              'type': 'incoming_call',
-              'callerName': callerName,
-              'isVideo': isVideo.toString(),
-              'chatId': chatId,
-              'callerId': FirebaseAuth.instance.currentUser?.uid ?? '',
-            },
-            token: fcmToken,
-          ),
+          data: {
+            'type': 'incoming_call',
+            'callerName': callerName,
+            'isVideo': isVideo.toString(),
+            'chatId': chatId,
+            'callerId': _auth.currentUser?.uid ?? '',
+          },
+        );
+
+        // ✅ إرسال الإشعار
+        await FirebaseMessaging.instance.sendMessage(
+          to: fcmToken,
+          message: message,
         );
       }
     } catch (e) {
@@ -149,36 +155,6 @@ class CallService {
       });
     } catch (e) {
       print('❌ End call error: $e');
-    }
-  }
-
-  // ✅ الحصول على سجل المكالمات
-  Stream<List<Map<String, dynamic>>> getCallHistory(String userId) {
-    return _firestore
-        .collection('calls')
-        .where('participants', arrayContains: userId)
-        .orderBy('startedAt', descending: true)
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        return {
-          'id': doc.id,
-          ...data,
-        };
-      }).toList();
-    });
-  }
-
-  // ✅ التحقق من مكالمة نشطة
-  Future<bool> isCallActive(String chatId) async {
-    try {
-      final doc = await _firestore.collection('calls').doc(chatId).get();
-      if (!doc.exists) return false;
-      final status = doc.data()?['status'] as String?;
-      return status == 'calling' || status == 'answered';
-    } catch (e) {
-      return false;
     }
   }
 }
