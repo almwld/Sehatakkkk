@@ -1,251 +1,363 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:sehatak/core/models/payment/wallet_models.dart';
 
 class PaymentService {
-  static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  static final String _platformWalletId = 'platform_wallet';
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // ✅ التحقق من رصيد المحفظة
-  static Future<double> getWalletBalance(String userId) async {
-    try {
-      final doc = await _firestore.collection('wallets').doc(userId).get();
-      if (doc.exists) {
-        return (doc.data()?['balance'] ?? 0.0).toDouble();
+  String? get currentUserId => _auth.currentUser?.uid;
+
+  // ============================================================
+  // 📊 Streams للتحديث الفوري
+  // ============================================================
+
+  Stream<WalletModel> getWalletStream() {
+    final uid = currentUserId;
+    if (uid == null) throw Exception('المستخدم غير مسجل الدخول');
+
+    return _db.collection('wallets').doc(uid).snapshots().map((doc) {
+      if (!doc.exists) {
+        return _createDefaultWallet(uid);
       }
-      return 0.0;
-    } catch (e) {
-      return 0.0;
-    }
-  }
-
-  // ✅ إيداع في المحفظة
-  static Future<bool> depositToWallet(String userId, double amount, {String? notes}) async {
-    try {
-      final docRef = _firestore.collection('wallets').doc(userId);
-      
-      await _firestore.runTransaction((transaction) async {
-        final doc = await transaction.get(docRef);
-        final currentBalance = doc.exists ? (doc.data()?['balance'] ?? 0.0).toDouble() : 0.0;
-        final newBalance = currentBalance + amount;
-        
-        transaction.set(docRef, {
-          'userId': userId,
-          'balance': newBalance,
-          'updatedAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
-        
-        // ✅ تسجيل المعاملة
-        await _createTransaction(
-          userId: userId,
-          amount: amount,
-          type: 'deposit',
-          status: 'completed',
-          notes: notes ?? 'إيداع في المحفظة',
-        );
-      });
-      
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  // ✅ سحب من المحفظة (للدفع)
-  static Future<bool> withdrawFromWallet(String userId, double amount, {String? orderId, String? notes}) async {
-    try {
-      final docRef = _firestore.collection('wallets').doc(userId);
-      bool success = false;
-      
-      await _firestore.runTransaction((transaction) async {
-        final doc = await transaction.get(docRef);
-        if (!doc.exists) {
-          throw Exception('المحفظة غير موجودة');
-        }
-        
-        final currentBalance = (doc.data()?['balance'] ?? 0.0).toDouble();
-        if (currentBalance < amount) {
-          throw Exception('رصيد غير كافٍ');
-        }
-        
-        final newBalance = currentBalance - amount;
-        
-        transaction.update(docRef, {
-          'balance': newBalance,
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
-        
-        // ✅ تسجيل المعاملة
-        await _createTransaction(
-          userId: userId,
-          amount: amount,
-          type: 'withdrawal',
-          status: 'completed',
-          orderId: orderId,
-          notes: notes ?? 'دفع طلب',
-        );
-        
-        // ✅ تحويل المبلغ إلى المحفظة الرئيسية للمنصة
-        await _transferToPlatformWallet(amount, orderId: orderId);
-        
-        success = true;
-      });
-      
-      return success;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  // ✅ تحويل إلى المحفظة الرئيسية للمنصة
-  static Future<void> _transferToPlatformWallet(double amount, {String? orderId}) async {
-    try {
-      final platformRef = _firestore.collection('wallets').doc(_platformWalletId);
-      
-      await _firestore.runTransaction((transaction) async {
-        final doc = await transaction.get(platformRef);
-        final currentBalance = doc.exists ? (doc.data()?['balance'] ?? 0.0).toDouble() : 0.0;
-        final newBalance = currentBalance + amount;
-        
-        transaction.set(platformRef, {
-          'walletId': _platformWalletId,
-          'balance': newBalance,
-          'updatedAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
-        
-        // ✅ تسجيل معاملة المنصة
-        await _createTransaction(
-          userId: _platformWalletId,
-          amount: amount,
-          type: 'platform_income',
-          status: 'completed',
-          orderId: orderId,
-          notes: 'إيداع من مستخدم',
-        );
-      });
-    } catch (e) {
-      // تجاهل الأخطاء
-    }
-  }
-
-  // ✅ إنشاء معاملة
-  static Future<void> _createTransaction({
-    required String userId,
-    required double amount,
-    required String type,
-    required String status,
-    String? orderId,
-    String? notes,
-  }) async {
-    await _firestore.collection('transactions').add({
-      'userId': userId,
-      'amount': amount,
-      'type': type,
-      'status': status,
-      'orderId': orderId ?? '',
-      'notes': notes ?? '',
-      'createdAt': FieldValue.serverTimestamp(),
+      return WalletModel.fromFirestore(doc.data()!, uid);
     });
   }
 
-  // ✅ الحصول على معاملات المستخدم
-  static Future<List<Map<String, dynamic>>> getUserTransactions(String userId) async {
-    try {
-      final snapshot = await _firestore
-          .collection('transactions')
-          .where('userId', isEqualTo: userId)
-          .orderBy('createdAt', descending: true)
-          .get();
-      
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        return {
-          'id': doc.id,
-          'amount': data['amount'] ?? 0.0,
-          'type': data['type'] ?? '',
-          'status': data['status'] ?? '',
-          'orderId': data['orderId'] ?? '',
-          'notes': data['notes'] ?? '',
-          'createdAt': data['createdAt'],
-        };
-      }).toList();
-    } catch (e) {
-      return [];
-    }
+  Stream<List<TransactionModel>> getTransactionsStream({int limit = 50}) {
+    final uid = currentUserId;
+    if (uid == null) throw Exception('المستخدم غير مسجل الدخول');
+
+    return _db
+        .collection('transactions')
+        .where('userId', isEqualTo: uid)
+        .orderBy('createdAt', descending: true)
+        .limit(limit)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => TransactionModel.fromFirestore(doc.id, doc.data()))
+            .toList());
   }
 
-  // ✅ معالجة الدفع
-  static Future<Map<String, dynamic>> processPayment({
-    required String userId,
+  // ============================================================
+  // 💰 عمليات الرصيد
+  // ============================================================
+
+  Future<WalletModel> getWalletSnapshot() async {
+    final uid = currentUserId;
+    if (uid == null) throw Exception('المستخدم غير مسجل الدخول');
+
+    final doc = await _db.collection('wallets').doc(uid).get();
+    if (!doc.exists) {
+      return _createDefaultWallet(uid);
+    }
+    return WalletModel.fromFirestore(doc.data()!, uid);
+  }
+
+  WalletModel _createDefaultWallet(String uid) {
+    return WalletModel(
+      userId: uid,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+  }
+
+  Future<double> getBalance() async {
+    final wallet = await getWalletSnapshot();
+    return wallet.balance;
+  }
+
+  Future<bool> hasSufficientBalance(double amount) async {
+    final balance = await getBalance();
+    return balance >= amount;
+  }
+
+  // ============================================================
+  // 💳 عمليات الدفع والتغذية
+  // ============================================================
+
+  Future<TransactionModel> processPayment({
     required double amount,
-    required String orderId,
-    String? notes,
+    required String title,
+    required String description,
+    String? orderId,
+    String? serviceId,
+    String? serviceType,
+    Map<String, dynamic>? metadata,
   }) async {
-    try {
-      // ✅ التحقق من الرصيد
-      final balance = await getWalletBalance(userId);
-      if (balance < amount) {
-        return {
-          'success': false,
-          'message': 'رصيد غير كافٍ. الرصيد الحالي: $balance ر.ي',
-          'balance': balance,
-        };
+    final uid = currentUserId;
+    if (uid == null) throw Exception('المستخدم غير مسجل الدخول');
+
+    if (amount <= 0) throw Exception('المبلغ يجب أن يكون أكبر من صفر');
+
+    final walletRef = _db.collection('wallets').doc(uid);
+    final txRef = _db.collection('transactions').doc();
+
+    final transaction = TransactionModel(
+      id: txRef.id,
+      userId: uid,
+      amount: amount,
+      type: TransactionType.payment,
+      status: TransactionStatus.pending,
+      title: title,
+      description: description,
+      orderId: orderId,
+      serviceId: serviceId,
+      serviceType: serviceType,
+      metadata: metadata,
+      createdAt: DateTime.now(),
+    );
+
+    await _db.runTransaction((tx) async {
+      final walletSnapshot = await tx.get(walletRef);
+
+      double currentBalance = 0.0;
+      if (walletSnapshot.exists) {
+        currentBalance = ((walletSnapshot.data()?['balance'] ?? 0) as num).toDouble();
       }
 
-      // ✅ سحب المبلغ من المحفظة
-      final withdrawn = await withdrawFromWallet(
-        userId,
-        amount,
-        orderId: orderId,
-        notes: notes ?? 'دفع للطلب #$orderId',
+      if (currentBalance < amount) {
+        throw Exception('رصيد المحفظة غير كافٍ لإتمام العملية');
+      }
+
+      // تحديث المحفظة
+      tx.set(
+        walletRef,
+        {
+          'userId': uid,
+          'balance': currentBalance - amount,
+          'totalSpent': FieldValue.increment(amount),
+          'updatedAt': FieldValue.serverTimestamp(),
+          'lastTransactionAt': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
       );
 
-      if (!withdrawn) {
-        return {
-          'success': false,
-          'message': 'فشل في عملية الدفع، حاول مرة أخرى',
-        };
-      }
+      // تسجيل المعاملة
+      tx.set(txRef, transaction.toFirestore());
+    });
 
-      // ✅ تحديث حالة الطلب
-      await _firestore.collection('orders').doc(orderId).update({
-        'paymentStatus': 'paid',
-        'paidAt': FieldValue.serverTimestamp(),
-      });
+    // تحديث حالة المعاملة إلى مكتملة
+    await _db.collection('transactions').doc(txRef.id).update({
+      'status': TransactionStatus.completed.name,
+      'completedAt': FieldValue.serverTimestamp(),
+    });
 
-      // ✅ الحصول على الرصيد الجديد
-      final newBalance = await getWalletBalance(userId);
-
-      return {
-        'success': true,
-        'message': 'تم الدفع بنجاح',
-        'balance': newBalance,
-        'orderId': orderId,
-      };
-    } catch (e) {
-      return {
-        'success': false,
-        'message': 'حدث خطأ أثناء الدفع: $e',
-      };
-    }
+    return transaction.copyWith(
+      status: TransactionStatus.completed,
+      completedAt: DateTime.now(),
+    );
   }
 
-  // ✅ التحقق من حالة الدفع
-  static Future<Map<String, dynamic>> checkPaymentStatus(String orderId) async {
-    try {
-      final doc = await _firestore.collection('orders').doc(orderId).get();
-      if (!doc.exists) {
-        return {'paid': false, 'status': 'order_not_found'};
+  Future<TransactionModel> topUpWallet({
+    required double amount,
+    required String walletName,
+    required String referenceNumber,
+    Map<String, dynamic>? metadata,
+  }) async {
+    final uid = currentUserId;
+    if (uid == null) throw Exception('المستخدم غير مسجل الدخول');
+
+    if (amount <= 0) throw Exception('المبلغ يجب أن يكون أكبر من صفر');
+
+    final walletRef = _db.collection('wallets').doc(uid);
+    final txRef = _db.collection('transactions').doc();
+
+    final transaction = TransactionModel(
+      id: txRef.id,
+      userId: uid,
+      amount: amount,
+      type: TransactionType.deposit,
+      status: TransactionStatus.pending,
+      title: 'تغذية حساب عبر $walletName',
+      description: 'رقم الإشعار: $referenceNumber',
+      referenceNumber: referenceNumber,
+      walletName: walletName,
+      metadata: metadata,
+      createdAt: DateTime.now(),
+    );
+
+    await _db.runTransaction((tx) async {
+      final walletSnapshot = await tx.get(walletRef);
+
+      double currentBalance = 0.0;
+      if (walletSnapshot.exists) {
+        currentBalance = ((walletSnapshot.data()?['balance'] ?? 0) as num).toDouble();
       }
-      
-      final data = doc.data()!;
-      return {
-        'paid': data['paymentStatus'] == 'paid',
-        'status': data['paymentStatus'] ?? 'pending',
-        'amount': data['total'] ?? 0.0,
-        'paidAt': data['paidAt'],
-      };
-    } catch (e) {
-      return {'paid': false, 'status': 'error'};
+
+      // تحديث المحفظة
+      tx.set(
+        walletRef,
+        {
+          'userId': uid,
+          'balance': currentBalance + amount,
+          'totalDeposited': FieldValue.increment(amount),
+          'updatedAt': FieldValue.serverTimestamp(),
+          'lastTransactionAt': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
+
+      // تسجيل المعاملة
+      tx.set(txRef, transaction.toFirestore());
+    });
+
+    // تحديث حالة المعاملة إلى مكتملة
+    await _db.collection('transactions').doc(txRef.id).update({
+      'status': TransactionStatus.completed.name,
+      'completedAt': FieldValue.serverTimestamp(),
+    });
+
+    return transaction.copyWith(
+      status: TransactionStatus.completed,
+      completedAt: DateTime.now(),
+    );
+  }
+
+  // ============================================================
+  // 🔄 عمليات الاسترداد
+  // ============================================================
+
+  Future<TransactionModel> refundTransaction({
+    required String transactionId,
+    required String reason,
+  }) async {
+    final uid = currentUserId;
+    if (uid == null) throw Exception('المستخدم غير مسجل الدخول');
+
+    // جلب المعاملة الأصلية
+    final txDoc = await _db.collection('transactions').doc(transactionId).get();
+    if (!txDoc.exists) {
+      throw Exception('المعاملة غير موجودة');
+    }
+
+    final originalTx = TransactionModel.fromFirestore(txDoc.id, txDoc.data()!);
+
+    if (originalTx.status == TransactionStatus.refunded) {
+      throw Exception('المعاملة مستردة بالفعل');
+    }
+
+    if (originalTx.status != TransactionStatus.completed) {
+      throw Exception('لا يمكن استرداد معاملة غير مكتملة');
+    }
+
+    final walletRef = _db.collection('wallets').doc(uid);
+    final refundRef = _db.collection('transactions').doc();
+
+    final refundTx = TransactionModel(
+      id: refundRef.id,
+      userId: uid,
+      amount: originalTx.amount,
+      type: TransactionType.refund,
+      status: TransactionStatus.pending,
+      title: 'استرداد: ${originalTx.title}',
+      description: 'سبب الاسترداد: $reason',
+      orderId: originalTx.orderId,
+      serviceId: originalTx.serviceId,
+      serviceType: originalTx.serviceType,
+      metadata: {
+        'originalTransactionId': transactionId,
+        'reason': reason,
+      },
+      createdAt: DateTime.now(),
+    );
+
+    await _db.runTransaction((tx) async {
+      final walletSnapshot = await tx.get(walletRef);
+
+      double currentBalance = 0.0;
+      if (walletSnapshot.exists) {
+        currentBalance = ((walletSnapshot.data()?['balance'] ?? 0) as num).toDouble();
+      }
+
+      // تحديث المحفظة
+      tx.set(
+        walletRef,
+        {
+          'userId': uid,
+          'balance': currentBalance + originalTx.amount,
+          'updatedAt': FieldValue.serverTimestamp(),
+          'lastTransactionAt': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
+
+      // تحديث المعاملة الأصلية
+      tx.update(
+        _db.collection('transactions').doc(transactionId),
+        {
+          'status': TransactionStatus.refunded.name,
+          'completedAt': FieldValue.serverTimestamp(),
+          'metadata.refundReason': reason,
+          'metadata.refundTransactionId': refundRef.id,
+        },
+      );
+
+      // تسجيل معاملة الاسترداد
+      tx.set(refundRef, refundTx.toFirestore());
+    });
+
+    // تحديث حالة الاسترداد
+    await _db.collection('transactions').doc(refundRef.id).update({
+      'status': TransactionStatus.completed.name,
+      'completedAt': FieldValue.serverTimestamp(),
+    });
+
+    return refundTx.copyWith(
+      status: TransactionStatus.completed,
+      completedAt: DateTime.now(),
+    );
+  }
+
+  // ============================================================
+  // 📊 إحصائيات المحفظة
+  // ============================================================
+
+  Future<Map<String, dynamic>> getWalletStats() async {
+    final uid = currentUserId;
+    if (uid == null) throw Exception('المستخدم غير مسجل الدخول');
+
+    final wallet = await getWalletSnapshot();
+
+    return {
+      'balance': wallet.balance,
+      'totalDeposited': wallet.totalDeposited,
+      'totalWithdrawn': wallet.totalWithdrawn,
+      'totalSpent': wallet.totalSpent,
+      'transactionCount': await _getTransactionCount(uid),
+    };
+  }
+
+  Future<int> _getTransactionCount(String uid) async {
+    final snapshot = await _db
+        .collection('transactions')
+        .where('userId', isEqualTo: uid)
+        .count()
+        .get();
+
+    return snapshot.count ?? 0;
+  }
+
+  // ============================================================
+  // 🏦 إنشاء المحفظة الافتراضية
+  // ============================================================
+
+  Future<void> createDefaultWallet(String uid) async {
+    final wallet = _createDefaultWallet(uid);
+    await _db.collection('wallets').doc(uid).set(wallet.toFirestore());
+  }
+
+  // ============================================================
+  // ✅ التهيئة - التأكد من وجود محفظة
+  // ============================================================
+
+  Future<void> ensureWalletExists() async {
+    final uid = currentUserId;
+    if (uid == null) return;
+
+    final doc = await _db.collection('wallets').doc(uid).get();
+    if (!doc.exists) {
+      await createDefaultWallet(uid);
     }
   }
 }

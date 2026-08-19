@@ -1,7 +1,11 @@
-import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/presentation/screens/wallet/deposit_screen.dart';
+import 'package:sehatak/core/models/payment/wallet_models.dart';
+import 'package:sehatak/core/services/payment_service.dart';
+import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/presentation/screens/wallet/top_up_screen.dart';
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 
 class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
@@ -11,46 +15,23 @@ class WalletScreen extends StatefulWidget {
 }
 
 class _WalletScreenState extends State<WalletScreen> {
-  double _balance = 1250.0;
-  List<Map<String, dynamic>> _transactions = [];
-
-  // ✅ المحافظ المحلية
-  final List<Map<String, dynamic>> _localWallets = [
-    {'id': 'yemen_wallet', 'name': 'محفظة اليمن', 'icon': 'assets/images/payment/yemen_wallet.png'},
-    {'id': 'kash', 'name': 'كاش', 'icon': 'assets/images/payment/kash.png'},
-    {'id': 'kash_one', 'name': 'كاش ون', 'icon': 'assets/images/payment/kash_one.png'},
-    {'id': 'floosak', 'name': 'فلوسك', 'icon': 'assets/images/payment/floosak.png'},
-    {'id': 'jeeb', 'name': 'جيب', 'icon': 'assets/images/payment/jeeb.png'},
-    {'id': 'jawali', 'name': 'جوالي', 'icon': 'assets/images/payment/jawali.png'},
-    {'id': 'easy', 'name': 'إيزي', 'icon': 'assets/images/payment/easy.png'},
-    {'id': 'mobile_money', 'name': 'موبايل موني', 'icon': 'assets/images/payment/mobile_money.png'},
-  ];
+  final PaymentService _paymentService = PaymentService();
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _loadTransactions();
+    _initializeWallet();
   }
 
-  void _loadTransactions() {
-    _transactions = [
-      {'title': 'شحن رصيد', 'amount': 500, 'type': 'deposit', 'date': '2024-01-15', 'status': 'completed', 'method': 'كاش'},
-      {'title': 'دفع فحص مخبري', 'amount': -150, 'type': 'payment', 'date': '2024-01-14', 'status': 'completed', 'method': 'محفظة اليمن'},
-      {'title': 'شراء دواء', 'amount': -75, 'type': 'payment', 'date': '2024-01-13', 'status': 'completed', 'method': 'فلوسك'},
-      {'title': 'شحن رصيد', 'amount': 200, 'type': 'deposit', 'date': '2024-01-12', 'status': 'pending', 'method': 'كاش ون'},
-    ];
-  }
-
-  Widget _buildWalletIcon(String iconPath, {double size = 40}) {
-    return Image.asset(
-      iconPath,
-      width: size,
-      height: size,
-      fit: BoxFit.contain,
-      errorBuilder: (context, error, stackTrace) {
-        return Icon(Icons.account_balance_wallet, color: AppColors.primary, size: size);
-      },
-    );
+  Future<void> _initializeWallet() async {
+    try {
+      await _paymentService.ensureWalletExists();
+    } catch (e) {
+      if (mounted) {
+        ToastService.showError(context, 'فشل تهيئة المحفظة: $e');
+      }
+    }
   }
 
   @override
@@ -58,292 +39,394 @@ class _WalletScreenState extends State<WalletScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text('المحفظة'),
-        backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
-        foregroundColor: isDark ? Colors.white : Colors.black87,
+      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
+      appBar: CustomAppBar(
+        title: 'محفظتي الرقمية',
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
         elevation: 0,
         actions: [
           IconButton(
-            icon: Icon(Icons.history, color: isDark ? Colors.white : Colors.black87),
-            onPressed: () {},
+            icon: const Icon(Icons.refresh),
+            onPressed: () => setState(() {}),
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ✅ الرصيد الحالي
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [AppColors.primary, AppColors.primary.withOpacity(0.7)],
-                ),
-                borderRadius: BorderRadius.circular(16),
-              ),
+      body: StreamBuilder<WalletModel>(
+        stream: _paymentService.getWalletStream(),
+        builder: (context, walletSnapshot) {
+          if (walletSnapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (walletSnapshot.hasError) {
+            return Center(
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    'الرصيد الحالي',
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                  Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: Colors.red[300],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'فشل جلب بيانات المحفظة',
+                    style: TextStyle(color: isDark ? Colors.white70 : Colors.grey[700]),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '${_balance.toStringAsFixed(0)} ر.ي',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
+                    walletSnapshot.error.toString(),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? Colors.white54 : Colors.grey[500],
                     ),
+                    textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            // ✅ ربط زر شحن الرصيد بشاشة الإيداع
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const DepositScreen(),
-                              ),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: AppColors.primary,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: const Text('شحن رصيد'),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () {},
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Colors.white),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: const Text('سحب'),
-                        ),
-                      ),
-                    ],
+                  ElevatedButton(
+                    onPressed: () => setState(() {}),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                    ),
+                    child: const Text('إعادة المحاولة'),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 24),
+            );
+          }
 
-            // ✅ المحافظ المحلية
-            const Text(
-              'طرق الدفع',
+          final balance = walletSnapshot.data?.balance ?? 0.0;
+
+          return RefreshIndicator(
+            onRefresh: () async {
+              setState(() => _isLoading = true);
+              await Future.delayed(const Duration(seconds: 1));
+              setState(() => _isLoading = false);
+            },
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                _buildBalanceCard(balance, isDark),
+                const SizedBox(height: 24),
+                _buildQuickActions(isDark),
+                const SizedBox(height: 24),
+                _buildTransactionsSection(isDark),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildBalanceCard(double balance, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: AppColors.primaryGradient,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.3),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.account_balance_wallet, color: Colors.white70, size: 24),
+              SizedBox(width: 8),
+              Text(
+                'الرصيد المتاح',
+                style: TextStyle(color: Colors.white70, fontSize: 16),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(
+                NumberFormat('#,##0.00', 'ar').format(balance),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 40,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'ر.ي',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const TopUpScreen()),
+                    );
+                  },
+                  icon: const Icon(Icons.add, color: AppColors.primary),
+                  label: const Text(
+                    'تغذية المحفظة',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickActions(bool isDark) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildQuickActionButton(
+            icon: Icons.history,
+            label: 'سجل المعاملات',
+            onTap: () {
+              // سيتم التمرير إلى قسم المعاملات
+            },
+            isDark: isDark,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildQuickActionButton(
+            icon: Icons.payment,
+            label: 'طرق الدفع',
+            onTap: () {
+              Navigator.pushNamed(context, '/payment/methods');
+            },
+            isDark: isDark,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuickActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    required bool isDark,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.cardDark : AppColors.cardLight,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isDark ? Colors.white12 : Colors.black12,
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              color: AppColors.primary,
+              size: 28,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: isDark ? Colors.white70 : Colors.grey[700],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTransactionsSection(bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'سجل المعاملات',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black87,
               ),
             ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1A2540) : Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
-                  childAspectRatio: 0.9,
+          ],
+        ),
+        const SizedBox(height: 12),
+        StreamBuilder<List<TransactionModel>>(
+          stream: _paymentService.getTransactionsStream(limit: 10),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(32),
+                  child: CircularProgressIndicator(),
                 ),
-                itemCount: _localWallets.length,
-                itemBuilder: (context, index) {
-                  final wallet = _localWallets[index];
-                  return GestureDetector(
-                    onTap: () {
-                      ToastService.showSuccess(context, '✅ تم اختيار ${wallet['name']}');
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
-                        ),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _buildWalletIcon(wallet['icon'] as String, size: 32),
-                          const SizedBox(height: 4),
-                          Text(
-                            wallet['name'] as String,
-                            style: TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w500,
-                              color: isDark ? Colors.white : Colors.black87,
-                            ),
-                            textAlign: TextAlign.center,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
+              );
+            }
+
+            if (snapshot.hasError) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Text(
+                    'حدث خطأ أثناء تحميل سجل المعاملات',
+                    style: TextStyle(color: Colors.red[300]),
+                  ),
+                ),
+              );
+            }
+
+            final txs = snapshot.data ?? [];
+            if (txs.isEmpty) {
+              return Container(
+                padding: const EdgeInsets.symmetric(vertical: 32),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.cardDark : AppColors.cardLight,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.history,
+                      size: 48,
+                      color: isDark ? Colors.white30 : Colors.grey[400],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'لا توجد معاملات بعد',
+                      style: TextStyle(
+                        color: isDark ? Colors.white54 : Colors.grey[600],
                       ),
                     ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 24),
+                    const SizedBox(height: 8),
+                    Text(
+                      'قم بتغذية محفظتك لبدء المعاملات',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? Colors.white38 : Colors.grey[500],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
 
-            // ✅ آخر المعاملات
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'آخر المعاملات',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {},
-                  child: const Text('عرض الكل'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            ListView.builder(
+            return ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: _transactions.length > 3 ? 3 : _transactions.length,
+              itemCount: txs.length > 10 ? 10 : txs.length,
+              separatorBuilder: (_, __) => Divider(
+                height: 1,
+                color: isDark ? Colors.white12 : Colors.black12,
+              ),
               itemBuilder: (context, index) {
-                final transaction = _transactions[index];
-                final isDeposit = transaction['type'] == 'deposit';
-                final color = isDeposit ? Colors.green : Colors.red;
-                final icon = isDeposit ? Icons.arrow_upward : Icons.arrow_downward;
-                final statusColor = transaction['status'] == 'completed'
-                    ? Colors.green
-                    : Colors.orange;
+                final tx = txs[index];
+                final isCredit = tx.isCredit;
 
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1A2540) : Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.02),
-                        blurRadius: 4,
-                      ),
-                    ],
+                return ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  leading: CircleAvatar(
+                    backgroundColor: isCredit
+                        ? Colors.green.withOpacity(0.1)
+                        : Colors.red.withOpacity(0.1),
+                    child: Icon(
+                      tx.typeIcon,
+                      color: tx.typeColor,
+                      size: 20,
+                    ),
                   ),
-                  child: Row(
+                  title: Text(
+                    tx.title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Text(
+                    '${DateFormat('yyyy/MM/dd', 'ar').format(tx.createdAt)}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? Colors.white54 : Colors.grey[600],
+                    ),
+                  ),
+                  trailing: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      Text(
+                        '${isCredit ? "+" : "-"}${tx.amount.toStringAsFixed(0)} ر.ي',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          color: isCredit ? Colors.green : Colors.red,
+                        ),
+                      ),
                       Container(
-                        width: 40,
-                        height: 40,
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                         decoration: BoxDecoration(
-                          color: color.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(10),
+                          color: tx.statusColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Icon(icon, color: color, size: 20),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              transaction['title'],
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: isDark ? Colors.white : Colors.black87,
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                Text(
-                                  transaction['method'] ?? '',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  transaction['date'],
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
+                        child: Text(
+                          tx.statusText,
+                          style: TextStyle(
+                            fontSize: 8,
+                            color: tx.statusColor,
+                          ),
                         ),
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            '${isDeposit ? '+' : ''}${transaction['amount'].toString()} ر.ي',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                              color: color,
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                            decoration: BoxDecoration(
-                              color: statusColor.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              transaction['status'] == 'completed' ? 'مكتمل' : 'قيد الانتظار',
-                              style: TextStyle(
-                                fontSize: 8,
-                                color: statusColor,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
                       ),
                     ],
                   ),
                 );
               },
-            ),
-            const SizedBox(height: 80),
-          ],
+            );
+          },
         ),
-      ),
+      ],
     );
   }
 }

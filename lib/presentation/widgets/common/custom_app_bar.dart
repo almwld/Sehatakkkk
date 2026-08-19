@@ -1,87 +1,53 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/presentation/ai/assistant_screen.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
-  final bool showBackButton;
-  final List<Widget>? actions;
+  final bool centerTitle;
   final Color? backgroundColor;
   final Color? foregroundColor;
   final double elevation;
+  final List<Widget>? actions;
   final Widget? leading;
-  final VoidCallback? onBackPressed;
-  final PreferredSizeWidget? bottom;
+  final bool automaticallyImplyLeading;
 
   const CustomAppBar({
     super.key,
     required this.title,
-    this.showBackButton = false,
-    this.actions,
+    this.centerTitle = true,
     this.backgroundColor,
     this.foregroundColor,
     this.elevation = 0,
+    this.actions,
     this.leading,
-    this.onBackPressed,
-    this.bottom,
+    this.automaticallyImplyLeading = true,
   });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = backgroundColor ?? (isDark ? const Color(0xFF0B1121) : Colors.white);
-    final fgColor = foregroundColor ?? (isDark ? Colors.white : Colors.black87);
+    final bgColor = backgroundColor ?? (isDark ? AppColors.backgroundDark : AppColors.primary);
+    final fgColor = foregroundColor ?? (isDark ? Colors.white : Colors.white);
 
     return AppBar(
-      backgroundColor: bgColor,
-      foregroundColor: fgColor,
-      elevation: elevation,
-      bottom: bottom,
-      leading: showBackButton
-          ? IconButton(
-              icon: Icon(Icons.arrow_back_ios_new, color: fgColor),
-              onPressed: onBackPressed ?? () => Navigator.pop(context),
-            )
-          : leading,
       title: Text(
         title,
         style: TextStyle(
-          fontWeight: FontWeight.bold,
           color: fgColor,
+          fontWeight: FontWeight.bold,
+          fontFamily: 'Cairo',
         ),
       ),
-      actions: [
-        // ✅ زر المساعد الصحي
-        GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const AIChatbotScreen()),
-            );
-          },
-          child: Container(
-            padding: const EdgeInsets.all(8),
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            child: Image.asset(
-              'assets/images/services/ai_assistant.png',
-              width: 28,
-              height: 28,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) {
-                return Icon(
-                  Icons.medical_services,
-                  color: fgColor,
-                  size: 28,
-                );
-              },
-            ),
-          ),
-        ),
-        if (actions != null) ...actions!,
-      ],
+      centerTitle: centerTitle,
+      backgroundColor: bgColor,
+      elevation: elevation,
+      actions: actions,
+      leading: leading,
+      automaticallyImplyLeading: automaticallyImplyLeading,
+      iconTheme: IconThemeData(color: fgColor),
     );
   }
 
   @override
-  Size get preferredSize => Size.fromHeight(bottom != null ? kToolbarHeight + bottom!.preferredSize.height : kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
