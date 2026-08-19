@@ -253,7 +253,7 @@ class ChatBot {
     // ✅ التحقق من الطوارئ
     if (_isEmergency(msgLower)) {
       return {
-        'response': _handleEmergency(message),
+        'response': _handleEmergency(),
         'type': 'urgent',
         'create_ticket': true,
         'timestamp': DateTime.now().toIso8601String(),
@@ -346,7 +346,7 @@ class ChatBot {
     return symptomWords.any((word) => msg.contains(word));
   }
 
-  String _handleEmergency(String message) {
+  String _handleEmergency() {
     return '🚨 حالة طارئة!\n\n• اتصل فوراً على 1122 📞\n• اذهب لأقرب مستشفى 🏥\n• استخدم زر SOS في التطبيق 🆘\n\n⚠️ لا تنتظر! الطوارئ الطبية تحتاج استجابة فورية.';
   }
 
