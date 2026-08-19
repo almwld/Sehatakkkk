@@ -6,7 +6,7 @@ import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
 import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
 import 'package:sehatak/presentation/screens/health/health_dashboard.dart';
 import 'package:sehatak/presentation/screens/notifications/notifications_screen.dart';
-import 'package:sehatak/presentation/screens/payment/wallet_screen.dart';
+import 'package:sehatak/presentation/screens/wallet/wallet_screen.dart';
 import 'package:sehatak/presentation/screens/about/about_screen.dart';
 import 'package:sehatak/presentation/screens/settings/settings_screen.dart';
 import 'package:sehatak/presentation/screens/appointments/appointments_screen.dart';

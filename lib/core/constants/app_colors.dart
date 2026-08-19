@@ -15,6 +15,8 @@ class AppColors {
   static const Color info = Color(0xFF3B82F6);
   static const Color grey = Color(0xFF64748B);
   static const Color purple = Color(0xFF8B5CF6);
+  static const Color amber = Color(0xFFF59E0B);
+  static const Color darkGrey = Color(0xFF334155);
   static const Color surfaceContainerLow = Color(0xFFF1F5F9);
 
   static const LinearGradient primaryGradient = LinearGradient(

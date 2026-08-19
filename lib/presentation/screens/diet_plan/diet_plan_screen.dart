@@ -66,7 +66,7 @@ class _DietPlanScreenState extends State<DietPlanScreen> {
                         g,
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: isSelected ? Colors.white : AppColors.darkGrey,
+                          color: isSelected ? Colors.white : AppColors.secondary,
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),
@@ -163,7 +163,7 @@ class _DietPlanScreenState extends State<DietPlanScreen> {
                           m['food']!,
                           style: const TextStyle(
                             fontSize: 11,
-                            color: AppColors.darkGrey,
+                            color: AppColors.secondary,
                           ),
                         ),
                       ],

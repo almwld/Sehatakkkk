@@ -89,7 +89,7 @@ class _HealthCommunityScreenState extends State<HealthCommunityScreen>
     {'icon': Icons.local_offer_rounded, 'label': 'عروض', 'color': AppColors.warning},
     {'icon': Icons.science_rounded, 'label': 'تحاليل', 'color': AppColors.purple},
     {'icon': Icons.chat_rounded, 'label': 'نقاشات', 'color': AppColors.info},
-    {'icon': Icons.emoji_events_rounded, 'label': 'تحديات', 'color': AppColors.amber},
+    {'icon': Icons.emoji_events_rounded, 'label': 'تحديات', 'color': AppColors.warning},
   ];
 
   int _selectedCategory = 0;

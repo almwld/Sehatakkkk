@@ -9,7 +9,7 @@ import 'package:sehatak/presentation/screens/vaccination/vaccination_screen.dart
 import 'package:sehatak/presentation/screens/medical_reports/medical_reports_screen.dart';
 import 'package:sehatak/presentation/screens/health/health_dashboard.dart';
 import 'package:sehatak/presentation/screens/notifications/notifications_screen.dart';
-import 'package:sehatak/presentation/screens/payment/wallet_screen.dart';
+import 'package:sehatak/presentation/screens/wallet/wallet_screen.dart';
 import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart';
 import 'package:sehatak/presentation/screens/blood_donation/blood_donation_screen.dart';
 import 'package:sehatak/presentation/screens/consultation/consultation_screen.dart';

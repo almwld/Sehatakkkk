@@ -21,7 +21,7 @@ import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
 import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
 import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart';
 import 'package:sehatak/presentation/screens/blood_donation/blood_donation_screen.dart';
-import 'package:sehatak/presentation/screens/payment/wallet_screen.dart';
+import 'package:sehatak/presentation/screens/wallet/wallet_screen.dart';
 import 'package:sehatak/presentation/screens/consultation/consultation_screen.dart';
 import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
 import 'package:sehatak/presentation/screens/health/health_dashboard.dart';
