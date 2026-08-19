@@ -81,11 +81,7 @@ class CallService {
           notification: RemoteNotification(
             title: '📞 مكالمة ${isVideo ? 'فيديو' : 'صوتية'} واردة',
             body: 'من $callerName',
-          )..android = const AndroidNotification(
-              channelId: 'call_channel',
-              priority: Priority.high,
-              sound: 'call_ringtone',
-            ),
+          ),
           data: {
             'type': 'incoming_call',
             'callerName': callerName,
