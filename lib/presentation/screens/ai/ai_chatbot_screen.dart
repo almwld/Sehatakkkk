@@ -5,14 +5,14 @@ import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/providers/bot_provider.dart';
 import 'package:sehatak/services/local_ai/local_medical_ai.dart';
 
-class AIChatbotScreen extends StatefulWidget {
-  const AIChatbotScreen({super.key});
+class AiChatbotScreen extends StatefulWidget {
+  const AiChatbotScreen({super.key});
 
   @override
-  State<AIChatbotScreen> createState() => _AIChatbotScreenState();
+  State<AiChatbotScreen> createState() => _AiChatbotScreenState();
 }
 
-class _AIChatbotScreenState extends State<AIChatbotScreen> {
+class _AiChatbotScreenState extends State<AiChatbotScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final ChatBot _chatBot = ChatBot();
