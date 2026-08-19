@@ -131,6 +131,7 @@ dependencies:
 
   # ============================================================
   # 🤖 AI & Machine Learning (إزالة natural_language)
+  # natural_language: ^0.3.0  # تم إزالتها مؤقتاً
   # ============================================================
   google_generative_ai: ^0.4.0
   speech_to_text: ^6.6.0
