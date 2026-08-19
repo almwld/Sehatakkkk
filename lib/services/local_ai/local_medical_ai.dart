@@ -1,7 +1,6 @@
 // ============================================================
 //   SEHTAK AI v6.0 - البوت الطبي المتكامل
 //   Flutter/Dart Version - 2500+ سطر
-//   Medical AI Bot - Unified & Enhanced
 // ============================================================
 
 import 'dart:math';
@@ -69,6 +68,86 @@ class MedicalKnowledgeBase {
       'forms': ['أقراص', 'كبسولات', 'شراب', 'حقن'],
       'brands': ['أموكسيل', 'هيكسيل']
     },
+    'اوميبرازول': {
+      'name_en': 'Omeprazole',
+      'category': 'مثبط مضخة بروتون',
+      'dose_adult': '20-40mg يومياً',
+      'dose_child': 'غير موصى به',
+      'max_daily': '40mg',
+      'pregnancy': 'باستشارة طبيب',
+      'breastfeeding': 'باستشارة طبيب',
+      'side_effects': 'صداع، إسهال، غازات',
+      'interactions': 'وارفارين، كلوبيدوجريل',
+      'contraindications': 'حساسية المثبطات',
+      'notes': 'قبل الأكل بـ 30 دقيقة',
+      'overdose': 'نادر - غثيان، صداع',
+      'forms': ['أقراص', 'كبسولات', 'حقن'],
+      'brands': ['لوسيك', 'أوميبرازول']
+    },
+    'ميتفورمين': {
+      'name_en': 'Metformin',
+      'category': 'خافض سكر فموي - بيجوانيد',
+      'dose_adult': '500-850mg مع الأكل',
+      'dose_child': 'حسب إرشادات الطبيب',
+      'max_daily': '2550mg',
+      'pregnancy': 'باستشارة طبيب',
+      'breastfeeding': 'آمن',
+      'side_effects': 'غثيان، إسهال، طعم معدني',
+      'interactions': 'كحول، سيميتيدين، فوروسيميد',
+      'contraindications': 'فشل كلوي، حماض سكري',
+      'notes': 'يبدأ بجرعة منخفضة ويزيد تدريجياً',
+      'overdose': 'حماض لاكتاتي - طوارئ',
+      'forms': ['أقراص', 'شراب'],
+      'brands': ['جلوكوفاج', 'ميتفورمين']
+    },
+    'ديكلوفيناك': {
+      'name_en': 'Diclofenac',
+      'category': 'مضاد التهاب غير ستيرويدي',
+      'dose_adult': '50mg كل 8 ساعات',
+      'dose_child': 'غير موصى به',
+      'max_daily': '150mg',
+      'pregnancy': 'غير آمن',
+      'breastfeeding': 'غير آمن',
+      'side_effects': 'ألم معدة، دوخة، طنين',
+      'interactions': 'مميعات دم، مضادات ارتفاع ضغط',
+      'contraindications': 'قرحة، فشل كلوي، حساسية الأسبرين',
+      'notes': 'لا يستخدم مع مميعات الدم',
+      'overdose': 'نزيف، فشل كلوي حاد',
+      'forms': ['أقراص', 'جل', 'تحاميل', 'حقن'],
+      'brands': ['فولتارين', 'كلاموكس']
+    },
+    'سيتريزين': {
+      'name_en': 'Cetirizine',
+      'category': 'مضاد هستامين',
+      'dose_adult': '10mg يومياً',
+      'dose_child': '5mg يومياً (2-6 سنوات)',
+      'max_daily': '10mg',
+      'pregnancy': 'باستشارة طبيب',
+      'breastfeeding': 'باستشارة طبيب',
+      'side_effects': 'نعاس، جفاف فم',
+      'interactions': 'مهدئات، كحول',
+      'contraindications': 'حساسية السيتريزين',
+      'notes': 'الجيل الثاني - أقل تهدئة',
+      'overdose': 'نعاس شديد، هياج',
+      'forms': ['أقراص', 'شراب', 'قطرات'],
+      'brands': ['زيرتك', 'سيترين']
+    },
+    'ازيثرومايسين': {
+      'name_en': 'Azithromycin',
+      'category': 'مضاد حيوي - ماكرولايد',
+      'dose_adult': '500mg يومياً 3 أيام',
+      'dose_child': '10mg/kg يومياً',
+      'max_daily': '500mg',
+      'pregnancy': 'باستشارة طبيب',
+      'breastfeeding': 'باستشارة طبيب',
+      'side_effects': 'إسهال، غثيان، اضطراب نظم قلب',
+      'interactions': 'أدوية عدم نظم قلب، مضادات حموضة',
+      'contraindications': 'اضطراب نظم قلب، حساسية الماكرولايد',
+      'notes': 'لا يؤخذ مع مضادات حموضة',
+      'overdose': 'غثيان، إقياء، إسهال حاد',
+      'forms': ['أقراص', 'شراب', 'حقن'],
+      'brands': ['زيثروماكس', 'أزيتروكس']
+    },
   };
 
   // ===== الأمراض =====
@@ -95,6 +174,39 @@ class MedicalKnowledgeBase {
       'when_to_see_doctor': 'سكر صائم ≥126 أو تراكمي ≥6.5%',
       'emergency_warning': 'غيبوبة، تنفس كيتوني، عطش شديد',
     },
+    'الربو': {
+      'category': 'جهاز تنفسي',
+      'symptoms': 'صفير صدر، ضيق تنفس، سعال ليلي، ضغط صدر',
+      'causes': 'حساسية، وراثة، ملوثات، تدخين',
+      'treatment': 'بخاخات موسعة، بخاخات واقية، تجنب المحفزات',
+      'complications': 'نوبة ربو حادة، تلف رئة، قصور تنفسي',
+      'prevention': 'تجنب المحفزات، بخاخ وقائي منتظم',
+      'normal_range': 'تخطيط تنفس طبيعي، قمة تدفق >80%',
+      'when_to_see_doctor': 'نوبة لا تستجيب للبخاخ أو صعوبة في الكلام',
+      'emergency_warning': 'عدم قدرة على الكلام، زرقة شفاه',
+    },
+    'الاكتئاب': {
+      'category': 'صحة نفسية',
+      'symptoms': 'حزن مستمر، فقدان اهتمام، أرق، تعب، أفكار انتحارية',
+      'causes': 'كيمياء دماغ، أحداث حياة، وراثة، أمراض مزمنة',
+      'treatment': 'علاج نفسي، أدوية مضادة، دعم اجتماعي',
+      'complications': 'انتحار، عزلة، إدمان، أمراض جسدية',
+      'prevention': 'دعم اجتماعي، رياضة، نوم كاف، التعبير عن المشاعر',
+      'normal_range': '-',
+      'when_to_see_doctor': 'أعراض >2 أسابيع أو أفكار إيذاء',
+      'emergency_warning': 'أفكار انتحارية، إهمال شخصي شديد',
+    },
+    'التهاب المعدة': {
+      'category': 'جهاز هضمي',
+      'symptoms': 'حرقة، ألم أعلى البطن، غثيان، انتفاخ، فقدان شهية',
+      'causes': 'جرثومة المعدة، مسكنات، كحول، توتر',
+      'treatment': 'مضادات حموضة، علاج الجرثومة، تجنب المهيجات',
+      'complications': 'قرحة معدية، نزيف معدي، سرطان معدة',
+      'prevention': 'تجنب المهيجات، أكل منتظم، تقليل التوتر',
+      'normal_range': '-',
+      'when_to_see_doctor': 'ألم مستمر >2 أسابيع، دم في القيء، براز أسود',
+      'emergency_warning': 'قيء دموي، براز أسود، ألم شديد مفاجئ',
+    },
   };
 
   // ===== التخصصات الطبية =====
@@ -111,6 +223,46 @@ class MedicalKnowledgeBase {
       'keywords': ['صدر', 'قلب', 'ضيق تنفس', 'سعال', 'خفقان', 'ألم صدر'],
       'description': 'أمراض القلب والجهاز التنفسي',
     },
+    'الجهاز الهضمي': {
+      'keywords': ['بطن', 'معدة', 'إسهال', 'إمساك', 'غثيان', 'حرقة'],
+      'description': 'أمراض الجهاز الهضمي',
+    },
+    'الجلدية': {
+      'keywords': ['طفح', 'حكة', 'احمرار', 'بثور', 'تورم', 'أكزيما'],
+      'description': 'أمراض الجلد والشعر والأظافر',
+    },
+    'العظام والمفاصل': {
+      'keywords': ['عظام', 'مفاصل', 'ظهر', 'رقبة', 'ركبة', 'ألم عظام'],
+      'description': 'أمراض العظام والمفاصل',
+    },
+    'الصحة النفسية': {
+      'keywords': ['قلق', 'اكتئاب', 'أرق', 'توتر', 'خوف', 'هلع'],
+      'description': 'الصحة النفسية والاضطرابات النفسية',
+    },
+    'طب الأطفال': {
+      'keywords': ['طفل', 'رضيع', 'حمى', 'تسنين', 'مغص', 'تلقيح'],
+      'description': 'أمراض الأطفال من الولادة حتى المراهقة',
+    },
+    'طب العيون': {
+      'keywords': ['عين', 'رؤية', 'نظر', 'غشاوة', 'احمرار عين', 'دموع'],
+      'description': 'أمراض العين والرؤية',
+    },
+    'أنف وأذن وحنجرة': {
+      'keywords': ['أذن', 'أنف', 'حلق', 'زكام', 'رشح', 'تهاب حلق'],
+      'description': 'أمراض الأنف والأذن والحنجرة',
+    },
+    'طب الأسنان': {
+      'keywords': ['أسنان', 'ضرس', 'لثة', 'فم', 'تسوس', 'خراج'],
+      'description': 'أمراض الأسنان والفم واللثة',
+    },
+    'المسالك البولية': {
+      'keywords': ['بول', 'حرقان', 'تبول', 'مثانة', 'دم في بول', 'سلس'],
+      'description': 'أمراض الكلى والمسالك البولية',
+    },
+    'الغدد الصماء': {
+      'keywords': ['سكر', 'غدة', 'هرمون', 'درق', 'نمو', 'بلوغ', 'سمنة'],
+      'description': 'أمراض الغدد الصماء والسكري',
+    },
   };
 
   // ===== النصائح الصحية =====
@@ -120,13 +272,35 @@ class MedicalKnowledgeBase {
     'قلل استهلاك الملح إلى أقل من 5 غرامات يومياً 🧂',
     'مارس المشي 30 دقيقة يومياً 🚶',
     'نم 7-8 ساعات ليلاً 😴',
+    'مارس تمارين التنفس العميق 🧘',
+    'تناول الأسماك الدهنية مرتين أسبوعياً 🐟',
+    'تجنب التدخين والكحول 🚭',
+    'افحص ضغط الدم شهرياً 🩺',
+    'افحص السكر سنوياً 🧪',
+    'استخدم واقي شمس SPF 30+ يومياً ☀️',
+    'اغسل يديك بانتظام 🧼',
+    'تناول الألياف 25-30 غراماً يومياً 🌾',
+    'مارس تمارين تقوية العضلات مرتين أسبوعياً 💪',
+    'احصل على تطعيم الإنفلونزا سنوياً 💉',
+    'افحص أسنانك كل 6 أشهر 🦷',
+    'تجنب الجلوس المطول لأكثر من ساعة 🪑',
+    'تأمل 10 دقائق يومياً 🧘‍♀️',
+    'تواصل مع الأصدقاء والعائلة بانتظام 👨‍👩‍👧‍👦',
+    'تعلم مهارة جديدة لتحفيز عقلك 🧠',
   ];
 
   // ===== الأسئلة الشائعة =====
   final Map<String, String> faqResponses = {
     'كيف احجز موعد': '📅 لحجز موعد:\n1. اذهب لقسم الأطباء 👨‍⚕️\n2. اختر التخصص والطبيب\n3. اختر التاريخ والوقت\n4. أكد الحجز',
-    'كم سعر الاستشارة': '💰 أسعار الاستشارات:\n• طبيب عام: 3,000-10,000 ر.ي\n• استشاري: 10,000-25,000 ر.ي',
+    'كم سعر الاستشارة': '💰 أسعار الاستشارات:\n• طبيب عام: 3,000-10,000 ر.ي\n• استشاري: 10,000-25,000 ر.ي\n• أستاذ: 15,000-45,000 ر.ي',
     'كيف الغي موعد': '❌ لإلغاء موعد:\n1. اذهب للمواعيد 📅\n2. اختر الموعد المطلوب\n3. اضغط إلغاء\n⚠️ يمكن الإلغاء قبل ساعتين فقط',
+    'هل التطبيق مجاني': '🆓 التطبيق مجاني مع باقة أساسية.\n💎 الباقات المدفوعة:\n• الذهبية: 99 ر.ي/شهر\n• البلاتينية: 249 ر.ي/شهر',
+    'كيف اضيف دواء للتذكير': '💊 لإضافة تذكير دواء:\n1. اذهب لتذكير الأدوية 🔔\n2. اضغط + (إضافة جديدة)\n3. أدخل اسم الدواء والجرعة\n4. حدد الوقت والتكرار',
+    'كيف اتواصل مع طبيب': '📞 يمكنك التواصل عبر:\n• الدردشة النصية 💬\n• مكالمة فيديو 📹\n• مكالمة صوتية 📞',
+    'اين اجد نتائج تحاليلي': '🔬 نتائج التحاليل في:\n• الملف الصحي > التقارير الطبية 📄\n• قسم التحاليل > نتائجي',
+    'كيف اغير كلمة المرور': '🔐 لتغيير كلمة المرور:\nالإعدادات ⚙️ > الحساب > تغيير كلمة المرور',
+    'هل بياناتي آمنة': '🔒 نعم! جميع بياناتك مشفرة بأعلى معايير الأمان (AES-256).',
+    'ماذا افعل في الطوارئ': '🚨 في الطوارئ:\n1. اتصل على 1122 فوراً\n2. اذهب لأقرب مستشفى 🏥\n3. استخدم زر SOS في التطبيق 🆘',
   };
 
   // ===== الإسعافات الأولية =====
@@ -134,6 +308,13 @@ class MedicalKnowledgeBase {
     'النزيف': '🚑 النزيف:\n1. اضغط بقوة على الجرح بقطعة قماش نظيفة 🩹\n2. ارفع الجزء المصاب فوق مستوى القلب\n3. اتصل بالطوارئ إذا لم يتوقف النزيف بعد 10 دقائق',
     'الحروق': '🚑 الحروق:\n1. ضع المنطقة المصابة تحت ماء بارد جارٍ لمدة 10-15 دقيقة 💧\n2. لا تضع ثلجاً مباشرة على الحرق ❌\n3. غطِ الجرح بضمادة معقمة 🩹',
     'الجروح': '🚑 الجروح:\n1. نظف الجرح بالماء والصابون 🧼\n2. ضع مطهراً 🧴\n3. غطِ بضمادة معقمة 🩹\n4. راقب علامات العدوى',
+    'الكدمات': '🚑 الكدمات:\n1. ضع كمادات باردة (ثلج ملفوف بقطعة قماش) لمدة 15-20 دقيقة ❄️\n2. ارفع الجزء المصاب\n3. استخدم مسكنات الألم إذا لزم',
+    'التواء الكاحل': '🚑 التواء الكاحل:\n1. راحة (لا تضع وزن على القدم) 🦶\n2. كمادات باردة ❄️\n3. ضغط (ضمادة مرنة) 🩹\n4. رفع القدم فوق مستوى القلب',
+    'لدغات الحشرات': '🚑 لدغات الحشرات:\n1. أزل الإبرة إن وجدت (ببطء) 🪡\n2. اغسل المنطقة بالماء والصابون 🧼\n3. ضع كمادات باردة ❄️\n4. استخدم مضاد هستامين للحكة 💊',
+    'الحساسية الشديدة': '🚨 حساسية شديدة (صدمة تأقية):\n1. استخدم الإبينفرين (حقنة) إن وجد 💉\n2. اتصل بالطوارئ فوراً 📞\n3. ضع المصاب في وضعية مريحة (استلقاء مع رفع القدمين)\n4. راقب التنفس والنبض',
+    'الغصة (الاختناق)': '🚨 الغصة:\n👤 للبالغين:\n1. قف خلف المصاب\n2. لف ذراعيك حول خصره\n3. ادفع بقوة إلى الداخل والأعلى (هيمليخ)\n\n👶 للأطفال <1 سنة:\n1. ضع الطفل على ساعدك\n2. اضرب بين الكتفين 5 مرات\n3. اقلب واضغط على الصدر 5 مرات',
+    'الإغماء': '🚑 الإغماء:\n1. ضع المصاب مستلقياً مع رفع القدمين 🦶\n2. تأكد من التنفس والنبض\n3. قم بفك الملابس الضيقة\n4. اتصل بالطوارئ إذا استمر >دقيقة',
+    'النوبة الصرعية': '🚑 النوبة الصرعية:\n1. ابعد الأشياء الحادة عن المصاب 🪑\n2. ضع المصاب على جانبه (وضعية الإفاقة)\n3. لا تضع شيئاً في الفم ❌\n4. سجل وقت بداية النوبة ⏱️\n⚠️ اتصل بالطوارئ إذا استمرت >5 دقائق أو تكررت',
   };
 }
 
@@ -215,6 +396,26 @@ class TriageEngine {
         {'name': 'التهاب شعب هوائية', 'probability': 'متوسط', 'treatment': 'مضادات حيوية، موسعات شعب'},
         {'name': 'ذبحة صدرية', 'probability': 'منخفض', 'treatment': '🚨 راجع الطوارئ فوراً'},
       ],
+      'الجهاز الهضمي': [
+        {'name': 'التهاب معدي', 'probability': 'مرتفع', 'treatment': 'سوائل، راحة، أكل خفيف'},
+        {'name': 'قولون عصبي', 'probability': 'متوسط', 'treatment': 'تجنب المهيجات، ألياف، بروبيوتيك'},
+      ],
+      'الجلدية': [
+        {'name': 'إكزيما', 'probability': 'متوسط', 'treatment': 'مرطبات، كورتيزون موضعي'},
+        {'name': 'حساسية جلدية', 'probability': 'مرتفع', 'treatment': 'مضاد هستامين، تجنب المسبب'},
+      ],
+      'العظام والمفاصل': [
+        {'name': 'شد عضلي', 'probability': 'مرتفع', 'treatment': 'راحة، كمادات، مسكن'},
+        {'name': 'التهاب مفاصل', 'probability': 'متوسط', 'treatment': 'مسكنات، علاج طبيعي'},
+      ],
+      'الصحة النفسية': [
+        {'name': 'قلق عام', 'probability': 'مرتفع', 'treatment': 'تمارين تنفس، تأمل، استشارة نفسية'},
+        {'name': 'اكتئاب', 'probability': 'متوسط', 'treatment': 'استشارة نفسية، علاج سلوكي'},
+      ],
+      'طب الأطفال': [
+        {'name': 'التهاب حلق فيروسي', 'probability': 'مرتفع', 'treatment': 'سوائل دافئة، راحة، باراسيتامول'},
+        {'name': 'مغص رضيع', 'probability': 'متوسط', 'treatment': 'تدليك بطن، تجشئة، دفء'},
+      ],
     };
 
     return conditionsMap[spec] ?? conditionsMap['الطب العام']!;
@@ -222,16 +423,10 @@ class TriageEngine {
 }
 
 // ============================================================
-//   القسم الثالث: بوت المحادثة الذكي
+//   القسم الثالث: بوت المحادثة الذكي (المُحسّن)
 // ============================================================
 
 class ChatBot {
-  // ✅ استخدام قواعد البيانات الجديدة
-  final SymptomsDatabase _symptoms = SymptomsDatabase();
-  final LabTestsDatabase _labTests = LabTestsDatabase();
-  final MedicalTerms _medicalTerms = MedicalTerms();
-  final AllergiesDatabase _allergies = AllergiesDatabase();
-  final VaccinationsDatabase _vaccinations = VaccinationsDatabase(); {
   final MedicalKnowledgeBase _kb = MedicalKnowledgeBase();
   final TriageEngine _triageEngine = TriageEngine();
   final List<Map<String, dynamic>> _conversationHistory = [];
@@ -259,7 +454,7 @@ class ChatBot {
     // ✅ التحقق من الطوارئ
     if (_isEmergency(msgLower)) {
       return {
-        'response': _handleEmergency(),
+        'response': '🚨 حالة طارئة!\n\n• اتصل فوراً على 1122 📞\n• اذهب لأقرب مستشفى 🏥\n• استخدم زر SOS في التطبيق 🆘\n\n⚠️ لا تنتظر! الطوارئ الطبية تحتاج استجابة فورية.',
         'type': 'urgent',
         'create_ticket': true,
         'timestamp': DateTime.now().toIso8601String(),
@@ -352,10 +547,6 @@ class ChatBot {
     return symptomWords.any((word) => msg.contains(word));
   }
 
-  String _handleEmergency() {
-    return '🚨 حالة طارئة!\n\n• اتصل فوراً على 1122 📞\n• اذهب لأقرب مستشفى 🏥\n• استخدم زر SOS في التطبيق 🆘\n\n⚠️ لا تنتظر! الطوارئ الطبية تحتاج استجابة فورية.';
-  }
-
   String? _getDrugInfo(String msg) {
     for (var entry in _kb.drugsDb.entries) {
       final drugName = entry.key;
@@ -422,36 +613,14 @@ class ChatBot {
     }
     return null;
   }
-}
 
-// ============================================================
-//   القسم الرابع: خدمة البوت الموحدة
-// ============================================================
-
-class BotService {
-  static final BotService _instance = BotService._internal();
-  factory BotService() => _instance;
-  BotService._internal();
-
-  final ChatBot _chatBot = ChatBot();
-  final TriageEngine _triageEngine = TriageEngine();
-
-  Map<String, dynamic> processMessage(String message, {Map<String, dynamic>? context}) {
-    return _chatBot.respond(message, context: context);
+  String getRandomTip() {
+    return _kb.healthTips[_random.nextInt(_kb.healthTips.length)];
   }
 
-  Map<String, dynamic> triageSymptoms(String symptoms, {String? bodyPart}) {
-    return _triageEngine.predict(symptoms, bodyPart: bodyPart);
-  }
-
-  List<Map<String, dynamic>> getPossibleConditions(String symptoms, {String? bodyPart}) {
-    return _triageEngine.getPossibleConditions(symptoms, bodyPart: bodyPart);
-  }
-
-  String? getDrugInfo(String drugName) {
+  String? getDrugInfoByName(String drugName) {
     final msg = drugName.toLowerCase();
-    final kb = MedicalKnowledgeBase();
-    for (var entry in kb.drugsDb.entries) {
+    for (var entry in _kb.drugsDb.entries) {
       if (msg.contains(entry.key) || msg.contains((entry.value['name_en'] as String).toLowerCase())) {
         return '''
 💊 ${entry.key} (${entry.value['name_en']})
@@ -465,21 +634,33 @@ class BotService {
     return null;
   }
 
-  String getRandomTip() {
-    final kb = MedicalKnowledgeBase();
-    final random = Random();
-    return kb.healthTips[random.nextInt(kb.healthTips.length)];
+  String? getDiseaseInfoByName(String diseaseName) {
+    final msg = diseaseName.toLowerCase();
+    for (var entry in _kb.diseasesDb.entries) {
+      if (msg.contains(entry.key)) {
+        return '''
+🩺 ${entry.key}
+
+📋 التصنيف: ${entry.value['category']}
+🩺 الأعراض: ${entry.value['symptoms']}
+🔬 الأسباب: ${entry.value['causes']}
+💊 العلاج: ${entry.value['treatment']}
+⚠️ المضاعفات: ${entry.value['complications']}
+🛡️ الوقاية: ${entry.value['prevention']}
+''';
+      }
+    }
+    return null;
   }
 
   Map<String, dynamic> getStatistics() {
-    final kb = MedicalKnowledgeBase();
     return {
-      'drugs': kb.drugsDb.length,
-      'diseases': kb.diseasesDb.length,
-      'specializations': kb.specializations.length,
-      'health_tips': kb.healthTips.length,
-      'faqs': kb.faqResponses.length,
-      'first_aid': kb.firstAidDb.length,
+      'drugs': _kb.drugsDb.length,
+      'diseases': _kb.diseasesDb.length,
+      'specializations': _kb.specializations.length,
+      'health_tips': _kb.healthTips.length,
+      'faqs': _kb.faqResponses.length,
+      'first_aid': _kb.firstAidDb.length,
     };
   }
 }

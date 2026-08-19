@@ -1,7 +1,5 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:sehatak/services/local_ai/local_medical_ai.dart';
-import 'package:sehatak/services/local_ai/chat_bot_offline.dart';
 import 'package:sehatak/core/services/local_storage_service.dart';
 
 class BotService {
@@ -81,7 +79,7 @@ class BotService {
   // ============================================================
 
   String? getDrugInfo(String drugName) {
-    return _chatBot.getDrugInfo(drugName);
+    return _chatBot.getDrugInfoByName(drugName);
   }
 
   // ============================================================
@@ -89,7 +87,7 @@ class BotService {
   // ============================================================
 
   String? getDiseaseInfo(String diseaseName) {
-    return _chatBot.getDiseaseInfo(diseaseName);
+    return _chatBot.getDiseaseInfoByName(diseaseName);
   }
 
   // ============================================================
@@ -104,9 +102,8 @@ class BotService {
   // 📊 إحصائيات
   // ============================================================
 
-  Future<Map<String, dynamic>> getStats() async {
-    final botService = BotService();
-    return botService.getStatistics();
+  Map<String, dynamic> getStatistics() {
+    return _chatBot.getStatistics();
   }
 
   // ============================================================

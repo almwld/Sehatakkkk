@@ -1,8 +1,5 @@
-// ✅ استخدام الملف الموجود مع التحديثات الجديدة
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/providers/bot_provider.dart';
 import 'package:sehatak/services/local_ai/local_medical_ai.dart';
 
 class AiChatbotScreen extends StatefulWidget {
