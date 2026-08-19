@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -15,11 +16,13 @@ import 'core/themes/theme_manager.dart';
 import 'core/services/cache_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/call_service.dart';
+import 'core/routes/payment_routes.dart';
 import 'presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'presentation/bloc/theme_bloc/theme_bloc.dart';
 import 'presentation/bloc/chat_bloc/chat_bloc.dart';
 import 'presentation/bloc/doctor_bloc/doctor_bloc.dart';
 import 'presentation/screens/splash_screen.dart';
+import 'presentation/screens/wallet/wallet_screen.dart';
 
 // ✅ معالج الخلفية للإشعارات
 @pragma('vm:entry-point')
@@ -156,12 +159,21 @@ class _SehatakAppState extends State<SehatakApp> {
         return Consumer<FontSizeProvider>(
           builder: (context, fontProvider, child) {
             return MaterialApp(
-              title: 'صحتك',
+              title: 'صحتك - Sehatak',
               debugShowCheckedModeBanner: false,
               locale: const Locale('ar', 'SA'),
               theme: ThemeManager.lightTheme,
               darkTheme: ThemeManager.darkTheme,
               themeMode: themeState.themeMode,
+              localizationsDelegates: const [
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: const [
+                Locale('ar', 'SA'),
+                Locale('en', 'US'),
+              ],
               builder: (context, child) {
                 return MediaQuery(
                   data: MediaQuery.of(context).copyWith(
@@ -174,6 +186,7 @@ class _SehatakAppState extends State<SehatakApp> {
                 );
               },
               home: const SplashScreen(),
+              onGenerateRoute: PaymentRoutes.onGenerateRoute,
               navigatorKey: navigatorKey,
             );
           },
