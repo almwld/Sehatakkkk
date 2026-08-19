@@ -9,6 +9,7 @@ class ImageKit {
   static const String doctor3 = '$baseUrl/images/doctors/doctor_3.png';
   static const String doctor4 = '$baseUrl/images/doctors/doctor_4.png';
   static const String doctor5 = '$baseUrl/images/doctors/doctor_5.png';
+  static const String doctor6 = '$baseUrl/images/doctors/doctor_6.png';
 
   // ============================================================
   // 🏥 صور المستشفيات
@@ -80,5 +81,3 @@ class ImageKit {
   static const String deliveryTasheel = '$baseUrl/images/delivery/delivery_3.png';
   static const String deliveryOther = '$baseUrl/images/delivery/delivery_4.png';
 }
-  // ✅ إضافة doctor6
-  static const String doctor6 = 'https://ik.imagekit.io/your_app/doctors/doctor6.png';

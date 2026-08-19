@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart'; // ✅ إضافة هذا السطر
 
 enum TransactionType { deposit, withdrawal, payment, refund }
 enum TransactionStatus { pending, completed, failed, cancelled, refunded }

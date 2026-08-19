@@ -13,6 +13,9 @@ class AppColors {
   static const Color error = Color(0xFFEF4444);
   static const Color warning = Color(0xFFF59E0B);
   static const Color info = Color(0xFF3B82F6);
+  static const Color grey = Color(0xFF64748B);
+  static const Color purple = Color(0xFF8B5CF6);
+  static const Color surfaceContainerLow = Color(0xFFF1F5F9);
 
   static const LinearGradient primaryGradient = LinearGradient(
     colors: [Color(0xFF0D9488), Color(0xFF0F766E)],
