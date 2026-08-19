@@ -1,4 +1,3 @@
-import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -12,9 +11,11 @@ class MessageBubble extends StatefulWidget {
   final String time;
   final bool isRead;
   final String? senderName;
+  final List<String> reactions;
   final VoidCallback? onLongPress;
   final VoidCallback? onReply;
   final VoidCallback? onDelete;
+  final Function(String)? onReact;
 
   const MessageBubble({
     super.key,
@@ -25,9 +26,11 @@ class MessageBubble extends StatefulWidget {
     required this.time,
     this.isRead = false,
     this.senderName,
+    this.reactions = const [],
     this.onLongPress,
     this.onReply,
     this.onDelete,
+    this.onReact,
   });
 
   @override
@@ -36,6 +39,10 @@ class MessageBubble extends StatefulWidget {
 
 class _MessageBubbleState extends State<MessageBubble> {
   bool _isPlaying = false;
+  bool _showReactions = false;
+
+  // ✅ قائمة الإيموجي المتاحة للتفاعل
+  final List<String> _availableReactions = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 
   @override
   Widget build(BuildContext context) {
@@ -81,130 +88,166 @@ class _MessageBubbleState extends State<MessageBubble> {
                 ),
               ),
             Flexible(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  color: bubbleColor,
-                  borderRadius: BorderRadius.only(
-                    topLeft: const Radius.circular(16),
-                    topRight: const Radius.circular(16),
-                    bottomLeft: widget.isMe
-                        ? const Radius.circular(16)
-                        : const Radius.circular(4),
-                    bottomRight: widget.isMe
-                        ? const Radius.circular(4)
-                        : const Radius.circular(16),
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // ✅ اسم المرسل
-                    if (!widget.isMe && widget.senderName != null)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
-                        child: Text(
-                          widget.senderName!,
-                          style: TextStyle(
-                            color: AppColors.primary,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+              child: Column(
+                crossAxisAlignment: widget.isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: bubbleColor,
+                      borderRadius: BorderRadius.only(
+                        topLeft: const Radius.circular(16),
+                        topRight: const Radius.circular(16),
+                        bottomLeft: widget.isMe
+                            ? const Radius.circular(16)
+                            : const Radius.circular(4),
+                        bottomRight: widget.isMe
+                            ? const Radius.circular(4)
+                            : const Radius.circular(16),
                       ),
-                    // ✅ محتوى الرسالة حسب النوع
-                    if (widget.type == 'text')
-                      Text(
-                        widget.text,
-                        style: TextStyle(
-                          color: textColor,
-                          fontSize: 14,
-                          height: 1.4,
-                        ),
-                      ),
-                    if (widget.type == 'image' && widget.mediaUrl != null)
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => FullScreenImage(
-                                imageUrl: widget.mediaUrl!,
-                              ),
-                            ),
-                          );
-                        },
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: CachedNetworkImage(
-                            imageUrl: widget.mediaUrl!,
-                            width: 200,
-                            height: 200,
-                            fit: BoxFit.cover,
-                            placeholder: (_, __) => Container(
-                              height: 200,
-                              color: Colors.grey[300],
-                              child: const Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                            ),
-                            errorWidget: (_, __, ___) => Container(
-                              height: 200,
-                              color: Colors.grey[200],
-                              child: const Icon(
-                                Icons.broken_image,
-                                size: 40,
-                                color: AppColors.grey,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // ✅ اسم المرسل
+                        if (!widget.isMe && widget.senderName != null)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Text(
+                              widget.senderName!,
+                              style: TextStyle(
+                                color: AppColors.primary,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
-                        ),
-                      ),
-                    if (widget.type == 'audio')
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: Icon(
-                              _isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled,
-                              color: widget.isMe ? Colors.white : AppColors.primary,
-                              size: 32,
-                            ),
-                            onPressed: () => setState(() => _isPlaying = !_isPlaying),
-                          ),
+                        // ✅ محتوى الرسالة حسب النوع
+                        if (widget.type == 'text')
                           Text(
-                            '🎵 رسالة صوتية',
+                            widget.text,
                             style: TextStyle(
                               color: textColor,
-                              fontSize: 13,
+                              fontSize: 14,
+                              height: 1.4,
                             ),
                           ),
-                        ],
-                      ),
-                    // ✅ الوقت وحالة القراءة
-                    const SizedBox(height: 4),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          widget.time,
-                          style: TextStyle(
-                            fontSize: 9,
-                            color: widget.isMe ? Colors.white70 : AppColors.grey,
+                        if (widget.type == 'image' && widget.mediaUrl != null)
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => FullScreenImage(
+                                    imageUrl: widget.mediaUrl!,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: CachedNetworkImage(
+                                imageUrl: widget.mediaUrl!,
+                                width: 200,
+                                height: 200,
+                                fit: BoxFit.cover,
+                                placeholder: (_, __) => Container(
+                                  height: 200,
+                                  color: Colors.grey[300],
+                                  child: const Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                ),
+                                errorWidget: (_, __, ___) => Container(
+                                  height: 200,
+                                  color: Colors.grey[200],
+                                  child: const Icon(
+                                    Icons.broken_image,
+                                    size: 40,
+                                    color: AppColors.grey,
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
+                        if (widget.type == 'audio')
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: Icon(
+                                  _isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled,
+                                  color: widget.isMe ? Colors.white : AppColors.primary,
+                                  size: 32,
+                                ),
+                                onPressed: () => setState(() => _isPlaying = !_isPlaying),
+                              ),
+                              Text(
+                                '🎵 رسالة صوتية',
+                                style: TextStyle(
+                                  color: textColor,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        // ✅ الوقت وحالة القراءة
+                        const SizedBox(height: 4),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              widget.time,
+                              style: TextStyle(
+                                fontSize: 9,
+                                color: widget.isMe ? Colors.white70 : AppColors.grey,
+                              ),
+                            ),
+                            if (widget.isMe) ...[
+                              const SizedBox(width: 4),
+                              Icon(
+                                widget.isRead ? Icons.done_all_rounded : Icons.done_rounded,
+                                size: 12,
+                                color: widget.isRead ? AppColors.success : Colors.white70,
+                              ),
+                            ],
+                          ],
                         ),
-                        if (widget.isMe) ...[
-                          const SizedBox(width: 4),
-                          Icon(
-                            widget.isRead ? Icons.done_all_rounded : Icons.done_rounded,
-                            size: 12,
-                            color: widget.isRead ? AppColors.success : Colors.white70,
-                          ),
-                        ],
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                  // ✅ ردود الفعل (Reactions) - تظهر أسفل الفقاعة
+                  if (widget.reactions.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2, right: 8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 4,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: widget.reactions.map((reaction) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 2),
+                              child: Text(
+                                reaction,
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
           ],
@@ -212,6 +255,10 @@ class _MessageBubbleState extends State<MessageBubble> {
       ),
     );
   }
+
+  // ============================================================
+  // ✅ عرض قائمة الخيارات (نسخ، رد، حذف، تفاعل)
+  // ============================================================
 
   void _showOptions() {
     showModalBottomSheet(
@@ -225,6 +272,7 @@ class _MessageBubbleState extends State<MessageBubble> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // ✅ شريط السحب
               Container(
                 width: 40,
                 height: 4,
@@ -234,9 +282,47 @@ class _MessageBubbleState extends State<MessageBubble> {
                 ),
               ),
               const SizedBox(height: 16),
+
+              // ✅ ردود الفعل (Reactions)
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: _availableReactions.map((emoji) {
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.pop(context);
+                        if (widget.onReact != null) {
+                          widget.onReact!(emoji);
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: widget.reactions.contains(emoji)
+                              ? AppColors.primary.withOpacity(0.1)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          emoji,
+                          style: TextStyle(
+                            fontSize: widget.reactions.contains(emoji) ? 28 : 24,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+
+              const Divider(),
+
+              // ✅ خيارات أخرى
               if (widget.type == 'text' && widget.text.isNotEmpty)
                 _optionTile(Icons.content_copy_rounded, 'نسخ', () {
                   Navigator.pop(context);
+                  // TODO: نسخ النص
                 }),
               if (widget.type == 'image')
                 _optionTile(Icons.save_alt_rounded, 'حفظ الصورة', () {
