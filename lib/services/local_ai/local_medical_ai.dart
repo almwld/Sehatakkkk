@@ -226,6 +226,12 @@ class TriageEngine {
 // ============================================================
 
 class ChatBot {
+  // ✅ استخدام قواعد البيانات الجديدة
+  final SymptomsDatabase _symptoms = SymptomsDatabase();
+  final LabTestsDatabase _labTests = LabTestsDatabase();
+  final MedicalTerms _medicalTerms = MedicalTerms();
+  final AllergiesDatabase _allergies = AllergiesDatabase();
+  final VaccinationsDatabase _vaccinations = VaccinationsDatabase(); {
   final MedicalKnowledgeBase _kb = MedicalKnowledgeBase();
   final TriageEngine _triageEngine = TriageEngine();
   final List<Map<String, dynamic>> _conversationHistory = [];

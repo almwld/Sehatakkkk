@@ -6,6 +6,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'core/providers/font_size_provider.dart';
 import 'core/providers/user_provider.dart';
+import 'core/providers/bot_provider.dart'; // ✅ إضافة
 import 'core/themes/theme_manager.dart';
 import 'core/services/cache_service.dart';
 import 'presentation/bloc/auth_bloc/auth_bloc.dart';
@@ -45,6 +46,9 @@ void main() async {
         ChangeNotifierProvider(
           create: (_) => FontSizeProvider(),
         ),
+        ChangeNotifierProvider(
+          create: (_) => BotProvider(), // ✅ إضافة BotProvider
+        ),
         BlocProvider(
           create: (_) => AuthBloc()..add(CheckAuthStatus()),
         ),
@@ -73,7 +77,6 @@ class SehatakApp extends StatelessWidget {
               theme: ThemeManager.lightTheme,
               darkTheme: ThemeManager.darkTheme,
               themeMode: themeState.themeMode,
-              
               // ✅ تطبيق حجم الخط على التطبيق كامل
               builder: (context, child) {
                 return MediaQuery(
