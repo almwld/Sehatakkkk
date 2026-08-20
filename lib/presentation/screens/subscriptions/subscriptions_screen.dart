@@ -1,281 +1,187 @@
-import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/models/subscription/subscription_model.dart';
-import 'package:sehatak/core/services/subscription/subscription_service.dart';
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 
-class SubscriptionsScreen extends StatefulWidget {
+class SubscriptionsScreen extends StatelessWidget {
   const SubscriptionsScreen({super.key});
-
-  @override
-  State<SubscriptionsScreen> createState() => _SubscriptionsScreenState();
-}
-
-class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
-  final SubscriptionService _subscriptionService = SubscriptionService();
-  bool _isLoading = true;
-  bool _isYearly = false;
-  SubscriptionModel? _currentSubscription;
-  List<SubscriptionModel> _history = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
-  }
-
-  Future<void> _loadData() async {
-    setState(() => _isLoading = true);
-    _currentSubscription = await _subscriptionService.getUserSubscription();
-    _history = await _subscriptionService.getSubscriptionHistory();
-    setState(() => _isLoading = false);
-  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    final List<Map<String, dynamic>> _plans = [
+      {
+        'name': 'الأساسية',
+        'price': 'مجاني',
+        'features': [
+          'استشارات محدودة',
+          'خصم 5% على الصيدلية',
+          'تذكير أدوية أساسي',
+          'دعم فني محدود',
+        ],
+        'color': Colors.grey,
+        'isPopular': false,
+      },
+      {
+        'name': 'الذهبية',
+        'price': '99 ر.ي/شهر',
+        'features': [
+          'استشارات غير محدودة',
+          'خصم 20% على الصيدلية',
+          'تذكير أدوية متقدم',
+          'دعم فني 24/7',
+          'تحاليل منزلية مجانية',
+        ],
+        'color': Colors.amber,
+        'isPopular': true,
+      },
+      {
+        'name': 'البلاتينية',
+        'price': '249 ر.ي/شهر',
+        'features': [
+          'جميع مزايا الذهبية',
+          'خصم 30% على الصيدلية',
+          'طبيب أسرة شخصي',
+          'متابعة صحية متكاملة',
+          'تحاليل منزلية غير محدودة',
+          'استشارات فيديو غير محدودة',
+        ],
+        'color': Colors.blue,
+        'isPopular': false,
+      },
+    ];
+
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
       appBar: CustomAppBar(
-        title: '💳 الباقات والاشتراكات',
+        title: 'الباقات والاشتراكات',
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadData,
-          ),
-        ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // الاشتراك الحالي
-                  if (_currentSubscription != null)
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Colors.green, Colors.teal],
-                        ),
-                        borderRadius: BorderRadius.circular(16),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: _plans.length,
+        itemBuilder: (context, index) {
+          final plan = _plans[index];
+          final isPopular = plan['isPopular'] as bool;
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1A2540) : Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: isPopular
+                  ? Border.all(color: AppColors.primary, width: 2)
+                  : null,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ✅ اسم الباقة والشارة
+                Row(
+                  children: [
+                    Text(
+                      plan['name'] as String,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : Colors.black87,
                       ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.check_circle, color: Colors.white, size: 32),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '✅ اشتراك ${_currentSubscription!.planName}',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                Text(
-                                  'ينتهي في ${_currentSubscription!.endDate.day}/${_currentSubscription!.endDate.month}/${_currentSubscription!.endDate.year}',
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
+                    ),
+                    const Spacer(),
+                    if (isPopular)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        decoration: BoxDecoration(
+                          gradient: AppColors.primaryGradient,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Text(
+                          'الأكثر طلباً',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                // ✅ السعر
+                Text(
+                  plan['price'] as String,
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // ✅ المميزات
+                ...(plan['features'] as List<String>).map((feature) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.check_circle,
+                          color: AppColors.primary,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            feature,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: isDark ? Colors.white70 : Colors.grey[700],
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                  
-                  const SizedBox(height: 16),
-                  
-                  // تبديل الفترة
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1A2540) : Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text('شهري'),
-                        const SizedBox(width: 12),
-                        Switch(
-                          value: _isYearly,
-                          onChanged: (value) {
-                            setState(() => _isYearly = value);
-                          },
-                          activeColor: AppColors.primary,
-                        ),
-                        const SizedBox(width: 12),
-                        Row(
-                          children: [
-                            const Text('سنوي'),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: Colors.green.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: const Text(
-                                'وفر 16%',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: Colors.green,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
                         ),
                       ],
                     ),
-                  ),
-                  
-                  const SizedBox(height: 16),
-                  
-                  // الباقات
-                  ...SubscriptionPlanDetails.visiblePlans.map((plan) => _buildPlanCard(plan, isDark)),
-                  
-                  const SizedBox(height: 24),
-                ],
-              ),
-            ),
-    );
-  }
-
-  Widget _buildPlanCard(SubscriptionPlanDetails plan, bool isDark) {
-    final price = _isYearly ? plan.priceYearly : plan.priceMonthly;
-    final period = _isYearly ? 'سنة' : 'شهر';
-    final isCurrent = _currentSubscription?.plan == plan.plan;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2540) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: plan.isPopular ? Border.all(color: Colors.amber, width: 2) : null,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                '${plan.icon} ${plan.name}',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: plan.color,
-                ),
-              ),
-              const Spacer(),
-              if (plan.isPopular)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.amber,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Text(
-                    'الأكثر شيوعاً',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
+                  );
+                }),
+                const SizedBox(height: 16),
+                // ✅ زر الاشتراك
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('جاري الاشتراك في باقة ${plan['name']}...'),
+                          backgroundColor: AppColors.primary,
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isPopular ? AppColors.primary : Colors.grey,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
-                  ),
-                ),
-              if (isCurrent)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.green,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Text(
-                    '✅ نشط',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
+                    child: Text(
+                      isPopular ? 'اشترك الآن' : 'اختر الباقة',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Text(
-                '${price.toStringAsFixed(0)} ريال',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: plan.color,
-                ),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                '/ $period',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: isDark ? Colors.grey[400] : Colors.grey[600],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          ...plan.features.map((feature) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 3),
-            child: Row(
-              children: [
-                Icon(Icons.check_circle, color: plan.color, size: 16),
-                const SizedBox(width: 8),
-                Text(
-                  feature,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: isDark ? Colors.white : Colors.black87,
                   ),
                 ),
               ],
             ),
-          )),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: isCurrent ? null : () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isCurrent ? Colors.green : plan.color,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Text(
-                isCurrent ? '✅ مشترك حالياً' : 'اشترك الآن ${price.toStringAsFixed(0)} ريال',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }

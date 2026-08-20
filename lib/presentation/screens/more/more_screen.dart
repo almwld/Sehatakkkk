@@ -29,7 +29,7 @@ import 'package:sehatak/presentation/screens/first_aid/first_aid_screen.dart';
 import 'package:sehatak/presentation/screens/mental_health/mental_health_screen.dart';
 import 'package:sehatak/presentation/screens/diet_plan/diet_plan_screen.dart';
 import 'package:sehatak/presentation/screens/family_planning/family_planning_screen.dart';
-import 'package:sehatak/presentation/screens/subscriptions/subscriptions_screen.dart>';
+import 'package:sehatak/presentation/screens/subscriptions/subscriptions_screen.dart';
 import 'package:sehatak/presentation/screens/insurance/insurance_companies.dart';
 import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
 import 'package:sehatak/presentation/screens/help_center/help_center_screen.dart';
