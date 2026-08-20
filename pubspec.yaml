@@ -226,3 +226,29 @@ flutter:
           weight: 600
         - asset: assets/fonts/NotoSansArabicUI-Black.ttf
           weight: 900
+
+    # أيقونات الخدمات الجديدة
+    - assets/images/services/blood_donation.png
+    - assets/images/services/first_aid.png
+    - assets/images/services/hospital.png
+    - assets/images/services/laboratory.png
+    - assets/images/services/medical_articles.png
+    - assets/images/services/packages.png
+    - assets/images/services/pharmacy.png
+    - assets/images/services/womens_health.png
+    
+    # أيقونات التتبع
+    - assets/images/tracking/age.png
+    - assets/images/tracking/blood_pressure.png
+    - assets/images/tracking/blood_sugar.png
+    - assets/images/tracking/fruits.png
+    - assets/images/tracking/sleep_tracking.png
+    - assets/images/tracking/walking.png
+    - assets/images/tracking/water_drinking.png
+    - assets/images/tracking/weight.png
+    
+    # أيقونات الواجهة
+    - assets/images/ui/edit_button.png
+    - assets/images/ui/like_button.png
+    - assets/images/ui/settings_gear.png
+    - assets/images/ui/user_profile.png
