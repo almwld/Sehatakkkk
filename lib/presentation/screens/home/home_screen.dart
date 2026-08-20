@@ -25,19 +25,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   bool _isLoggedIn = false;
   bool _isBottomBarVisible = true;
 
-  // ✅ قائمة الشاشات
+  // ✅ قائمة الشاشات مع ScrollController
   final List<Widget> _screens = [];
-
-  // ✅ عناصر التنقل
-  final List<NavItemConfig> _navItems = [
-    const NavItemConfig(index: 0, icon: Icons.home_rounded, label: 'الرئيسية'),
-    const NavItemConfig(index: 1, icon: Icons.person_search_rounded, label: 'الأطباء'),
-    const NavItemConfig(index: 2, icon: Icons.local_pharmacy_rounded, label: 'الصيدلية'),
-    const NavItemConfig(index: 3, icon: Icons.chat_rounded, label: 'الدردشة', isSpecial: true),
-    const NavItemConfig(index: 4, icon: Icons.science_rounded, label: 'مختبرات'),
-    const NavItemConfig(index: 5, icon: Icons.folder_rounded, label: 'صحتي'),
-    const NavItemConfig(index: 6, icon: Icons.grid_view_rounded, label: 'المزيد'),
-  ];
 
   @override
   void initState() {
@@ -75,12 +64,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         scrollController: _scrollController,
         isBottomBarVisible: ValueNotifier<bool>(_isBottomBarVisible),
       ),
-      const DoctorsListScreen(),
-      const PharmacyScreen(),
-      const ChatScreen(),
-      const LabsListScreen(),
-      const PatientDashboard(),
-      const MoreScreen(),
+      DoctorsListScreen(scrollController: _scrollController),
+      PharmacyScreen(scrollController: _scrollController),
+      ChatScreen(scrollController: _scrollController),
+      LabsListScreen(scrollController: _scrollController),
+      PatientDashboard(scrollController: _scrollController),
+      MoreScreen(scrollController: _scrollController),
     ]);
   }
 
@@ -131,23 +120,4 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       ),
     );
   }
-}
-
-// ============================================================
-// 📦 نموذج عنصر التنقل
-// ============================================================
-class NavItemConfig {
-  final int index;
-  final IconData icon;
-  final String label;
-  final bool isSpecial;
-  final bool isProtected;
-
-  const NavItemConfig({
-    required this.index,
-    required this.icon,
-    required this.label,
-    this.isSpecial = false,
-    this.isProtected = false,
-  });
 }
