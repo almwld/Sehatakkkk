@@ -230,7 +230,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProvid
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: AppImage(
-                url: pharmacy['image'],
+                imageUrl: pharmacy['image'] as String,
                 width: 70,
                 height: 70,
               ),
@@ -426,7 +426,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProvid
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: AppImage(
-              url: medicine['image'],
+              imageUrl: medicine['image'] as String,
               width: 50,
               height: 50,
             ),
@@ -625,7 +625,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProvid
             child: ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
               child: AppImage(
-                url: item['image'],
+                imageUrl: item['image'] as String,
                 width: double.infinity,
                 height: double.infinity,
                 fit: BoxFit.cover,
@@ -752,7 +752,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProvid
             child: ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
               child: AppImage(
-                url: item['image'],
+                imageUrl: item['image'] as String,
                 width: double.infinity,
                 height: double.infinity,
                 fit: BoxFit.cover,
