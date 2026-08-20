@@ -36,7 +36,7 @@ class AppImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget child;
-    
+
     final isNetwork = imageUrl.startsWith('http');
     final isSvgFile = imageUrl.endsWith('.svg') || isSvg;
     final isAsset = !isNetwork && !isSvgFile;
@@ -139,35 +139,25 @@ class DoctorImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final defaultImage = gender == 'female' 
-        ? ImageKit.doctorFemalePlaceholder 
-        : ImageKit.doctorPlaceholder;
-    
-    final url = imagePath?.isNotEmpty == true ? imagePath! : defaultImage;
-    final isSvg = url.endsWith('.svg');
-    
-    final optimizedUrl = isSvg 
-        ? url 
-        : ImageKit.optimize(
-            imageUrl: url,
-            width: size.toInt(),
-            height: size.toInt(),
-            quality: 80,
-          );
+    // ✅ استخدام صورة افتراضية من ImageKit
+    final defaultImage = gender == 'female'
+        ? ImageKit.doctor3 // استخدام صورة دكتورة
+        : ImageKit.doctor1; // استخدام صورة دكتور
+
+    final url = (imagePath?.isNotEmpty == true) ? imagePath! : defaultImage;
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: AppImage(
-        imageUrl: optimizedUrl,
+        imageUrl: url,
         width: size,
         height: size,
-        isSvg: isSvg,
         errorWidget: Container(
           width: size,
           height: size,
           color: Colors.grey.shade200,
           child: Icon(
-            Icons.person,
+            gender == 'female' ? Icons.woman : Icons.man,
             color: Colors.grey.shade400,
             size: size * 0.5,
           ),
@@ -193,15 +183,8 @@ class HospitalImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final optimizedUrl = ImageKit.optimize(
-      imageUrl: imagePath,
-      width: (width ?? 300).toInt(),
-      height: (height ?? 200).toInt(),
-      quality: 80,
-    );
-
     return AppImage(
-      imageUrl: optimizedUrl,
+      imageUrl: imagePath,
       width: width,
       height: height,
       fit: fit,
@@ -224,15 +207,8 @@ class BannerImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final optimizedUrl = ImageKit.optimize(
-      imageUrl: imagePath,
-      width: 1200,
-      height: 600,
-      quality: 85,
-    );
-
     return AppImage(
-      imageUrl: optimizedUrl,
+      imageUrl: imagePath,
       width: width,
       height: height,
       fit: BoxFit.cover,
@@ -257,15 +233,8 @@ class MedicineImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final optimizedUrl = ImageKit.optimize(
-      imageUrl: imagePath,
-      width: (width ?? 200).toInt(),
-      height: (height ?? 200).toInt(),
-      quality: 85,
-    );
-
     return AppImage(
-      imageUrl: optimizedUrl,
+      imageUrl: imagePath,
       width: width,
       height: height,
       fit: BoxFit.contain,
@@ -288,15 +257,8 @@ class LabImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final optimizedUrl = ImageKit.optimize(
-      imageUrl: imagePath,
-      width: (width ?? 300).toInt(),
-      height: (height ?? 200).toInt(),
-      quality: 80,
-    );
-
     return AppImage(
-      imageUrl: optimizedUrl,
+      imageUrl: imagePath,
       width: width,
       height: height,
       fit: BoxFit.cover,
@@ -319,15 +281,8 @@ class PharmacyImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final optimizedUrl = ImageKit.optimize(
-      imageUrl: imagePath,
-      width: (width ?? 300).toInt(),
-      height: (height ?? 200).toInt(),
-      quality: 80,
-    );
-
     return AppImage(
-      imageUrl: optimizedUrl,
+      imageUrl: imagePath,
       width: width,
       height: height,
       fit: BoxFit.cover,
