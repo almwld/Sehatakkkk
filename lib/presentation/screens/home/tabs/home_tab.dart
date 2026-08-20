@@ -21,7 +21,7 @@ import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
 import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
 import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart';
 import 'package:sehatak/presentation/screens/blood_donation/blood_donation_screen.dart';
-import 'package:sehatak/presentation/screens/wallet/wallet_screen.dart';
+import 'package:sehatak/presentation/screens/payment/wallet_screen.dart';
 import 'package:sehatak/presentation/screens/consultation/consultation_screen.dart';
 import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
 import 'package:sehatak/presentation/screens/health/health_dashboard.dart';
@@ -83,6 +83,12 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   double _heartAnim = 0;
   bool _isOffline = false;
   double _appBarOpacity = 1.0;
+  
+  // ✅ متغيرات التحكم في التمرير للشريط العلوي
+  double _headerHeight = 0;
+  double _searchBarOffset = 0;
+  bool _isSearchBarVisible = true;
+  bool _isHeaderVisible = true;
 
   // ============================================================
   // 📦 البيانات
@@ -190,8 +196,20 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     if (!mounted) return;
     final maxScroll = widget.scrollController?.position.maxScrollExtent ?? 0;
     final currentScroll = widget.scrollController?.position.pixels ?? 0;
+    
+    // ✅ حساب الشفافية والحركة
+    final scrollProgress = (currentScroll / maxScroll).clamp(0.0, 1.0);
+    
     setState(() {
-      _appBarOpacity = 1.0 - (currentScroll / maxScroll).clamp(0.0, 0.5);
+      // ✅ الشريط العلوي يختفي تدريجياً
+      _appBarOpacity = 1.0 - (scrollProgress * 0.6);
+      
+      // ✅ شريط البحث يتحرك للأعلى مع التمرير
+      _searchBarOffset = -(scrollProgress * 30);
+      
+      // ✅ إظهار/إخفاء العناصر
+      _isSearchBarVisible = scrollProgress < 0.7;
+      _isHeaderVisible = scrollProgress < 0.9;
     });
   }
 
@@ -278,80 +296,88 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ============================================================
-  // ✅ شريط البحث العائم
+  // ✅ شريط البحث العائم - نسخة React Native
   // ============================================================
   Widget _buildFloatingSearchBar(bool isDark) {
-    return GestureDetector(
-      onTap: () {
-        showSearch(
-          context: context,
-          delegate: AppSearchDelegate(),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1A2540) : Colors.white,
-          borderRadius: BorderRadius.circular(30),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 16,
-              offset: const Offset(0, 4),
-            ),
-          ],
-          border: Border.all(
-            color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
-            width: 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Image.asset(
-              'assets/images/icons/search/Search button.png',
-              width: 22,
-              height: 22,
-              color: isDark ? Colors.grey[400] : Colors.grey[500],
-              errorBuilder: (context, error, stackTrace) {
-                return Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey[500], size: 22);
-              },
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                'ابحث عن طبيب، دواء، أو خدمة...',
-                style: TextStyle(
-                  color: isDark ? Colors.grey[500] : Colors.grey[400],
-                  fontSize: 14,
+    return AnimatedOpacity(
+      opacity: _isSearchBarVisible ? 1.0 : 0.0,
+      duration: const Duration(milliseconds: 200),
+      child: Transform.translate(
+        offset: Offset(0, _searchBarOffset),
+        child: GestureDetector(
+          onTap: () {
+            showSearch(
+              context: context,
+              delegate: AppSearchDelegate(),
+            );
+          },
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1A2540) : Colors.white,
+              borderRadius: BorderRadius.circular(30),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.08),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
                 ),
+              ],
+              border: Border.all(
+                color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
+                width: 1,
               ),
             ),
-            Image.asset(
-              'assets/images/chat/microphone.png',
-              width: 22,
-              height: 22,
-              color: isDark ? Colors.grey[500] : Colors.grey[400],
-              errorBuilder: (context, error, stackTrace) {
-                return Icon(Icons.mic, color: isDark ? Colors.grey[500] : Colors.grey[400], size: 22);
-              },
+            child: Row(
+              children: [
+                Image.asset(
+                  'assets/images/icons/search/Search button.png',
+                  width: 22,
+                  height: 22,
+                  color: isDark ? Colors.grey[400] : Colors.grey[500],
+                  errorBuilder: (context, error, stackTrace) {
+                    return Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey[500], size: 22);
+                  },
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'ابحث عن طبيب، دواء، أو خدمة...',
+                    style: TextStyle(
+                      color: isDark ? Colors.grey[500] : Colors.grey[400],
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+                Image.asset(
+                  'assets/images/chat/microphone.png',
+                  width: 22,
+                  height: 22,
+                  color: isDark ? Colors.grey[500] : Colors.grey[400],
+                  errorBuilder: (context, error, stackTrace) {
+                    return Icon(Icons.mic, color: isDark ? Colors.grey[500] : Colors.grey[400], size: 22);
+                  },
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
   // ============================================================
-  // 📱 الشريط العلوي المنحني
+  // 📱 الشريط العلوي المنحني - نسخة React Native
   // ============================================================
   Widget _buildCurvedAppBar(bool isDark) {
-    return Opacity(
+    return AnimatedOpacity(
       opacity: _appBarOpacity,
+      duration: const Duration(milliseconds: 100),
       child: ClipPath(
         clipper: BottomCurvedClipper(),
         child: Container(
-          height: 120,
+          height: 140,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
@@ -372,95 +398,179 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
           child: SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
+              child: Column(
                 children: [
-                  // ✅ الصورة الرمزية
-                  Hero(
-                    tag: 'user_avatar',
-                    child: GestureDetector(
-                      onTap: () => _goTo(context, const PatientProfile()),
-                      child: CircleAvatar(
-                        radius: 22,
-                        backgroundColor: Colors.white.withOpacity(0.2),
-                        child: Text(
-                          _isLoggedIn ? _userName[0].toUpperCase() : 'م',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  // ✅ النصوص
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          _isLoggedIn ? 'مرحباً، $_userName 👋' : 'مرحباً بك في صحتك',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          _isLoggedIn ? 'كيف تشعر اليوم؟' : 'سجل دخولك للاستفادة',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.8),
-                            fontSize: 13,
-                          ),
-                        ),
-                        if (_isOffline)
-                          Container(
-                            margin: const EdgeInsets.only(top: 2),
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                            decoration: BoxDecoration(
-                              color: Colors.orange.withOpacity(0.3),
-                              borderRadius: BorderRadius.circular(4),
+                  // ✅ الصف العلوي: أيقونات + عنوان + صورة شخصية
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // ✅ أيقونات اليمين (السلة والإشعارات)
+                      Row(
+                        children: [
+                          // ✅ زر السلة مع شارة
+                          GestureDetector(
+                            onTap: () => _goTo(context, const CartScreen()),
+                            child: Stack(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Image.asset(
+                                    'assets/images/icons/top_bar/Shopping cart.png',
+                                    width: 20,
+                                    height: 20,
+                                    color: Colors.white,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Icon(Icons.shopping_cart, color: Colors.white, size: 20);
+                                    },
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 2,
+                                  right: 2,
+                                  child: Container(
+                                    width: 16,
+                                    height: 16,
+                                    decoration: const BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        '3',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                            child: const Text(
-                              '📶 غير متصل',
-                              style: TextStyle(fontSize: 9, color: Colors.orange),
+                          ),
+                          const SizedBox(width: 8),
+                          // ✅ زر الإشعارات مع شارة
+                          GestureDetector(
+                            onTap: () => _goTo(context, const NotificationsScreen()),
+                            child: Stack(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Image.asset(
+                                    'assets/images/icons/top_bar/notifications.png',
+                                    width: 20,
+                                    height: 20,
+                                    color: Colors.white,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Icon(Icons.notifications, color: Colors.white, size: 20);
+                                    },
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 2,
+                                  right: 2,
+                                  child: Container(
+                                    width: 16,
+                                    height: 16,
+                                    decoration: const BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        '5',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                      ],
-                    ),
-                  ),
-                  // ✅ أيقونات الإشعارات والسلة
-                  GestureDetector(
-                    onTap: () => _goTo(context, const NotificationsScreen()),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      child: Image.asset(
-                        'assets/images/icons/top_bar/notifications.png',
-                        width: 26,
-                        height: 26,
-                        color: Colors.white,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(Icons.notifications, color: Colors.white, size: 26);
-                        },
+                        ],
                       ),
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () => _goTo(context, const CartScreen()),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      child: Image.asset(
-                        'assets/images/icons/top_bar/Shopping cart.png',
-                        width: 26,
-                        height: 26,
-                        color: Colors.white,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(Icons.shopping_cart, color: Colors.white, size: 26);
-                        },
+                      // ✅ العنوان
+                      const Text(
+                        'صحتك 🏥',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
+                      // ✅ الصورة الرمزية
+                      Hero(
+                        tag: 'user_avatar',
+                        child: GestureDetector(
+                          onTap: () => _goTo(context, const PatientProfile()),
+                          child: CircleAvatar(
+                            radius: 20,
+                            backgroundColor: Colors.white.withOpacity(0.2),
+                            child: Text(
+                              _isLoggedIn ? _userName[0].toUpperCase() : 'م',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  // ✅ النصوص الترحيبية
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            _isLoggedIn ? 'مرحباً بك 👋' : 'مرحباً بك في صحتك',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            _isLoggedIn ? 'كيف حالك اليوم؟' : 'سجل دخولك للاستفادة',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.8),
+                              fontSize: 13,
+                            ),
+                          ),
+                          if (_isOffline)
+                            Container(
+                              margin: const EdgeInsets.only(top: 2),
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: Colors.orange.withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: const Text(
+                                '📶 غير متصل',
+                                style: TextStyle(fontSize: 9, color: Colors.orange),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -501,7 +611,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             // ✅ شريط البحث العائم (بـ margin سالب)
             SliverToBoxAdapter(
               child: Transform.translate(
-                offset: const Offset(0, -20),
+                offset: Offset(0, -20 + _searchBarOffset),
                 child: _buildFloatingSearchBar(isDark),
               ),
             ),
@@ -1845,3 +1955,119 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 }
+
+  // ============================================================
+  // 💾 كود الكاش (Cache)
+  // ============================================================
+  bool _isCacheLoaded = false;
+  List<Map<String, dynamic>> _cachedDoctors = [];
+  List<Map<String, dynamic>> _cachedProducts = [];
+  List<Map<String, dynamic>> _cachedHospitals = [];
+  List<Map<String, dynamic>> _cachedLabs = [];
+  List<Map<String, dynamic>> _cachedPharmacies = [];
+  List<Map<String, dynamic>> _cachedArticles = [];
+  List<Map<String, dynamic>> _cachedTips = [];
+  List<Map<String, dynamic>> _cachedPosts = [];
+
+  // ✅ تحميل البيانات من الكاش
+  Future<void> _loadFromCache() async {
+    try {
+      final cache = CacheService();
+      
+      _cachedDoctors = await cache.get('home_doctors') ?? [];
+      _cachedProducts = await cache.get('home_products') ?? [];
+      _cachedHospitals = await cache.get('home_hospitals') ?? [];
+      _cachedLabs = await cache.get('home_labs') ?? [];
+      _cachedPharmacies = await cache.get('home_pharmacies') ?? [];
+      _cachedArticles = await cache.get('home_articles') ?? [];
+      _cachedTips = await cache.get('home_tips') ?? [];
+      _cachedPosts = await cache.get('home_posts') ?? [];
+      
+      _isCacheLoaded = true;
+      
+      if (mounted) {
+        setState(() {
+          if (_cachedDoctors.isNotEmpty) _topDoctors = _cachedDoctors;
+          if (_cachedProducts.isNotEmpty) _products = _cachedProducts;
+          if (_cachedHospitals.isNotEmpty) _featuredHospitals = _cachedHospitals;
+          if (_cachedLabs.isNotEmpty) _featuredLabs = _cachedLabs;
+          if (_cachedPharmacies.isNotEmpty) _featuredPharmacies = _cachedPharmacies;
+          if (_cachedArticles.isNotEmpty) _healthArticles = _cachedArticles;
+          if (_cachedTips.isNotEmpty) _dailyTips = _cachedTips;
+          if (_cachedPosts.isNotEmpty) _communityPosts = _cachedPosts;
+        });
+      }
+      
+      print('✅ تم تحميل البيانات من الكاش بنجاح');
+    } catch (e) {
+      print('❌ فشل تحميل الكاش: $e');
+    }
+  }
+
+  // ✅ حفظ البيانات في الكاش
+  Future<void> _saveToCache() async {
+    try {
+      final cache = CacheService();
+      
+      await cache.set('home_doctors', _topDoctors);
+      await cache.set('home_products', _products);
+      await cache.set('home_hospitals', _featuredHospitals);
+      await cache.set('home_labs', _featuredLabs);
+      await cache.set('home_pharmacies', _featuredPharmacies);
+      await cache.set('home_articles', _healthArticles);
+      await cache.set('home_tips', _dailyTips);
+      await cache.set('home_posts', _communityPosts);
+      
+      print('✅ تم حفظ البيانات في الكاش بنجاح');
+    } catch (e) {
+      print('❌ فشل حفظ الكاش: $e');
+    }
+  }
+
+  // ✅ تحديث دالة _initializeData لإضافة الكاش
+  Future<void> _initializeDataWithCache() async {
+    try {
+      // ✅ أولاً: تحميل من الكاش (سريع)
+      await _loadFromCache();
+      
+      // ✅ ثانياً: محاولة تحديث البيانات من Firebase
+      try {
+        _loadUserData();
+        await _loadHealthScore();
+        _startAnimation();
+        
+        // ✅ حفظ البيانات الجديدة في الكاش
+        await _saveToCache();
+        
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+            _hasError = false;
+            _isOffline = false;
+          });
+        }
+      } catch (e) {
+        // ✅ إذا فشل Firebase، استخدم الكاش
+        if (_isCacheLoaded) {
+          if (mounted) {
+            setState(() {
+              _isLoading = false;
+              _hasError = false;
+              _isOffline = true;
+            });
+          }
+        } else {
+          rethrow;
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _hasError = true;
+          _errorMessage = 'حدث خطأ في تحميل البيانات';
+          _isOffline = true;
+        });
+      }
+    }
+  }
