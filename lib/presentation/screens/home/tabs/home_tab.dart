@@ -1,4 +1,5 @@
 import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -63,7 +64,6 @@ class HomeTab extends StatefulWidget {
 }
 
 class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
-  final ValueNotifier<bool> _isBottomBarVisible = ValueNotifier<bool>(true);
   @override
   bool get wantKeepAlive => true;
 
@@ -83,10 +83,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   double _heartAnim = 0;
   bool _isOffline = false;
   double _appBarOpacity = 1.0;
-  
-  double _searchBarOffset = 0;
-  bool _isSearchBarVisible = true;
-  bool _isHeaderVisible = true;
 
   // ============================================================
   // 📦 البيانات
@@ -180,9 +176,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   @override
   void initState() {
     super.initState();
-    _loadUserData();
-    _loadHealthScore();
-    _startAnimation();
+    _initializeData();
     widget.scrollController?.addListener(_onScroll);
   }
 
@@ -196,14 +190,38 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     if (!mounted) return;
     final maxScroll = widget.scrollController?.position.maxScrollExtent ?? 0;
     final currentScroll = widget.scrollController?.position.pixels ?? 0;
-    final scrollProgress = (currentScroll / maxScroll).clamp(0.0, 1.0);
-    
     setState(() {
-      _appBarOpacity = 1.0 - (scrollProgress * 0.6);
-      _searchBarOffset = -(scrollProgress * 30);
-      _isSearchBarVisible = scrollProgress < 0.7;
-      _isHeaderVisible = scrollProgress < 0.9;
+      _appBarOpacity = 1.0 - (currentScroll / maxScroll).clamp(0.0, 0.5);
     });
+  }
+
+  Future<void> _initializeData() async {
+    try {
+      _loadUserData();
+      await _loadHealthScore();
+      _startAnimation();
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _hasError = false;
+          _isOffline = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _hasError = true;
+          _errorMessage = 'حدث خطأ في تحميل البيانات';
+          _isOffline = true;
+        });
+      }
+    }
+  }
+
+  Future<void> _refreshData() async {
+    setState(() => _isLoading = true);
+    await _initializeData();
   }
 
   void _loadUserData() {
@@ -263,69 +281,62 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   // ✅ شريط البحث العائم
   // ============================================================
   Widget _buildFloatingSearchBar(bool isDark) {
-    return AnimatedOpacity(
-      opacity: _isSearchBarVisible ? 1.0 : 0.0,
-      duration: const Duration(milliseconds: 200),
-      child: Transform.translate(
-        offset: Offset(0, _searchBarOffset),
-        child: GestureDetector(
-          onTap: () {
-            showSearch(
-              context: context,
-              delegate: AppSearchDelegate(),
-            );
-          },
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1A2540) : Colors.white,
-              borderRadius: BorderRadius.circular(30),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
-                  blurRadius: 16,
-                  offset: const Offset(0, 4),
+    return GestureDetector(
+      onTap: () {
+        showSearch(
+          context: context,
+          delegate: AppSearchDelegate(),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1A2540) : Colors.white,
+          borderRadius: BorderRadius.circular(30),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
+          border: Border.all(
+            color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Image.asset(
+              'assets/images/icons/search/Search button.png',
+              width: 22,
+              height: 22,
+              color: isDark ? Colors.grey[400] : Colors.grey[500],
+              errorBuilder: (context, error, stackTrace) {
+                return Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey[500], size: 22);
+              },
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'ابحث عن طبيب، دواء، أو خدمة...',
+                style: TextStyle(
+                  color: isDark ? Colors.grey[500] : Colors.grey[400],
+                  fontSize: 14,
                 ),
-              ],
-              border: Border.all(
-                color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
-                width: 1,
               ),
             ),
-            child: Row(
-              children: [
-                Image.asset(
-                  'assets/images/icons/search/Search button.png',
-                  width: 22,
-                  height: 22,
-                  color: isDark ? Colors.grey[400] : Colors.grey[500],
-                  errorBuilder: (context, error, stackTrace) {
-                    return Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey[500], size: 22);
-                  },
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'ابحث عن طبيب، دواء، أو خدمة...',
-                    style: TextStyle(
-                      color: isDark ? Colors.grey[500] : Colors.grey[400],
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-                Image.asset(
-                  'assets/images/chat/microphone.png',
-                  width: 22,
-                  height: 22,
-                  color: isDark ? Colors.grey[500] : Colors.grey[400],
-                  errorBuilder: (context, error, stackTrace) {
-                    return Icon(Icons.mic, color: isDark ? Colors.grey[500] : Colors.grey[400], size: 22);
-                  },
-                ),
-              ],
+            Image.asset(
+              'assets/images/chat/microphone.png',
+              width: 22,
+              height: 22,
+              color: isDark ? Colors.grey[500] : Colors.grey[400],
+              errorBuilder: (context, error, stackTrace) {
+                return Icon(Icons.mic, color: isDark ? Colors.grey[500] : Colors.grey[400], size: 22);
+              },
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -335,13 +346,12 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   // 📱 الشريط العلوي المنحني
   // ============================================================
   Widget _buildCurvedAppBar(bool isDark) {
-    return AnimatedOpacity(
+    return Opacity(
       opacity: _appBarOpacity,
-      duration: const Duration(milliseconds: 100),
       child: ClipPath(
         clipper: BottomCurvedClipper(),
         child: Container(
-          height: 140,
+          height: 120,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
@@ -362,94 +372,95 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
           child: SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Column(
+              child: Row(
                 children: [
-                  // ✅ الصف العلوي
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          _buildIconWithBadge(
-                            icon: Icons.shopping_cart,
-                            badgeCount: 3,
-                            onTap: () => _goTo(context, const CartScreen()),
-                          ),
-                          const SizedBox(width: 8),
-                          _buildIconWithBadge(
-                            icon: Icons.notifications,
-                            badgeCount: 5,
-                            onTap: () => _goTo(context, const NotificationsScreen()),
-                          ),
-                        ],
-                      ),
-                      const Text(
-                        'صحتك 🏥',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Hero(
-                        tag: 'user_avatar',
-                        child: GestureDetector(
-                          onTap: () => _goTo(context, const PatientProfile()),
-                          child: CircleAvatar(
-                            radius: 20,
-                            backgroundColor: Colors.white.withOpacity(0.2),
-                            child: Text(
-                              _isLoggedIn ? _userName[0].toUpperCase() : 'م',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                  // ✅ الصورة الرمزية
+                  Hero(
+                    tag: 'user_avatar',
+                    child: GestureDetector(
+                      onTap: () => _goTo(context, const PatientProfile()),
+                      child: CircleAvatar(
+                        radius: 22,
+                        backgroundColor: Colors.white.withOpacity(0.2),
+                        child: Text(
+                          _isLoggedIn ? _userName[0].toUpperCase() : 'م',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                  const SizedBox(height: 8),
-                  // ✅ النصوص الترحيبية
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            _isLoggedIn ? 'مرحباً بك 👋' : 'مرحباً بك في صحتك',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 17,
-                              fontWeight: FontWeight.bold,
+                  const SizedBox(width: 12),
+                  // ✅ النصوص
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          _isLoggedIn ? 'مرحباً، $_userName 👋' : 'مرحباً بك في صحتك',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          _isLoggedIn ? 'كيف تشعر اليوم؟' : 'سجل دخولك للاستفادة',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.8),
+                            fontSize: 13,
+                          ),
+                        ),
+                        if (_isOffline)
+                          Container(
+                            margin: const EdgeInsets.only(top: 2),
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              '📶 غير متصل',
+                              style: TextStyle(fontSize: 9, color: Colors.orange),
                             ),
                           ),
-                          Text(
-                            _isLoggedIn ? 'كيف حالك اليوم؟' : 'سجل دخولك للاستفادة',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.8),
-                              fontSize: 13,
-                            ),
-                          ),
-                          if (_isOffline)
-                            Container(
-                              margin: const EdgeInsets.only(top: 2),
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                              decoration: BoxDecoration(
-                                color: Colors.orange.withOpacity(0.3),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: const Text(
-                                '📶 غير متصل',
-                                style: TextStyle(fontSize: 9, color: Colors.orange),
-                              ),
-                            ),
-                        ],
+                      ],
+                    ),
+                  ),
+                  // ✅ أيقونات الإشعارات والسلة
+                  GestureDetector(
+                    onTap: () => _goTo(context, const NotificationsScreen()),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      child: Image.asset(
+                        'assets/images/icons/top_bar/notifications.png',
+                        width: 26,
+                        height: 26,
+                        color: Colors.white,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Icon(Icons.notifications, color: Colors.white, size: 26);
+                        },
                       ),
-                    ],
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => _goTo(context, const CartScreen()),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      child: Image.asset(
+                        'assets/images/icons/top_bar/Shopping cart.png',
+                        width: 26,
+                        height: 26,
+                        color: Colors.white,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Icon(Icons.shopping_cart, color: Colors.white, size: 26);
+                        },
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -460,51 +471,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  Widget _buildIconWithBadge({
-    required IconData icon,
-    required int badgeCount,
-    required VoidCallback onTap,
-  }) {
-    return Stack(
-      children: [
-        GestureDetector(
-          onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Icon(icon, color: Colors.white, size: 20),
-          ),
-        ),
-        if (badgeCount > 0)
-          Positioned(
-            top: 2,
-            right: 2,
-            child: Container(
-              width: 16,
-              height: 16,
-              decoration: const BoxDecoration(
-                color: Colors.red,
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: Text(
-                  '$badgeCount',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 9,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
   // ============================================================
   // 🏠 بناء الواجهة
   // ============================================================
@@ -512,6 +478,14 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   Widget build(BuildContext context) {
     super.build(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    if (_isLoading) {
+      return _buildShimmerLoader(isDark);
+    }
+
+    if (_hasError) {
+      return _buildErrorScreen(isDark);
+    }
 
     return RefreshIndicator(
       onRefresh: _refreshData,
@@ -524,10 +498,10 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             SliverToBoxAdapter(
               child: _buildCurvedAppBar(isDark),
             ),
-            // ✅ شريط البحث العائم
+            // ✅ شريط البحث العائم (بـ margin سالب)
             SliverToBoxAdapter(
               child: Transform.translate(
-                offset: Offset(0, -20 + _searchBarOffset),
+                offset: const Offset(0, -20),
                 child: _buildFloatingSearchBar(isDark),
               ),
             ),
@@ -539,8 +513,10 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   const SizedBox(height: 8),
                   _buildBannerCarousel(isDark),
                   const SizedBox(height: 16),
-                  _buildStatsRow(),
-                  const SizedBox(height: 16),
+                  if (_isLoggedIn) ...[
+                    _buildStatsRow(),
+                    const SizedBox(height: 16),
+                  ],
                   _buildSectionTitleWithAction('خدمات سريعة', isDark, 'عرض الكل',
                     () => _goTo(context, const ServicesScreen())),
                   const SizedBox(height: 8),
@@ -592,19 +568,61 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  Future<void> _refreshData() async {
-    setState(() => _isLoading = true);
-    _loadUserData();
-    await _loadHealthScore();
-    _startAnimation();
-    setState(() => _isLoading = false);
+  // ============================================================
+  // 📊 دوال البناء (جميع الدوال كاملة)
+  // ============================================================
+
+  Widget _buildShimmerLoader(bool isDark) {
+    return Center(
+      child: Shimmer.fromColors(
+        baseColor: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+        highlightColor: isDark ? Colors.grey[700]! : Colors.grey[100]!,
+        child: Column(
+          children: [
+            Container(height: 120, margin: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16))),
+            const SizedBox(height: 8),
+            Container(height: 60, margin: const EdgeInsets.symmetric(horizontal: 16), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16))),
+            const SizedBox(height: 8),
+            Container(height: 200, margin: const EdgeInsets.symmetric(horizontal: 16), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16))),
+            const SizedBox(height: 8),
+            Container(height: 100, margin: const EdgeInsets.symmetric(horizontal: 16), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16))),
+          ],
+        ),
+      ),
+    );
   }
 
-  // ============================================================
-  // 📊 دوال البناء
-  // ============================================================
+  Widget _buildErrorScreen(bool isDark) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline, size: 60, color: Colors.red[300]),
+          const SizedBox(height: 16),
+          Text(_errorMessage, style: TextStyle(fontSize: 16, color: isDark ? Colors.white : Colors.black87)),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: _initializeData,
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            child: const Text('إعادة المحاولة', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildBannerCarousel(bool isDark) {
+    if (_bannerImages.isEmpty) {
+      return Container(
+        height: 200,
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1A2540) : Colors.grey[200],
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Center(child: Text('لا توجد بانرات')),
+      );
+    }
+
     return Stack(
       children: [
         CarouselSlider(
