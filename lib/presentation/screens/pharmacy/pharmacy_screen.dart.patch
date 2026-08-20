@@ -1,0 +1,13 @@
+// أضف هذه الدالة في _PharmacyScreenState:
+
+void _navigateToProductDetail(Map<String, dynamic> product) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => ProductDetailScreen(product: product),
+    ),
+  );
+}
+
+// واستبدل جزء _buildProductCard بحيث يستخدم onTap:
+// أضف GestureDetector حول Card أو استخدم InkWell مع onTap

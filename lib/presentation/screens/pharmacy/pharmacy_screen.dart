@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/services/image_service.dart';
-import 'package:sehatak/utils/image_utils.dart';
-import 'package:sehatak/presentation/screens/pharmacy/cart_screen.dart';
+import 'package:sehatak/core/services/pharmacy_service.dart';
+import 'package:sehatak/core/services/pharmacy_cache_service.dart';
+import 'package:sehatak/core/models/pharmacy/product_model.dart';
+import 'package:sehatak/presentation/screens/cart/cart_screen.dart';
+import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
+import 'package:sehatak/presentation/screens/pharmacy/widgets/product_card.dart';
+import 'package:sehatak/presentation/screens/pharmacy/widgets/pharmacy_card.dart';
+import 'package:sehatak/presentation/screens/pharmacy/widgets/loading_shimmer.dart';
 
 class PharmacyScreen extends StatefulWidget {
   const PharmacyScreen({super.key});
@@ -13,542 +17,469 @@ class PharmacyScreen extends StatefulWidget {
 }
 
 class _PharmacyScreenState extends State<PharmacyScreen> {
+  final PharmacyService _service = PharmacyService();
+  final PharmacyCacheService _cache = PharmacyCacheService();
+  
+  late TabController _tabController;
   String _searchQuery = '';
   String _selectedCategory = 'الكل';
   bool _isLoading = true;
-  List<Map<String, dynamic>> _products = [];
+  bool _isOffline = false;
+  List<ProductModel> _products = [];
+  List<ProductModel> _filteredProducts = [];
+  
+  // ✅ Pagination
+  final int _pageSize = 20;
+  bool _hasMore = true;
+  bool _isLoadingMore = false;
+  DocumentSnapshot? _lastDocument;
+
   final List<String> _categories = [
     'الكل',
     'مسكنات',
     'مضادات حيوية',
     'فيتامينات',
     'مكملات غذائية',
+    'أدوية الضغط',
+    'أدوية القلب',
+    'أدوية السكري',
     'أجهزة طبية',
-    'عناية شخصية',
+    'عناية بالبشرة',
+    'عناية بالشعر',
+    'مكياج',
+    'عطور',
+    'عناية بالجسم',
+    'عناية بالفم والأسنان',
+    'عناية بالطفل',
+    'حفاضات',
+    'أغذية أطفال',
+    'حليب أطفال',
   ];
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
     _loadProducts();
+    _checkConnectivity();
   }
 
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  // ✅ تحميل المنتجات
   Future<void> _loadProducts() async {
     setState(() => _isLoading = true);
-    try {
-      final snapshot = await FirebaseFirestore.instance
-          .collection('products')
-          .where('isAvailable', isEqualTo: true)
-          .limit(30)
-          .get();
 
-      if (snapshot.docs.isNotEmpty) {
-        _products = snapshot.docs.map((doc) {
-          final data = doc.data();
-          return {
-            'id': doc.id,
-            'name': data['name'] ?? '',
-            'category': data['category'] ?? '',
-            'price': data['price']?.toDouble() ?? 0.0,
-            'discountPrice': data['discountPrice']?.toDouble(),
-            'image': data['image'] ?? ImageService.medicine1,
-            'pharmacyName': data['pharmacyName'] ?? '',
-            'stock': data['stock'] ?? 0,
-            'unit': data['unit'] ?? '',
-            'rating': data['rating']?.toDouble() ?? 0.0,
-          };
-        }).toList();
+    try {
+      // ✅ محاولة جلب من Firebase
+      final products = await _service.getProducts(limit: _pageSize);
+      
+      if (products.isNotEmpty) {
+        setState(() {
+          _products = products;
+          _filteredProducts = products;
+          _isLoading = false;
+          _isOffline = false;
+        });
+        // ✅ حفظ في الكاش
+        await _cache.saveProducts(products);
       } else {
-        _loadFallbackProducts();
+        // ✅ إذا كانت Firebase فارغة، جلب من الكاش
+        await _loadFromCache();
       }
     } catch (e) {
-      _loadFallbackProducts();
+      // ✅ في حالة الخطأ، جلب من الكاش
+      await _loadFromCache();
+      setState(() => _isOffline = true);
     }
-    setState(() => _isLoading = false);
   }
 
-  void _loadFallbackProducts() {
-    _products = [
-      {'id': '1', 'name': 'باراسيتامول 500mg', 'category': 'مسكنات', 'price': 500.0, 'image': ImageService.medicine1, 'pharmacyName': 'صيدلية ابن حيان', 'stock': 50, 'unit': 'قرص', 'rating': 4.8},
-      {'id': '2', 'name': 'فيتامين د 1000IU', 'category': 'فيتامينات', 'price': 1200.0, 'image': ImageService.medicine2, 'pharmacyName': 'عالم الصيدلة', 'stock': 30, 'unit': 'كبسولة', 'rating': 4.7},
-      {'id': '3', 'name': 'جهاز قياس ضغط', 'category': 'أجهزة طبية', 'price': 8500.0, 'image': ImageService.medicine3, 'pharmacyName': 'صيدلية النهضة', 'stock': 10, 'unit': 'جهاز', 'rating': 4.9},
-      {'id': '4', 'name': 'أموكسيسيلين 500mg', 'category': 'مضادات حيوية', 'price': 1500.0, 'image': ImageService.medicine4, 'pharmacyName': 'صيدلية ابن حيان', 'stock': 20, 'unit': 'كبسولة', 'rating': 4.5},
-    ];
+  // ✅ تحميل من الكاش
+  Future<void> _loadFromCache() async {
+    final cached = await _cache.getProducts();
+    if (cached.isNotEmpty) {
+      setState(() {
+        _products = cached;
+        _filteredProducts = cached;
+        _isLoading = false;
+        _isOffline = true;
+      });
+    } else {
+      // ✅ إذا كان الكاش فارغاً، استخدم بيانات افتراضية
+      _loadFallbackData();
+    }
   }
 
-  List<Map<String, dynamic>> get _filteredProducts {
-    var filtered = _products;
-    if (_selectedCategory != 'الكل') {
-      filtered = filtered.where((p) => p['category'] == _selectedCategory).toList();
+  // ✅ بيانات افتراضية (للحالات القصوى)
+  void _loadFallbackData() {
+    setState(() {
+      _isLoading = false;
+      _isOffline = true;
+      _products = _getFallbackProducts();
+      _filteredProducts = _products;
+    });
+  }
+
+  // ✅ التحقق من الاتصال
+  Future<void> _checkConnectivity() async {
+    // محاكاة التحقق (يمكن استخدام Connectivity Plus)
+  }
+
+  // ✅ تحميل المزيد (Pagination)
+  Future<void> _loadMore() async {
+    if (_isLoadingMore || !_hasMore) return;
+
+    setState(() => _isLoadingMore = true);
+
+    try {
+      final lastDoc = _products.isNotEmpty 
+          ? await _firestore.collection('products').doc(_products.last.id).get()
+          : null;
+
+      final newProducts = await _service.getProductsPaginated(
+        category: _selectedCategory == 'الكل' ? null : _selectedCategory,
+        search: _searchQuery.isEmpty ? null : _searchQuery,
+        lastDoc: lastDoc,
+        limit: _pageSize,
+      );
+
+      if (newProducts.isEmpty) {
+        setState(() => _hasMore = false);
+      } else {
+        setState(() {
+          _products.addAll(newProducts);
+          _filteredProducts = _products;
+          _isLoadingMore = false;
+        });
+      }
+    } catch (e) {
+      setState(() => _isLoadingMore = false);
     }
-    if (_searchQuery.isNotEmpty) {
-      filtered = filtered.where((p) =>
-        p['name'].contains(_searchQuery) ||
-        p['pharmacyName'].contains(_searchQuery)
-      ).toList();
-    }
-    return filtered;
+  }
+
+  // ✅ تصفية المنتجات
+  void _filterProducts() {
+    setState(() {
+      _filteredProducts = _products.where((product) {
+        final matchesCategory = _selectedCategory == 'الكل' || 
+            product.categoryText == _selectedCategory;
+        
+        final matchesSearch = _searchQuery.isEmpty ||
+            product.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+            product.description.toLowerCase().contains(_searchQuery.toLowerCase());
+        
+        return matchesCategory && matchesSearch;
+      }).toList();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = const Color(0xFF0D5257);
+    final bgColor = isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC);
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+      backgroundColor: bgColor,
       appBar: AppBar(
-        title: const Text('الصيدلية'),
-        backgroundColor: primaryColor,
+        title: const Text('💊 الصيدليات'),
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
+          // ✅ حالة الاتصال
+          if (_isOffline)
+            Container(
+              margin: const EdgeInsets.all(8),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.orange.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Text(
+                '📶 Offline',
+                style: TextStyle(color: Colors.orange, fontSize: 10),
+              ),
+            ),
           IconButton(
-            icon: const Icon(Icons.shopping_cart),
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())),
+            icon: const Icon(Icons.map),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const InteractiveMapScreen(type: 'pharmacies'),
+              ),
+            ),
           ),
           IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () => _showSearchDialog(),
+            icon: const Icon(Icons.shopping_cart),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const CartScreen()),
+            ),
+          ),
+        ],
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(text: '🛒 منتجات'),
+            Tab(text: '🏪 صيدليات'),
+          ],
+        ),
+      ),
+      body: Column(
+        children: [
+          // ✅ شريط البحث
+          _buildSearchBar(isDark),
+          
+          // ✅ تصنيفات
+          if (_tabController.index == 0)
+            _buildCategoryFilter(isDark),
+          
+          // ✅ المحتوى
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildProductsTab(isDark),
+                _buildPharmaciesTab(isDark),
+              ],
+            ),
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                // ✅ شريط البحث المدمج
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1A2540) : Colors.white,
-                      borderRadius: BorderRadius.circular(25),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey[600]),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: TextField(
-                            onChanged: (value) => setState(() => _searchQuery = value),
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                              hintText: 'ابحث عن دواء...',
-                              hintStyle: TextStyle(
-                                color: isDark ? Colors.grey[500] : Colors.grey[400],
-                              ),
-                            ),
-                            style: TextStyle(
-                              color: isDark ? Colors.white : Colors.black87,
-                            ),
-                          ),
-                        ),
-                        if (_searchQuery.isNotEmpty)
-                          IconButton(
-                            icon: const Icon(Icons.clear, size: 18),
-                            onPressed: () => setState(() => _searchQuery = ''),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                // ✅ قائمة التصنيفات
-                SizedBox(
-                  height: 45,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    itemCount: _categories.length,
-                    itemBuilder: (context, index) {
-                      final category = _categories[index];
-                      final isSelected = _selectedCategory == category;
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: FilterChip(
-                          label: Text(category),
-                          selected: isSelected,
-                          onSelected: (_) => setState(() => _selectedCategory = category),
-                          backgroundColor: isDark ? const Color(0xFF1A2540) : Colors.white,
-                          selectedColor: primaryColor.withOpacity(0.15),
-                          labelStyle: TextStyle(
-                            color: isSelected ? primaryColor : (isDark ? Colors.white : Colors.black87),
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                            side: BorderSide(
-                              color: isSelected ? primaryColor : Colors.grey.shade300,
-                              width: 1,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-
-                const SizedBox(height: 8),
-
-                // ✅ قائمة المنتجات
-                Expanded(
-                  child: _filteredProducts.isEmpty
-                      ? _buildEmptyState(isDark)
-                      : GridView.builder(
-                          padding: const EdgeInsets.all(12),
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 12,
-                            mainAxisSpacing: 12,
-                            childAspectRatio: 0.75,
-                          ),
-                          itemCount: _filteredProducts.length,
-                          itemBuilder: (context, index) {
-                            final product = _filteredProducts[index];
-                            return _buildProductCard(product, isDark, primaryColor);
-                          },
-                        ),
-                ),
-              ],
-            ),
     );
   }
 
-  Widget _buildProductCard(Map<String, dynamic> product, bool isDark, Color primaryColor) {
-    final hasDiscount = product['discountPrice'] != null && product['discountPrice'] < product['price'];
-    final finalPrice = hasDiscount ? product['discountPrice'] : product['price'];
-
-    return GestureDetector(
-      onTap: () => _showProductDetails(product),
-      child: Container(
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1A2540) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ✅ صورة المنتج
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                  child: buildProductImage(product['image'], size: double.infinity),
-                ),
-                if (hasDiscount)
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        '${((1 - product['discountPrice'] / product['price']) * 100).toStringAsFixed(0)}%',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            // ✅ معلومات المنتج
-            Padding(
-              padding: const EdgeInsets.all(8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product['name'],
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    product['pharmacyName'],
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: isDark ? Colors.grey[400] : Colors.grey[600],
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      if (hasDiscount) ...[
-                        Text(
-                          '${product['price']} ر.ي',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.red,
-                            decoration: TextDecoration.lineThrough,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                      ],
-                      Text(
-                        '${finalPrice} ر.ي',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          color: primaryColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      const Icon(Icons.star, color: Colors.amber, size: 12),
-                      Text(
-                        ' ${product['rating']}',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                      ),
-                      const Spacer(),
-                      Text(
-                        '${product['stock']} ${product['unit']}',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: isDark ? Colors.grey[400] : Colors.grey[600],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => _addToCart(product),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryColor,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 6),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text(
-                        'أضف للسلة',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+  // ✅ شريط البحث
+  Widget _buildSearchBar(bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: TextField(
+        onChanged: (value) {
+          setState(() {
+            _searchQuery = value;
+            _filterProducts();
+          });
+        },
+        decoration: InputDecoration(
+          hintText: '🔍 ابحث عن دواء أو صيدلية...',
+          prefixIcon: const Icon(Icons.search, color: AppColors.primary),
+          suffixIcon: _searchQuery.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear),
+                  onPressed: () {
+                    setState(() {
+                      _searchQuery = '';
+                      _filterProducts();
+                    });
+                  },
+                )
+              : null,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: isDark ? const Color(0xFF1A2540) : Colors.white,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
       ),
     );
   }
 
+  // ✅ تصنيفات
+  Widget _buildCategoryFilter(bool isDark) {
+    return Container(
+      height: 45,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: _categories.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final category = _categories[index];
+          final isSelected = _selectedCategory == category;
+          return FilterChip(
+            label: Text(category),
+            selected: isSelected,
+            onSelected: (_) {
+              setState(() {
+                _selectedCategory = category;
+                _filterProducts();
+              });
+            },
+            backgroundColor: isDark ? const Color(0xFF1A2540) : Colors.grey[200],
+            selectedColor: AppColors.primary.withOpacity(0.2),
+            labelStyle: TextStyle(
+              color: isSelected ? AppColors.primary : (isDark ? Colors.white70 : Colors.black87),
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+              side: BorderSide(
+                color: isSelected ? AppColors.primary : Colors.transparent,
+                width: 1.5,
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  // ✅ تبويب المنتجات
+  Widget _buildProductsTab(bool isDark) {
+    if (_isLoading) {
+      return const LoadingShimmer();
+    }
+
+    if (_filteredProducts.isEmpty) {
+      return _buildEmptyState(isDark);
+    }
+
+    return NotificationListener<ScrollNotification>(
+      onNotification: (notification) {
+        if (notification is ScrollEndNotification) {
+          if (notification.metrics.extentAfter < 100) {
+            _loadMore();
+          }
+        }
+        return false;
+      },
+      child: GridView.builder(
+        padding: const EdgeInsets.all(12),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 0.78,
+        ),
+        itemCount: _filteredProducts.length + (_isLoadingMore ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (index == _filteredProducts.length) {
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: CircularProgressIndicator(),
+              ),
+            );
+          }
+          final product = _filteredProducts[index];
+          return ProductCard(
+            product: product,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ProductDetailScreen(product: product),
+                ),
+              );
+            },
+            onAddToCart: () {
+              // ✅ إضافة للسلة
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  // ✅ تبويب الصيدليات
+  Widget _buildPharmaciesTab(bool isDark) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.store_outlined, size: 60, color: Colors.grey[400]),
+          const SizedBox(height: 16),
+          Text(
+            'جاري تحميل الصيدليات...',
+            style: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
+          ),
+          const SizedBox(height: 16),
+          const CircularProgressIndicator(),
+        ],
+      ),
+    );
+  }
+
+  // ✅ حالة فارغة
   Widget _buildEmptyState(bool isDark) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.search_off_rounded,
-            size: 80,
-            color: isDark ? Colors.grey[600] : Colors.grey[300],
-          ),
+          Icon(Icons.medication_outlined, size: 60, color: Colors.grey[400]),
           const SizedBox(height: 16),
           Text(
             'لا توجد منتجات',
             style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: isDark ? Colors.grey[400] : Colors.grey[600],
+              fontSize: 18,
+              color: isDark ? Colors.white70 : Colors.black87,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'حاول تغيير معايير البحث',
-            style: TextStyle(
-              color: isDark ? Colors.grey[500] : Colors.grey[400],
-            ),
+            _isOffline ? 'أنت غير متصل، استخدم البيانات المخزنة' : 'حاول تغيير البحث أو التصنيف',
+            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
           ),
-        ],
-      ),
-    );
-  }
-
-  void _showSearchDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('البحث عن دواء'),
-        content: TextField(
-          onChanged: (value) => setState(() => _searchQuery = value),
-          decoration: const InputDecoration(
-            hintText: 'ابحث بالاسم أو التصنيف...',
-            prefixIcon: Icon(Icons.search),
-          ),
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              setState(() {});
-            },
-            child: const Text('بحث'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showProductDetails(Map<String, dynamic> product) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Center(
-              child: Container(
-                width: 50,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
+          if (_isOffline) ...[
             const SizedBox(height: 16),
-            Row(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: buildProductImage(product['image'], size: 80),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        product['name'],
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        product['pharmacyName'],
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${product['price']} ر.ي',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const Divider(),
-            Text(
-              'الوصف',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              product['description'] ?? 'لا يوجد وصف',
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey[600],
-              ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: () => _addToCart(product),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  'إضافة إلى السلة',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+            ElevatedButton(
+              onPressed: _loadProducts,
+              child: const Text('محاولة الاتصال'),
             ),
           ],
-        ),
+        ],
       ),
     );
   }
 
-  void _addToCart(Map<String, dynamic> product) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('تم إضافة ${product['name']} إلى السلة'),
-        backgroundColor: Colors.green,
+  // ✅ بيانات افتراضية (Fallback)
+  List<ProductModel> _getFallbackProducts() {
+    final now = DateTime.now();
+    return [
+      ProductModel(
+        id: 'fb1',
+        name: 'باراسيتامول 500mg',
+        nameEn: 'Paracetamol',
+        category: ProductCategory.painkiller,
+        description: 'مسكن للألم وخافض للحرارة',
+        price: 500,
+        imageUrl: 'assets/images/medicine_1.png',
+        pharmacyId: 'ph1',
+        pharmacyName: 'صيدلية ابن حيان',
+        pharmacyImage: 'assets/images/pharmacies/pharmacy_1.png',
+        stock: 50,
+        inStock: true,
+        rating: 4.8,
+        reviews: 120,
+        keywords: ['paracetamol', 'مسكن'],
+        createdAt: now,
+        updatedAt: now,
       ),
-    );
+      ProductModel(
+        id: 'fb2',
+        name: 'فيتامين د 1000IU',
+        nameEn: 'Vitamin D',
+        category: ProductCategory.vitamin,
+        description: 'مكمل غذائي لفيتامين د',
+        price: 1200,
+        imageUrl: 'assets/images/medicine_2.png',
+        pharmacyId: 'ph2',
+        pharmacyName: 'عالم الصيدلة',
+        pharmacyImage: 'assets/images/pharmacies/pharmacy_2.png',
+        stock: 30,
+        inStock: true,
+        rating: 4.7,
+        reviews: 80,
+        keywords: ['vitamin d', 'فيتامين د'],
+        createdAt: now,
+        updatedAt: now,
+      ),
+    ];
   }
 }
