@@ -1,10 +1,7 @@
-import 'package:sehatak/core/services/toast_service.dart';
-import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/models/cart_item_model.dart';
+import 'package:sehatak/core/models/cart/cart_item_model.dart';
 import 'package:sehatak/core/services/cart_service.dart';
-import 'package:sehatak/presentation/screens/checkout/checkout_screen.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -17,7 +14,8 @@ class _CartScreenState extends State<CartScreen> {
   final CartService _cartService = CartService();
   List<CartItemModel> _items = [];
   bool _isLoading = true;
-  double _deliveryFee = 500; // 500 ريال رسوم توصيل افتراضية
+  double _deliveryFee = 5.0;
+  double _taxRate = 0.05;
 
   @override
   void initState() {
@@ -37,12 +35,16 @@ class _CartScreenState extends State<CartScreen> {
     return _items.fold(0.0, (sum, item) => sum + item.total);
   }
 
+  double get _discount {
+    return _items.fold(0.0, (sum, item) => sum + item.discountAmount);
+  }
+
   double get _tax {
-    return _subtotal * 0.05; // 5% ضريبة
+    return (_subtotal - _discount) * _taxRate;
   }
 
   double get _total {
-    return _subtotal + _deliveryFee + _tax;
+    return _subtotal - _discount + _deliveryFee + _tax;
   }
 
   void _updateQuantity(CartItemModel item, int newQuantity) async {
@@ -54,14 +56,20 @@ class _CartScreenState extends State<CartScreen> {
     await _cartService.removeItem(item.id);
     await _loadCart();
     
-    ToastService.showError(context, '🗑️ تم إزالة ${item.name} من السلة');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('تم إزالة ${item.name} من السلة'),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   void _clearCart() async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: 'مسح السلة',
+        title: const Text('مسح السلة'),
         content: const Text('هل أنت متأكد من رغبتك في مسح جميع العناصر من السلة؟'),
         actions: [
           TextButton(
@@ -80,28 +88,13 @@ class _CartScreenState extends State<CartScreen> {
     if (confirm == true) {
       await _cartService.clearCart();
       await _loadCart();
-      ToastService.showError(context, '🗑️ تم مسح السلة');
-    }
-  }
-
-  void _proceedToCheckout() {
-    if (_items.isEmpty) {
-      ToastService.showSuccess(context, 'السلة فارغة، أضف منتجات أولاً');
-      return;
-    }
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => CheckoutScreen(
-          items: _items,
-          subtotal: _subtotal,
-          deliveryFee: _deliveryFee,
-          tax: _tax,
-          total: _total,
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('تم مسح السلة'),
+          backgroundColor: Colors.red,
         ),
-      ),
-    );
+      );
+    }
   }
 
   @override
@@ -110,8 +103,8 @@ class _CartScreenState extends State<CartScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: CustomAppBar(
-        title: 'سلة المشتريات',
+      appBar: AppBar(
+        title: const Text('سلة المشتريات'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -133,18 +126,16 @@ class _CartScreenState extends State<CartScreen> {
               ? _buildEmptyState(isDark)
               : Column(
                   children: [
-                    // ✅ قائمة المنتجات
                     Expanded(
                       child: ListView.builder(
                         padding: const EdgeInsets.all(16),
                         itemCount: _items.length,
                         itemBuilder: (context, index) {
                           final item = _items[index];
-                          return _buildCartItem(item);
+                          return _buildCartItem(item, isDark);
                         },
                       ),
                     ),
-                    // ✅ ملخص السلة
                     _buildCartSummary(isDark),
                   ],
                 ),
@@ -156,18 +147,26 @@ class _CartScreenState extends State<CartScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.shopping_cart_outlined,
-            size: 80,
-            color: isDark ? Colors.grey[600] : Colors.grey[300],
+          Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1A2540) : Colors.grey.shade100,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.shopping_cart_outlined,
+              size: 60,
+              color: isDark ? Colors.grey[600] : Colors.grey[400],
+            ),
           ),
           const SizedBox(height: 16),
           Text(
             'سلة المشتريات فارغة',
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: isDark ? Colors.grey[400] : Colors.grey[600],
+              color: isDark ? Colors.white : Colors.black87,
             ),
           ),
           const SizedBox(height: 8),
@@ -175,7 +174,7 @@ class _CartScreenState extends State<CartScreen> {
             'أضف منتجات من الصيدلية أو المختبرات',
             style: TextStyle(
               fontSize: 14,
-              color: isDark ? Colors.grey[500] : Colors.grey[400],
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
             ),
           ),
           const SizedBox(height: 24),
@@ -188,7 +187,7 @@ class _CartScreenState extends State<CartScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -199,8 +198,8 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildCartItem(CartItemModel item) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  Widget _buildCartItem(CartItemModel item, bool isDark) {
+    final hasDiscount = item.discount != null && item.discount! > 0;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -208,16 +207,25 @@ class _CartScreenState extends State<CartScreen> {
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1A2540) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 4)],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+        border: Border.all(
+          color: item.inStock ? Colors.transparent : Colors.red.withOpacity(0.3),
+          width: 1,
+        ),
       ),
       child: Row(
         children: [
-          // ✅ صورة المنتج
           Container(
-            width: 60,
-            height: 60,
+            width: 70,
+            height: 70,
             decoration: BoxDecoration(
-              color: Colors.grey.shade100,
+              color: isDark ? const Color(0xFF0B1121) : Colors.grey.shade100,
               borderRadius: BorderRadius.circular(12),
               image: item.image != null
                   ? DecorationImage(
@@ -229,13 +237,12 @@ class _CartScreenState extends State<CartScreen> {
             child: item.image == null
                 ? Icon(
                     Icons.medication,
-                    color: Colors.grey.shade400,
+                    color: isDark ? Colors.grey[600] : Colors.grey[400],
                     size: 30,
                   )
                 : null,
           ),
           const SizedBox(width: 12),
-          // ✅ معلومات المنتج
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -261,7 +268,71 @@ class _CartScreenState extends State<CartScreen> {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    // ✅ أزرار تعديل الكمية
+                    if (hasDiscount) ...[
+                      Text(
+                        '${item.price.toStringAsFixed(0)} ريال',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          decoration: TextDecoration.lineThrough,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '${item.totalWithDiscount.toStringAsFixed(0)} ريال',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'خصم ${item.discount!.toStringAsFixed(0)}%',
+                          style: const TextStyle(
+                            fontSize: 8,
+                            color: Colors.green,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ] else ...[
+                      Text(
+                        '${item.total.toStringAsFixed(0)} ريال',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ],
+                    if (!item.inStock)
+                      Container(
+                        margin: const EdgeInsets.only(left: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          'غير متوفر',
+                          style: TextStyle(
+                            fontSize: 8,
+                            color: Colors.red,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
                     Container(
                       decoration: BoxDecoration(
                         color: isDark ? Colors.grey[800] : Colors.grey[200],
@@ -290,7 +361,9 @@ class _CartScreenState extends State<CartScreen> {
                           ),
                           IconButton(
                             icon: const Icon(Icons.add, size: 16),
-                            onPressed: () => _updateQuantity(item, item.quantity + 1),
+                            onPressed: item.inStock
+                                ? () => _updateQuantity(item, item.quantity + 1)
+                                : null,
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(
                               minWidth: 32,
@@ -301,25 +374,17 @@ class _CartScreenState extends State<CartScreen> {
                       ),
                     ),
                     const Spacer(),
-                    Text(
-                      '${item.total.toStringAsFixed(0)} ريال',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                        color: AppColors.primary,
-                      ),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline, size: 20),
+                      onPressed: () => _removeItem(item),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      color: Colors.red,
                     ),
                   ],
                 ),
               ],
             ),
-          ),
-          // ✅ زر الحذف
-          IconButton(
-            icon: const Icon(Icons.close, size: 18),
-            onPressed: () => _removeItem(item),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
           ),
         ],
       ),
@@ -338,32 +403,41 @@ class _CartScreenState extends State<CartScreen> {
             offset: const Offset(0, -4),
           ),
         ],
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
         children: [
-          // ✅ تفاصيل الأسعار
           _buildSummaryRow('المجموع الفرعي', _subtotal),
+          if (_discount > 0)
+            _buildSummaryRow('الخصم', -_discount, color: Colors.green),
           _buildSummaryRow('رسوم التوصيل', _deliveryFee),
-          _buildSummaryRow('الضريبة (5%)', _tax),
-          const Divider(),
+          _buildSummaryRow('الضريبة', _tax),
+          const Divider(height: 16),
           _buildSummaryRow(
             'الإجمالي',
             _total,
             isTotal: true,
           ),
           const SizedBox(height: 12),
-          // ✅ زر إتمام الطلب
           SizedBox(
             width: double.infinity,
-            height: 50,
+            height: 56,
             child: ElevatedButton(
-              onPressed: _proceedToCheckout,
+              onPressed: _items.isEmpty ? null : () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('جاري التوجيه إلى صفحة الدفع...'),
+                    backgroundColor: Colors.teal,
+                  ),
+                );
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                 ),
+                elevation: 0,
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -386,7 +460,7 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildSummaryRow(String label, double value, {bool isTotal = false}) {
+  Widget _buildSummaryRow(String label, double value, {Color? color, bool isTotal = false}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Padding(
@@ -407,7 +481,7 @@ class _CartScreenState extends State<CartScreen> {
             style: TextStyle(
               fontSize: isTotal ? 14 : 13,
               fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-              color: isTotal ? AppColors.primary : (isDark ? Colors.white : Colors.black87),
+              color: color ?? (isTotal ? AppColors.primary : (isDark ? Colors.white : Colors.black87)),
             ),
           ),
         ],

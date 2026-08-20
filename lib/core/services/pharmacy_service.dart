@@ -1,180 +1,106 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/models/pharmacy/product_model.dart';
-import 'package:sehatak/core/services/pharmacy_cache_service.dart';
 
 class PharmacyService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final PharmacyCacheService _cache = PharmacyCacheService();
 
-  // ✅ جلب المنتجات مع الكاش
-  Future<List<ProductModel>> getProducts({
-    String? category,
-    String? search,
-    int limit = 50,
-  }) async {
+  // جلب جميع المنتجات
+  Future<List<ProductModel>> getAllProducts() async {
     try {
-      // ✅ محاولة جلب من Firebase
-      var query = _firestore.collection('products');
-
-      if (category != null && category != 'الكل') {
-        query = query.where('category', isEqualTo: _getCategoryKey(category));
-      }
-
-      if (search != null && search.isNotEmpty) {
-        query = query
-            .where('name', isGreaterThanOrEqualTo: search)
-            .where('name', isLessThanOrEqualTo: '$search\uf8ff');
-      }
-
-      final snapshot = await query
-          .orderBy('name')
-          .limit(limit)
-          .get();
-
-      final products = snapshot.docs.map((doc) {
-        final data = doc.data();
-        return ProductModel.fromJson({
-          'id': doc.id,
-          ...data,
-        });
-      }).toList();
-
-      // ✅ حفظ في الكاش
-      await _cache.saveProducts(products);
-      return products;
+      final snap = await _firestore.collection('products').get();
+      return snap.docs.map((doc) => ProductModel.fromFirestore(doc.data() as Map<String, dynamic>, doc.id)).toList();
     } catch (e) {
-      print('❌ Firebase error: $e, loading from cache...');
-      // ✅ في حالة الخطأ، جلب من الكاش
-      return await _cache.getProducts();
-    }
-  }
-
-  // ✅ جلب المنتجات مع Pagination
-  Future<List<ProductModel>> getProductsPaginated({
-    String? category,
-    String? search,
-    DocumentSnapshot? lastDoc,
-    int limit = 20,
-  }) async {
-    try {
-      var query = _firestore.collection('products');
-
-      if (category != null && category != 'الكل') {
-        query = query.where('category', isEqualTo: _getCategoryKey(category));
-      }
-
-      if (search != null && search.isNotEmpty) {
-        query = query
-            .where('name', isGreaterThanOrEqualTo: search)
-            .where('name', isLessThanOrEqualTo: '$search\uf8ff');
-      }
-
-      if (lastDoc != null) {
-        query = query.startAfterDocument(lastDoc);
-      }
-
-      final snapshot = await query
-          .orderBy('name')
-          .limit(limit)
-          .get();
-
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        return ProductModel.fromJson({
-          'id': doc.id,
-          ...data,
-        });
-      }).toList();
-    } catch (e) {
-      print('❌ Pagination error: $e');
       return [];
     }
   }
 
-  // ✅ جلب منتج حسب ID
+  // جلب منتجات حسب التصنيف
+  Future<List<ProductModel>> getProductsByCategory(ProductCategory category) async {
+    try {
+      final query = _firestore.collection('products');
+      final snap = await query.where('category', isEqualTo: _getCategoryKey(category)).get();
+      return snap.docs.map((doc) => ProductModel.fromFirestore(doc.data() as Map<String, dynamic>, doc.id)).toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  // جلب منتج محدد
   Future<ProductModel?> getProduct(String id) async {
     try {
       final doc = await _firestore.collection('products').doc(id).get();
-      if (!doc.exists) return null;
+      if (doc.exists) {
+        return ProductModel.fromFirestore(doc.data() as Map<String, dynamic>, id);
+      }
+    } catch (e) {}
+    return null;
+  }
 
-      final data = doc.data();
-      return ProductModel.fromJson({
-        'id': doc.id,
-        ...?data,
-      });
+  // البحث عن منتجات
+  Future<List<ProductModel>> searchProducts(String query) async {
+    try {
+      final snap = await _firestore
+          .collection('products')
+          .where('name', isGreaterThanOrEqualTo: query)
+          .where('name', isLessThanOrEqualTo: '$query\uf8ff')
+          .get();
+      return snap.docs.map((doc) => ProductModel.fromFirestore(doc.data() as Map<String, dynamic>, doc.id)).toList();
     } catch (e) {
-      print('❌ Get product error: $e');
-      return null;
+      return [];
     }
   }
 
-  // ✅ جلب المنتجات المخفضة
+  // جلب المنتجات المتوفرة
+  Future<List<ProductModel>> getInStockProducts() async {
+    try {
+      final snap = await _firestore.collection('products').where('inStock', isEqualTo: true).get();
+      return snap.docs.map((doc) => ProductModel.fromFirestore(doc.data() as Map<String, dynamic>, doc.id)).toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  // جلب المنتجات المخفضة
   Future<List<ProductModel>> getDiscountedProducts() async {
     try {
-      final snapshot = await _firestore
-          .collection('products')
-          .where('discount', isGreaterThan: 0)
-          .orderBy('discount', descending: true)
-          .limit(20)
-          .get();
-
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        return ProductModel.fromJson({
-          'id': doc.id,
-          ...data,
-        });
-      }).toList();
+      final snap = await _firestore.collection('products').where('discount', isGreaterThan: 0).get();
+      return snap.docs.map((doc) => ProductModel.fromFirestore(doc.data() as Map<String, dynamic>, doc.id)).toList();
     } catch (e) {
       return [];
     }
   }
 
-  // ✅ جلب المنتجات الأكثر مبيعاً
+  // جلب المنتجات الأكثر مبيعاً
   Future<List<ProductModel>> getPopularProducts({int limit = 10}) async {
     try {
-      final snapshot = await _firestore
+      final snap = await _firestore
           .collection('products')
-          .orderBy('reviews', descending: true)
+          .orderBy('rating', descending: true)
           .limit(limit)
           .get();
-
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        return ProductModel.fromJson({
-          'id': doc.id,
-          ...data,
-        });
-      }).toList();
+      return snap.docs.map((doc) => ProductModel.fromFirestore(doc.data() as Map<String, dynamic>, doc.id)).toList();
     } catch (e) {
       return [];
     }
   }
 
-  String _getCategoryKey(String category) {
-    final map = {
-      'مسكنات': 'painkiller',
-      'مضادات حيوية': 'antibiotic',
-      'فيتامينات': 'vitamin',
-      'مكملات غذائية': 'supplement',
-      'أدوية السكري': 'diabetes',
-      'أدوية القلب': 'heart',
-      'أدوية الضغط': 'blood_pressure',
-      'أجهزة طبية': 'medical_device',
-      'عناية بالبشرة': 'skincare',
-      'عناية بالشعر': 'haircare',
-      'مكياج': 'makeup',
-      'عطور': 'fragrance',
-      'عناية بالجسم': 'bodycare',
-      'عناية بالفم والأسنان': 'oralcare',
-      'عناية بالطفل': 'babycare',
-      'حفاضات': 'babydiapers',
-      'أغذية أطفال': 'babyfood',
-      'حليب أطفال': 'babymilk',
-      'عناية ببشرة الطفل': 'babyskin',
-      'صحة الطفل': 'babyhealth',
-      'ألعاب أطفال': 'babytoys',
-    };
-    return map[category] ?? 'painkiller';
+  // إضافة منتج جديد
+  Future<void> addProduct(ProductModel product) async {
+    await _firestore.collection('products').doc(product.id).set(product.toFirestore());
+  }
+
+  // تحديث منتج
+  Future<void> updateProduct(String id, Map<String, dynamic> data) async {
+    await _firestore.collection('products').doc(id).update(data);
+  }
+
+  // حذف منتج
+  Future<void> deleteProduct(String id) async {
+    await _firestore.collection('products').doc(id).delete();
+  }
+
+  // جلب التصنيف كمفتاح
+  String _getCategoryKey(ProductCategory category) {
+    return category.toString().split('.').last;
   }
 }

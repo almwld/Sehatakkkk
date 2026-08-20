@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum ProductCategory {
@@ -39,10 +38,9 @@ class ProductModel {
   final String description;
   final double price;
   final double? discount;
-  final String imageUrl;
+  final String? imageUrl;
   final String pharmacyId;
   final String pharmacyName;
-  final String pharmacyImage;
   final String? manufacturer;
   final int stock;
   final String? dosage;
@@ -62,10 +60,9 @@ class ProductModel {
     required this.description,
     required this.price,
     this.discount,
-    required this.imageUrl,
+    this.imageUrl,
     required this.pharmacyId,
     required this.pharmacyName,
-    required this.pharmacyImage,
     this.manufacturer,
     required this.stock,
     this.dosage,
@@ -144,60 +141,90 @@ class ProductModel {
     }
   }
 
-  double get priceWithDiscount => discount != null ? price * (1 - discount! / 100) : price;
+  double get priceWithDiscount {
+    if (discount == null) return price;
+    return price * (1 - discount! / 100);
+  }
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-    'nameEn': nameEn,
-    'category': category.toString().split('.').last,
-    'description': description,
-    'price': price,
-    'discount': discount,
-    'imageUrl': imageUrl,
-    'pharmacyId': pharmacyId,
-    'pharmacyName': pharmacyName,
-    'pharmacyImage': pharmacyImage,
-    'manufacturer': manufacturer,
-    'stock': stock,
-    'dosage': dosage,
-    'prescriptionRequired': prescriptionRequired,
-    'inStock': inStock,
-    'rating': rating,
-    'reviews': reviews,
-    'keywords': keywords,
-    'createdAt': createdAt.toIso8601String(),
-    'updatedAt': updatedAt.toIso8601String(),
-  };
+  Map<String, dynamic> toFirestore() {
+    return {
+      'name': name,
+      'nameEn': nameEn,
+      'category': category.toString().split('.').last,
+      'description': description,
+      'price': price,
+      'discount': discount,
+      'imageUrl': imageUrl,
+      'pharmacyId': pharmacyId,
+      'pharmacyName': pharmacyName,
+      'manufacturer': manufacturer,
+      'stock': stock,
+      'dosage': dosage,
+      'prescriptionRequired': prescriptionRequired,
+      'inStock': inStock,
+      'rating': rating,
+      'reviews': reviews,
+      'keywords': keywords,
+      'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt.toIso8601String(),
+    };
+  }
 
-  factory ProductModel.fromJson(Map<String, dynamic> json) => ProductModel(
-    id: json['id'],
-    name: json['name'],
-    nameEn: json['nameEn'],
-    category: _parseCategory(json['category']),
-    description: json['description'],
-    price: json['price'].toDouble(),
-    discount: json['discount']?.toDouble(),
-    imageUrl: json['imageUrl'],
-    pharmacyId: json['pharmacyId'],
-    pharmacyName: json['pharmacyName'],
-    pharmacyImage: json['pharmacyImage'],
-    manufacturer: json['manufacturer'],
-    stock: json['stock'],
-    dosage: json['dosage'],
-    prescriptionRequired: json['prescriptionRequired'],
-    inStock: json['inStock'],
-    rating: json['rating'].toDouble(),
-    reviews: json['reviews'],
-    keywords: List<String>.from(json['keywords']),
-    createdAt: DateTime.parse(json['createdAt']),
-    updatedAt: DateTime.parse(json['updatedAt']),
-  );
+  factory ProductModel.fromFirestore(Map<String, dynamic> data, String id) {
+    return ProductModel(
+      id: id,
+      name: data['name'] ?? '',
+      nameEn: data['nameEn'] ?? '',
+      category: _parseCategory(data['category'] ?? 'painkiller'),
+      description: data['description'] ?? '',
+      price: data['price']?.toDouble() ?? 0,
+      discount: data['discount']?.toDouble(),
+      imageUrl: data['imageUrl'],
+      pharmacyId: data['pharmacyId'] ?? '',
+      pharmacyName: data['pharmacyName'] ?? '',
+      manufacturer: data['manufacturer'],
+      stock: data['stock'] ?? 0,
+      dosage: data['dosage'],
+      prescriptionRequired: data['prescriptionRequired'] ?? false,
+      inStock: data['inStock'] ?? true,
+      rating: data['rating']?.toDouble() ?? 0,
+      reviews: data['reviews'] ?? 0,
+      keywords: List<String>.from(data['keywords'] ?? []),
+      createdAt: DateTime.parse(data['createdAt'] ?? DateTime.now().toIso8601String()),
+      updatedAt: DateTime.parse(data['updatedAt'] ?? DateTime.now().toIso8601String()),
+    );
+  }
 
   static ProductCategory _parseCategory(String value) {
-    return ProductCategory.values.firstWhere(
-      (e) => e.toString().split('.').last == value,
-      orElse: () => ProductCategory.painkiller,
-    );
+    switch (value) {
+      case 'painkiller': return ProductCategory.painkiller;
+      case 'antibiotic': return ProductCategory.antibiotic;
+      case 'vitamin': return ProductCategory.vitamin;
+      case 'supplement': return ProductCategory.supplement;
+      case 'diabetes': return ProductCategory.diabetes;
+      case 'heart': return ProductCategory.heart;
+      case 'blood_pressure': return ProductCategory.blood_pressure;
+      case 'allergy': return ProductCategory.allergy;
+      case 'digestive': return ProductCategory.digestive;
+      case 'respiratory': return ProductCategory.respiratory;
+      case 'medical_device': return ProductCategory.medical_device;
+      case 'skincare': return ProductCategory.skincare;
+      case 'haircare': return ProductCategory.haircare;
+      case 'makeup': return ProductCategory.makeup;
+      case 'fragrance': return ProductCategory.fragrance;
+      case 'bodycare': return ProductCategory.bodycare;
+      case 'oralcare': return ProductCategory.oralcare;
+      case 'babycare': return ProductCategory.babycare;
+      case 'babydiapers': return ProductCategory.babydiapers;
+      case 'babyfood': return ProductCategory.babyfood;
+      case 'babymilk': return ProductCategory.babymilk;
+      case 'babyskin': return ProductCategory.babyskin;
+      case 'babyhealth': return ProductCategory.babyhealth;
+      case 'babytoys': return ProductCategory.babytoys;
+      case 'herbal': return ProductCategory.herbal;
+      case 'firstaid': return ProductCategory.firstaid;
+      case 'medical_supplies': return ProductCategory.medical_supplies;
+      default: return ProductCategory.painkiller;
+    }
   }
 }
