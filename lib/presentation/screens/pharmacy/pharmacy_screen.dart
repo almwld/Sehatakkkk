@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/services/cart_service.dart';
-import 'package:sehatak/core/models/cart/cart_item_model.dart';
-import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
-import 'package:sehatak/presentation/screens/cart/cart_screen.dart';
+import 'package:sehatak/core/constants/imagekit.dart';
+import 'package:sehatak/presentation/screens/pharmacy/pharmacy_detail_screen.dart';
+import 'package:sehatak/presentation/widgets/common/app_image.dart';
 
 class PharmacyScreen extends StatefulWidget {
   const PharmacyScreen({super.key});
@@ -13,61 +12,54 @@ class PharmacyScreen extends StatefulWidget {
 }
 
 class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
   String _searchQuery = '';
   String _selectedCategory = 'الكل';
-  late TabController _tabController;
-  final CartService _cartService = CartService();
+  bool _isLoading = true;
 
-  // قائمة التصنيفات
   final List<String> _categories = [
-    'الكل',
-    'مسكنات',
-    'مضادات حيوية',
-    'فيتامينات',
-    'مكملات غذائية',
-    'أدوية القلب',
-    'أدوية الضغط',
-    'أدوية السكري',
-    'أجهزة طبية',
-    'عناية بالبشرة',
-    'منتجات أطفال',
+    'الكل', 'مسكنات', 'مضادات حيوية', 'فيتامينات', 'مكملات غذائية',
+    'أدوية ضغط', 'أدوية سكر', 'أجهزة طبية', 'عناية بالبشرة', 'منتجات أطفال'
   ];
 
-  // قائمة المنتجات
-  final List<Map<String, dynamic>> _allProducts = [
-    // مسكنات
-    {'id': 'p1', 'name': 'باراسيتامول 500mg', 'category': 'مسكنات', 'price': 500, 'image': 'assets/images/medicine_1.png', 'pharmacyName': 'صيدلية ابن حيان', 'stock': 50, 'unit': 'قرص', 'rating': 4.8, 'description': 'مسكن للألم وخافض للحرارة', 'manufacturer': 'شركة الدواء', 'dosage': 'قرص كل 6 ساعات', 'prescriptionRequired': false, 'inStock': true},
-    {'id': 'p2', 'name': 'إيبوبروفين 400mg', 'category': 'مسكنات', 'price': 750, 'image': 'assets/images/medicine_2.png', 'pharmacyName': 'عالم الصيدلة', 'stock': 30, 'unit': 'قرص', 'rating': 4.7, 'description': 'مسكن للآلام ومضاد للالتهابات', 'manufacturer': 'شركة الدواء', 'dosage': 'قرص كل 8 ساعات', 'prescriptionRequired': false, 'inStock': true},
-    {'id': 'p3', 'name': 'ديكلوفيناك 50mg', 'category': 'مسكنات', 'price': 650, 'image': 'assets/images/medicine_3.png', 'pharmacyName': 'صيدلية النهضة', 'stock': 40, 'unit': 'قرص', 'rating': 4.6, 'description': 'مسكن قوي للآلام والمفاصل', 'manufacturer': 'شركة الصحة', 'dosage': 'قرص مرتين يومياً', 'prescriptionRequired': true, 'inStock': true},
-    {'id': 'p4', 'name': 'فيتامين د 1000IU', 'category': 'فيتامينات', 'price': 1200, 'image': 'assets/images/medicine_2.png', 'pharmacyName': 'عالم الصيدلة', 'stock': 30, 'unit': 'كبسولة', 'rating': 4.7, 'description': 'مكمل غذائي لفيتامين د', 'manufacturer': 'شركة الصحة', 'dosage': 'كبسولة يومياً', 'prescriptionRequired': false, 'inStock': true},
-    {'id': 'p5', 'name': 'فيتامين سي 1000mg', 'category': 'فيتامينات', 'price': 800, 'image': 'assets/images/medicine_1.png', 'pharmacyName': 'صيدلية ابن حيان', 'stock': 45, 'unit': 'قرص فوار', 'rating': 4.6, 'description': 'مكمل غذائي لفيتامين سي', 'manufacturer': 'شركة الدواء', 'dosage': 'قرص يومياً', 'prescriptionRequired': false, 'inStock': true},
-    {'id': 'p6', 'name': 'أموكسيسيلين 500mg', 'category': 'مضادات حيوية', 'price': 1500, 'image': 'assets/images/medicine_4.png', 'pharmacyName': 'صيدلية ابن حيان', 'stock': 20, 'unit': 'كبسولة', 'rating': 4.5, 'description': 'مضاد حيوي واسع المجال', 'manufacturer': 'شركة الصحة', 'dosage': 'كبسولة كل 8 ساعات', 'prescriptionRequired': true, 'inStock': true},
-    {'id': 'p7', 'name': 'لوسارتان 50mg', 'category': 'أدوية الضغط', 'price': 800, 'image': 'assets/images/medicine_3.png', 'pharmacyName': 'صيدلية النهضة', 'stock': 30, 'unit': 'قرص', 'rating': 4.6, 'description': 'علاج ارتفاع ضغط الدم', 'manufacturer': 'شركة الدواء', 'dosage': 'قرص يومياً', 'prescriptionRequired': true, 'inStock': true},
-    {'id': 'p8', 'name': 'ميتفورمين 500mg', 'category': 'أدوية السكري', 'price': 600, 'image': 'assets/images/medicine_3.png', 'pharmacyName': 'صيدلية النهضة', 'stock': 40, 'unit': 'قرص', 'rating': 4.5, 'description': 'علاج السكري من النوع الثاني', 'manufacturer': 'شركة الدواء', 'dosage': 'قرص مرتين يومياً', 'prescriptionRequired': true, 'inStock': true},
-    {'id': 'p9', 'name': 'جهاز قياس ضغط', 'category': 'أجهزة طبية', 'price': 8500, 'image': 'assets/images/device_1.png', 'pharmacyName': 'صيدلية النهضة', 'stock': 10, 'unit': 'جهاز', 'rating': 4.9, 'description': 'جهاز قياس ضغط الدم الرقمي', 'manufacturer': 'شركة الأجهزة الطبية', 'prescriptionRequired': false, 'inStock': true},
-    {'id': 'p10', 'name': 'كريم ترطيب للبشرة', 'category': 'عناية بالبشرة', 'price': 1800, 'image': 'assets/images/skin_1.png', 'pharmacyName': 'صيدلية ابن حيان', 'stock': 40, 'unit': 'أنبوب', 'rating': 4.5, 'description': 'كريم مرطب للبشرة الجافة', 'manufacturer': 'شركة العناية', 'prescriptionRequired': false, 'inStock': true},
-    {'id': 'p11', 'name': 'حفاضات أطفال', 'category': 'منتجات أطفال', 'price': 2500, 'image': 'assets/images/baby_1.png', 'pharmacyName': 'عالم الصيدلة', 'stock': 60, 'unit': 'علبة', 'rating': 4.6, 'description': 'حفاضات أطفال مقاس M', 'manufacturer': 'شركة العناية', 'prescriptionRequired': false, 'inStock': true},
+  final List<Map<String, dynamic>> _pharmacies = [
+    {'id': 'p1', 'name': 'صيدلية ابن حيان', 'address': 'صنعاء - شارع حدة', 'rating': 4.9, 'reviews': 450, 'phone': '01-234580', 'image': ImageKit.pharmacy1, 'open': true, 'delivery': true, 'distance': '1.2 كم', 'workingHours': '8:00 ص - 11:00 م'},
+    {'id': 'p2', 'name': 'عالم الصيدلة', 'address': 'صنعاء - شارع الستين', 'rating': 4.8, 'reviews': 380, 'phone': '01-234581', 'image': ImageKit.pharmacy2, 'open': true, 'delivery': true, 'distance': '2.5 كم', 'workingHours': '9:00 ص - 12:00 م'},
+    {'id': 'p3', 'name': 'صيدلية النهضة', 'address': 'صنعاء - باب اليمن', 'rating': 4.7, 'reviews': 320, 'phone': '01-234582', 'image': ImageKit.pharmacy3, 'open': true, 'delivery': false, 'distance': '3.8 كم', 'workingHours': '8:00 ص - 10:00 م'},
   ];
 
-  List<Map<String, dynamic>> get _filteredProducts {
-    var products = _allProducts;
-    if (_selectedCategory != 'الكل') {
-      products = products.where((p) => p['category'] == _selectedCategory).toList();
-    }
-    if (_searchQuery.isNotEmpty) {
-      products = products.where((p) =>
-        p['name'].toLowerCase().contains(_searchQuery.toLowerCase()) ||
-        p['description'].toLowerCase().contains(_searchQuery.toLowerCase()) ||
-        p['manufacturer'].toLowerCase().contains(_searchQuery.toLowerCase())
-      ).toList();
-    }
-    return products;
-  }
+  final List<Map<String, dynamic>> _medicines = [
+    {'id': 'm1', 'name': 'باراسيتامول 500 ملغ', 'category': 'مسكنات', 'price': 500, 'image': ImageKit.medicine1, 'pharmacy': 'صيدلية ابن حيان', 'rating': 4.8, 'discount': 20, 'prescription': false, 'stock': 50},
+    {'id': 'm2', 'name': 'فيتامين د 1000 وحدة دولية', 'category': 'فيتامينات', 'price': 1200, 'image': ImageKit.medicine2, 'pharmacy': 'عالم الصيدلة', 'rating': 4.7, 'discount': 15, 'prescription': false, 'stock': 30},
+    {'id': 'm3', 'name': 'أموكسيسيلين 500 ملغ', 'category': 'مضادات حيوية', 'price': 1500, 'image': ImageKit.medicine4, 'pharmacy': 'صيدلية ابن حيان', 'rating': 4.5, 'discount': 0, 'prescription': true, 'stock': 20},
+    {'id': 'm4', 'name': 'ديكلوفيناك 50 ملغ', 'category': 'مسكنات', 'price': 650, 'image': ImageKit.medicine1, 'pharmacy': 'صيدلية النهضة', 'rating': 4.6, 'discount': 5, 'prescription': true, 'stock': 40},
+    {'id': 'm5', 'name': 'مكمل أوميغا 3', 'category': 'مكملات غذائية', 'price': 1500, 'image': ImageKit.medicine3, 'pharmacy': 'عالم الصيدلة', 'rating': 4.9, 'discount': 10, 'prescription': false, 'stock': 25},
+    {'id': 'm6', 'name': 'لوسارتان 50 ملغ', 'category': 'أدوية ضغط', 'price': 800, 'image': ImageKit.medicine2, 'pharmacy': 'صيدلية ابن حيان', 'rating': 4.6, 'discount': 0, 'prescription': true, 'stock': 35},
+    {'id': 'm7', 'name': 'ميتفورمين 500 ملغ', 'category': 'أدوية سكر', 'price': 600, 'image': ImageKit.medicine4, 'pharmacy': 'صيدلية النهضة', 'rating': 4.5, 'discount': 0, 'prescription': true, 'stock': 40},
+    {'id': 'm8', 'name': 'جهاز قياس ضغط رقمي', 'category': 'أجهزة طبية', 'price': 8500, 'image': ImageKit.medicine3, 'pharmacy': 'عالم الصيدلة', 'rating': 4.9, 'discount': 10, 'prescription': false, 'stock': 10},
+  ];
+
+  final List<Map<String, dynamic>> _supplies = [
+    {'id': 's1', 'name': 'جهاز قياس ضغط رقمي', 'price': 8500, 'image': ImageKit.medicine3, 'category': 'أجهزة', 'rating': 4.9, 'stock': 10},
+    {'id': 's2', 'name': 'جهاز قياس سكر الدم', 'price': 6500, 'image': ImageKit.medicine4, 'category': 'أجهزة', 'rating': 4.8, 'stock': 8},
+    {'id': 's3', 'name': 'ميزان حرارة رقمي', 'price': 3500, 'image': ImageKit.medicine1, 'category': 'أجهزة', 'rating': 4.6, 'stock': 15},
+    {'id': 's4', 'name': 'ضمادات طبية', 'price': 250, 'image': ImageKit.medicine2, 'category': 'مستهلكات', 'rating': 4.5, 'stock': 100},
+    {'id': 's5', 'name': 'شاش طبي', 'price': 180, 'image': ImageKit.medicine3, 'category': 'مستهلكات', 'rating': 4.4, 'stock': 80},
+  ];
+
+  final List<Map<String, dynamic>> _beautyProducts = [
+    {'id': 'b1', 'name': 'كريم ترطيب للبشرة', 'price': 1800, 'image': ImageKit.medicine1, 'category': 'عناية بالبشرة', 'rating': 4.7, 'stock': 40},
+    {'id': 'b2', 'name': 'غسول للبشرة الدهنية', 'price': 1500, 'image': ImageKit.medicine2, 'category': 'عناية بالبشرة', 'rating': 4.6, 'stock': 35},
+    {'id': 'b3', 'name': 'واقي شمس SPF 50', 'price': 2200, 'image': ImageKit.medicine3, 'category': 'عناية بالبشرة', 'rating': 4.8, 'stock': 30},
+    {'id': 'b4', 'name': 'شامبو للأطفال', 'price': 1200, 'image': ImageKit.medicine4, 'category': 'عناية بالطفل', 'rating': 4.8, 'stock': 45},
+    {'id': 'b5', 'name': 'حفاضات أطفال', 'price': 2500, 'image': ImageKit.medicine1, 'category': 'عناية بالطفل', 'rating': 4.9, 'stock': 60},
+  ];
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _categories.length, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
+    _loadData();
   }
 
   @override
@@ -76,232 +68,367 @@ class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProvid
     super.dispose();
   }
 
-  void _addToCart(Map<String, dynamic> product) async {
-    final item = CartItemModel(
-      id: product['id'],
-      name: product['name'],
-      price: product['price'].toDouble(),
-      quantity: 1,
-      category: product['category'],
-      providerName: product['pharmacyName'],
-      inStock: product['inStock'],
-      image: product['image'],
-      metadata: {'manufacturer': product['manufacturer']},
-    );
-    await _cartService.addItem(item);
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('تم إضافة ${product['name']} إلى السلة'),
-          backgroundColor: Colors.green,
-          duration: const Duration(seconds: 2),
-        ),
-      );
+  Future<void> _loadData() async {
+    setState(() => _isLoading = true);
+    await Future.delayed(const Duration(milliseconds: 600));
+    setState(() => _isLoading = false);
+  }
+
+  List<Map<String, dynamic>> get _filteredPharmacies {
+    if (_searchQuery.isEmpty) return _pharmacies;
+    return _pharmacies.where((p) =>
+      p['name'].toString().contains(_searchQuery) ||
+      p['address'].toString().contains(_searchQuery)
+    ).toList();
+  }
+
+  List<Map<String, dynamic>> get _filteredMedicines {
+    var list = _medicines;
+    if (_searchQuery.isNotEmpty) {
+      list = list.where((m) =>
+        m['name'].toString().contains(_searchQuery) ||
+        m['category'].toString().contains(_searchQuery) ||
+        m['pharmacy'].toString().contains(_searchQuery)
+      ).toList();
     }
+    if (_selectedCategory != 'الكل') {
+      list = list.where((m) => m['category'] == _selectedCategory).toList();
+    }
+    return list;
+  }
+
+  List<Map<String, dynamic>> get _filteredSupplies {
+    if (_searchQuery.isEmpty) return _supplies;
+    return _supplies.where((s) =>
+      s['name'].toString().contains(_searchQuery) ||
+      s['category'].toString().contains(_searchQuery)
+    ).toList();
+  }
+
+  List<Map<String, dynamic>> get _filteredBeauty {
+    if (_searchQuery.isEmpty) return _beautyProducts;
+    return _beautyProducts.where((b) =>
+      b['name'].toString().contains(_searchQuery) ||
+      b['category'].toString().contains(_searchQuery)
+    ).toList();
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC);
-    final textColor = isDark ? Colors.white : Colors.black87;
 
     return Scaffold(
-      backgroundColor: bgColor,
+      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: const Text('الصيدلية'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(text: 'صيدليات'),
+            Tab(text: 'أدوية'),
+            Tab(text: 'مستلزمات'),
+            Tab(text: 'عناية'),
+          ],
+          indicatorColor: Colors.white,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          labelStyle: const TextStyle(fontSize: 13),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.map),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const InteractiveMapScreen(type: 'pharmacies'),
-                ),
-              );
-            },
-          ),
-          Stack(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.shopping_cart),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const CartScreen()),
-                  );
-                },
-              ),
-              FutureBuilder<int>(
-                future: _cartService.getItemCount(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData && snapshot.data! > 0) {
-                    return Positioned(
-                      right: 4,
-                      top: 4,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                        ),
-                        constraints: const BoxConstraints(
-                          minWidth: 18,
-                          minHeight: 18,
-                        ),
-                        child: Text(
-                          '${snapshot.data}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    );
-                  }
-                  return const SizedBox();
-                },
-              ),
-            ],
+            icon: const Icon(Icons.search),
+            onPressed: () => _showSearchDialog(),
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // شريط البحث
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
-              onChanged: (value) => setState(() => _searchQuery = value),
-              decoration: InputDecoration(
-                hintText: 'ابحث عن دواء...',
-                prefixIcon: const Icon(Icons.search, color: AppColors.primary),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () => setState(() => _searchQuery = ''),
-                      )
-                    : null,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                fillColor: isDark ? const Color(0xFF1A2540) : Colors.grey[100],
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              ),
-            ),
-          ),
-          // تبويبات التصنيفات
-          Container(
-            height: 50,
-            margin: const EdgeInsets.symmetric(horizontal: 8),
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: _categories.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
-              itemBuilder: (context, index) {
-                final category = _categories[index];
-                final isSelected = _selectedCategory == category;
-                return FilterChip(
-                  label: Text(category),
-                  selected: isSelected,
-                  onSelected: (_) => setState(() => _selectedCategory = category),
-                  backgroundColor: isDark ? const Color(0xFF1A2540) : Colors.grey[200],
-                  selectedColor: AppColors.primary.withOpacity(0.2),
-                  labelStyle: TextStyle(
-                    color: isSelected ? AppColors.primary : textColor,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    side: BorderSide(
-                      color: isSelected ? AppColors.primary : Colors.transparent,
-                      width: 1.5,
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 8),
-          // قائمة المنتجات
-          Expanded(
-            child: _filteredProducts.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              children: [
+                if (_searchQuery.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Icon(Icons.search_off, size: 60, color: Colors.grey[400]),
-                        const SizedBox(height: 16),
                         Text(
-                          'لا توجد منتجات',
-                          style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                          'نتيجة البحث: $_searchQuery',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'حاول تغيير البحث أو التصنيف',
-                          style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                        TextButton(
+                          onPressed: () => setState(() => _searchQuery = ''),
+                          child: const Text('مسح'),
                         ),
                       ],
                     ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _filteredProducts.length,
-                    itemBuilder: (context, index) {
-                      final product = _filteredProducts[index];
-                      return _buildProductCard(product, isDark);
-                    },
                   ),
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildPharmaciesTab(isDark),
+                      _buildMedicinesTab(isDark),
+                      _buildSuppliesTab(isDark),
+                      _buildBeautyTab(isDark),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+
+  // صيدليات
+  Widget _buildPharmaciesTab(bool isDark) {
+    final filtered = _filteredPharmacies;
+    if (filtered.isEmpty) {
+      return _buildEmptyState(isDark, 'لا توجد صيدليات');
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.all(12),
+      itemCount: filtered.length,
+      itemBuilder: (context, index) {
+        final pharmacy = filtered[index];
+        return _buildPharmacyCard(pharmacy, isDark);
+      },
+    );
+  }
+
+  Widget _buildPharmacyCard(Map<String, dynamic> pharmacy, bool isDark) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => PharmacyDetailScreen(pharmacy: pharmacy),
           ),
-        ],
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1A2540) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: AppImage(
+                url: pharmacy['image'],
+                width: 70,
+                height: 70,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    pharmacy['name'],
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    pharmacy['address'],
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(Icons.star, color: Colors.amber, size: 14),
+                      const SizedBox(width: 4),
+                      Text(
+                        pharmacy['rating'].toString(),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                      Text(
+                        ' (${pharmacy['reviews']})',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: pharmacy['open'] ? Colors.green : Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        pharmacy['open'] ? 'مفتوح' : 'مغلق',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: pharmacy['open'] ? Colors.green : Colors.red,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      if (pharmacy['delivery'])
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.delivery_dining, size: 12, color: Colors.blue),
+                              const SizedBox(width: 2),
+                              Text(
+                                'توصيل',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.blue,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          pharmacy['distance'],
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.arrow_forward_ios, size: 14, color: isDark ? Colors.grey[600] : Colors.grey[400]),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildProductCard(Map<String, dynamic> product, bool isDark) {
+  // أدوية
+  Widget _buildMedicinesTab(bool isDark) {
+    return Column(
+      children: [
+        Container(
+          height: 42,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: _categories.length,
+            itemBuilder: (context, index) {
+              final category = _categories[index];
+              final isSelected = _selectedCategory == category;
+              return Padding(
+                padding: const EdgeInsets.only(right: 6),
+                child: FilterChip(
+                  label: Text(category, style: const TextStyle(fontSize: 11)),
+                  selected: isSelected,
+                  onSelected: (_) => setState(() => _selectedCategory = category),
+                  backgroundColor: isDark ? const Color(0xFF1A2540) : Colors.white,
+                  selectedColor: AppColors.primary,
+                  labelStyle: TextStyle(
+                    color: isSelected ? Colors.white : (isDark ? Colors.white : AppColors.primary),
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    side: BorderSide(
+                      color: isSelected ? AppColors.primary : (isDark ? Colors.grey[700]! : Colors.grey.shade300),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        Expanded(
+          child: _filteredMedicines.isEmpty
+              ? _buildEmptyState(isDark, 'لا توجد أدوية')
+              : ListView.builder(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: _filteredMedicines.length,
+                  itemBuilder: (context, index) {
+                    final medicine = _filteredMedicines[index];
+                    return _buildMedicineCard(medicine, isDark);
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMedicineCard(Map<String, dynamic> medicine, bool isDark) {
+    final hasDiscount = medicine['discount'] > 0;
+    final priceAfterDiscount = hasDiscount ? medicine['price'] * (1 - medicine['discount'] / 100) : medicine['price'];
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1A2540) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 4,
           ),
         ],
       ),
       child: Row(
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.asset(
-              product['image'] ?? 'assets/images/medicine_1.png',
-              width: 70,
-              height: 70,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  width: 70,
-                  height: 70,
-                  color: isDark ? const Color(0xFF0B1121) : Colors.grey[100],
-                  child: Icon(
-                    Icons.medication,
-                    color: isDark ? Colors.grey[600] : Colors.grey[400],
-                    size: 30,
-                  ),
-                );
-              },
+            borderRadius: BorderRadius.circular(10),
+            child: AppImage(
+              url: medicine['image'],
+              width: 50,
+              height: 50,
             ),
           ),
           const SizedBox(width: 12),
@@ -309,120 +436,141 @@ class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProvid
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  product['name'],
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        medicine['name'],
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (medicine['prescription'])
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'وصفة',
+                          style: TextStyle(
+                            fontSize: 8,
+                            color: Colors.red,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        medicine['category'],
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Row(
+                      children: [
+                        const Icon(Icons.star, color: Colors.amber, size: 12),
+                        const SizedBox(width: 2),
+                        Text(
+                          medicine['rating'].toString(),
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  product['pharmacyName'] ?? '',
+                  medicine['pharmacy'],
                   style: TextStyle(
                     fontSize: 11,
                     color: isDark ? Colors.grey[400] : Colors.grey[600],
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Row(
                   children: [
+                    if (hasDiscount) ...[
+                      Text(
+                        '${medicine['price']} ر.ي',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          decoration: TextDecoration.lineThrough,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'خصم ${medicine['discount']}%',
+                          style: TextStyle(
+                            fontSize: 8,
+                            color: Colors.green,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                    ],
                     Text(
-                      '${product['price']} ريال',
+                      '${priceAfterDiscount.toStringAsFixed(0)} ر.ي',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
                         color: AppColors.primary,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.star,
-                          size: 12,
-                          color: Colors.amber[700],
-                        ),
-                        Text(
-                          ' ${product['rating']}',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: isDark ? Colors.grey[400] : Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
                     const Spacer(),
-                    if (!product['inStock'])
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: const Text(
-                          'غير متوفر',
-                          style: TextStyle(
-                            fontSize: 8,
-                            color: Colors.red,
-                            fontWeight: FontWeight.bold,
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.add_shopping_cart, size: 14, color: AppColors.primary),
+                          SizedBox(width: 4),
+                          Text(
+                            'أضف',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    if (product['prescriptionRequired'] == true)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.orange.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: const Text(
-                          'وصفة طبية',
-                          style: TextStyle(
-                            fontSize: 8,
-                            color: Colors.orange,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    const Spacer(),
-                    OutlinedButton.icon(
-                      onPressed: () {
-                        _showProductDetails(product);
-                      },
-                      icon: const Icon(Icons.info_outline, size: 14),
-                      label: const Text('تفاصيل'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.primary,
-                        side: BorderSide(color: AppColors.primary),
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        textStyle: const TextStyle(fontSize: 10),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    ElevatedButton.icon(
-                      onPressed: product['inStock'] ? () => _addToCart(product) : null,
-                      icon: const Icon(Icons.add_shopping_cart, size: 14),
-                      label: const Text('إضافة'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        textStyle: const TextStyle(fontSize: 10),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                        ],
                       ),
                     ),
                   ],
@@ -435,167 +583,341 @@ class _PharmacyScreenState extends State<PharmacyScreen> with SingleTickerProvid
     );
   }
 
-  void _showProductDetails(Map<String, dynamic> product) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+  // مستلزمات
+  Widget _buildSuppliesTab(bool isDark) {
+    final filtered = _filteredSupplies;
+    if (filtered.isEmpty) {
+      return _buildEmptyState(isDark, 'لا توجد مستلزمات');
+    }
+    return GridView.builder(
+      padding: const EdgeInsets.all(12),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.7,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
       ),
-      backgroundColor: isDark ? const Color(0xFF1A2540) : Colors.white,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.6,
-        minChildSize: 0.4,
-        maxChildSize: 0.9,
-        expand: false,
-        builder: (context, scrollController) => SingleChildScrollView(
-          controller: scrollController,
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[400],
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.asset(
-                      product['image'] ?? 'assets/images/medicine_1.png',
-                      width: 80,
-                      height: 80,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          width: 80,
-                          height: 80,
-                          color: AppColors.primary.withOpacity(0.1),
-                          child: Icon(
-                            Icons.medication,
-                            color: AppColors.primary,
-                            size: 40,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          product['name'],
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: isDark ? Colors.white : Colors.black87,
-                          ),
-                        ),
-                        Text(
-                          product['pharmacyName'] ?? '',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: isDark ? Colors.grey[400] : Colors.grey[600],
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(Icons.star, size: 16, color: Colors.amber[700]),
-                            Text(
-                              ' ${product['rating']}',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: isDark ? Colors.grey[400] : Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              _buildDetailRow('الوصف', product['description']),
-              _buildDetailRow('الشركة المصنعة', product['manufacturer']),
-              _buildDetailRow('الوحدة', product['unit']),
-              _buildDetailRow('الجرعة', product['dosage'] ?? 'حسب التعليمات'),
-              _buildDetailRow('السعر', '${product['price']} ريال'),
-              if (product['prescriptionRequired'] == true)
-                _buildDetailRow('وصفة طبية', 'مطلوب وصفة طبية'),
-              _buildDetailRow('المخزون', product['inStock'] ? 'متوفر' : 'غير متوفر'),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: product['inStock'] ? () {
-                    _addToCart(product);
-                    Navigator.pop(context);
-                  } : null,
-                  icon: const Icon(Icons.add_shopping_cart),
-                  label: Text(
-                    product['inStock'] 
-                      ? 'إضافة إلى السلة - ${product['price']} ريال'
-                      : 'غير متوفر',
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: product['inStock'] ? AppColors.primary : Colors.grey,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+      itemCount: filtered.length,
+      itemBuilder: (context, index) {
+        final item = filtered[index];
+        return _buildSupplyCard(item, isDark);
+      },
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
+  Widget _buildSupplyCard(Map<String, dynamic> item, bool isDark) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2540) : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 4,
+          ),
+        ],
+      ),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 100,
-            child: Text(
-              label,
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                color: isDark ? Colors.grey[400] : Colors.grey[600],
-                fontSize: 13,
+          Expanded(
+            flex: 2,
+            child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              child: AppImage(
+                url: item['image'],
+                width: double.infinity,
+                height: double.infinity,
+                fit: BoxFit.cover,
               ),
             ),
           ),
           Expanded(
-            child: Text(
-              value,
-              style: TextStyle(
-                fontSize: 13,
-                color: isDark ? Colors.white : Colors.black87,
+            flex: 1,
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    item['name'],
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          item['category'],
+                          style: const TextStyle(fontSize: 8, color: AppColors.primary),
+                        ),
+                      ),
+                      const Spacer(),
+                      Row(
+                        children: [
+                          const Icon(Icons.star, color: Colors.amber, size: 10),
+                          const SizedBox(width: 2),
+                          Text(
+                            item['rating'].toString(),
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '${item['price']} ر.ي',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Icon(Icons.add_shopping_cart, color: AppColors.primary, size: 16),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  // عناية
+  Widget _buildBeautyTab(bool isDark) {
+    final filtered = _filteredBeauty;
+    if (filtered.isEmpty) {
+      return _buildEmptyState(isDark, 'لا توجد منتجات عناية');
+    }
+    return GridView.builder(
+      padding: const EdgeInsets.all(12),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.7,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+      ),
+      itemCount: filtered.length,
+      itemBuilder: (context, index) {
+        final item = filtered[index];
+        return _buildBeautyCard(item, isDark);
+      },
+    );
+  }
+
+  Widget _buildBeautyCard(Map<String, dynamic> item, bool isDark) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2540) : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 4,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 2,
+            child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              child: AppImage(
+                url: item['image'],
+                width: double.infinity,
+                height: double.infinity,
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 1,
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    item['name'],
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          item['category'],
+                          style: const TextStyle(fontSize: 8, color: AppColors.primary),
+                        ),
+                      ),
+                      const Spacer(),
+                      Row(
+                        children: [
+                          const Icon(Icons.star, color: Colors.amber, size: 10),
+                          const SizedBox(width: 2),
+                          Text(
+                            item['rating'].toString(),
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '${item['price']} ر.ي',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Icon(Icons.add_shopping_cart, color: AppColors.primary, size: 16),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(bool isDark, String message) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.medication_outlined,
+            size: 64,
+            color: isDark ? Colors.grey[600] : Colors.grey[300],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            message,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'جرب تغيير البحث أو التصنيف',
+            style: TextStyle(
+              fontSize: 13,
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                _searchQuery = '';
+                _selectedCategory = 'الكل';
+              });
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('إعادة تعيين'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSearchDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        String tempSearch = '';
+        return AlertDialog(
+          title: const Text('بحث في الصيدلية'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                onChanged: (value) => tempSearch = value,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  hintText: 'ابحث عن دواء، صيدلية، مستلزمات...',
+                  prefixIcon: Icon(Icons.search),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('إلغاء'),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() => _searchQuery = tempSearch);
+                Navigator.pop(context);
+              },
+              child: const Text('بحث'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
