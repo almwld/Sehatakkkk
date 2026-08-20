@@ -25,7 +25,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   bool _isLoggedIn = false;
   bool _isBottomBarVisible = true;
 
-  // ✅ قائمة الشاشات مع ScrollController
+  // ✅ قائمة الشاشات
   final List<Widget> _screens = [];
 
   @override
@@ -64,12 +64,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         scrollController: _scrollController,
         isBottomBarVisible: ValueNotifier<bool>(_isBottomBarVisible),
       ),
-      DoctorsListScreen(scrollController: _scrollController),
-      PharmacyScreen(scrollController: _scrollController),
-      ChatScreen(scrollController: _scrollController),
-      LabsListScreen(scrollController: _scrollController),
-      PatientDashboard(scrollController: _scrollController),
-      MoreScreen(scrollController: _scrollController),
+      const DoctorsListScreen(),
+      const PharmacyScreen(),
+      const ChatScreen(),
+      const LabsListScreen(),
+      const PatientDashboard(),
+      const MoreScreen(),
     ]);
   }
 
