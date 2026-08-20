@@ -1,5 +1,4 @@
 import 'package:sehatak/core/services/toast_service.dart';
-import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -64,6 +63,7 @@ class HomeTab extends StatefulWidget {
 }
 
 class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
+  final ValueNotifier<bool> _isBottomBarVisible = ValueNotifier<bool>(true);
   @override
   bool get wantKeepAlive => true;
 
@@ -84,8 +84,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   bool _isOffline = false;
   double _appBarOpacity = 1.0;
   
-  // ✅ متغيرات التحكم في التمرير للشريط العلوي
-  double _headerHeight = 0;
   double _searchBarOffset = 0;
   bool _isSearchBarVisible = true;
   bool _isHeaderVisible = true;
@@ -182,7 +180,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   @override
   void initState() {
     super.initState();
-    _initializeData();
+    _loadUserData();
+    _loadHealthScore();
+    _startAnimation();
     widget.scrollController?.addListener(_onScroll);
   }
 
@@ -196,50 +196,14 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     if (!mounted) return;
     final maxScroll = widget.scrollController?.position.maxScrollExtent ?? 0;
     final currentScroll = widget.scrollController?.position.pixels ?? 0;
-    
-    // ✅ حساب الشفافية والحركة
     final scrollProgress = (currentScroll / maxScroll).clamp(0.0, 1.0);
     
     setState(() {
-      // ✅ الشريط العلوي يختفي تدريجياً
       _appBarOpacity = 1.0 - (scrollProgress * 0.6);
-      
-      // ✅ شريط البحث يتحرك للأعلى مع التمرير
       _searchBarOffset = -(scrollProgress * 30);
-      
-      // ✅ إظهار/إخفاء العناصر
       _isSearchBarVisible = scrollProgress < 0.7;
       _isHeaderVisible = scrollProgress < 0.9;
     });
-  }
-
-  Future<void> _initializeData() async {
-    try {
-      _loadUserData();
-      await _loadHealthScore();
-      _startAnimation();
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _hasError = false;
-          _isOffline = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _hasError = true;
-          _errorMessage = 'حدث خطأ في تحميل البيانات';
-          _isOffline = true;
-        });
-      }
-    }
-  }
-
-  Future<void> _refreshData() async {
-    setState(() => _isLoading = true);
-    await _initializeData();
   }
 
   void _loadUserData() {
@@ -296,7 +260,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ============================================================
-  // ✅ شريط البحث العائم - نسخة React Native
+  // ✅ شريط البحث العائم
   // ============================================================
   Widget _buildFloatingSearchBar(bool isDark) {
     return AnimatedOpacity(
@@ -368,7 +332,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ============================================================
-  // 📱 الشريط العلوي المنحني - نسخة React Native
+  // 📱 الشريط العلوي المنحني
   // ============================================================
   Widget _buildCurvedAppBar(bool isDark) {
     return AnimatedOpacity(
@@ -400,109 +364,25 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Column(
                 children: [
-                  // ✅ الصف العلوي: أيقونات + عنوان + صورة شخصية
+                  // ✅ الصف العلوي
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // ✅ أيقونات اليمين (السلة والإشعارات)
                       Row(
                         children: [
-                          // ✅ زر السلة مع شارة
-                          GestureDetector(
+                          _buildIconWithBadge(
+                            icon: Icons.shopping_cart,
+                            badgeCount: 3,
                             onTap: () => _goTo(context, const CartScreen()),
-                            child: Stack(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Image.asset(
-                                    'assets/images/icons/top_bar/Shopping cart.png',
-                                    width: 20,
-                                    height: 20,
-                                    color: Colors.white,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Icon(Icons.shopping_cart, color: Colors.white, size: 20);
-                                    },
-                                  ),
-                                ),
-                                Positioned(
-                                  top: 2,
-                                  right: 2,
-                                  child: Container(
-                                    width: 16,
-                                    height: 16,
-                                    decoration: const BoxDecoration(
-                                      color: Colors.red,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        '3',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
                           ),
                           const SizedBox(width: 8),
-                          // ✅ زر الإشعارات مع شارة
-                          GestureDetector(
+                          _buildIconWithBadge(
+                            icon: Icons.notifications,
+                            badgeCount: 5,
                             onTap: () => _goTo(context, const NotificationsScreen()),
-                            child: Stack(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Image.asset(
-                                    'assets/images/icons/top_bar/notifications.png',
-                                    width: 20,
-                                    height: 20,
-                                    color: Colors.white,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Icon(Icons.notifications, color: Colors.white, size: 20);
-                                    },
-                                  ),
-                                ),
-                                Positioned(
-                                  top: 2,
-                                  right: 2,
-                                  child: Container(
-                                    width: 16,
-                                    height: 16,
-                                    decoration: const BoxDecoration(
-                                      color: Colors.red,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        '5',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
                           ),
                         ],
                       ),
-                      // ✅ العنوان
                       const Text(
                         'صحتك 🏥',
                         style: TextStyle(
@@ -511,7 +391,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      // ✅ الصورة الرمزية
                       Hero(
                         tag: 'user_avatar',
                         child: GestureDetector(
@@ -581,6 +460,51 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
+  Widget _buildIconWithBadge({
+    required IconData icon,
+    required int badgeCount,
+    required VoidCallback onTap,
+  }) {
+    return Stack(
+      children: [
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Icon(icon, color: Colors.white, size: 20),
+          ),
+        ),
+        if (badgeCount > 0)
+          Positioned(
+            top: 2,
+            right: 2,
+            child: Container(
+              width: 16,
+              height: 16,
+              decoration: const BoxDecoration(
+                color: Colors.red,
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Text(
+                  '$badgeCount',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
   // ============================================================
   // 🏠 بناء الواجهة
   // ============================================================
@@ -588,14 +512,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   Widget build(BuildContext context) {
     super.build(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    if (_isLoading) {
-      return _buildShimmerLoader(isDark);
-    }
-
-    if (_hasError) {
-      return _buildErrorScreen(isDark);
-    }
 
     return RefreshIndicator(
       onRefresh: _refreshData,
@@ -608,7 +524,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             SliverToBoxAdapter(
               child: _buildCurvedAppBar(isDark),
             ),
-            // ✅ شريط البحث العائم (بـ margin سالب)
+            // ✅ شريط البحث العائم
             SliverToBoxAdapter(
               child: Transform.translate(
                 offset: Offset(0, -20 + _searchBarOffset),
@@ -623,10 +539,8 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   const SizedBox(height: 8),
                   _buildBannerCarousel(isDark),
                   const SizedBox(height: 16),
-                  if (_isLoggedIn) ...[
-                    _buildStatsRow(),
-                    const SizedBox(height: 16),
-                  ],
+                  _buildStatsRow(),
+                  const SizedBox(height: 16),
                   _buildSectionTitleWithAction('خدمات سريعة', isDark, 'عرض الكل',
                     () => _goTo(context, const ServicesScreen())),
                   const SizedBox(height: 8),
@@ -678,61 +592,19 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  // ============================================================
-  // 📊 دوال البناء (جميع الدوال كاملة)
-  // ============================================================
-
-  Widget _buildShimmerLoader(bool isDark) {
-    return Center(
-      child: Shimmer.fromColors(
-        baseColor: isDark ? Colors.grey[800]! : Colors.grey[300]!,
-        highlightColor: isDark ? Colors.grey[700]! : Colors.grey[100]!,
-        child: Column(
-          children: [
-            Container(height: 120, margin: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16))),
-            const SizedBox(height: 8),
-            Container(height: 60, margin: const EdgeInsets.symmetric(horizontal: 16), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16))),
-            const SizedBox(height: 8),
-            Container(height: 200, margin: const EdgeInsets.symmetric(horizontal: 16), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16))),
-            const SizedBox(height: 8),
-            Container(height: 100, margin: const EdgeInsets.symmetric(horizontal: 16), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16))),
-          ],
-        ),
-      ),
-    );
+  Future<void> _refreshData() async {
+    setState(() => _isLoading = true);
+    _loadUserData();
+    await _loadHealthScore();
+    _startAnimation();
+    setState(() => _isLoading = false);
   }
 
-  Widget _buildErrorScreen(bool isDark) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.error_outline, size: 60, color: Colors.red[300]),
-          const SizedBox(height: 16),
-          Text(_errorMessage, style: TextStyle(fontSize: 16, color: isDark ? Colors.white : Colors.black87)),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: _initializeData,
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            child: const Text('إعادة المحاولة', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
+  // ============================================================
+  // 📊 دوال البناء
+  // ============================================================
 
   Widget _buildBannerCarousel(bool isDark) {
-    if (_bannerImages.isEmpty) {
-      return Container(
-        height: 200,
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1A2540) : Colors.grey[200],
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: const Center(child: Text('لا توجد بانرات')),
-      );
-    }
-
     return Stack(
       children: [
         CarouselSlider(
@@ -1955,119 +1827,3 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 }
-
-  // ============================================================
-  // 💾 كود الكاش (Cache)
-  // ============================================================
-  bool _isCacheLoaded = false;
-  List<Map<String, dynamic>> _cachedDoctors = [];
-  List<Map<String, dynamic>> _cachedProducts = [];
-  List<Map<String, dynamic>> _cachedHospitals = [];
-  List<Map<String, dynamic>> _cachedLabs = [];
-  List<Map<String, dynamic>> _cachedPharmacies = [];
-  List<Map<String, dynamic>> _cachedArticles = [];
-  List<Map<String, dynamic>> _cachedTips = [];
-  List<Map<String, dynamic>> _cachedPosts = [];
-
-  // ✅ تحميل البيانات من الكاش
-  Future<void> _loadFromCache() async {
-    try {
-      final cache = CacheService();
-      
-      _cachedDoctors = await cache.get('home_doctors') ?? [];
-      _cachedProducts = await cache.get('home_products') ?? [];
-      _cachedHospitals = await cache.get('home_hospitals') ?? [];
-      _cachedLabs = await cache.get('home_labs') ?? [];
-      _cachedPharmacies = await cache.get('home_pharmacies') ?? [];
-      _cachedArticles = await cache.get('home_articles') ?? [];
-      _cachedTips = await cache.get('home_tips') ?? [];
-      _cachedPosts = await cache.get('home_posts') ?? [];
-      
-      _isCacheLoaded = true;
-      
-      if (mounted) {
-        setState(() {
-          if (_cachedDoctors.isNotEmpty) _topDoctors = _cachedDoctors;
-          if (_cachedProducts.isNotEmpty) _products = _cachedProducts;
-          if (_cachedHospitals.isNotEmpty) _featuredHospitals = _cachedHospitals;
-          if (_cachedLabs.isNotEmpty) _featuredLabs = _cachedLabs;
-          if (_cachedPharmacies.isNotEmpty) _featuredPharmacies = _cachedPharmacies;
-          if (_cachedArticles.isNotEmpty) _healthArticles = _cachedArticles;
-          if (_cachedTips.isNotEmpty) _dailyTips = _cachedTips;
-          if (_cachedPosts.isNotEmpty) _communityPosts = _cachedPosts;
-        });
-      }
-      
-      print('✅ تم تحميل البيانات من الكاش بنجاح');
-    } catch (e) {
-      print('❌ فشل تحميل الكاش: $e');
-    }
-  }
-
-  // ✅ حفظ البيانات في الكاش
-  Future<void> _saveToCache() async {
-    try {
-      final cache = CacheService();
-      
-      await cache.set('home_doctors', _topDoctors);
-      await cache.set('home_products', _products);
-      await cache.set('home_hospitals', _featuredHospitals);
-      await cache.set('home_labs', _featuredLabs);
-      await cache.set('home_pharmacies', _featuredPharmacies);
-      await cache.set('home_articles', _healthArticles);
-      await cache.set('home_tips', _dailyTips);
-      await cache.set('home_posts', _communityPosts);
-      
-      print('✅ تم حفظ البيانات في الكاش بنجاح');
-    } catch (e) {
-      print('❌ فشل حفظ الكاش: $e');
-    }
-  }
-
-  // ✅ تحديث دالة _initializeData لإضافة الكاش
-  Future<void> _initializeDataWithCache() async {
-    try {
-      // ✅ أولاً: تحميل من الكاش (سريع)
-      await _loadFromCache();
-      
-      // ✅ ثانياً: محاولة تحديث البيانات من Firebase
-      try {
-        _loadUserData();
-        await _loadHealthScore();
-        _startAnimation();
-        
-        // ✅ حفظ البيانات الجديدة في الكاش
-        await _saveToCache();
-        
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-            _hasError = false;
-            _isOffline = false;
-          });
-        }
-      } catch (e) {
-        // ✅ إذا فشل Firebase، استخدم الكاش
-        if (_isCacheLoaded) {
-          if (mounted) {
-            setState(() {
-              _isLoading = false;
-              _hasError = false;
-              _isOffline = true;
-            });
-          }
-        } else {
-          rethrow;
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _hasError = true;
-          _errorMessage = 'حدث خطأ في تحميل البيانات';
-          _isOffline = true;
-        });
-      }
-    }
-  }
