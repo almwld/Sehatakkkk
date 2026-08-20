@@ -4,13 +4,55 @@ import 'package:sehatak/core/models/payment/wallet_models.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 
-class PaymentMethodsScreen extends StatelessWidget {
+class PaymentMethodsScreen extends StatefulWidget {
   final Function(LocalWalletOption)? onSelectWallet;
+  final double? amount;
 
   const PaymentMethodsScreen({
     super.key,
     this.onSelectWallet,
+    this.amount,
   });
+
+  @override
+  State<PaymentMethodsScreen> createState() => _PaymentMethodsScreenState();
+}
+
+class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
+  LocalWalletOption? _selectedWallet;
+  bool _showTransferInstructions = false;
+
+  // ✅ تعليمات التحويل لمحفظة جيب
+  final String _transferInstructions = '''
+🔹 **رقم الإيداع الموحد:** 536396
+🔹 **اسم المستفيد:** منصة صحتك
+🔹 **البنك:** حساب جيب الموحد
+
+📌 **خطوات التحويل:**
+1️⃣ افتح تطبيق جيب أو أي محفظة أخرى
+2️⃣ اختر خيار "تحويل" أو "إرسال"
+3️⃣ أدخل رقم الإيداع الموحد: **536396**
+4️⃣ أدخل المبلغ المطلوب: **${_amount?.toStringAsFixed(0) ?? '___'} ر.ي**
+5️⃣ اكتب ملاحظة: رقم الطلب أو اسمك
+6️⃣ أكد التحويل وأرسل لنا إشعاراً
+
+✅ بعد التحويل، سيتم إضافة الرصيد تلقائياً خلال 2-5 دقائق
+🔔 سيصلك إشعار فوري عند اكتمال الإيداع
+📞 للاستفسار: 777123456
+''';
+
+  // ✅ أرقام المحافظ
+  final Map<String, String> _walletNumbers = {
+    'حاسب الكريمي': '770000000',
+    'فلوسك': '771111111',
+    'جوالي': '772222222',
+    'جيب': '536396',
+    'كاش': '774444444',
+    'كاش ون': '775555555',
+    'موبايل ماني': '776666666',
+    'يمن وولت': '777777777',
+    'إيزي': '778888888',
+  };
 
   Widget _buildWalletIcon(String assetPath, {double size = 56}) {
     return Container(
@@ -50,38 +92,282 @@ class PaymentMethodsScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildTransferInstructionsDialog() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        constraints: const BoxConstraints(maxWidth: 400),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ✅ عنوان
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.info_outline_rounded,
+                    color: AppColors.primary,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'تعليمات التحويل',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        'محفظة جيب',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close_rounded),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+            const Divider(height: 24),
+
+            // ✅ رقم الإيداع الموحد
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: AppColors.primaryGradient,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  const Text(
+                    'رقم الإيداع الموحد',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '536396',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Text(
+                      'جميع المنصات مدعومة',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // ✅ تعليمات التحويل
+            ..._transferInstructions.split('\n').map((line) {
+              if (line.trim().isEmpty) return const SizedBox(height: 4);
+              if (line.startsWith('🔹')) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Text(
+                    line,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                );
+              }
+              if (line.startsWith('📌')) {
+                return Padding(
+                  padding: const EdgeInsets.only(top: 8, bottom: 4),
+                  child: Text(
+                    line,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                );
+              }
+              if (line.startsWith('1️⃣') ||
+                  line.startsWith('2️⃣') ||
+                  line.startsWith('3️⃣') ||
+                  line.startsWith('4️⃣') ||
+                  line.startsWith('5️⃣') ||
+                  line.startsWith('6️⃣')) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        line.split(' ')[0],
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          line.substring(line.indexOf(' ') + 1),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: isDark ? Colors.white70 : Colors.black87,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              if (line.startsWith('✅') || line.startsWith('🔔') || line.startsWith('📞')) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Text(
+                    line,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? Colors.white54 : Colors.grey[600],
+                    ),
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            }).toList(),
+
+            const SizedBox(height: 16),
+
+            // ✅ أزرار
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text('إغلاق'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      ToastService.showSuccess(
+                        context,
+                        '✅ تم نسخ رقم الإيداع: 536396',
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.copy_rounded, size: 18),
+                        SizedBox(width: 6),
+                        Text('نسخ الرقم'),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildWalletCard(LocalWalletOption wallet, bool isDark, int index) {
-    final isSelected = false; // يمكن تفعيلها لاحقاً
+    final isJeeb = wallet.type == PaymentMethodType.jeeb;
+    final accountNumber = _walletNumbers[wallet.name] ?? wallet.accountNumber;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: isDark
-              ? [const Color(0xFF1A2540), const Color(0xFF0B1121)]
-              : [Colors.white, Colors.grey.shade50],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        gradient: isJeeb
+            ? LinearGradient(
+                colors: isDark
+                    ? [const Color(0xFF1A2540), const Color(0xFF0B1121)]
+                    : [Colors.white, Colors.grey.shade50],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
+            : LinearGradient(
+                colors: isDark
+                    ? [const Color(0xFF1A2540), const Color(0xFF0B1121)]
+                    : [Colors.white, Colors.grey.shade50],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isSelected
+          color: isJeeb
               ? AppColors.primary
               : isDark
                   ? Colors.white12
                   : Colors.black12,
-          width: isSelected ? 2.5 : 1,
+          width: isJeeb ? 2.5 : 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: isDark
-                ? Colors.black.withOpacity(0.3)
-                : Colors.black.withOpacity(0.06),
-            blurRadius: 12,
+            color: isJeeb
+                ? AppColors.primary.withOpacity(0.2)
+                : isDark
+                    ? Colors.black.withOpacity(0.3)
+                    : Colors.black.withOpacity(0.06),
+            blurRadius: isJeeb ? 16 : 12,
             offset: const Offset(0, 4),
-            spreadRadius: 0,
+            spreadRadius: isJeeb ? 2 : 0,
           ),
         ],
       ),
@@ -91,7 +377,13 @@ class PaymentMethodsScreen extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
           onTap: () {
-            if (onSelectWallet != null) {
+            if (isJeeb) {
+              // ✅ عرض تعليمات التحويل لمحفظة جيب
+              showDialog(
+                context: context,
+                builder: (_) => _buildTransferInstructionsDialog(),
+              );
+            } else if (onSelectWallet != null) {
               onSelectWallet!(wallet);
             } else {
               ToastService.showSuccess(context, '✅ تم اختيار ${wallet.name}');
@@ -103,7 +395,28 @@ class PaymentMethodsScreen extends StatelessWidget {
             child: Row(
               children: [
                 // ✅ أيقونة المحفظة
-                _buildWalletIcon(wallet.assetPath),
+                Stack(
+                  children: [
+                    _buildWalletIcon(wallet.assetPath),
+                    if (isJeeb)
+                      Positioned(
+                        top: -4,
+                        right: -4,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Colors.green,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.check_circle,
+                            color: Colors.white,
+                            size: 14,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
                 const SizedBox(width: 16),
 
                 // ✅ معلومات المحفظة
@@ -123,24 +436,25 @@ class PaymentMethodsScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              gradient: AppColors.primaryGradient,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              'رئيسي',
-                              style: TextStyle(
-                                fontSize: 9,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
+                          if (isJeeb)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                gradient: AppColors.primaryGradient,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Text(
+                                'موصى به',
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
-                          ),
                         ],
                       ),
                       const SizedBox(height: 4),
@@ -153,11 +467,15 @@ class PaymentMethodsScreen extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            'رقم الحساب: ${wallet.accountNumber}',
+                            'رقم الإيداع: $accountNumber',
                             style: TextStyle(
                               fontSize: 13,
-                              color: isDark ? Colors.white54 : Colors.grey[600],
-                              fontWeight: FontWeight.w500,
+                              color: isJeeb
+                                  ? AppColors.primary
+                                  : isDark
+                                      ? Colors.white54
+                                      : Colors.grey[600],
+                              fontWeight: isJeeb ? FontWeight.bold : FontWeight.w500,
                             ),
                           ),
                         ],
@@ -191,27 +509,57 @@ class PaymentMethodsScreen extends StatelessWidget {
                   ),
                 ),
 
-                // ✅ سهم التحديد
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    gradient: AppColors.primaryGradient,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
+                // ✅ زر الإجراء
+                if (isJeeb)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: AppColors.primary.withOpacity(0.2),
                       ),
-                    ],
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline_rounded,
+                          color: AppColors.primary,
+                          size: 14,
+                        ),
+                        SizedBox(width: 4),
+                        Text(
+                          'تعليمات',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      gradient: AppColors.primaryGradient,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      color: Colors.white,
+                      size: 16,
+                    ),
                   ),
-                  child: const Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    color: Colors.white,
-                    size: 16,
-                  ),
-                ),
               ],
             ),
           ),
