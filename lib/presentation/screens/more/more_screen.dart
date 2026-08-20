@@ -29,7 +29,7 @@ import 'package:sehatak/presentation/screens/first_aid/first_aid_screen.dart';
 import 'package:sehatak/presentation/screens/mental_health/mental_health_screen.dart';
 import 'package:sehatak/presentation/screens/diet_plan/diet_plan_screen.dart';
 import 'package:sehatak/presentation/screens/family_planning/family_planning_screen.dart';
-import 'package:sehatak/presentation/screens/subscriptions/subscriptions_screen.dart';
+import 'package:sehatak/presentation/screens/subscriptions/subscriptions_screen.dart>';
 import 'package:sehatak/presentation/screens/insurance/insurance_companies.dart';
 import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
 import 'package:sehatak/presentation/screens/help_center/help_center_screen.dart';
@@ -42,7 +42,6 @@ import 'package:sehatak/presentation/screens/font_size/font_size_screen.dart';
 import 'package:sehatak/presentation/screens/privacy/privacy_screen.dart';
 import 'package:sehatak/presentation/screens/terms/terms_screen.dart';
 import 'package:sehatak/presentation/screens/ai/ai_chatbot_screen.dart';
-import 'package:sehatak/core/constants/imagekit.dart';
 
 class MoreScreen extends StatefulWidget {
   const MoreScreen({super.key});
@@ -67,21 +66,7 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
     'إعدادات',
   ];
 
-  // ✅ وظيفة للحصول على أيقونة محلية من المسار
-  Widget _buildLocalIcon(String path, {double size = 32, Color? color}) {
-    return Image.asset(
-      path,
-      width: size,
-      height: size,
-      fit: BoxFit.contain,
-      color: color,
-      errorBuilder: (context, error, stackTrace) {
-        return Icon(Icons.circle, color: color ?? AppColors.primary, size: size);
-      },
-    );
-  }
-
-  // ✅ بيانات المؤشرات الحيوية مع أيقونات محلية
+  // ✅ بيانات المؤشرات الحيوية (بدون حاويات)
   final List<Map<String, dynamic>> _vitals = [
     {
       'icon': 'assets/images/tracking/blood_pressure.png',
@@ -100,7 +85,7 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
       'screen': const GlucoseTrackerScreen()
     },
     {
-      'icon': 'assets/images/tracking/fitness.png',
+      'icon': 'assets/images/tracking/walking.png',
       'label': 'اللياقة',
       'value': '85',
       'unit': '%',
@@ -108,7 +93,7 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
       'screen': const SleepTrackerScreen()
     },
     {
-      'icon': 'assets/images/tracking/weight_tracking.png',
+      'icon': 'assets/images/tracking/weight.png',
       'label': 'الوزن',
       'value': '72',
       'unit': 'كجم',
@@ -117,73 +102,73 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
     },
   ];
 
-  // ✅ الخدمات المفلترة مع أيقونات محلية
+  // ✅ الخدمات المفلترة (بدون حاويات)
   List<Map<String, dynamic>> get _filteredServices {
     switch (_selectedCategory) {
       case 'رعاية عائلية':
         return [
-          {'icon': 'assets/images/services/consultation.png', 'title': 'صحة المرأة', 'subtitle': 'متابعة الدورة والحمل', 'screen': const FamilyPlanningScreen()},
-          {'icon': 'assets/images/services/medical_records.png', 'title': 'نمو الطفل', 'subtitle': 'مراحل التطور', 'screen': const FamilyPlanningScreen()},
-          {'icon': 'assets/images/services/medical_community.png', 'title': 'طبيب العائلة', 'subtitle': 'رعاية منزلية متكاملة', 'screen': const DoctorsListScreen()},
-          {'icon': 'assets/images/tracking/mental_health.png', 'title': 'متابعة الحمل', 'subtitle': 'أسابيع الحمل بدقة', 'screen': const FamilyPlanningScreen()},
-          {'icon': 'assets/images/tracking/mental_health.png', 'title': 'الصحة النفسية', 'subtitle': 'دعم الصحة النفسية', 'screen': const MentalHealthScreen()},
-          {'icon': 'assets/images/tracking/nutrition.png', 'title': 'نظام غذائي', 'subtitle': 'خطط غذائية صحية', 'screen': const DietPlanScreen()},
-          {'icon': 'assets/images/tracking/mental_health.png', 'title': 'تتبع النوم', 'subtitle': 'مراقبة جودة النوم', 'screen': const SleepTrackerScreen()},
+          {'icon': 'assets/images/services/womens_health.png', 'title': 'صحة المرأة', 'subtitle': 'متابعة الدورة والحمل', 'screen': const FamilyPlanningScreen()},
+          {'icon': 'assets/images/services/medical_articles.png', 'title': 'نمو الطفل', 'subtitle': 'مراحل التطور', 'screen': const FamilyPlanningScreen()},
+          {'icon': 'assets/images/services/hospital.png', 'title': 'طبيب العائلة', 'subtitle': 'رعاية منزلية متكاملة', 'screen': const DoctorsListScreen()},
+          {'icon': 'assets/images/services/womens_health.png', 'title': 'متابعة الحمل', 'subtitle': 'أسابيع الحمل بدقة', 'screen': const FamilyPlanningScreen()},
+          {'icon': 'assets/images/tracking/age.png', 'title': 'الصحة النفسية', 'subtitle': 'دعم الصحة النفسية', 'screen': const MentalHealthScreen()},
+          {'icon': 'assets/images/tracking/fruits.png', 'title': 'نظام غذائي', 'subtitle': 'خطط غذائية صحية', 'screen': const DietPlanScreen()},
+          {'icon': 'assets/images/tracking/sleep_tracking.png', 'title': 'تتبع النوم', 'subtitle': 'مراقبة جودة النوم', 'screen': const SleepTrackerScreen()},
         ];
       case 'أدوات تشخيصية':
         return [
           {'icon': 'assets/images/tracking/blood_pressure.png', 'title': 'ضغط الدم', 'subtitle': 'متابعة ضغط الدم', 'screen': const BloodPressureScreen()},
           {'icon': 'assets/images/tracking/blood_sugar.png', 'title': 'تتبع السكر', 'subtitle': 'مراقبة مستوى السكر', 'screen': const GlucoseTrackerScreen()},
-          {'icon': 'assets/images/tracking/weight_tracking.png', 'title': 'الوزن', 'subtitle': 'تتبع الوزن واللياقة', 'screen': const WeightTrackerScreen()},
-          {'icon': 'assets/images/services/medications.png', 'title': 'تذكير الأدوية', 'subtitle': 'تذكير بمواعيد الأدوية', 'screen': const MedicationReminderScreen()},
+          {'icon': 'assets/images/tracking/weight.png', 'title': 'الوزن', 'subtitle': 'تتبع الوزن واللياقة', 'screen': const WeightTrackerScreen()},
+          {'icon': 'assets/images/services/first_aid.png', 'title': 'تذكير الأدوية', 'subtitle': 'تذكير بمواعيد الأدوية', 'screen': const MedicationReminderScreen()},
           {'icon': 'assets/images/services/blood_donation.png', 'title': 'التبرع بالدم', 'subtitle': 'مراكز التبرع بالدم', 'screen': const BloodDonationScreen()},
-          {'icon': 'assets/images/services/health_tips.png', 'title': 'المقالات الطبية', 'subtitle': 'أحدث المقالات الطبية', 'screen': const ArticlesScreen()},
-          {'icon': 'assets/images/services/emergency.png', 'title': 'الإسعافات الأولية', 'subtitle': 'دليل الإسعافات الأولية', 'screen': const FirstAidScreen()},
+          {'icon': 'assets/images/services/medical_articles.png', 'title': 'المقالات الطبية', 'subtitle': 'أحدث المقالات الطبية', 'screen': const ArticlesScreen()},
+          {'icon': 'assets/images/services/first_aid.png', 'title': 'الإسعافات الأولية', 'subtitle': 'دليل الإسعافات الأولية', 'screen': const FirstAidScreen()},
         ];
       case 'لوجستيات وتأمين':
         return [
           {'icon': 'assets/images/services/pharmacy.png', 'title': 'صيدلية', 'subtitle': 'طلب الأدوية وتوصيلها', 'screen': const PharmacyScreen()},
           {'icon': 'assets/images/services/laboratory.png', 'title': 'مختبرات', 'subtitle': 'حجز التحاليل والفحوصات', 'screen': const LabsListScreen()},
-          {'icon': 'assets/images/services/health_insurance.png', 'title': 'تأمين صحي', 'subtitle': 'خطط التأمين والاشتراك', 'screen': const InsuranceCompanies()},
-          {'icon': 'assets/images/services/map_location.png', 'title': 'خرائط المرافق', 'subtitle': 'أقرب المستشفيات والصيدليات', 'screen': const InteractiveMapScreen()},
-          {'icon': 'assets/images/services/map_location.png', 'title': 'المستشفيات', 'subtitle': 'أقرب المستشفيات', 'screen': const InteractiveMapScreen()},
-          {'icon': 'assets/images/services/wallet.png', 'title': 'المحفظة', 'subtitle': 'إدارة محفظتك', 'screen': const WalletScreen()},
-          {'icon': 'assets/images/services/health_insurance.png', 'title': 'الباقات', 'subtitle': 'عرض الباقات المتاحة', 'screen': const SubscriptionsScreen()},
+          {'icon': 'assets/images/services/packages.png', 'title': 'تأمين صحي', 'subtitle': 'خطط التأمين والاشتراك', 'screen': const InsuranceCompanies()},
+          {'icon': 'assets/images/services/hospital.png', 'title': 'خرائط المرافق', 'subtitle': 'أقرب المستشفيات والصيدليات', 'screen': const InteractiveMapScreen()},
+          {'icon': 'assets/images/services/hospital.png', 'title': 'المستشفيات', 'subtitle': 'أقرب المستشفيات', 'screen': const InteractiveMapScreen()},
+          {'icon': 'assets/images/services/packages.png', 'title': 'المحفظة', 'subtitle': 'إدارة محفظتك', 'screen': const WalletScreen()},
+          {'icon': 'assets/images/services/packages.png', 'title': 'الباقات', 'subtitle': 'عرض الباقات المتاحة', 'screen': const SubscriptionsScreen()},
         ];
       case 'إعدادات':
         return [
-          {'icon': 'assets/images/services/medical_records.png', 'title': 'الملف الشخصي', 'subtitle': 'إدارة ملفك الشخصي', 'screen': const PatientProfile()},
-          {'icon': 'assets/images/services/notifications.png', 'title': 'الإعدادات', 'subtitle': 'إعدادات التطبيق', 'screen': const SettingsScreen()},
-          {'icon': 'assets/images/services/notifications.png', 'title': 'الإشعارات', 'subtitle': 'إدارة الإشعارات', 'screen': const NotificationsScreen()},
-          {'icon': 'assets/images/services/privacy.png', 'title': 'الخصوصية', 'subtitle': 'إعدادات الخصوصية', 'screen': const PrivacyScreen()},
-          {'icon': 'assets/images/services/privacy.png', 'title': 'الشروط والأحكام', 'subtitle': 'عرض الشروط والأحكام', 'screen': const TermsScreen()},
-          {'icon': 'assets/images/services/health_tips.png', 'title': 'عن التطبيق', 'subtitle': 'معلومات عن التطبيق', 'screen': const AboutScreen()},
-          {'icon': 'assets/images/services/consultation.png', 'title': 'مركز المساعدة', 'subtitle': 'الأسئلة الشائعة والدعم', 'screen': const HelpCenterScreen()},
-          {'icon': 'assets/images/services/medical_community.png', 'title': 'اتصل بنا', 'subtitle': 'تواصل مع فريق الدعم', 'screen': const ContactUsScreen()},
-          {'icon': 'assets/images/services/share.png', 'title': 'مشاركة التطبيق', 'subtitle': 'شارك التطبيق مع أصدقائك', 'screen': const ShareAppScreen()},
-          {'icon': 'assets/images/services/rate.png', 'title': 'تقييم التطبيق', 'subtitle': 'قيم التطبيق', 'screen': const RateAppScreen()},
-          {'icon': 'assets/images/services/report.png', 'title': 'الإبلاغ عن مشكلة', 'subtitle': 'أبلغ عن مشكلة', 'screen': const ReportIssueScreen()},
-          {'icon': 'assets/images/services/download.png', 'title': 'تحميل البيانات', 'subtitle': 'تحميل بياناتك الصحية', 'screen': const DownloadDataScreen()},
-          {'icon': 'assets/images/services/font_size.png', 'title': 'حجم الخط', 'subtitle': 'تغيير حجم الخط', 'screen': const FontSizeScreen()},
+          {'icon': 'assets/images/ui/user_profile.png', 'title': 'الملف الشخصي', 'subtitle': 'إدارة ملفك الشخصي', 'screen': const PatientProfile()},
+          {'icon': 'assets/images/ui/settings_gear.png', 'title': 'الإعدادات', 'subtitle': 'إعدادات التطبيق', 'screen': const SettingsScreen()},
+          {'icon': 'assets/images/ui/settings_gear.png', 'title': 'الإشعارات', 'subtitle': 'إدارة الإشعارات', 'screen': const NotificationsScreen()},
+          {'icon': 'assets/images/ui/settings_gear.png', 'title': 'الخصوصية', 'subtitle': 'إعدادات الخصوصية', 'screen': const PrivacyScreen()},
+          {'icon': 'assets/images/ui/settings_gear.png', 'title': 'الشروط والأحكام', 'subtitle': 'عرض الشروط والأحكام', 'screen': const TermsScreen()},
+          {'icon': 'assets/images/ui/settings_gear.png', 'title': 'عن التطبيق', 'subtitle': 'معلومات عن التطبيق', 'screen': const AboutScreen()},
+          {'icon': 'assets/images/ui/settings_gear.png', 'title': 'مركز المساعدة', 'subtitle': 'الأسئلة الشائعة والدعم', 'screen': const HelpCenterScreen()},
+          {'icon': 'assets/images/ui/settings_gear.png', 'title': 'اتصل بنا', 'subtitle': 'تواصل مع فريق الدعم', 'screen': const ContactUsScreen()},
+          {'icon': 'assets/images/ui/settings_gear.png', 'title': 'مشاركة التطبيق', 'subtitle': 'شارك التطبيق مع أصدقائك', 'screen': const ShareAppScreen()},
+          {'icon': 'assets/images/ui/like_button.png', 'title': 'تقييم التطبيق', 'subtitle': 'قيم التطبيق', 'screen': const RateAppScreen()},
+          {'icon': 'assets/images/ui/settings_gear.png', 'title': 'الإبلاغ عن مشكلة', 'subtitle': 'أبلغ عن مشكلة', 'screen': const ReportIssueScreen()},
+          {'icon': 'assets/images/ui/settings_gear.png', 'title': 'تحميل البيانات', 'subtitle': 'تحميل بياناتك الصحية', 'screen': const DownloadDataScreen()},
+          {'icon': 'assets/images/ui/edit_button.png', 'title': 'حجم الخط', 'subtitle': 'تغيير حجم الخط', 'screen': const FontSizeScreen()},
         ];
       default:
         return [
-          {'icon': 'assets/images/services/consultation.png', 'title': 'الأطباء', 'subtitle': 'استشر أفضل الأطباء', 'screen': const DoctorsListScreen()},
+          {'icon': 'assets/images/services/hospital.png', 'title': 'الأطباء', 'subtitle': 'استشر أفضل الأطباء', 'screen': const DoctorsListScreen()},
           {'icon': 'assets/images/services/pharmacy.png', 'title': 'الصيدلية', 'subtitle': 'طلب الأدوية وتوصيلها', 'screen': const PharmacyScreen()},
           {'icon': 'assets/images/services/laboratory.png', 'title': 'المختبرات', 'subtitle': 'حجز التحاليل والفحوصات', 'screen': const LabsListScreen()},
-          {'icon': 'assets/images/services/emergency.png', 'title': 'الطوارئ', 'subtitle': 'أرقام الطوارئ والمساعدة', 'screen': const EmergencyNumbers()},
-          {'icon': 'assets/images/services/consultation.png', 'title': 'استشارة فورية', 'subtitle': 'تحدث مع طبيبك الآن', 'screen': const ConsultationScreen()},
-          {'icon': 'assets/images/services/health_tips.png', 'title': 'صحتك', 'subtitle': 'متابعة حالتك الصحية', 'screen': const HealthDashboard()},
-          {'icon': 'assets/images/services/wallet.png', 'title': 'المحفظة', 'subtitle': 'إدارة محفظتك', 'screen': const WalletScreen()},
-          {'icon': 'assets/images/services/calendar_booking.png', 'title': 'المواعيد', 'subtitle': 'إدارة مواعيدك', 'screen': const AppointmentsScreen()},
-          {'icon': 'assets/images/services/map_location.png', 'title': 'الخريطة', 'subtitle': 'المنشآت الصحية القريبة', 'screen': const InteractiveMapScreen()},
-          {'icon': 'assets/images/services/health_insurance.png', 'title': 'التأمين الصحي', 'subtitle': 'خطط التأمين والاشتراكات', 'screen': const InsuranceCompanies()},
+          {'icon': 'assets/images/services/first_aid.png', 'title': 'الطوارئ', 'subtitle': 'أرقام الطوارئ والمساعدة', 'screen': const EmergencyNumbers()},
+          {'icon': 'assets/images/services/womens_health.png', 'title': 'استشارة فورية', 'subtitle': 'تحدث مع طبيبك الآن', 'screen': const ConsultationScreen()},
+          {'icon': 'assets/images/services/medical_articles.png', 'title': 'صحتك', 'subtitle': 'متابعة حالتك الصحية', 'screen': const HealthDashboard()},
+          {'icon': 'assets/images/services/packages.png', 'title': 'المحفظة', 'subtitle': 'إدارة محفظتك', 'screen': const WalletScreen()},
+          {'icon': 'assets/images/services/medical_articles.png', 'title': 'المواعيد', 'subtitle': 'إدارة مواعيدك', 'screen': const AppointmentsScreen()},
+          {'icon': 'assets/images/services/hospital.png', 'title': 'الخريطة', 'subtitle': 'المنشآت الصحية القريبة', 'screen': const InteractiveMapScreen()},
+          {'icon': 'assets/images/services/packages.png', 'title': 'التأمين الصحي', 'subtitle': 'خطط التأمين والاشتراكات', 'screen': const InsuranceCompanies()},
           {'icon': 'assets/images/services/blood_donation.png', 'title': 'التبرع بالدم', 'subtitle': 'مراكز التبرع بالدم', 'screen': const BloodDonationScreen()},
-          {'icon': 'assets/images/services/medical_records.png', 'title': 'الملف الشخصي', 'subtitle': 'إدارة ملفك الشخصي', 'screen': const PatientProfile()},
-          {'icon': 'assets/images/services/settings.png', 'title': 'الإعدادات', 'subtitle': 'إعدادات التطبيق', 'screen': const SettingsScreen()},
-          {'icon': 'assets/images/services/more.png', 'title': 'جميع الخدمات', 'subtitle': 'استعراض جميع الخدمات', 'screen': const ServicesScreen()},
-          {'icon': 'assets/images/services/ai_assistant.png', 'title': 'المساعد الذكي', 'subtitle': 'اسأل المساعد الطبي', 'screen': const AiChatbotScreen()},
-          {'icon': 'assets/images/services/medical_community.png', 'title': 'المجتمع الطبي', 'subtitle': 'تواصل مع المجتمع', 'screen': const HealthCommunityScreen()},
+          {'icon': 'assets/images/ui/user_profile.png', 'title': 'الملف الشخصي', 'subtitle': 'إدارة ملفك الشخصي', 'screen': const PatientProfile()},
+          {'icon': 'assets/images/ui/settings_gear.png', 'title': 'الإعدادات', 'subtitle': 'إعدادات التطبيق', 'screen': const SettingsScreen()},
+          {'icon': 'assets/images/services/medical_articles.png', 'title': 'جميع الخدمات', 'subtitle': 'استعراض جميع الخدمات', 'screen': const ServicesScreen()},
+          {'icon': 'assets/images/services/medical_articles.png', 'title': 'المساعد الذكي', 'subtitle': 'اسأل المساعد الطبي', 'screen': const AiChatbotScreen()},
+          {'icon': 'assets/images/services/blood_donation.png', 'title': 'المجتمع الطبي', 'subtitle': 'تواصل مع المجتمع', 'screen': const HealthCommunityScreen()},
         ];
     }
   }
@@ -207,6 +192,19 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
 
   void _navigateTo(Widget screen) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
+  }
+
+  // ✅ دالة لعرض الأيقونة - بدون حاويات
+  Widget _buildIcon(String path, {double size = 40}) {
+    return Image.asset(
+      path,
+      width: size,
+      height: size,
+      fit: BoxFit.contain,
+      errorBuilder: (context, error, stackTrace) {
+        return Icon(Icons.circle, color: AppColors.primary, size: size);
+      },
+    );
   }
 
   @override
@@ -235,8 +233,11 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ✅ بطاقة المستخدم - بدون حاويات زائدة
             _buildUserCard(user, isDark),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
+            
+            // ✅ المؤشرات الحيوية
             Text(
               'المؤشرات الحيوية',
               style: TextStyle(
@@ -245,9 +246,11 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
                 color: isDark ? Colors.white : Colors.black87,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             _buildVitalsGrid(isDark),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
+            
+            // ✅ الخدمات
             Text(
               'الخدمات',
               style: TextStyle(
@@ -256,11 +259,13 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
                 color: isDark ? Colors.white : Colors.black87,
               ),
             ),
-            const SizedBox(height: 8),
-            _buildCategoriesBar(isDark),
             const SizedBox(height: 12),
-            _buildFilteredServicesGrid(isDark),
+            _buildCategoriesBar(isDark),
             const SizedBox(height: 16),
+            _buildFilteredServicesGrid(isDark),
+            const SizedBox(height: 24),
+            
+            // ✅ زر تسجيل الخروج
             _buildLogoutButton(isDark),
           ],
         ),
@@ -268,6 +273,9 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
     );
   }
 
+  // ============================================================
+  // 📱 بطاقة المستخدم (بدون حاويات زائدة)
+  // ============================================================
   Widget _buildUserCard(User? user, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -285,12 +293,12 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
       child: Row(
         children: [
           CircleAvatar(
-            radius: 32,
+            radius: 28,
             backgroundColor: AppColors.primary.withOpacity(0.1),
             child: Text(
               user?.displayName?.substring(0, 1) ?? 'م',
               style: TextStyle(
-                fontSize: 24,
+                fontSize: 20,
                 color: AppColors.primary,
                 fontWeight: FontWeight.bold,
               ),
@@ -304,16 +312,15 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
                 Text(
                   user?.displayName ?? 'مستخدم',
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: isDark ? Colors.white : Colors.black87,
                   ),
                 ),
-                const SizedBox(height: 2),
                 Text(
                   user?.email ?? 'user@email.com',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 12,
                     color: isDark ? Colors.grey[400] : Colors.grey[600],
                   ),
                 ),
@@ -321,19 +328,82 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
             ),
           ),
           IconButton(
-            icon: Icon(Icons.edit, color: AppColors.primary),
-            onPressed: () {
-              _navigateTo(const PatientProfile());
-            },
+            icon: Icon(Icons.edit, color: AppColors.primary, size: 22),
+            onPressed: () => _navigateTo(const PatientProfile()),
           ),
         ],
       ),
     );
   }
 
+  // ============================================================
+  // 📊 المؤشرات الحيوية (شبكة بدون حاويات زائدة)
+  // ============================================================
+  Widget _buildVitalsGrid(bool isDark) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 4,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+        childAspectRatio: 0.9,
+      ),
+      itemCount: _vitals.length,
+      itemBuilder: (context, index) {
+        final vital = _vitals[index];
+        return GestureDetector(
+          onTap: () => _navigateTo(vital['screen'] as Widget),
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1A2540) : Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // ✅ أيقونة مكبرة 25% (40 -> 50)
+                _buildIcon(vital['icon'] as String, size: 50),
+                const SizedBox(height: 4),
+                Text(
+                  vital['value'] as String,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+                Text(
+                  vital['unit'] as String,
+                  style: TextStyle(
+                    fontSize: 9,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                ),
+                Text(
+                  vital['label'] as String,
+                  style: TextStyle(
+                    fontSize: 9,
+                    color: isDark ? Colors.grey[500] : Colors.grey[500],
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // ============================================================
+  // 📋 شريط التصنيفات
+  // ============================================================
   Widget _buildCategoriesBar(bool isDark) {
     return SizedBox(
-      height: 45,
+      height: 40,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: _categories.length,
@@ -344,17 +414,10 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
             onTap: () => setState(() => _selectedCategory = category),
             child: Container(
               margin: const EdgeInsets.only(right: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.primary
-                    : (isDark ? const Color(0xFF1A2540) : Colors.grey[100]),
+                color: isSelected ? AppColors.primary : (isDark ? const Color(0xFF1A2540) : Colors.grey[100]),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isSelected
-                      ? AppColors.primary
-                      : (isDark ? Colors.grey[800]! : Colors.grey[300]!),
-                ),
               ),
               child: Text(
                 category,
@@ -371,88 +434,9 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
     );
   }
 
-  Widget _buildVitalsGrid(bool isDark) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 1.2,
-      ),
-      itemCount: _vitals.length,
-      itemBuilder: (context, index) {
-        final vital = _vitals[index];
-        return GestureDetector(
-          onTap: () {
-            final screen = vital['screen'] as Widget;
-            _navigateTo(screen);
-          },
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1A2540) : Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset(
-                  vital['icon'] as String,
-                  width: 40,
-                  height: 40,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Icon(
-                      Icons.circle,
-                      color: vital['color'] as Color,
-                      size: 40,
-                    );
-                  },
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  vital['value'] as String,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                ),
-                Text(
-                  vital['unit'] as String,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  vital['label'] as String,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: isDark ? Colors.grey[500] : Colors.grey[500],
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
+  // ============================================================
+  // 📱 الخدمات (شبكة بدون حاويات زائدة - أيقونات مكبرة)
+  // ============================================================
   Widget _buildFilteredServicesGrid(bool isDark) {
     final services = _filteredServices;
 
@@ -475,51 +459,27 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        childAspectRatio: 0.9,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+        childAspectRatio: 0.85,
       ),
       itemCount: services.length,
       itemBuilder: (context, index) {
         final service = services[index];
         return GestureDetector(
-          onTap: () {
-            final screen = service['screen'] as Widget;
-            _navigateTo(screen);
-          },
+          onTap: () => _navigateTo(service['screen'] as Widget),
           child: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1A2540) : Colors.white,
               borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Image.asset(
-                    service['icon'] as String,
-                    width: 32,
-                    height: 32,
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Icon(Icons.medical_services, color: AppColors.primary, size: 32);
-                    },
-                  ),
-                ),
-                const SizedBox(height: 6),
+                // ✅ أيقونة مكبرة 25% (32 -> 40)
+                _buildIcon(service['icon'] as String, size: 40),
+                const SizedBox(height: 4),
                 Text(
                   service['title'] as String,
                   style: TextStyle(
@@ -549,20 +509,23 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
     );
   }
 
+  // ============================================================
+  // 🔴 زر تسجيل الخروج
+  // ============================================================
   Widget _buildLogoutButton(bool isDark) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
         onPressed: _showLogoutDialog,
-        icon: const Icon(Icons.logout, color: Colors.white),
+        icon: const Icon(Icons.logout, color: Colors.white, size: 20),
         label: const Text(
           'تسجيل الخروج',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
         ),
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.red,
           foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 14),
+          padding: const EdgeInsets.symmetric(vertical: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -571,6 +534,9 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
     );
   }
 
+  // ============================================================
+  // 🗑️ دوال الحوار
+  // ============================================================
   void _showLogoutDialog() {
     showDialog(
       context: context,
