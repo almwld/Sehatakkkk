@@ -4,7 +4,6 @@ import 'package:sehatak/core/models/cart/cart_item_model.dart';
 
 class CartService {
   static const String _cartKey = 'cart_items';
-  static const String _cartTotalKey = 'cart_total';
 
   // إضافة عنصر إلى السلة
   Future<void> addItem(CartItemModel item) async {
@@ -69,19 +68,26 @@ class CartService {
     final prefs = await SharedPreferences.getInstance();
     final data = json.encode(items.map((item) => item.toMap()).toList());
     await prefs.setString(_cartKey, data);
-    await prefs.setInt(_cartTotalKey, items.length);
   }
 
-  // الحصول على إجمالي السلة
+  // ✅ الحصول على إجمالي السلة - تم الإصلاح
   Future<double> getTotal() async {
     final items = await getItems();
-    return items.fold(0.0, (sum, item) => sum + item.total);
+    double total = 0.0;
+    for (var item in items) {
+      total += item.total;
+    }
+    return total;
   }
 
-  // الحصول على عدد العناصر
+  // ✅ الحصول على عدد العناصر - تم الإصلاح
   Future<int> getItemCount() async {
     final items = await getItems();
-    return items.fold(0, (sum, item) => sum + item.quantity);
+    int count = 0;
+    for (var item in items) {
+      count += item.quantity;
+    }
+    return count;
   }
 
   // التحقق من وجود عنصر في السلة
@@ -90,16 +96,24 @@ class CartService {
     return items.any((item) => item.id == itemId);
   }
 
-  // الحصول على إجمالي مع الخصم
+  // ✅ الحصول على إجمالي مع الخصم - تم الإصلاح
   Future<double> getTotalWithDiscount() async {
     final items = await getItems();
-    return items.fold(0.0, (sum, item) => sum + item.totalWithDiscount);
+    double total = 0.0;
+    for (var item in items) {
+      total += item.totalWithDiscount;
+    }
+    return total;
   }
 
-  // الحصول على إجمالي الخصم
+  // ✅ الحصول على إجمالي الخصم - تم الإصلاح
   Future<double> getTotalDiscount() async {
     final items = await getItems();
-    return items.fold(0.0, (sum, item) => sum + item.discountAmount);
+    double total = 0.0;
+    for (var item in items) {
+      total += item.discountAmount;
+    }
+    return total;
   }
 
   // تحديث كمية عنصر (زيادة)

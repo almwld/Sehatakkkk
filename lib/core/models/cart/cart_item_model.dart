@@ -27,13 +27,16 @@ class CartItemModel {
     this.metadata,
   });
 
+  // ✅ حساب الإجمالي
   double get total => price * quantity;
   
+  // ✅ حساب الإجمالي مع الخصم
   double get totalWithDiscount {
     if (discount == null) return total;
     return total * (1 - discount! / 100);
   }
 
+  // ✅ حساب مبلغ الخصم
   double get discountAmount {
     if (discount == null) return 0;
     return total * discount! / 100;
