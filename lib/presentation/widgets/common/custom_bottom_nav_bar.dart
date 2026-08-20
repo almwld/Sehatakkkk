@@ -34,7 +34,9 @@ class _CustomBottomNavigationBarState
   late Animation<double> _slideAnimation;
   bool _isVisible = true;
   double _lastScrollOffset = 0;
+  bool _isScrollingDown = false;
 
+  // ✅ قائمة عناصر التنقل
   final List<NavItem> _navItems = [
     NavItem(
       index: 0,
@@ -88,7 +90,7 @@ class _CustomBottomNavigationBarState
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-    _slideAnimation = Tween<double>(begin: 1, end: 0).animate(
+    _slideAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: Curves.easeInOut,
@@ -106,7 +108,7 @@ class _CustomBottomNavigationBarState
   }
 
   // ============================================================
-  // 🎯 معالجة التمرير
+  // 🎯 معالجة التمرير - إخفاء عند التمرير للأسفل
   // ============================================================
 
   void _onScroll() {
@@ -115,21 +117,26 @@ class _CustomBottomNavigationBarState
     final currentOffset = widget.scrollController.offset;
     final maxExtent = widget.scrollController.position.maxScrollExtent;
 
+    // ✅ منع التمرير عندما يكون المحتوى أقل من الشاشة
     if (maxExtent <= 0) return;
 
     final delta = currentOffset - _lastScrollOffset;
     final isScrollingDown = delta > 0;
-    final isAtTop = currentOffset < 50;
+    final isAtTop = currentOffset < 30;
 
+    // ✅ إظهار الشريط عند الوصول للأعلى
     if (isAtTop && !_isVisible) {
       _showBar();
       _lastScrollOffset = currentOffset;
       return;
     }
 
-    if (isScrollingDown && _isVisible && currentOffset > 100) {
+    // ✅ إخفاء الشريط عند التمرير للأسفل (المطلوب)
+    if (isScrollingDown && _isVisible && currentOffset > 80) {
       _hideBar();
-    } else if (!isScrollingDown && !_isVisible && currentOffset > 50) {
+    }
+    // ✅ إظهار الشريط عند التمرير للأعلى
+    else if (!isScrollingDown && !_isVisible && currentOffset > 50) {
       _showBar();
     }
 
@@ -157,16 +164,16 @@ class _CustomBottomNavigationBarState
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final backgroundColor = isDark ? const Color(0xFF1E293B) : Colors.white;
 
-    // ✅ الحل: استخدام ClipRect + heightFactor لإزالة المساحة الفارغة
+    // ✅ استخدام ClipRect + heightFactor لإزالة المساحة الفارغة
     return AnimatedBuilder(
       animation: _slideAnimation,
       builder: (context, child) {
-        final heightFactor = _slideAnimation.value; // 1 = ظاهر، 0 = مخفي
+        final heightFactor = _isVisible ? 1.0 : 0.0;
 
         return ClipRect(
           child: Align(
             alignment: Alignment.topCenter,
-            heightFactor: heightFactor, // ✅ هذا يزيل المساحة الفارغة تماماً
+            heightFactor: heightFactor, // ✅ يزيل المساحة الفارغة تماماً
             child: child,
           ),
         );
