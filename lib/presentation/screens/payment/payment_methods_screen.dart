@@ -23,7 +23,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
   bool _showTransferInstructions = false;
 
   // ✅ تعليمات التحويل لمحفظة جيب
-  final String _transferInstructions = '''
+  String get _transferInstructions => '''
 🔹 **رقم الإيداع الموحد:** 536396
 🔹 **اسم المستفيد:** منصة صحتك
 🔹 **البنك:** حساب جيب الموحد
@@ -32,7 +32,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
 1️⃣ افتح تطبيق جيب أو أي محفظة أخرى
 2️⃣ اختر خيار "تحويل" أو "إرسال"
 3️⃣ أدخل رقم الإيداع الموحد: **536396**
-4️⃣ أدخل المبلغ المطلوب: **${_amount?.toStringAsFixed(0) ?? '___'} ر.ي**
+4️⃣ أدخل المبلغ المطلوب: **${widget.amount?.toStringAsFixed(0) ?? '___'} ر.ي**
 5️⃣ اكتب ملاحظة: رقم الطلب أو اسمك
 6️⃣ أكد التحويل وأرسل لنا إشعاراً
 
@@ -383,8 +383,8 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                 context: context,
                 builder: (_) => _buildTransferInstructionsDialog(),
               );
-            } else if (onSelectWallet != null) {
-              onSelectWallet!(wallet);
+            } else if (widget.onSelectWallet != null) {
+              widget.onSelectWallet!(wallet);
             } else {
               ToastService.showSuccess(context, '✅ تم اختيار ${wallet.name}');
               Navigator.pop(context, wallet);
