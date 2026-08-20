@@ -3,7 +3,7 @@
 // ============================================================
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // ✅ إضافة import لـ HapticFeedback
+import 'package:flutter/services.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class CustomBottomNavigationBar extends StatefulWidget {
@@ -35,7 +35,6 @@ class _CustomBottomNavigationBarState
   bool _isVisible = true;
   double _lastScrollOffset = 0;
 
-  // قائمة عناصر التنقل
   final List<NavItem> _navItems = [
     NavItem(
       index: 0,
@@ -89,14 +88,13 @@ class _CustomBottomNavigationBarState
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-    _slideAnimation = Tween<double>(begin: 0, end: 1).animate(
+    _slideAnimation = Tween<double>(begin: 1, end: 0).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: Curves.easeInOut,
       ),
     );
-
-    // إضافة مستمع للتمرير
+    _animationController.forward();
     widget.scrollController.addListener(_onScroll);
   }
 
@@ -108,7 +106,7 @@ class _CustomBottomNavigationBarState
   }
 
   // ============================================================
-  // 🎯 معالجة التمرير لإخفاء/إظهار الشريط
+  // 🎯 معالجة التمرير
   // ============================================================
 
   void _onScroll() {
@@ -117,26 +115,21 @@ class _CustomBottomNavigationBarState
     final currentOffset = widget.scrollController.offset;
     final maxExtent = widget.scrollController.position.maxScrollExtent;
 
-    // منع التمرير عندما يكون المحتوى أقل من الشاشة
     if (maxExtent <= 0) return;
 
     final delta = currentOffset - _lastScrollOffset;
     final isScrollingDown = delta > 0;
     final isAtTop = currentOffset < 50;
 
-    // إظهار الشريط عند الوصول للأعلى
     if (isAtTop && !_isVisible) {
       _showBar();
       _lastScrollOffset = currentOffset;
       return;
     }
 
-    // إخفاء الشريط عند التمرير للأسفل
     if (isScrollingDown && _isVisible && currentOffset > 100) {
       _hideBar();
-    }
-    // إظهار الشريط عند التمرير للأعلى
-    else if (!isScrollingDown && !_isVisible && currentOffset > 50) {
+    } else if (!isScrollingDown && !_isVisible && currentOffset > 50) {
       _showBar();
     }
 
@@ -156,7 +149,7 @@ class _CustomBottomNavigationBarState
   }
 
   // ============================================================
-  // 🎨 بناء الواجهة
+  // 🎨 بناء الواجهة - مع حل المساحة الفارغة
   // ============================================================
 
   @override
@@ -164,14 +157,18 @@ class _CustomBottomNavigationBarState
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final backgroundColor = isDark ? const Color(0xFF1E293B) : Colors.white;
 
+    // ✅ الحل: استخدام ClipRect + heightFactor لإزالة المساحة الفارغة
     return AnimatedBuilder(
       animation: _slideAnimation,
       builder: (context, child) {
-        final slideOffset = (1 - _slideAnimation.value) *
-            100; // مسافة الانزلاق للأسفل
-        return Transform.translate(
-          offset: Offset(0, _isVisible ? 0 : slideOffset),
-          child: child,
+        final heightFactor = _slideAnimation.value; // 1 = ظاهر، 0 = مخفي
+
+        return ClipRect(
+          child: Align(
+            alignment: Alignment.topCenter,
+            heightFactor: heightFactor, // ✅ هذا يزيل المساحة الفارغة تماماً
+            child: child,
+          ),
         );
       },
       child: Container(
@@ -193,7 +190,6 @@ class _CustomBottomNavigationBarState
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: _navItems.map((item) {
-              // زر الدردشة الخاص
               if (item.isSpecial) {
                 return _buildSpecialChatButton(item);
               }
@@ -223,12 +219,10 @@ class _CustomBottomNavigationBarState
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // الأيقونة مع تأثير التحجيم
             AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeOut,
-              transform: Matrix4.identity()
-                ..scale(isSelected ? 1.1 : 1.0),
+              transform: Matrix4.identity()..scale(isSelected ? 1.1 : 1.0),
               child: Icon(
                 item.icon,
                 color: isSelected
@@ -238,7 +232,6 @@ class _CustomBottomNavigationBarState
               ),
             ),
             const SizedBox(height: 4),
-            // النص مع تأثير التلاشي
             AnimatedOpacity(
               duration: const Duration(milliseconds: 200),
               opacity: isSelected ? 1 : 0.7,
@@ -253,7 +246,6 @@ class _CustomBottomNavigationBarState
                 ),
               ),
             ),
-            // المؤشر السفلي
             if (isSelected)
               AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
@@ -298,11 +290,9 @@ class _CustomBottomNavigationBarState
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            // الزر الدائري البارز
             AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              transform: Matrix4.identity()
-                ..scale(isSelected ? 1.1 : 1.0),
+              transform: Matrix4.identity()..scale(isSelected ? 1.1 : 1.0),
               child: Container(
                 width: 54,
                 height: 54,
@@ -325,13 +315,11 @@ class _CustomBottomNavigationBarState
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    // الأيقونة
                     Icon(
                       item.icon,
                       color: Colors.white,
                       size: 30,
                     ),
-                    // تأثير التموج (Ripple)
                     if (isSelected)
                       Container(
                         width: 60,
@@ -349,7 +337,6 @@ class _CustomBottomNavigationBarState
               ),
             ),
             const SizedBox(height: 2),
-            // النص
             AnimatedOpacity(
               duration: const Duration(milliseconds: 200),
               opacity: isSelected ? 1 : 0.7,
@@ -376,16 +363,12 @@ class _CustomBottomNavigationBarState
   // ============================================================
 
   void _handleTap(NavItem item) {
-    // التحقق من المصادقة للعناصر المحمية
     if (item.isProtected && !widget.isLoggedIn) {
       widget.onAuthRequired();
       return;
     }
 
-    // إضافة تأثير اهتزاز عند الضغط
     HapticFeedback.lightImpact();
-
-    // تغيير التبويب
     widget.onTap(item.index);
   }
 }
