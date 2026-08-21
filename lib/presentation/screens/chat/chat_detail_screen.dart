@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/presentation/screens/chat/widgets/message_bubble.dart';
 import 'package:sehatak/presentation/screens/call/call_screen.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -211,7 +212,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               title: const Text('التقاط صورة'),
               onTap: () {
                 Navigator.pop(context);
-                // TODO: التقاط صورة
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('📷 جاري فتح الكاميرا...'), backgroundColor: AppColors.primary),
+                );
               },
             ),
             ListTile(
@@ -236,139 +239,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  // ✅ بناء فقاعة الرسالة
-  Widget _buildMessageBubble(Map<String, dynamic> message, bool isMe) {
-    final text = message['text'] ?? '';
-    final type = message['type'] ?? 'text';
-    final imageUrl = message['imageUrl'];
-    final time = message['timestamp'] as Timestamp?;
-    final isRead = message['isRead'] as bool? ?? false;
-    final replyToText = message['replyToText'];
-    final replyToSender = message['replyToSender'];
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Column(
-        crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-        children: [
-          // ✅ رسالة مقتبسة (Reply)
-          if (replyToText != null)
-            Container(
-              padding: const EdgeInsets.all(8),
-              margin: const EdgeInsets.only(bottom: 4),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border(
-                  right: BorderSide(color: AppColors.primary, width: 3),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'الرد على $replyToSender',
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    replyToText,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-
-          // ✅ فقاعة الرسالة
-          Row(
-            mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Flexible(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: isMe ? AppColors.primary : Colors.grey[200],
-                    borderRadius: BorderRadius.circular(12).copyWith(
-                      bottomRight: isMe ? const Radius.circular(4) : const Radius.circular(12),
-                      bottomLeft: isMe ? const Radius.circular(12) : const Radius.circular(4),
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      // ✅ صورة
-                      if (type == 'image' && imageUrl != null)
-                        GestureDetector(
-                          onTap: () {
-                            // عرض الصورة بكامل الشاشة
-                          },
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.network(
-                              imageUrl,
-                              width: 200,
-                              height: 200,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(
-                                width: 200,
-                                height: 200,
-                                color: Colors.grey[300],
-                                child: const Icon(Icons.broken_image, size: 40),
-                              ),
-                            ),
-                          ),
-                        ),
-                      // ✅ نص
-                      if (type == 'text' || (type == 'image' && text != '📷 صورة'))
-                        Text(
-                          text,
-                          style: TextStyle(
-                            color: isMe ? Colors.white : Colors.black87,
-                            fontSize: 14,
-                          ),
-                        ),
-                      const SizedBox(height: 4),
-                      // ✅ الوقت وحالة القراءة
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            _formatTime(time),
-                            style: TextStyle(
-                              fontSize: 9,
-                              color: isMe ? Colors.white70 : Colors.grey[500],
-                            ),
-                          ),
-                          if (isMe) ...[
-                            const SizedBox(width: 4),
-                            Icon(
-                              isRead ? Icons.done_all : Icons.done,
-                              size: 12,
-                              color: isRead ? Colors.blue : Colors.white70,
-                            ),
-                          ],
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }
@@ -504,21 +374,34 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                     final data = message.data() as Map<String, dynamic>;
                     final isMe = data['senderId'] == _auth.currentUser?.uid;
 
-                    return GestureDetector(
-                      onLongPress: () {
+                    return MessageBubble(
+                      chatId: widget.chatId,
+                      messageId: message.id,
+                      text: data['text'] ?? '',
+                      type: data['type'] ?? 'text',
+                      mediaUrl: data['imageUrl'],
+                      isMe: isMe,
+                      time: _formatTime(data['timestamp'] as Timestamp?),
+                      isRead: data['isRead'] as bool? ?? false,
+                      senderName: data['senderName'] as String?,
+                      reactions: List<String>.from(data['reactions'] ?? []),
+                      reactionCounts: Map<String, int>.from(data['reactionCounts'] ?? {}),
+                      onReply: () {
                         setState(() {
                           _replyToMessage = data;
                           _replyToMessageId = message.id;
                         });
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('✏️ اكتب رداً على هذه الرسالة'),
-                            backgroundColor: AppColors.primary,
-                            duration: Duration(seconds: 1),
-                          ),
-                        );
+                        _messageController.requestFocus();
                       },
-                      child: _buildMessageBubble(data, isMe),
+                      onDelete: () {
+                        // ✅ حذف الرسالة
+                        _firestore
+                            .collection('chats')
+                            .doc(widget.chatId)
+                            .collection('messages')
+                            .doc(message.id)
+                            .delete();
+                      },
                     );
                   },
                 );
