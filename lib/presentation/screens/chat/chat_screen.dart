@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/chat_model.dart';
@@ -7,6 +8,9 @@ import 'package:sehatak/presentation/screens/chat/chat_detail_screen.dart';
 import 'package:sehatak/presentation/screens/chat/calls_screen.dart';
 import 'package:sehatak/presentation/screens/chat/updates_screen.dart';
 import 'package:sehatak/presentation/screens/chat/search_screen.dart';
+import 'package:sehatak/presentation/screens/chat/widgets/chat_shimmer.dart';
+import 'package:sehatak/core/services/haptic_service.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -19,6 +23,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
   late TabController _tabController;
   final ChatRepository _chatRepo = ChatRepository();
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final HapticService _haptic = HapticService();
 
   @override
   void initState() {
@@ -41,6 +46,23 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     return name[0];
   }
 
+  Color _getUserColor(String userId) {
+    final colors = [
+      AppColors.primary,
+      Colors.blue,
+      Colors.green,
+      Colors.orange,
+      Colors.purple,
+      Colors.pink,
+      Colors.teal,
+      Colors.indigo,
+      Colors.cyan,
+      Colors.amber,
+    ];
+    final index = userId.hashCode.abs() % colors.length;
+    return colors[index];
+  }
+
   String _formatTime(DateTime? time) {
     if (time == null) return '';
     final now = DateTime.now();
@@ -52,22 +74,63 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     return '${time.day}/${time.month}';
   }
 
+  void _navigateToChat(ChatModel chat) {
+    _haptic.lightImpact();
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 400),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            ChatDetailScreen(
+              chatId: chat.id,
+              userName: chat.getOtherName(_auth.currentUser?.uid ?? ''),
+              userId: _auth.currentUser?.uid ?? '',
+              isDoctor: chat.isDoctor(_auth.currentUser?.uid ?? ''),
+            ),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(1.0, 0.0);
+          const end = Offset.zero;
+          const curve = Curves.easeInOut;
+          var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+          var offsetAnimation = animation.drive(tween);
+          return SlideTransition(position: offsetAnimation, child: child);
+        },
+      ),
+    );
+  }
+
+  void _onTabChange(int index) {
+    _haptic.selectionClick();
+    _tabController.animateTo(index);
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0b141a) : const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       body: Column(
         children: [
+          // ✅ شريط التبويبات المحسن
           Container(
-            color: isDark ? const Color(0xFF0b141a) : Colors.white,
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF0B1121) : Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
             child: TabBar(
               controller: _tabController,
               indicatorColor: AppColors.primary,
               labelColor: isDark ? Colors.white : AppColors.primary,
               unselectedLabelColor: isDark ? Colors.grey[400] : Colors.grey[600],
               labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              onTap: _onTabChange,
               tabs: const [
                 Tab(text: 'المحادثات'),
                 Tab(text: 'المكالمات'),
@@ -75,13 +138,14 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
               ],
             ),
           ),
+          // ✅ المحتوى مع أنيميشن
           Expanded(
             child: TabBarView(
               controller: _tabController,
               children: [
-                _buildChatsTab(isDark),
-                const CallsScreen(),
-                const UpdatesScreen(),
+                _buildChatsTab(isDark).animate().fadeIn(duration: 300.ms),
+                const CallsScreen().animate().fadeIn(duration: 300.ms),
+                const UpdatesScreen().animate().fadeIn(duration: 300.ms),
               ],
             ),
           ),
@@ -91,7 +155,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
         onPressed: _startNewChat,
         backgroundColor: AppColors.primary,
         child: const Icon(Icons.chat_bubble_outline, color: Colors.white),
-      ),
+      ).animate().scale(duration: 500.ms, curve: Curves.easeOut),
     );
   }
 
@@ -100,113 +164,143 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
       stream: _chatRepo.getChats(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return ChatShimmer(isDark: isDark);
         }
+
         if (snapshot.hasError) {
           return _buildErrorState(isDark);
         }
+
         final chats = snapshot.data ?? [];
         if (chats.isEmpty) {
           return _buildEmptyState(isDark);
         }
-        return _buildChatList(chats, isDark);
-      },
-    );
-  }
 
-  Widget _buildChatList(List<ChatModel> chats, bool isDark) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(12),
-          child: GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const SearchScreen()),
-              );
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF202c33) : Colors.grey[100],
-                borderRadius: BorderRadius.circular(25),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey[600]),
-                  const SizedBox(width: 8),
-                  Text(
-                    'ابحث عن محادثة...',
-                    style: TextStyle(
-                      color: isDark ? Colors.grey[400] : Colors.grey[600],
-                      fontSize: 14,
+        return Column(
+          children: [
+            // ✅ شريط البحث المحسن
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: GestureDetector(
+                onTap: () {
+                  _haptic.lightImpact();
+                  Navigator.push(
+                    context,
+                    PageRouteBuilder(
+                      transitionDuration: const Duration(milliseconds: 300),
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          const SearchScreen(),
+                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                        const begin = Offset(0.0, 1.0);
+                        const end = Offset.zero;
+                        const curve = Curves.easeInOut;
+                        var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                        var offsetAnimation = animation.drive(tween);
+                        return SlideTransition(position: offsetAnimation, child: child);
+                      },
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF1A2540) : Colors.grey[100],
+                    borderRadius: BorderRadius.circular(25),
+                    border: Border.all(
+                      color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
+                      width: 1,
                     ),
                   ),
-                ],
+                  child: Row(
+                    children: [
+                      Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                      const SizedBox(width: 8),
+                      Text(
+                        'ابحث عن محادثة...',
+                        style: TextStyle(
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
-          ),
-        ),
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            itemCount: chats.length,
-            itemBuilder: (context, index) {
-              final chat = chats[index];
-              return _buildChatTile(chat, isDark);
-            },
-          ),
-        ),
-      ],
+            // ✅ قائمة المحادثات مع تأثيرات
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                itemCount: chats.length,
+                itemBuilder: (context, index) {
+                  final chat = chats[index];
+                  return _buildChatTile(chat, isDark, index);
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildChatTile(ChatModel chat, bool isDark) {
+  Widget _buildChatTile(ChatModel chat, bool isDark, int index) {
     final userId = _auth.currentUser?.uid ?? '';
-    final name = userId == chat.doctorId ? chat.patientName : chat.doctorName;
-    final unreadCount = chat.unreadCount[userId] ?? 0;
+    final name = chat.getOtherName(userId);
+    final unreadCount = chat.getUnreadCount(userId);
     final time = _formatTime(chat.lastMessageTime);
+    final color = _getUserColor(chat.id);
 
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ChatDetailScreen(
-              chatId: chat.id,
-              userName: name,
-              userId: userId,
-              isDoctor: userId == chat.doctorId,
-            ),
-          ),
-        );
+      onTap: () => _navigateToChat(chat),
+      onLongPress: () {
+        _haptic.heavyImpact();
+        _showChatOptions(chat);
       },
       child: Container(
+        margin: const EdgeInsets.only(bottom: 4),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
-              width: 0.5,
+          borderRadius: BorderRadius.circular(12),
+          color: isDark ? const Color(0xFF1A2540) : Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
             ),
-          ),
+          ],
         ),
         child: Row(
           children: [
-            CircleAvatar(
-              radius: 26,
-              backgroundColor: AppColors.primary,
-              child: Text(
-                _getInitials(name),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+            // ✅ صورة المستخدم مع تدرج لوني
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [color, color.withOpacity(0.7)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(26),
+                child: Center(
+                  child: Text(
+                    _getInitials(name),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
             ),
             const SizedBox(width: 12),
+            // ✅ معلومات المحادثة
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -280,6 +374,88 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
           ],
         ),
       ),
+    ).animate().fadeIn(
+      duration: 300.ms,
+      delay: (50 * index).ms,
+    );
+  }
+
+  void _showChatOptions(ChatModel chat) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.push_pin, color: AppColors.primary),
+              title: const Text('تثبيت المحادثة'),
+              onTap: () {
+                _haptic.mediumImpact();
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.notifications_off, color: AppColors.primary),
+              title: const Text('كتم الإشعارات'),
+              onTap: () {
+                _haptic.mediumImpact();
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.archive, color: AppColors.primary),
+              title: const Text('أرشفة المحادثة'),
+              onTap: () {
+                _haptic.mediumImpact();
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete, color: Colors.red),
+              title: const Text('حذف المحادثة', style: TextStyle(color: Colors.red)),
+              onTap: () {
+                _haptic.heavyImpact();
+                Navigator.pop(context);
+                _showDeleteConfirmation(chat);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(ChatModel chat) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('حذف المحادثة'),
+        content: Text('هل أنت متأكد من حذف المحادثة مع ${chat.getOtherName(_auth.currentUser?.uid ?? '')}؟'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('إلغاء'),
+          ),
+          TextButton(
+            onPressed: () {
+              _haptic.heavyImpact();
+              _chatRepo.deleteChat(chat.id);
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('✅ تم حذف المحادثة'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('حذف'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -288,6 +464,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          // ✅ رسم توضيحي متحرك
           Icon(
             Icons.chat_bubble_outline_rounded,
             size: 80,
@@ -297,8 +474,8 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
           Text(
             'لا توجد محادثات',
             style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
               color: isDark ? Colors.white : Colors.black87,
             ),
           ),
@@ -318,10 +495,10 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
           ),
         ],
@@ -351,6 +528,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
   }
 
   void _startNewChat() {
+    _haptic.lightImpact();
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,

@@ -254,7 +254,3 @@ flutter:
           weight: 600
         - asset: assets/fonts/NotoSansArabicUI-Black.ttf
           weight: 900
-
-  # ✅ Timer support
-  flutter:
-    sdk: flutter
