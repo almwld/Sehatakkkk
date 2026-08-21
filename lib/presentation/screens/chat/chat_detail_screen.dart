@@ -5,6 +5,7 @@ import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/typing_service.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/message_bubble.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/typing_indicator.dart';
+import 'package:sehatak/presentation/screens/chat/widgets/voice_recorder_widget.dart';
 import 'package:sehatak/presentation/screens/call/call_screen.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -36,7 +37,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   final TypingService _typingService = TypingService();
 
   bool _isTyping = false;
-  bool _isUserTyping = false;
+  bool _showVoiceRecorder = false;
   String? _replyToMessageId;
   Map<String, dynamic>? _replyToMessage;
   Timer? _typingDebounce;
@@ -80,11 +81,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     final isTyping = text.isNotEmpty;
     setState(() => _isTyping = isTyping);
 
-    // ✅ إلغاء المؤقت السابق
     _typingDebounce?.cancel();
 
     if (isTyping) {
-      // ✅ تأخير إرسال حالة الكتابة لتجنب الإرسال المتكرر
       _typingDebounce = Timer(const Duration(milliseconds: 500), () {
         _typingService.startTyping(chatId: widget.chatId);
       });
@@ -101,7 +100,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     final user = _auth.currentUser;
     if (user == null) return;
 
-    // ✅ إيقاف حالة الكتابة
     _typingService.stopTyping(chatId: widget.chatId);
     _typingDebounce?.cancel();
 
@@ -155,10 +153,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       final user = _auth.currentUser;
       if (user == null) return;
 
-      // ✅ إيقاف حالة الكتابة
       _typingService.stopTyping(chatId: widget.chatId);
 
-      // ✅ رفع الصورة إلى Firebase Storage
       final ref = FirebaseStorage.instance
           .ref()
           .child('chats/${widget.chatId}/images/${DateTime.now().millisecondsSinceEpoch}.jpg');
@@ -195,6 +191,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         SnackBar(content: Text('❌ فشل إرسال الصورة: $e'), backgroundColor: Colors.red),
       );
     }
+  }
+
+  // ✅ إرسال رسالة صوتية
+  void _sendVoiceMessage(String url) {
+    setState(() {
+      _showVoiceRecorder = false;
+    });
+    _scrollToBottom();
   }
 
   void _scrollToBottom() {
@@ -261,12 +265,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.mic, color: AppColors.primary),
-              title: const Text('رسالة صوتية'),
+              title: const Text('تسجيل صوتي'),
               onTap: () {
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('🎤 جاري التسجيل...'), backgroundColor: AppColors.primary),
-                );
+                setState(() {
+                  _showVoiceRecorder = true;
+                });
               },
             ),
           ],
@@ -418,7 +422,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           Expanded(
             child: Column(
               children: [
-                // ✅ قائمة الرسائل
                 Expanded(
                   child: StreamBuilder<QuerySnapshot>(
                     stream: _firestore
@@ -455,7 +458,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                             messageId: message.id,
                             text: data['text'] ?? '',
                             type: data['type'] ?? 'text',
-                            mediaUrl: data['imageUrl'],
+                            mediaUrl: data['imageUrl'] ?? data['audioUrl'],
                             isMe: isMe,
                             time: _formatTime(data['timestamp'] as Timestamp?),
                             isRead: data['isRead'] as bool? ?? false,
@@ -470,7 +473,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                               _messageController.requestFocus();
                             },
                             onDelete: () {
-                              // ✅ حذف الرسالة
                               _firestore
                                   .collection('chats')
                                   .doc(widget.chatId)
@@ -485,7 +487,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                   ),
                 ),
 
-                // ✅ مؤشر الكتابة (Realtime)
+                // ✅ مؤشر الكتابة
                 StreamBuilder<List<Map<String, dynamic>>>(
                   stream: _typingService.getTypingStatus(widget.chatId),
                   builder: (context, snapshot) {
@@ -514,64 +516,79 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 ),
               ],
             ),
-            child: Row(
-              children: [
-                // ✅ زر المرفقات
-                IconButton(
-                  icon: Icon(Icons.attach_file, color: isDark ? Colors.grey[400] : Colors.grey[600]),
-                  onPressed: _showAttachmentOptions,
-                ),
-                // ✅ زر الصور
-                IconButton(
-                  icon: Icon(Icons.photo_library, color: isDark ? Colors.grey[400] : Colors.grey[600]),
-                  onPressed: _sendImage,
-                ),
-                // ✅ حقل النص
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF202c33) : Colors.grey[100],
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: TextField(
-                      controller: _messageController,
-                      onChanged: _onTextChanged,
-                      onSubmitted: (_) => _sendMessage(),
-                      style: TextStyle(
-                        color: isDark ? Colors.white : Colors.black87,
+            child: _showVoiceRecorder
+                ? VoiceRecorderWidget(
+                    chatId: widget.chatId,
+                    onVoiceSent: _sendVoiceMessage,
+                  )
+                : Row(
+                    children: [
+                      // ✅ زر المرفقات
+                      IconButton(
+                        icon: Icon(Icons.attach_file, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                        onPressed: _showAttachmentOptions,
                       ),
-                      textAlign: TextAlign.right,
-                      decoration: const InputDecoration(
-                        hintText: 'اكتب رسالة...',
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      // ✅ زر الصور
+                      IconButton(
+                        icon: Icon(Icons.photo_library, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                        onPressed: _sendImage,
                       ),
-                    ),
+                      // ✅ حقل النص
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF202c33) : Colors.grey[100],
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          child: TextField(
+                            controller: _messageController,
+                            onChanged: _onTextChanged,
+                            onSubmitted: (_) => _sendMessage(),
+                            style: TextStyle(
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
+                            textAlign: TextAlign.right,
+                            decoration: const InputDecoration(
+                              hintText: 'اكتب رسالة...',
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            ),
+                          ),
+                        ),
+                      ),
+                      // ✅ زر التسجيل الصوتي
+                      IconButton(
+                        icon: Icon(
+                          Icons.mic,
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        ),
+                        onPressed: () {
+                          setState(() => _showVoiceRecorder = true);
+                        },
+                      ),
+                      // ✅ زر الإرسال
+                      GestureDetector(
+                        onTap: _sendMessage,
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: _isTyping ? AppColors.primary : Colors.transparent,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: _isTyping ? AppColors.primary : (isDark ? Colors.grey[600]! : Colors.grey[300]!),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Icon(
+                            _isTyping ? Icons.send : Icons.mic,
+                            color: _isTyping ? Colors.white : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                // ✅ زر الإرسال
-                GestureDetector(
-                  onTap: _sendMessage,
-                  child: Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: _isTyping ? AppColors.primary : Colors.transparent,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: _isTyping ? AppColors.primary : (isDark ? Colors.grey[600]! : Colors.grey[300]!),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: Icon(
-                      _isTyping ? Icons.send : Icons.mic,
-                      color: _isTyping ? Colors.white : (isDark ? Colors.grey[400] : Colors.grey[600]),
-                      size: 20,
-                    ),
-                  ),
-                ),
-              ],
-            ),
           ),
         ],
       ),

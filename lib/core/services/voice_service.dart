@@ -1,116 +1,220 @@
-import 'package:flutter/material.dart';
-import 'package:speech_to_text/speech_to_text.dart';
-import 'package:flutter_tts/flutter_tts.dart';
-import 'package:sehatak/core/constants/yemeni_dialect.dart';
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:path_provider/path_provider.dart';
+import 'package:record/record.dart';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class VoiceService {
   static final VoiceService _instance = VoiceService._internal();
   factory VoiceService() => _instance;
   VoiceService._internal();
 
-  final SpeechToText _speech = SpeechToText();
-  final FlutterTts _tts = FlutterTts();
-  
-  bool _isListening = false;
-  bool _isSpeaking = false;
-  String _lastTranscription = '';
+  final AudioRecorder _recorder = AudioRecorder();
+  final AudioPlayer _player = AudioPlayer();
+  final FirebaseStorage _storage = FirebaseStorage.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // ============================================================
-  // 🎤 إدخال صوتي
-  // ============================================================
+  String? _recordingPath;
+  bool _isRecording = false;
+  bool _isPlaying = false;
+  Duration _recordingDuration = Duration.zero;
+  Timer? _recordingTimer;
 
-  Future<String?> listenToSpeech() async {
+  // ✅ التحقق من الأذونات
+  Future<bool> checkPermissions() async {
+    return await _recorder.hasPermission();
+  }
+
+  // ✅ بدء التسجيل
+  Future<void> startRecording() async {
     try {
-      final available = await _speech.initialize(
-        onStatus: (status) {
-          print('🎤 Speech status: $status');
-        },
-        onError: (error) {
-          print('❌ Speech error: $error');
-        },
+      if (!await checkPermissions()) {
+        throw Exception('لا توجد أذونات للتسجيل');
+      }
+
+      final tempDir = await getTemporaryDirectory();
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      _recordingPath = '${tempDir.path}/voice_$timestamp.m4a';
+
+      await _recorder.start(
+        RecordConfig(
+          encoder: AudioEncoder.aacLc,
+          sampleRate: 44100,
+          bitRate: 128000,
+        ),
+        path: _recordingPath!,
       );
 
-      if (!available) {
-        print('❌ Speech recognition not available');
+      _isRecording = true;
+      _recordingDuration = Duration.zero;
+      
+      // ✅ تحديث مدة التسجيل كل ثانية
+      _recordingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (mounted) {
+          setState(() {
+            _recordingDuration += const Duration(seconds: 1);
+          });
+        }
+      });
+
+      print('✅ Recording started: $_recordingPath');
+    } catch (e) {
+      print('❌ Error starting recording: $e');
+      rethrow;
+    }
+  }
+
+  // ✅ إيقاف التسجيل ورفع الملف
+  Future<String?> stopRecording({
+    required String chatId,
+    required VoidCallback? onProgress,
+  }) async {
+    try {
+      _recordingTimer?.cancel();
+      _isRecording = false;
+
+      if (_recordingPath == null) return null;
+
+      final path = _recordingPath!;
+      final file = File(path);
+      
+      if (!await file.exists()) {
         return null;
       }
 
-      _isListening = true;
-      
-      final result = await _speech.listen(
-        onResult: (result) {
-          if (result.finalResult) {
-            _lastTranscription = result.recognizedWords;
-            _isListening = false;
-          }
-        },
-        listenFor: const Duration(seconds: 10),
-        pauseFor: const Duration(seconds: 2),
-        localeId: 'ar_YE', // ✅ لهجة يمنية
+      // ✅ رفع الملف إلى Firebase Storage
+      final user = _auth.currentUser;
+      if (user == null) return null;
+
+      final ref = _storage
+          .ref()
+          .child('chats/$chatId/audio/${DateTime.now().millisecondsSinceEpoch}.m4a');
+
+      final uploadTask = ref.putFile(file);
+
+      // ✅ مراقبة التقدم
+      uploadTask.snapshotEvents.listen((snapshot) {
+        final progress = snapshot.bytesTransferred / snapshot.totalBytes;
+        if (onProgress != null) {
+          onProgress();
+        }
+        print('📤 Upload progress: ${(progress * 100).toStringAsFixed(0)}%');
+      });
+
+      final snapshot = await uploadTask.whenComplete(() {});
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+
+      // ✅ حفظ مرجع الصوت في Firestore
+      await _saveVoiceMessage(
+        chatId: chatId,
+        url: downloadUrl,
+        duration: _recordingDuration,
       );
 
-      // ✅ انتظار النتيجة
-      await Future.delayed(const Duration(seconds: 3));
-      
-      if (_lastTranscription.isNotEmpty) {
-        return _lastTranscription;
+      // ✅ حذف الملف المؤقت
+      await file.delete();
+
+      _recordingPath = null;
+      _recordingDuration = Duration.zero;
+
+      return downloadUrl;
+    } catch (e) {
+      print('❌ Error stopping recording: $e');
+      return null;
+    }
+  }
+
+  // ✅ إلغاء التسجيل
+  Future<void> cancelRecording() async {
+    _recordingTimer?.cancel();
+    _isRecording = false;
+    
+    if (_recordingPath != null) {
+      final file = File(_recordingPath!);
+      if (await file.exists()) {
+        await file.delete();
       }
-      
-      return null;
-    } catch (e) {
-      print('❌ Listen error: $e');
-      return null;
+      _recordingPath = null;
     }
+    _recordingDuration = Duration.zero;
+    await _recorder.stop();
+    print('✅ Recording cancelled');
   }
 
-  // ============================================================
-  // 🔊 قراءة الردود
-  // ============================================================
+  // ✅ حفظ رسالة صوتية في Firestore
+  Future<void> _saveVoiceMessage({
+    required String chatId,
+    required String url,
+    required Duration duration,
+  }) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
 
-  Future<void> speak(String text) async {
+    final messageData = {
+      'text': '🎤 رسالة صوتية',
+      'senderId': user.uid,
+      'senderName': user.displayName ?? 'مستخدم',
+      'timestamp': FieldValue.serverTimestamp(),
+      'type': 'audio',
+      'audioUrl': url,
+      'duration': duration.inSeconds,
+      'isRead': false,
+    };
+
+    await _firestore
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .add(messageData);
+
+    await _firestore.collection('chats').doc(chatId).update({
+      'lastMessage': '🎤 رسالة صوتية',
+      'lastMessageTime': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  // ✅ تشغيل رسالة صوتية
+  Future<void> playAudio(String url, VoidCallback onComplete) async {
     try {
-      _isSpeaking = true;
+      _isPlaying = true;
       
-      // ✅ تحويل النص إلى لهجة يمنية قبل القراءة
-      final yemeniText = YemeniDialect.toSanaaniDialect(text);
+      final source = UrlSource(url);
+      await _player.play(source);
       
-      await _tts.setLanguage('ar-YE');
-      await _tts.setSpeechRate(0.5);
-      await _tts.setPitch(1.0);
-      await _tts.setVolume(1.0);
-      
-      await _tts.speak(yemeniText);
-      
-      _isSpeaking = false;
+      _player.onComplete.listen((event) {
+        _isPlaying = false;
+        onComplete();
+      });
     } catch (e) {
-      print('❌ TTS error: $e');
-      _isSpeaking = false;
+      print('❌ Error playing audio: $e');
+      _isPlaying = false;
     }
   }
 
-  // ============================================================
-  // ⏹️ إيقاف القراءة
-  // ============================================================
-
-  Future<void> stopSpeaking() async {
-    await _tts.stop();
-    _isSpeaking = false;
+  // ✅ إيقاف التشغيل
+  Future<void> stopAudio() async {
+    await _player.stop();
+    _isPlaying = false;
   }
 
-  // ============================================================
-  // 📊 الحالة
-  // ============================================================
+  // ✅ الحصول على مدة التسجيل
+  Duration get recordingDuration => _recordingDuration;
 
-  bool get isListening => _isListening;
-  bool get isSpeaking => _isSpeaking;
-  String get lastTranscription => _lastTranscription;
+  // ✅ التحقق من حالة التسجيل
+  bool get isRecording => _isRecording;
 
-  // ============================================================
-  // 🗑️ تنظيف
-  // ============================================================
+  // ✅ التحقق من حالة التشغيل
+  bool get isPlaying => _isPlaying;
 
+  // ✅ تنظيف الموارد
   void dispose() {
-    _tts.stop();
-    _speech.stop();
+    _recordingTimer?.cancel();
+    _player.dispose();
+    _recorder.dispose();
   }
 }
