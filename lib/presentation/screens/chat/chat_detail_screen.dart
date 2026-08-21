@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/typing_service.dart';
+import 'package:sehatak/core/services/location_service.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/message_bubble.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/typing_indicator.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/voice_recorder_widget.dart';
@@ -35,6 +36,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final ImagePicker _picker = ImagePicker();
   final TypingService _typingService = TypingService();
+  final LocationService _locationService = LocationService();
 
   bool _isTyping = false;
   bool _showVoiceRecorder = false;
@@ -57,7 +59,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     super.dispose();
   }
 
-  // ✅ تحديث حالة القراءة
   Future<void> _markAsRead() async {
     try {
       final messages = await _firestore
@@ -76,7 +77,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     }
   }
 
-  // ✅ معالجة تغيير النص - إرسال حالة الكتابة
   void _onTextChanged(String text) {
     final isTyping = text.isNotEmpty;
     setState(() => _isTyping = isTyping);
@@ -92,7 +92,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     }
   }
 
-  // ✅ إرسال رسالة
   Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
@@ -140,7 +139,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     }
   }
 
-  // ✅ إرسال صورة
   Future<void> _sendImage() async {
     try {
       final XFile? image = await _picker.pickImage(
@@ -193,7 +191,40 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     }
   }
 
-  // ✅ إرسال رسالة صوتية
+  // ✅ مشاركة الموقع
+  Future<void> _shareLocation() async {
+    final loadingSnackbar = ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('📍 جاري الحصول على الموقع...'),
+        backgroundColor: AppColors.primary,
+      ),
+    );
+
+    await _locationService.shareCurrentLocation(
+      chatId: widget.chatId,
+      onSuccess: () {
+        loadingSnackbar.close();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ تم مشاركة الموقع بنجاح'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+        _scrollToBottom();
+      },
+      onError: () {
+        loadingSnackbar.close();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('❌ فشل الحصول على الموقع، تأكد من تفعيل GPS'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      },
+    );
+  }
+
   void _sendVoiceMessage(String url) {
     setState(() {
       _showVoiceRecorder = false;
@@ -213,7 +244,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     });
   }
 
-  // ✅ بدء مكالمة
   void _startCall(bool isVideo) {
     Navigator.push(
       context,
@@ -228,7 +258,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     );
   }
 
-  // ✅ عرض خيارات المرفقات
   void _showAttachmentOptions() {
     showModalBottomSheet(
       context: context,
@@ -273,13 +302,20 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 });
               },
             ),
+            ListTile(
+              leading: const Icon(Icons.location_on, color: AppColors.primary),
+              title: const Text('مشاركة الموقع'),
+              onTap: () {
+                Navigator.pop(context);
+                _shareLocation();
+              },
+            ),
           ],
         ),
       ),
     );
   }
 
-  // ✅ بناء مؤشر الكتابة
   Widget _buildTypingIndicator(List<Map<String, dynamic>> typingUsers) {
     if (typingUsers.isEmpty) return const SizedBox.shrink();
 
@@ -371,7 +407,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       ),
       body: Column(
         children: [
-          // ✅ شريط الرد على رسالة
           if (_replyToMessage != null)
             Container(
               padding: const EdgeInsets.all(8),
@@ -418,7 +453,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               ),
             ),
 
-          // ✅ قائمة الرسائل + مؤشر الكتابة
           Expanded(
             child: Column(
               children: [
@@ -465,6 +499,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                             senderName: data['senderName'] as String?,
                             reactions: List<String>.from(data['reactions'] ?? []),
                             reactionCounts: Map<String, int>.from(data['reactionCounts'] ?? {}),
+                            latitude: data['latitude'] as double?,
+                            longitude: data['longitude'] as double?,
+                            address: data['address'] as String?,
                             onReply: () {
                               setState(() {
                                 _replyToMessage = data;
@@ -486,8 +523,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                     },
                   ),
                 ),
-
-                // ✅ مؤشر الكتابة
                 StreamBuilder<List<Map<String, dynamic>>>(
                   stream: _typingService.getTypingStatus(widget.chatId),
                   builder: (context, snapshot) {
@@ -503,7 +538,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             ),
           ),
 
-          // ✅ حقل الإدخال
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -523,17 +557,19 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                   )
                 : Row(
                     children: [
-                      // ✅ زر المرفقات
                       IconButton(
                         icon: Icon(Icons.attach_file, color: isDark ? Colors.grey[400] : Colors.grey[600]),
                         onPressed: _showAttachmentOptions,
                       ),
-                      // ✅ زر الصور
                       IconButton(
                         icon: Icon(Icons.photo_library, color: isDark ? Colors.grey[400] : Colors.grey[600]),
                         onPressed: _sendImage,
                       ),
-                      // ✅ حقل النص
+                      IconButton(
+                        icon: Icon(Icons.location_on, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                        onPressed: _shareLocation,
+                        tooltip: 'مشاركة الموقع',
+                      ),
                       Expanded(
                         child: Container(
                           decoration: BoxDecoration(
@@ -556,7 +592,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                           ),
                         ),
                       ),
-                      // ✅ زر التسجيل الصوتي
                       IconButton(
                         icon: Icon(
                           Icons.mic,
@@ -566,7 +601,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                           setState(() => _showVoiceRecorder = true);
                         },
                       ),
-                      // ✅ زر الإرسال
                       GestureDetector(
                         onTap: _sendMessage,
                         child: Container(

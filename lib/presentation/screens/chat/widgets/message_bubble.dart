@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/reaction_service.dart';
+import 'package:sehatak/core/services/location_service.dart';
+import 'package:sehatak/presentation/screens/chat/widgets/location_widget.dart';
 import 'full_screen_image.dart';
 
 class MessageBubble extends StatefulWidget {
@@ -15,6 +17,9 @@ class MessageBubble extends StatefulWidget {
   final String? senderName;
   final List<String> reactions;
   final Map<String, int> reactionCounts;
+  final double? latitude;
+  final double? longitude;
+  final String? address;
   final VoidCallback? onReply;
   final VoidCallback? onDelete;
 
@@ -31,6 +36,9 @@ class MessageBubble extends StatefulWidget {
     this.senderName,
     this.reactions = const [],
     this.reactionCounts = const {},
+    this.latitude,
+    this.longitude,
+    this.address,
     this.onReply,
     this.onDelete,
   });
@@ -41,10 +49,8 @@ class MessageBubble extends StatefulWidget {
 
 class _MessageBubbleState extends State<MessageBubble> {
   final ReactionService _reactionService = ReactionService();
-  bool _showReactions = false;
   String? _userReaction;
 
-  // ✅ قائمة الإيموجي المتاحة للتفاعل
   final List<String> _availableReactions = ReactionService.availableReactions;
 
   @override
@@ -63,7 +69,6 @@ class _MessageBubbleState extends State<MessageBubble> {
     }
   }
 
-  // ✅ إضافة/إزالة رد فعل
   Future<void> _toggleReaction(String emoji) async {
     try {
       await _reactionService.toggleReaction(
@@ -77,7 +82,6 @@ class _MessageBubbleState extends State<MessageBubble> {
     }
   }
 
-  // ✅ عرض قائمة ردود الفعل
   void _showReactionPicker() {
     showModalBottomSheet(
       context: context,
@@ -152,7 +156,6 @@ class _MessageBubbleState extends State<MessageBubble> {
     );
   }
 
-  // ✅ عرض ردود الفعل الموجودة
   Widget _buildReactionsDisplay() {
     if (widget.reactions.isEmpty) return const SizedBox.shrink();
 
@@ -168,7 +171,6 @@ class _MessageBubbleState extends State<MessageBubble> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // ✅ عرض الإيموجيات مع الأعداد
             ...widget.reactionCounts.entries.map((entry) {
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 2),
@@ -192,7 +194,6 @@ class _MessageBubbleState extends State<MessageBubble> {
                 ),
               );
             }).toList(),
-            // ✅ زر إضافة رد فعل
             const SizedBox(width: 4),
             Container(
               padding: const EdgeInsets.all(2),
@@ -226,7 +227,6 @@ class _MessageBubbleState extends State<MessageBubble> {
     return Column(
       crossAxisAlignment: widget.isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
       children: [
-        // ✅ فقاعة الرسالة
         Row(
           mainAxisAlignment: widget.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -259,7 +259,6 @@ class _MessageBubbleState extends State<MessageBubble> {
               child: Column(
                 crossAxisAlignment: widget.isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                 children: [
-                  // ✅ فقاعة الرسالة
                   GestureDetector(
                     onLongPress: _showReactionPicker,
                     child: Container(
@@ -280,7 +279,6 @@ class _MessageBubbleState extends State<MessageBubble> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // ✅ اسم المرسل
                           if (!widget.isMe && widget.senderName != null)
                             Padding(
                               padding: const EdgeInsets.only(bottom: 4),
@@ -293,7 +291,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                                 ),
                               ),
                             ),
-                          // ✅ محتوى الرسالة
+                          // ✅ محتوى الرسالة حسب النوع
                           if (widget.type == 'text')
                             Text(
                               widget.text,
@@ -334,7 +332,13 @@ class _MessageBubbleState extends State<MessageBubble> {
                                 ),
                               ),
                             ),
-                          // ✅ الوقت وحالة القراءة
+                          if (widget.type == 'location' && widget.latitude != null && widget.longitude != null)
+                            LocationWidget(
+                              latitude: widget.latitude!,
+                              longitude: widget.longitude!,
+                              address: widget.address ?? widget.text,
+                              senderName: widget.senderName ?? 'مستخدم',
+                            ),
                           const SizedBox(height: 4),
                           Row(
                             mainAxisSize: MainAxisSize.min,
@@ -360,7 +364,6 @@ class _MessageBubbleState extends State<MessageBubble> {
                       ),
                     ),
                   ),
-                  // ✅ ردود الفعل (تظهر أسفل الفقاعة)
                   if (widget.reactions.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(top: 2, right: 8),
