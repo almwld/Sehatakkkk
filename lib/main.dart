@@ -57,10 +57,10 @@ void main() async {
       badge: true,
       sound: true,
     );
-    
+
     // ✅ تسجيل المعالج الخلفي
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-    
+
     // ✅ الحصول على التوكن
     final token = await fcm.getToken();
     print('✅ FCM Token: $token');

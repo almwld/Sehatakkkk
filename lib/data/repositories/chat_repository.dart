@@ -1,13 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:sehatak/core/models/chat_model.dart';
+import 'package:sehatak/core/services/notification_service.dart';
 
 class ChatRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final NotificationService _notificationService = NotificationService();
 
   String? get currentUserId => _auth.currentUser?.uid;
 
+  // ✅ الحصول على المحادثات
   Stream<List<ChatModel>> getChats() {
     final userId = currentUserId;
     if (userId == null) return Stream.value([]);
@@ -24,6 +28,7 @@ class ChatRepository {
     });
   }
 
+  // ✅ الحصول على محادثة واحدة
   Future<ChatModel?> getChat(String chatId) async {
     try {
       final doc = await _firestore.collection('chats').doc(chatId).get();
@@ -34,6 +39,7 @@ class ChatRepository {
     }
   }
 
+  // ✅ إرسال رسالة مع إشعار
   Future<void> sendMessage({
     required String chatId,
     required String text,
@@ -72,9 +78,109 @@ class ChatRepository {
         'updatedAt': FieldValue.serverTimestamp(),
         'unreadCount': unreadCount,
       });
+
+      // ✅ إرسال إشعار إلى المستخدم الآخر
+      await _sendNotificationToUser(
+        receiverId: otherUserId,
+        senderName: user.displayName ?? 'مستخدم',
+        message: text,
+        chatId: chatId,
+        senderId: user.uid,
+      );
     }
   }
 
+  // ✅ إرسال إشعار لمستخدم معين
+  Future<void> _sendNotificationToUser({
+    required String receiverId,
+    required String senderName,
+    required String message,
+    required String chatId,
+    required String senderId,
+  }) async {
+    try {
+      // ✅ الحصول على توكن المستخدم
+      final userDoc = await _firestore.collection('users').doc(receiverId).get();
+      final fcmToken = userDoc.data()?['fcmToken'] as String?;
+
+      if (fcmToken != null) {
+        final payload = {
+          'type': 'new_message',
+          'chatId': chatId,
+          'senderId': senderId,
+          'senderName': senderName,
+        };
+
+        // ✅ إرسال الإشعار عبر FCM
+        final response = await FirebaseMessaging.instance.send(
+          message: RemoteMessage(
+            notification: RemoteNotification(
+              title: '💬 رسالة جديدة من $senderName',
+              body: message,
+              android: AndroidNotification(
+                channelId: 'sehatak_channel',
+                priority: Priority.high,
+              ),
+            ),
+            data: payload,
+            token: fcmToken,
+          ),
+        );
+
+        print('✅ Notification sent to $receiverId: $response');
+      } else {
+        print('⚠️ No FCM token for user: $receiverId');
+      }
+    } catch (e) {
+      print('❌ Error sending notification: $e');
+    }
+  }
+
+  // ✅ إرسال إشعار مكالمة
+  Future<void> sendCallNotification({
+    required String receiverId,
+    required String callerName,
+    required String chatId,
+    required String callerId,
+    required bool isVideo,
+  }) async {
+    try {
+      final userDoc = await _firestore.collection('users').doc(receiverId).get();
+      final fcmToken = userDoc.data()?['fcmToken'] as String?;
+
+      if (fcmToken != null) {
+        final payload = {
+          'type': 'incoming_call',
+          'chatId': chatId,
+          'callerId': callerId,
+          'callerName': callerName,
+          'isVideo': isVideo.toString(),
+        };
+
+        final response = await FirebaseMessaging.instance.send(
+          message: RemoteMessage(
+            notification: RemoteNotification(
+              title: isVideo ? '📹 مكالمة فيديو واردة' : '📞 مكالمة واردة',
+              body: 'من $callerName',
+              android: AndroidNotification(
+                channelId: 'call_channel',
+                priority: Priority.high,
+                sound: 'call_ringtone',
+              ),
+            ),
+            data: payload,
+            token: fcmToken,
+          ),
+        );
+
+        print('✅ Call notification sent to $receiverId: $response');
+      }
+    } catch (e) {
+      print('❌ Error sending call notification: $e');
+    }
+  }
+
+  // ✅ الحصول على الرسائل
   Stream<List<Map<String, dynamic>>> getMessages(String chatId) {
     return _firestore
         .collection('chats')
@@ -91,6 +197,7 @@ class ChatRepository {
     });
   }
 
+  // ✅ تحديث حالة القراءة
   Future<void> markAsRead(String chatId) async {
     final user = _auth.currentUser;
     if (user == null) return;
@@ -103,8 +210,21 @@ class ChatRepository {
         'unreadCount': unreadCount,
       });
     }
+
+    final messages = await _firestore
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .where('senderId', isNotEqualTo: user.uid)
+        .where('isRead', isEqualTo: false)
+        .get();
+
+    for (final doc in messages.docs) {
+      await doc.reference.update({'isRead': true});
+    }
   }
 
+  // ✅ تحديث حالة المستخدم
   Future<void> updateUserStatus(bool isOnline) async {
     final user = _auth.currentUser;
     if (user == null) return;
@@ -115,30 +235,39 @@ class ChatRepository {
     });
   }
 
+  // ✅ إنشاء محادثة جديدة
+  Future<ChatModel> createChat({
+    required String doctorId,
+    required String doctorName,
+    required String patientId,
+    required String patientName,
+    String initialMessage = 'ابدأ المحادثة',
+  }) async {
+    final chatId = _firestore.collection('chats').doc().id;
+    final now = DateTime.now();
+
+    final chat = ChatModel(
+      id: chatId,
+      doctorId: doctorId,
+      doctorName: doctorName,
+      patientId: patientId,
+      patientName: patientName,
+      lastMessage: initialMessage,
+      lastMessageTime: now,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    await _firestore.collection('chats').doc(chatId).set({
+      ...chat.toFirestore(),
+      'participants': [doctorId, patientId],
+    });
+
+    return chat;
+  }
+
+  // ✅ حذف محادثة
   Future<void> deleteChat(String chatId) async {
     await _firestore.collection('chats').doc(chatId).delete();
-  }
-
-  Future<void> archiveChat(String chatId) async {
-    await _firestore.collection('chats').doc(chatId).update({
-      'isArchived': true,
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
-  }
-
-  Future<void> pinChat(String chatId, bool pinned) async {
-    await _firestore.collection('chats').doc(chatId).update({
-      'pinned': pinned,
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
-  }
-
-  Future<void> muteChat(String chatId, int minutes) async {
-    final mutedUntil = DateTime.now().add(Duration(minutes: minutes));
-    await _firestore.collection('chats').doc(chatId).update({
-      'muted': true,
-      'mutedUntil': Timestamp.fromDate(mutedUntil),
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
   }
 }
