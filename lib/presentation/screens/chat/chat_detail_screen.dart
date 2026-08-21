@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/presentation/screens/chat/widgets/message_bubble.dart';
-import 'package:sehatak/presentation/screens/chat/widgets/reply_banner.dart';
-import 'package:sehatak/presentation/screens/chat/widgets/voice_recorder.dart';
+import 'package:sehatak/presentation/screens/call/call_screen.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class ChatDetailScreen extends StatefulWidget {
   final String chatId;
@@ -25,141 +27,141 @@ class ChatDetailScreen extends StatefulWidget {
 class _ChatDetailScreenState extends State<ChatDetailScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final FocusNode _focusNode = FocusNode();
-  final List<Map<String, dynamic>> _messages = [];
-  final List<Map<String, dynamic>> _reactions = [];
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final ImagePicker _picker = ImagePicker();
 
-  // ✅ حالة الرد على رسالة
-  Map<String, dynamic>? _replyTo;
-  bool _showVoiceRecorder = false;
   bool _isTyping = false;
+  String? _replyToMessageId;
+  Map<String, dynamic>? _replyToMessage;
 
   @override
   void initState() {
     super.initState();
-    _loadMessages();
+    _markAsRead();
   }
 
-  void _loadMessages() {
-    _messages.addAll([
-      {
-        'id': '1',
-        'text': 'مرحباً! كيف يمكنني مساعدتك؟',
-        'isUser': false,
-        'time': '10:00 ص',
-        'senderName': widget.userName,
-        'reactions': ['👍', '❤️'],
-        'isRead': true,
-        'type': 'text',
-      },
-      {
-        'id': '2',
-        'text': 'أريد حجز موعد مع الدكتور',
-        'isUser': true,
-        'time': '10:05 ص',
-        'senderName': 'أنا',
-        'reactions': [],
-        'isRead': true,
-        'type': 'text',
-      },
-      {
-        'id': '3',
-        'text': 'https://picsum.photos/200/200',
-        'isUser': false,
-        'time': '10:06 ص',
-        'senderName': widget.userName,
-        'reactions': ['😂'],
-        'isRead': true,
-        'type': 'image',
-        'mediaUrl': 'https://picsum.photos/200/200',
-      },
-      {
-        'id': '4',
-        'text': 'تفضل، اختر الوقت المناسب',
-        'isUser': false,
-        'time': '10:06 ص',
-        'senderName': widget.userName,
-        'reactions': [],
-        'isRead': false,
-        'type': 'text',
-      },
-    ]);
+  @override
+  void dispose() {
+    _messageController.dispose();
+    _scrollController.dispose();
+    super.dispose();
   }
 
-  void _sendMessage() {
+  // ✅ تحديث حالة القراءة
+  Future<void> _markAsRead() async {
+    try {
+      final messages = await _firestore
+          .collection('chats')
+          .doc(widget.chatId)
+          .collection('messages')
+          .where('senderId', isNotEqualTo: _auth.currentUser?.uid)
+          .where('isRead', isEqualTo: false)
+          .get();
+
+      for (final doc in messages.docs) {
+        await doc.reference.update({'isRead': true});
+      }
+    } catch (e) {
+      print('❌ Error marking as read: $e');
+    }
+  }
+
+  // ✅ إرسال رسالة
+  Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
 
-    final newMessage = {
-      'id': DateTime.now().millisecondsSinceEpoch.toString(),
-      'text': text,
-      'isUser': true,
-      'time': 'الآن',
-      'senderName': 'أنا',
-      'reactions': [],
-      'isRead': false,
-      'type': 'text',
-      'replyTo': _replyTo != null ? _replyTo!['text'] : null,
-      'replyToSender': _replyTo != null ? _replyTo!['senderName'] : null,
-    };
+    final user = _auth.currentUser;
+    if (user == null) return;
 
-    setState(() {
-      _messages.add(newMessage);
+    try {
+      final messageData = {
+        'text': text,
+        'senderId': user.uid,
+        'senderName': user.displayName ?? 'مستخدم',
+        'timestamp': FieldValue.serverTimestamp(),
+        'type': 'text',
+        'isRead': false,
+        'replyTo': _replyToMessageId,
+        'replyToText': _replyToMessage?['text'],
+        'replyToSender': _replyToMessage?['senderName'],
+      };
+
+      await _firestore
+          .collection('chats')
+          .doc(widget.chatId)
+          .collection('messages')
+          .add(messageData);
+
+      await _firestore.collection('chats').doc(widget.chatId).update({
+        'lastMessage': text,
+        'lastMessageTime': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
       _messageController.clear();
-      _replyTo = null;
-    });
-
-    _scrollToBottom();
-
-    // ✅ محاكاة الرد
-    Future.delayed(const Duration(seconds: 1), () {
       setState(() {
-        _messages.add({
-          'id': DateTime.now().millisecondsSinceEpoch.toString(),
-          'text': 'شكراً لتواصلك! سأرد عليك قريباً',
-          'isUser': false,
-          'time': 'الآن',
-          'senderName': widget.userName,
-          'reactions': [],
-          'isRead': true,
-          'type': 'text',
-        });
+        _replyToMessage = null;
+        _replyToMessageId = null;
+        _isTyping = false;
       });
       _scrollToBottom();
-    });
+    } catch (e) {
+      print('❌ Error sending message: $e');
+    }
   }
 
-  void _sendVoiceMessage(String path) {
-    setState(() {
-      _messages.add({
-        'id': DateTime.now().millisecondsSinceEpoch.toString(),
-        'text': 'رسالة صوتية',
-        'isUser': true,
-        'time': 'الآن',
-        'senderName': 'أنا',
-        'reactions': [],
+  // ✅ إرسال صورة
+  Future<void> _sendImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 70,
+      );
+
+      if (image == null) return;
+
+      final user = _auth.currentUser;
+      if (user == null) return;
+
+      // ✅ رفع الصورة إلى Firebase Storage
+      final ref = FirebaseStorage.instance
+          .ref()
+          .child('chats/${widget.chatId}/images/${DateTime.now().millisecondsSinceEpoch}.jpg');
+
+      await ref.putFile(File(image.path));
+      final imageUrl = await ref.getDownloadURL();
+
+      final messageData = {
+        'text': '📷 صورة',
+        'senderId': user.uid,
+        'senderName': user.displayName ?? 'مستخدم',
+        'timestamp': FieldValue.serverTimestamp(),
+        'type': 'image',
+        'imageUrl': imageUrl,
         'isRead': false,
-        'type': 'audio',
-        'mediaUrl': path,
-      });
-      _showVoiceRecorder = false;
-    });
-    _scrollToBottom();
-  }
+      };
 
-  void _addReaction(String messageId, String emoji) {
-    setState(() {
-      final index = _messages.indexWhere((msg) => msg['id'] == messageId);
-      if (index != -1) {
-        final reactions = List<String>.from(_messages[index]['reactions'] ?? []);
-        if (reactions.contains(emoji)) {
-          reactions.remove(emoji);
-        } else {
-          reactions.add(emoji);
-        }
-        _messages[index]['reactions'] = reactions;
-      }
-    });
+      await _firestore
+          .collection('chats')
+          .doc(widget.chatId)
+          .collection('messages')
+          .add(messageData);
+
+      await _firestore.collection('chats').doc(widget.chatId).update({
+        'lastMessage': '📷 صورة',
+        'lastMessageTime': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      _scrollToBottom();
+    } catch (e) {
+      print('❌ Error sending image: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('❌ فشل إرسال الصورة: $e'), backgroundColor: Colors.red),
+      );
+    }
   }
 
   void _scrollToBottom() {
@@ -174,12 +176,222 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     });
   }
 
+  // ✅ بدء مكالمة
+  void _startCall(bool isVideo) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CallScreen(
+          chatId: widget.chatId,
+          doctorName: widget.userName,
+          doctorId: widget.userId,
+          isVideo: isVideo,
+        ),
+      ),
+    );
+  }
+
+  // ✅ عرض خيارات المرفقات
+  void _showAttachmentOptions() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library, color: AppColors.primary),
+              title: const Text('صورة من المعرض'),
+              onTap: () {
+                Navigator.pop(context);
+                _sendImage();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt, color: AppColors.primary),
+              title: const Text('التقاط صورة'),
+              onTap: () {
+                Navigator.pop(context);
+                // TODO: التقاط صورة
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.picture_as_pdf, color: AppColors.primary),
+              title: const Text('إرسال ملف'),
+              onTap: () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('📎 جاري إرسال الملف...'), backgroundColor: AppColors.primary),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.mic, color: AppColors.primary),
+              title: const Text('رسالة صوتية'),
+              onTap: () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('🎤 جاري التسجيل...'), backgroundColor: AppColors.primary),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ✅ بناء فقاعة الرسالة
+  Widget _buildMessageBubble(Map<String, dynamic> message, bool isMe) {
+    final text = message['text'] ?? '';
+    final type = message['type'] ?? 'text';
+    final imageUrl = message['imageUrl'];
+    final time = message['timestamp'] as Timestamp?;
+    final isRead = message['isRead'] as bool? ?? false;
+    final replyToText = message['replyToText'];
+    final replyToSender = message['replyToSender'];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Column(
+        crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        children: [
+          // ✅ رسالة مقتبسة (Reply)
+          if (replyToText != null)
+            Container(
+              padding: const EdgeInsets.all(8),
+              margin: const EdgeInsets.only(bottom: 4),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border(
+                  right: BorderSide(color: AppColors.primary, width: 3),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'الرد على $replyToSender',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    replyToText,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+
+          // ✅ فقاعة الرسالة
+          Row(
+            mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isMe ? AppColors.primary : Colors.grey[200],
+                    borderRadius: BorderRadius.circular(12).copyWith(
+                      bottomRight: isMe ? const Radius.circular(4) : const Radius.circular(12),
+                      bottomLeft: isMe ? const Radius.circular(12) : const Radius.circular(4),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      // ✅ صورة
+                      if (type == 'image' && imageUrl != null)
+                        GestureDetector(
+                          onTap: () {
+                            // عرض الصورة بكامل الشاشة
+                          },
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(
+                              imageUrl,
+                              width: 200,
+                              height: 200,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                width: 200,
+                                height: 200,
+                                color: Colors.grey[300],
+                                child: const Icon(Icons.broken_image, size: 40),
+                              ),
+                            ),
+                          ),
+                        ),
+                      // ✅ نص
+                      if (type == 'text' || (type == 'image' && text != '📷 صورة'))
+                        Text(
+                          text,
+                          style: TextStyle(
+                            color: isMe ? Colors.white : Colors.black87,
+                            fontSize: 14,
+                          ),
+                        ),
+                      const SizedBox(height: 4),
+                      // ✅ الوقت وحالة القراءة
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _formatTime(time),
+                            style: TextStyle(
+                              fontSize: 9,
+                              color: isMe ? Colors.white70 : Colors.grey[500],
+                            ),
+                          ),
+                          if (isMe) ...[
+                            const SizedBox(width: 4),
+                            Icon(
+                              isRead ? Icons.done_all : Icons.done,
+                              size: 12,
+                              color: isRead ? Colors.blue : Colors.white70,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatTime(Timestamp? timestamp) {
+    if (timestamp == null) return '';
+    final date = timestamp.toDate();
+    final now = DateTime.now();
+    final diff = now.difference(date);
+
+    if (diff.inMinutes < 1) return 'الآن';
+    if (diff.inHours < 1) return 'منذ ${diff.inMinutes} د';
+    if (diff.inDays < 1) return 'منذ ${diff.inHours} س';
+    if (diff.inDays < 7) return 'منذ ${diff.inDays} ي';
+    return '${date.day}/${date.month}';
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0b141a) : const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: Row(
           children: [
@@ -195,178 +407,193 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             ),
           ],
         ),
-        backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
+        backgroundColor: isDark ? const Color(0xFF0b141a) : Colors.white,
         foregroundColor: isDark ? Colors.white : Colors.black87,
         elevation: 0,
         actions: [
           IconButton(
-            icon: Icon(Icons.call, color: isDark ? Colors.white : Colors.black87),
-            onPressed: () {
-              // ✅ بدء مكالمة
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('📞 جاري الاتصال...'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            },
+            icon: const Icon(Icons.call),
+            onPressed: () => _startCall(false),
+            tooltip: 'مكالمة صوتية',
           ),
           IconButton(
-            icon: Icon(Icons.videocam, color: isDark ? Colors.white : Colors.black87),
-            onPressed: () {
-              // ✅ بدء مكالمة فيديو
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('📹 جاري بدء مكالمة فيديو...'),
-                  backgroundColor: Colors.blue,
-                ),
-              );
-            },
+            icon: const Icon(Icons.videocam),
+            onPressed: () => _startCall(true),
+            tooltip: 'مكالمة فيديو',
           ),
         ],
       ),
       body: Column(
         children: [
           // ✅ شريط الرد على رسالة
-          if (_replyTo != null)
-            ReplyBanner(
-              message: _replyTo!['text'] as String,
-              senderName: _replyTo!['senderName'] as String,
-              onCancel: () => setState(() => _replyTo = null),
+          if (_replyToMessage != null)
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                border: Border(
+                  right: BorderSide(color: AppColors.primary, width: 3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'الرد على ${_replyToMessage?['senderName']}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        Text(
+                          _replyToMessage?['text'] ?? '',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.close, size: 16, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                    onPressed: () => setState(() {
+                      _replyToMessage = null;
+                      _replyToMessageId = null;
+                    }),
+                  ),
+                ],
+              ),
             ),
+
           // ✅ قائمة الرسائل
           Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(16),
-              reverse: true,
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final message = _messages[_messages.length - 1 - index];
-                final isUser = message['isUser'] as bool;
-                final messageId = message['id'] as String;
+            child: StreamBuilder<QuerySnapshot>(
+              stream: _firestore
+                  .collection('chats')
+                  .doc(widget.chatId)
+                  .collection('messages')
+                  .orderBy('timestamp', descending: true)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(child: Text('❌ ${snapshot.error}'));
+                }
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: MessageBubble(
-                    text: message['text'] as String,
-                    type: message['type'] as String? ?? 'text',
-                    mediaUrl: message['mediaUrl'] as String?,
-                    isMe: isUser,
-                    time: message['time'] as String,
-                    isRead: message['isRead'] as bool? ?? false,
-                    senderName: message['senderName'] as String?,
-                    reactions: List<String>.from(message['reactions'] ?? []),
-                    onReact: (emoji) => _addReaction(messageId, emoji),
-                    onReply: () {
-                      setState(() {
-                        _replyTo = {
-                          'text': message['text'],
-                          'senderName': message['senderName'] ?? 'مستخدم',
-                          'id': messageId,
-                        };
-                      });
-                      _focusNode.requestFocus();
-                    },
-                    onDelete: () {
-                      setState(() {
-                        _messages.removeWhere((msg) => msg['id'] == messageId);
-                      });
-                    },
-                  ),
+                final messages = snapshot.data!.docs;
+                if (messages.isEmpty) {
+                  return _buildEmptyState(isDark);
+                }
+
+                return ListView.builder(
+                  controller: _scrollController,
+                  reverse: true,
+                  padding: const EdgeInsets.all(12),
+                  itemCount: messages.length,
+                  itemBuilder: (context, index) {
+                    final message = messages[index];
+                    final data = message.data() as Map<String, dynamic>;
+                    final isMe = data['senderId'] == _auth.currentUser?.uid;
+
+                    return GestureDetector(
+                      onLongPress: () {
+                        setState(() {
+                          _replyToMessage = data;
+                          _replyToMessageId = message.id;
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('✏️ اكتب رداً على هذه الرسالة'),
+                            backgroundColor: AppColors.primary,
+                            duration: Duration(seconds: 1),
+                          ),
+                        );
+                      },
+                      child: _buildMessageBubble(data, isMe),
+                    );
+                  },
                 );
               },
             ),
           ),
-          // ✅ حقل إدخال الرسالة
+
+          // ✅ حقل الإدخال
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1A2540) : Colors.white,
+              color: isDark ? const Color(0xFF0b141a) : Colors.white,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.04),
-                  blurRadius: 8,
-                  offset: const Offset(0, -4),
+                  blurRadius: 4,
+                  offset: const Offset(0, -2),
                 ),
               ],
             ),
-            child: Column(
+            child: Row(
               children: [
-                if (_showVoiceRecorder)
-                  VoiceRecorder(
-                    onRecordComplete: _sendVoiceMessage,
+                // ✅ زر المرفقات
+                IconButton(
+                  icon: Icon(Icons.attach_file, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                  onPressed: _showAttachmentOptions,
+                ),
+                // ✅ زر الصور
+                IconButton(
+                  icon: Icon(Icons.photo_library, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                  onPressed: _sendImage,
+                ),
+                // ✅ حقل النص
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF202c33) : Colors.grey[100],
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: TextField(
+                      controller: _messageController,
+                      onChanged: (text) => setState(() => _isTyping = text.isNotEmpty),
+                      onSubmitted: (_) => _sendMessage(),
+                      style: TextStyle(
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                      textAlign: TextAlign.right,
+                      decoration: const InputDecoration(
+                        hintText: 'اكتب رسالة...',
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      ),
+                    ),
                   ),
-                Row(
-                  children: [
-                    // ✅ زر المرفقات
-                    IconButton(
-                      icon: Icon(Icons.attach_file, color: isDark ? Colors.grey[400] : Colors.grey[600]),
-                      onPressed: _showAttachmentOptions,
-                    ),
-                    // ✅ زر التسجيل الصوتي
-                    IconButton(
-                      icon: Icon(
-                        _showVoiceRecorder ? Icons.keyboard : Icons.mic,
-                        color: isDark ? Colors.grey[400] : Colors.grey[600],
-                      ),
-                      onPressed: () {
-                        setState(() => _showVoiceRecorder = !_showVoiceRecorder);
-                      },
-                    ),
-                    // ✅ حقل النص
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF0B1121) : Colors.grey[100],
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        child: TextField(
-                          controller: _messageController,
-                          focusNode: _focusNode,
-                          onChanged: (text) {
-                            setState(() => _isTyping = text.trim().isNotEmpty);
-                          },
-                          onSubmitted: (_) => _sendMessage(),
-                          style: TextStyle(
-                            color: isDark ? Colors.white : Colors.black87,
-                            fontSize: 14,
-                          ),
-                          textAlign: TextAlign.right,
-                          decoration: InputDecoration(
-                            hintText: 'اكتب رسالة...',
-                            hintStyle: TextStyle(
-                              color: isDark ? Colors.grey[500] : Colors.grey[400],
-                              fontSize: 14,
-                            ),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                          ),
-                        ),
+                ),
+                // ✅ زر الإرسال
+                GestureDetector(
+                  onTap: _sendMessage,
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: _isTyping ? AppColors.primary : Colors.transparent,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: _isTyping ? AppColors.primary : (isDark ? Colors.grey[600]! : Colors.grey[300]!),
+                        width: 1.5,
                       ),
                     ),
-                    // ✅ زر الإرسال
-                    GestureDetector(
-                      onTap: _sendMessage,
-                      child: Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: _isTyping ? AppColors.primary : Colors.transparent,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: _isTyping ? AppColors.primary : (isDark ? Colors.grey[600]! : Colors.grey[300]!),
-                            width: 1.5,
-                          ),
-                        ),
-                        child: Icon(
-                          _isTyping ? Icons.send : Icons.mic,
-                          color: _isTyping ? Colors.white : (isDark ? Colors.grey[400] : Colors.grey[600]),
-                          size: 20,
-                        ),
-                      ),
+                    child: Icon(
+                      _isTyping ? Icons.send : Icons.mic,
+                      color: _isTyping ? Colors.white : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                      size: 20,
                     ),
-                  ],
+                  ),
                 ),
               ],
             ),
@@ -376,70 +603,31 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     );
   }
 
-  void _showAttachmentOptions() {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => SafeArea(
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _attachmentOption(Icons.photo_library, 'صورة', Colors.purple),
-                  _attachmentOption(Icons.videocam, 'فيديو', Colors.blue),
-                  _attachmentOption(Icons.picture_as_pdf, 'PDF', Colors.red),
-                  _attachmentOption(Icons.location_on, 'موقع', Colors.green),
-                ],
-              ),
-              const SizedBox(height: 16),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _attachmentOption(IconData icon, String label, Color color) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('📎 جاري إرسال $label...'),
-            backgroundColor: color,
-          ),
-        );
-      },
+  Widget _buildEmptyState(bool isDark) {
+    return Center(
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(icon, color: color, size: 28),
+          Icon(
+            Icons.chat_bubble_outline,
+            size: 60,
+            color: isDark ? Colors.grey[600] : Colors.grey[300],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 16),
           Text(
-            label,
-            style: const TextStyle(fontSize: 12),
+            'لا توجد رسائل',
+            style: TextStyle(
+              color: isDark ? Colors.white : Colors.black87,
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'ابدأ المحادثة الآن',
+            style: TextStyle(
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
+              fontSize: 13,
+            ),
           ),
         ],
       ),
