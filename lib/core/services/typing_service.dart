@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -10,7 +11,6 @@ class TypingService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   Timer? _typingTimer;
 
-  // ✅ إرسال حالة الكتابة
   void sendTypingStatus({
     required String chatId,
     required bool isTyping,
@@ -36,27 +36,20 @@ class TypingService {
     }
   }
 
-  // ✅ بدء الكتابة (مع تأخير لإيقافها تلقائياً)
   void startTyping({required String chatId}) {
-    // ✅ إلغاء المؤقت السابق
     _typingTimer?.cancel();
-
-    // ✅ إرسال حالة الكتابة
     sendTypingStatus(chatId: chatId, isTyping: true);
 
-    // ✅ إيقاف الكتابة تلقائياً بعد 3 ثواني من عدم الكتابة
     _typingTimer = Timer(const Duration(seconds: 3), () {
       sendTypingStatus(chatId: chatId, isTyping: false);
     });
   }
 
-  // ✅ إيقاف الكتابة
   void stopTyping({required String chatId}) {
     _typingTimer?.cancel();
     sendTypingStatus(chatId: chatId, isTyping: false);
   }
 
-  // ✅ الاستماع لحالة الكتابة في المحادثة
   Stream<List<Map<String, dynamic>>> getTypingStatus(String chatId) {
     return _firestore
         .collection('chats')
@@ -73,7 +66,6 @@ class TypingService {
     });
   }
 
-  // ✅ تنظيف حالة الكتابة عند مغادرة المحادثة
   Future<void> clearTypingStatus(String chatId) async {
     final user = _auth.currentUser;
     if (user == null) return;
@@ -90,7 +82,6 @@ class TypingService {
     }
   }
 
-  // ✅ تنظيف حالات الكتابة القديمة (أكثر من 10 ثواني)
   Future<void> cleanOldTypingStatuses(String chatId) async {
     try {
       final tenSecondsAgo = DateTime.now().subtract(const Duration(seconds: 10));

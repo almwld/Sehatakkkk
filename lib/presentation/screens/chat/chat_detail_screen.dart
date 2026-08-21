@@ -1,15 +1,16 @@
+import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/typing_service.dart';
-import 'package:sehatak/core/services/location_service.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/message_bubble.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/typing_indicator.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/voice_recorder_widget.dart';
 import 'package:sehatak/presentation/screens/call/call_screen.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 
 class ChatDetailScreen extends StatefulWidget {
   final String chatId;
@@ -34,9 +35,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   final ScrollController _scrollController = ScrollController();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
   final ImagePicker _picker = ImagePicker();
   final TypingService _typingService = TypingService();
-  final LocationService _locationService = LocationService();
 
   bool _isTyping = false;
   bool _showVoiceRecorder = false;
@@ -153,7 +154,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
       _typingService.stopTyping(chatId: widget.chatId);
 
-      final ref = FirebaseStorage.instance
+      final ref = _storage
           .ref()
           .child('chats/${widget.chatId}/images/${DateTime.now().millisecondsSinceEpoch}.jpg');
 
@@ -189,40 +190,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         SnackBar(content: Text('❌ فشل إرسال الصورة: $e'), backgroundColor: Colors.red),
       );
     }
-  }
-
-  // ✅ مشاركة الموقع
-  Future<void> _shareLocation() async {
-    final loadingSnackbar = ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('📍 جاري الحصول على الموقع...'),
-        backgroundColor: AppColors.primary,
-      ),
-    );
-
-    await _locationService.shareCurrentLocation(
-      chatId: widget.chatId,
-      onSuccess: () {
-        loadingSnackbar.close();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✅ تم مشاركة الموقع بنجاح'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
-        );
-        _scrollToBottom();
-      },
-      onError: () {
-        loadingSnackbar.close();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('❌ فشل الحصول على الموقع، تأكد من تفعيل GPS'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      },
-    );
   }
 
   void _sendVoiceMessage(String url) {
@@ -300,14 +267,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 setState(() {
                   _showVoiceRecorder = true;
                 });
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.location_on, color: AppColors.primary),
-              title: const Text('مشاركة الموقع'),
-              onTap: () {
-                Navigator.pop(context);
-                _shareLocation();
               },
             ),
           ],
@@ -499,15 +458,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                             senderName: data['senderName'] as String?,
                             reactions: List<String>.from(data['reactions'] ?? []),
                             reactionCounts: Map<String, int>.from(data['reactionCounts'] ?? {}),
-                            latitude: data['latitude'] as double?,
-                            longitude: data['longitude'] as double?,
-                            address: data['address'] as String?,
                             onReply: () {
                               setState(() {
                                 _replyToMessage = data;
                                 _replyToMessageId = message.id;
                               });
-                              _messageController.requestFocus();
+                              FocusScope.of(context).requestFocus(_messageController);
                             },
                             onDelete: () {
                               _firestore
@@ -564,11 +520,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       IconButton(
                         icon: Icon(Icons.photo_library, color: isDark ? Colors.grey[400] : Colors.grey[600]),
                         onPressed: _sendImage,
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.location_on, color: isDark ? Colors.grey[400] : Colors.grey[600]),
-                        onPressed: _shareLocation,
-                        tooltip: 'مشاركة الموقع',
                       ),
                       Expanded(
                         child: Container(

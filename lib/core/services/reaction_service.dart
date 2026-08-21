@@ -9,19 +9,10 @@ class ReactionService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // ✅ قائمة الإيموجي المتاحة للتفاعل
   static const List<String> availableReactions = [
-    '👍', // إعجاب
-    '❤️', // حب
-    '😂', // ضحك
-    '😮', // مفاجأة
-    '😢', // حزن
-    '🙏', // شكر
-    '🔥', // نار
-    '👏', // تصفيق
+    '👍', '❤️', '😂', '😮', '😢', '🙏', '🔥', '👏',
   ];
 
-  // ✅ إضافة رد فعل على رسالة
   Future<void> addReaction({
     required String chatId,
     required String messageId,
@@ -46,7 +37,6 @@ class ReactionService {
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-      // ✅ تحديث عدد الردود في الرسالة
       await _updateReactionCount(chatId, messageId);
     } catch (e) {
       print('❌ Error adding reaction: $e');
@@ -54,7 +44,6 @@ class ReactionService {
     }
   }
 
-  // ✅ إزالة رد فعل من رسالة
   Future<void> removeReaction({
     required String chatId,
     required String messageId,
@@ -73,7 +62,7 @@ class ReactionService {
           .doc(user.uid);
 
       final doc = await reactionRef.get();
-      if (doc.exists && doc.data()?['emoji'] == emoji) {
+      if (doc.exists && (doc.data()?['emoji'] as String? == emoji)) {
         await reactionRef.delete();
         await _updateReactionCount(chatId, messageId);
       }
@@ -83,7 +72,6 @@ class ReactionService {
     }
   }
 
-  // ✅ تبديل رد فعل (إضافة أو إزالة)
   Future<void> toggleReaction({
     required String chatId,
     required String messageId,
@@ -102,11 +90,9 @@ class ReactionService {
           .doc(user.uid);
 
       final doc = await reactionRef.get();
-      if (doc.exists && doc.data()?['emoji'] == emoji) {
-        // ✅ إزالة الرد إذا كان موجوداً
+      if (doc.exists && (doc.data()?['emoji'] as String? == emoji)) {
         await reactionRef.delete();
       } else {
-        // ✅ إضافة رد جديد
         await reactionRef.set({
           'userId': user.uid,
           'userName': user.displayName ?? 'مستخدم',
@@ -122,7 +108,6 @@ class ReactionService {
     }
   }
 
-  // ✅ تحديث عدد الردود في الرسالة
   Future<void> _updateReactionCount(String chatId, String messageId) async {
     try {
       final reactions = await _firestore
@@ -137,7 +122,7 @@ class ReactionService {
       final List<String> emojis = [];
 
       for (final doc in reactions.docs) {
-        final emoji = doc.data()['emoji'] as String? ?? '';
+        final emoji = (doc.data()['emoji'] as String?) ?? '';
         if (emoji.isNotEmpty) {
           counts[emoji] = (counts[emoji] ?? 0) + 1;
           emojis.add(emoji);
@@ -160,7 +145,6 @@ class ReactionService {
     }
   }
 
-  // ✅ الحصول على ردود فعل رسالة (Realtime)
   Stream<List<Map<String, dynamic>>> getMessageReactions({
     required String chatId,
     required String messageId,
@@ -182,7 +166,6 @@ class ReactionService {
     });
   }
 
-  // ✅ الحصول على ردود فعل مستخدم على رسالة
   Future<String?> getUserReaction({
     required String chatId,
     required String messageId,
@@ -200,14 +183,16 @@ class ReactionService {
           .doc(user.uid)
           .get();
 
-      return doc.exists ? doc.data()?['emoji'] as String? : null;
+      if (doc.exists) {
+        return doc.data()?['emoji'] as String?;
+      }
+      return null;
     } catch (e) {
       print('❌ Error getting user reaction: $e');
       return null;
     }
   }
 
-  // ✅ حذف جميع ردود فعل رسالة
   Future<void> deleteAllReactions({
     required String chatId,
     required String messageId,

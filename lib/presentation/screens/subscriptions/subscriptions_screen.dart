@@ -29,6 +29,7 @@ class SubscriptionsScreen extends StatelessWidget {
             ],
             isPopular: false,
             isDark: isDark,
+            context: context,
           ),
           const SizedBox(height: 16),
           _buildSubscriptionCard(
@@ -42,6 +43,7 @@ class SubscriptionsScreen extends StatelessWidget {
             ],
             isPopular: true,
             isDark: isDark,
+            context: context,
           ),
           const SizedBox(height: 16),
           _buildSubscriptionCard(
@@ -57,6 +59,7 @@ class SubscriptionsScreen extends StatelessWidget {
             ],
             isPopular: false,
             isDark: isDark,
+            context: context,
           ),
         ],
       ),
@@ -69,6 +72,7 @@ class SubscriptionsScreen extends StatelessWidget {
     required List<String> features,
     required bool isPopular,
     required bool isDark,
+    required BuildContext context,
   }) {
     return Container(
       padding: const EdgeInsets.all(20),
