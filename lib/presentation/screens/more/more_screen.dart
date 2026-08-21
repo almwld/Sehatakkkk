@@ -236,7 +236,7 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
             // ✅ بطاقة المستخدم - بدون حاويات زائدة
             _buildUserCard(user, isDark),
             const SizedBox(height: 20),
-            
+
             // ✅ المؤشرات الحيوية
             Text(
               'المؤشرات الحيوية',
@@ -249,7 +249,7 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
             const SizedBox(height: 12),
             _buildVitalsGrid(isDark),
             const SizedBox(height: 24),
-            
+
             // ✅ الخدمات
             Text(
               'الخدمات',
@@ -264,7 +264,7 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
             const SizedBox(height: 16),
             _buildFilteredServicesGrid(isDark),
             const SizedBox(height: 24),
-            
+
             // ✅ زر تسجيل الخروج
             _buildLogoutButton(isDark),
           ],
