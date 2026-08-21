@@ -169,34 +169,48 @@ flutter:
   uses-material-design: true
 
   assets:
-    # أيقونات الخدمات
-    - assets/images/services/
-    # أيقونات السوشيال ميديا
-    - assets/images/social/
-    # أيقونات الدردشة
+    # 🎬 الرسوم المتحركة
+    - assets/animations/
+    
+    # 🎵 الصوت
+    - assets/audio/
+    
+    # 🔤 الخطوط
+    - assets/fonts/
+    
+    # 🖼️ الأيقونات
+    - assets/icons/app_icon.png
+    - assets/icons/app_icon.svg
+    - assets/icons/consultations/
+    - assets/icons/core/
+    - assets/icons/mini_specialties/
+    - assets/icons/navigation/
+    - assets/icons/offers/
+    - assets/icons/payment/
+    - assets/icons/plans/
+    - assets/icons/png_core/
+    - assets/icons/png_specialties/
+    - assets/icons/services/
+    - assets/icons/social/
+    - assets/icons/specialties/
+    
+    # 📷 الصور
     - assets/images/chat/
-    # أيقونات التتبع
-    - assets/images/tracking/
-    # أيقونات إضافية
-    - assets/images/icons/
+    - assets/images/chat_background.svg
     - assets/images/icons/doctors/
     - assets/images/icons/fast_services/
     - assets/images/icons/roles/
     - assets/images/icons/search/
     - assets/images/icons/top_bar/
-    # أيقونات المحافظ (Payment)
     - assets/images/payment/
-    # أيقونات المحافظ (Wallets)
+    - assets/images/placeholder.png
+    - assets/images/services/
+    - assets/images/social/
+    - assets/images/tracking/
     - assets/images/wallets/
-    # الرسوم المتحركة
-    - assets/animations/
-    # الصوت
-    - assets/audio/
-    # SVG
+    
+    # 📁 SVG
     - assets/svg/
-    # ملفات مفردة
-    - assets/icons/app_icon.svg
-    - assets/images/chat_background.svg
 
   fonts:
     - family: NotoSansArabicUI
@@ -212,3 +226,29 @@ flutter:
           weight: 600
         - asset: assets/fonts/NotoSansArabicUI-Black.ttf
           weight: 900
+
+    # أيقونات الخدمات الجديدة
+    - assets/images/services/blood_donation.png
+    - assets/images/services/first_aid.png
+    - assets/images/services/hospital.png
+    - assets/images/services/laboratory.png
+    - assets/images/services/medical_articles.png
+    - assets/images/services/packages.png
+    - assets/images/services/pharmacy.png
+    - assets/images/services/womens_health.png
+    
+    # أيقونات التتبع
+    - assets/images/tracking/age.png
+    - assets/images/tracking/blood_pressure.png
+    - assets/images/tracking/blood_sugar.png
+    - assets/images/tracking/fruits.png
+    - assets/images/tracking/sleep_tracking.png
+    - assets/images/tracking/walking.png
+    - assets/images/tracking/water_drinking.png
+    - assets/images/tracking/weight.png
+    
+    # أيقونات الواجهة
+    - assets/images/ui/edit_button.png
+    - assets/images/ui/like_button.png
+    - assets/images/ui/settings_gear.png
+    - assets/images/ui/user_profile.png

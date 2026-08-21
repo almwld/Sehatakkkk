@@ -13,19 +13,19 @@ class SocialButtons extends StatelessWidget {
       children: [
         _socialButton(
           icon: AppIcons.whatsapp,
-          url: 'https://wa.me/967777123456',
+          imageUrl: 'https://wa.me/967777123456',
           label: 'واتساب',
         ),
         const SizedBox(width: 16),
         _socialButton(
           icon: AppIcons.facebook,
-          url: 'https://facebook.com/sehatak',
+          imageUrl: 'https://facebook.com/sehatak',
           label: 'فيسبوك',
         ),
         const SizedBox(width: 16),
         _socialButton(
           icon: AppIcons.instagram,
-          url: 'https://instagram.com/sehatak',
+          imageUrl: 'https://instagram.com/sehatak',
           label: 'إنستجرام',
         ),
       ],
