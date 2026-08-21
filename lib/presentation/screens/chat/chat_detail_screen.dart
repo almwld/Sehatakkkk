@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/services/typing_service.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/message_bubble.dart';
+import 'package:sehatak/presentation/screens/chat/widgets/typing_indicator.dart';
 import 'package:sehatak/presentation/screens/call/call_screen.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -31,10 +33,13 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final ImagePicker _picker = ImagePicker();
+  final TypingService _typingService = TypingService();
 
   bool _isTyping = false;
+  bool _isUserTyping = false;
   String? _replyToMessageId;
   Map<String, dynamic>? _replyToMessage;
+  Timer? _typingDebounce;
 
   @override
   void initState() {
@@ -46,6 +51,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   void dispose() {
     _messageController.dispose();
     _scrollController.dispose();
+    _typingDebounce?.cancel();
+    _typingService.stopTyping(chatId: widget.chatId);
     super.dispose();
   }
 
@@ -68,6 +75,24 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     }
   }
 
+  // ✅ معالجة تغيير النص - إرسال حالة الكتابة
+  void _onTextChanged(String text) {
+    final isTyping = text.isNotEmpty;
+    setState(() => _isTyping = isTyping);
+
+    // ✅ إلغاء المؤقت السابق
+    _typingDebounce?.cancel();
+
+    if (isTyping) {
+      // ✅ تأخير إرسال حالة الكتابة لتجنب الإرسال المتكرر
+      _typingDebounce = Timer(const Duration(milliseconds: 500), () {
+        _typingService.startTyping(chatId: widget.chatId);
+      });
+    } else {
+      _typingService.stopTyping(chatId: widget.chatId);
+    }
+  }
+
   // ✅ إرسال رسالة
   Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
@@ -75,6 +100,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
     final user = _auth.currentUser;
     if (user == null) return;
+
+    // ✅ إيقاف حالة الكتابة
+    _typingService.stopTyping(chatId: widget.chatId);
+    _typingDebounce?.cancel();
 
     try {
       final messageData = {
@@ -125,6 +154,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
       final user = _auth.currentUser;
       if (user == null) return;
+
+      // ✅ إيقاف حالة الكتابة
+      _typingService.stopTyping(chatId: widget.chatId);
 
       // ✅ رفع الصورة إلى Firebase Storage
       final ref = FirebaseStorage.instance
@@ -243,6 +275,46 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     );
   }
 
+  // ✅ بناء مؤشر الكتابة
+  Widget _buildTypingIndicator(List<Map<String, dynamic>> typingUsers) {
+    if (typingUsers.isEmpty) return const SizedBox.shrink();
+
+    final names = typingUsers.map((user) => user['userName'] as String).toList();
+    final displayName = names.length == 1 
+        ? names.first 
+        : '${names.first} و ${names.length - 1} آخرين';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const TypingIndicator(),
+                const SizedBox(width: 8),
+                Text(
+                  '$displayName يكتب...',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   String _formatTime(Timestamp? timestamp) {
     if (timestamp == null) return '';
     final date = timestamp.toDate();
@@ -342,70 +414,90 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               ),
             ),
 
-          // ✅ قائمة الرسائل
+          // ✅ قائمة الرسائل + مؤشر الكتابة
           Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: _firestore
-                  .collection('chats')
-                  .doc(widget.chatId)
-                  .collection('messages')
-                  .orderBy('timestamp', descending: true)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return Center(child: Text('❌ ${snapshot.error}'));
-                }
-                if (!snapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+            child: Column(
+              children: [
+                // ✅ قائمة الرسائل
+                Expanded(
+                  child: StreamBuilder<QuerySnapshot>(
+                    stream: _firestore
+                        .collection('chats')
+                        .doc(widget.chatId)
+                        .collection('messages')
+                        .orderBy('timestamp', descending: true)
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasError) {
+                        return Center(child: Text('❌ ${snapshot.error}'));
+                      }
+                      if (!snapshot.hasData) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
 
-                final messages = snapshot.data!.docs;
-                if (messages.isEmpty) {
-                  return _buildEmptyState(isDark);
-                }
+                      final messages = snapshot.data!.docs;
+                      if (messages.isEmpty) {
+                        return _buildEmptyState(isDark);
+                      }
 
-                return ListView.builder(
-                  controller: _scrollController,
-                  reverse: true,
-                  padding: const EdgeInsets.all(12),
-                  itemCount: messages.length,
-                  itemBuilder: (context, index) {
-                    final message = messages[index];
-                    final data = message.data() as Map<String, dynamic>;
-                    final isMe = data['senderId'] == _auth.currentUser?.uid;
+                      return ListView.builder(
+                        controller: _scrollController,
+                        reverse: true,
+                        padding: const EdgeInsets.all(12),
+                        itemCount: messages.length,
+                        itemBuilder: (context, index) {
+                          final message = messages[index];
+                          final data = message.data() as Map<String, dynamic>;
+                          final isMe = data['senderId'] == _auth.currentUser?.uid;
 
-                    return MessageBubble(
-                      chatId: widget.chatId,
-                      messageId: message.id,
-                      text: data['text'] ?? '',
-                      type: data['type'] ?? 'text',
-                      mediaUrl: data['imageUrl'],
-                      isMe: isMe,
-                      time: _formatTime(data['timestamp'] as Timestamp?),
-                      isRead: data['isRead'] as bool? ?? false,
-                      senderName: data['senderName'] as String?,
-                      reactions: List<String>.from(data['reactions'] ?? []),
-                      reactionCounts: Map<String, int>.from(data['reactionCounts'] ?? {}),
-                      onReply: () {
-                        setState(() {
-                          _replyToMessage = data;
-                          _replyToMessageId = message.id;
-                        });
-                        _messageController.requestFocus();
-                      },
-                      onDelete: () {
-                        // ✅ حذف الرسالة
-                        _firestore
-                            .collection('chats')
-                            .doc(widget.chatId)
-                            .collection('messages')
-                            .doc(message.id)
-                            .delete();
-                      },
-                    );
+                          return MessageBubble(
+                            chatId: widget.chatId,
+                            messageId: message.id,
+                            text: data['text'] ?? '',
+                            type: data['type'] ?? 'text',
+                            mediaUrl: data['imageUrl'],
+                            isMe: isMe,
+                            time: _formatTime(data['timestamp'] as Timestamp?),
+                            isRead: data['isRead'] as bool? ?? false,
+                            senderName: data['senderName'] as String?,
+                            reactions: List<String>.from(data['reactions'] ?? []),
+                            reactionCounts: Map<String, int>.from(data['reactionCounts'] ?? {}),
+                            onReply: () {
+                              setState(() {
+                                _replyToMessage = data;
+                                _replyToMessageId = message.id;
+                              });
+                              _messageController.requestFocus();
+                            },
+                            onDelete: () {
+                              // ✅ حذف الرسالة
+                              _firestore
+                                  .collection('chats')
+                                  .doc(widget.chatId)
+                                  .collection('messages')
+                                  .doc(message.id)
+                                  .delete();
+                            },
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+
+                // ✅ مؤشر الكتابة (Realtime)
+                StreamBuilder<List<Map<String, dynamic>>>(
+                  stream: _typingService.getTypingStatus(widget.chatId),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) return const SizedBox.shrink();
+                    final typingUsers = snapshot.data!
+                        .where((user) => user['userId'] != _auth.currentUser?.uid)
+                        .toList();
+                    
+                    return _buildTypingIndicator(typingUsers);
                   },
-                );
-              },
+                ),
+              ],
             ),
           ),
 
@@ -443,7 +535,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                     ),
                     child: TextField(
                       controller: _messageController,
-                      onChanged: (text) => setState(() => _isTyping = text.isNotEmpty),
+                      onChanged: _onTextChanged,
                       onSubmitted: (_) => _sendMessage(),
                       style: TextStyle(
                         color: isDark ? Colors.white : Colors.black87,
