@@ -5,7 +5,7 @@ class ToastService {
   static void show({
     required String message,
     ToastGravity gravity = ToastGravity.BOTTOM,
-    int duration = 3, // بالثواني
+    int duration = 3,
     Color backgroundColor = Colors.green,
     Color textColor = Colors.white,
   }) {
