@@ -5,6 +5,7 @@ import 'package:lottie/lottie.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
+import 'package:sehatak/core/services/cache_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -20,12 +21,13 @@ class _SplashScreenState extends State<SplashScreen>
   late Animation<double> _scaleAnimation;
   late AnimationController _loadingCtrl;
   late Animation<double> _loadingAnimation;
-  late AnimationController _lottieCtrl;
   final AudioPlayer _audioPlayer = AudioPlayer();
+  final CacheService _cache = CacheService();
   
   bool _isLoading = true;
   String _statusMessage = 'جاري التحميل...';
   double _progress = 0.0;
+  bool _isLoggedIn = false;
 
   // ✅ دوائر متحركة
   final List<CircleData> _circles = [
@@ -44,70 +46,110 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
 
     // ✅ التحكم في Lottie
-    _lottieCtrl = AnimationController(
+    _mainCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 5), // ✅ 5 ثواني كاملة للـ Lottie
+      duration: const Duration(milliseconds: 600),
     )..forward();
 
+    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _mainCtrl, curve: Curves.easeOut),
+    );
+
+    _scaleAnimation = Tween<double>(begin: 0.85, end: 1.0).animate(
+      CurvedAnimation(parent: _mainCtrl, curve: Curves.easeOut),
+    );
+
+    _loadingCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 5),
+    )..repeat();
+
+    _loadingAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _loadingCtrl, curve: Curves.easeInOut),
+    );
+
     _playSplashSound();
-    _initializeApp();
+    _checkLoginStatus(); // ✅ التحقق من حالة المستخدم فوراً
   }
 
   // ============================================================
-  // ✅ تهيئة التطبيق
+  // ✅ التحقق من حالة المستخدم
   // ============================================================
-  Future<void> _initializeApp() async {
-    setState(() {
-      _statusMessage = 'جاري تهيئة التطبيق...';
-      _progress = 0.1;
-    });
+  Future<void> _checkLoginStatus() async {
+    try {
+      // ✅ 1. التحقق من Firebase Auth
+      final user = FirebaseAuth.instance.currentUser;
+      
+      // ✅ 2. التحقق من SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final isLoggedInPrefs = prefs.getBool('is_logged_in') ?? false;
+      final savedUid = prefs.getString('user_uid') ?? '';
+      
+      setState(() {
+        _isLoggedIn = user != null && isLoggedInPrefs && user.uid == savedUid;
+        _progress = 0.5;
+        _statusMessage = 'جاري التحقق من المستخدم...';
+      });
 
-    await Future.delayed(const Duration(milliseconds: 500));
+      // ✅ 3. تحديث حالة المستخدم في الكاش
+      if (user != null) {
+        await _cache.saveUserData({
+          'uid': user.uid,
+          'name': user.displayName ?? 'مستخدم',
+          'email': user.email ?? '',
+          'isLoggedIn': true,
+        });
+        await prefs.setBool('is_logged_in', true);
+        await prefs.setString('user_uid', user.uid);
+      } else {
+        await prefs.setBool('is_logged_in', false);
+      }
 
-    setState(() {
-      _statusMessage = 'جاري التحقق من المستخدم...';
-      _progress = 0.3;
-    });
+      setState(() {
+        _progress = 0.8;
+        _statusMessage = 'جاهز!';
+        _isLoading = false;
+      });
 
+      // ✅ الانتقال بعد 2.5 ثانية
+      await Future.delayed(const Duration(milliseconds: 2500));
+      
+      if (mounted) {
+        _navigateToNext();
+      }
+    } catch (e) {
+      print('❌ Error checking login status: $e');
+      setState(() {
+        _isLoading = false;
+        _isLoggedIn = false;
+        _statusMessage = 'حدث خطأ';
+      });
+      await Future.delayed(const Duration(seconds: 2));
+      if (mounted) {
+        _navigateToNext();
+      }
+    }
+  }
+
+  // ============================================================
+  // ✅ الانتقال للشاشة التالية
+  // ============================================================
+  void _navigateToNext() {
+    if (!mounted) return;
+    
+    // ✅ التحقق النهائي من حالة المستخدم
     final user = FirebaseAuth.instance.currentUser;
-
-    setState(() {
-      _statusMessage = 'جاري تحميل البيانات...';
-      _progress = 0.6;
-    });
-
-    await _cacheUserData(user);
-
-    setState(() {
-      _statusMessage = 'جاهز!';
-      _progress = 1.0;
-      _isLoading = false;
-    });
-
-    // ✅ الانتقال بعد 5 ثواني كاملة
-    Future.delayed(const Duration(seconds: 5), () {
-      if (!mounted) return;
-      _navigateToNext();
-    });
-  }
-
-  // ============================================================
-  // ✅ حفظ حالة المستخدم في الكاش
-  // ============================================================
-  Future<void> _cacheUserData(User? user) async {
-    final prefs = await SharedPreferences.getInstance();
-    if (user != null) {
-      await prefs.setBool('is_logged_in', true);
-      await prefs.setString('user_uid', user.uid);
-      await prefs.setString('user_email', user.email ?? '');
-      await prefs.setString('user_name', user.displayName ?? 'مستخدم');
-      await prefs.setString('user_photo', user.photoURL ?? '');
+    
+    if (_isLoggedIn && user != null) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
     } else {
-      await prefs.setBool('is_logged_in', false);
-      await prefs.remove('user_uid');
-      await prefs.remove('user_email');
-      await prefs.remove('user_name');
-      await prefs.remove('user_photo');
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const AuthScreen()),
+      );
     }
   }
 
@@ -126,46 +168,16 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   // ============================================================
-  // ✅ الانتقال للشاشة التالية
-  // ============================================================
-  Future<void> _navigateToNext() async {
-    await _audioPlayer.stop();
-
-    final user = FirebaseAuth.instance.currentUser;
-    final prefs = await SharedPreferences.getInstance();
-    final isLoggedIn = prefs.getBool('is_logged_in') ?? false;
-
-    if (!mounted) return;
-
-    if (user != null && isLoggedIn) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
-    } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const AuthScreen()),
-      );
-    }
-  }
-
-  // ============================================================
   // ✅ زر تخطي للمطورين
   // ============================================================
   void _skipSplash() {
-    _lottieCtrl.dispose();
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const HomeScreen()),
-    );
+    _navigateToNext();
   }
 
   @override
   void dispose() {
     _mainCtrl.dispose();
     _loadingCtrl.dispose();
-    _lottieCtrl.dispose();
     _audioPlayer.dispose();
     super.dispose();
   }
@@ -179,29 +191,6 @@ class _SplashScreenState extends State<SplashScreen>
     final lottieWidth = screenWidth * 0.50;
     final lottieHeight = lottieWidth * (180 / 320);
 
-    // ✅ التحكمات المتحركة - ظهور سريع
-    _mainCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    )..forward();
-
-    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _mainCtrl, curve: Curves.easeOut),
-    );
-
-    _scaleAnimation = Tween<double>(begin: 0.85, end: 1.0).animate(
-      CurvedAnimation(parent: _mainCtrl, curve: Curves.easeOut),
-    );
-
-    _loadingCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 5), // ✅ 5 ثواني كاملة لشريط التحميل
-    )..repeat();
-
-    _loadingAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _loadingCtrl, curve: Curves.easeInOut),
-    );
-
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -210,14 +199,9 @@ class _SplashScreenState extends State<SplashScreen>
         child: SafeArea(
           child: Stack(
             children: [
-              // ============================================================
-              // ✅ دوائر متحركة في الخلفية
-              // ============================================================
               ..._circles.map((circle) => _buildAnimatedCircle(circle)),
 
-              // ============================================================
               // ✅ زر تخطي للمطورين
-              // ============================================================
               Positioned(
                 top: 16,
                 right: 16,
@@ -247,9 +231,6 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
               ),
 
-              // ============================================================
-              // ✅ المحتوى الرئيسي
-              // ============================================================
               Center(
                 child: SingleChildScrollView(
                   physics: const ClampingScrollPhysics(),
@@ -266,7 +247,6 @@ class _SplashScreenState extends State<SplashScreen>
                             children: [
                               SizedBox(height: screenHeight * 0.05),
 
-                              // ✅ Lottie Animation - 5 ثواني كاملة
                               Transform.scale(
                                 scale: _scaleAnimation.value,
                                 child: ConstrainedBox(
@@ -279,9 +259,7 @@ class _SplashScreenState extends State<SplashScreen>
                                   child: Lottie.asset(
                                     'assets/animations/sehatak_animation.json',
                                     fit: BoxFit.contain,
-                                    repeat: false, // ✅ عدم التكرار لعرض المحتوى كاملاً
-                                    animate: true,
-                                    controller: _lottieCtrl, // ✅ التحكم في المدة
+                                    repeat: false,
                                     errorBuilder: (context, error, stackTrace) {
                                       return Icon(
                                         Icons.health_and_safety,
@@ -295,7 +273,6 @@ class _SplashScreenState extends State<SplashScreen>
 
                               SizedBox(height: screenHeight * 0.04),
 
-                              // ✅ النص الرئيسي
                               Transform.scale(
                                 scale: _scaleAnimation.value,
                                 child: const Column(
@@ -324,7 +301,6 @@ class _SplashScreenState extends State<SplashScreen>
 
                               SizedBox(height: screenHeight * 0.02),
 
-                              // ✅ الشعار
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 20,
@@ -345,7 +321,6 @@ class _SplashScreenState extends State<SplashScreen>
 
                               SizedBox(height: screenHeight * 0.04),
 
-                              // ✅ شريط التقدم - 5 ثواني
                               Container(
                                 width: screenWidth * 0.6,
                                 height: 4,
@@ -371,7 +346,6 @@ class _SplashScreenState extends State<SplashScreen>
 
                               const SizedBox(height: 12),
 
-                              // ✅ حالة التحميل
                               Text(
                                 _statusMessage,
                                 style: TextStyle(
@@ -383,9 +357,6 @@ class _SplashScreenState extends State<SplashScreen>
 
                               SizedBox(height: screenHeight * 0.03),
 
-                              // ============================================================
-                              // ✅ "صحتك أولاً"
-                              // ============================================================
                               Column(
                                 children: [
                                   const Text(
@@ -432,9 +403,6 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
-  // ============================================================
-  // ✅ دوائر متحركة
-  // ============================================================
   Widget _buildAnimatedCircle(CircleData circle) {
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 0, end: 2 * 3.14159),
@@ -464,9 +432,6 @@ class _SplashScreenState extends State<SplashScreen>
   }
 }
 
-// ============================================================
-// ✅ بيانات الدوائر
-// ============================================================
 class CircleData {
   final double size;
   final int duration;
