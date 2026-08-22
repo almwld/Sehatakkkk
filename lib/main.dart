@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'firebase_options.dart';
 import 'core/providers/font_size_provider.dart';
 import 'core/providers/user_provider.dart';
@@ -24,23 +25,19 @@ import 'presentation/bloc/doctor_bloc/doctor_bloc.dart';
 import 'presentation/screens/splash_screen.dart';
 import 'presentation/screens/wallet/wallet_screen.dart';
 
-// ✅ معالج الخلفية للإشعارات
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print('📩 Handling background message: ${message.messageId}');
-  print('📩 Data: ${message.data}');
 }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ✅ تحديد اتجاه الشاشة
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
-  // ✅ تهيئة Firebase
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -50,7 +47,6 @@ void main() async {
     print('❌ Firebase initialization error: $e');
   }
 
-  // ✅ تهيئة FCM
   try {
     final fcm = FirebaseMessaging.instance;
     await fcm.requestPermission(
@@ -59,27 +55,22 @@ void main() async {
       sound: true,
     );
 
-    // ✅ تسجيل المعالج الخلفي
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-    // ✅ الحصول على التوكن
     final token = await fcm.getToken();
     print('✅ FCM Token: $token');
   } catch (e) {
     print('❌ FCM initialization error: $e');
   }
 
-  // ✅ تهيئة الكاش
   await CacheService.init();
 
-  // ✅ تهيئة الإشعارات
   final notificationService = NotificationService();
   await notificationService.initialize();
 
   runApp(
     MultiProvider(
       providers: [
-        // ✅ UserProvider - باستخدام loadUserSafely
         ChangeNotifierProvider(
           create: (_) => UserProvider()..loadUserSafely(),
         ),
@@ -89,7 +80,6 @@ void main() async {
         ChangeNotifierProvider(
           create: (_) => BotProvider(),
         ),
-        // ✅ WalletProvider - مع تحقق آمن
         ChangeNotifierProvider(
           create: (_) {
             try {
@@ -132,11 +122,9 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    // ✅ الاستماع للإشعارات
     FirebaseMessaging.onMessage.listen(_handleMessage);
     FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpened);
 
-    // ✅ الاستماع لإشعارات المكالمات
     FirebaseMessaging.onMessage.listen((message) {
       if (message.data['type'] == 'incoming_call') {
         _callService.handleIncomingCall(context, message);
@@ -150,22 +138,17 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  // ✅ معالجة العودة من الخلفية
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed) {
       print('🔄 App resumed from background');
-      // ✅ تحديث حالة المستخدم
       if (mounted) {
-        // ✅ إعادة تحميل بيانات المستخدم
         final userProvider = Provider.of<UserProvider>(context, listen: false);
         userProvider.loadUserSafely();
         
-        // ✅ تحديث حالة الاتصال
         final user = FirebaseAuth.instance.currentUser;
         if (user != null) {
-          // ✅ تحديث حالة المستخدم في Firestore
           FirebaseFirestore.instance.collection('users').doc(user.uid).update({
             'isOnline': true,
             'lastSeen': FieldValue.serverTimestamp(),
@@ -186,7 +169,6 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
 
   void _handleMessageOpened(RemoteMessage message) {
     print('📱 Message opened: ${message.data}');
-    // ✅ التنقل إلى الشاشة المناسبة
     if (message.data['type'] == 'incoming_call') {
       _callService.handleIncomingCall(context, message);
     }

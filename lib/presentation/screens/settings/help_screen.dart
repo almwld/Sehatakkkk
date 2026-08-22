@@ -277,10 +277,10 @@ class _HelpScreenState extends State<HelpScreen> {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri);
       } else {
-        ToastService.showError(context, 'لا يمكن فتح الرابط');
+        ToastService.showError('لا يمكن فتح الرابط');
       }
     } catch (e) {
-      ToastService.showError(context, 'حدث خطأ: $e');
+      ToastService.showError('حدث خطأ: $e');
     }
   }
 }

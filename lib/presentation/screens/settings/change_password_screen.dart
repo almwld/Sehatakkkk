@@ -23,17 +23,17 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     if (_currentPasswordController.text.isEmpty ||
         _newPasswordController.text.isEmpty ||
         _confirmPasswordController.text.isEmpty) {
-      ToastService.showError(context, 'يرجى ملء جميع الحقول');
+      ToastService.showError('يرجى ملء جميع الحقول');
       return;
     }
 
     if (_newPasswordController.text != _confirmPasswordController.text) {
-      ToastService.showError(context, 'كلمات المرور غير متطابقة');
+      ToastService.showError('كلمات المرور غير متطابقة');
       return;
     }
 
     if (_newPasswordController.text.length < 6) {
-      ToastService.showError(context, 'كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+      ToastService.showError('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
       return;
     }
 
@@ -42,16 +42,16 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
-        ToastService.showError(context, 'يرجى تسجيل الدخول أولاً');
+        ToastService.showError('يرجى تسجيل الدخول أولاً');
         setState(() => _isLoading = false);
         return;
       }
 
       await user.updatePassword(_newPasswordController.text);
-      ToastService.showSuccess(context, '✅ تم تغيير كلمة المرور بنجاح');
+      ToastService.showSuccess('✅ تم تغيير كلمة المرور بنجاح');
       Navigator.pop(context);
     } catch (e) {
-      ToastService.showError(context, '❌ خطأ: ${e.toString()}');
+      ToastService.showError('❌ خطأ: ${e.toString()}');
     } finally {
       setState(() => _isLoading = false);
     }

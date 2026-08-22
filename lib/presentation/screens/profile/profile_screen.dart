@@ -307,7 +307,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final action = actions[index];
         return GestureDetector(
           onTap: () {
-            ToastService.showSuccess(context, 'جاري فتح ${action['label']}...');
+            ToastService.showSuccess('جاري فتح ${action['label']}...');
           },
           child: Container(
             decoration: BoxDecoration(
@@ -399,10 +399,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         .doc(user.uid)
                         .update({label == 'الاسم' ? 'name' : 'phone': controller.text});
                     _loadUserData();
-                    ToastService.showSuccess(context, '✅ تم التحديث بنجاح');
+                    ToastService.showSuccess('✅ تم التحديث بنجاح');
                   }
                 } catch (e) {
-                  ToastService.showError(context, '❌ حدث خطأ: $e');
+                  ToastService.showError('❌ حدث خطأ: $e');
                 }
                 Navigator.pop(context);
               }

@@ -323,6 +323,6 @@ class _MedicationReminderScreenState extends State<MedicationReminderScreen> {
   Future<void> _takeMedication(MedicationModel med) async {
     await _medicationService.logMedication(med.id, true);
     await _loadData();
-    ToastService.showSuccess(context, '✅ تم تسجيل تناول الدواء');
+    ToastService.showSuccess('✅ تم تسجيل تناول الدواء');
   }
 }

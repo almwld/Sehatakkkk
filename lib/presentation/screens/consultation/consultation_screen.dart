@@ -66,6 +66,6 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
   }
 
   Future<void> _selectLabOption(LabChoice choice) async {
-    ToastService.showSuccess(context, 'تم اختيار خيار المختبر: ${choice.name}');
+    ToastService.showSuccess('تم اختيار خيار المختبر: ${choice.name}');
   }
 }

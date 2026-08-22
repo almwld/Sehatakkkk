@@ -72,7 +72,7 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen> {
     if (_weightController.text.isEmpty) return;
     final weight = double.tryParse(_weightController.text);
     if (weight == null || weight <= 0) {
-      ToastService.showError(context, 'يرجى إدخال وزن صحيح');
+      ToastService.showError('يرجى إدخال وزن صحيح');
       return;
     }
     setState(() {
@@ -83,7 +83,7 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen> {
     _weightController.clear();
     _noteController.clear();
     _saveWeightData();
-    ToastService.showSuccess(context, '✅ تم تسجيل الوزن: $weight كجم');
+    ToastService.showSuccess('✅ تم تسجيل الوزن: $weight كجم');
   }
 
   void _deleteWeight(int index) {
@@ -92,7 +92,7 @@ class _WeightTrackerScreenState extends State<WeightTrackerScreen> {
       _currentWeight = _weightHistory.isNotEmpty ? _weightHistory.last['weight'] : _initialWeight;
     });
     _saveWeightData();
-    ToastService.showSuccess(context, '🗑️ تم حذف السجل');
+    ToastService.showSuccess('🗑️ تم حذف السجل');
   }
 
   void _setTargetWeight() {

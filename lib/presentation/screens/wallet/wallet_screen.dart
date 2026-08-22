@@ -52,7 +52,7 @@ class _WalletScreenState extends State<WalletScreen> with WidgetsBindingObserver
       );
     } catch (e) {
       if (mounted) {
-        ToastService.showError(context, 'فشل تهيئة المحفظة: $e');
+        ToastService.showError('فشل تهيئة المحفظة: $e');
       }
     }
   }

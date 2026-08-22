@@ -117,7 +117,7 @@ class _HospitalScreenState extends State<HospitalScreen> {
   Widget _buildHospitalCard(Map<String, dynamic> hospital, bool isDark) {
     return GestureDetector(
       onTap: () {
-        ToastService.showSuccess(context, 'جاري عرض تفاصيل ${hospital['name']}');
+        ToastService.showSuccess('جاري عرض تفاصيل ${hospital['name']}');
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),

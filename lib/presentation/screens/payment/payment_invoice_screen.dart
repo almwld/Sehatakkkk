@@ -255,7 +255,7 @@ class _PaymentInvoiceScreenState extends State<PaymentInvoiceScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ToastService.showError(context, 'خطأ في عملية الدفع: $e');
+        ToastService.showError('خطأ في عملية الدفع: $e');
         setState(() => _isProcessing = false);
       }
     }

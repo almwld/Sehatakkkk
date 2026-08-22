@@ -358,10 +358,10 @@ class _AboutScreenState extends State<AboutScreen> {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri);
       } else {
-        ToastService.showSuccess(context, 'لا يمكن فتح الرابط');
+        ToastService.showSuccess('لا يمكن فتح الرابط');
       }
     } catch (e) {
-      ToastService.showError(context, 'حدث خطأ: $e');
+      ToastService.showError('حدث خطأ: $e');
     }
   }
 }

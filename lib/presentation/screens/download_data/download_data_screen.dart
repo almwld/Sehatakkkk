@@ -22,11 +22,11 @@ class _DownloadDataScreenState extends State<DownloadDataScreen> {
     final selected = _selectedItems.entries.where((e) => e.value).map((e) => e.key).toList();
 
     if (selected.isEmpty) {
-      ToastService.showError(context, '❌ يرجى اختيار البيانات للتحميل');
+      ToastService.showError('❌ يرجى اختيار البيانات للتحميل');
       return;
     }
 
-    ToastService.showSuccess(context, '📥 جاري تحميل البيانات...');
+    ToastService.showSuccess('📥 جاري تحميل البيانات...');
   }
 
   @override

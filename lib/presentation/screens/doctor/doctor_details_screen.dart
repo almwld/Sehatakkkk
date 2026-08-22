@@ -172,10 +172,10 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
 
     switch (action) {
       case 'call':
-        ToastService.showSuccess(context, '📞 جاري الاتصال بالطبيب...');
+        ToastService.showSuccess('📞 جاري الاتصال بالطبيب...');
         break;
       case 'video':
-        ToastService.showSuccess(context, '📹 جاري بدء مكالمة فيديو...');
+        ToastService.showSuccess('📹 جاري بدء مكالمة فيديو...');
         break;
       case 'chat':
         if (screen != null) {
@@ -304,7 +304,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
           IconButton(
             icon: Icon(Icons.share, color: isDark ? Colors.white : Colors.black87),
             onPressed: () {
-              ToastService.showSuccess(context, '🔗 تم نسخ الرابط');
+              ToastService.showSuccess('🔗 تم نسخ الرابط');
             },
           ),
         ],

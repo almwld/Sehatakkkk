@@ -59,7 +59,7 @@ class _RateAppScreenState extends State<RateAppScreen> {
               ElevatedButton(
                 onPressed: _rating > 0
                     ? () {
-                        ToastService.showSuccess(context, '✅ شكراً لتقييمك! $_rating نجوم');
+                        ToastService.showSuccess('✅ شكراً لتقييمك! $_rating نجوم');
                         Navigator.pop(context);
                       }
                     : null,

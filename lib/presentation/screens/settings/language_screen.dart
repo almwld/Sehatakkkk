@@ -73,7 +73,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
                   : null,
               onTap: () {
                 setState(() => _selectedLanguage = lang['code'] as String);
-                ToastService.showSuccess(context, 'تم تغيير اللغة إلى ${lang['name']}');
+                ToastService.showSuccess('تم تغيير اللغة إلى ${lang['name']}');
               },
             ),
           );

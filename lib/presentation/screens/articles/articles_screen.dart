@@ -118,7 +118,7 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
   Widget _buildArticleCard(Map<String, dynamic> article, bool isDark) {
     return GestureDetector(
       onTap: () {
-        ToastService.showSuccess(context, 'جاري عرض: ${article['title']}');
+        ToastService.showSuccess('جاري عرض: ${article['title']}');
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),

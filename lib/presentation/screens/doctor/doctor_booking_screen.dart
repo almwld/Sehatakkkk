@@ -478,7 +478,7 @@ class _DoctorBookingScreenState extends State<DoctorBookingScreen> {
     setState(() => _isLoading = true);
     Future.delayed(const Duration(seconds: 2), () {
       setState(() => _isLoading = false);
-      ToastService.showSuccess(context, '✅ تم حجز الموعد بنجاح!');
+      ToastService.showSuccess('✅ تم حجز الموعد بنجاح!');
       Navigator.pop(context);
     });
   }

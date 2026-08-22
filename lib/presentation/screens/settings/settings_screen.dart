@@ -88,7 +88,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
 
         if (!isAuthenticated) {
-          ToastService.showError(context, '❌ فشل التحقق من البصمة، حاول مرة أخرى');
+          ToastService.showError('❌ فشل التحقق من البصمة، حاول مرة أخرى');
           setState(() {
             _isBiometricEnabled = false;
           });
@@ -98,12 +98,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('biometric_enabled', true);
 
-        ToastService.showSuccess(context, '✅ تم تفعيل تسجيل الدخول بالبصمة بنجاح');
+        ToastService.showSuccess('✅ تم تفعيل تسجيل الدخول بالبصمة بنجاح');
       } else {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('biometric_enabled', false);
 
-        ToastService.showError(context, '❌ تم إلغاء تفعيل تسجيل الدخول بالبصمة');
+        ToastService.showError('❌ تم إلغاء تفعيل تسجيل الدخول بالبصمة');
       }
 
       setState(() {
@@ -111,7 +111,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       });
     } catch (e) {
       print('Error toggling biometric: $e');
-      ToastService.showError(context, '❌ حدث خطأ: $e');
+      ToastService.showError('❌ حدث خطأ: $e');
       await _loadBiometricPrefs();
     }
   }
@@ -177,7 +177,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       _isSystemMode = value;
                       _isDarkMode = false;
                     });
-                    ToastService.showSuccess(context, '🔄 تم تفعيل الوضع التلقائي - متابعة إعدادات النظام');
+                    ToastService.showSuccess('🔄 تم تفعيل الوضع التلقائي - متابعة إعدادات النظام');
                   },
                   isDark: isDark,
                 ),
@@ -212,7 +212,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         title: 'المصادقة الثنائية',
                         subtitle: 'تفعيل المصادقة الثنائية لمزيد من الأمان',
                         onTap: () {
-                          ToastService.showSuccess(context, '🔐 سيتم تفعيل المصادقة الثنائية قريباً');
+                          ToastService.showSuccess('🔐 سيتم تفعيل المصادقة الثنائية قريباً');
                         },
                         isDark: isDark,
                       ),
@@ -642,7 +642,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   );
                 }
               } catch (e) {
-                ToastService.showError(context, 'خطأ في تسجيل الخروج: $e');
+                ToastService.showError('خطأ في تسجيل الخروج: $e');
               }
             },
             style: TextButton.styleFrom(

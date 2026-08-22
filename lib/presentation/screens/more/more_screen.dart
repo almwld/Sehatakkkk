@@ -36,7 +36,6 @@ import 'package:sehatak/presentation/screens/help_center/help_center_screen.dart
 import 'package:sehatak/presentation/screens/contact_us/contact_us_screen.dart';
 import 'package:sehatak/presentation/screens/share_app/share_app_screen.dart';
 import 'package:sehatak/presentation/screens/rate_app/rate_app_screen.dart';
-import 'package:sehatak/presentation/screens/report_issue/report_issue_screen.dart>';
 import 'package:sehatak/presentation/screens/download_data/download_data_screen.dart';
 import 'package:sehatak/presentation/screens/font_size/font_size_screen.dart';
 import 'package:sehatak/presentation/screens/privacy/privacy_screen.dart';
@@ -146,7 +145,7 @@ class _MoreScreenState extends State<MoreScreen>
           {'icon': 'assets/images/ui/settings_gear.png', 'title': 'اتصل بنا', 'subtitle': 'تواصل مع فريق الدعم', 'screen': const ContactUsScreen()},
           {'icon': 'assets/images/ui/settings_gear.png', 'title': 'مشاركة التطبيق', 'subtitle': 'شارك التطبيق مع أصدقائك', 'screen': const ShareAppScreen()},
           {'icon': 'assets/images/ui/like_button.png', 'title': 'تقييم التطبيق', 'subtitle': 'قيم التطبيق', 'screen': const RateAppScreen()},
-          {'icon': 'assets/images/ui/settings_gear.png', 'title': 'الإبلاغ عن مشكلة', 'subtitle': 'أبلغ عن مشكلة', 'screen': const ReportIssueScreen()},
+          {'icon': 'assets/images/ui/settings_gear.png', 'title': 'الإبلاغ عن مشكلة', 'subtitle': 'أبلغ عن مشكلة', 'screen': const Placeholder()},
           {'icon': 'assets/images/ui/settings_gear.png', 'title': 'تحميل البيانات', 'subtitle': 'تحميل بياناتك الصحية', 'screen': const DownloadDataScreen()},
           {'icon': 'assets/images/ui/edit_button.png', 'title': 'حجم الخط', 'subtitle': 'تغيير حجم الخط', 'screen': const FontSizeScreen()},
         ];

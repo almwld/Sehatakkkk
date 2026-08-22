@@ -169,7 +169,7 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
           _isConnecting = false;
           _errorMessage = 'فشل الاتصال: $e';
         });
-        ToastService.showError(context, '❌ ${_errorMessage}');
+        ToastService.showError('❌ ${_errorMessage}');
         Future.delayed(const Duration(seconds: 3), () {
           if (mounted) Navigator.pop(context);
         });

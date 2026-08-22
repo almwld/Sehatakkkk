@@ -30,10 +30,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is OtpSent) {
-            ToastService.showSuccess(context, '✅ تم إرسال رمز التحقق');
+            ToastService.showSuccess('✅ تم إرسال رمز التحقق');
           }
           if (state is AuthError) {
-            ToastService.showError(context, state.message);
+            ToastService.showError(state.message);
             setState(() => _isLoading = false);
           }
         },
@@ -102,14 +102,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   Future<void> _sendOtp() async {
     if (_phoneController.text.isEmpty) {
-      ToastService.showError(context, 'الرجاء إدخال رقم الهاتف');
+      ToastService.showError('الرجاء إدخال رقم الهاتف');
       return;
     }
     setState(() => _isLoading = true);
     try {
       context.read<AuthBloc>().add(SendOtp(phone: _phoneController.text.trim()));
     } catch (e) {
-      ToastService.showError(context, 'حدث خطأ غير متوقع');
+      ToastService.showError('حدث خطأ غير متوقع');
       setState(() => _isLoading = false);
     }
   }

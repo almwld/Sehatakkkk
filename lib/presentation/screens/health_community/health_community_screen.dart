@@ -165,7 +165,7 @@ class _HealthCommunityScreenState extends State<HealthCommunityScreen>
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.pop(context);
-                      ToastService.showSuccess(context, '✅ تم نشر المنشور بنجاح');
+                      ToastService.showSuccess('✅ تم نشر المنشور بنجاح');
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
@@ -467,7 +467,7 @@ class _HealthCommunityScreenState extends State<HealthCommunityScreen>
               const Spacer(),
               GestureDetector(
                 onTap: () {
-                  ToastService.showSuccess(context, '✅ تم المشاركة');
+                  ToastService.showSuccess('✅ تم المشاركة');
                 },
                 child: Row(
                   children: [

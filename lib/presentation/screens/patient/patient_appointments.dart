@@ -50,7 +50,7 @@ class _PatientAppointmentsState extends State<PatientAppointments> {
       setState(() => _isLoading = false);
     } catch (e) {
       setState(() => _isLoading = false);
-      ToastService.showError(context, 'حدث خطأ في تحميل المواعيد');
+      ToastService.showError('حدث خطأ في تحميل المواعيد');
     }
   }
 

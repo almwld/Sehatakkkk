@@ -90,12 +90,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       if (!mounted) return;
 
-      ToastService.showSuccess(context, '✅ تم تحديث الملف الشخصي بنجاح');
+      ToastService.showSuccess('✅ تم تحديث الملف الشخصي بنجاح');
 
       Navigator.pop(context, true);
 
     } catch (e) {
-      ToastService.showError(context, '❌ فشل التحديث: $e');
+      ToastService.showError('❌ فشل التحديث: $e');
     }
 
     setState(() => _isSaving = false);

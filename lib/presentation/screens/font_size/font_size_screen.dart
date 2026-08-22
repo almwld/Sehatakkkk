@@ -30,7 +30,7 @@ class _FontSizeScreenState extends State<FontSizeScreen> {
 
   void _resetFontSize() {
     _updateFontSize(1.0);
-    ToastService.showSuccess(context, '✅ تم إعادة حجم الخط للافتراضي');
+    ToastService.showSuccess('✅ تم إعادة حجم الخط للافتراضي');
   }
 
   @override
@@ -194,7 +194,7 @@ class _FontSizeScreenState extends State<FontSizeScreen> {
     return ElevatedButton(
       onPressed: () {
         Navigator.pop(context);
-        ToastService.showSuccess(context, '✅ تم حفظ حجم الخط');
+        ToastService.showSuccess('✅ تم حفظ حجم الخط');
       },
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.primary,

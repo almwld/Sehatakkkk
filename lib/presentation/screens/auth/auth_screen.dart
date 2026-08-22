@@ -506,7 +506,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
   }
 
   void _showMessage(String message, bool isError) {
-    ToastService.showError(context, message);
+    ToastService.showError(message);
   }
 
   List<Widget> _buildDynamicFields(bool isDark, Color primaryColor) {

@@ -346,7 +346,7 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
 
     Future.delayed(const Duration(seconds: 2), () {
       Navigator.pop(context);
-      ToastService.showSuccess(context, '✅ تم حجز الفحوصات بنجاح!');
+      ToastService.showSuccess('✅ تم حجز الفحوصات بنجاح!');
       Navigator.pop(context);
     });
   }

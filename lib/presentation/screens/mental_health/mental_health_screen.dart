@@ -124,7 +124,7 @@ class _MentalHealthScreenState extends State<MentalHealthScreen> {
                 final color = s['color'] as Color;
                 return GestureDetector(
                   onTap: () {
-                    ToastService.showSuccess(context, 'جاري تحميل ${s['name']}...');
+                    ToastService.showSuccess('جاري تحميل ${s['name']}...');
                   },
                   child: Container(
                     padding: const EdgeInsets.all(16),

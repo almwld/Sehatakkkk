@@ -68,10 +68,10 @@ ${report['result']}
   }
 
   void _downloadPDF(Map<String, dynamic> report) {
-    ToastService.showSuccess(context, '✅ جاري تحميل ملف PDF...');
+    ToastService.showSuccess('✅ جاري تحميل ملف PDF...');
     Future.delayed(const Duration(seconds: 2), () {
       if (!mounted) return;
-      ToastService.showSuccess(context, '📄 تم تحميل التقرير بنجاح');
+      ToastService.showSuccess('📄 تم تحميل التقرير بنجاح');
     });
   }
 

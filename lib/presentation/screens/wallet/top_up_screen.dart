@@ -299,7 +299,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     if (_selectedWallet == null) {
-      ToastService.showError(context, 'يرجى اختيار المحفظة أولاً');
+      ToastService.showError('يرجى اختيار المحفظة أولاً');
       return;
     }
 
@@ -310,7 +310,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
       final referenceNumber = _refController.text.trim();
 
       if (amount <= 0) {
-        ToastService.showError(context, 'المبلغ يجب أن يكون أكبر من صفر');
+        ToastService.showError('المبلغ يجب أن يكون أكبر من صفر');
         return;
       }
 
@@ -335,7 +335,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ToastService.showError(context, 'فشلت العملية: $e');
+        ToastService.showError('فشلت العملية: $e');
       }
     } finally {
       if (mounted) {

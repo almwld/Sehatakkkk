@@ -141,7 +141,7 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  ToastService.showSuccess(context, 'جاري حجز موعد...');
+                  ToastService.showSuccess('جاري حجز موعد...');
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
