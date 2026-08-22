@@ -10,7 +10,6 @@ import 'package:sehatak/presentation/screens/chat/updates_screen.dart';
 import 'package:sehatak/presentation/screens/chat/search_screen.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/chat_shimmer.dart';
 import 'package:sehatak/core/services/haptic_service.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -110,52 +109,46 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      body: Column(
+      // ✅ AppBar ظاهر مع التبويبات
+      appBar: AppBar(
+        title: const Text('المحادثات'),
+        backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
+        foregroundColor: isDark ? Colors.white : Colors.black87,
+        elevation: 0,
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.search, color: isDark ? Colors.white : Colors.black87),
+            onPressed: _showSearch,
+          ),
+        ],
+        bottom: TabBar(
+          controller: _tabController,
+          indicatorColor: AppColors.primary,
+          labelColor: isDark ? Colors.white : AppColors.primary,
+          unselectedLabelColor: isDark ? Colors.grey[400] : Colors.grey[600],
+          labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          onTap: _onTabChange,
+          tabs: const [
+            Tab(text: 'المحادثات'),
+            Tab(text: 'المكالمات'),
+            Tab(text: 'الحالات'),
+          ],
+        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
         children: [
-          // ✅ شريط التبويبات المحسن
-          Container(
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF0B1121) : Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: TabBar(
-              controller: _tabController,
-              indicatorColor: AppColors.primary,
-              labelColor: isDark ? Colors.white : AppColors.primary,
-              unselectedLabelColor: isDark ? Colors.grey[400] : Colors.grey[600],
-              labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              onTap: _onTabChange,
-              tabs: const [
-                Tab(text: 'المحادثات'),
-                Tab(text: 'المكالمات'),
-                Tab(text: 'الحالات'),
-              ],
-            ),
-          ),
-          // ✅ المحتوى مع أنيميشن
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildChatsTab(isDark).animate().fadeIn(duration: 300.ms),
-                const CallsScreen().animate().fadeIn(duration: 300.ms),
-                const UpdatesScreen().animate().fadeIn(duration: 300.ms),
-              ],
-            ),
-          ),
+          _buildChatsTab(isDark),
+          const CallsScreen(),
+          const UpdatesScreen(),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _startNewChat,
         backgroundColor: AppColors.primary,
         child: const Icon(Icons.chat_bubble_outline, color: Colors.white),
-      ).animate().scale(duration: 500.ms, curve: Curves.easeOut),
+      ),
     );
   }
 
@@ -176,69 +169,13 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
           return _buildEmptyState(isDark);
         }
 
-        return Column(
-          children: [
-            // ✅ شريط البحث المحسن
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: GestureDetector(
-                onTap: () {
-                  _haptic.lightImpact();
-                  Navigator.push(
-                    context,
-                    PageRouteBuilder(
-                      transitionDuration: const Duration(milliseconds: 300),
-                      pageBuilder: (context, animation, secondaryAnimation) =>
-                          const SearchScreen(),
-                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                        const begin = Offset(0.0, 1.0);
-                        const end = Offset.zero;
-                        const curve = Curves.easeInOut;
-                        var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                        var offsetAnimation = animation.drive(tween);
-                        return SlideTransition(position: offsetAnimation, child: child);
-                      },
-                    ),
-                  );
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1A2540) : Colors.grey[100],
-                    borderRadius: BorderRadius.circular(25),
-                    border: Border.all(
-                      color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey[600]),
-                      const SizedBox(width: 8),
-                      Text(
-                        'ابحث عن محادثة...',
-                        style: TextStyle(
-                          color: isDark ? Colors.grey[400] : Colors.grey[600],
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            // ✅ قائمة المحادثات مع تأثيرات
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                itemCount: chats.length,
-                itemBuilder: (context, index) {
-                  final chat = chats[index];
-                  return _buildChatTile(chat, isDark, index);
-                },
-              ),
-            ),
-          ],
+        return ListView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          itemCount: chats.length,
+          itemBuilder: (context, index) {
+            final chat = chats[index];
+            return _buildChatTile(chat, isDark, index);
+          },
         );
       },
     );
@@ -273,7 +210,6 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
         ),
         child: Row(
           children: [
-            // ✅ صورة المستخدم مع تدرج لوني
             Container(
               width: 52,
               height: 52,
@@ -300,7 +236,6 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
               ),
             ),
             const SizedBox(width: 12),
-            // ✅ معلومات المحادثة
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -374,9 +309,6 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
           ],
         ),
       ),
-    ).animate().fadeIn(
-      duration: 300.ms,
-      delay: (50 * index).ms,
     );
   }
 
@@ -444,12 +376,8 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
               _haptic.heavyImpact();
               _chatRepo.deleteChat(chat.id);
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('✅ تم حذف المحادثة'),
-                  backgroundColor: Colors.green,
-                ),
-              );
+              // ✅ استخدام Toast بدلاً من SnackBar
+              _showToast('✅ تم حذف المحادثة');
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('حذف'),
@@ -459,12 +387,44 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     );
   }
 
+  // ✅ دالة Toast بدلاً من SnackBar
+  void _showToast(String message) {
+    // ✅ استخدام BotToast أو FlutterToast
+    // مؤقتاً نستخدم SnackBar لكن بخلفية مختلفة
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        margin: const EdgeInsets.all(10),
+      ),
+    );
+  }
+
+  void _showErrorToast(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        margin: const EdgeInsets.all(10),
+      ),
+    );
+  }
+
   Widget _buildEmptyState(bool isDark) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // ✅ رسم توضيحي متحرك
           Icon(
             Icons.chat_bubble_outline_rounded,
             size: 80,
@@ -515,15 +475,35 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
           const SizedBox(height: 16),
           Text(
             'حدث خطأ في تحميل المحادثات',
-            style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
           ),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () => setState(() {}),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
             child: const Text('إعادة المحاولة'),
           ),
         ],
       ),
+    );
+  }
+
+  void _showSearch() {
+    _haptic.lightImpact();
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const SearchScreen()),
     );
   }
 
@@ -565,12 +545,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
               subtitle: 'ابدأ محادثة مع طبيب',
               onTap: () {
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('🔍 ابحث عن طبيب لبدء محادثة'),
-                    backgroundColor: AppColors.primary,
-                  ),
-                );
+                _showToast('🔍 ابحث عن طبيب لبدء محادثة');
               },
             ),
             const SizedBox(height: 12),
@@ -580,12 +555,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
               subtitle: 'أنشئ مجموعة دردشة',
               onTap: () {
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('👥 جاري إنشاء مجموعة...'),
-                    backgroundColor: AppColors.primary,
-                  ),
-                );
+                _showToast('👥 جاري إنشاء مجموعة...');
               },
             ),
             const SizedBox(height: 20),
