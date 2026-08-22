@@ -33,6 +33,7 @@ class ChatDetailScreen extends StatefulWidget {
 class _ChatDetailScreenState extends State<ChatDetailScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final FocusNode _focusNode = FocusNode();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
@@ -55,6 +56,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   void dispose() {
     _messageController.dispose();
     _scrollController.dispose();
+    _focusNode.dispose();
     _typingDebounce?.cancel();
     _typingService.stopTyping(chatId: widget.chatId);
     super.dispose();
@@ -463,7 +465,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                 _replyToMessage = data;
                                 _replyToMessageId = message.id;
                               });
-                              FocusScope.of(context).requestFocus(_messageController);
+                              _focusNode.requestFocus();
                             },
                             onDelete: () {
                               _firestore
@@ -529,6 +531,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                           ),
                           child: TextField(
                             controller: _messageController,
+                            focusNode: _focusNode,
                             onChanged: _onTextChanged,
                             onSubmitted: (_) => _sendMessage(),
                             style: TextStyle(
