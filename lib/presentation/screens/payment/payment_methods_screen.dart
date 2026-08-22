@@ -22,7 +22,6 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
   LocalWalletOption? _selectedWallet;
   bool _showTransferInstructions = false;
 
-  // ✅ تعليمات التحويل لمحفظة جيب
   String get _transferInstructions => '''
 🔹 **رقم الإيداع الموحد:** 536396
 🔹 **اسم المستفيد:** منصة صحتك
@@ -41,7 +40,6 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
 📞 للاستفسار: 777123456
 ''';
 
-  // ✅ أرقام المحافظ
   final Map<String, String> _walletNumbers = {
     'حاسب الكريمي': '770000000',
     'فلوسك': '771111111',
@@ -104,7 +102,6 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ✅ عنوان
             Row(
               children: [
                 Container(
@@ -150,7 +147,6 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
             ),
             const Divider(height: 24),
 
-            // ✅ رقم الإيداع الموحد
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -196,7 +192,6 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
             ),
             const SizedBox(height: 16),
 
-            // ✅ تعليمات التحويل
             ..._transferInstructions.split('\n').map((line) {
               if (line.trim().isEmpty) return const SizedBox(height: 4);
               if (line.startsWith('🔹')) {
@@ -275,7 +270,6 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
 
             const SizedBox(height: 16),
 
-            // ✅ أزرار
             Row(
               children: [
                 Expanded(
@@ -295,10 +289,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.pop(context);
- ToastService.showSuccess(
-                        context,
-                        '✅ تم نسخ رقم الإيداع: 536396',
-                      );
+                      ToastService.showSuccess('✅ تم نسخ رقم الإيداع: 536396');
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
@@ -378,7 +369,6 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
           borderRadius: BorderRadius.circular(20),
           onTap: () {
             if (isJeeb) {
-              // ✅ عرض تعليمات التحويل لمحفظة جيب
               showDialog(
                 context: context,
                 builder: (_) => _buildTransferInstructionsDialog(),
@@ -386,7 +376,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
             } else if (widget.onSelectWallet != null) {
               widget.onSelectWallet!(wallet);
             } else {
- ToastService.showSuccess('✅ تم اختيار ${wallet.name}');
+              ToastService.showSuccess('✅ تم اختيار ${wallet.name}');
               Navigator.pop(context, wallet);
             }
           },
@@ -394,7 +384,6 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                // ✅ أيقونة المحفظة
                 Stack(
                   children: [
                     _buildWalletIcon(wallet.assetPath),
@@ -419,7 +408,6 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                 ),
                 const SizedBox(width: 16),
 
-                // ✅ معلومات المحفظة
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -509,7 +497,6 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                   ),
                 ),
 
-                // ✅ زر الإجراء
                 if (isJeeb)
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -583,17 +570,13 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
           IconButton(
             icon: const Icon(Icons.help_outline_rounded),
             onPressed: () {
- ToastService.showInfo(
-                context,
-                'اختر محفظتك المحلية لإتمام عملية الدفع',
-              );
+              ToastService.showInfo('اختر محفظتك المحلية لإتمام عملية الدفع');
             },
           ),
         ],
       ),
       body: Column(
         children: [
-          // ✅ شريط المعلومات
           Container(
             margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -627,7 +610,6 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
             ),
           ),
 
-          // ✅ قائمة المحافظ
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -639,7 +621,6 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
             ),
           ),
 
-          // ✅ تذييل
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(

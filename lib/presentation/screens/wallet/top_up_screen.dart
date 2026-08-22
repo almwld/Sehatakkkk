@@ -53,7 +53,6 @@ class _TopUpScreenState extends State<TopUpScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // عرض الرصيد الحالي
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -81,7 +80,6 @@ class _TopUpScreenState extends State<TopUpScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // اختيار المحفظة
                   Text(
                     'اختر المحفظة التي قمت بالتحويل منها:',
                     style: TextStyle(
@@ -215,7 +213,6 @@ class _TopUpScreenState extends State<TopUpScreen> {
 
                   const SizedBox(height: 24),
 
-                  // حقل المبلغ
                   TextFormField(
                     controller: _amountController,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -241,7 +238,6 @@ class _TopUpScreenState extends State<TopUpScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // حقل رقم الإشعار
                   TextFormField(
                     controller: _refController,
                     keyboardType: TextInputType.number,
@@ -266,7 +262,6 @@ class _TopUpScreenState extends State<TopUpScreen> {
                   ),
                   const SizedBox(height: 32),
 
-                  // زر التأكيد
                   SizedBox(
                     width: double.infinity,
                     height: 56,
@@ -327,10 +322,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
       );
 
       if (mounted) {
-        ToastService.showSuccess(
-          context,
-          'تمت إضافة ${amount.toStringAsFixed(0)} ر.ي إلى محفظتك بنجاح',
-        );
+        ToastService.showSuccess('تمت إضافة ${amount.toStringAsFixed(0)} ر.ي إلى محفظتك بنجاح');
         Navigator.pop(context, true);
       }
     } catch (e) {
