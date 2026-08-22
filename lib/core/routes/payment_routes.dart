@@ -32,7 +32,6 @@ class PaymentRoutes {
         final args = settings.arguments as Map<String, dynamic>;
         return MaterialPageRoute(
           builder: (_) => PaymentInvoiceScreen(
-            items: args['items'] as List<Map<String, dynamic>>? ?? [],
             invoiceTitle: args['title'] as String? ?? 'فاتورة خدمات طبية',
           ),
         );

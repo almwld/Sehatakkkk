@@ -6,12 +6,14 @@ class PaymentInvoiceScreen extends StatefulWidget {
   final double amount;
   final String orderId;
   final String paymentMethod;
+  final List<Map<String, dynamic>>? items;
 
   const PaymentInvoiceScreen({
     super.key,
     required this.amount,
     required this.orderId,
     required this.paymentMethod,
+    this.items,
   });
 
   @override
@@ -53,6 +55,29 @@ class _PaymentInvoiceScreenState extends State<PaymentInvoiceScreen> {
                     const Divider(),
                     _buildRow('رقم الطلب', widget.orderId),
                     _buildRow('طريقة الدفع', widget.paymentMethod),
+                    if (widget.items != null && widget.items!.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      const Text(
+                        'المنتجات:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                      ...widget.items!.map((item) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(item['name'] ?? 'منتج'),
+                              Text('${item['price'] ?? 0} ﷼'),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ],
+                    const Divider(),
                     _buildRow(
                       'المبلغ الإجمالي',
                       '${widget.amount.toStringAsFixed(2)} ﷼',
