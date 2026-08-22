@@ -28,6 +28,7 @@ import 'presentation/screens/wallet/wallet_screen.dart';
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print('📩 Handling background message: ${message.messageId}');
+  print('📩 Data: ${message.data}');
 }
 
 void main() async {
@@ -78,8 +79,9 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
+        // ✅ UserProvider - باستخدام loadUserSafely
         ChangeNotifierProvider(
-          create: (_) => UserProvider()..loadUser(),
+          create: (_) => UserProvider()..loadUserSafely(),
         ),
         ChangeNotifierProvider(
           create: (_) => FontSizeProvider(),
@@ -87,10 +89,16 @@ void main() async {
         ChangeNotifierProvider(
           create: (_) => BotProvider(),
         ),
+        // ✅ WalletProvider - مع تحقق آمن
         ChangeNotifierProvider(
           create: (_) {
-            final user = FirebaseAuth.instance.currentUser;
-            return WalletProvider(uid: user?.uid ?? '');
+            try {
+              final user = FirebaseAuth.instance.currentUser;
+              return WalletProvider(uid: user?.uid ?? '');
+            } catch (e) {
+              print('❌ WalletProvider error: $e');
+              return WalletProvider(uid: '');
+            }
           },
         ),
         ChangeNotifierProvider(
@@ -115,13 +123,14 @@ class SehatakApp extends StatefulWidget {
   State<SehatakApp> createState() => _SehatakAppState();
 }
 
-class _SehatakAppState extends State<SehatakApp> {
+class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
   final CallService _callService = CallService();
   final NotificationService _notificationService = NotificationService();
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     // ✅ الاستماع للإشعارات
     FirebaseMessaging.onMessage.listen(_handleMessage);
@@ -133,6 +142,37 @@ class _SehatakAppState extends State<SehatakApp> {
         _callService.handleIncomingCall(context, message);
       }
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  // ✅ معالجة العودة من الخلفية
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      print('🔄 App resumed from background');
+      // ✅ تحديث حالة المستخدم
+      if (mounted) {
+        // ✅ إعادة تحميل بيانات المستخدم
+        final userProvider = Provider.of<UserProvider>(context, listen: false);
+        userProvider.loadUserSafely();
+        
+        // ✅ تحديث حالة الاتصال
+        final user = FirebaseAuth.instance.currentUser;
+        if (user != null) {
+          // ✅ تحديث حالة المستخدم في Firestore
+          FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+            'isOnline': true,
+            'lastSeen': FieldValue.serverTimestamp(),
+          });
+        }
+      }
+    }
   }
 
   void _handleMessage(RemoteMessage message) {
