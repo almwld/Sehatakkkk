@@ -2,14 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class TypingIndicator extends StatefulWidget {
-  final Color? color;
-  final double size;
+  final String? name;
 
-  const TypingIndicator({
-    super.key,
-    this.color,
-    this.size = 20,
-  });
+  const TypingIndicator({super.key, this.name});
 
   @override
   State<TypingIndicator> createState() => _TypingIndicatorState();
@@ -47,29 +42,48 @@ class _TypingIndicatorState extends State<TypingIndicator>
 
   @override
   Widget build(BuildContext context) {
-    final color = widget.color ?? AppColors.primary;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return SizedBox(
-      width: widget.size * 2.5,
-      height: widget.size,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2540) : Colors.grey[100],
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(3, (index) {
-          return AnimatedBuilder(
-            animation: _animations[index],
-            builder: (context, child) {
-              return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 2),
-                width: widget.size * 0.25,
-                height: widget.size * (0.3 + 0.7 * _animations[index].value),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.3 + 0.7 * _animations[index].value),
-                  borderRadius: BorderRadius.circular(widget.size * 0.25),
-                ),
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // ✅ النقاط المتحركة
+          Row(
+            children: List.generate(3, (index) {
+              return AnimatedBuilder(
+                animation: _animations[index],
+                builder: (context, child) {
+                  return Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 2),
+                    width: 8,
+                    height: 8 * (0.3 + 0.7 * _animations[index].value),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(
+                        0.3 + 0.7 * _animations[index].value,
+                      ),
+                      shape: BoxShape.circle,
+                    ),
+                  );
+                },
               );
-            },
-          );
-        }),
+            }),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            widget.name != null ? '${widget.name} يكتب...' : 'يكتب...',
+            style: TextStyle(
+              fontSize: 12,
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        ],
       ),
     );
   }
