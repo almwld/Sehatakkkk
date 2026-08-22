@@ -27,7 +27,7 @@ import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
 import 'package:sehatak/presentation/screens/health/health_dashboard.dart';
 import 'package:sehatak/presentation/screens/articles/articles_screen.dart';
 import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
-import 'package:sehatak/presentation/screens/notifications/notifications_screen.dart';
+import 'package:sehatak/presentation/screens/notifications/notifications_screen.dart>';
 import 'package:sehatak/presentation/screens/pharmacy/cart_screen.dart';
 
 // ============================================================
@@ -97,6 +97,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin, W
     {'id': 'd5', 'name': 'د. فاطمة صديقي', 'specialty': 'نساء وولادة', 'rating': 4.8, 'reviews': 210, 'image': ImageKit.doctor5},
   ];
 
+  // ✅ الخدمات السريعة - بدون حاويات
   final List<Map<String, dynamic>> _quickServices = [
     {'icon': 'assets/images/services/pharmacy.png', 'label': 'صيدلية', 'screen': const PharmacyScreen()},
     {'icon': 'assets/images/services/emergency.png', 'label': 'طوارئ', 'screen': const EmergencyNumbers()},
@@ -176,14 +177,14 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin, W
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this); // تسجيل المراقب لدورة حياة التطبيق
+    WidgetsBinding.instance.addObserver(this);
     _initializeData();
     widget.scrollController?.addListener(_onScroll);
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this); // إزالة المراقب
+    WidgetsBinding.instance.removeObserver(this);
     widget.scrollController?.removeListener(_onScroll);
     super.dispose();
   }
@@ -191,7 +192,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin, W
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    // تحديث الشاشة وجلب بيانات المستخدم عند العودة من الخلفية لتجنب الشاشة السوداء
     if (state == AppLifecycleState.resumed) {
       if (mounted) {
         setState(() {
@@ -281,7 +281,8 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin, W
     Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
   }
 
-  Widget _buildServiceIcon(String iconPath, {double size = 48}) {
+  // ✅ أيقونة الخدمة - بدون حاويات
+  Widget _buildServiceIcon(String iconPath, {double size = 56}) {
     return Image.asset(
       iconPath,
       width: size,
@@ -358,10 +359,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin, W
   }
 
   // ============================================================
-  // 📱 الشريط العلوي المنحني (النسخة المعدلة والآمنة)
+  // 📱 الشريط العلوي المنحني
   // ============================================================
   Widget _buildCurvedAppBar(bool isDark) {
-    // حماية آمنة لاستخراج الحرف الأول من الاسم
     final String initial = (_isLoggedIn && _userName.trim().isNotEmpty) 
         ? _userName.trim().substring(0, 1).toUpperCase() 
         : 'م';
@@ -396,7 +396,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin, W
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // ✅ الصورة الرمزية
                   Hero(
                     tag: 'user_avatar',
                     child: GestureDetector(
@@ -416,7 +415,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin, W
                     ),
                   ),
                   const SizedBox(width: 12),
-                  // ✅ النصوص
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -457,7 +455,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin, W
                       ],
                     ),
                   ),
-                  // ✅ أيقونات الإشعارات والسلة
                   GestureDetector(
                     onTap: () => _goTo(context, const NotificationsScreen()),
                     child: Container(
@@ -520,18 +517,15 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin, W
         body: CustomScrollView(
           controller: widget.scrollController,
           slivers: [
-            // ✅ الشريط العلوي المنحني
             SliverToBoxAdapter(
               child: _buildCurvedAppBar(isDark),
             ),
-            // ✅ شريط البحث العائم (بـ margin سالب)
             SliverToBoxAdapter(
               child: Transform.translate(
                 offset: const Offset(0, -20),
                 child: _buildFloatingSearchBar(isDark),
               ),
             ),
-            // ✅ باقي المحتوى
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               sliver: SliverList(
@@ -546,7 +540,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin, W
                   _buildSectionTitleWithAction('خدمات سريعة', isDark, 'عرض الكل',
                     () => _goTo(context, const ServicesScreen())),
                   const SizedBox(height: 8),
-                  _buildQuickServicesRow(), // تم تعديل الخدمات السريعة (بدون حاويات وأيقونات أكبر)
+                  _buildQuickServicesRow(),
                   const SizedBox(height: 16),
                   _buildSectionTitleWithAction('أفضل الأطباء', isDark, 'عرض الكل',
                     () => _goTo(context, const DoctorsListScreen())),
@@ -595,7 +589,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin, W
   }
 
   // ============================================================
-  // 📊 دوال البناء (جميع الدوال كاملة)
+  // 📊 دوال البناء
   // ============================================================
 
   Widget _buildShimmerLoader(bool isDark) {
@@ -809,12 +803,12 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin, W
     );
   }
 
-  // ✅ تعديل: إزالة الحاويات وتكبير حجم الأيقونات بنسبة 20%
+  // ✅ الخدمات السريعة - بدون حاويات وأيقونات أكبر (56)
   Widget _buildQuickServicesRow() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return SizedBox(
-      height: 100, // تقليل الارتفاع قليلاً بسبب إزالة الحاويات
+      height: 110,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -823,16 +817,13 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin, W
           final service = _quickServices[index];
           return GestureDetector(
             onTap: () => _goTo(context, service['screen'] as Widget),
-            child: Container(
+            child: SizedBox(
               width: 86,
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              color: Colors.transparent, // لضمان الاستجابة للنقر بكامل المساحة
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // تم التكبير من 40 إلى 48 وحذف الـ Container
-                  _buildServiceIcon(service['icon'] as String, size: 48),
-                  const SizedBox(height: 10),
+                  _buildServiceIcon(service['icon'] as String, size: 56),
+                  const SizedBox(height: 8),
                   Text(
                     service['label'] as String,
                     style: TextStyle(
