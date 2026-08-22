@@ -6,9 +6,9 @@ import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/screens/chat/chat_detail_screen.dart';
 import 'package:sehatak/presentation/screens/call/call_screen.dart';
+import 'package:sehatak/presentation/screens/ai/ai_chatbot_screen.dart';
 import 'package:sehatak/core/constants/text_styles.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:image_picker/image_picker.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -20,19 +20,23 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabController;
 
-  // ✅ صور الأطباء من ImageKit
+  // ✅ قائمة المحادثات (Mock)
   final List<Map<String, dynamic>> _mockChats = [
     {'id': '1', 'name': 'د. أحمد المؤيد', 'lastMessage': 'مرحباً، كيف يمكنني مساعدتك؟', 'time': DateTime.now().subtract(const Duration(minutes: 5)), 'unread': 2, 'image': ImageKit.doctor1, 'isOnline': true},
     {'id': '2', 'name': 'د. خالد النخلاني', 'lastMessage': 'سأتصل بك غداً', 'time': DateTime.now().subtract(const Duration(hours: 2)), 'unread': 0, 'image': ImageKit.doctor2, 'isOnline': false},
     {'id': '3', 'name': 'د. أسماء الهندي', 'lastMessage': 'تم تأكيد موعدك', 'time': DateTime.now().subtract(const Duration(hours: 5)), 'unread': 1, 'image': ImageKit.doctor3, 'isOnline': true},
+    {'id': '4', 'name': 'د. محمد العلاي', 'lastMessage': 'نحتاج إلى تحليل جديد', 'time': DateTime.now().subtract(const Duration(days: 1)), 'unread': 0, 'image': ImageKit.doctor4, 'isOnline': false},
+    {'id': '5', 'name': 'د. فاطمة صديقي', 'lastMessage': 'كيف تشعر اليوم؟', 'time': DateTime.now().subtract(const Duration(days: 2)), 'unread': 0, 'image': ImageKit.doctor5, 'isOnline': true},
   ];
 
+  // ✅ المكالمات
   final List<Map<String, dynamic>> _calls = [
     {'name': 'د. أحمد المؤيد', 'type': 'audio', 'status': 'answered', 'time': '10:30 ص', 'duration': '5:23', 'image': ImageKit.doctor1, 'doctorId': 'doc1'},
     {'name': 'د. خالد النخلاني', 'type': 'video', 'status': 'missed', 'time': 'أمس', 'duration': '', 'image': ImageKit.doctor2, 'doctorId': 'doc2'},
     {'name': 'د. أسماء الهندي', 'type': 'audio', 'status': 'incoming', 'time': 'منذ ساعة', 'duration': '', 'image': ImageKit.doctor3, 'doctorId': 'doc3'},
   ];
 
+  // ✅ الحالات
   List<Map<String, dynamic>> _stories = [
     {'name': 'د. أحمد المؤيد', 'image': ImageKit.doctor1, 'isOnline': true, 'time': 'منذ 5 دقائق', 'isMine': false},
     {'name': 'د. خالد النخلاني', 'image': ImageKit.doctor2, 'isOnline': false, 'time': 'منذ ساعة', 'isMine': false},
@@ -96,44 +100,6 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     } catch (e) {
       print('❌ Error loading stories: $e');
     }
-  }
-
-  Future<void> _addStory() async {
-    try {
-      final picker = ImagePicker();
-      final image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
-      if (image == null) return;
-
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return;
-
-      // ✅ رفع الصورة إلى Firebase Storage
-      final ref = FirebaseStorage.instance
-          .ref()
-          .child('stories/${user.uid}/${DateTime.now().millisecondsSinceEpoch}.jpg');
-
-      await ref.putFile(File(image.path));
-      final imageUrl = await ref.getDownloadURL();
-
-      await FirebaseFirestore.instance.collection('stories').add({
-        'userId': user.uid,
-        'userName': user.displayName ?? 'مستخدم',
-        'image': imageUrl,
-        'timestamp': FieldValue.serverTimestamp(),
-        'isOnline': true,
-        'viewers': [],
-      });
-
-      ToastService.showSuccess('✅ تم إضافة الحالة بنجاح');
-      _loadStories();
-    } catch (e) {
-      ToastService.showError('❌ فشل إضافة الحالة: $e');
-    }
-  }
-
-  void _shareStory(Map<String, dynamic> story) {
-    ToastService.showSuccess('✅ تم مشاركة الحالة مع ${story['name']}');
-    // TODO: تنفيذ المشاركة الفعلية
   }
 
   void _loadChats() {
@@ -249,6 +215,16 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     );
   }
 
+  // ✅ الانتقال إلى شات بوت
+  void _openAiChatbot() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const AiChatbotScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -266,7 +242,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
           unselectedLabelColor: isDark ? Colors.grey[400] : Colors.grey[600],
           indicatorColor: AppColors.primary,
           tabs: const [
-            Tab(text: 'المحادثات'),  // ✅ الترتيب الصحيح: المحادثات أولاً
+            Tab(text: 'المحادثات'),
             Tab(text: 'المكالمات'),
             Tab(text: 'الحالات'),
           ],
@@ -290,7 +266,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
   }
 
   // ============================================================
-  // 💬 تبويب المحادثات (الأول)
+  // 💬 تبويب المحادثات - مع شات بوت في الأعلى
   // ============================================================
   Widget _buildChatsTab(bool isDark) {
     return StreamBuilder<QuerySnapshot>(
@@ -337,123 +313,236 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
 
         final chats = snapshot.data?.docs ?? [];
 
-        if (chats.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.chat_bubble_outline_rounded, size: 80, color: isDark ? Colors.grey[600] : Colors.grey[300]),
-                const SizedBox(height: 16),
-                Text(
-                  'لا توجد محادثات',
-                  style: TextStyles.headline6.copyWith(color: isDark ? Colors.white : Colors.black87),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'ابدأ محادثة جديدة مع طبيبك',
-                  style: TextStyles.body2.copyWith(color: isDark ? Colors.grey[400] : Colors.grey[600]),
-                ),
-              ],
-            ),
-          );
-        }
+        // ✅ إذا كانت المحادثات فارغة، عرض Mock
+        final List<Map<String, dynamic>> displayChats = chats.isEmpty ? _mockChats : [];
 
         return ListView.builder(
           padding: const EdgeInsets.all(12),
-          itemCount: chats.length,
+          itemCount: displayChats.length + 1, // ✅ +1 للشات بوت
           itemBuilder: (context, index) {
-            final data = chats[index].data() as Map<String, dynamic>;
-            final docId = chats[index].id;
-            final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
-            final name = data['doctorName'] ?? data['patientName'] ?? 'طبيب';
-            final lastMessage = data['lastMessage'] ?? 'ابدأ المحادثة';
-            final unread = (data['unreadCount'] as Map?)?[userId] ?? 0;
-            final isOnline = data['isOnline'] ?? false;
-            final image = data['image'] ?? ImageKit.doctor1;
-            final time = data['lastMessageTime'] as Timestamp?;
-            final dateTime = time?.toDate() ?? DateTime.now();
+            // ✅ العنصر الأول: شات بوت
+            if (index == 0) {
+              return _buildAiChatbotTile(isDark);
+            }
 
-            return GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ChatDetailScreen(
-                      chatId: docId,
-                      userName: name,
-                      userId: userId,
-                      isDoctor: false,
-                    ),
-                  ),
-                );
-              },
-              child: Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1A2540) : Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
-                ),
-                child: Row(
-                  children: [
-                    _buildDoctorAvatar(image, size: 48, isOnline: isOnline, name: name),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  name,
-                                  style: TextStyles.subtitle1.copyWith(color: isDark ? Colors.white : Colors.black87),
-                                ),
-                              ),
-                              Text(
-                                _formatTime(dateTime),
-                                style: TextStyles.body4.copyWith(color: isDark ? Colors.grey[500] : Colors.grey[400]),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 2),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  lastMessage,
-                                  style: TextStyles.body2.copyWith(
-                                    color: unread > 0 ? (isDark ? Colors.white : Colors.black87) : (isDark ? Colors.grey[400] : Colors.grey[600]),
-                                    fontWeight: unread > 0 ? FontWeight.w600 : FontWeight.normal,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              if (unread > 0)
-                                Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-                                  constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
-                                  child: Text(
-                                    '$unread',
-                                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            // ✅ باقي العناصر: المحادثات
+            final chatIndex = index - 1;
+            if (displayChats.isEmpty || chatIndex >= displayChats.length) {
+              return const SizedBox.shrink();
+            }
+
+            final chat = displayChats[chatIndex];
+            final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
+            final name = chat['name'] ?? 'طبيب';
+            final lastMessage = chat['lastMessage'] ?? 'ابدأ المحادثة';
+            final unread = chat['unread'] ?? 0;
+            final isOnline = chat['isOnline'] ?? false;
+            final image = chat['image'] ?? ImageKit.doctor1;
+            final dateTime = chat['time'] as DateTime? ?? DateTime.now();
+
+            return _buildChatTile(
+              chatId: chat['id'] ?? '',
+              name: name,
+              lastMessage: lastMessage,
+              unread: unread,
+              isOnline: isOnline,
+              image: image,
+              dateTime: dateTime,
+              isDark: isDark,
             );
           },
         );
       },
+    );
+  }
+
+  // ✅ عنصر شات بوت (يظهر أولاً)
+  Widget _buildAiChatbotTile(bool isDark) {
+    return GestureDetector(
+      onTap: _openAiChatbot,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppColors.primary,
+              AppColors.primaryDark,
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withOpacity(0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // ✅ أيقونة المساعد الذكي
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: Image.asset(
+                'assets/images/services/ai_assistant.png',
+                width: 30,
+                height: 30,
+                color: Colors.white,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Icon(
+                    Icons.auto_awesome,
+                    color: Colors.white,
+                    size: 30,
+                  );
+                },
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '🤖 المساعد الذكي',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'اسأل عن صحتك، الأعراض، والأدوية',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 13,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            // ✅ زر الدخول
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Row(
+                children: [
+                  Text(
+                    'افتح',
+                    style: TextStyle(color: Colors.white, fontSize: 12),
+                  ),
+                  SizedBox(width: 4),
+                  Icon(Icons.arrow_forward_ios, color: Colors.white, size: 12),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ✅ عنصر المحادثة
+  Widget _buildChatTile({
+    required String chatId,
+    required String name,
+    required String lastMessage,
+    required int unread,
+    required bool isOnline,
+    required String image,
+    required DateTime dateTime,
+    required bool isDark,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ChatDetailScreen(
+              chatId: chatId,
+              userName: name,
+              userId: FirebaseAuth.instance.currentUser?.uid ?? '',
+              isDoctor: false,
+            ),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1A2540) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+        ),
+        child: Row(
+          children: [
+            _buildDoctorAvatar(image, size: 48, isOnline: isOnline, name: name),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          name,
+                          style: TextStyles.subtitle1.copyWith(color: isDark ? Colors.white : Colors.black87),
+                        ),
+                      ),
+                      Text(
+                        _formatTime(dateTime),
+                        style: TextStyles.body4.copyWith(color: isDark ? Colors.grey[500] : Colors.grey[400]),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          lastMessage,
+                          style: TextStyles.body2.copyWith(
+                            color: unread > 0 ? (isDark ? Colors.white : Colors.black87) : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                            fontWeight: unread > 0 ? FontWeight.w600 : FontWeight.normal,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (unread > 0)
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+                          constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+                          child: Text(
+                            '$unread',
+                            style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -578,16 +667,15 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
   }
 
   // ============================================================
-  // 📸 تبويب الحالات (مع إضافة حالة)
+  // 📸 تبويب الحالات
   // ============================================================
   Widget _buildStoriesTab(bool isDark) {
     return Column(
       children: [
-        // ✅ إضافة حالة جديدة
         Container(
           padding: const EdgeInsets.all(12),
           child: GestureDetector(
-            onTap: _addStory,
+            onTap: () => ToastService.showInfo('📸 جاري إضافة حالة...'),
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -630,7 +718,6 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
             ),
           ),
         ),
-        // ✅ قائمة الحالات
         Expanded(
           child: ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -670,7 +757,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                       ),
                     ),
                     GestureDetector(
-                      onTap: () => _shareStory(story),
+                      onTap: () => ToastService.showSuccess('✅ تم مشاركة الحالة'),
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
