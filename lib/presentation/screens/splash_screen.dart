@@ -20,6 +20,7 @@ class _SplashScreenState extends State<SplashScreen>
   late Animation<double> _scaleAnimation;
   late AnimationController _loadingCtrl;
   late Animation<double> _loadingAnimation;
+  late AnimationController _lottieCtrl;
   final AudioPlayer _audioPlayer = AudioPlayer();
   
   bool _isLoading = true;
@@ -42,6 +43,12 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
 
+    // ✅ التحكم في Lottie
+    _lottieCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 5), // ✅ 5 ثواني كاملة للـ Lottie
+    )..forward();
+
     _playSplashSound();
     _initializeApp();
   }
@@ -55,7 +62,6 @@ class _SplashScreenState extends State<SplashScreen>
       _progress = 0.1;
     });
 
-    // ✅ تهيئة Firebase (محاكاة)
     await Future.delayed(const Duration(milliseconds: 500));
 
     setState(() {
@@ -63,7 +69,6 @@ class _SplashScreenState extends State<SplashScreen>
       _progress = 0.3;
     });
 
-    // ✅ التحقق من المستخدم
     final user = FirebaseAuth.instance.currentUser;
 
     setState(() {
@@ -71,7 +76,6 @@ class _SplashScreenState extends State<SplashScreen>
       _progress = 0.6;
     });
 
-    // ✅ حفظ حالة المستخدم في الكاش
     await _cacheUserData(user);
 
     setState(() {
@@ -80,7 +84,7 @@ class _SplashScreenState extends State<SplashScreen>
       _isLoading = false;
     });
 
-    // ✅ الانتقال للشاشة التالية بعد 5 ثواني
+    // ✅ الانتقال بعد 5 ثواني كاملة
     Future.delayed(const Duration(seconds: 5), () {
       if (!mounted) return;
       _navigateToNext();
@@ -150,6 +154,7 @@ class _SplashScreenState extends State<SplashScreen>
   // ✅ زر تخطي للمطورين
   // ============================================================
   void _skipSplash() {
+    _lottieCtrl.dispose();
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const HomeScreen()),
@@ -160,6 +165,7 @@ class _SplashScreenState extends State<SplashScreen>
   void dispose() {
     _mainCtrl.dispose();
     _loadingCtrl.dispose();
+    _lottieCtrl.dispose();
     _audioPlayer.dispose();
     super.dispose();
   }
@@ -173,23 +179,23 @@ class _SplashScreenState extends State<SplashScreen>
     final lottieWidth = screenWidth * 0.50;
     final lottieHeight = lottieWidth * (180 / 320);
 
-    // ✅ التحكمات المتحركة
+    // ✅ التحكمات المتحركة - ظهور سريع
     _mainCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 600),
     )..forward();
 
     _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _mainCtrl, curve: Curves.easeIn),
+      CurvedAnimation(parent: _mainCtrl, curve: Curves.easeOut),
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.7, end: 1.0).animate(
-      CurvedAnimation(parent: _mainCtrl, curve: Curves.elasticOut),
+    _scaleAnimation = Tween<double>(begin: 0.85, end: 1.0).animate(
+      CurvedAnimation(parent: _mainCtrl, curve: Curves.easeOut),
     );
 
     _loadingCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(seconds: 5), // ✅ 5 ثواني كاملة لشريط التحميل
     )..repeat();
 
     _loadingAnimation = Tween<double>(begin: 0, end: 1).animate(
@@ -260,7 +266,7 @@ class _SplashScreenState extends State<SplashScreen>
                             children: [
                               SizedBox(height: screenHeight * 0.05),
 
-                              // ✅ Lottie Animation
+                              // ✅ Lottie Animation - 5 ثواني كاملة
                               Transform.scale(
                                 scale: _scaleAnimation.value,
                                 child: ConstrainedBox(
@@ -273,7 +279,9 @@ class _SplashScreenState extends State<SplashScreen>
                                   child: Lottie.asset(
                                     'assets/animations/sehatak_animation.json',
                                     fit: BoxFit.contain,
-                                    repeat: true,
+                                    repeat: false, // ✅ عدم التكرار لعرض المحتوى كاملاً
+                                    animate: true,
+                                    controller: _lottieCtrl, // ✅ التحكم في المدة
                                     errorBuilder: (context, error, stackTrace) {
                                       return Icon(
                                         Icons.health_and_safety,
@@ -337,7 +345,7 @@ class _SplashScreenState extends State<SplashScreen>
 
                               SizedBox(height: screenHeight * 0.04),
 
-                              // ✅ شريط التقدم
+                              // ✅ شريط التقدم - 5 ثواني
                               Container(
                                 width: screenWidth * 0.6,
                                 height: 4,
