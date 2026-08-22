@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- ✅ خلفية شفافة تماماً - لا شيء يظهر -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- ✅ الخلفية الخضراء المزرقة فقط (بدون أيقونة) -->
-    <item>
-        <color>#2D7E81</color>
-    </item>
+    <item android:drawable="@android:color/transparent" />
 </layer-list>
