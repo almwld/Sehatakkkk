@@ -1772,7 +1772,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
 
   void _sharePost(int index) {
     final post = _communityPosts[index];
-    ToastService.showSuccess(context, '✅ تم مشاركة: ${post['title']}');
+    ToastService.showSuccess('✅ تم مشاركة: ${post['title']}');
   }
 
   void _showTipDetails(Map<String, dynamic> tip) {

@@ -232,7 +232,7 @@ class AppSearchDelegate extends SearchDelegate<String?> {
         );
         break;
       default:
-        ToastService.showSuccess(context, 'جاري التوجيه...');
+        ToastService.showSuccess('جاري التوجيه...');
     }
   }
 }

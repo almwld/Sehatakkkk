@@ -386,7 +386,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
             } else if (widget.onSelectWallet != null) {
               widget.onSelectWallet!(wallet);
             } else {
-              ToastService.showSuccess(context, '✅ تم اختيار ${wallet.name}');
+              ToastService.showSuccess('✅ تم اختيار ${wallet.name}');
               Navigator.pop(context, wallet);
             }
           },
