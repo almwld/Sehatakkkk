@@ -1,126 +1,81 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:sehatak/data/models/user_models/user_model.dart';
 
 class UserProvider extends ChangeNotifier {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  
-  UserModel? _currentUser;
-  bool _isLoading = false;
-  String? _error;
+  User? _user;
+  Map<String, dynamic>? _userData;
+  bool _isLoading = true;
+  bool _hasError = false;
 
-  UserModel? get currentUser => _currentUser;
+  User? get user => _user;
+  Map<String, dynamic>? get userData => _userData;
   bool get isLoading => _isLoading;
-  String? get error => _error;
-  bool get isLoggedIn => _currentUser != null;
+  bool get hasError => _hasError;
 
-  Future<void> loadUser() async {
-    if (_currentUser != null) return;
-    
-    _setLoading(true);
-    _error = null;
-
-    try {
-      final user = _auth.currentUser;
-      if (user == null) {
-        _currentUser = null;
-        _setLoading(false);
-        return;
-      }
-
-      final doc = await _firestore.collection('users').doc(user.uid).get();
-      if (doc.exists) {
-        _currentUser = UserModel.fromMap(user.uid, doc.data()!);
-      } else {
-        _currentUser = UserModel(
-          uid: user.uid,
-          name: user.displayName ?? '',
-          email: user.email ?? '',
-          phone: user.phoneNumber ?? '',
-          photoUrl: user.photoURL,
-          role: 'user',
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-          lastLoginAt: DateTime.now(),
-        );
-        await _firestore.collection('users').doc(user.uid).set(_currentUser!.toMap());
-      }
-    } catch (e) {
-      _error = e.toString();
-      print('⚠️ UserProvider error: $e');
-    }
-
-    _setLoading(false);
+  UserProvider() {
+    _init();
   }
 
-  Future<bool> updateUser(UserModel user) async {
-    _setLoading(true);
-    _error = null;
-
-    try {
-      await _firestore.collection('users').doc(user.uid).update(user.toMap());
-      final currentUser = _auth.currentUser;
-      if (currentUser != null && user.name.isNotEmpty) {
-        await currentUser.updateDisplayName(user.name);
-        await currentUser.reload();
-      }
-      _currentUser = user;
-      _setLoading(false);
-      return true;
-    } catch (e) {
-      _error = e.toString();
-      _setLoading(false);
-      return false;
-    }
+  Future<void> _init() async {
+    await loadUserSafely();
   }
 
-  Future<bool> updateField(String field, dynamic value) async {
-    if (_currentUser == null) return false;
-
+  // ✅ تحميل المستخدم بشكل آمن مع معالجة الأخطاء
+  Future<void> loadUserSafely() async {
     try {
-      await _firestore.collection('users').doc(_currentUser!.uid).update({
-        field: value,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-      
-      final updatedMap = _currentUser!.toMap();
-      updatedMap[field] = value;
-      updatedMap['updatedAt'] = DateTime.now();
-      
-      _currentUser = UserModel.fromMap(_currentUser!.uid, updatedMap);
+      _isLoading = true;
+      _hasError = false;
       notifyListeners();
-      return true;
+
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null) {
+        _user = currentUser;
+        await _loadUserData(currentUser.uid);
+      } else {
+        // ✅ محاولة الاستماع لتغيرات المصادقة
+        FirebaseAuth.instance.authStateChanges().listen((user) {
+          if (user != null) {
+            _user = user;
+            _loadUserData(user.uid);
+          } else {
+            _user = null;
+            _userData = null;
+            _isLoading = false;
+            notifyListeners();
+          }
+        });
+        _isLoading = false;
+      }
     } catch (e) {
-      _error = e.toString();
-      return false;
+      print('❌ UserProvider error: $e');
+      _hasError = true;
+      _isLoading = false;
     }
-  }
-
-  Future<void> signOut() async {
-    await _auth.signOut();
-    _currentUser = null;
     notifyListeners();
   }
 
-  Future<void> refresh() async {
-    _currentUser = null;
-    await loadUser();
-  }
-
-  void setCurrentUser(UserModel user) {
-    _currentUser = user;
+  Future<void> _loadUserData(String uid) async {
+    try {
+      final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      if (doc.exists) {
+        _userData = doc.data();
+      }
+    } catch (e) {
+      print('❌ Error loading user data: $e');
+    }
+    _isLoading = false;
     notifyListeners();
   }
 
-  void _setLoading(bool loading) {
-    _isLoading = loading;
-    notifyListeners();
+  Future<void> refreshUser() async {
+    await loadUserSafely();
   }
 
-  @override
-  void dispose() {
-    super.dispose();
+  void clearUser() {
+    _user = null;
+    _userData = null;
+    _isLoading = false;
+    notifyListeners();
   }
 }
