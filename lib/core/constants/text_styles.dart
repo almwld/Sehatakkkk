@@ -1,48 +1,43 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class TextStyles {
   // ============================================================
-  // ✅ العناوين البارزة - Bold
+  // ✅ العناوين البارزة - Bold (Noto Sans Arabic Bold)
   // ============================================================
   
-  static const TextStyle headline1 = TextStyle(
-    fontFamily: 'NotoSansArabicUI',
-    fontWeight: FontWeight.bold,
+  static TextStyle get headline1 => GoogleFonts.notoSansArabic(
+    fontWeight: FontWeight.w700,
     fontSize: 32,
     height: 1.2,
   );
   
-  static const TextStyle headline2 = TextStyle(
-    fontFamily: 'NotoSansArabicUI',
-    fontWeight: FontWeight.bold,
+  static TextStyle get headline2 => GoogleFonts.notoSansArabic(
+    fontWeight: FontWeight.w700,
     fontSize: 28,
     height: 1.2,
   );
   
-  static const TextStyle headline3 = TextStyle(
-    fontFamily: 'NotoSansArabicUI',
-    fontWeight: FontWeight.bold,
+  static TextStyle get headline3 => GoogleFonts.notoSansArabic(
+    fontWeight: FontWeight.w700,
     fontSize: 24,
     height: 1.2,
   );
   
-  static const TextStyle headline4 = TextStyle(
-    fontFamily: 'NotoSansArabicUI',
-    fontWeight: FontWeight.bold,
+  static TextStyle get headline4 => GoogleFonts.notoSansArabic(
+    fontWeight: FontWeight.w700,
     fontSize: 20,
     height: 1.2,
   );
   
-  static const TextStyle headline5 = TextStyle(
-    fontFamily: 'NotoSansArabicUI',
-    fontWeight: FontWeight.bold,
+  static TextStyle get headline5 => GoogleFonts.notoSansArabic(
+    fontWeight: FontWeight.w700,
     fontSize: 18,
     height: 1.2,
   );
   
-  static const TextStyle headline6 = TextStyle(
-    fontFamily: 'NotoSansArabicUI',
-    fontWeight: FontWeight.bold,
+  static TextStyle get headline6 => GoogleFonts.notoSansArabic(
+    fontWeight: FontWeight.w700,
     fontSize: 16,
     height: 1.2,
   );
@@ -51,88 +46,77 @@ class TextStyles {
   // ✅ العناوين الفرعية - SemiBold
   // ============================================================
   
-  static const TextStyle subtitle1 = TextStyle(
-    fontFamily: 'NotoSansArabicUI',
+  static TextStyle get subtitle1 => GoogleFonts.notoSansArabic(
     fontWeight: FontWeight.w600,
     fontSize: 16,
     height: 1.3,
   );
   
-  static const TextStyle subtitle2 = TextStyle(
-    fontFamily: 'NotoSansArabicUI',
+  static TextStyle get subtitle2 => GoogleFonts.notoSansArabic(
     fontWeight: FontWeight.w600,
     fontSize: 14,
     height: 1.3,
   );
   
-  static const TextStyle subtitle3 = TextStyle(
-    fontFamily: 'NotoSansArabicUI',
+  static TextStyle get subtitle3 => GoogleFonts.notoSansArabic(
     fontWeight: FontWeight.w600,
     fontSize: 12,
     height: 1.3,
   );
 
   // ============================================================
-  // ✅ النصوص العادية - Regular
+  // ✅ النصوص العادية - Regular (Noto Sans Arabic Regular)
   // ============================================================
   
-  static const TextStyle body1 = TextStyle(
-    fontFamily: 'NotoSansArabicUI',
-    fontWeight: FontWeight.normal,
+  static TextStyle get body1 => GoogleFonts.notoSansArabic(
+    fontWeight: FontWeight.w400,
     fontSize: 16,
     height: 1.5,
   );
   
-  static const TextStyle body2 = TextStyle(
-    fontFamily: 'NotoSansArabicUI',
-    fontWeight: FontWeight.normal,
+  static TextStyle get body2 => GoogleFonts.notoSansArabic(
+    fontWeight: FontWeight.w400,
     fontSize: 14,
     height: 1.5,
   );
   
-  static const TextStyle body3 = TextStyle(
-    fontFamily: 'NotoSansArabicUI',
-    fontWeight: FontWeight.normal,
+  static TextStyle get body3 => GoogleFonts.notoSansArabic(
+    fontWeight: FontWeight.w400,
     fontSize: 12,
     height: 1.5,
   );
   
-  static const TextStyle body4 = TextStyle(
-    fontFamily: 'NotoSansArabicUI',
-    fontWeight: FontWeight.normal,
+  static TextStyle get body4 => GoogleFonts.notoSansArabic(
+    fontWeight: FontWeight.w400,
     fontSize: 10,
     height: 1.5,
   );
 
   // ============================================================
-  // ✅ نصوص خاصة - للعناوين في الأزرار والـ AppBar
+  // ✅ نصوص خاصة
   // ============================================================
   
-  static const TextStyle button = TextStyle(
-    fontFamily: 'NotoSansArabicUI',
-    fontWeight: FontWeight.bold,
+  static TextStyle get button => GoogleFonts.notoSansArabic(
+    fontWeight: FontWeight.w700,
     fontSize: 16,
     height: 1.2,
   );
   
-  static const TextStyle appBar = TextStyle(
-    fontFamily: 'NotoSansArabicUI',
-    fontWeight: FontWeight.bold,
+  static TextStyle get appBar => GoogleFonts.notoSansArabic(
+    fontWeight: FontWeight.w700,
     fontSize: 20,
     height: 1.2,
   );
   
-  static const TextStyle caption = TextStyle(
-    fontFamily: 'NotoSansArabicUI',
-    fontWeight: FontWeight.normal,
+  static TextStyle get caption => GoogleFonts.notoSansArabic(
+    fontWeight: FontWeight.w400,
     fontSize: 12,
     height: 1.4,
     color: Colors.grey,
   );
   
-  static const TextStyle overline = TextStyle(
-    fontFamily: 'NotoSansArabicUI',
-    fontWeight: FontWeight.normal,
+  static TextStyle get overline => GoogleFonts.notoSansArabic(
+    fontWeight: FontWeight.w400,
     fontSize: 10,
     height: 1.2,
     letterSpacing: 1.5,
