@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class NotificationService {
@@ -11,14 +13,14 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   bool _isInitialized = false;
 
-  // ✅ تهيئة الإشعارات
   Future<void> initialize() async {
     if (_isInitialized) return;
 
-    // ✅ تهيئة الإشعارات المحلية
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
     const DarwinInitializationSettings iosSettings =
@@ -28,26 +30,18 @@ class NotificationService {
       iOS: iosSettings,
     );
 
-    await _localNotifications.initialize(
-      settings,
-      onDidReceiveNotificationResponse: _onNotificationTap,
-    );
+    await _localNotifications.initialize(settings);
 
-    // ✅ طلب إذن الإشعارات
     await _requestPermission();
-
-    // ✅ الاستماع للإشعارات
     FirebaseMessaging.onMessage.listen(_handleMessage);
     FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpened);
 
-    // ✅ الحصول على التوكن
     await _getToken();
 
     _isInitialized = true;
     print('✅ Notification service initialized');
   }
 
-  // ✅ طلب الإذن
   Future<void> _requestPermission() async {
     await _fcm.requestPermission(
       alert: true,
@@ -57,7 +51,6 @@ class NotificationService {
     );
   }
 
-  // ✅ الحصول على التوكن
   Future<void> _getToken() async {
     try {
       final token = await _fcm.getToken();
@@ -70,13 +63,12 @@ class NotificationService {
     }
   }
 
-  // ✅ حفظ التوكن في Firestore
   Future<void> _saveToken(String token) async {
     try {
-      final userId = FirebaseAuth.instance.currentUser?.uid;
+      final userId = _auth.currentUser?.uid;
       if (userId == null) return;
 
-      await FirebaseFirestore.instance.collection('users').doc(userId).update({
+      await _firestore.collection('users').doc(userId).update({
         'fcmToken': token,
         'updatedAt': FieldValue.serverTimestamp(),
       });
@@ -86,7 +78,6 @@ class NotificationService {
     }
   }
 
-  // ✅ دالة showNotification العامة
   Future<void> showNotification({
     required String title,
     required String body,
@@ -99,15 +90,12 @@ class NotificationService {
     );
   }
 
-  // ✅ معالجة الإشعار (التطبيق في المقدمة)
   Future<void> _handleMessage(RemoteMessage message) async {
     print('📩 Message received: ${message.notification?.title}');
-
     final notification = message.notification;
     final data = message.data;
 
     if (notification != null) {
-      // ✅ إشعار مكالمة واردة
       if (data['type'] == 'incoming_call') {
         await _showCallNotification(
           title: notification.title ?? '📞 مكالمة واردة',
@@ -126,38 +114,14 @@ class NotificationService {
     }
   }
 
-  // ✅ معالجة فتح الإشعار
   void _handleMessageOpened(RemoteMessage message) {
     print('📱 Message opened: ${message.data}');
-    final data = message.data;
-
-    // ✅ التنقل إلى الشاشة المناسبة
-    if (data['type'] == 'incoming_call') {
-      // ✅ فتح شاشة المكالمة
-      _navigateToCallScreen(
-        chatId: data['chatId'] ?? '',
-        callerName: data['callerName'] ?? 'مستخدم',
-        callerId: data['callerId'] ?? '',
-        isVideo: data['isVideo'] == 'true',
-      );
-    } else {
-      // ✅ فتح شاشة المحادثة
-      _navigateToChatScreen(
-        chatId: data['chatId'] ?? '',
-        userId: data['userId'] ?? '',
-      );
-    }
   }
 
-  // ✅ معالجة الضغط على الإشعار
   void _onNotificationTap(NotificationResponse response) {
     print('🔔 Notification tapped: ${response.payload}');
-    if (response.payload != null) {
-      // TODO: التنقل بناءً على payload
-    }
   }
 
-  // ✅ عرض إشعار محلي
   Future<void> _showLocalNotification({
     required String title,
     required String body,
@@ -192,7 +156,6 @@ class NotificationService {
     );
   }
 
-  // ✅ عرض إشعار مكالمة واردة (مع أزرار)
   Future<void> _showCallNotification({
     required String title,
     required String body,
@@ -211,18 +174,6 @@ class NotificationService {
       sound: RawResourceAndroidNotificationSound('call_ringtone'),
       fullScreenIntent: true,
       styleInformation: const BigTextStyleInformation(''),
-      actions: [
-        AndroidNotificationAction(
-          'accept',
-          'قبول',
-          icon: 'accept_icon',
-        ),
-        AndroidNotificationAction(
-          'reject',
-          'رفض',
-          icon: 'reject_icon',
-        ),
-      ],
     );
 
     const DarwinNotificationDetails iosDetails =
@@ -242,7 +193,6 @@ class NotificationService {
     );
   }
 
-  // ✅ إشعار رسالة جديدة
   Future<void> showNewMessageNotification({
     required String senderName,
     required String message,
@@ -256,7 +206,6 @@ class NotificationService {
     );
   }
 
-  // ✅ إشعار مكالمة واردة
   Future<void> showIncomingCallNotification({
     required String callerName,
     required String chatId,
@@ -273,7 +222,6 @@ class NotificationService {
     );
   }
 
-  // ✅ إشعار تذكير موعد
   Future<void> showAppointmentReminder({
     required String doctorName,
     required String date,
@@ -287,7 +235,6 @@ class NotificationService {
     );
   }
 
-  // ✅ إشعار تذكير دواء
   Future<void> showMedicationReminder({
     required String medicineName,
     required String time,
@@ -299,43 +246,12 @@ class NotificationService {
     );
   }
 
-  // ✅ إشعار تأكيد حجز
-  Future<void> showAppointmentConfirmed({
-    required String doctorName,
-    required String date,
-    required String time,
-  }) async {
-    await _showLocalNotification(
-      title: '✅ تم تأكيد موعدك مع $doctorName',
-      body: 'موعدك يوم $date الساعة $time',
-      payload: 'appointment',
-    );
-  }
-
-  // ✅ التنقل إلى شاشة المحادثة
-  void _navigateToChatScreen({required String chatId, required String userId}) {
-    // TODO: التنقل إلى شاشة المحادثة
-    print('🔗 Navigate to chat: $chatId');
-  }
-
-  // ✅ التنقل إلى شاشة المكالمة
-  void _navigateToCallScreen({
-    required String chatId,
-    required String callerName,
-    required String callerId,
-    required bool isVideo,
-  }) {
-    // TODO: التنقل إلى شاشة المكالمة
-    print('🔗 Navigate to call: $chatId');
-  }
-
-  // ✅ حذف التوكن عند تسجيل الخروج
   Future<void> deleteToken() async {
     try {
-      final userId = FirebaseAuth.instance.currentUser?.uid;
+      final userId = _auth.currentUser?.uid;
       if (userId == null) return;
 
-      await FirebaseFirestore.instance.collection('users').doc(userId).update({
+      await _firestore.collection('users').doc(userId).update({
         'fcmToken': FieldValue.delete(),
       });
       print('✅ FCM token deleted');
