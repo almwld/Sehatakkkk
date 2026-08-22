@@ -295,7 +295,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.pop(context);
-                      ToastService.showSuccess(
+                      , ToastService.showSuccess(
                         context,
                         '✅ تم نسخ رقم الإيداع: 536396',
                       );
@@ -386,7 +386,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
             } else if (widget.onSelectWallet != null) {
               widget.onSelectWallet!(wallet);
             } else {
-              ToastService.showSuccess('✅ تم اختيار ${wallet.name}');
+              , ToastService.showSuccess('✅ تم اختيار ${wallet.name}');
               Navigator.pop(context, wallet);
             }
           },
@@ -583,7 +583,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
           IconButton(
             icon: const Icon(Icons.help_outline_rounded),
             onPressed: () {
-              ToastService.showInfo(
+              , ToastService.showInfo(
                 context,
                 'اختر محفظتك المحلية لإتمام عملية الدفع',
               );
