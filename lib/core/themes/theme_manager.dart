@@ -13,10 +13,8 @@ class ThemeManager {
       background: AppColors.backgroundLight,
     ),
     scaffoldBackgroundColor: AppColors.backgroundLight,
-    // ✅ الخطوط
     fontFamily: 'NotoSansArabicUI',
     textTheme: const TextTheme(
-      // ✅ العناوين الكبيرة - Bold
       displayLarge: TextStyle(
         fontFamily: 'NotoSansArabicUI',
         fontWeight: FontWeight.bold,
@@ -32,7 +30,6 @@ class ThemeManager {
         fontWeight: FontWeight.bold,
         fontSize: 24,
       ),
-      // ✅ العناوين المتوسطة - Bold
       headlineLarge: TextStyle(
         fontFamily: 'NotoSansArabicUI',
         fontWeight: FontWeight.bold,
@@ -48,7 +45,6 @@ class ThemeManager {
         fontWeight: FontWeight.bold,
         fontSize: 18,
       ),
-      // ✅ العناوين الصغيرة - SemiBold
       titleLarge: TextStyle(
         fontFamily: 'NotoSansArabicUI',
         fontWeight: FontWeight.w600,
@@ -64,7 +60,6 @@ class ThemeManager {
         fontWeight: FontWeight.w600,
         fontSize: 12,
       ),
-      // ✅ النصوص العادية - Regular
       bodyLarge: TextStyle(
         fontFamily: 'NotoSansArabicUI',
         fontWeight: FontWeight.normal,
@@ -80,7 +75,6 @@ class ThemeManager {
         fontWeight: FontWeight.normal,
         fontSize: 12,
       ),
-      // ✅ النصوص الصغيرة - Regular
       labelLarge: TextStyle(
         fontFamily: 'NotoSansArabicUI',
         fontWeight: FontWeight.normal,
@@ -150,7 +144,6 @@ class ThemeManager {
       background: Color(0xFF0B1121),
     ),
     scaffoldBackgroundColor: const Color(0xFF0B1121),
-    // ✅ الخطوط
     fontFamily: 'NotoSansArabicUI',
     textTheme: const TextTheme(
       displayLarge: TextStyle(
@@ -241,7 +234,7 @@ class ThemeManager {
         fontFamily: 'NotoSansArabicUI',
         fontWeight: FontWeight.normal,
         fontSize: 10,
-        color: Colors.white50,
+        color: Colors.white60, // ✅ تم إصلاح white50 → white60
       ),
     ),
     appBarTheme: const AppBarTheme(

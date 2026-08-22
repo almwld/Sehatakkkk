@@ -5,7 +5,6 @@ import 'package:lottie/lottie.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
-import 'package:sehatak/core/services/cache_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -22,8 +21,7 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _loadingCtrl;
   late Animation<double> _loadingAnimation;
   final AudioPlayer _audioPlayer = AudioPlayer();
-  final CacheService _cache = CacheService();
-  
+
   bool _isLoading = true;
   String _statusMessage = 'جاري التحميل...';
   double _progress = 0.0;
@@ -45,7 +43,6 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
 
-    // ✅ التحكم في Lottie
     _mainCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
@@ -69,36 +66,23 @@ class _SplashScreenState extends State<SplashScreen>
     );
 
     _playSplashSound();
-    _checkLoginStatus(); // ✅ التحقق من حالة المستخدم فوراً
+    _checkLoginStatus();
   }
 
-  // ============================================================
-  // ✅ التحقق من حالة المستخدم
-  // ============================================================
   Future<void> _checkLoginStatus() async {
     try {
-      // ✅ 1. التحقق من Firebase Auth
       final user = FirebaseAuth.instance.currentUser;
-      
-      // ✅ 2. التحقق من SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       final isLoggedInPrefs = prefs.getBool('is_logged_in') ?? false;
       final savedUid = prefs.getString('user_uid') ?? '';
-      
+
       setState(() {
         _isLoggedIn = user != null && isLoggedInPrefs && user.uid == savedUid;
         _progress = 0.5;
         _statusMessage = 'جاري التحقق من المستخدم...';
       });
 
-      // ✅ 3. تحديث حالة المستخدم في الكاش
       if (user != null) {
-        await _cache.saveUserData({
-          'uid': user.uid,
-          'name': user.displayName ?? 'مستخدم',
-          'email': user.email ?? '',
-          'isLoggedIn': true,
-        });
         await prefs.setBool('is_logged_in', true);
         await prefs.setString('user_uid', user.uid);
       } else {
@@ -111,9 +95,8 @@ class _SplashScreenState extends State<SplashScreen>
         _isLoading = false;
       });
 
-      // ✅ الانتقال بعد 2.5 ثانية
       await Future.delayed(const Duration(milliseconds: 2500));
-      
+
       if (mounted) {
         _navigateToNext();
       }
@@ -131,15 +114,11 @@ class _SplashScreenState extends State<SplashScreen>
     }
   }
 
-  // ============================================================
-  // ✅ الانتقال للشاشة التالية
-  // ============================================================
   void _navigateToNext() {
     if (!mounted) return;
-    
-    // ✅ التحقق النهائي من حالة المستخدم
+
     final user = FirebaseAuth.instance.currentUser;
-    
+
     if (_isLoggedIn && user != null) {
       Navigator.pushReplacement(
         context,
@@ -153,9 +132,6 @@ class _SplashScreenState extends State<SplashScreen>
     }
   }
 
-  // ============================================================
-  // ✅ تشغيل صوت السبلاش
-  // ============================================================
   Future<void> _playSplashSound() async {
     try {
       await _audioPlayer.play(
@@ -167,9 +143,6 @@ class _SplashScreenState extends State<SplashScreen>
     }
   }
 
-  // ============================================================
-  // ✅ زر تخطي للمطورين
-  // ============================================================
   void _skipSplash() {
     _navigateToNext();
   }
@@ -201,7 +174,6 @@ class _SplashScreenState extends State<SplashScreen>
             children: [
               ..._circles.map((circle) => _buildAnimatedCircle(circle)),
 
-              // ✅ زر تخطي للمطورين
               Positioned(
                 top: 16,
                 right: 16,

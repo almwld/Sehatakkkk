@@ -7,6 +7,7 @@ import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/screens/chat/chat_detail_screen.dart';
 import 'package:sehatak/presentation/screens/call/call_screen.dart';
 import 'package:sehatak/core/constants/text_styles.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -17,10 +18,86 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabController;
+
+  // ✅ صور الأطباء من ImageKit
   final List<Map<String, dynamic>> _mockChats = [
-    {'id': '1', 'name': 'د. أحمد المؤيد', 'lastMessage': 'مرحباً، كيف يمكنني مساعدتك؟', 'time': DateTime.now().subtract(const Duration(minutes: 5)), 'unread': 2, 'image': ImageKit.doctor1, 'isOnline': true},
-    {'id': '2', 'name': 'د. خالد النخلاني', 'lastMessage': 'سأتصل بك غداً', 'time': DateTime.now().subtract(const Duration(hours: 2)), 'unread': 0, 'image': ImageKit.doctor2, 'isOnline': false},
-    {'id': '3', 'name': 'د. أسماء الهندي', 'lastMessage': 'تم تأكيد موعدك', 'time': DateTime.now().subtract(const Duration(hours: 5)), 'unread': 1, 'image': ImageKit.doctor3, 'isOnline': true},
+    {
+      'id': '1',
+      'name': 'د. أحمد المؤيد',
+      'lastMessage': 'مرحباً، كيف يمكنني مساعدتك؟',
+      'time': DateTime.now().subtract(const Duration(minutes: 5)),
+      'unread': 2,
+      'image': ImageKit.doctor1,
+      'isOnline': true,
+      'specialty': 'باطنية',
+    },
+    {
+      'id': '2',
+      'name': 'د. خالد النخلاني',
+      'lastMessage': 'سأتصل بك غداً',
+      'time': DateTime.now().subtract(const Duration(hours: 2)),
+      'unread': 0,
+      'image': ImageKit.doctor2,
+      'isOnline': false,
+      'specialty': 'قلبية',
+    },
+    {
+      'id': '3',
+      'name': 'د. أسماء الهندي',
+      'lastMessage': 'تم تأكيد موعدك',
+      'time': DateTime.now().subtract(const Duration(hours: 5)),
+      'unread': 1,
+      'image': ImageKit.doctor3,
+      'isOnline': true,
+      'specialty': 'أطفال',
+    },
+    {
+      'id': '4',
+      'name': 'د. محمد العلاي',
+      'lastMessage': 'نحتاج إلى تحليل جديد',
+      'time': DateTime.now().subtract(const Duration(days: 1)),
+      'unread': 0,
+      'image': ImageKit.doctor4,
+      'isOnline': false,
+      'specialty': 'أنف وأذن وحنجرة',
+    },
+    {
+      'id': '5',
+      'name': 'د. فاطمة صديقي',
+      'lastMessage': 'كيف تشعر اليوم؟',
+      'time': DateTime.now().subtract(const Duration(days: 2)),
+      'unread': 0,
+      'image': ImageKit.doctor5,
+      'isOnline': true,
+      'specialty': 'نساء وولادة',
+    },
+    {
+      'id': '6',
+      'name': 'د. سارة العمري',
+      'lastMessage': 'موعدك يوم الأحد',
+      'time': DateTime.now().subtract(const Duration(days: 3)),
+      'unread': 1,
+      'image': ImageKit.doctor6,
+      'isOnline': false,
+      'specialty': 'جلدية',
+    },
+  ];
+
+  // ✅ المكالمات مع صور الأطباء
+  final List<Map<String, dynamic>> _calls = [
+    {'name': 'د. أحمد المؤيد', 'type': 'audio', 'status': 'answered', 'time': '10:30 ص', 'duration': '5:23', 'image': ImageKit.doctor1, 'doctorId': 'doc1'},
+    {'name': 'د. خالد النخلاني', 'type': 'video', 'status': 'missed', 'time': 'أمس', 'duration': '', 'image': ImageKit.doctor2, 'doctorId': 'doc2'},
+    {'name': 'د. أسماء الهندي', 'type': 'audio', 'status': 'incoming', 'time': 'منذ ساعة', 'duration': '', 'image': ImageKit.doctor3, 'doctorId': 'doc3'},
+    {'name': 'د. محمد العلاي', 'type': 'video', 'status': 'answered', 'time': 'منذ 3 ساعات', 'duration': '12:30', 'image': ImageKit.doctor4, 'doctorId': 'doc4'},
+    {'name': 'د. فاطمة صديقي', 'type': 'audio', 'status': 'missed', 'time': 'منذ 5 ساعات', 'duration': '', 'image': ImageKit.doctor5, 'doctorId': 'doc5'},
+  ];
+
+  // ✅ حالات الأطباء
+  final List<Map<String, dynamic>> _stories = [
+    {'name': 'د. أحمد المؤيد', 'image': ImageKit.doctor1, 'isOnline': true, 'time': 'منذ 5 دقائق'},
+    {'name': 'د. خالد النخلاني', 'image': ImageKit.doctor2, 'isOnline': false, 'time': 'منذ ساعة'},
+    {'name': 'د. أسماء الهندي', 'image': ImageKit.doctor3, 'isOnline': true, 'time': 'منذ 3 ساعات'},
+    {'name': 'د. محمد العلاي', 'image': ImageKit.doctor4, 'isOnline': false, 'time': 'منذ يوم'},
   ];
 
   bool _isLoading = true;
@@ -105,6 +182,73 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     return '${time.day}/${time.month}';
   }
 
+  // ✅ دالة عرض صورة الطبيب مع CachedNetworkImage
+  Widget _buildDoctorAvatar(String imageUrl, {double size = 48, bool isOnline = false, String? name}) {
+    return Stack(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(size / 2),
+          child: CachedNetworkImage(
+            imageUrl: imageUrl,
+            width: size,
+            height: size,
+            fit: BoxFit.cover,
+            placeholder: (context, url) => Container(
+              width: size,
+              height: size,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Text(
+                  name?.isNotEmpty == true ? name!.substring(0, 1) : 'ط',
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontSize: size * 0.4,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            errorWidget: (context, url, error) => Container(
+              width: size,
+              height: size,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Text(
+                  name?.isNotEmpty == true ? name!.substring(0, 1) : 'ط',
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontSize: size * 0.4,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        if (isOnline)
+          Positioned(
+            bottom: 2,
+            right: 2,
+            child: Container(
+              width: size * 0.25,
+              height: size * 0.25,
+              decoration: const BoxDecoration(
+                color: Colors.green,
+                shape: BoxShape.circle,
+                border: Border.fromBorderSide(BorderSide(color: Colors.white, width: 2)),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -145,53 +289,145 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     );
   }
 
+  // ============================================================
+  // 📸 تبويب الحالات - مع صور الأطباء
+  // ============================================================
   Widget _buildStoriesTab(bool isDark) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.circle_outlined, size: 80, color: isDark ? Colors.grey[600] : Colors.grey[300]),
-          const SizedBox(height: 16),
-          Text(
-            'لا توجد حالات',
-            style: TextStyles.subtitle1.copyWith(
-              color: isDark ? Colors.grey[400] : Colors.grey[600],
-            ),
+    return Column(
+      children: [
+        // ✅ عرض الحالات في شريط أفقي
+        Container(
+          height: 100,
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            reverse: true,
+            itemCount: _stories.length + 1,
+            itemBuilder: (context, index) {
+              if (index == 0) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Column(
+                    children: [
+                      Stack(
+                        children: [
+                          Container(
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isDark ? const Color(0xFF1A2540) : Colors.grey[100],
+                              border: Border.all(color: AppColors.primary, width: 2),
+                            ),
+                            child: Icon(Icons.add, color: AppColors.primary, size: 30),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text('قصتي', style: TextStyle(fontSize: 10, color: isDark ? Colors.grey[400] : Colors.grey[600])),
+                    ],
+                  ),
+                );
+              }
+              final story = _stories[index - 1];
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Column(
+                  children: [
+                    _buildDoctorAvatar(
+                      story['image'] as String,
+                      size: 60,
+                      isOnline: story['isOnline'] as bool,
+                      name: story['name'] as String,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      story['name'] as String,
+                      style: TextStyle(fontSize: 10, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
-          const SizedBox(height: 8),
-          Text(
-            'شارك حالتك مع الآخرين',
-            style: TextStyles.body2.copyWith(
-              color: isDark ? Colors.grey[500] : Colors.grey[400],
-            ),
+        ),
+        // ✅ قائمة الحالات
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.all(12),
+            itemCount: _stories.length,
+            itemBuilder: (context, index) {
+              final story = _stories[index];
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 4)],
+                ),
+                child: Row(
+                  children: [
+                    _buildDoctorAvatar(
+                      story['image'] as String,
+                      size: 40,
+                      isOnline: story['isOnline'] as bool,
+                      name: story['name'] as String,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            story['name'] as String,
+                            style: TextStyles.subtitle1.copyWith(color: isDark ? Colors.white : Colors.black87),
+                          ),
+                          Text(
+                            story['time'] as String,
+                            style: TextStyles.body3.copyWith(color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                          ),
+                        ],
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => ToastService.showSuccess('✅ تم مشاركة الحالة'),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.share, size: 14, color: AppColors.primary),
+                            const SizedBox(width: 4),
+                            Text('مشاركة', style: TextStyle(fontSize: 12, color: AppColors.primary)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () => ToastService.showSuccess('📸 جاري إضافة حالة...'),
-            icon: const Icon(Icons.add_photo_alternate),
-            label: const Text('إضافة حالة'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
+  // ============================================================
+  // 📞 تبويب المكالمات - مع صور الأطباء
+  // ============================================================
   Widget _buildCallsTab(bool isDark) {
-    final calls = [
-      {'name': 'د. أحمد المؤيد', 'type': 'audio', 'status': 'answered', 'time': '10:30 ص', 'duration': '5:23', 'image': ImageKit.doctor1, 'doctorId': 'doc1'},
-      {'name': 'د. خالد النخلاني', 'type': 'video', 'status': 'missed', 'time': 'أمس', 'duration': '', 'image': ImageKit.doctor2, 'doctorId': 'doc2'},
-      {'name': 'د. أسماء الهندي', 'type': 'audio', 'status': 'incoming', 'time': 'منذ ساعة', 'duration': '', 'image': ImageKit.doctor3, 'doctorId': 'doc3'},
-    ];
-
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      itemCount: calls.length,
+      itemCount: _calls.length,
       itemBuilder: (context, index) {
-        final call = calls[index];
+        final call = _calls[index];
         final isMissed = call['status'] == 'missed';
         final isIncoming = call['status'] == 'incoming';
         final isVideo = call['type'] == 'video';
@@ -203,47 +439,15 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
             color: isDark ? const Color(0xFF1A2540) : Colors.white,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+            border: isIncoming ? Border.all(color: AppColors.primary, width: 2) : null,
           ),
           child: Row(
             children: [
-              Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(25),
-                    child: Image.network(
-                      call['image'] as String,
-                      width: 50,
-                      height: 50,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        width: 50,
-                        height: 50,
-                        color: AppColors.primary.withOpacity(0.1),
-                        child: Icon(isVideo ? Icons.videocam : Icons.phone, color: AppColors.primary),
-                      ),
-                    ),
-                  ),
-                  if (isIncoming)
-                    Positioned(
-                      top: -2,
-                      right: -2,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle),
-                        child: const Icon(Icons.call_received, color: Colors.white, size: 12),
-                      ),
-                    ),
-                  if (isMissed)
-                    Positioned(
-                      bottom: -2,
-                      right: -2,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                        child: const Icon(Icons.phone_missed, color: Colors.white, size: 12),
-                      ),
-                    ),
-                ],
+              // ✅ صورة الطبيب
+              _buildDoctorAvatar(
+                call['image'] as String,
+                size: 50,
+                name: call['name'] as String,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -340,6 +544,9 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     );
   }
 
+  // ============================================================
+  // 💬 تبويب المحادثات - مع صور الأطباء
+  // ============================================================
   Widget _buildChatsTab(bool isDark) {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
@@ -445,24 +652,12 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                 ),
                 child: Row(
                   children: [
-                    Stack(
-                      children: [
-                        CircleAvatar(
-                          radius: 24,
-                          backgroundImage: NetworkImage(image),
-                          child: const Icon(Icons.person, color: Colors.white),
-                        ),
-                        if (isOnline)
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: Container(
-                              width: 12,
-                              height: 12,
-                              decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle),
-                            ),
-                          ),
-                      ],
+                    // ✅ صورة الطبيب من ImageKit
+                    _buildDoctorAvatar(
+                      image,
+                      size: 48,
+                      isOnline: isOnline,
+                      name: name,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
