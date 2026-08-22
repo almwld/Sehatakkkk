@@ -907,3 +907,45 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     );
   }
 }
+
+// ✅ أضف في AppBar actions:
+actions: [
+  // ✅ زر البحث
+  IconButton(
+    icon: Icon(Icons.search, color: isDark ? Colors.white : Colors.black87),
+    onPressed: () async {
+      // جلب جميع الرسائل للبحث
+      final snapshot = await _firestore
+          .collection('chats')
+          .doc(widget.chatId)
+          .collection('messages')
+          .orderBy('timestamp', descending: true)
+          .get();
+
+      final messages = snapshot.docs.map((doc) {
+        final data = doc.data();
+        data['id'] = doc.id;
+        return data;
+      }).toList();
+
+      final result = await showSearch(
+        context: context,
+        delegate: MessageSearchDelegate(
+          messages: messages,
+          onMessageSelected: (messageId) {
+            // التمرير إلى الرسالة المحددة
+            // TODO: التمرير إلى الرسالة
+          },
+        ),
+      );
+    },
+  ),
+  IconButton(
+    icon: const Icon(Icons.call),
+    onPressed: () => ToastService.showInfo('📞 جاري الاتصال...'),
+  ),
+  IconButton(
+    icon: const Icon(Icons.videocam),
+    onPressed: () => ToastService.showInfo('📹 جاري مكالمة فيديو...'),
+  ),
+],
