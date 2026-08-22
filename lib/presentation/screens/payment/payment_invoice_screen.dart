@@ -6,6 +6,7 @@ class PaymentInvoiceScreen extends StatefulWidget {
   final double amount;
   final String orderId;
   final String paymentMethod;
+  final String invoiceTitle;
   final List<Map<String, dynamic>>? items;
 
   const PaymentInvoiceScreen({
@@ -13,6 +14,7 @@ class PaymentInvoiceScreen extends StatefulWidget {
     required this.amount,
     required this.orderId,
     required this.paymentMethod,
+    this.invoiceTitle = 'فاتورة خدمات طبية',
     this.items,
   });
 
@@ -25,11 +27,9 @@ class _PaymentInvoiceScreenState extends State<PaymentInvoiceScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('فاتورة الدفع'),
+        title: Text(widget.invoiceTitle),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
@@ -38,7 +38,6 @@ class _PaymentInvoiceScreenState extends State<PaymentInvoiceScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ✅ تفاصيل الفاتورة
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -88,7 +87,6 @@ class _PaymentInvoiceScreenState extends State<PaymentInvoiceScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            // ✅ زر تأكيد الدفع
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
