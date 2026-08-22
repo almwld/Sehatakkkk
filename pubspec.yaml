@@ -254,3 +254,6 @@ flutter:
           weight: 600
         - asset: assets/fonts/NotoSansArabicUI-Black.ttf
           weight: 900
+
+dependency_overrides:
+  google_fonts: ^6.1.0

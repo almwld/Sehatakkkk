@@ -216,18 +216,18 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
       appBar: AppBar(
         backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
         elevation: 0,
-        leading: IconButton(
+        leading: GestureDetector(
           icon: Icon(Icons.arrow_back_ios_new, color: isDark ? Colors.white : Colors.black87),
-          onPressed: () => Navigator.pop(context),
+          onTap: () => Navigator.pop(context),
         ),
         actions: [
-          IconButton(
+          GestureDetector(
             icon: Icon(_isFavorite ? Icons.favorite : Icons.favorite_border, color: _isFavorite ? Colors.red : (isDark ? Colors.white : Colors.black87)),
-            onPressed: () => setState(() => _isFavorite = !_isFavorite),
+            onTap: () => setState(() => _isFavorite = !_isFavorite),
           ),
-          IconButton(
+          GestureDetector(
             icon: Icon(Icons.share, color: isDark ? Colors.white : Colors.black87),
-            onPressed: () => ToastService.showSuccess('🔗 تم نسخ الرابط'),
+            onTap: () => ToastService.showSuccess('🔗 تم نسخ الرابط'),
           ),
         ],
       ),
