@@ -5,13 +5,13 @@ class ToastService {
   static void show({
     required String message,
     ToastGravity gravity = ToastGravity.BOTTOM,
-    ToastLength length = ToastLength.LONG,
+    int duration = 3, // بالثواني
     Color backgroundColor = Colors.green,
     Color textColor = Colors.white,
   }) {
     Fluttertoast.showToast(
       msg: message,
-      toastLength: length,
+      toastLength: duration > 3 ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT,
       gravity: gravity,
       backgroundColor: backgroundColor,
       textColor: textColor,
