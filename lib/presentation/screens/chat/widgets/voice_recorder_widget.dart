@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/voice_service.dart';
@@ -46,7 +47,6 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget>
     super.dispose();
   }
 
-  // ✅ بدء التسجيل
   Future<void> _startRecording() async {
     try {
       await _voiceService.startRecording();
@@ -70,7 +70,6 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget>
     }
   }
 
-  // ✅ إيقاف التسجيل ورفع الملف
   Future<void> _stopRecording() async {
     _timer?.cancel();
     setState(() => _isUploading = true);
@@ -105,7 +104,6 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget>
     }
   }
 
-  // ✅ إلغاء التسجيل
   Future<void> _cancelRecording() async {
     _timer?.cancel();
     await _voiceService.cancelRecording();
@@ -126,18 +124,16 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget>
         borderRadius: BorderRadius.circular(24),
       ),
       child: _isUploading
-          ? _buildUploadingIndicator()
+          ? _buildUploadingIndicator(isDark)
           : _isRecording
-              ? _buildRecordingUI()
-              : _buildIdleUI(),
+              ? _buildRecordingUI(isDark)
+              : _buildIdleUI(isDark),
     );
   }
 
-  // ✅ واجهة التسجيل
-  Widget _buildRecordingUI() {
+  Widget _buildRecordingUI(bool isDark) {
     return Row(
       children: [
-        // ✅ زر إلغاء
         GestureDetector(
           onTap: _cancelRecording,
           child: Container(
@@ -154,8 +150,6 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget>
           ),
         ),
         const SizedBox(width: 12),
-
-        // ✅ مؤشر التسجيل
         Expanded(
           child: Row(
             children: [
@@ -204,10 +198,7 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget>
             ],
           ),
         ),
-
         const SizedBox(width: 12),
-
-        // ✅ زر إيقاف
         GestureDetector(
           onTap: _stopRecording,
           child: Container(
@@ -227,8 +218,7 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget>
     );
   }
 
-  // ✅ واجهة الخمول
-  Widget _buildIdleUI() {
+  Widget _buildIdleUI(bool isDark) {
     return GestureDetector(
       onTap: _startRecording,
       child: Row(
@@ -252,8 +242,7 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget>
     );
   }
 
-  // ✅ مؤشر الرفع
-  Widget _buildUploadingIndicator() {
+  Widget _buildUploadingIndicator(bool isDark) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -277,7 +266,6 @@ class _VoiceRecorderWidgetState extends State<VoiceRecorderWidget>
     );
   }
 
-  // ✅ تنسيق المدة
   String _formatDuration(Duration duration) {
     final minutes = duration.inMinutes;
     final seconds = duration.inSeconds % 60;

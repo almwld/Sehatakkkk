@@ -1,5 +1,4 @@
 import 'package:flutter/services.dart';
-import 'package:vibration/vibration.dart';
 
 class HapticService {
   static final HapticService _instance = HapticService._internal();
@@ -42,12 +41,10 @@ class HapticService {
     }
   }
 
-  // ✅ اهتزاز مخصص - عند استقبال رسالة
+  // ✅ اهتزاز عند استقبال رسالة
   Future<void> messageReceived() async {
     try {
-      if (await Vibration.hasVibrator() ?? false) {
-        await Vibration.vibrate(duration: 100);
-      }
+      await HapticFeedback.mediumImpact();
     } catch (e) {
       // تجاهل الأخطاء
     }
@@ -56,10 +53,7 @@ class HapticService {
   // ✅ اهتزاز عند إرسال رسالة
   Future<void> messageSent() async {
     try {
-      if (await Vibration.hasVibrator() ?? false) {
-        final pattern = [0, 50, 50, 50];
-        await Vibration.vibrate(pattern: pattern);
-      }
+      await HapticFeedback.lightImpact();
     } catch (e) {
       // تجاهل الأخطاء
     }
@@ -68,10 +62,7 @@ class HapticService {
   // ✅ اهتزاز عند المكالمة
   Future<void> callRinging() async {
     try {
-      if (await Vibration.hasVibrator() ?? false) {
-        final pattern = [0, 200, 500, 200, 500, 200];
-        await Vibration.vibrate(pattern: pattern, repeat: 2);
-      }
+      await HapticFeedback.heavyImpact();
     } catch (e) {
       // تجاهل الأخطاء
     }
@@ -80,10 +71,7 @@ class HapticService {
   // ✅ اهتزاز عند الخطأ
   Future<void> error() async {
     try {
-      if (await Vibration.hasVibrator() ?? false) {
-        final pattern = [0, 300, 100, 300];
-        await Vibration.vibrate(pattern: pattern);
-      }
+      await HapticFeedback.heavyImpact();
     } catch (e) {
       // تجاهل الأخطاء
     }
