@@ -14,19 +14,42 @@ class WalletScreen extends StatefulWidget {
   State<WalletScreen> createState() => _WalletScreenState();
 }
 
-class _WalletScreenState extends State<WalletScreen> {
+class _WalletScreenState extends State<WalletScreen> with WidgetsBindingObserver {
   final PaymentService _paymentService = PaymentService();
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initializeWallet();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      _initializeWallet();
+      if (mounted) {
+        setState(() {});
+      }
+    }
   }
 
   Future<void> _initializeWallet() async {
     try {
-      await _paymentService.ensureWalletExists();
+      await _paymentService.ensureWalletExists().timeout(
+        const Duration(seconds: 6),
+        onTimeout: () {
+          return;
+        },
+      );
     } catch (e) {
       if (mounted) {
         ToastService.showError(context, 'فشل تهيئة المحفظة: $e');
@@ -215,9 +238,7 @@ class _WalletScreenState extends State<WalletScreen> {
           child: _buildQuickActionButton(
             icon: Icons.history,
             label: 'سجل المعاملات',
-            onTap: () {
-              // سيتم التمرير إلى قسم المعاملات
-            },
+            onTap: () {},
             isDark: isDark,
           ),
         ),
@@ -387,7 +408,7 @@ class _WalletScreenState extends State<WalletScreen> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   subtitle: Text(
-                    '${DateFormat('yyyy/MM/dd', 'ar').format(tx.createdAt)}',
+                    DateFormat('yyyy/MM/dd', 'ar').format(tx.createdAt),
                     style: TextStyle(
                       fontSize: 12,
                       color: isDark ? Colors.white54 : Colors.grey[600],

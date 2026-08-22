@@ -29,6 +29,7 @@ dependencies:
   carousel_slider: ^5.0.0
   table_calendar: ^3.0.9
   fl_chart: ^0.66.0
+  google_fonts: ^6.1.0
 
   # ============================================================
   # 🧠 State Management
@@ -171,13 +172,13 @@ flutter:
   assets:
     # 🎬 الرسوم المتحركة
     - assets/animations/
-    
+
     # 🎵 الصوت
     - assets/audio/
-    
+
     # 🔤 الخطوط
     - assets/fonts/
-    
+
     # 🖼️ الأيقونات
     - assets/icons/app_icon.png
     - assets/icons/app_icon.svg
@@ -193,8 +194,37 @@ flutter:
     - assets/icons/services/
     - assets/icons/social/
     - assets/icons/specialties/
-    
-    # 📷 الصور
+
+    # 📷 الصور - الخدمات
+    - assets/images/services/
+    - assets/images/services/blood_donation.png
+    - assets/images/services/first_aid.png
+    - assets/images/services/hospital.png
+    - assets/images/services/laboratory.png
+    - assets/images/services/medical_articles.png
+    - assets/images/services/packages.png
+    - assets/images/services/pharmacy.png
+    - assets/images/services/womens_health.png
+
+    # 📷 الصور - التتبع
+    - assets/images/tracking/
+    - assets/images/tracking/age.png
+    - assets/images/tracking/blood_pressure.png
+    - assets/images/tracking/blood_sugar.png
+    - assets/images/tracking/fruits.png
+    - assets/images/tracking/sleep_tracking.png
+    - assets/images/tracking/walking.png
+    - assets/images/tracking/water_drinking.png
+    - assets/images/tracking/weight.png
+
+    # 📷 الصور - الواجهة
+    - assets/images/ui/
+    - assets/images/ui/edit_button.png
+    - assets/images/ui/like_button.png
+    - assets/images/ui/settings_gear.png
+    - assets/images/ui/user_profile.png
+
+    # 📷 الصور - أخرى
     - assets/images/chat/
     - assets/images/chat_background.svg
     - assets/images/icons/doctors/
@@ -204,11 +234,9 @@ flutter:
     - assets/images/icons/top_bar/
     - assets/images/payment/
     - assets/images/placeholder.png
-    - assets/images/services/
     - assets/images/social/
-    - assets/images/tracking/
     - assets/images/wallets/
-    
+
     # 📁 SVG
     - assets/svg/
 
@@ -227,28 +255,6 @@ flutter:
         - asset: assets/fonts/NotoSansArabicUI-Black.ttf
           weight: 900
 
-    # أيقونات الخدمات الجديدة
-    - assets/images/services/blood_donation.png
-    - assets/images/services/first_aid.png
-    - assets/images/services/hospital.png
-    - assets/images/services/laboratory.png
-    - assets/images/services/medical_articles.png
-    - assets/images/services/packages.png
-    - assets/images/services/pharmacy.png
-    - assets/images/services/womens_health.png
-    
-    # أيقونات التتبع
-    - assets/images/tracking/age.png
-    - assets/images/tracking/blood_pressure.png
-    - assets/images/tracking/blood_sugar.png
-    - assets/images/tracking/fruits.png
-    - assets/images/tracking/sleep_tracking.png
-    - assets/images/tracking/walking.png
-    - assets/images/tracking/water_drinking.png
-    - assets/images/tracking/weight.png
-    
-    # أيقونات الواجهة
-    - assets/images/ui/edit_button.png
-    - assets/images/ui/like_button.png
-    - assets/images/ui/settings_gear.png
-    - assets/images/ui/user_profile.png
+  # ✅ Timer support
+  flutter:
+    sdk: flutter

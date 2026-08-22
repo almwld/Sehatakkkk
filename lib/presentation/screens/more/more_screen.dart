@@ -50,7 +50,8 @@ class MoreScreen extends StatefulWidget {
   State<MoreScreen> createState() => _MoreScreenState();
 }
 
-class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMixin {
+class _MoreScreenState extends State<MoreScreen>
+    with AutomaticKeepAliveClientMixin, WidgetsBindingObserver {
   @override
   bool get wantKeepAlive => true;
 
@@ -66,7 +67,6 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
     'إعدادات',
   ];
 
-  // ✅ بيانات المؤشرات الحيوية (بدون حاويات)
   final List<Map<String, dynamic>> _vitals = [
     {
       'icon': 'assets/images/tracking/blood_pressure.png',
@@ -102,7 +102,6 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
     },
   ];
 
-  // ✅ الخدمات المفلترة (بدون حاويات)
   List<Map<String, dynamic>> get _filteredServices {
     switch (_selectedCategory) {
       case 'رعاية عائلية':
@@ -176,25 +175,38 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _scrollController = ScrollController();
     _scrollController.addListener(() {
-      setState(() {
-        _isScrolled = _scrollController.position.pixels > 20;
-      });
+      if (mounted) {
+        setState(() {
+          _isScrolled = _scrollController.position.pixels > 20;
+        });
+      }
     });
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _scrollController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      if (mounted) {
+        setState(() {});
+      }
+    }
   }
 
   void _navigateTo(Widget screen) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
   }
 
-  // ✅ دالة لعرض الأيقونة - بدون حاويات
   Widget _buildIcon(String path, {double size = 40}) {
     return Image.asset(
       path,
@@ -222,7 +234,7 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
         elevation: _isScrolled ? 1 : 0,
         actions: [
           IconButton(
-            icon: Icon(Icons.logout, color: Colors.red),
+            icon: const Icon(Icons.logout, color: Colors.red),
             onPressed: _showLogoutDialog,
           ),
         ],
@@ -233,11 +245,8 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ✅ بطاقة المستخدم - بدون حاويات زائدة
             _buildUserCard(user, isDark),
             const SizedBox(height: 20),
-
-            // ✅ المؤشرات الحيوية
             Text(
               'المؤشرات الحيوية',
               style: TextStyle(
@@ -249,8 +258,6 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
             const SizedBox(height: 12),
             _buildVitalsGrid(isDark),
             const SizedBox(height: 24),
-
-            // ✅ الخدمات
             Text(
               'الخدمات',
               style: TextStyle(
@@ -264,8 +271,6 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
             const SizedBox(height: 16),
             _buildFilteredServicesGrid(isDark),
             const SizedBox(height: 24),
-
-            // ✅ زر تسجيل الخروج
             _buildLogoutButton(isDark),
           ],
         ),
@@ -273,10 +278,11 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
     );
   }
 
-  // ============================================================
-  // 📱 بطاقة المستخدم (بدون حاويات زائدة)
-  // ============================================================
   Widget _buildUserCard(User? user, bool isDark) {
+    final displayName = user?.displayName ?? 'مستخدم';
+    final email = user?.email ?? 'user@email.com';
+    final initial = displayName.isNotEmpty ? displayName.substring(0, 1) : 'م';
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -296,7 +302,7 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
             radius: 28,
             backgroundColor: AppColors.primary.withOpacity(0.1),
             child: Text(
-              user?.displayName?.substring(0, 1) ?? 'م',
+              initial,
               style: TextStyle(
                 fontSize: 20,
                 color: AppColors.primary,
@@ -310,7 +316,7 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  user?.displayName ?? 'مستخدم',
+                  displayName,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -318,7 +324,7 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
                   ),
                 ),
                 Text(
-                  user?.email ?? 'user@email.com',
+                  email,
                   style: TextStyle(
                     fontSize: 12,
                     color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -336,9 +342,6 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
     );
   }
 
-  // ============================================================
-  // 📊 المؤشرات الحيوية (شبكة بدون حاويات زائدة)
-  // ============================================================
   Widget _buildVitalsGrid(bool isDark) {
     return GridView.builder(
       shrinkWrap: true,
@@ -363,7 +366,6 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // ✅ أيقونة مكبرة 25% (40 -> 50)
                 _buildIcon(vital['icon'] as String, size: 50),
                 const SizedBox(height: 4),
                 Text(
@@ -398,9 +400,6 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
     );
   }
 
-  // ============================================================
-  // 📋 شريط التصنيفات
-  // ============================================================
   Widget _buildCategoriesBar(bool isDark) {
     return SizedBox(
       height: 40,
@@ -434,9 +433,6 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
     );
   }
 
-  // ============================================================
-  // 📱 الخدمات (شبكة بدون حاويات زائدة - أيقونات مكبرة)
-  // ============================================================
   Widget _buildFilteredServicesGrid(bool isDark) {
     final services = _filteredServices;
 
@@ -477,7 +473,6 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // ✅ أيقونة مكبرة 25% (32 -> 40)
                 _buildIcon(service['icon'] as String, size: 40),
                 const SizedBox(height: 4),
                 Text(
@@ -509,9 +504,6 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
     );
   }
 
-  // ============================================================
-  // 🔴 زر تسجيل الخروج
-  // ============================================================
   Widget _buildLogoutButton(bool isDark) {
     return SizedBox(
       width: double.infinity,
@@ -534,9 +526,6 @@ class _MoreScreenState extends State<MoreScreen> with AutomaticKeepAliveClientMi
     );
   }
 
-  // ============================================================
-  // 🗑️ دوال الحوار
-  // ============================================================
   void _showLogoutDialog() {
     showDialog(
       context: context,
