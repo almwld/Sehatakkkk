@@ -219,10 +219,20 @@ flutter:
 
     # 📷 الصور - الواجهة
     - assets/images/ui/
+    - assets/images/more/
+    - assets/images/nav_bar/
     - assets/images/ui/edit_button.png
+    - assets/images/more/
+    - assets/images/nav_bar/
     - assets/images/ui/like_button.png
+    - assets/images/more/
+    - assets/images/nav_bar/
     - assets/images/ui/settings_gear.png
+    - assets/images/more/
+    - assets/images/nav_bar/
     - assets/images/ui/user_profile.png
+    - assets/images/more/
+    - assets/images/nav_bar/
 
     # 📷 الصور - أخرى
     - assets/images/chat/
