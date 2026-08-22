@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
-import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
+import 'package:sehatak/presentation/screens/chat/chat_detail_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_booking_screen.dart';
 
 class DoctorDetailsScreen extends StatefulWidget {
@@ -25,35 +25,31 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
   late Map<String, dynamic> _doctor;
   int _selectedIndex = -1;
 
-  // ✅ الأيقونات الأربعة المحلية من مجلد chat (مكبرة بنسبة 10%)
+  // ✅ أيقونات التواصل (حذف جهات الاتصال)
   final List<Map<String, dynamic>> _contactIcons = [
     {
       'icon': 'assets/images/chat/phone_call.png',
       'label': 'اتصال',
       'color': Colors.green,
       'action': 'call',
-      'screen': null,
     },
     {
       'icon': 'assets/images/chat/video_call.png',
       'label': 'مكالمة فيديو',
       'color': Colors.blue,
       'action': 'video',
-      'screen': null,
     },
     {
       'icon': 'assets/images/chat/chat_bubble.png',
-      'label': 'رسالة',
+      'label': 'مراسلة',
       'color': AppColors.primary,
       'action': 'chat',
-      'screen': const ChatScreen(),
     },
     {
       'icon': 'assets/images/chat/calendar_booking.png',
       'label': 'حجز موعد',
       'color': Colors.orange,
       'action': 'book',
-      'screen': const DoctorBookingScreen(doctorId: '1'),
     },
   ];
 
@@ -74,101 +70,53 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
   }
 
   Map<String, dynamic> _getDoctorData(String doctorId) {
-    switch (doctorId) {
-      case '1':
-        return {
-          'name': 'د. أحمد المولد',
-          'specialty': 'استشاري باطنية وأطفال',
-          'experience': '20+ سنة',
-          'rating': 4.9,
-          'reviews': 328,
-          'fee': '500',
-          'available': true,
-          'about': 'استشاري باطنية وأطفال مع خبرة واسعة في تشخيص وعلاج الأمراض المزمنة والحادة.',
-          'hospital': 'مستشفى الثورة العام',
-          'availability': ['السبت - الأربعاء: 9 ص - 5 م'],
-          'image': ImageKit.doctor1,
-        };
-      case '2':
-        return {
-          'name': 'د. خالد النخلاني',
-          'specialty': 'قلبية',
-          'experience': '12 سنة',
-          'rating': 4.8,
-          'reviews': 256,
-          'fee': '450',
-          'available': true,
-          'about': 'أخصائي قلوب ذو خبرة عالية في تشخيص وعلاج أمراض القلب والشرايين.',
-          'hospital': 'مستشفى الكويت',
-          'availability': ['الأحد - الخميس: 10 ص - 4 م'],
-          'image': ImageKit.doctor2,
-        };
-      case '3':
-        return {
-          'name': 'د. أسماء الهندي',
-          'specialty': 'أطفال',
-          'experience': '9 سنوات',
-          'rating': 4.7,
-          'reviews': 189,
-          'fee': '420',
-          'available': true,
-          'about': 'أخصائية أطفال متابعة التطور الصحي للأطفال من الولادة حتى المراهقة.',
-          'hospital': 'مستشفى السبعين',
-          'availability': ['السبت - الأربعاء: 8 ص - 2 م'],
-          'image': ImageKit.doctor3,
-        };
-      case '4':
-        return {
-          'name': 'د. محمد العلاي',
-          'specialty': 'أنف وأذن وحنجرة',
-          'experience': '8 سنوات',
-          'rating': 4.6,
-          'reviews': 89,
-          'fee': '400',
-          'available': true,
-          'about': 'أخصائي أنف وأذن وحنجرة مع خبرة في جراحات الأنف والأذن.',
-          'hospital': 'مستشفى الأنف والأذن',
-          'availability': ['الأحد - الخميس: 9 ص - 3 م'],
-          'image': ImageKit.doctor4,
-        };
-      case '5':
-        return {
-          'name': 'د. فاطمة صديقي',
-          'specialty': 'نساء وولادة',
-          'experience': '10 سنوات',
-          'rating': 4.8,
-          'reviews': 210,
-          'fee': '480',
-          'available': true,
-          'about': 'طبيبة نساء وولادة مختصة بالحالات الروتينية والمعقدة ورعاية الحمل.',
-          'hospital': 'المستشفى الجمهوري',
-          'availability': ['الإثنين - الجمعة: 9 ص - 1 م'],
-          'image': ImageKit.doctor5,
-        };
-      default:
-        return {
-          'name': 'د. غير معروف',
-          'specialty': 'عام',
-          'experience': 'غير متوفر',
-          'rating': 0.0,
-          'reviews': 0,
-          'fee': '0',
-          'available': false,
-          'about': 'معلومات الطبيب غير متوفرة',
-          'hospital': '',
-          'availability': [],
-          'image': ImageKit.doctor1,
-        };
-    }
+    final doctors = {
+      '1': {
+        'name': 'د. أحمد المولد',
+        'specialty': 'استشاري باطنية وأطفال',
+        'experience': '20+ سنة',
+        'rating': 4.9,
+        'reviews': 328,
+        'fee': '500',
+        'available': true,
+        'about': 'استشاري باطنية وأطفال مع خبرة واسعة في تشخيص وعلاج الأمراض المزمنة والحادة.',
+        'hospital': 'مستشفى الثورة العام',
+        'availability': ['السبت - الأربعاء: 9 ص - 5 م'],
+        'image': ImageKit.doctor1,
+      },
+      '2': {
+        'name': 'د. خالد النخلاني',
+        'specialty': 'قلبية',
+        'experience': '12 سنة',
+        'rating': 4.8,
+        'reviews': 256,
+        'fee': '450',
+        'available': true,
+        'about': 'أخصائي قلوب ذو خبرة عالية في تشخيص وعلاج أمراض القلب والشرايين.',
+        'hospital': 'مستشفى الكويت',
+        'availability': ['الأحد - الخميس: 10 ص - 4 م'],
+        'image': ImageKit.doctor2,
+      },
+      '3': {
+        'name': 'د. أسماء الهندي',
+        'specialty': 'أطفال',
+        'experience': '9 سنوات',
+        'rating': 4.7,
+        'reviews': 189,
+        'fee': '420',
+        'available': true,
+        'about': 'أخصائية أطفال متابعة التطور الصحي للأطفال من الولادة حتى المراهقة.',
+        'hospital': 'مستشفى السبعين',
+        'availability': ['السبت - الأربعاء: 8 ص - 2 م'],
+        'image': ImageKit.doctor3,
+      },
+    };
+    return doctors[doctorId] ?? doctors['1']!;
   }
 
   void _handleAction(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-
+    setState(() => _selectedIndex = index);
     final action = _contactIcons[index]['action'] as String;
-    final screen = _contactIcons[index]['screen'] as Widget?;
 
     switch (action) {
       case 'call':
@@ -178,30 +126,31 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
         ToastService.showSuccess('📹 جاري بدء مكالمة فيديو...');
         break;
       case 'chat':
-        if (screen != null) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => screen),
-          );
-        }
+        // ✅ الانتقال إلى غرفة المراسلة
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ChatDetailScreen(
+              chatId: 'chat_${widget.doctorId}_${DateTime.now().millisecondsSinceEpoch}',
+              userName: _doctor['name'],
+              userId: _doctor['id'] ?? widget.doctorId,
+              isDoctor: true,
+            ),
+          ),
+        );
         break;
       case 'book':
-        if (screen != null) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => screen),
-          );
-        }
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const DoctorBookingScreen(doctorId: '1'),
+          ),
+        );
         break;
     }
 
-    // إعادة تعيين التحديد بعد 300ms
     Future.delayed(const Duration(milliseconds: 300), () {
-      if (mounted) {
-        setState(() {
-          _selectedIndex = -1;
-        });
-      }
+      if (mounted) setState(() => _selectedIndex = -1);
     });
   }
 
@@ -214,31 +163,17 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
-        transform: isSelected
-            ? Matrix4.diagonal3Values(0.9, 0.9, 1.0)
-            : Matrix4.identity(),
+        transform: isSelected ? Matrix4.diagonal3Values(0.9, 0.9, 1.0) : Matrix4.identity(),
         child: Column(
           children: [
             Container(
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: isSelected
-                    ? color.withOpacity(0.3)
-                    : color.withOpacity(0.16),
+                color: isSelected ? color.withOpacity(0.3) : color.withOpacity(0.16),
                 borderRadius: BorderRadius.circular(18),
-                border: isSelected
-                    ? Border.all(color: color, width: 2)
-                    : null,
-                boxShadow: isSelected
-                    ? [
-                        BoxShadow(
-                          color: color.withOpacity(0.3),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ]
-                    : null,
+                border: isSelected ? Border.all(color: color, width: 2) : null,
+                boxShadow: isSelected ? [BoxShadow(color: color.withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 4))] : null,
               ),
               child: Center(
                 child: Image.asset(
@@ -246,13 +181,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
                   width: 40,
                   height: 40,
                   color: isSelected ? color : null,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Icon(
-                      Icons.circle,
-                      color: color,
-                      size: 40,
-                    );
-                  },
+                  errorBuilder: (context, error, stackTrace) => Icon(Icons.circle, color: color, size: 40),
                 ),
               ),
             ),
@@ -262,9 +191,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected
-                    ? color
-                    : (isDark ? Colors.white70 : Colors.grey[800]),
+                color: isSelected ? color : (isDark ? Colors.white70 : Colors.grey[800]),
               ),
             ),
           ],
@@ -295,17 +222,12 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
         ),
         actions: [
           IconButton(
-            icon: Icon(
-              _isFavorite ? Icons.favorite : Icons.favorite_border,
-              color: _isFavorite ? Colors.red : (isDark ? Colors.white : Colors.black87),
-            ),
+            icon: Icon(_isFavorite ? Icons.favorite : Icons.favorite_border, color: _isFavorite ? Colors.red : (isDark ? Colors.white : Colors.black87)),
             onPressed: () => setState(() => _isFavorite = !_isFavorite),
           ),
           IconButton(
             icon: Icon(Icons.share, color: isDark ? Colors.white : Colors.black87),
-            onPressed: () {
-              ToastService.showSuccess('🔗 تم نسخ الرابط');
-            },
+            onPressed: () => ToastService.showSuccess('🔗 تم نسخ الرابط'),
           ),
         ],
       ),
@@ -314,7 +236,6 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // صورة الطبيب
             Center(
               child: Stack(
                 children: [
@@ -338,10 +259,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
                     right: 0,
                     child: Container(
                       padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: Colors.green,
-                        shape: BoxShape.circle,
-                      ),
+                      decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle),
                       child: const Icon(Icons.check, color: Colors.white, size: 16),
                     ),
                   ),
@@ -354,19 +272,12 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
                 children: [
                   Text(
                     _doctor['name'],
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     _doctor['specialty'],
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: isDark ? Colors.grey[400] : Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 14, color: isDark ? Colors.grey[400] : Colors.grey[600]),
                   ),
                   const SizedBox(height: 4),
                   Row(
@@ -374,22 +285,9 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
                     children: [
                       const Icon(Icons.star, color: Colors.amber, size: 18),
                       const SizedBox(width: 4),
-                      Text(
-                        _doctor['rating'].toString(),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                      ),
+                      Text(_doctor['rating'].toString(), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: isDark ? Colors.white : Colors.black87)),
                       const SizedBox(width: 4),
-                      Text(
-                        '(${_doctor['reviews']} تقييم)',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isDark ? Colors.grey[500] : Colors.grey[400],
-                        ),
-                      ),
+                      Text('(${_doctor['reviews']} تقييم)', style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[500] : Colors.grey[400])),
                     ],
                   ),
                   const SizedBox(height: 4),
@@ -401,11 +299,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
                     ),
                     child: Text(
                       _doctor['available'] ? 'متاح الآن' : 'غير متاح',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: _doctor['available'] ? Colors.green : Colors.red,
-                        fontWeight: FontWeight.w500,
-                      ),
+                      style: TextStyle(fontSize: 12, color: _doctor['available'] ? Colors.green : Colors.red, fontWeight: FontWeight.w500),
                     ),
                   ),
                 ],
@@ -413,19 +307,12 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
             ),
             const SizedBox(height: 16),
 
-            // ✅ الأيقونات الأربعة
             Container(
               padding: const EdgeInsets.symmetric(vertical: 12),
               decoration: BoxDecoration(
                 color: isDark ? const Color(0xFF1A2540) : Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -437,113 +324,53 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
             ),
             const SizedBox(height: 16),
 
-            // معلومات الطبيب
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: isDark ? const Color(0xFF1A2540) : Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'نبذة عن الطبيب',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
-                  ),
+                  Text('نبذة عن الطبيب', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
                   const SizedBox(height: 8),
-                  Text(
-                    _doctor['about'],
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: isDark ? Colors.grey[400] : Colors.grey[600],
-                      height: 1.6,
-                    ),
-                  ),
+                  Text(_doctor['about'], style: TextStyle(fontSize: 14, color: isDark ? Colors.grey[400] : Colors.grey[600], height: 1.6)),
                   const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      const Icon(Icons.work, color: AppColors.primary, size: 18),
-                      const SizedBox(width: 8),
-                      Text(
-                        'الخبرة: ${_doctor['experience']}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: isDark ? Colors.grey[300] : Colors.grey[700],
-                        ),
-                      ),
-                    ],
-                  ),
+                  Row(children: [
+                    const Icon(Icons.work, color: AppColors.primary, size: 18),
+                    const SizedBox(width: 8),
+                    Text('الخبرة: ${_doctor['experience']}', style: TextStyle(fontSize: 14, color: isDark ? Colors.grey[300] : Colors.grey[700])),
+                  ]),
                   const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(Icons.local_hospital, color: AppColors.primary, size: 18),
-                      const SizedBox(width: 8),
-                      Text(
-                        'المستشفى: ${_doctor['hospital']}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: isDark ? Colors.grey[300] : Colors.grey[700],
-                        ),
-                      ),
-                    ],
-                  ),
+                  Row(children: [
+                    const Icon(Icons.local_hospital, color: AppColors.primary, size: 18),
+                    const SizedBox(width: 8),
+                    Text('المستشفى: ${_doctor['hospital']}', style: TextStyle(fontSize: 14, color: isDark ? Colors.grey[300] : Colors.grey[700])),
+                  ]),
                   const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(Icons.attach_money, color: AppColors.primary, size: 18),
-                      const SizedBox(width: 8),
-                      Text(
-                        'رسوم الكشف: ${_doctor['fee']} ر.ي',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ],
-                  ),
+                  Row(children: [
+                    const Icon(Icons.attach_money, color: AppColors.primary, size: 18),
+                    const SizedBox(width: 8),
+                    Text('رسوم الكشف: ${_doctor['fee']} ر.ي', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.primary)),
+                  ]),
                 ],
               ),
             ),
             const SizedBox(height: 16),
 
-            // أوقات العمل
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: isDark ? const Color(0xFF1A2540) : Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'أوقات العمل',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
-                  ),
+                  Text('أوقات العمل', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
                   const SizedBox(height: 8),
                   ...(_doctor['availability'] as List<dynamic>).map((time) {
                     return Padding(
@@ -552,15 +379,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
                         children: [
                           const Icon(Icons.access_time, color: AppColors.primary, size: 18),
                           const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              time as String,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: isDark ? Colors.grey[300] : Colors.grey[700],
-                              ),
-                            ),
-                          ),
+                          Expanded(child: Text(time as String, style: TextStyle(fontSize: 14, color: isDark ? Colors.grey[300] : Colors.grey[700]))),
                         ],
                       ),
                     );
