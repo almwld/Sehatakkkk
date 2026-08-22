@@ -1,10 +1,10 @@
 // ============================================================
 // 📱 CustomBottomNavigationBar - شريط التنقل السفلي المخصص
-// مطابق تماماً لتصميم HomeScreen مع تأثيرات التلاشي والاختفاء
 // ============================================================
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/rendering.dart'; // ✅ هام جداً لـ ScrollDirection
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class CustomBottomNavigationBar extends StatefulWidget {
@@ -34,13 +34,11 @@ class _CustomBottomNavigationBarState
   // ✅ نفس متغيرات HomeScreen
   final ValueNotifier<bool> _isBottomBarVisible = ValueNotifier<bool>(true);
 
-  // ✅ قائمة عناصر التنقل (نفس ترتيب HomeScreen)
+  // ✅ قائمة عناصر التنقل
   final List<NavItem> _navItems = [
     const NavItem(index: 0, icon: Icons.home_rounded, label: 'الرئيسية'),
-    const NavItem(
-        index: 1, icon: Icons.person_search_rounded, label: 'الأطباء'),
-    const NavItem(
-        index: 2, icon: Icons.local_pharmacy_rounded, label: 'الصيدلية'),
+    const NavItem(index: 1, icon: Icons.person_search_rounded, label: 'الأطباء'),
+    const NavItem(index: 2, icon: Icons.local_pharmacy_rounded, label: 'الصيدلية'),
     const NavItem(
       index: 3,
       icon: Icons.chat_rounded,
@@ -48,17 +46,14 @@ class _CustomBottomNavigationBarState
       isSpecial: true,
       isProtected: true,
     ),
-    const NavItem(
-        index: 4, icon: Icons.science_rounded, label: 'مختبرات', isProtected: true),
-    const NavItem(
-        index: 5, icon: Icons.folder_rounded, label: 'صحتي', isProtected: true),
+    const NavItem(index: 4, icon: Icons.science_rounded, label: 'مختبرات', isProtected: true),
+    const NavItem(index: 5, icon: Icons.folder_rounded, label: 'صحتي', isProtected: true),
     const NavItem(index: 6, icon: Icons.grid_view_rounded, label: 'المزيد'),
   ];
 
   @override
   void initState() {
     super.initState();
-    // ✅ مراقبة التمرير مثل HomeScreen
     widget.scrollController.addListener(_onScroll);
   }
 
@@ -69,7 +64,7 @@ class _CustomBottomNavigationBarState
     super.dispose();
   }
 
-  // ✅ دالة التمرير والاختفاء (مطابقة لـ HomeScreen)
+  // ✅ دالة التمرير والاختفاء - تستخدم ScrollDirection من flutter/rendering.dart
   void _onScroll() {
     if (!widget.scrollController.hasClients) return;
 
@@ -100,12 +95,11 @@ class _CustomBottomNavigationBarState
         return AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
-          height: isVisible ? 60 : 0, // ✅ ارتفاع 60
+          height: isVisible ? 60 : 0,
           child: Container(
             decoration: BoxDecoration(
               color: bgColor,
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(20)),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.12),
@@ -146,7 +140,7 @@ class _CustomBottomNavigationBarState
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
         width: 48,
-        height: 52, // ✅ تم التعديل ليتناسب مع ارتفاع 60
+        height: 52,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -197,12 +191,11 @@ class _CustomBottomNavigationBarState
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
         width: 56,
-        height: 52, // ✅ تم التعديل ليتناسب مع ارتفاع 60
+        height: 52,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            // ✅ زر دائري مع تدرج لوني
             Transform.translate(
               offset: const Offset(0, -20),
               child: AnimatedContainer(
@@ -248,13 +241,11 @@ class _CustomBottomNavigationBarState
 
   // ✅ دالة التعامل مع الضغط
   void _handleTap(NavItem item) {
-    // 🔒 التحقق من المصادقة
     if (item.isProtected && !widget.isLoggedIn) {
       widget.onAuthRequired();
       return;
     }
 
-    // 💫 تأثير اهتزاز خفيف
     HapticFeedback.lightImpact();
     widget.onTap(item.index);
   }
