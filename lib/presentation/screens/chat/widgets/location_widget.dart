@@ -46,7 +46,6 @@ class _LocationWidgetState extends State<LocationWidget> {
         ),
         child: Stack(
           children: [
-            // ✅ الخريطة المصغرة
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: FlutterMap(
@@ -56,12 +55,7 @@ class _LocationWidgetState extends State<LocationWidget> {
                   zoom: 15,
                   interactionOptions: const InteractionOptions(
                     enableMultiFingerGestureRace: false,
-                    enablePinchMove: false,
-                    enablePinchRotate: false,
                     enableScrollWheel: false,
-                    enableTap: false,
-                    enableDoubleTapZoom: false,
-                    enableDrag: false,
                   ),
                 ),
                 children: [
@@ -86,7 +80,6 @@ class _LocationWidgetState extends State<LocationWidget> {
                 ],
               ),
             ),
-            // ✅ تراكب شفاف
             Positioned.fill(
               child: Container(
                 decoration: BoxDecoration(
@@ -102,7 +95,6 @@ class _LocationWidgetState extends State<LocationWidget> {
                 ),
               ),
             ),
-            // ✅ العنوان
             Positioned(
               bottom: 8,
               left: 8,
@@ -126,7 +118,6 @@ class _LocationWidgetState extends State<LocationWidget> {
                 ),
               ),
             ),
-            // ✅ أيقونة الموقع
             const Positioned(
               top: 8,
               right: 8,
@@ -142,7 +133,6 @@ class _LocationWidgetState extends State<LocationWidget> {
     );
   }
 
-  // ✅ عرض الخريطة بالكامل
   void _showFullScreenMap() {
     showDialog(
       context: context,
@@ -155,7 +145,6 @@ class _LocationWidgetState extends State<LocationWidget> {
           color: Colors.black,
           child: Stack(
             children: [
-              // ✅ الخريطة كاملة
               FlutterMap(
                 options: MapOptions(
                   center: LatLng(widget.latitude, widget.longitude),
@@ -182,7 +171,6 @@ class _LocationWidgetState extends State<LocationWidget> {
                   ),
                 ],
               ),
-              // ✅ زر العودة
               Positioned(
                 top: 40,
                 right: 16,
@@ -191,7 +179,6 @@ class _LocationWidgetState extends State<LocationWidget> {
                   onPressed: () => Navigator.pop(context),
                 ),
               ),
-              // ✅ معلومات الموقع
               Positioned(
                 bottom: 40,
                 left: 16,

@@ -1,5 +1,5 @@
+import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -24,12 +24,10 @@ class VoiceService {
   Duration _recordingDuration = Duration.zero;
   Timer? _recordingTimer;
 
-  // ✅ التحقق من الأذونات
   Future<bool> checkPermissions() async {
     return await _recorder.hasPermission();
   }
 
-  // ✅ بدء التسجيل
   Future<void> startRecording() async {
     try {
       if (!await checkPermissions()) {
@@ -52,13 +50,8 @@ class VoiceService {
       _isRecording = true;
       _recordingDuration = Duration.zero;
       
-      // ✅ تحديث مدة التسجيل كل ثانية
       _recordingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        if (mounted) {
-          setState(() {
-            _recordingDuration += const Duration(seconds: 1);
-          });
-        }
+        _recordingDuration += const Duration(seconds: 1);
       });
 
       print('✅ Recording started: $_recordingPath');
@@ -68,10 +61,9 @@ class VoiceService {
     }
   }
 
-  // ✅ إيقاف التسجيل ورفع الملف
   Future<String?> stopRecording({
     required String chatId,
-    required VoidCallback? onProgress,
+    VoidCallback? onProgress,
   }) async {
     try {
       _recordingTimer?.cancel();
@@ -86,7 +78,6 @@ class VoiceService {
         return null;
       }
 
-      // ✅ رفع الملف إلى Firebase Storage
       final user = _auth.currentUser;
       if (user == null) return null;
 
@@ -96,7 +87,6 @@ class VoiceService {
 
       final uploadTask = ref.putFile(file);
 
-      // ✅ مراقبة التقدم
       uploadTask.snapshotEvents.listen((snapshot) {
         final progress = snapshot.bytesTransferred / snapshot.totalBytes;
         if (onProgress != null) {
@@ -108,14 +98,12 @@ class VoiceService {
       final snapshot = await uploadTask.whenComplete(() {});
       final downloadUrl = await snapshot.ref.getDownloadURL();
 
-      // ✅ حفظ مرجع الصوت في Firestore
       await _saveVoiceMessage(
         chatId: chatId,
         url: downloadUrl,
         duration: _recordingDuration,
       );
 
-      // ✅ حذف الملف المؤقت
       await file.delete();
 
       _recordingPath = null;
@@ -128,7 +116,6 @@ class VoiceService {
     }
   }
 
-  // ✅ إلغاء التسجيل
   Future<void> cancelRecording() async {
     _recordingTimer?.cancel();
     _isRecording = false;
@@ -145,7 +132,6 @@ class VoiceService {
     print('✅ Recording cancelled');
   }
 
-  // ✅ حفظ رسالة صوتية في Firestore
   Future<void> _saveVoiceMessage({
     required String chatId,
     required String url,
@@ -178,7 +164,6 @@ class VoiceService {
     });
   }
 
-  // ✅ تشغيل رسالة صوتية
   Future<void> playAudio(String url, VoidCallback onComplete) async {
     try {
       _isPlaying = true;
@@ -186,7 +171,7 @@ class VoiceService {
       final source = UrlSource(url);
       await _player.play(source);
       
-      _player.onComplete.listen((event) {
+      _player.onPlayerComplete.listen((event) {
         _isPlaying = false;
         onComplete();
       });
@@ -196,22 +181,15 @@ class VoiceService {
     }
   }
 
-  // ✅ إيقاف التشغيل
   Future<void> stopAudio() async {
     await _player.stop();
     _isPlaying = false;
   }
 
-  // ✅ الحصول على مدة التسجيل
   Duration get recordingDuration => _recordingDuration;
-
-  // ✅ التحقق من حالة التسجيل
   bool get isRecording => _isRecording;
-
-  // ✅ التحقق من حالة التشغيل
   bool get isPlaying => _isPlaying;
 
-  // ✅ تنظيف الموارد
   void dispose() {
     _recordingTimer?.cancel();
     _player.dispose();

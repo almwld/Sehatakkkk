@@ -62,9 +62,12 @@ class ReactionService {
           .doc(user.uid);
 
       final doc = await reactionRef.get();
-      if (doc.exists && (doc.data()?['emoji'] as String? == emoji)) {
-        await reactionRef.delete();
-        await _updateReactionCount(chatId, messageId);
+      if (doc.exists) {
+        final data = doc.data();
+        if (data != null && data['emoji'] == emoji) {
+          await reactionRef.delete();
+          await _updateReactionCount(chatId, messageId);
+        }
       }
     } catch (e) {
       print('❌ Error removing reaction: $e');
@@ -90,8 +93,18 @@ class ReactionService {
           .doc(user.uid);
 
       final doc = await reactionRef.get();
-      if (doc.exists && (doc.data()?['emoji'] as String? == emoji)) {
-        await reactionRef.delete();
+      if (doc.exists) {
+        final data = doc.data();
+        if (data != null && data['emoji'] == emoji) {
+          await reactionRef.delete();
+        } else {
+          await reactionRef.set({
+            'userId': user.uid,
+            'userName': user.displayName ?? 'مستخدم',
+            'emoji': emoji,
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+        }
       } else {
         await reactionRef.set({
           'userId': user.uid,
@@ -122,7 +135,8 @@ class ReactionService {
       final List<String> emojis = [];
 
       for (final doc in reactions.docs) {
-        final emoji = (doc.data()['emoji'] as String?) ?? '';
+        final data = doc.data();
+        final emoji = data['emoji'] as String? ?? '';
         if (emoji.isNotEmpty) {
           counts[emoji] = (counts[emoji] ?? 0) + 1;
           emojis.add(emoji);
@@ -184,7 +198,8 @@ class ReactionService {
           .get();
 
       if (doc.exists) {
-        return doc.data()?['emoji'] as String?;
+        final data = doc.data();
+        return data?['emoji'] as String?;
       }
       return null;
     } catch (e) {

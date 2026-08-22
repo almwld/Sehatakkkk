@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -11,7 +12,6 @@ class LocationService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // ✅ التحقق من أذونات الموقع
   Future<bool> checkPermissions() async {
     final serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
@@ -33,7 +33,6 @@ class LocationService {
     return true;
   }
 
-  // ✅ الحصول على الموقع الحالي
   Future<Position?> getCurrentLocation() async {
     try {
       final hasPermission = await checkPermissions();
@@ -50,7 +49,6 @@ class LocationService {
     }
   }
 
-  // ✅ الحصول على عنوان من الموقع
   Future<String> getAddressFromLocation({
     required double latitude,
     required double longitude,
@@ -68,7 +66,6 @@ class LocationService {
     }
   }
 
-  // ✅ إرسال موقع في المحادثة
   Future<void> sendLocation({
     required String chatId,
     required double latitude,
@@ -108,7 +105,6 @@ class LocationService {
     });
   }
 
-  // ✅ مشاركة الموقع الحالي
   Future<void> shareCurrentLocation({
     required String chatId,
     required VoidCallback onSuccess,
@@ -134,7 +130,6 @@ class LocationService {
     }
   }
 
-  // ✅ حساب المسافة بين موقعين
   double calculateDistance({
     required double lat1,
     required double lon1,
@@ -144,7 +139,6 @@ class LocationService {
     return Geolocator.distanceBetween(lat1, lon1, lat2, lon2);
   }
 
-  // ✅ تنسيق المسافة
   String formatDistance(double meters) {
     if (meters < 1000) {
       return '${meters.toStringAsFixed(0)} م';
