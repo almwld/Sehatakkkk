@@ -2,110 +2,289 @@ import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class ThemeManager {
-  static ThemeData lightTheme = ThemeData(
+  static final lightTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
     primaryColor: AppColors.primary,
-    scaffoldBackgroundColor: Colors.white,
-    appBarTheme: const AppBarTheme(
-      centerTitle: true,
-      elevation: 0,
-      color: Colors.white,
-      foregroundColor: AppColors.primary,
-      titleTextStyle: TextStyle(
-        color: AppColors.primary,
-        fontSize: 20,
+    colorScheme: const ColorScheme.light(
+      primary: AppColors.primary,
+      secondary: AppColors.secondary,
+      surface: Colors.white,
+      background: AppColors.backgroundLight,
+    ),
+    scaffoldBackgroundColor: AppColors.backgroundLight,
+    // ✅ الخطوط
+    fontFamily: 'NotoSansArabicUI',
+    textTheme: const TextTheme(
+      // ✅ العناوين الكبيرة - Bold
+      displayLarge: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
         fontWeight: FontWeight.bold,
+        fontSize: 32,
+      ),
+      displayMedium: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.bold,
+        fontSize: 28,
+      ),
+      displaySmall: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.bold,
+        fontSize: 24,
+      ),
+      // ✅ العناوين المتوسطة - Bold
+      headlineLarge: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.bold,
+        fontSize: 22,
+      ),
+      headlineMedium: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.bold,
+        fontSize: 20,
+      ),
+      headlineSmall: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.bold,
+        fontSize: 18,
+      ),
+      // ✅ العناوين الصغيرة - SemiBold
+      titleLarge: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.w600,
+        fontSize: 16,
+      ),
+      titleMedium: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.w600,
+        fontSize: 14,
+      ),
+      titleSmall: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.w600,
+        fontSize: 12,
+      ),
+      // ✅ النصوص العادية - Regular
+      bodyLarge: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.normal,
+        fontSize: 16,
+      ),
+      bodyMedium: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.normal,
+        fontSize: 14,
+      ),
+      bodySmall: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.normal,
+        fontSize: 12,
+      ),
+      // ✅ النصوص الصغيرة - Regular
+      labelLarge: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.normal,
+        fontSize: 14,
+      ),
+      labelMedium: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.normal,
+        fontSize: 12,
+      ),
+      labelSmall: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.normal,
+        fontSize: 10,
       ),
     ),
-    cardTheme: CardTheme(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+    appBarTheme: const AppBarTheme(
+      elevation: 0,
+      centerTitle: true,
+      titleTextStyle: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.bold,
+        fontSize: 20,
+        color: Colors.white,
       ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+        textStyle: const TextStyle(
+          fontFamily: 'NotoSansArabicUI',
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       ),
     ),
-    inputDecorationTheme: InputDecorationTheme(
-      filled: true,
-      fillColor: AppColors.surfaceContainerLow,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        textStyle: const TextStyle(
+          fontFamily: 'NotoSansArabicUI',
+          fontWeight: FontWeight.w600,
+          fontSize: 14,
+        ),
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
     ),
-    textTheme: const TextTheme(
-      headlineLarge: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-      headlineMedium: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-      titleLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-      titleMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-      bodyLarge: TextStyle(fontSize: 16),
-      bodyMedium: TextStyle(fontSize: 14),
-      bodySmall: TextStyle(fontSize: 12, color: AppColors.grey),
+    inputDecorationTheme: const InputDecorationTheme(
+      labelStyle: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.normal,
+        fontSize: 14,
+      ),
+      hintStyle: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.normal,
+        fontSize: 14,
+      ),
     ),
-    fontFamily: 'Cairo',
   );
 
-  static ThemeData darkTheme = ThemeData(
+  static final darkTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
     primaryColor: AppColors.primary,
+    colorScheme: const ColorScheme.dark(
+      primary: AppColors.primary,
+      secondary: AppColors.secondary,
+      surface: Color(0xFF1A2540),
+      background: Color(0xFF0B1121),
+    ),
     scaffoldBackgroundColor: const Color(0xFF0B1121),
-    appBarTheme: const AppBarTheme(
-      centerTitle: true,
-      elevation: 0,
-      color: Color(0xFF1A2540),
-      foregroundColor: Colors.white,
-      titleTextStyle: TextStyle(
-        color: Colors.white,
-        fontSize: 20,
+    // ✅ الخطوط
+    fontFamily: 'NotoSansArabicUI',
+    textTheme: const TextTheme(
+      displayLarge: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
         fontWeight: FontWeight.bold,
+        fontSize: 32,
+        color: Colors.white,
+      ),
+      displayMedium: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.bold,
+        fontSize: 28,
+        color: Colors.white,
+      ),
+      displaySmall: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.bold,
+        fontSize: 24,
+        color: Colors.white,
+      ),
+      headlineLarge: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.bold,
+        fontSize: 22,
+        color: Colors.white,
+      ),
+      headlineMedium: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.bold,
+        fontSize: 20,
+        color: Colors.white,
+      ),
+      headlineSmall: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.bold,
+        fontSize: 18,
+        color: Colors.white,
+      ),
+      titleLarge: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.w600,
+        fontSize: 16,
+        color: Colors.white,
+      ),
+      titleMedium: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.w600,
+        fontSize: 14,
+        color: Colors.white,
+      ),
+      titleSmall: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.w600,
+        fontSize: 12,
+        color: Colors.white70,
+      ),
+      bodyLarge: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.normal,
+        fontSize: 16,
+        color: Colors.white,
+      ),
+      bodyMedium: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.normal,
+        fontSize: 14,
+        color: Colors.white70,
+      ),
+      bodySmall: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.normal,
+        fontSize: 12,
+        color: Colors.white60,
+      ),
+      labelLarge: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.normal,
+        fontSize: 14,
+        color: Colors.white70,
+      ),
+      labelMedium: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.normal,
+        fontSize: 12,
+        color: Colors.white60,
+      ),
+      labelSmall: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.normal,
+        fontSize: 10,
+        color: Colors.white50,
       ),
     ),
-    cardTheme: CardTheme(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+    appBarTheme: const AppBarTheme(
+      elevation: 0,
+      centerTitle: true,
+      titleTextStyle: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.bold,
+        fontSize: 20,
+        color: Colors.white,
       ),
-      color: const Color(0xFF1A2540),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+        textStyle: const TextStyle(
+          fontFamily: 'NotoSansArabicUI',
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       ),
     ),
-    inputDecorationTheme: InputDecorationTheme(
-      filled: true,
-      fillColor: const Color(0xFF1A2540),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        textStyle: const TextStyle(
+          fontFamily: 'NotoSansArabicUI',
+          fontWeight: FontWeight.w600,
+          fontSize: 14,
+        ),
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
     ),
-    textTheme: const TextTheme(
-      headlineLarge: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
-      headlineMedium: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
-      titleLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-      titleMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
-      bodyLarge: TextStyle(fontSize: 16, color: Colors.white70),
-      bodyMedium: TextStyle(fontSize: 14, color: Colors.white70),
-      bodySmall: TextStyle(fontSize: 12, color: Colors.white54),
+    inputDecorationTheme: const InputDecorationTheme(
+      labelStyle: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.normal,
+        fontSize: 14,
+        color: Colors.white70,
+      ),
+      hintStyle: TextStyle(
+        fontFamily: 'NotoSansArabicUI',
+        fontWeight: FontWeight.normal,
+        fontSize: 14,
+        color: Colors.white60,
+      ),
     ),
-    fontFamily: 'Cairo',
   );
 }

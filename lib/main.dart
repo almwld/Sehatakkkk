@@ -196,6 +196,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
                 Locale('ar', 'SA'),
                 Locale('en', 'US'),
               ],
+              // ✅ إضافة الخطوط
               builder: (context, child) {
                 return MediaQuery(
                   data: MediaQuery.of(context).copyWith(
