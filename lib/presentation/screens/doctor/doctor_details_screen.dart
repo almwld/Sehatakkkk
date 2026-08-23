@@ -116,7 +116,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => ChatDetailScreen(
+            builder: (_) => const ChatDetailScreen(
               chatId: 'chat_${widget.doctorId}_${DateTime.now().millisecondsSinceEpoch}',
               userName: _doctor['name'],
               userId: widget.doctorId,

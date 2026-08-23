@@ -222,3 +222,6 @@ flutter:
         - asset: assets/fonts/NotoNaskhArabic-Bold.ttf
           weight: 700
         - asset: assets/fonts/NotoNaskhArabic-VariableFont_wght.ttf
+
+dependency_overrides:
+  google_fonts: ^5.1.0
