@@ -1,10 +1,10 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
-import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/constants/imagekit.dart';
-import 'package:sehatak/presentation/widgets/common/app_image.dart';
-import 'package:sehatak/presentation/screens/chat/chat_detail_screen.dart';
-import 'package:sehatak/presentation/screens/doctor/doctor_booking_screen.dart';
+import 'package:sehatak/core/constants/app_colors.dart>';
+import 'package:sehatak/core/constants/imagekit.dart>';
+import 'package:sehatak/presentation/widgets/common/app_image.dart>';
+import 'package:sehatak/presentation/screens/chat/chat_detail_screen.dart>';
+import 'package:sehatak/presentation/screens/doctor/doctor_booking_screen.dart>';
 
 class DoctorDetailsScreen extends StatefulWidget {
   final String doctorId;
@@ -25,7 +25,6 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
   late Map<String, dynamic> _doctor;
   int _selectedIndex = -1;
 
-  // ✅ أيقونات التواصل (حذف جهات الاتصال)
   final List<Map<String, dynamic>> _contactIcons = [
     {
       'icon': 'assets/images/chat/phone_call.png',
@@ -126,7 +125,6 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
         ToastService.showSuccess('📹 جاري بدء مكالمة فيديو...');
         break;
       case 'chat':
-        // ✅ الانتقال إلى غرفة المراسلة
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -217,17 +215,29 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
         backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
         elevation: 0,
         leading: GestureDetector(
-          icon: Icon(Icons.arrow_back_ios_new, color: isDark ? Colors.white : Colors.black87),
           onTap: () => Navigator.pop(context),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Icon(Icons.arrow_back_ios_new, color: isDark ? Colors.white : Colors.black87),
+          ),
         ),
         actions: [
           GestureDetector(
-            icon: Icon(_isFavorite ? Icons.favorite : Icons.favorite_border, color: _isFavorite ? Colors.red : (isDark ? Colors.white : Colors.black87)),
             onTap: () => setState(() => _isFavorite = !_isFavorite),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Icon(
+                _isFavorite ? Icons.favorite : Icons.favorite_border,
+                color: _isFavorite ? Colors.red : (isDark ? Colors.white : Colors.black87),
+              ),
+            ),
           ),
           GestureDetector(
-            icon: Icon(Icons.share, color: isDark ? Colors.white : Colors.black87),
             onTap: () => ToastService.showSuccess('🔗 تم نسخ الرابط'),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Icon(Icons.share, color: isDark ? Colors.white : Colors.black87),
+            ),
           ),
         ],
       ),
@@ -236,6 +246,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // صورة الطبيب
             Center(
               child: Stack(
                 children: [

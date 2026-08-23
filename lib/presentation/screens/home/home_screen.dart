@@ -8,7 +8,7 @@ import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
 import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
 import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
 import 'package:sehatak/presentation/screens/patient/patient_dashboard.dart';
-import 'package:sehatak/presentation/screens/more/more_screen.dart>';
+import 'package:sehatak/presentation/screens/more/more_screen.dart';
 import 'package:sehatak/presentation/widgets/common/custom_bottom_nav_bar.dart';
 import 'package:sehatak/presentation/screens/home/tabs/home_tab.dart';
 
@@ -25,7 +25,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   bool _isLoggedIn = false;
   bool _isBottomBarVisible = true;
 
-  // ✅ قائمة الشاشات
   late final List<Widget> _screens;
 
   @override
@@ -57,25 +56,23 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     });
   }
 
-  // ✅ تهيئة الشاشات مع ScrollController
   void _initializeScreens() {
     _screens = [
       HomeTab(
         scrollController: _scrollController,
         isBottomBarVisible: ValueNotifier<bool>(_isBottomBarVisible),
       ),
-      DoctorsListScreen(scrollController: _scrollController),
-      PharmacyScreen(scrollController: _scrollController),
-      ChatScreen(scrollController: _scrollController),
-      LabsListScreen(scrollController: _scrollController),
-      PatientDashboard(scrollController: _scrollController),
-      MoreScreen(scrollController: _scrollController),
+      const DoctorsListScreen(),
+      const PharmacyScreen(),
+      const ChatScreen(),
+      const LabsListScreen(),
+      const PatientDashboard(),
+      const MoreScreen(),
     ];
   }
 
   void _onTabTap(int index) {
-    // ✅ التحقق من المصادقة للتبويبات المحمية
-    final protectedTabs = [3, 4, 5]; // الدردشة، مختبرات، صحتي
+    final protectedTabs = [3, 4, 5];
     if (protectedTabs.contains(index) && !_isLoggedIn) {
       Navigator.push(
         context,
@@ -90,7 +87,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _currentIndex = index;
     });
 
-    // ✅ تأثير اهتزاز خفيف
     HapticFeedback.lightImpact();
   }
 
