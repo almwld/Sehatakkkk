@@ -1,23 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class IconHelper {
-  // ✅ عرض أيقونة SVG محلية
   static Widget svgIcon(String path, {double size = 24, Color? color}) {
-    return Image.asset(
+    return SvgPicture.asset(
       path,
       width: size,
       height: size,
-      color: color,
+      colorFilter: color != null ? ColorFilter.mode(color, BlendMode.srcIn) : null,
       fit: BoxFit.contain,
-      errorBuilder: (context, error, stackTrace) {
-        // ✅ في حالة الخطأ، استخدم أيقونة Material كـ Fallback
-        return Icon(Icons.circle, size: size, color: color ?? AppColors.primary);
-      },
+      // ✅ إضافة errorBuilder
     );
   }
-
-  // ✅ عرض أيقونة PNG محلية
+  
+  // ✅ دالة جديدة مع fallback
+  static Widget safeSvgIcon(String path, {double size = 24, Color? color, IconData? fallbackIcon}) {
+    try {
+      return SvgPicture.asset(
+        path,
+        width: size,
+        height: size,
+        colorFilter: color != null ? ColorFilter.mode(color, BlendMode.srcIn) : null,
+        fit: BoxFit.contain,
+      );
+    } catch (e) {
+      return Icon(fallbackIcon ?? Icons.circle, size: size, color: color ?? Colors.grey);
+    }
+  }
+  
   static Widget pngIcon(String path, {double size = 24, Color? color}) {
     return Image.asset(
       path,
@@ -25,80 +36,48 @@ class IconHelper {
       height: size,
       color: color,
       fit: BoxFit.contain,
-      errorBuilder: (context, error, stackTrace) {
-        return Icon(Icons.circle, size: size, color: color ?? AppColors.primary);
-      },
+      errorBuilder: (_, __, ___) => Icon(Icons.image_not_supported, size: size, color: Colors.grey),
     );
   }
 
-  // ✅ عرض أيقونة حسب النوع
-  static Widget buildIcon(String path, {double size = 24, Color? color}) {
-    if (path.endsWith('.svg')) {
-      return svgIcon(path, size: size, color: color);
-    } else if (path.endsWith('.png')) {
-      return pngIcon(path, size: size, color: color);
-    } else {
-      return Icon(Icons.circle, size: size, color: color ?? AppColors.primary);
-    }
+  static Widget serviceIcon(String path, {double size = 26, Color? color}) {
+    return Image.asset(
+      path,
+      width: size,
+      height: size,
+      color: color,
+      fit: BoxFit.contain,
+      errorBuilder: (_, __, ___) => Icon(Icons.medical_services, size: size, color: color ?? AppColors.primary),
+    );
   }
 
-  // ✅ أيقونة افتراضية للخطأ
-  static Widget fallbackIcon({double size = 24, Color? color}) {
-    return Icon(Icons.circle, size: size, color: color ?? AppColors.primary);
+  static Widget navIcon(String path, {double size = 22, Color? color}) {
+    return SvgPicture.asset(
+      path,
+      width: size,
+      height: size,
+      colorFilter: color != null ? ColorFilter.mode(color, BlendMode.srcIn) : null,
+      fit: BoxFit.contain,
+    );
   }
 
-  // ✅ أيقونة الصورة
-  static Widget imageIcon({double size = 24, Color? color}) {
-    return svgIcon('assets/icons/core/doctor.svg', size: size, color: color);
+  static Widget doctorIcon(String path, {double size = 50}) {
+    return Image.asset(
+      path,
+      width: size,
+      height: size,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => Icon(Icons.person, size: size, color: Colors.grey),
+    );
   }
 
-  // ✅ أيقونة المستخدم
-  static Widget userIcon({double size = 24, Color? color}) {
-    return svgIcon('assets/icons/core/doctor.svg', size: size, color: color);
-  }
-
-  // ✅ أيقونة المزيد
-  static Widget moreIcon({double size = 24, Color? color}) {
-    return svgIcon('assets/icons/core/more_menu.svg', size: size, color: color);
-  }
-
-  // ✅ أيقونة الإشعارات
-  static Widget notificationIcon({double size = 24, Color? color}) {
-    return svgIcon('assets/icons/core/notifications_active.svg', size: size, color: color);
-  }
-
-  // ✅ أيقونة الصيدلية
-  static Widget pharmacyIcon({double size = 24, Color? color}) {
-    return svgIcon('assets/icons/core/pharmacy.svg', size: size, color: color);
-  }
-
-  // ✅ أيقونة المختبر
-  static Widget labIcon({double size = 24, Color? color}) {
-    return svgIcon('assets/icons/core/blood_test.svg', size: size, color: color);
-  }
-
-  // ✅ أيقونة الطوارئ
-  static Widget emergencyIcon({double size = 24, Color? color}) {
-    return svgIcon('assets/icons/core/emergency.svg', size: size, color: color);
-  }
-
-  // ✅ أيقونة الدردشة
-  static Widget chatIcon({double size = 24, Color? color}) {
-    return svgIcon('assets/icons/core/text_chat.svg', size: size, color: color);
-  }
-
-  // ✅ أيقونة مكالمة فيديو
-  static Widget videoCallIcon({double size = 24, Color? color}) {
-    return svgIcon('assets/icons/core/video_call.svg', size: size, color: color);
-  }
-
-  // ✅ أيقونة المواعيد
-  static Widget appointmentIcon({double size = 24, Color? color}) {
-    return svgIcon('assets/icons/navigation/calendar.svg', size: size, color: color);
-  }
-
-  // ✅ أيقونة السجل الصحي
-  static Widget healthRecordIcon({double size = 24, Color? color}) {
-    return svgIcon('assets/icons/core/health_record.svg', size: size, color: color);
+  static Widget paymentIcon(String path, {double size = 30}) {
+    return Image.asset(
+      path,
+      width: size,
+      height: size,
+      fit: BoxFit.contain,
+      errorBuilder: (_, __, ___) => Icon(Icons.payment, size: size, color: Colors.grey),
+    );
   }
 }

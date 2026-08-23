@@ -7,7 +7,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/core/services/toast_service.dart';
-import 'package:sehatak/core/constants/text_styles.dart';
+import 'package:sehatak/core/constants/text_styles.dart>';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -107,9 +107,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   }
 
   String _formatTime(Timestamp? timestamp) {
-    if (timestamp == null) return "";
-    if (timestamp == null) return "";
-    if (timestamp == null) return "";
     // ... الكود
   }
 

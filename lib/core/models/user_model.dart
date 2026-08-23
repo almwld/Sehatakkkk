@@ -62,7 +62,7 @@ class UserModel {
   }
 
   bool get isAdmin {
-    return role == UserRole.admin || role == UserRole.admin;
+    return role == UserRole.admin || role == UserRole.superAdmin;
   }
 
   bool get isVerified {
@@ -169,7 +169,7 @@ class UserModel {
       case 'lab': return UserRole.lab;
       case 'veterinarian': return UserRole.veterinarian;
       case 'admin': return UserRole.admin;
-      case 'superAdmin': return UserRole.admin;
+      case 'superAdmin': return UserRole.superAdmin;
       default: return UserRole.user;
     }
   }

@@ -1,157 +1,127 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/constants/imagekit.dart';
+import 'package:sehatak/presentation/widgets/common/app_image.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
-
-// ✅ بيانات Mock للأطباء
-class DoctorModel {
-  final String id;
-  final String name;
-  final String specialty;
-  final double rating;
-  final int totalReviews;
-  final String? imageUrl;
-  final bool isAvailableToday;
-  final int consultationFee;
-
-  DoctorModel({
-    required this.id,
-    required this.name,
-    required this.specialty,
-    required this.rating,
-    required this.totalReviews,
-    this.imageUrl,
-    this.isAvailableToday = true,
-    this.consultationFee = 100,
-  });
-}
 
 class DoctorsListScreen extends StatefulWidget {
   final ScrollController? scrollController;
-  final String? specialty;
-  final String? hospitalId;
 
-  const DoctorsListScreen({
-    super.key,
-    this.scrollController,
-    this.specialty,
-    this.hospitalId,
-  });
+  const DoctorsListScreen({super.key, this.scrollController});
+  const DoctorsListScreen({super.key});
 
   @override
   State<DoctorsListScreen> createState() => _DoctorsListScreenState();
 }
 
 class _DoctorsListScreenState extends State<DoctorsListScreen> {
-  final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  bool _isLoading = true;
-  List<DoctorModel> _doctors = [];
-  List<DoctorModel> _filteredDoctors = [];
-  String? _selectedSpecialty;
-  bool _showAvailableOnly = false;
+  String _selectedSpecialty = 'الكل';
+  bool _isLoading = false;
 
   final List<String> _specialties = [
-    'الكل',
-    'طب عام',
-    'أطفال',
-    'نساء وتوليد',
-    'جلدية',
-    'عظام',
-    'قلب',
-    'أعصاب',
-    'نفسي',
-    'أسنان',
-    'عيون',
-    'أنف وأذن وحنجرة',
+    'الكل', 'باطنية', 'قلبية', 'أطفال', 'نساء وولادة', 'عظام',
+    'أنف وأذن وحنجرة', 'جلدية', 'عيون', 'نفسية', 'جراحة', 'مسالك بولية'
   ];
 
-  // ✅ بيانات Mock
-  final List<DoctorModel> _mockDoctors = [
-    DoctorModel(
-      id: '1',
-      name: 'د. أحمد المولد',
-      specialty: 'باطنية',
-      rating: 4.9,
-      totalReviews: 328,
-      consultationFee: 500,
-      isAvailableToday: true,
-    ),
-    DoctorModel(
-      id: '2',
-      name: 'د. خالد النخلاني',
-      specialty: 'قلبية',
-      rating: 4.8,
-      totalReviews: 256,
-      consultationFee: 450,
-      isAvailableToday: true,
-    ),
-    DoctorModel(
-      id: '3',
-      name: 'د. أسماء الهندي',
-      specialty: 'أطفال',
-      rating: 4.7,
-      totalReviews: 189,
-      consultationFee: 420,
-      isAvailableToday: true,
-    ),
-    DoctorModel(
-      id: '4',
-      name: 'د. محمد العلاي',
-      specialty: 'أنف وأذن وحنجرة',
-      rating: 4.6,
-      totalReviews: 89,
-      consultationFee: 400,
-      isAvailableToday: false,
-    ),
-    DoctorModel(
-      id: '5',
-      name: 'د. فاطمة صديقي',
-      specialty: 'نساء وولادة',
-      rating: 4.8,
-      totalReviews: 210,
-      consultationFee: 480,
-      isAvailableToday: true,
-    ),
+  final List<Map<String, dynamic>> _allDoctors = [
+    {
+      'id': '1',
+      'name': 'د. أحمد المولد',
+      'specialty': 'باطنية',
+      'experience': '20+ سنة',
+      'rating': 4.9,
+      'reviews': 328,
+      'price': 500,
+      'available': true,
+      'image': ImageKit.doctor1,
+      'hospital': 'مستشفى الثورة العام',
+      'online': true,
+      'gender': 'male',
+      'badge': 'استشاري'
+    },
+    {
+      'id': '2',
+      'name': 'د. خالد النخلاني',
+      'specialty': 'قلبية',
+      'experience': '15 سنة',
+      'rating': 4.8,
+      'reviews': 256,
+      'price': 600,
+      'available': true,
+      'image': ImageKit.doctor2,
+      'hospital': 'مركز قلب العاصمة',
+      'online': false,
+      'gender': 'male',
+      'badge': 'أستاذ'
+    },
+    {
+      'id': '3',
+      'name': 'د. أسماء الهندي',
+      'specialty': 'أطفال',
+      'experience': '12 سنة',
+      'rating': 4.9,
+      'reviews': 189,
+      'price': 450,
+      'available': true,
+      'image': ImageKit.doctor3,
+      'hospital': 'مستشفى السبعين',
+      'online': true,
+      'gender': 'female',
+      'badge': 'استشارية'
+    },
+    {
+      'id': '4',
+      'name': 'د. محمد العلاي',
+      'specialty': 'أنف وأذن وحنجرة',
+      'experience': '8 سنوات',
+      'rating': 4.7,
+      'reviews': 89,
+      'price': 400,
+      'available': false,
+      'image': ImageKit.doctor4,
+      'hospital': 'مستشفى الأنف والأذن',
+      'online': false,
+      'gender': 'male',
+      'badge': 'أخصائي'
+    },
+    {
+      'id': '5',
+      'name': 'د. فاطمة صديقي',
+      'specialty': 'نساء وولادة',
+      'experience': '18 سنة',
+      'rating': 4.8,
+      'reviews': 210,
+      'price': 550,
+      'available': true,
+      'image': ImageKit.doctor5,
+      'hospital': 'مستشفى الولادة',
+      'online': true,
+      'gender': 'female',
+      'badge': 'استشارية'
+    },
   ];
 
-  @override
-  void initState() {
-    super.initState();
-    _loadDoctors();
-    _selectedSpecialty = widget.specialty ?? 'الكل';
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  void _loadDoctors() {
-    setState(() {
-      _doctors = _mockDoctors;
-      _filteredDoctors = _mockDoctors;
-      _isLoading = false;
-    });
-  }
-
-  void _filterDoctors() {
-    setState(() {
-      _filteredDoctors = _doctors.where((doctor) {
-        bool matchesSearch = _searchQuery.isEmpty ||
-            doctor.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-            doctor.specialty.toLowerCase().contains(_searchQuery.toLowerCase());
-        bool matchesSpecialty = _selectedSpecialty == 'الكل' ||
-            doctor.specialty == _selectedSpecialty;
-        bool matchesAvailability = !_showAvailableOnly || doctor.isAvailableToday;
-        return matchesSearch && matchesSpecialty && matchesAvailability;
-      }).toList();
-    });
+  List<Map<String, dynamic>> get _filteredDoctors {
+    var list = _allDoctors;
+    if (_searchQuery.isNotEmpty) {
+      list = list.where((d) =>
+          d['name'].toString().contains(_searchQuery) ||
+          d['specialty'].toString().contains(_searchQuery) ||
+          d['hospital'].toString().contains(_searchQuery)
+      ).toList();
+    }
+    if (_selectedSpecialty != 'الكل') {
+      list = list.where((d) => d['specialty'] == _selectedSpecialty).toList();
+    }
+    return list;
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final filtered = _filteredDoctors;
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
@@ -159,326 +129,374 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
         title: const Text('الأطباء'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
+        elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: _showFilterDialog,
+            icon: const Icon(Icons.filter_list_rounded),
+            onPressed: () => _showFilterDialog(context),
           ),
         ],
       ),
       body: Column(
         children: [
-          _buildSearchBar(),
-          _buildQuickFilters(),
+          // شريط البحث
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                borderRadius: BorderRadius.circular(25),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: TextField(
+                      onChanged: (v) => setState(() => _searchQuery = v),
+                      style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                      decoration: InputDecoration(
+                        hintText: 'ابحث عن طبيب...',
+                        hintStyle: TextStyle(color: isDark ? Colors.grey[500] : Colors.grey[400]),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ),
+                  if (_searchQuery.isNotEmpty)
+                    IconButton(
+                      icon: Icon(Icons.close, size: 18, color: isDark ? Colors.grey[400] : Colors.grey),
+                      onPressed: () => setState(() => _searchQuery = ''),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          // التصنيفات
+          SizedBox(
+            height: 40,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              itemCount: _specialties.length,
+              itemBuilder: (context, index) {
+                final specialty = _specialties[index];
+                final isSelected = _selectedSpecialty == specialty;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: FilterChip(
+                    label: Text(specialty, style: const TextStyle(fontSize: 11)),
+                    selected: isSelected,
+                    onSelected: (selected) {
+                      setState(() {
+                        _selectedSpecialty = selected ? specialty : 'الكل';
+                      });
+                    },
+                    backgroundColor: isDark ? const Color(0xFF1A2540) : Colors.white,
+                    selectedColor: AppColors.primary,
+                    labelStyle: TextStyle(
+                      color: isSelected ? Colors.white : (isDark ? Colors.white : AppColors.primary),
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      side: BorderSide(
+                        color: isSelected ? AppColors.primary : (isDark ? Colors.grey[700]! : Colors.grey.shade300),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          // القائمة
           Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _filteredDoctors.isEmpty
-                    ? _buildEmptyState(isDark)
-                    : _buildDoctorsList(),
+            child: filtered.isEmpty
+                ? _buildEmptyState(isDark)
+                : ListView.builder(
+                    padding: const EdgeInsets.all(12),
+                    itemCount: filtered.length,
+                    itemBuilder: (context, index) {
+                      final doctor = filtered[index];
+                      return _buildDoctorCard(doctor, isDark);
+                    },
+                  ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSearchBar() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Padding(
-      padding: const EdgeInsets.all(12),
-      child: TextField(
-        controller: _searchController,
-        onChanged: (value) {
-          setState(() {
-            _searchQuery = value;
-            _filterDoctors();
-          });
-        },
-        style: TextStyle(color: isDark ? Colors.white : Colors.black87),
-        decoration: InputDecoration(
-          hintText: '🔍 ابحث عن طبيب...',
-          prefixIcon: const Icon(Icons.search),
-          suffixIcon: _searchQuery.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: () {
-                    _searchController.clear();
-                    setState(() {
-                      _searchQuery = '';
-                      _filterDoctors();
-                    });
-                  },
-                )
-              : null,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
+  // ✅ دالة بناء بطاقة الطبيب
+  Widget _buildDoctorCard(Map<String, dynamic> doctor, bool isDark) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => DoctorDetailsScreen(doctorId: doctor['id']),
           ),
-          filled: true,
-          fillColor: isDark ? const Color(0xFF1A2540) : Colors.grey[100],
-          contentPadding: const EdgeInsets.symmetric(vertical: 0),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildQuickFilters() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return SizedBox(
-      height: 50,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        itemCount: _specialties.length,
-        itemBuilder: (context, index) {
-          final specialty = _specialties[index];
-          final isSelected = _selectedSpecialty == specialty;
-          return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: FilterChip(
-              label: Text(specialty),
-              selected: isSelected,
-              onSelected: (selected) {
-                setState(() {
-                  _selectedSpecialty = selected ? specialty : 'الكل';
-                  _filterDoctors();
-                });
-              },
-              backgroundColor: isDark ? const Color(0xFF1A2540) : Colors.grey[200],
-              selectedColor: AppColors.primary.withOpacity(0.2),
-              checkmarkColor: AppColors.primary,
-              labelStyle: TextStyle(
-                color: isSelected ? AppColors.primary : (isDark ? Colors.grey[400] : Colors.grey[700]),
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildDoctorsList() {
-    return ListView.builder(
-      padding: const EdgeInsets.all(12),
-      itemCount: _filteredDoctors.length,
-      itemBuilder: (context, index) {
-        final doctor = _filteredDoctors[index];
-        return _buildDoctorCard(doctor);
+        );
       },
-    );
-  }
-
-  Widget _buildDoctorCard(DoctorModel doctor) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: () => _navigateToDoctorDetails(doctor),
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              Container(
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1A2540) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: AppImage(
+                imageUrl: doctor['image'],
                 width: 70,
                 height: 70,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: isDark ? const Color(0xFF1A2540) : Colors.grey[200],
-                ),
-                child: Icon(Icons.person, size: 40, color: isDark ? Colors.grey[600] : Colors.grey[400]),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      doctor.name,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black87,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          doctor['name'],
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      doctor.specialty,
-                      style: TextStyle(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Row(
-                          children: [
-                            Icon(Icons.star, size: 16, color: Colors.amber.shade700),
-                            const SizedBox(width: 2),
-                            Text(
-                              doctor.rating.toStringAsFixed(1),
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                      Row(
+                        children: [
+                          const Icon(Icons.star, color: Colors.amber, size: 14),
+                          const SizedBox(width: 2),
+                          Text(
+                            doctor['rating'].toString(),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                              color: isDark ? Colors.white : Colors.black87,
                             ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          doctor['specialty'],
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          doctor['experience'],
+                          style: TextStyle(
+                            fontSize: 9,
+                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    doctor['hospital'],
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: doctor['available'] ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 6,
+                              height: 6,
+                              decoration: BoxDecoration(
+                                color: doctor['available'] ? Colors.green : Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
                             Text(
-                              ' (${doctor.totalReviews})',
+                              doctor['available'] ? 'متاح' : 'غير متاح',
                               style: TextStyle(
-                                color: isDark ? Colors.grey[400] : Colors.grey[600],
-                                fontSize: 12,
+                                color: doctor['available'] ? Colors.green : Colors.red,
+                                fontSize: 9,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(width: 12),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            '${doctor.consultationFee} ﷼',
-                            style: TextStyle(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
+                      ),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: doctor.isAvailableToday ? Colors.green : Colors.red,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          doctor.isAvailableToday ? 'متاح اليوم' : 'غير متاح',
+                        child: Text(
+                          '${doctor['price']} ر.ي',
                           style: TextStyle(
-                            color: doctor.isAvailableToday ? Colors.green : Colors.red,
-                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: AppColors.primary,
                           ),
                         ),
-                      ],
-                    ),
-                  ],
-                ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-              Icon(Icons.arrow_forward_ios, color: isDark ? Colors.grey[600] : Colors.grey[400], size: 16),
-            ],
-          ),
+            ),
+            Icon(Icons.arrow_forward_ios, size: 14, color: isDark ? Colors.grey[600] : Colors.grey[400]),
+          ],
         ),
       ),
     );
   }
 
+  // ✅ دالة عرض حالة فارغة
   Widget _buildEmptyState(bool isDark) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.medical_services, size: 80, color: isDark ? Colors.grey[600] : Colors.grey[300]),
+          Icon(Icons.medical_services_outlined, size: 64, color: isDark ? Colors.grey[600] : Colors.grey[300]),
           const SizedBox(height: 16),
           Text(
             'لا يوجد أطباء',
             style: TextStyle(
-              fontSize: 20,
+              fontSize: 16,
               fontWeight: FontWeight.bold,
               color: isDark ? Colors.white : Colors.black87,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'حاول تغيير خيارات البحث أو التصفية',
-            style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),
+            'جرب تغيير البحث أو التصفية',
+            style: TextStyle(
+              fontSize: 13,
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton.icon(
+            onPressed: () {
+              setState(() {
+                _searchQuery = '';
+                _selectedSpecialty = 'الكل';
+              });
+            },
+            icon: const Icon(Icons.refresh),
+            label: const Text('إعادة تعيين'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  void _showFilterDialog() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
+  // ✅ دالة عرض حوار التصفية
+  void _showFilterDialog(BuildContext context) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'تصفية الأطباء',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 20),
-                  SwitchListTile(
-                    title: const Text('الأطباء المتاحون فقط'),
-                    value: _showAvailableOnly,
-                    onChanged: (value) {
-                      setState(() => _showAvailableOnly = value);
-                      _filterDoctors();
-                      Navigator.pop(context);
-                    },
-                    activeColor: AppColors.primary,
-                  ),
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _showAvailableOnly = false;
-                          _selectedSpecialty = 'الكل';
-                          _searchController.clear();
-                          _searchQuery = '';
-                          _filterDoctors();
-                        });
-                        Navigator.pop(context);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isDark ? const Color(0xFF1A2540) : Colors.red.shade100,
-                        foregroundColor: isDark ? Colors.white : Colors.red.shade700,
-                      ),
-                      child: const Text('إعادة تعيين الفلاتر'),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                ],
+        return Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'ترتيب حسب',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
-            );
-          },
+              const SizedBox(height: 12),
+              ...['التقييم', 'السعر (منخفض)', 'السعر (مرتفع)'].map((option) {
+                return RadioListTile<String>(
+                  title: Text(option),
+                  value: option,
+                  groupValue: 'التقييم',
+                  onChanged: (value) {
+                    Navigator.pop(context);
+                  },
+                  activeColor: AppColors.primary,
+                );
+              }).toList(),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('إغلاق'),
+                ),
+              ),
+            ],
+          ),
         );
       },
-    );
-  }
-
-  void _navigateToDoctorDetails(DoctorModel doctor) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => DoctorDetailsScreen(doctorId: doctor.id),
-      ),
     );
   }
 }

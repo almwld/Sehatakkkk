@@ -1,153 +1,64 @@
 import 'package:flutter/material.dart';
 
-class Roles {
-  static const String user = 'user';
-  static const String doctor = 'doctor';
-  static const String nurse = 'nurse';
-  static const String midwife = 'midwife';
-  static const String physiotherapist = 'physiotherapist';
-  static const String pharmacist = 'pharmacist';
-  static const String lab = 'lab';
-  static const String paramedic = 'paramedic';
-  static const String delivery = 'delivery';
-  static const String service = 'service';
-  static const String veterinarian = 'veterinarian';
-  static const String admin = 'admin';
-
-  static List<String> get all => [
-    user, doctor, nurse, midwife, physiotherapist,
-    pharmacist, lab, paramedic, delivery, service,
-    veterinarian, admin,
-  ];
-
-  static List<Map<String, dynamic>> get roles => [
-    {'id': user, 'name': 'مستخدم', 'icon': 'assets/icons/core/doctor.svg', 'color': 0xFF0D5257},
-    {'id': doctor, 'name': 'طبيب', 'icon': 'assets/icons/core/doctor.svg', 'color': 0xFF2196F3},
-    {'id': nurse, 'name': 'ممرض', 'icon': 'assets/icons/core/doctor.svg', 'color': 0xFF00BCD4},
-    {'id': midwife, 'name': 'قابلة', 'icon': 'assets/icons/core/doctor.svg', 'color': 0xFFE91E63},
-    {'id': physiotherapist, 'name': 'علاج فيزيائي', 'icon': 'assets/icons/core/doctor.svg', 'color': 0xFFFF9800},
-    {'id': pharmacist, 'name': 'صيدلي', 'icon': 'assets/icons/core/pharmacy.svg', 'color': 0xFF4CAF50},
-    {'id': lab, 'name': 'مختبر', 'icon': 'assets/icons/core/blood_test.svg', 'color': 0xFF9C27B0},
-    {'id': paramedic, 'name': 'مسعف', 'icon': 'assets/icons/core/emergency.svg', 'color': 0xFFF44336},
-    {'id': delivery, 'name': 'موصل', 'icon': 'assets/icons/core/doctor.svg', 'color': 0xFFFF5722},
-    {'id': service, 'name': 'خدمي', 'icon': 'assets/icons/core/doctor.svg', 'color': 0xFF607D8B},
-    {'id': veterinarian, 'name': 'بيطري', 'icon': 'assets/icons/core/doctor.svg', 'color': 0xFF795548},
-    {'id': admin, 'name': 'مشرف', 'icon': 'assets/icons/core/doctor.svg', 'color': 0xFFFF5722},
-  ];
-
-  static String getRoleName(String id) {
-    final role = roles.firstWhere((r) => r['id'] == id, orElse: () => {'name': 'مستخدم'});
-    return role['name'] as String;
-  }
-
-  static String getRoleIcon(String id) {
-    final role = roles.firstWhere((r) => r['id'] == id, orElse: () => {'icon': 'assets/icons/core/doctor.svg'});
-    return role['icon'] as String;
-  }
-}
-
 enum UserRole {
   user,
   doctor,
-  nurse,
-  midwife,
-  physiotherapist,
   pharmacist,
   lab,
-  paramedic,
-  delivery,
-  service,
   veterinarian,
   admin,
+  superAdmin,
 }
 
-extension UserRoleExtension on UserRole {
-  String get displayName {
-    switch (this) {
-      case UserRole.user:
-        return 'مستخدم';
-      case UserRole.doctor:
-        return 'طبيب';
-      case UserRole.nurse:
-        return 'ممرض';
-      case UserRole.midwife:
-        return 'قابلة وتوليد';
-      case UserRole.physiotherapist:
-        return 'علاج فيزيائي';
-      case UserRole.pharmacist:
-        return 'صيدلي';
-      case UserRole.lab:
-        return 'مختبر';
-      case UserRole.paramedic:
-        return 'مسعف';
-      case UserRole.delivery:
-        return 'موصل طلبات';
-      case UserRole.service:
-        return 'خدمي';
-      case UserRole.veterinarian:
-        return 'بيطري';
-      case UserRole.admin:
-        return 'مشرف';
-    }
+class AppRoles {
+  static final List<Map<String, dynamic>> all = [
+    {'id': 'user', 'name': 'مستخدم', 'icon': Icons.person_outline, 'color': 0xFF0D5257},
+    {'id': 'doctor', 'name': 'طبيب', 'icon': Icons.local_hospital_outlined, 'color': 0xFF2196F3},
+    {'id': 'nurse', 'name': 'ممرض', 'icon': Icons.medical_services_outlined, 'color': 0xFF00BCD4},
+    {'id': 'midwife', 'name': 'قابلة', 'icon': Icons.pregnant_woman, 'color': 0xFFE91E63},
+    {'id': 'physiotherapist', 'name': 'علاج فيزيائي', 'icon': Icons.fitness_center, 'color': 0xFFFF9800},
+    {'id': 'pharmacist', 'name': 'صيدلي', 'icon': Icons.local_pharmacy_outlined, 'color': 0xFF4CAF50},
+    {'id': 'lab', 'name': 'مختبر', 'icon': Icons.science_outlined, 'color': 0xFF9C27B0},
+    {'id': 'paramedic', 'name': 'مسعف', 'icon': Icons.emergency, 'color': 0xFFF44336},
+    {'id': 'delivery', 'name': 'موصل', 'icon': Icons.delivery_dining, 'color': 0xFFFF5722},
+    {'id': 'service', 'name': 'خدمي', 'icon': Icons.handyman, 'color': 0xFF607D8B},
+    {'id': 'veterinarian', 'name': 'بيطري', 'icon': Icons.pets, 'color': 0xFF795548},
+    {'id': 'admin', 'name': 'مشرف', 'icon': Icons.admin_panel_settings, 'color': 0xFFFF5722},
+  ];
+
+  static final List<String> verifiedRoles = [
+    'doctor', 'nurse', 'midwife', 'physiotherapist',
+    'pharmacist', 'lab', 'paramedic', 'veterinarian'
+  ];
+
+  static bool needsVerification(String roleId) {
+    return verifiedRoles.contains(roleId);
   }
 
-  String get id {
-    switch (this) {
-      case UserRole.user:
-        return 'user';
-      case UserRole.doctor:
-        return 'doctor';
-      case UserRole.nurse:
-        return 'nurse';
-      case UserRole.midwife:
-        return 'midwife';
-      case UserRole.physiotherapist:
-        return 'physiotherapist';
-      case UserRole.pharmacist:
-        return 'pharmacist';
-      case UserRole.lab:
-        return 'lab';
-      case UserRole.paramedic:
-        return 'paramedic';
-      case UserRole.delivery:
-        return 'delivery';
-      case UserRole.service:
-        return 'service';
-      case UserRole.veterinarian:
-        return 'veterinarian';
-      case UserRole.admin:
-        return 'admin';
-    }
+  static String getRoleName(String id) {
+    final role = all.firstWhere((r) => r['id'] == id, orElse: () => {'name': id});
+    return role['name'] as String;
   }
 
-  static UserRole fromId(String id) {
-    switch (id) {
-      case 'user':
-        return UserRole.user;
-      case 'doctor':
-        return UserRole.doctor;
-      case 'nurse':
-        return UserRole.nurse;
-      case 'midwife':
-        return UserRole.midwife;
-      case 'physiotherapist':
-        return UserRole.physiotherapist;
-      case 'pharmacist':
-        return UserRole.pharmacist;
-      case 'lab':
-        return UserRole.lab;
-      case 'paramedic':
-        return UserRole.paramedic;
-      case 'delivery':
-        return UserRole.delivery;
-      case 'service':
-        return UserRole.service;
-      case 'veterinarian':
-        return UserRole.veterinarian;
-      case 'admin':
-        return UserRole.admin;
-      default:
-        return UserRole.user;
+  static IconData getRoleIcon(String id) {
+    final role = all.firstWhere((r) => r['id'] == id, orElse: () => {'icon': Icons.person});
+    return role['icon'] as IconData;
+  }
+
+  static Color getRoleColor(String id) {
+    final role = all.firstWhere((r) => r['id'] == id, orElse: () => {'color': 0xFF0D5257});
+    return Color(role['color'] as int);
+  }
+
+  static UserRole parseRole(String value) {
+    switch (value) {
+      case 'doctor': return UserRole.doctor;
+      case 'pharmacist': return UserRole.pharmacist;
+      case 'lab': return UserRole.lab;
+      case 'veterinarian': return UserRole.veterinarian;
+      case 'admin': return UserRole.admin;
+      case 'superAdmin': return UserRole.superAdmin;
+      default: return UserRole.user;
     }
   }
 }
