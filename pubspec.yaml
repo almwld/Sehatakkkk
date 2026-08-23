@@ -29,8 +29,177 @@ dependencies:
   carousel_slider: ^5.0.0
   table_calendar: ^3.0.9
   fl_chart: ^0.66.0
+  google_fonts: ^6.1.0
 
-dependency_overrides:
+  # ============================================================
+  # 🧠 State Management
+  # ============================================================
+  flutter_bloc: ^8.1.3
+  bloc: ^8.1.2
+  equatable: ^2.0.5
+  provider: ^6.1.2
+  get_it: ^7.6.7
+
+  # ============================================================
+  # 🗺️ Navigation
+  # ============================================================
+  go_router: ^13.0.1
+
+  # ============================================================
+  # 🔥 Firebase
+  # ============================================================
+  firebase_core: ^2.25.4
+  firebase_auth: ^4.17.4
+  cloud_firestore: ^4.15.0
+  firebase_storage: ^11.6.0
+  firebase_messaging: ^14.7.15
+  firebase_analytics: ^10.8.0
+  firebase_crashlytics: ^3.4.9
+  firebase_app_check: ^0.2.1
+  google_sign_in: ^6.2.1
+
+  # ============================================================
+  # 🌐 Networking
+  # ============================================================
+  http: ^1.2.0
+  dio: ^5.4.0
+  retrofit: ^4.0.3
+  json_annotation: ^4.8.1
+  socket_io_client: ^2.0.3
+
+  # ============================================================
+  # 💾 Local Storage
+  # ============================================================
+  shared_preferences: ^2.2.2
+  sqflite: ^2.3.0
+  path: ^1.8.3
+  path_provider: ^2.1.1
+  hive_flutter: ^1.1.0
+
+  # ============================================================
+  # 🛠️ Utilities
+  # ============================================================
+  intl: ^0.18.1
+  connectivity_plus: ^5.0.2
+  url_launcher: ^6.2.3
+  share_plus: ^7.2.1
+  package_info_plus: ^5.0.1
+  device_info_plus: ^9.1.1
+  permission_handler: ^11.1.0
+  local_auth: ^2.1.8
+  flutter_app_badger: ^1.5.0
+  flutter_local_notifications: ^17.0.0
+  workmanager: ^0.5.2
+  flutter_background_service: ^5.0.5
+  sensors_plus: ^4.0.0
+  flutter_vibrate: ^1.3.0
+
+  # ============================================================
+  # 📸 Media
+  # ============================================================
+  image_picker: ^1.0.7
+  camera: ^0.10.5
+  record: ^5.0.0
+  audioplayers: ^5.2.1
+  photo_view: ^0.14.0
+  file_picker: ^6.1.1
+  flutter_image_compress: ^2.0.0
+
+  # ============================================================
+  # 🗺️ Maps & Location
+  # ============================================================
+  flutter_map: ^6.1.0
+  latlong2: ^0.9.1
+  geolocator: ^10.1.0
+  geocoding: ^3.0.0
+
+  # ============================================================
+  # 🌐 WebView
+  # ============================================================
+  webview_flutter: ^4.4.0
+
+  # ============================================================
+  # 📞 Real-time Communication
+  # ============================================================
+  livekit_client: ^1.5.6
+  flutter_webrtc: 0.9.47
+
+  # ============================================================
+  # 🔐 Security & Encryption
+  # ============================================================
+  pointycastle: ^3.7.3
+  crypto: ^3.0.3
+  dart_jsonwebtoken: ^2.4.0
+
+  # ============================================================
+  # 🤖 AI & Machine Learning
+  # ============================================================
+  google_generative_ai: ^0.4.0
+  speech_to_text: ^6.6.0
+  flutter_tts: ^3.8.2
+
+  # ============================================================
+  # 📄 PDF & Export
+  # ============================================================
+  pdf: ^3.10.7
+  printing: ^5.11.1
+
+  # ============================================================
+  # 📦 JSON & Code Generation
+  # ============================================================
+  json_serializable: ^6.7.1
+  build_runner: ^2.4.7
+  retrofit_generator: ^8.0.6
+
+  # ============================================================
+  # 🍞 Toast & Messages
+  # ============================================================
+  fluttertoast: ^8.2.4
+  overlay_support: ^2.1.0
+  bot_toast: ^4.1.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+
+# ============================================================
+# 🎨 Flutter Configuration
+# ============================================================
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/animations/
+    - assets/audio/
+    - assets/icons/
+    - assets/icons/consultations/
+    - assets/icons/core/
+    - assets/icons/mini_specialties/
+    - assets/icons/navigation/
+    - assets/icons/offers/
+    - assets/icons/payment/
+    - assets/icons/plans/
+    - assets/icons/png_core/
+    - assets/icons/png_specialties/
+    - assets/icons/services/
+    - assets/icons/social/
+    - assets/icons/specialties/
+    - assets/images/services/
+    - assets/images/tracking/
+    - assets/images/ui/
+    - assets/images/chat/
+    - assets/images/chat_background.svg
+    - assets/images/icons/doctors/
+    - assets/images/icons/fast_services/
+    - assets/images/icons/roles/
+    - assets/images/icons/search/
+    - assets/images/icons/top_bar/
+    - assets/images/payment/
+    - assets/images/placeholder.png
+    - assets/images/social/
+    - assets/images/wallets/
+    - assets/svg/
 
   fonts:
     - family: ElMessiri
