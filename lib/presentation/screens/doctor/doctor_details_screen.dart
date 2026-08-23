@@ -97,6 +97,19 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
         'availability': ['الأحد - الخميس: 10 ص - 4 م'],
         'image': ImageKit.doctor2,
       },
+      '3': {
+        'name': 'د. أسماء الهندي',
+        'specialty': 'أطفال',
+        'experience': '9 سنوات',
+        'rating': 4.7,
+        'reviews': 189,
+        'fee': '420',
+        'available': true,
+        'about': 'أخصائية أطفال متابعة التطور الصحي للأطفال.',
+        'hospital': 'مستشفى السبعين',
+        'availability': ['السبت - الأربعاء: 8 ص - 2 م'],
+        'image': ImageKit.doctor3,
+      },
     };
     return doctors[doctorId] ?? doctors['1']!;
   }
@@ -116,7 +129,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => const ChatDetailScreen(
+            builder: (_) => ChatDetailScreen(
               chatId: 'chat_${widget.doctorId}_${DateTime.now().millisecondsSinceEpoch}',
               userName: _doctor['name'],
               userId: widget.doctorId,
@@ -129,7 +142,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => const DoctorBookingScreen(doctorId: '1'),
+            builder: (_) => DoctorBookingScreen(doctorId: widget.doctorId),
           ),
         );
         break;
