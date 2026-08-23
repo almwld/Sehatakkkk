@@ -67,7 +67,6 @@ class _MoreScreenState extends State<MoreScreen>
     'إعدادات',
   ];
 
-  // ✅ المؤشرات الحيوية - عرض شبكي
   final List<Map<String, dynamic>> _vitals = [
     {
       'icon': 'assets/images/tracking/blood_pressure.png',
@@ -135,7 +134,6 @@ class _MoreScreenState extends State<MoreScreen>
     },
   ];
 
-  // ✅ الخدمات مع المسارات الصحيحة
   List<Map<String, dynamic>> get _filteredServices {
     switch (_selectedCategory) {
       case 'رعاية عائلية':
