@@ -21,7 +21,7 @@ class _HealthDashboardState extends State<HealthDashboard>
   int _selectedTab = 0;
   late TabController _tabController;
 
-  // ✅ بيانات المؤشرات الصحية
+  // ✅ المؤشرات الصحية - أيقونات مكبرة بدون حاويات
   final List<Map<String, dynamic>> _healthMetrics = [
     {
       'icon': 'assets/images/tracking/heart_rate.png',
@@ -73,10 +73,10 @@ class _HealthDashboardState extends State<HealthDashboard>
     },
   ];
 
-  // ✅ نصائح صحية
+  // ✅ النصائح الصحية - أيقونات جديدة
   final List<Map<String, dynamic>> _healthTips = [
     {
-      'icon': 'assets/images/tracking/water.png',
+      'icon': 'assets/images/tracking/water_drinking.png',
       'title': 'شرب الماء',
       'subtitle': '8 أكواب يومياً',
       'color': Colors.blue,
@@ -84,7 +84,7 @@ class _HealthDashboardState extends State<HealthDashboard>
       'target': '2.4/3 لتر',
     },
     {
-      'icon': 'assets/images/tracking/steps.png',
+      'icon': 'assets/images/tracking/walking.png',
       'title': 'المشي',
       'subtitle': '30 دقيقة يومياً',
       'color': Colors.green,
@@ -92,7 +92,7 @@ class _HealthDashboardState extends State<HealthDashboard>
       'target': '18/30 دقيقة',
     },
     {
-      'icon': 'assets/images/tracking/sleep.png',
+      'icon': 'assets/images/tracking/sleep_tracking.png',
       'title': 'النوم',
       'subtitle': '7-8 ساعات ليلاً',
       'color': Colors.indigo,
@@ -100,7 +100,7 @@ class _HealthDashboardState extends State<HealthDashboard>
       'target': '6.4/8 ساعات',
     },
     {
-      'icon': 'assets/images/tracking/apple.png',
+      'icon': 'assets/images/tracking/fruits.png',
       'title': 'الفواكه',
       'subtitle': '5 حصص يومياً',
       'color': Colors.red,
@@ -249,6 +249,19 @@ class _HealthDashboardState extends State<HealthDashboard>
     }
   }
 
+  // ✅ دالة عرض الأيقونة - بدون حاويات
+  Widget _buildIcon(String path, {double size = 48, Color? color}) {
+    return Image.asset(
+      path,
+      width: size,
+      height: size,
+      fit: BoxFit.contain,
+      errorBuilder: (context, error, stackTrace) {
+        return Icon(Icons.circle, color: color ?? AppColors.primary, size: size);
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -395,7 +408,7 @@ class _HealthDashboardState extends State<HealthDashboard>
     );
   }
 
-  // ✅ بطاقة درجة الصحة
+  // ✅ بطاقة درجة الصحة - دائرة مكبرة
   Widget _buildHealthScoreCard(bool isDark) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -412,15 +425,16 @@ class _HealthDashboardState extends State<HealthDashboard>
       ),
       child: Row(
         children: [
+          // ✅ دائرة مكبرة (120 -> 100)
           SizedBox(
-            width: 90,
-            height: 90,
+            width: 100,
+            height: 100,
             child: Stack(
               alignment: Alignment.center,
               children: [
                 CircularProgressIndicator(
                   value: _healthScore / 100,
-                  strokeWidth: 8,
+                  strokeWidth: 10,
                   backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200],
                   color: _getScoreColor(_healthScore),
                 ),
@@ -430,7 +444,7 @@ class _HealthDashboardState extends State<HealthDashboard>
                     Text(
                       _healthScore.toStringAsFixed(0),
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 28,
                         fontWeight: FontWeight.bold,
                         color: _getScoreColor(_healthScore),
                       ),
@@ -438,7 +452,7 @@ class _HealthDashboardState extends State<HealthDashboard>
                     Text(
                       'من 100',
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: 11,
                         color: isDark ? Colors.grey[400] : Colors.grey[600],
                       ),
                     ),
@@ -504,7 +518,6 @@ class _HealthDashboardState extends State<HealthDashboard>
     );
   }
 
-  // ✅ قسم العنوان
   Widget _buildSectionHeader(String title, bool isDark) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -531,7 +544,7 @@ class _HealthDashboardState extends State<HealthDashboard>
     );
   }
 
-  // ✅ شبكة المؤشرات الصحية - أيقونات بدون تأثير لوني
+  // ✅ المؤشرات الحيوية - أيقونات مكبرة 3x بدون حاويات
   Widget _buildMetricsGrid(bool isDark) {
     return GridView.builder(
       shrinkWrap: true,
@@ -588,27 +601,11 @@ class _HealthDashboardState extends State<HealthDashboard>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // ✅ أيقونة بدون تأثير لوني
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: (metric['color'] as Color).withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Image.asset(
-                    metric['icon'] as String,
-                    width: 36,
-                    height: 36,
-                    fit: BoxFit.contain,
-                    // ❌ تم إزالة color لتظهر الأيقونة بشكلها الأصلي
-                    errorBuilder: (context, error, stackTrace) {
-                      return Icon(
-                        Icons.circle,
-                        color: metric['color'] as Color,
-                        size: 36,
-                      );
-                    },
-                  ),
+                // ✅ أيقونة مكبرة 3x (36 -> 48)
+                _buildIcon(
+                  metric['icon'] as String,
+                  size: 48,
+                  color: metric['color'] as Color,
                 ),
                 const SizedBox(height: 10),
                 Text(
@@ -684,7 +681,7 @@ class _HealthDashboardState extends State<HealthDashboard>
     );
   }
 
-  // ✅ النصائح الصحية - أيقونات بدون تأثير لوني
+  // ✅ النصائح الصحية - أيقونات مكبرة بدون حاويات
   Widget _buildTipsGrid(bool isDark) {
     return GridView.builder(
       shrinkWrap: true,
@@ -714,29 +711,13 @@ class _HealthDashboardState extends State<HealthDashboard>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // ✅ أيقونة بدون تأثير لوني
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: (tip['color'] as Color).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Image.asset(
-                  tip['icon'] as String,
-                  width: 30,
-                  height: 30,
-                  fit: BoxFit.contain,
-                  // ❌ تم إزالة color لتظهر الأيقونة بشكلها الأصلي
-                  errorBuilder: (context, error, stackTrace) {
-                    return Icon(
-                      Icons.circle,
-                      color: tip['color'] as Color,
-                      size: 30,
-                    );
-                  },
-                ),
+              // ✅ أيقونة مكبرة (30 -> 40)
+              _buildIcon(
+                tip['icon'] as String,
+                size: 40,
+                color: tip['color'] as Color,
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
               Text(
                 tip['title'] as String,
                 style: TextStyle(
@@ -839,7 +820,6 @@ class _HealthDashboardState extends State<HealthDashboard>
     );
   }
 
-  // ✅ محتوى التبويبات
   Widget _buildTabContent(bool isDark) {
     switch (_selectedTab) {
       case 0:
@@ -875,15 +855,8 @@ class _HealthDashboardState extends State<HealthDashboard>
           ),
           child: Row(
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.science, color: AppColors.primary, size: 22),
-              ),
+              // ✅ أيقونة مكبرة (44 -> 32)
+              _buildIcon('assets/images/services/laboratory.png', size: 32, color: AppColors.primary),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -954,15 +927,8 @@ class _HealthDashboardState extends State<HealthDashboard>
           ),
           child: Row(
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.calendar_today, color: AppColors.primary, size: 22),
-              ),
+              // ✅ أيقونة مكبرة (44 -> 32)
+              _buildIcon('assets/images/services/calendar_booking.png', size: 32, color: AppColors.primary),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
