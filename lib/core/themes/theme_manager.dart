@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class ThemeManager {
+  static const String _fontFamily = 'ElMessiri';
+  static const String _fontFamilySecondary = 'NotoNaskhArabic';
+
   static final lightTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
@@ -14,124 +16,122 @@ class ThemeManager {
       background: AppColors.backgroundLight,
     ),
     scaffoldBackgroundColor: AppColors.backgroundLight,
-    // ✅ استخدام Google Fonts
-    textTheme: TextTheme(
-      // ✅ العناوين الكبيرة - Bold
-      displayLarge: GoogleFonts.notoSansArabic(
-        fontWeight: FontWeight.w700,
+    fontFamily: _fontFamily,
+    textTheme: const TextTheme(
+      displayLarge: TextStyle(
+        fontFamily: _fontFamily,
+        fontWeight: FontWeight.bold,
         fontSize: 32,
-        color: Colors.black87,
       ),
-      displayMedium: GoogleFonts.notoSansArabic(
-        fontWeight: FontWeight.w700,
+      displayMedium: TextStyle(
+        fontFamily: _fontFamily,
+        fontWeight: FontWeight.bold,
         fontSize: 28,
-        color: Colors.black87,
       ),
-      displaySmall: GoogleFonts.notoSansArabic(
-        fontWeight: FontWeight.w700,
+      displaySmall: TextStyle(
+        fontFamily: _fontFamily,
+        fontWeight: FontWeight.bold,
         fontSize: 24,
-        color: Colors.black87,
       ),
-      // ✅ العناوين المتوسطة - Bold
-      headlineLarge: GoogleFonts.notoSansArabic(
-        fontWeight: FontWeight.w700,
+      headlineLarge: TextStyle(
+        fontFamily: _fontFamily,
+        fontWeight: FontWeight.bold,
         fontSize: 22,
-        color: Colors.black87,
       ),
-      headlineMedium: GoogleFonts.notoSansArabic(
-        fontWeight: FontWeight.w700,
+      headlineMedium: TextStyle(
+        fontFamily: _fontFamily,
+        fontWeight: FontWeight.bold,
         fontSize: 20,
-        color: Colors.black87,
       ),
-      headlineSmall: GoogleFonts.notoSansArabic(
-        fontWeight: FontWeight.w700,
+      headlineSmall: TextStyle(
+        fontFamily: _fontFamily,
+        fontWeight: FontWeight.bold,
         fontSize: 18,
-        color: Colors.black87,
       ),
-      // ✅ العناوين الصغيرة - SemiBold
-      titleLarge: GoogleFonts.notoSansArabic(
+      titleLarge: TextStyle(
+        fontFamily: _fontFamily,
         fontWeight: FontWeight.w600,
         fontSize: 16,
-        color: Colors.black87,
       ),
-      titleMedium: GoogleFonts.notoSansArabic(
+      titleMedium: TextStyle(
+        fontFamily: _fontFamily,
         fontWeight: FontWeight.w600,
         fontSize: 14,
-        color: Colors.black87,
       ),
-      titleSmall: GoogleFonts.notoSansArabic(
+      titleSmall: TextStyle(
+        fontFamily: _fontFamily,
         fontWeight: FontWeight.w600,
         fontSize: 12,
-        color: Colors.grey[700],
       ),
-      // ✅ النصوص العادية - Regular
-      bodyLarge: GoogleFonts.notoSansArabic(
-        fontWeight: FontWeight.w400,
+      bodyLarge: TextStyle(
+        fontFamily: _fontFamilySecondary,
+        fontWeight: FontWeight.normal,
         fontSize: 16,
-        color: Colors.black87,
       ),
-      bodyMedium: GoogleFonts.notoSansArabic(
-        fontWeight: FontWeight.w400,
+      bodyMedium: TextStyle(
+        fontFamily: _fontFamilySecondary,
+        fontWeight: FontWeight.normal,
         fontSize: 14,
-        color: Colors.black87,
       ),
-      bodySmall: GoogleFonts.notoSansArabic(
-        fontWeight: FontWeight.w400,
+      bodySmall: TextStyle(
+        fontFamily: _fontFamilySecondary,
+        fontWeight: FontWeight.normal,
         fontSize: 12,
-        color: Colors.grey[600],
       ),
-      // ✅ النصوص الصغيرة - Regular
-      labelLarge: GoogleFonts.notoSansArabic(
-        fontWeight: FontWeight.w400,
+      labelLarge: TextStyle(
+        fontFamily: _fontFamilySecondary,
+        fontWeight: FontWeight.normal,
         fontSize: 14,
-        color: Colors.grey[700],
       ),
-      labelMedium: GoogleFonts.notoSansArabic(
-        fontWeight: FontWeight.w400,
+      labelMedium: TextStyle(
+        fontFamily: _fontFamilySecondary,
+        fontWeight: FontWeight.normal,
         fontSize: 12,
-        color: Colors.grey[600],
       ),
-      labelSmall: GoogleFonts.notoSansArabic(
-        fontWeight: FontWeight.w400,
+      labelSmall: TextStyle(
+        fontFamily: _fontFamilySecondary,
+        fontWeight: FontWeight.normal,
         fontSize: 10,
-        color: Colors.grey[500],
       ),
     ),
-    appBarTheme: AppBarTheme(
+    appBarTheme: const AppBarTheme(
       elevation: 0,
       centerTitle: true,
-      titleTextStyle: GoogleFonts.notoSansArabic(
-        fontWeight: FontWeight.w700,
+      titleTextStyle: TextStyle(
+        fontFamily: _fontFamily,
+        fontWeight: FontWeight.bold,
         fontSize: 20,
         color: Colors.white,
       ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        textStyle: GoogleFonts.notoSansArabic(
-          fontWeight: FontWeight.w700,
+        textStyle: const TextStyle(
+          fontFamily: _fontFamily,
+          fontWeight: FontWeight.bold,
           fontSize: 16,
         ),
       ),
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        textStyle: GoogleFonts.notoSansArabic(
+        textStyle: const TextStyle(
+          fontFamily: _fontFamily,
           fontWeight: FontWeight.w600,
           fontSize: 14,
         ),
       ),
     ),
-    inputDecorationTheme: InputDecorationTheme(
-      labelStyle: GoogleFonts.notoSansArabic(
-        fontWeight: FontWeight.w400,
+    inputDecorationTheme: const InputDecorationTheme(
+      labelStyle: TextStyle(
+        fontFamily: _fontFamilySecondary,
+        fontWeight: FontWeight.normal,
         fontSize: 14,
-        color: Colors.grey[600],
       ),
-      hintStyle: GoogleFonts.notoSansArabic(
-        fontWeight: FontWeight.w400,
+      hintStyle: TextStyle(
+        fontFamily: _fontFamilySecondary,
+        fontWeight: FontWeight.normal,
         fontSize: 14,
-        color: Colors.grey[400],
       ),
     ),
   );
@@ -147,117 +147,137 @@ class ThemeManager {
       background: Color(0xFF0B1121),
     ),
     scaffoldBackgroundColor: const Color(0xFF0B1121),
-    // ✅ استخدام Google Fonts للوضع المظلم
-    textTheme: TextTheme(
-      displayLarge: GoogleFonts.notoSansArabic(
-        fontWeight: FontWeight.w700,
+    fontFamily: _fontFamily,
+    textTheme: const TextTheme(
+      displayLarge: TextStyle(
+        fontFamily: _fontFamily,
+        fontWeight: FontWeight.bold,
         fontSize: 32,
         color: Colors.white,
       ),
-      displayMedium: GoogleFonts.notoSansArabic(
-        fontWeight: FontWeight.w700,
+      displayMedium: TextStyle(
+        fontFamily: _fontFamily,
+        fontWeight: FontWeight.bold,
         fontSize: 28,
         color: Colors.white,
       ),
-      displaySmall: GoogleFonts.notoSansArabic(
-        fontWeight: FontWeight.w700,
+      displaySmall: TextStyle(
+        fontFamily: _fontFamily,
+        fontWeight: FontWeight.bold,
         fontSize: 24,
         color: Colors.white,
       ),
-      headlineLarge: GoogleFonts.notoSansArabic(
-        fontWeight: FontWeight.w700,
+      headlineLarge: TextStyle(
+        fontFamily: _fontFamily,
+        fontWeight: FontWeight.bold,
         fontSize: 22,
         color: Colors.white,
       ),
-      headlineMedium: GoogleFonts.notoSansArabic(
-        fontWeight: FontWeight.w700,
+      headlineMedium: TextStyle(
+        fontFamily: _fontFamily,
+        fontWeight: FontWeight.bold,
         fontSize: 20,
         color: Colors.white,
       ),
-      headlineSmall: GoogleFonts.notoSansArabic(
-        fontWeight: FontWeight.w700,
+      headlineSmall: TextStyle(
+        fontFamily: _fontFamily,
+        fontWeight: FontWeight.bold,
         fontSize: 18,
         color: Colors.white,
       ),
-      titleLarge: GoogleFonts.notoSansArabic(
+      titleLarge: TextStyle(
+        fontFamily: _fontFamily,
         fontWeight: FontWeight.w600,
         fontSize: 16,
         color: Colors.white,
       ),
-      titleMedium: GoogleFonts.notoSansArabic(
+      titleMedium: TextStyle(
+        fontFamily: _fontFamily,
         fontWeight: FontWeight.w600,
         fontSize: 14,
         color: Colors.white,
       ),
-      titleSmall: GoogleFonts.notoSansArabic(
+      titleSmall: TextStyle(
+        fontFamily: _fontFamily,
         fontWeight: FontWeight.w600,
         fontSize: 12,
         color: Colors.white70,
       ),
-      bodyLarge: GoogleFonts.notoSansArabic(
-        fontWeight: FontWeight.w400,
+      bodyLarge: TextStyle(
+        fontFamily: _fontFamilySecondary,
+        fontWeight: FontWeight.normal,
         fontSize: 16,
         color: Colors.white,
       ),
-      bodyMedium: GoogleFonts.notoSansArabic(
-        fontWeight: FontWeight.w400,
+      bodyMedium: TextStyle(
+        fontFamily: _fontFamilySecondary,
+        fontWeight: FontWeight.normal,
         fontSize: 14,
         color: Colors.white70,
       ),
-      bodySmall: GoogleFonts.notoSansArabic(
-        fontWeight: FontWeight.w400,
+      bodySmall: TextStyle(
+        fontFamily: _fontFamilySecondary,
+        fontWeight: FontWeight.normal,
         fontSize: 12,
         color: Colors.white60,
       ),
-      labelLarge: GoogleFonts.notoSansArabic(
-        fontWeight: FontWeight.w400,
+      labelLarge: TextStyle(
+        fontFamily: _fontFamilySecondary,
+        fontWeight: FontWeight.normal,
         fontSize: 14,
         color: Colors.white70,
       ),
-      labelMedium: GoogleFonts.notoSansArabic(
-        fontWeight: FontWeight.w400,
+      labelMedium: TextStyle(
+        fontFamily: _fontFamilySecondary,
+        fontWeight: FontWeight.normal,
         fontSize: 12,
         color: Colors.white60,
       ),
-      labelSmall: GoogleFonts.notoSansArabic(
-        fontWeight: FontWeight.w400,
+      labelSmall: TextStyle(
+        fontFamily: _fontFamilySecondary,
+        fontWeight: FontWeight.normal,
         fontSize: 10,
         color: Colors.white60,
       ),
     ),
-    appBarTheme: AppBarTheme(
+    appBarTheme: const AppBarTheme(
       elevation: 0,
       centerTitle: true,
-      titleTextStyle: GoogleFonts.notoSansArabic(
-        fontWeight: FontWeight.w700,
+      titleTextStyle: TextStyle(
+        fontFamily: _fontFamily,
+        fontWeight: FontWeight.bold,
         fontSize: 20,
         color: Colors.white,
       ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        textStyle: GoogleFonts.notoSansArabic(
-          fontWeight: FontWeight.w700,
+        textStyle: const TextStyle(
+          fontFamily: _fontFamily,
+          fontWeight: FontWeight.bold,
           fontSize: 16,
         ),
       ),
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        textStyle: GoogleFonts.notoSansArabic(
+        textStyle: const TextStyle(
+          fontFamily: _fontFamily,
           fontWeight: FontWeight.w600,
           fontSize: 14,
         ),
       ),
     ),
-    inputDecorationTheme: InputDecorationTheme(
-      labelStyle: GoogleFonts.notoSansArabic(
-        fontWeight: FontWeight.w400,
+    inputDecorationTheme: const InputDecorationTheme(
+      labelStyle: TextStyle(
+        fontFamily: _fontFamilySecondary,
+        fontWeight: FontWeight.normal,
         fontSize: 14,
         color: Colors.white70,
       ),
-      hintStyle: GoogleFonts.notoSansArabic(
-        fontWeight: FontWeight.w400,
+      hintStyle: TextStyle(
+        fontFamily: _fontFamilySecondary,
+        fontWeight: FontWeight.normal,
         fontSize: 14,
         color: Colors.white60,
       ),
