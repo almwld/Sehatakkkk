@@ -47,7 +47,6 @@ class MoreScreen extends StatefulWidget {
   final ScrollController? scrollController;
 
   const MoreScreen({super.key, this.scrollController});
-  const MoreScreen({super.key});
 
   @override
   State<MoreScreen> createState() => _MoreScreenState();

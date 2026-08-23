@@ -11,7 +11,6 @@ class LabsListScreen extends StatefulWidget {
   final ScrollController? scrollController;
 
   const LabsListScreen({super.key, this.scrollController});
-  const LabsListScreen({super.key});
 
   @override
   State<LabsListScreen> createState() => _LabsListScreenState();

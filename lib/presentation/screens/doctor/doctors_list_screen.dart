@@ -9,7 +9,6 @@ class DoctorsListScreen extends StatefulWidget {
   final ScrollController? scrollController;
 
   const DoctorsListScreen({super.key, this.scrollController});
-  const DoctorsListScreen({super.key});
 
   @override
   State<DoctorsListScreen> createState() => _DoctorsListScreenState();

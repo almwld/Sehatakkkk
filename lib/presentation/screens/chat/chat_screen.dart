@@ -14,7 +14,6 @@ class ChatScreen extends StatefulWidget {
   final ScrollController? scrollController;
 
   const ChatScreen({super.key, this.scrollController});
-  const ChatScreen({super.key});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();

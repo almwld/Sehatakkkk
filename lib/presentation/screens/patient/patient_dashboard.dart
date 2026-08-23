@@ -28,7 +28,6 @@ class PatientDashboard extends StatefulWidget {
   final ScrollController? scrollController;
 
   const PatientDashboard({super.key, this.scrollController});
-  const PatientDashboard({super.key});
 
   @override
   State<PatientDashboard> createState() => _PatientDashboardState();

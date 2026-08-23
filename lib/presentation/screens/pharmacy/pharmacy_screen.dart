@@ -8,7 +8,6 @@ class PharmacyScreen extends StatefulWidget {
   final ScrollController? scrollController;
 
   const PharmacyScreen({super.key, this.scrollController});
-  const PharmacyScreen({super.key});
 
   @override
   State<PharmacyScreen> createState() => _PharmacyScreenState();
