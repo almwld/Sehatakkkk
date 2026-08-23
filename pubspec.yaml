@@ -170,16 +170,10 @@ flutter:
   uses-material-design: true
 
   assets:
-    # 🎬 الرسوم المتحركة
     - assets/animations/
-
-    # 🎵 الصوت
     - assets/audio/
-
-    # 🔤 الخطوط
     - assets/fonts/
-
-    # 🖼️ الأيقونات
+    - assets/icons/
     - assets/icons/app_icon.png
     - assets/icons/app_icon.svg
     - assets/icons/consultations/
@@ -194,60 +188,28 @@ flutter:
     - assets/icons/services/
     - assets/icons/social/
     - assets/icons/specialties/
-
-    # 📷 الصور - الخدمات
-    - assets/images/services/
-    - assets/images/services/blood_donation.png
-    - assets/images/services/first_aid.png
-    - assets/images/services/hospital.png
-    - assets/images/services/laboratory.png
-    - assets/images/services/medical_articles.png
-    - assets/images/services/packages.png
-    - assets/images/services/pharmacy.png
-    - assets/images/services/womens_health.png
-
-    # 📷 الصور - التتبع
-    - assets/images/tracking/
-    - assets/images/tracking/age.png
-    - assets/images/tracking/blood_pressure.png
-    - assets/images/tracking/blood_sugar.png
-    - assets/images/tracking/fruits.png
-    - assets/images/tracking/sleep_tracking.png
-    - assets/images/tracking/walking.png
-    - assets/images/tracking/water_drinking.png
-    - assets/images/tracking/weight.png
-
-    # 📷 الصور - الواجهة
-    - assets/images/ui/
-    - assets/images/more/
-    - assets/images/nav_bar/
-    - assets/images/ui/edit_button.png
-    - assets/images/more/
-    - assets/images/nav_bar/
-    - assets/images/ui/like_button.png
-    - assets/images/more/
-    - assets/images/nav_bar/
-    - assets/images/ui/settings_gear.png
-    - assets/images/more/
-    - assets/images/nav_bar/
-    - assets/images/ui/user_profile.png
-    - assets/images/more/
-    - assets/images/nav_bar/
-
-    # 📷 الصور - أخرى
+    - assets/images/
+    - assets/images/baby/
     - assets/images/chat/
     - assets/images/chat_background.svg
+    - assets/images/device/
+    - assets/images/icons/
     - assets/images/icons/doctors/
     - assets/images/icons/fast_services/
     - assets/images/icons/roles/
     - assets/images/icons/search/
     - assets/images/icons/top_bar/
+    - assets/images/medicine/
+    - assets/images/more/
+    - assets/images/nav_bar/
     - assets/images/payment/
     - assets/images/placeholder.png
+    - assets/images/services/
+    - assets/images/skin/
     - assets/images/social/
+    - assets/images/tracking/
+    - assets/images/ui/
     - assets/images/wallets/
-
-    # 📁 SVG
     - assets/svg/
 
   fonts:
@@ -264,6 +226,3 @@ flutter:
           weight: 600
         - asset: assets/fonts/NotoSansArabicUI-Black.ttf
           weight: 900
-
-dependency_overrides:
-  google_fonts: ^6.1.0

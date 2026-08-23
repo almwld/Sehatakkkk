@@ -45,3 +45,109 @@ class Roles {
     return role['icon'] as String;
   }
 }
+
+enum UserRole {
+  user,
+  doctor,
+  nurse,
+  midwife,
+  physiotherapist,
+  pharmacist,
+  lab,
+  paramedic,
+  delivery,
+  service,
+  veterinarian,
+  admin,
+}
+
+extension UserRoleExtension on UserRole {
+  String get displayName {
+    switch (this) {
+      case UserRole.user:
+        return 'مستخدم';
+      case UserRole.doctor:
+        return 'طبيب';
+      case UserRole.nurse:
+        return 'ممرض';
+      case UserRole.midwife:
+        return 'قابلة وتوليد';
+      case UserRole.physiotherapist:
+        return 'علاج فيزيائي';
+      case UserRole.pharmacist:
+        return 'صيدلي';
+      case UserRole.lab:
+        return 'مختبر';
+      case UserRole.paramedic:
+        return 'مسعف';
+      case UserRole.delivery:
+        return 'موصل طلبات';
+      case UserRole.service:
+        return 'خدمي';
+      case UserRole.veterinarian:
+        return 'بيطري';
+      case UserRole.admin:
+        return 'مشرف';
+    }
+  }
+
+  String get id {
+    switch (this) {
+      case UserRole.user:
+        return 'user';
+      case UserRole.doctor:
+        return 'doctor';
+      case UserRole.nurse:
+        return 'nurse';
+      case UserRole.midwife:
+        return 'midwife';
+      case UserRole.physiotherapist:
+        return 'physiotherapist';
+      case UserRole.pharmacist:
+        return 'pharmacist';
+      case UserRole.lab:
+        return 'lab';
+      case UserRole.paramedic:
+        return 'paramedic';
+      case UserRole.delivery:
+        return 'delivery';
+      case UserRole.service:
+        return 'service';
+      case UserRole.veterinarian:
+        return 'veterinarian';
+      case UserRole.admin:
+        return 'admin';
+    }
+  }
+
+  static UserRole fromId(String id) {
+    switch (id) {
+      case 'user':
+        return UserRole.user;
+      case 'doctor':
+        return UserRole.doctor;
+      case 'nurse':
+        return UserRole.nurse;
+      case 'midwife':
+        return UserRole.midwife;
+      case 'physiotherapist':
+        return UserRole.physiotherapist;
+      case 'pharmacist':
+        return UserRole.pharmacist;
+      case 'lab':
+        return UserRole.lab;
+      case 'paramedic':
+        return UserRole.paramedic;
+      case 'delivery':
+        return UserRole.delivery;
+      case 'service':
+        return UserRole.service;
+      case 'veterinarian':
+        return UserRole.veterinarian;
+      case 'admin':
+        return UserRole.admin;
+      default:
+        return UserRole.user;
+    }
+  }
+}

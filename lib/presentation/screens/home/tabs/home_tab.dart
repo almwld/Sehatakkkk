@@ -98,12 +98,12 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   ];
 
   final List<Map<String, dynamic>> _quickServices = [
-    {'icon': 'assets/images/services/pharmacy.png', 'label': 'صيدلية', 'screen': const PharmacyScreen()},
+    {'icon': 'assets/images/services/pharmacy.png', 'label': 'صيدلية', 'screen': const PharmacyScreenTemp()},
     {'icon': 'assets/images/services/emergency.png', 'label': 'طوارئ', 'screen': const EmergencyNumbers()},
     {'icon': 'assets/images/services/medical_community.png', 'label': 'خدمات منزلية', 'screen': const ServicesScreen()},
     {'icon': 'assets/images/services/blood_donation.png', 'label': 'تبرع بالدم', 'screen': const BloodDonationScreen()},
-    {'icon': 'assets/images/services/consultation.png', 'label': 'أطباء', 'screen': const DoctorsListScreen()},
-    {'icon': 'assets/images/services/laboratory.png', 'label': 'مختبرات', 'screen': const LabsListScreen()},
+    {'icon': 'assets/images/services/consultation.png', 'label': 'أطباء', 'screen': const DoctorsListScreenTemp()},
+    {'icon': 'assets/images/services/laboratory.png', 'label': 'مختبرات', 'screen': const LabsListScreenTemp()},
     {'icon': 'assets/images/services/health_tips.png', 'label': 'صحة', 'screen': const HealthDashboard()},
     {'icon': 'assets/images/services/wallet.png', 'label': 'محفظة', 'screen': const WalletScreen()},
     {'icon': 'assets/images/services/consultation.png', 'label': 'استشارة', 'screen': const ConsultationScreen()},
@@ -523,7 +523,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   _buildQuickServicesRow(),
                   const SizedBox(height: 16),
                   _buildSectionTitleWithAction('أفضل الأطباء', isDark, 'عرض الكل',
-                    () => _goTo(context, const DoctorsListScreen())),
+                    () => _goTo(context, const DoctorsListScreenTemp())),
                   const SizedBox(height: 8),
                   _buildTopDoctorsGrid(),
                   const SizedBox(height: 16),
@@ -538,12 +538,12 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   _buildFeaturedHospitalsGrid(),
                   const SizedBox(height: 16),
                   _buildSectionTitleWithAction('مختبرات مميزة', isDark, 'عرض الكل',
-                    () => _goTo(context, const LabsListScreen())),
+                    () => _goTo(context, const LabsListScreenTemp())),
                   const SizedBox(height: 8),
                   _buildFeaturedLabsGrid(),
                   const SizedBox(height: 16),
                   _buildSectionTitleWithAction('صيدليات مميزة', isDark, 'عرض الكل',
-                    () => _goTo(context, const PharmacyScreen())),
+                    () => _goTo(context, const PharmacyScreenTemp())),
                   const SizedBox(height: 8),
                   _buildFeaturedPharmaciesGrid(),
                   const SizedBox(height: 16),
@@ -1252,7 +1252,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       itemBuilder: (context, index) {
         final lab = _featuredLabs[index];
         return GestureDetector(
-          onTap: () => _goTo(context, const LabsListScreen()),
+          onTap: () => _goTo(context, const LabsListScreenTemp()),
           child: Container(
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1A2540) : Colors.white,
@@ -1305,7 +1305,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () => _goTo(context, const LabsListScreen()),
+                          onPressed: () => _goTo(context, const LabsListScreenTemp()),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
@@ -1347,7 +1347,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       itemBuilder: (context, index) {
         final pharmacy = _featuredPharmacies[index];
         return GestureDetector(
-          onTap: () => _goTo(context, const PharmacyScreen()),
+          onTap: () => _goTo(context, const PharmacyScreenTemp()),
           child: Container(
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1A2540) : Colors.white,
@@ -1400,7 +1400,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () => _goTo(context, const PharmacyScreen()),
+                          onPressed: () => _goTo(context, const PharmacyScreenTemp()),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,

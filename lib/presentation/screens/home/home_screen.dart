@@ -8,7 +8,7 @@ import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
 import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
 import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
 import 'package:sehatak/presentation/screens/patient/patient_dashboard.dart';
-import 'package:sehatak/presentation/screens/more/more_screen.dart>';
+import 'package:sehatak/presentation/screens/more/more_screen.dart';
 import 'package:sehatak/presentation/widgets/common/custom_bottom_nav_bar.dart';
 import 'package:sehatak/presentation/screens/home/tabs/home_tab.dart';
 
