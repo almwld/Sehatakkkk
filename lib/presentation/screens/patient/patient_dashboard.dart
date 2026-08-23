@@ -37,7 +37,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
   String _userRole = 'مريض';
   bool _isLoading = true;
 
-  // ✅ المؤشرات الحيوية مع أيقونات محلية مكبرة
+  // ✅ المؤشرات الحيوية - أيقونات مكبرة بدون حاويات
   final List<Map<String, dynamic>> _vitals = [
     {
       'icon': 'assets/images/tracking/blood_pressure.png',
@@ -89,7 +89,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
     },
   ];
 
-  // ✅ الخدمات الطبية (قائمة عمودية)
+  // ✅ الخدمات الطبية - أيقونات مكبرة بدون حاويات
   final List<Map<String, dynamic>> _services = [
     {'icon': 'assets/images/services/calendar_booking.png', 'label': 'المواعيد', 'color': Colors.green, 'screen': const PatientAppointments()},
     {'icon': 'assets/images/services/medications.png', 'label': 'الأدوية', 'color': Colors.orange, 'screen': const MedicinesScreen()},
@@ -104,7 +104,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
     {'icon': 'assets/images/services/blood_donation.png', 'label': 'تبرع بالدم', 'color': Colors.deepOrange, 'screen': const BloodDonationScreen()},
     {'icon': 'assets/images/services/video_consultation.png', 'label': 'استشارة فيديو', 'color': Colors.indigo, 'screen': const ConsultationScreen()},
     {'icon': 'assets/images/services/ai_assistant.png', 'label': 'المساعد الذكي', 'color': Colors.cyan, 'screen': const AiChatbotScreen()},
-    {'icon': 'assets/images/services/subscriptions.png', 'label': 'الباقات', 'color': Colors.amber, 'screen': const SubscriptionsScreen()},
+    {'icon': 'assets/images/services/packages.png', 'label': 'الباقات', 'color': Colors.amber, 'screen': const SubscriptionsScreen()},
   ];
 
   @override
@@ -149,9 +149,10 @@ class _PatientDashboardState extends State<PatientDashboard> {
     }
   }
 
-  Widget _buildIcon(String iconPath, {double size = 32, Color? color}) {
+  // ✅ دالة عرض الأيقونة - بدون حاويات
+  Widget _buildIcon(String path, {double size = 40, Color? color}) {
     return Image.asset(
-      iconPath,
+      path,
       width: size,
       height: size,
       fit: BoxFit.contain,
@@ -206,7 +207,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
                   _buildPatientCard(isDark),
                   const SizedBox(height: 16),
 
-                  // ✅ الباقة النشطة (بدلاً من نقاط الولاء)
+                  // ✅ الباقة النشطة
                   _buildActiveSubscriptionCard(isDark),
                   const SizedBox(height: 16),
 
@@ -219,7 +220,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
                   _buildVitalsGrid(isDark),
                   const SizedBox(height: 16),
 
-                  // ✅ وصول سريع
+                  // ✅ وصول سريع - أيقونات مكبرة
                   const Text(
                     'وصول سريع',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -228,7 +229,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
                   _buildQuickAccess(isDark),
                   const SizedBox(height: 16),
 
-                  // ✅ الخدمات الطبية (قائمة عمودية)
+                  // ✅ الخدمات الطبية
                   const Text(
                     'الخدمات الطبية',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -300,35 +301,29 @@ class _PatientDashboardState extends State<PatientDashboard> {
             style: TextStyle(color: Colors.white70, fontSize: 11),
           ),
           const Text(
-            'العمر: 29 سنة • الدم: O+',
+            'العمر: 29 سنة • فصيلة الدم: O+',
             style: TextStyle(color: Colors.white70, fontSize: 11),
           ),
           const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _vitalStat('assets/images/blood_drop.png', 'الدم', 'O+'),
-                _vitalStat('assets/images/tracking/weight_tracking.png', 'الوزن', '72 كجم'),
-                _vitalStat('assets/images/tracking/fitness.png', 'الطول', '175 سم'),
-                _vitalStat('assets/images/tracking/blood_pressure.png', 'الضغط', 'طبيعي'),
-              ],
-            ),
+          // ✅ فصيلة الدم - أيقونات بدون حاويات
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildVitalStat('assets/images/tracking/blood_pressure.png', 'الدم', 'O+'),
+              _buildVitalStat('assets/images/tracking/weight_tracking.png', 'الوزن', '72 كجم'),
+              _buildVitalStat('assets/images/tracking/fitness.png', 'الطول', '175 سم'),
+              _buildVitalStat('assets/images/tracking/blood_pressure.png', 'الضغط', 'طبيعي'),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _vitalStat(String iconPath, String label, String value) {
+  Widget _buildVitalStat(String iconPath, String label, String value) {
     return Column(
       children: [
-        _buildIcon(iconPath, size: 24, color: Colors.white),
+        _buildIcon(iconPath, size: 28, color: Colors.white),
         const SizedBox(height: 2),
         Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
         Text(label, style: const TextStyle(color: Colors.white60, fontSize: 9)),
@@ -336,7 +331,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ✅ الباقة النشطة (بدلاً من نقاط الولاء)
+  // ✅ الباقة النشطة
   Widget _buildActiveSubscriptionCard(bool isDark) {
     return GestureDetector(
       onTap: () {
@@ -357,18 +352,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
         ),
         child: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                shape: BoxShape.circle,
-              ),
-              child: _buildIcon(
-                'assets/images/services/subscriptions.png',
-                size: 30,
-                color: Colors.white,
-              ),
-            ),
+            // ✅ أيقونة الباقات - مسار صحيح
+            _buildIcon('assets/images/services/packages.png', size: 34, color: Colors.white),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -414,7 +399,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ✅ المؤشرات الحيوية (شبكة 3 أعمدة)
+  // ✅ المؤشرات الحيوية - أيقونات مكبرة بدون حاويات
   Widget _buildVitalsGrid(bool isDark) {
     return GridView.builder(
       shrinkWrap: true,
@@ -449,18 +434,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: _buildIcon(
-                    vital['icon'] as String,
-                    size: 36,
-                    color: color,
-                  ),
-                ),
+                // ✅ أيقونة مكبرة (36 -> 42)
+                _buildIcon(vital['icon'] as String, size: 42, color: color),
                 const SizedBox(height: 6),
                 Text(
                   vital['value'] as String,
@@ -489,7 +464,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ✅ وصول سريع
+  // ✅ وصول سريع - أيقونات مكبرة بدون حاويات
   Widget _buildQuickAccess(bool isDark) {
     final quickServices = [
       {'icon': 'assets/images/services/calendar_booking.png', 'label': 'المواعيد', 'screen': const PatientAppointments()},
@@ -508,16 +483,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
           },
           child: Column(
             children: [
-              Container(
-                width: 50,
-                height: 50,
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: _buildIcon(service['icon'] as String, size: 28, color: AppColors.primary),
-              ),
+              // ✅ أيقونة مكبرة (50 -> 56)
+              _buildIcon(service['icon'] as String, size: 56, color: AppColors.primary),
               const SizedBox(height: 4),
               Text(
                 service['label'] as String,
@@ -530,7 +497,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ✅ الخدمات الطبية (قائمة عمودية)
+  // ✅ الخدمات الطبية - أيقونات مكبرة بدون حاويات
   Widget _buildServicesList(bool isDark) {
     return ListView.builder(
       shrinkWrap: true,
@@ -558,14 +525,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
             ),
             child: Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: _buildIcon(service['icon'] as String, size: 28, color: color),
-                ),
+                // ✅ أيقونة مكبرة (28 -> 36)
+                _buildIcon(service['icon'] as String, size: 36, color: color),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -707,18 +668,11 @@ class _PatientDashboardState extends State<PatientDashboard> {
               if (vaccines.indexOf(vaccine) > 0) const Divider(),
               Row(
                 children: [
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: done ? AppColors.success.withOpacity(0.1) : AppColors.warning.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      done ? Icons.check : Icons.schedule,
-                      color: done ? AppColors.success : AppColors.warning,
-                      size: 16,
-                    ),
+                  // ✅ أيقونة مكبرة (32 -> 36)
+                  _buildIcon(
+                    done ? 'assets/images/services/health_tips.png' : 'assets/images/services/emergency.png',
+                    size: 36,
+                    color: done ? Colors.green : Colors.orange,
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -772,7 +726,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildIcon(allergy['icon'] as String, size: 18, color: color),
+              // ✅ أيقونة مكبرة (18 -> 24)
+              _buildIcon(allergy['icon'] as String, size: 24, color: color),
               const SizedBox(width: 4),
               Text(
                 allergy['name'] as String,
