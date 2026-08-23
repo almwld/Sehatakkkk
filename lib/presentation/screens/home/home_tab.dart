@@ -11,7 +11,7 @@ import 'package:sehatak/core/services/health_score_service.dart';
 import 'package:sehatak/core/services/cache_service.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 import 'package:sehatak/presentation/widgets/app_search_delegate.dart';
-import 'package:sehatak/presentation/screens/services/services_screen.dart>';
+import 'package:sehatak/presentation/screens/services/services_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
 import 'package:sehatak/presentation/screens/medication/medicines_screen.dart';
@@ -22,7 +22,7 @@ import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
 import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart';
 import 'package:sehatak/presentation/screens/blood_donation/blood_donation_screen.dart';
 import 'package:sehatak/presentation/screens/wallet/wallet_screen.dart';
-import 'package:sehatak/presentation/screens/consultation/consultation_screen.dart';
+import 'package:sehatak/presentation/screens/consultation/consultation_screen.dart>';
 import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
 import 'package:sehatak/presentation/screens/health/health_dashboard.dart';
 import 'package:sehatak/presentation/screens/articles/articles_screen.dart';
@@ -37,11 +37,9 @@ class BottomCurvedClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     var path = Path();
-    // ✅ انحناء من الجانبين فقط (أعلى وأسفل مستقيمين)
     path.moveTo(0, 0);
     path.lineTo(0, size.height);
     
-    // ✅ انحناء في أسفل يسار
     var firstControlPoint = Offset(0, size.height + 20);
     var firstEndPoint = Offset(20, size.height + 20);
     path.quadraticBezierTo(
@@ -49,10 +47,8 @@ class BottomCurvedClipper extends CustomClipper<Path> {
       firstEndPoint.dx, firstEndPoint.dy,
     );
     
-    // ✅ خط مستقيم في الأسفل
     path.lineTo(size.width - 20, size.height + 20);
     
-    // ✅ انحناء في أسفل يمين
     var secondControlPoint = Offset(size.width, size.height + 20);
     var secondEndPoint = Offset(size.width, size.height);
     path.quadraticBezierTo(
@@ -60,7 +56,6 @@ class BottomCurvedClipper extends CustomClipper<Path> {
       secondEndPoint.dx, secondEndPoint.dy,
     );
     
-    // ✅ خط مستقيم للأعلى
     path.lineTo(size.width, 0);
     path.close();
     return path;
@@ -125,6 +120,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'icon': 'assets/images/services/health_tips.png', 'label': 'صحة', 'screen': const HealthDashboard()},
     {'icon': 'assets/images/services/wallet.png', 'label': 'محفظة', 'screen': const WalletScreen()},
     {'icon': 'assets/images/services/consultation.png', 'label': 'استشارة', 'screen': const ConsultationScreen()},
+    // ✅ ربط الخريطة - 'بالقرب منك'
     {'icon': 'assets/images/services/map_location.png', 'label': 'بالقرب منك', 'screen': const InteractiveMapScreen()},
   ];
 
@@ -166,18 +162,19 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'id': 'p6', 'name': 'صيدلية الأمانة', 'location': 'صنعاء', 'image': ImageKit.pharmacy3, 'rating': 4.4, 'open': true},
   ];
 
+  // ✅ النصائح اليومية - أيقونات محدثة
+  final List<Map<String, dynamic>> _dailyTips = [
+    {'title': 'شرب الماء', 'subtitle': '8 أكواب يومياً', 'icon': 'assets/images/tracking/water_drinking.png', 'content': 'شرب 8 أكواب من الماء يومياً يحسن صحة البشرة ويساعد في التخلص من السموم.'},
+    {'title': 'المشي', 'subtitle': '30 دقيقة يومياً', 'icon': 'assets/images/tracking/walking.png', 'content': 'المشي 30 دقيقة يومياً يقلل خطر أمراض القلب والسكري.'},
+    {'title': 'النوم', 'subtitle': '7-8 ساعات ليلاً', 'icon': 'assets/images/tracking/sleep_tracking.png', 'content': 'النوم 7-8 ساعات يومياً يحسن الصحة النفسية والجسدية.'},
+    {'title': 'الفواكه', 'subtitle': '5 حصص يومياً', 'icon': 'assets/images/tracking/fruits.png', 'content': 'تناول 5 حصص من الفواكه والخضار يومياً يوفر الفيتامينات.'},
+  ];
+
   final List<Map<String, dynamic>> _healthArticles = [
     {'title': 'فوائد المشي اليومي', 'category': 'صحة عامة', 'time': 'منذ ساعة', 'image': ImageKit.morningWalk},
     {'title': 'نصائح لتقوية المناعة', 'category': 'تغذية', 'time': 'منذ 3 ساعات', 'image': ImageKit.immuneBoost},
     {'title': 'أهمية النوم الصحي', 'category': 'صحة نفسية', 'time': 'منذ 5 ساعات', 'image': ImageKit.sleepTips},
     {'title': 'العناية بالبشرة في الصيف', 'category': 'جلدية', 'time': 'منذ يوم', 'image': ImageKit.skinCare},
-  ];
-
-  final List<Map<String, dynamic>> _dailyTips = [
-    {'title': 'شرب الماء', 'subtitle': '8 أكواب يومياً', 'icon': Icons.water_drop, 'content': 'شرب 8 أكواب من الماء يومياً يحسن صحة البشرة ويساعد في التخلص من السموم.'},
-    {'title': 'المشي', 'subtitle': '30 دقيقة يومياً', 'icon': Icons.directions_walk, 'content': 'المشي 30 دقيقة يومياً يقلل خطر أمراض القلب والسكري.'},
-    {'title': 'النوم', 'subtitle': '7-8 ساعات ليلاً', 'icon': Icons.nights_stay, 'content': 'النوم 7-8 ساعات يومياً يحسن الصحة النفسية والجسدية.'},
-    {'title': 'الفواكه', 'subtitle': '5 حصص يومياً', 'icon': Icons.apple, 'content': 'تناول 5 حصص من الفواكه والخضار يومياً يوفر الفيتامينات.'},
   ];
 
   final List<Map<String, dynamic>> _communityPosts = [
@@ -297,7 +294,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ============================================================
-  // 📱 الشريط العلوي المنحني - انحناء من الجانبين فقط
+  // 📱 الشريط العلوي المنحني
   // ============================================================
   Widget _buildCurvedAppBar(bool isDark) {
     final String initial = (_isLoggedIn && _userName.trim().isNotEmpty) 
@@ -307,9 +304,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     return Opacity(
       opacity: _appBarOpacity,
       child: ClipPath(
-        clipper: BottomCurvedClipper(), // ✅ انحناء من الجانبين فقط
+        clipper: BottomCurvedClipper(),
         child: Container(
-          height: 185, // ✅ ارتفاع 185
+          height: 185,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
@@ -333,7 +330,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ✅ الصف العلوي: الصورة الرمزية + النصوص + الأيقونات
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -394,7 +390,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                           ],
                         ),
                       ),
-                      // ✅ أيقونات الإشعارات والسلة - نفس لون الشريط
                       GestureDetector(
                         onTap: () => _goTo(context, const NotificationsScreen()),
                         child: Container(
@@ -437,7 +432,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  // ✅ شريط البحث داخل الشريط العلوي
                   GestureDetector(
                     onTap: () {
                       showSearch(
@@ -513,11 +507,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         body: CustomScrollView(
           controller: widget.scrollController,
           slivers: [
-            // ✅ الشريط العلوي المنحني (185px + بحث داخله)
-            SliverToBoxAdapter(
-              child: _buildCurvedAppBar(isDark),
-            ),
-            // ✅ باقي المحتوى (بدون شريط بحث منفصل)
+            SliverToBoxAdapter(child: _buildCurvedAppBar(isDark)),
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               sliver: SliverList(
@@ -526,13 +516,13 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   _buildBannerCarousel(isDark),
                   const SizedBox(height: 16),
                   if (_isLoggedIn) ...[
-                    _buildStatsRow(),
+                    _buildStatsRow(isDark),
                     const SizedBox(height: 16),
                   ],
                   _buildSectionTitleWithAction('خدمات سريعة', isDark, 'عرض الكل',
                     () => _goTo(context, const ServicesScreen())),
                   const SizedBox(height: 8),
-                  _buildQuickServicesRow(), // ✅ بدون حاويات
+                  _buildQuickServicesRow(isDark),
                   const SizedBox(height: 16),
                   _buildSectionTitleWithAction('أفضل الأطباء', isDark, 'عرض الكل',
                     () => _goTo(context, const DoctorsListScreen())),
@@ -565,7 +555,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   const SizedBox(height: 16),
                   _buildSectionTitle('نصائح يومية', isDark),
                   const SizedBox(height: 8),
-                  _buildDailyTipsGrid(),
+                  _buildDailyTipsGrid(isDark), // ✅ أيقونات محدثة
                   const SizedBox(height: 16),
                   _buildSectionTitle('مجتمع صحتك', isDark),
                   const SizedBox(height: 8),
@@ -623,7 +613,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  // ✅ البانرات - تصغير الحجم
   Widget _buildBannerCarousel(bool isDark) {
     if (_bannerImages.isEmpty) {
       return Container(
@@ -697,8 +686,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  // ✅ الإحصائيات بشكل دوائر
-  Widget _buildStatsRow() {
+  Widget _buildStatsRow(bool isDark) {
     final statsData = [
       {'icon': Icons.local_fire_department, 'value': _caloriesAnim, 'label': 'سعرة حرارية', 'color': AppColors.primary, 'format': 'int'},
       {'icon': Icons.directions_walk, 'value': _stepsAnim, 'label': 'خطوة', 'color': AppColors.primary, 'format': 'int'},
@@ -797,9 +785,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ✅ الخدمات السريعة - بدون حاويات
-  Widget _buildQuickServicesRow() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
+  Widget _buildQuickServicesRow(bool isDark) {
     return SizedBox(
       height: 110,
       child: ListView.builder(
@@ -1085,8 +1071,690 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  // باقي الدوال (FeaturedHospitalsGrid, FeaturedLabsGrid, FeaturedPharmaciesGrid, ArticlesGrid, DailyTipsGrid, CommunityPosts)
-  // ... موجودة في الكود الأصلي ولا تحتاج لتعديل
+  Widget _buildFeaturedHospitalsGrid() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 0.85,
+      ),
+      itemCount: _featuredHospitals.length,
+      itemBuilder: (context, index) {
+        final hospital = _featuredHospitals[index];
+        return GestureDetector(
+          onTap: () {
+            _goTo(context, HospitalDetailsScreen(
+              hospitalId: hospital['id'] as String,
+              hospitalData: hospital,
+            ));
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1A2540) : Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+                      child: AppImage(
+                        imageUrl: hospital['image'] as String,
+                        height: 90,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    Positioned(
+                      top: 6,
+                      right: 6,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.7),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.star, color: Colors.amber, size: 10),
+                            const SizedBox(width: 2),
+                            Text(
+                              hospital['rating'].toString(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 6,
+                      left: 6,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: hospital['open'] == true
+                              ? Colors.green.withOpacity(0.9)
+                              : Colors.red.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          hospital['open'] == true ? 'مفتوح' : 'مغلق',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 8,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        hospital['name'] as String,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        hospital['location'] as String,
+                        style: TextStyle(
+                          fontSize: 9,
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            _goTo(context, HospitalDetailsScreen(
+                              hospitalId: hospital['id'] as String,
+                              hospitalData: hospital,
+                            ));
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            minimumSize: const Size(0, 28),
+                          ),
+                          child: const Text(
+                            'تفاصيل',
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildFeaturedLabsGrid() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 0.85,
+      ),
+      itemCount: _featuredLabs.length,
+      itemBuilder: (context, index) {
+        final lab = _featuredLabs[index];
+        return GestureDetector(
+          onTap: () => _goTo(context, const LabsListScreen()),
+          child: Container(
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1A2540) : Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+                  child: AppImage(
+                    imageUrl: lab['image'] as String,
+                    height: 90,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        lab['name'] as String,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        lab['location'] as String,
+                        style: TextStyle(
+                          fontSize: 9,
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () => _goTo(context, const LabsListScreen()),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            minimumSize: const Size(0, 28),
+                          ),
+                          child: const Text(
+                            'حجز',
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildFeaturedPharmaciesGrid() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 0.85,
+      ),
+      itemCount: _featuredPharmacies.length,
+      itemBuilder: (context, index) {
+        final pharmacy = _featuredPharmacies[index];
+        return GestureDetector(
+          onTap: () => _goTo(context, const PharmacyScreen()),
+          child: Container(
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1A2540) : Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+                  child: AppImage(
+                    imageUrl: pharmacy['image'] as String,
+                    height: 90,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        pharmacy['name'] as String,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        pharmacy['location'] as String,
+                        style: TextStyle(
+                          fontSize: 9,
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () => _goTo(context, const PharmacyScreen()),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            minimumSize: const Size(0, 28),
+                          ),
+                          child: const Text(
+                            'طلب',
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildArticlesGrid() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 0.9,
+      ),
+      itemCount: _healthArticles.length,
+      itemBuilder: (context, index) {
+        final article = _healthArticles[index];
+        return GestureDetector(
+          onTap: () => _goTo(context, const ArticlesScreen()),
+          child: Container(
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1A2540) : Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+                  child: AppImage(
+                    imageUrl: article['image'] as String,
+                    height: 80,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          article['category'] as String,
+                          style: TextStyle(
+                            fontSize: 8,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        article['title'] as String,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        article['time'] as String,
+                        style: TextStyle(
+                          fontSize: 8,
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // ✅ النصائح اليومية - أيقونات محدثة
+  Widget _buildDailyTipsGrid(bool isDark) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 1.2,
+      ),
+      itemCount: _dailyTips.length,
+      itemBuilder: (context, index) {
+        final tip = _dailyTips[index];
+        return GestureDetector(
+          onTap: () => _showTipDetails(tip),
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // ✅ أيقونة النصيحة - من المسار الصحيح
+                Image.asset(
+                  tip['icon'] as String,
+                  width: 40,
+                  height: 40,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Icon(
+                      Icons.circle,
+                      color: AppColors.primary,
+                      size: 40,
+                    );
+                  },
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  tip['title'] as String,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: AppColors.primary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                Text(
+                  tip['subtitle'] as String,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'اقرأ المزيد',
+                    style: TextStyle(
+                      fontSize: 9,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCommunityPosts() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Column(
+      children: _communityPosts.map((post) {
+        final index = _communityPosts.indexOf(post);
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1A2540) : Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 18,
+                    backgroundColor: AppColors.primary.withOpacity(0.1),
+                    child: Text(
+                      post['avatar'] as String,
+                      style: TextStyle(
+                        color: AppColors.primary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          post['author'] as String,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                        Text(
+                          post['time'] as String,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {},
+                    icon: Icon(Icons.more_horiz, color: isDark ? Colors.grey[400] : Colors.grey[600], size: 18),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                post['title'] as String,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                post['content'] as String,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: isDark ? Colors.grey[300] : Colors.grey[700],
+                ),
+              ),
+              const SizedBox(height: 8),
+              if (post['image'] != null)
+                GestureDetector(
+                  onTap: () => showDialog(
+                    context: context,
+                    builder: (_) => Dialog(
+                      child: AppImage(
+                        imageUrl: post['image'] as String,
+                        width: double.infinity,
+                        height: 300,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: AppImage(
+                      imageUrl: post['image'] as String,
+                      height: 180,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => _toggleLike(index),
+                    child: Row(
+                      children: [
+                        Icon(
+                          post['liked'] == true ? Icons.favorite : Icons.favorite_border,
+                          color: post['liked'] == true ? AppColors.primary : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                          size: 18,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${post['likes']}',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  GestureDetector(
+                    onTap: () => _showComments(post, index),
+                    child: Row(
+                      children: [
+                        Icon(Icons.comment, color: isDark ? Colors.grey[400] : Colors.grey[600], size: 18),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${post['comments']}',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  GestureDetector(
+                    onTap: () => _sharePost(index),
+                    child: Row(
+                      children: [
+                        Icon(Icons.share, color: isDark ? Colors.grey[400] : Colors.grey[600], size: 18),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${post['shares']}',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
 
   // ============================================================
   // ❤️ دوال التفاعل
@@ -1117,7 +1785,12 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[400], borderRadius: BorderRadius.circular(2)))),
             const SizedBox(height: 16),
             Row(children: [
-              Icon(tip['icon'] as IconData, color: AppColors.primary, size: 28),
+              Image.asset(
+                tip['icon'] as String,
+                width: 32,
+                height: 32,
+                errorBuilder: (_, __, ___) => Icon(Icons.circle, color: AppColors.primary, size: 32),
+              ),
               const SizedBox(width: 12),
               Expanded(child: Text(tip['title'] as String, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
             ]),
