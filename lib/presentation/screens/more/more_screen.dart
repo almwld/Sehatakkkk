@@ -36,6 +36,7 @@ import 'package:sehatak/presentation/screens/help_center/help_center_screen.dart
 import 'package:sehatak/presentation/screens/contact_us/contact_us_screen.dart';
 import 'package:sehatak/presentation/screens/share_app/share_app_screen.dart';
 import 'package:sehatak/presentation/screens/rate_app/rate_app_screen.dart';
+import 'package:sehatak/presentation/screens/report_issue/report_issue_screen.dart';
 import 'package:sehatak/presentation/screens/download_data/download_data_screen.dart';
 import 'package:sehatak/presentation/screens/font_size/font_size_screen.dart';
 import 'package:sehatak/presentation/screens/privacy/privacy_screen.dart';
@@ -66,6 +67,7 @@ class _MoreScreenState extends State<MoreScreen>
     'إعدادات',
   ];
 
+  // ✅ المؤشرات الحيوية - عرض شبكي
   final List<Map<String, dynamic>> _vitals = [
     {
       'icon': 'assets/images/tracking/blood_pressure.png',
@@ -99,8 +101,41 @@ class _MoreScreenState extends State<MoreScreen>
       'color': Colors.purple,
       'screen': const WeightTrackerScreen()
     },
+    {
+      'icon': 'assets/images/tracking/age.png',
+      'label': 'العمر',
+      'value': '32',
+      'unit': 'سنة',
+      'color': Colors.indigo,
+      'screen': const ConsultationScreen()
+    },
+    {
+      'icon': 'assets/images/tracking/fruits.png',
+      'label': 'التغذية',
+      'value': '4.5',
+      'unit': 'حصص',
+      'color': Colors.green,
+      'screen': const DietPlanScreen()
+    },
+    {
+      'icon': 'assets/images/tracking/sleep_tracking.png',
+      'label': 'النوم',
+      'value': '7.5',
+      'unit': 'ساعات',
+      'color': Colors.purple,
+      'screen': const SleepTrackerScreen()
+    },
+    {
+      'icon': 'assets/images/tracking/water_drinking.png',
+      'label': 'الماء',
+      'value': '6',
+      'unit': 'أكواب',
+      'color': Colors.cyan,
+      'screen': const HealthDashboard()
+    },
   ];
 
+  // ✅ الخدمات مع المسارات الصحيحة
   List<Map<String, dynamic>> get _filteredServices {
     switch (_selectedCategory) {
       case 'رعاية عائلية':
@@ -137,16 +172,16 @@ class _MoreScreenState extends State<MoreScreen>
         return [
           {'icon': 'assets/images/ui/user_profile.png', 'title': 'الملف الشخصي', 'subtitle': 'إدارة ملفك الشخصي', 'screen': const PatientProfile()},
           {'icon': 'assets/images/ui/settings_gear.png', 'title': 'الإعدادات', 'subtitle': 'إعدادات التطبيق', 'screen': const SettingsScreen()},
-          {'icon': 'assets/images/ui/settings_gear.png', 'title': 'الإشعارات', 'subtitle': 'إدارة الإشعارات', 'screen': const NotificationsScreen()},
-          {'icon': 'assets/images/ui/settings_gear.png', 'title': 'الخصوصية', 'subtitle': 'إعدادات الخصوصية', 'screen': const PrivacyScreen()},
-          {'icon': 'assets/images/ui/settings_gear.png', 'title': 'الشروط والأحكام', 'subtitle': 'عرض الشروط والأحكام', 'screen': const TermsScreen()},
-          {'icon': 'assets/images/ui/settings_gear.png', 'title': 'عن التطبيق', 'subtitle': 'معلومات عن التطبيق', 'screen': const AboutScreen()},
-          {'icon': 'assets/images/ui/settings_gear.png', 'title': 'مركز المساعدة', 'subtitle': 'الأسئلة الشائعة والدعم', 'screen': const HelpCenterScreen()},
-          {'icon': 'assets/images/ui/settings_gear.png', 'title': 'اتصل بنا', 'subtitle': 'تواصل مع فريق الدعم', 'screen': const ContactUsScreen()},
-          {'icon': 'assets/images/ui/settings_gear.png', 'title': 'مشاركة التطبيق', 'subtitle': 'شارك التطبيق مع أصدقائك', 'screen': const ShareAppScreen()},
-          {'icon': 'assets/images/ui/like_button.png', 'title': 'تقييم التطبيق', 'subtitle': 'قيم التطبيق', 'screen': const RateAppScreen()},
-          {'icon': 'assets/images/ui/settings_gear.png', 'title': 'الإبلاغ عن مشكلة', 'subtitle': 'أبلغ عن مشكلة', 'screen': const Placeholder()},
-          {'icon': 'assets/images/ui/settings_gear.png', 'title': 'تحميل البيانات', 'subtitle': 'تحميل بياناتك الصحية', 'screen': const DownloadDataScreen()},
+          {'icon': 'assets/images/services/notifications.png', 'title': 'الإشعارات', 'subtitle': 'إدارة الإشعارات', 'screen': const NotificationsScreen()},
+          {'icon': 'assets/images/more/privacy.png', 'title': 'الخصوصية', 'subtitle': 'إعدادات الخصوصية', 'screen': const PrivacyScreen()},
+          {'icon': 'assets/images/more/terms_conditions.png', 'title': 'الشروط والأحكام', 'subtitle': 'عرض الشروط والأحكام', 'screen': const TermsScreen()},
+          {'icon': 'assets/images/more/about_app.png', 'title': 'عن التطبيق', 'subtitle': 'معلومات عن التطبيق', 'screen': const AboutScreen()},
+          {'icon': 'assets/images/more/help_center.png', 'title': 'مركز المساعدة', 'subtitle': 'الأسئلة الشائعة والدعم', 'screen': const HelpCenterScreen()},
+          {'icon': 'assets/images/more/contact_us.png', 'title': 'اتصل بنا', 'subtitle': 'تواصل مع فريق الدعم', 'screen': const ContactUsScreen()},
+          {'icon': 'assets/images/more/share_app.png', 'title': 'مشاركة التطبيق', 'subtitle': 'شارك التطبيق مع أصدقائك', 'screen': const ShareAppScreen()},
+          {'icon': 'assets/images/more/rate_app.png', 'title': 'تقييم التطبيق', 'subtitle': 'قيم التطبيق', 'screen': const RateAppScreen()},
+          {'icon': 'assets/images/more/report_problem.png', 'title': 'الإبلاغ عن مشكلة', 'subtitle': 'أبلغ عن مشكلة', 'screen': const ReportIssueScreen()},
+          {'icon': 'assets/images/more/download_data.png', 'title': 'تحميل البيانات', 'subtitle': 'تحميل بياناتك الصحية', 'screen': const DownloadDataScreen()},
           {'icon': 'assets/images/ui/edit_button.png', 'title': 'حجم الخط', 'subtitle': 'تغيير حجم الخط', 'screen': const FontSizeScreen()},
         ];
       default:
@@ -157,16 +192,16 @@ class _MoreScreenState extends State<MoreScreen>
           {'icon': 'assets/images/services/first_aid.png', 'title': 'الطوارئ', 'subtitle': 'أرقام الطوارئ والمساعدة', 'screen': const EmergencyNumbers()},
           {'icon': 'assets/images/services/womens_health.png', 'title': 'استشارة فورية', 'subtitle': 'تحدث مع طبيبك الآن', 'screen': const ConsultationScreen()},
           {'icon': 'assets/images/services/medical_articles.png', 'title': 'صحتك', 'subtitle': 'متابعة حالتك الصحية', 'screen': const HealthDashboard()},
-          {'icon': 'assets/images/services/packages.png', 'title': 'المحفظة', 'subtitle': 'إدارة محفظتك', 'screen': const WalletScreen()},
+          {'icon': 'assets/images/services/wallet.png', 'title': 'المحفظة', 'subtitle': 'إدارة محفظتك', 'screen': const WalletScreen()},
           {'icon': 'assets/images/services/medical_articles.png', 'title': 'المواعيد', 'subtitle': 'إدارة مواعيدك', 'screen': const AppointmentsScreen()},
           {'icon': 'assets/images/services/hospital.png', 'title': 'الخريطة', 'subtitle': 'المنشآت الصحية القريبة', 'screen': const InteractiveMapScreen()},
           {'icon': 'assets/images/services/packages.png', 'title': 'التأمين الصحي', 'subtitle': 'خطط التأمين والاشتراكات', 'screen': const InsuranceCompanies()},
           {'icon': 'assets/images/services/blood_donation.png', 'title': 'التبرع بالدم', 'subtitle': 'مراكز التبرع بالدم', 'screen': const BloodDonationScreen()},
           {'icon': 'assets/images/ui/user_profile.png', 'title': 'الملف الشخصي', 'subtitle': 'إدارة ملفك الشخصي', 'screen': const PatientProfile()},
           {'icon': 'assets/images/ui/settings_gear.png', 'title': 'الإعدادات', 'subtitle': 'إعدادات التطبيق', 'screen': const SettingsScreen()},
-          {'icon': 'assets/images/services/medical_articles.png', 'title': 'جميع الخدمات', 'subtitle': 'استعراض جميع الخدمات', 'screen': const ServicesScreen()},
-          {'icon': 'assets/images/services/medical_articles.png', 'title': 'المساعد الذكي', 'subtitle': 'اسأل المساعد الطبي', 'screen': const AiChatbotScreen()},
-          {'icon': 'assets/images/services/blood_donation.png', 'title': 'المجتمع الطبي', 'subtitle': 'تواصل مع المجتمع', 'screen': const HealthCommunityScreen()},
+          {'icon': 'assets/images/services/all_services.png', 'title': 'جميع الخدمات', 'subtitle': 'استعراض جميع الخدمات', 'screen': const ServicesScreen()},
+          {'icon': 'assets/images/services/ai_assistant.png', 'title': 'المساعد الذكي', 'subtitle': 'اسأل المساعد الطبي', 'screen': const AiChatbotScreen()},
+          {'icon': 'assets/images/services/medical_community.png', 'title': 'المجتمع الطبي', 'subtitle': 'تواصل مع المجتمع', 'screen': const HealthCommunityScreen()},
         ];
     }
   }
@@ -206,7 +241,7 @@ class _MoreScreenState extends State<MoreScreen>
     Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
   }
 
-  Widget _buildIcon(String path, {double size = 40}) {
+  Widget _buildIcon(String path, {double size = 44}) {
     return Image.asset(
       path,
       width: size,
@@ -233,7 +268,7 @@ class _MoreScreenState extends State<MoreScreen>
         elevation: _isScrolled ? 1 : 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.red),
+            icon: Icon(Icons.logout, color: Colors.red),
             onPressed: _showLogoutDialog,
           ),
         ],
@@ -277,79 +312,15 @@ class _MoreScreenState extends State<MoreScreen>
     );
   }
 
-  Widget _buildUserCard(User? user, bool isDark) {
-    final displayName = user?.displayName ?? 'مستخدم';
-    final email = user?.email ?? 'user@email.com';
-    final initial = displayName.isNotEmpty ? displayName.substring(0, 1) : 'م';
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2540) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 28,
-            backgroundColor: AppColors.primary.withOpacity(0.1),
-            child: Text(
-              initial,
-              style: TextStyle(
-                fontSize: 20,
-                color: AppColors.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  displayName,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                ),
-                Text(
-                  email,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            icon: Icon(Icons.edit, color: AppColors.primary, size: 22),
-            onPressed: () => _navigateTo(const PatientProfile()),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildVitalsGrid(bool isDark) {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 4,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-        childAspectRatio: 0.9,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 0.95,
       ),
       itemCount: _vitals.length,
       itemBuilder: (context, index) {
@@ -357,39 +328,52 @@ class _MoreScreenState extends State<MoreScreen>
         return GestureDetector(
           onTap: () => _navigateTo(vital['screen'] as Widget),
           child: Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1A2540) : Colors.white,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+              border: Border.all(
+                color: (vital['color'] as Color).withOpacity(0.2),
+                width: 1,
+              ),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildIcon(vital['icon'] as String, size: 50),
-                const SizedBox(height: 4),
+                _buildIcon(vital['icon'] as String, size: 48),
+                const SizedBox(height: 6),
                 Text(
                   vital['value'] as String,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black87,
+                    color: vital['color'] as Color,
                   ),
                 ),
                 Text(
                   vital['unit'] as String,
                   style: TextStyle(
-                    fontSize: 9,
+                    fontSize: 10,
                     color: isDark ? Colors.grey[400] : Colors.grey[600],
                   ),
                 ),
                 Text(
                   vital['label'] as String,
                   style: TextStyle(
-                    fontSize: 9,
-                    color: isDark ? Colors.grey[500] : Colors.grey[500],
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: isDark ? Colors.grey[300] : Colors.grey[700],
                   ),
                   textAlign: TextAlign.center,
-                  maxLines: 1,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -454,8 +438,8 @@ class _MoreScreenState extends State<MoreScreen>
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
         childAspectRatio: 0.85,
       ),
       itemCount: services.length,
@@ -464,31 +448,38 @@ class _MoreScreenState extends State<MoreScreen>
         return GestureDetector(
           onTap: () => _navigateTo(service['screen'] as Widget),
           child: Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1A2540) : Colors.white,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildIcon(service['icon'] as String, size: 40),
-                const SizedBox(height: 4),
+                _buildIcon(service['icon'] as String, size: 44),
+                const SizedBox(height: 6),
                 Text(
                   service['title'] as String,
                   style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
                     color: isDark ? Colors.white : Colors.black87,
                   ),
                   textAlign: TextAlign.center,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   service['subtitle'] as String,
                   style: TextStyle(
-                    fontSize: 9,
+                    fontSize: 10,
                     color: isDark ? Colors.grey[400] : Colors.grey[600],
                   ),
                   textAlign: TextAlign.center,
@@ -500,6 +491,70 @@ class _MoreScreenState extends State<MoreScreen>
           ),
         );
       },
+    );
+  }
+
+  Widget _buildUserCard(User? user, bool isDark) {
+    final displayName = user?.displayName ?? 'مستخدم';
+    final email = user?.email ?? 'user@email.com';
+    final initial = displayName.isNotEmpty ? displayName.substring(0, 1) : 'م';
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2540) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 28,
+            backgroundColor: AppColors.primary.withOpacity(0.1),
+            child: Text(
+              initial,
+              style: TextStyle(
+                fontSize: 20,
+                color: AppColors.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  displayName,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+                Text(
+                  email,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.edit, color: AppColors.primary, size: 22),
+            onPressed: () => _navigateTo(const PatientProfile()),
+          ),
+        ],
+      ),
     );
   }
 
