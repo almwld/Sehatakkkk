@@ -29,6 +29,7 @@ dependencies:
   carousel_slider: ^5.0.0
   table_calendar: ^3.0.9
   fl_chart: ^0.66.0
+  # ✅ google_fonts إصدار متوافق مع SDK 3.2
   google_fonts: ^6.1.0
 
   # ============================================================
@@ -174,42 +175,7 @@ flutter:
     - assets/audio/
     - assets/fonts/
     - assets/icons/
-    - assets/icons/app_icon.png
-    - assets/icons/app_icon.svg
-    - assets/icons/consultations/
-    - assets/icons/core/
-    - assets/icons/mini_specialties/
-    - assets/icons/navigation/
-    - assets/icons/offers/
-    - assets/icons/payment/
-    - assets/icons/plans/
-    - assets/icons/png_core/
-    - assets/icons/png_specialties/
-    - assets/icons/services/
-    - assets/icons/social/
-    - assets/icons/specialties/
     - assets/images/
-    - assets/images/baby/
-    - assets/images/chat/
-    - assets/images/chat_background.svg
-    - assets/images/device/
-    - assets/images/icons/
-    - assets/images/icons/doctors/
-    - assets/images/icons/fast_services/
-    - assets/images/icons/roles/
-    - assets/images/icons/search/
-    - assets/images/icons/top_bar/
-    - assets/images/medicine/
-    - assets/images/more/
-    - assets/images/nav_bar/
-    - assets/images/payment/
-    - assets/images/placeholder.png
-    - assets/images/services/
-    - assets/images/skin/
-    - assets/images/social/
-    - assets/images/tracking/
-    - assets/images/ui/
-    - assets/images/wallets/
     - assets/svg/
 
   fonts:
@@ -226,6 +192,3 @@ flutter:
           weight: 600
         - asset: assets/fonts/NotoSansArabicUI-Black.ttf
           weight: 900
-
-dependency_overrides:
-  google_fonts: ^6.1.0
