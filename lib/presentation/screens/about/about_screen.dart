@@ -2,7 +2,6 @@ import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class AboutScreen extends StatefulWidget {
@@ -55,7 +54,7 @@ class _AboutScreenState extends State<AboutScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 20),
-            // ✅ شعار التطبيق - باستخدام SVG بدون errorBuilder
+            // ✅ شعار التطبيق
             Container(
               width: 120,
               height: 120,
@@ -74,12 +73,12 @@ class _AboutScreenState extends State<AboutScreen> {
               ),
               child: Padding(
                 padding: const EdgeInsets.all(20),
-                child: SvgPicture.asset(
-                  'assets/icons/app_icon.svg',
+                child: Image.asset(
+                  'assets/icons/app_icon.png',
                   width: 60,
                   height: 60,
                   fit: BoxFit.contain,
-                  colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                  color: Colors.white,
                 ),
               ),
             ),
@@ -90,7 +89,6 @@ class _AboutScreenState extends State<AboutScreen> {
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-                fontFamily: 'Cairo',
               ),
             ),
             const SizedBox(height: 4),
@@ -99,7 +97,6 @@ class _AboutScreenState extends State<AboutScreen> {
               style: TextStyle(
                 fontSize: 16,
                 color: AppColors.grey,
-                fontFamily: 'Rubik',
                 letterSpacing: 2,
               ),
             ),
@@ -162,7 +159,7 @@ class _AboutScreenState extends State<AboutScreen> {
             // ✅ الميزات
             _buildFeatureSection(isDark),
             const SizedBox(height: 24),
-            // ✅ روابط التواصل - باستخدام SVG
+            // ✅ روابط التواصل
             _buildSocialLinks(isDark),
             const SizedBox(height: 30),
             // ✅ حقوق النشر
@@ -275,11 +272,11 @@ class _AboutScreenState extends State<AboutScreen> {
 
   Widget _buildSocialLinks(bool isDark) {
     final socials = [
-      {'icon': 'assets/icons/social/facebook.svg', 'label': 'فيسبوك', 'url': 'https://www.facebook.com/'},
-      {'icon': 'assets/icons/social/instagram.svg', 'label': 'انستغرام', 'url': 'https://www.instagram.com/'},
-      {'icon': 'assets/icons/social/x_twitter.svg', 'label': 'تويتر', 'url': 'https://x.com/'},
-      {'icon': 'assets/icons/social/youtube.svg', 'label': 'يوتيوب', 'url': 'https://youtube.com/'},
-      {'icon': 'assets/icons/social/linkedin.svg', 'label': 'لينكد إن', 'url': 'https://linkedin.com/'},
+      {'icon': 'assets/images/social/facebook.png', 'label': 'فيسبوك', 'url': 'https://www.facebook.com/'},
+      {'icon': 'assets/images/social/instagram.png', 'label': 'انستغرام', 'url': 'https://www.instagram.com/'},
+      {'icon': 'assets/images/social/x_twitter.png', 'label': 'تويتر', 'url': 'https://x.com/'},
+      {'icon': 'assets/images/social/youtube.png', 'label': 'يوتيوب', 'url': 'https://youtube.com/'},
+      {'icon': 'assets/images/social/linkedin.png', 'label': 'لينكد إن', 'url': 'https://linkedin.com/'},
     ];
 
     return Container(
@@ -323,14 +320,12 @@ class _AboutScreenState extends State<AboutScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Center(
-                        child: SvgPicture.asset(
+                        child: Image.asset(
                           social['icon'] as String,
                           width: 28,
                           height: 28,
-                          colorFilter: ColorFilter.mode(
-                            isDark ? Colors.white : AppColors.primary,
-                            BlendMode.srcIn,
-                          ),
+                          fit: BoxFit.contain,
+                          color: isDark ? Colors.white : AppColors.primary,
                         ),
                       ),
                     ),
