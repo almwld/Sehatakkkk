@@ -49,10 +49,10 @@ class FontSizeProvider extends ChangeNotifier {
   }
 
   IconData getScaleIcon() {
-    if (_fontScale <= 0.85) return Icons.text_decrease;
-    if (_fontScale <= 1.05) return Icons.text_fields;
-    if (_fontScale <= 1.25) return Icons.text_increase;
-    return Icons.text_increase;
+    if (_fontScale <= 0.85) return "assets/icons/core/doctor.svg";
+    if (_fontScale <= 1.05) return "assets/icons/core/doctor.svg";
+    if (_fontScale <= 1.25) return "assets/icons/core/doctor.svg";
+    return "assets/icons/core/doctor.svg";
   }
 
   Color getScaleColor() {
