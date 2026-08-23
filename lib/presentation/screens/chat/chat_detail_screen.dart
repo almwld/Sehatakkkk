@@ -109,6 +109,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   String _formatTime(Timestamp? timestamp) {
     if (timestamp == null) return "";
     if (timestamp == null) return "";
+    if (timestamp == null) return "";
     // ... الكود
   }
 

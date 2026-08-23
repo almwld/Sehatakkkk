@@ -219,7 +219,7 @@ class AppSearchDelegate extends SearchDelegate<String?> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => const PharmacyScreen(),
+            builder: (_) => const PharmacyScreenTemp(),
           ),
         );
         break;

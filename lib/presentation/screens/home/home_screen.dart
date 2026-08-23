@@ -24,9 +24,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final ScrollController _scrollController = ScrollController();
   bool _isLoggedIn = false;
   bool _isBottomBarVisible = true;
-
-  // ✅ قائمة الشاشات
-  late final List<Widget> _screens;
+  List<Widget> _screens = [];
 
   @override
   void initState() {
@@ -57,25 +55,23 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     });
   }
 
-  // ✅ تهيئة الشاشات مع ScrollController
   void _initializeScreens() {
     _screens = [
       HomeTab(
         scrollController: _scrollController,
         isBottomBarVisible: ValueNotifier<bool>(_isBottomBarVisible),
       ),
-      DoctorsListScreen(scrollController: _scrollController),
-      PharmacyScreen(scrollController: _scrollController),
-      ChatScreen(scrollController: _scrollController),
-      LabsListScreen(scrollController: _scrollController),
-      PatientDashboard(scrollController: _scrollController),
-      MoreScreen(scrollController: _scrollController),
+      const DoctorsListScreen(),
+      const PharmacyScreen(),
+      const ChatScreen(),
+      const LabsListScreen(),
+      const PatientDashboard(),
+      const MoreScreen(),
     ];
   }
 
   void _onTabTap(int index) {
-    // ✅ التحقق من المصادقة للتبويبات المحمية
-    final protectedTabs = [3, 4, 5]; // الدردشة، مختبرات، صحتي
+    final protectedTabs = [3, 4, 5];
     if (protectedTabs.contains(index) && !_isLoggedIn) {
       Navigator.push(
         context,
@@ -90,7 +86,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _currentIndex = index;
     });
 
-    // ✅ تأثير اهتزاز خفيف
     HapticFeedback.lightImpact();
   }
 

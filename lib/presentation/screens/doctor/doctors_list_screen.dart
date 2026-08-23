@@ -1,8 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/data/repositories/doctor_repository.dart';
-import 'package:sehatak/core/models/doctor_model.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
+
+// ✅ بيانات Mock للأطباء
+class DoctorModel {
+  final String id;
+  final String name;
+  final String specialty;
+  final double rating;
+  final int totalReviews;
+  final String? imageUrl;
+  final bool isAvailableToday;
+  final int consultationFee;
+
+  DoctorModel({
+    required this.id,
+    required this.name,
+    required this.specialty,
+    required this.rating,
+    required this.totalReviews,
+    this.imageUrl,
+    this.isAvailableToday = true,
+    this.consultationFee = 100,
+  });
+}
 
 class DoctorsListScreen extends StatefulWidget {
   final ScrollController? scrollController;
@@ -21,7 +42,6 @@ class DoctorsListScreen extends StatefulWidget {
 }
 
 class _DoctorsListScreenState extends State<DoctorsListScreen> {
-  final DoctorRepository _doctorRepo = DoctorRepository();
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   bool _isLoading = true;
@@ -45,6 +65,55 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
     'أنف وأذن وحنجرة',
   ];
 
+  // ✅ بيانات Mock
+  final List<DoctorModel> _mockDoctors = [
+    DoctorModel(
+      id: '1',
+      name: 'د. أحمد المولد',
+      specialty: 'باطنية',
+      rating: 4.9,
+      totalReviews: 328,
+      consultationFee: 500,
+      isAvailableToday: true,
+    ),
+    DoctorModel(
+      id: '2',
+      name: 'د. خالد النخلاني',
+      specialty: 'قلبية',
+      rating: 4.8,
+      totalReviews: 256,
+      consultationFee: 450,
+      isAvailableToday: true,
+    ),
+    DoctorModel(
+      id: '3',
+      name: 'د. أسماء الهندي',
+      specialty: 'أطفال',
+      rating: 4.7,
+      totalReviews: 189,
+      consultationFee: 420,
+      isAvailableToday: true,
+    ),
+    DoctorModel(
+      id: '4',
+      name: 'د. محمد العلاي',
+      specialty: 'أنف وأذن وحنجرة',
+      rating: 4.6,
+      totalReviews: 89,
+      consultationFee: 400,
+      isAvailableToday: false,
+    ),
+    DoctorModel(
+      id: '5',
+      name: 'د. فاطمة صديقي',
+      specialty: 'نساء وولادة',
+      rating: 4.8,
+      totalReviews: 210,
+      consultationFee: 480,
+      isAvailableToday: true,
+    ),
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -58,25 +127,12 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
     super.dispose();
   }
 
-  Future<void> _loadDoctors() async {
-    setState(() => _isLoading = true);
-    try {
-      List<DoctorModel> doctors;
-      if (widget.hospitalId != null) {
-        doctors = await _doctorRepo.getDoctorsByHospital(widget.hospitalId!);
-      } else if (widget.specialty != null && widget.specialty != 'الكل') {
-        doctors = await _doctorRepo.getDoctorsBySpecialty(widget.specialty!);
-      } else {
-        doctors = await _doctorRepo.getAllDoctors(limit: 100);
-      }
-      setState(() {
-        _doctors = doctors;
-        _filteredDoctors = doctors;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() => _isLoading = false);
-    }
+  void _loadDoctors() {
+    setState(() {
+      _doctors = _mockDoctors;
+      _filteredDoctors = _mockDoctors;
+      _isLoading = false;
+    });
   }
 
   void _filterDoctors() {
@@ -235,16 +291,8 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: isDark ? const Color(0xFF1A2540) : Colors.grey[200],
-                  image: doctor.imageUrl != null
-                      ? DecorationImage(
-                          image: NetworkImage(doctor.imageUrl!),
-                          fit: BoxFit.cover,
-                        )
-                      : null,
                 ),
-                child: doctor.imageUrl == null
-                    ? Icon(Icons.person, size: 40, color: isDark ? Colors.grey[600] : Colors.grey[400])
-                    : null,
+                child: Icon(Icons.person, size: 40, color: isDark ? Colors.grey[600] : Colors.grey[400]),
               ),
               const SizedBox(width: 12),
               Expanded(
