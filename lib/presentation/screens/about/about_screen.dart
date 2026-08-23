@@ -54,7 +54,7 @@ class _AboutScreenState extends State<AboutScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 20),
-            // ✅ شعار التطبيق
+            // ✅ شعار التطبيق - استخدام أيقونة Android
             Container(
               width: 120,
               height: 120,
@@ -74,7 +74,7 @@ class _AboutScreenState extends State<AboutScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: Image.asset(
-                  'assets/icons/app_icon.png',
+                  'android/app/src/main/res/drawable/ic_launcher.xml',
                   width: 60,
                   height: 60,
                   fit: BoxFit.contain,
