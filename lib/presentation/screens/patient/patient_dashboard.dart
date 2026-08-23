@@ -25,6 +25,9 @@ import 'package:sehatak/presentation/screens/weight_tracker/weight_tracker_scree
 import 'package:sehatak/presentation/screens/sleep_tracker/sleep_tracker_screen.dart';
 
 class PatientDashboard extends StatefulWidget {
+  final ScrollController? scrollController;
+
+  const PatientDashboard({super.key, this.scrollController});
   const PatientDashboard({super.key});
 
   @override

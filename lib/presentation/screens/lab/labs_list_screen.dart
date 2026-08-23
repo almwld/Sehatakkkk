@@ -8,6 +8,9 @@ import 'package:sehatak/presentation/screens/lab/lab_booking_screen.dart';
 import 'package:sehatak/presentation/screens/lab/lab_detail_screen.dart';
 
 class LabsListScreen extends StatefulWidget {
+  final ScrollController? scrollController;
+
+  const LabsListScreen({super.key, this.scrollController});
   const LabsListScreen({super.key});
 
   @override

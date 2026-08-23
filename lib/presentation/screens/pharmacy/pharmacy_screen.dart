@@ -5,6 +5,9 @@ import 'package:sehatak/presentation/screens/pharmacy/pharmacy_detail_screen.dar
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 
 class PharmacyScreen extends StatefulWidget {
+  final ScrollController? scrollController;
+
+  const PharmacyScreen({super.key, this.scrollController});
   const PharmacyScreen({super.key});
 
   @override

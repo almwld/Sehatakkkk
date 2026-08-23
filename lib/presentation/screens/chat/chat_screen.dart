@@ -11,6 +11,9 @@ import 'package:sehatak/core/constants/text_styles.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class ChatScreen extends StatefulWidget {
+  final ScrollController? scrollController;
+
+  const ChatScreen({super.key, this.scrollController});
   const ChatScreen({super.key});
 
   @override

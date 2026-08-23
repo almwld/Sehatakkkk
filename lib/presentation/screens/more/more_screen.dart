@@ -44,6 +44,9 @@ import 'package:sehatak/presentation/screens/terms/terms_screen.dart';
 import 'package:sehatak/presentation/screens/ai/ai_chatbot_screen.dart';
 
 class MoreScreen extends StatefulWidget {
+  final ScrollController? scrollController;
+
+  const MoreScreen({super.key, this.scrollController});
   const MoreScreen({super.key});
 
   @override
@@ -208,7 +211,7 @@ class _MoreScreenState extends State<MoreScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _scrollController = ScrollController();
+    _scrollController = widget.scrollController ?? ScrollController();
     _scrollController.addListener(() {
       if (mounted) {
         setState(() {

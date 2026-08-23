@@ -6,6 +6,9 @@ import 'package:sehatak/presentation/widgets/common/app_image.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
 
 class DoctorsListScreen extends StatefulWidget {
+  final ScrollController? scrollController;
+
+  const DoctorsListScreen({super.key, this.scrollController});
   const DoctorsListScreen({super.key});
 
   @override
