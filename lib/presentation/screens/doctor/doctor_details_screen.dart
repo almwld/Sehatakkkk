@@ -1,10 +1,11 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
-import 'package:sehatak/core/constants/app_colors.dart>';
-import 'package:sehatak/core/constants/imagekit.dart>';
-import 'package:sehatak/presentation/widgets/common/app_image.dart>';
-import 'package:sehatak/presentation/screens/chat/chat_detail_screen.dart>';
-import 'package:sehatak/presentation/screens/doctor/doctor_booking_screen.dart>';
+import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/constants/imagekit.dart';
+import 'package:sehatak/presentation/widgets/common/app_image.dart';
+import 'package:sehatak/presentation/screens/chat/chat_detail_screen.dart';
+import 'package:sehatak/presentation/screens/doctor/doctor_booking_screen.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class DoctorDetailsScreen extends StatefulWidget {
   final String doctorId;
@@ -78,7 +79,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
         'reviews': 328,
         'fee': '500',
         'available': true,
-        'about': 'استشاري باطنية وأطفال مع خبرة واسعة في تشخيص وعلاج الأمراض المزمنة والحادة.',
+        'about': 'استشاري باطنية وأطفال مع خبرة واسعة.',
         'hospital': 'مستشفى الثورة العام',
         'availability': ['السبت - الأربعاء: 9 ص - 5 م'],
         'image': ImageKit.doctor1,
@@ -91,23 +92,10 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
         'reviews': 256,
         'fee': '450',
         'available': true,
-        'about': 'أخصائي قلوب ذو خبرة عالية في تشخيص وعلاج أمراض القلب والشرايين.',
+        'about': 'أخصائي قلوب ذو خبرة عالية.',
         'hospital': 'مستشفى الكويت',
         'availability': ['الأحد - الخميس: 10 ص - 4 م'],
         'image': ImageKit.doctor2,
-      },
-      '3': {
-        'name': 'د. أسماء الهندي',
-        'specialty': 'أطفال',
-        'experience': '9 سنوات',
-        'rating': 4.7,
-        'reviews': 189,
-        'fee': '420',
-        'available': true,
-        'about': 'أخصائية أطفال متابعة التطور الصحي للأطفال من الولادة حتى المراهقة.',
-        'hospital': 'مستشفى السبعين',
-        'availability': ['السبت - الأربعاء: 8 ص - 2 م'],
-        'image': ImageKit.doctor3,
       },
     };
     return doctors[doctorId] ?? doctors['1']!;
@@ -131,7 +119,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
             builder: (_) => ChatDetailScreen(
               chatId: 'chat_${widget.doctorId}_${DateTime.now().millisecondsSinceEpoch}',
               userName: _doctor['name'],
-              userId: _doctor['id'] ?? widget.doctorId,
+              userId: widget.doctorId,
               isDoctor: true,
             ),
           ),
@@ -214,30 +202,18 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
       appBar: AppBar(
         backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
         elevation: 0,
-        leading: GestureDetector(
-          onTap: () => Navigator.pop(context),
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Icon(Icons.arrow_back_ios_new, color: isDark ? Colors.white : Colors.black87),
-          ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new, color: isDark ? Colors.white : Colors.black87),
+          onPressed: () => Navigator.pop(context),
         ),
         actions: [
-          GestureDetector(
-            onTap: () => setState(() => _isFavorite = !_isFavorite),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Icon(
-                _isFavorite ? Icons.favorite : Icons.favorite_border,
-                color: _isFavorite ? Colors.red : (isDark ? Colors.white : Colors.black87),
-              ),
-            ),
+          IconButton(
+            icon: Icon(_isFavorite ? Icons.favorite : Icons.favorite_border, color: _isFavorite ? Colors.red : (isDark ? Colors.white : Colors.black87)),
+            onPressed: () => setState(() => _isFavorite = !_isFavorite),
           ),
-          GestureDetector(
-            onTap: () => ToastService.showSuccess('🔗 تم نسخ الرابط'),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Icon(Icons.share, color: isDark ? Colors.white : Colors.black87),
-            ),
+          IconButton(
+            icon: Icon(Icons.share, color: isDark ? Colors.white : Colors.black87),
+            onPressed: () => ToastService.showSuccess('🔗 تم نسخ الرابط'),
           ),
         ],
       ),
@@ -246,7 +222,6 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // صورة الطبيب
             Center(
               child: Stack(
                 children: [
@@ -258,10 +233,11 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
                       border: Border.all(color: AppColors.primary, width: 3),
                     ),
                     child: ClipOval(
-                      child: AppImage(
+                      child: CachedNetworkImage(
                         imageUrl: _doctor['image'],
                         fit: BoxFit.cover,
-                        errorWidget: const Icon(Icons.person, size: 60, color: Colors.grey),
+                        placeholder: (context, url) => Container(color: Colors.grey[200], child: const Icon(Icons.person, size: 40)),
+                        errorWidget: (context, url, error) => Container(color: Colors.grey[200], child: const Icon(Icons.person, size: 40)),
                       ),
                     ),
                   ),

@@ -25,7 +25,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   bool _isLoggedIn = false;
   bool _isBottomBarVisible = true;
 
-  late final List<Widget> _screens;
+  final List<Widget> _screens = [];
 
   @override
   void initState() {
@@ -57,7 +57,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   void _initializeScreens() {
-    _screens = [
+    _screens.clear();
+    _screens.addAll([
       HomeTab(
         scrollController: _scrollController,
         isBottomBarVisible: ValueNotifier<bool>(_isBottomBarVisible),
@@ -68,7 +69,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       const LabsListScreen(),
       const PatientDashboard(),
       const MoreScreen(),
-    ];
+    ]);
   }
 
   void _onTabTap(int index) {
