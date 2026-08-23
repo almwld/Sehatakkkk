@@ -240,6 +240,3 @@ flutter:
 
 dependency_overrides:
   google_fonts: ^6.1.0
-
-dependency_overrides:
-  google_fonts: ^6.1.0
