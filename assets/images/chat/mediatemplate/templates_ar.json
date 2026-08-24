@@ -1,0 +1,359 @@
+{
+  "templates": [
+    {
+      "id": "slope",
+      "name": "منحدر",
+      "textItems": [
+        {
+          "id": "text_primary",
+          "text": "مرحباً بك في صحتك",
+          "fontSize": 24.0,
+          "fontStyle": "FUNKY",
+          "textAlignment": "START",
+          "marginPercentage": {
+            "left": 5,
+            "top": 83,
+            "right": 5,
+            "bottom": 10
+          }
+        },
+        {
+          "id": "text_secondary",
+          "text": "منصة صحتك الشاملة",
+          "fontSize": 16.0,
+          "fontStyle": "REGULAR",
+          "textAlignment": "START",
+          "marginPercentage": {
+            "left": 5,
+            "top": 90,
+            "right": 5,
+            "bottom": 5
+          }
+        }
+      ],
+      "backgroundItems": [
+        {
+          "id": "bg",
+          "fileName": "template_slope.svg",
+          "alpha": 1.0,
+          "marginPercentage": {
+            "left": 0,
+            "top": 70,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      ],
+      "previewOverlayFileName": "template_slope_preview.svg"
+    },
+    {
+      "id": "descent",
+      "name": "نزول",
+      "textItems": [
+        {
+          "id": "text_primary",
+          "text": "أفضل الخدمات الطبية",
+          "fontSize": 24.0,
+          "fontStyle": "FUNKY",
+          "textAlignment": "START",
+          "marginPercentage": {
+            "left": 5,
+            "top": 5,
+            "right": 5,
+            "bottom": 87.5
+          }
+        },
+        {
+          "id": "text_secondary",
+          "text": "في مكان واحد",
+          "fontSize": 16.0,
+          "fontStyle": "REGULAR",
+          "textAlignment": "START",
+          "marginPercentage": {
+            "left": 5,
+            "top": 12.5,
+            "right": 5,
+            "bottom": 82.5
+          }
+        }
+      ],
+      "backgroundItems": [
+        {
+          "id": "bg",
+          "fileName": "template_descent.svg",
+          "alpha": 1,
+          "marginPercentage": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 70
+          }
+        }
+      ],
+      "previewOverlayFileName": "template_descent_preview.svg"
+    },
+    {
+      "id": "swell",
+      "name": "انتفاخ",
+      "textItems": [
+        {
+          "id": "text_primary",
+          "text": "صحتك تهمنا",
+          "fontSize": 24.0,
+          "fontStyle": "SCRIPT",
+          "textAlignment": "CENTER",
+          "marginPercentage": {
+            "left": 5,
+            "top": 82.5,
+            "right": 5,
+            "bottom": 10
+          }
+        },
+        {
+          "id": "text_secondary",
+          "text": "نحن هنا لخدمتك",
+          "fontSize": 16.0,
+          "fontStyle": "REGULAR",
+          "textAlignment": "CENTER",
+          "marginPercentage": {
+            "left": 5,
+            "top": 90,
+            "right": 5,
+            "bottom": 5
+          }
+        }
+      ],
+      "backgroundItems": [
+        {
+          "id": "bg",
+          "fileName": "template_swell.svg",
+          "alpha": 1,
+          "marginPercentage": {
+            "left": 0,
+            "top": 72,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      ],
+      "previewOverlayFileName": "template_swell_preview.svg"
+    },
+    {
+      "id": "drop",
+      "name": "قطرة",
+      "textItems": [
+        {
+          "id": "text_primary",
+          "text": "صحتك أولاً",
+          "fontSize": 24.0,
+          "fontStyle": "SCRIPT",
+          "textAlignment": "CENTER",
+          "marginPercentage": {
+            "left": 5,
+            "top": 5,
+            "right": 5,
+            "bottom": 87.5
+          }
+        },
+        {
+          "id": "text_secondary",
+          "text": "مع صحتك",
+          "fontSize": 16.0,
+          "fontStyle": "REGULAR",
+          "textAlignment": "CENTER",
+          "marginPercentage": {
+            "left": 5,
+            "top": 12.5,
+            "right": 5,
+            "bottom": 82.5
+          }
+        }
+      ],
+      "backgroundItems": [
+        {
+          "id": "bg",
+          "fileName": "template_drop.svg",
+          "alpha": 1,
+          "marginPercentage": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 72
+          }
+        }
+      ],
+      "previewOverlayFileName": "template_drop_preview.svg"
+    },
+    {
+      "id": "frame",
+      "name": "إطار",
+      "textItems": [
+        {
+          "id": "text_primary",
+          "text": "د. أحمد المولد",
+          "fontSize": 24.0,
+          "fontStyle": "FUNKY",
+          "textAlignment": "CENTER",
+          "marginPercentage": {
+            "left": 5,
+            "top": 5,
+            "right": 5,
+            "bottom": 87.5
+          }
+        },
+        {
+          "id": "text_secondary",
+          "text": "استشاري باطنية",
+          "fontSize": 16.0,
+          "fontStyle": "REGULAR",
+          "textAlignment": "CENTER",
+          "marginPercentage": {
+            "left": 5,
+            "top": 90,
+            "right": 5,
+            "bottom": 5
+          }
+        }
+      ],
+      "backgroundItems": [
+        {
+          "id": "bg_top",
+          "fileName": "template_generic_box.svg",
+          "alpha": 1,
+          "marginPercentage": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 82.5
+          }
+        },
+        {
+          "id": "bg_bottom",
+          "fileName": "template_generic_box.svg",
+          "alpha": 1,
+          "marginPercentage": {
+            "left": 0,
+            "top": 82.5,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      ],
+      "previewOverlayFileName": "template_frame_preview.svg"
+    },
+    {
+      "id": "cover",
+      "name": "غلاف",
+      "textItems": [
+        {
+          "id": "text_primary",
+          "text": "صحتك",
+          "fontSize": 24.0,
+          "fontStyle": "FUNKY",
+          "textAlignment": "CENTER",
+          "marginPercentage": {
+            "left": 9.5,
+            "top": 42.25,
+            "right": 9.5,
+            "bottom": 47.75
+          }
+        },
+        {
+          "id": "text_secondary",
+          "text": "منصة الرعاية الصحية",
+          "fontSize": 16.0,
+          "fontStyle": "REGULAR",
+          "textAlignment": "CENTER",
+          "marginPercentage": {
+            "left": 9.5,
+            "top": 52.25,
+            "right": 9.5,
+            "bottom": 41.5
+          }
+        }
+      ],
+      "backgroundItems": [
+        {
+          "id": "bg_center",
+          "fileName": "template_generic_box.svg",
+          "alpha": 0.9,
+          "marginPercentage": {
+            "left": 0,
+            "top": 35,
+            "right": 0,
+            "bottom": 35
+          }
+        },
+        {
+          "id": "bg_outer",
+          "fileName": "template_cover_outer.svg",
+          "alpha": 0.5,
+          "marginPercentage": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      ],
+      "previewOverlayFileName": "template_cover_preview.svg"
+    },
+    {
+      "id": "slide",
+      "name": "انزلاق",
+      "textItems": [
+        {
+          "id": "text_primary",
+          "text": "عرض خاص",
+          "fontSize": 24.0,
+          "fontStyle": "FUNKY",
+          "textAlignment": "START",
+          "marginPercentage": {
+            "left": 53.5,
+            "top": 10.75,
+            "right": 13,
+            "bottom": 20
+          }
+        },
+        {
+          "id": "text_secondary",
+          "text": "خصم 20% على الاستشارات",
+          "fontSize": 16.0,
+          "fontStyle": "REGULAR",
+          "textAlignment": "START",
+          "marginPercentage": {
+            "left": 53.5,
+            "top": 83,
+            "right": 13,
+            "bottom": 10.5
+          }
+        }
+      ],
+      "backgroundItems": [
+        {
+          "id": "bg_back",
+          "fileName": "template_generic_box.svg",
+          "alpha": 0.9,
+          "marginPercentage": {
+            "left": 71.5,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        },
+        {
+          "id": "bg_front",
+          "fileName": "template_generic_box.svg",
+          "alpha": 1,
+          "marginPercentage": {
+            "left": 50,
+            "top": 6,
+            "right": 8.5,
+            "bottom": 6
+          }
+        }
+      ],
+      "previewOverlayFileName": "template_slide_preview.svg"
+    }
+  ]
+}

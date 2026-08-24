@@ -234,3 +234,7 @@ dependency_overrides:
 
   # 🎨 واجهة مستخدم
   flutter_staggered_animations: ^1.1.0
+
+  # 🎨 قوالب الصور
+  - assets/images/chat/mediatemplate/
+  - assets/templates/
