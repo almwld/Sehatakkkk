@@ -19,7 +19,6 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabController;
   
-  // ✅ فلاتر البحث
   final List<Map<String, dynamic>> _filters = [
     {'label': 'الكل', 'icon': null},
     {'label': 'غير مقروءة', 'icon': null},
@@ -28,13 +27,6 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     {'label': 'عميل جديد', 'icon': Icons.circle, 'iconColor': Colors.blue},
   ];
   int _selectedFilterIndex = 0;
-
-  // ✅ بيانات المحادثات
-  final List<Map<String, dynamic>> _mockChats = [
-    {'id': '1', 'name': 'د. أحمد المؤيد', 'lastMessage': 'مرحباً، كيف يمكنني مساعدتك؟', 'time': DateTime.now().subtract(const Duration(minutes: 5)), 'unread': 2, 'image': ImageKit.doctor1, 'isOnline': true},
-    {'id': '2', 'name': 'د. خالد النخلاني', 'lastMessage': 'سأتصل بك غداً', 'time': DateTime.now().subtract(const Duration(hours: 2)), 'unread': 0, 'image': ImageKit.doctor2, 'isOnline': false},
-    {'id': '3', 'name': 'د. أسماء الهندي', 'lastMessage': 'تم تأكيد موعدك', 'time': DateTime.now().subtract(const Duration(hours: 5)), 'unread': 1, 'image': ImageKit.doctor3, 'isOnline': true},
-  ];
 
   bool _isLoading = true;
   bool _isOffline = false;
@@ -176,7 +168,6 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     );
   }
 
-  // ✅ شريط الفلاتر
   Widget _buildFilterChips(bool isDark) {
     return SizedBox(
       height: 45,
@@ -273,13 +264,9 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     );
   }
 
-  // ============================================================
-  // 💬 تبويب المحادثات
-  // ============================================================
   Widget _buildChatsTab(bool isDark) {
     return Column(
       children: [
-        // ✅ شريط البحث
         Padding(
           padding: const EdgeInsets.all(10),
           child: Container(
@@ -307,9 +294,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
             ),
           ),
         ),
-        // ✅ فلاتر
         _buildFilterChips(isDark),
-        // ✅ قائمة المحادثات
         Expanded(
           child: StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance
@@ -477,9 +462,6 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     );
   }
 
-  // ============================================================
-  // 📞 تبويب المكالمات
-  // ============================================================
   Widget _buildCallsTab(bool isDark) {
     final calls = [
       {'name': 'د. أحمد المؤيد', 'type': 'audio', 'status': 'answered', 'time': '10:30 ص', 'duration': '5:23', 'image': ImageKit.doctor1, 'doctorId': 'doc1'},
@@ -603,9 +585,6 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     );
   }
 
-  // ============================================================
-  // 📸 تبويب الحالات
-  // ============================================================
   Widget _buildStoriesTab(bool isDark) {
     final stories = [
       {'name': 'د. أحمد المؤيد', 'image': ImageKit.doctor1, 'isOnline': true, 'time': 'منذ 5 دقائق'},
@@ -615,7 +594,6 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
 
     return Column(
       children: [
-        // ✅ إضافة حالة جديدة
         Container(
           padding: const EdgeInsets.all(12),
           child: GestureDetector(
@@ -662,7 +640,6 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
             ),
           ),
         ),
-        // ✅ قائمة الحالات
         Expanded(
           child: ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 12),

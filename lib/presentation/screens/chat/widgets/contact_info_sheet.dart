@@ -37,7 +37,6 @@ class ContactInfoSheet extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // ✅ شريط السحب
                 Center(
                   child: Container(
                     width: 40,
@@ -50,7 +49,6 @@ class ContactInfoSheet extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
 
-                // ✅ صورة المستخدم
                 Center(
                   child: CircleAvatar(
                     radius: 45,
@@ -60,7 +58,6 @@ class ContactInfoSheet extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
 
-                // ✅ الاسم ورقم الهاتف
                 Center(
                   child: Column(
                     children: [
@@ -85,7 +82,6 @@ class ContactInfoSheet extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
 
-                // ✅ أزرار الإجراءات
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -117,7 +113,6 @@ class ContactInfoSheet extends StatelessWidget {
                 ),
                 const Divider(color: Colors.grey, height: 30),
 
-                // ✅ قائمة الخيارات
                 _buildMenuItem(
                   context,
                   Icons.bookmark_add_outlined,
