@@ -6,109 +6,89 @@ class CacheService {
   factory CacheService() => _instance;
   CacheService._internal();
 
-  static SharedPreferences? _prefs;
+  late SharedPreferences _prefs;
+  bool _isInitialized = false;
 
-  // ✅ تهيئة الكاش
-  static Future<void> init() async {
+  Future<void> init() async {
+    if (_isInitialized) return;
     _prefs = await SharedPreferences.getInstance();
+    _isInitialized = true;
+    print('✅ Cache service initialized');
   }
 
-  // ✅ حفظ بيانات JSON
-  static Future<void> saveData(String key, Map<String, dynamic> data) async {
-    try {
-      if (_prefs == null) await init();
-      final jsonString = jsonEncode(data);
-      await _prefs?.setString(key, jsonString);
-    } catch (e) {
-      print('❌ خطأ في حفظ الكاش: $e');
-    }
+  Future<void> saveString(String key, String value) async {
+    await _prefs.setString(key, value);
   }
 
-  // ✅ قراءة بيانات JSON
-  static Map<String, dynamic>? getData(String key) {
+  Future<String?> getString(String key) async {
+    return _prefs.getString(key);
+  }
+
+  Future<void> saveBool(String key, bool value) async {
+    await _prefs.setBool(key, value);
+  }
+
+  Future<bool?> getBool(String key) async {
+    return _prefs.getBool(key);
+  }
+
+  Future<void> saveInt(String key, int value) async {
+    await _prefs.setInt(key, value);
+  }
+
+  Future<int?> getInt(String key) async {
+    return _prefs.getInt(key);
+  }
+
+  Future<void> saveJson(String key, Map<String, dynamic> value) async {
+    await _prefs.setString(key, jsonEncode(value));
+  }
+
+  Future<Map<String, dynamic>?> getJson(String key) async {
+    final data = _prefs.getString(key);
+    if (data == null) return null;
     try {
-      if (_prefs == null) return null;
-      final jsonString = _prefs?.getString(key);
-      if (jsonString == null) return null;
-      return jsonDecode(jsonString) as Map<String, dynamic>;
+      return jsonDecode(data) as Map<String, dynamic>;
     } catch (e) {
-      print('❌ خطأ في قراءة الكاش: $e');
       return null;
     }
   }
 
-  // ✅ حفظ قائمة (List)
-  static Future<void> saveList(String key, List<dynamic> data) async {
-    try {
-      if (_prefs == null) await init();
-      final jsonString = jsonEncode(data);
-      await _prefs?.setString(key, jsonString);
-    } catch (e) {
-      print('❌ خطأ في حفظ الكاش: $e');
-    }
+  Future<void> saveList(String key, List<dynamic> value) async {
+    await _prefs.setString(key, jsonEncode(value));
   }
 
-  // ✅ قراءة قائمة (List)
-  static List<dynamic>? getList(String key) {
+  Future<List<dynamic>?> getList(String key) async {
+    final data = _prefs.getString(key);
+    if (data == null) return null;
     try {
-      if (_prefs == null) return null;
-      final jsonString = _prefs?.getString(key);
-      if (jsonString == null) return null;
-      return jsonDecode(jsonString) as List<dynamic>;
+      return jsonDecode(data) as List<dynamic>;
     } catch (e) {
-      print('❌ خطأ في قراءة الكاش: $e');
       return null;
     }
   }
 
-  // ✅ حفظ بسيط (String)
-  static Future<void> saveString(String key, String value) async {
-    try {
-      if (_prefs == null) await init();
-      await _prefs?.setString(key, value);
-    } catch (e) {
-      print('❌ خطأ في حفظ الكاش: $e');
-    }
+  Future<void> saveChats(List<Map<String, dynamic>> chats) async {
+    await saveList('cached_chats', chats);
   }
 
-  // ✅ قراءة بسيط (String)
-  static String? getString(String key) {
-    try {
-      if (_prefs == null) return null;
-      return _prefs?.getString(key);
-    } catch (e) {
-      print('❌ خطأ في قراءة الكاش: $e');
-      return null;
-    }
+  Future<List<Map<String, dynamic>>> getCachedChats() async {
+    final data = await getList('cached_chats');
+    if (data == null) return [];
+    return data.map((e) => e as Map<String, dynamic>).toList();
   }
 
-  // ✅ حذف مفتاح
-  static Future<void> remove(String key) async {
-    try {
-      if (_prefs == null) await init();
-      await _prefs?.remove(key);
-    } catch (e) {
-      print('❌ خطأ في حذف الكاش: $e');
-    }
+  Future<void> clearAll() async {
+    await _prefs.clear();
   }
 
-  // ✅ مسح كل الكاش
-  static Future<void> clearAll() async {
-    try {
-      if (_prefs == null) await init();
-      await _prefs?.clear();
-    } catch (e) {
-      print('❌ خطأ في مسح الكاش: $e');
-    }
+  Future<void> remove(String key) async {
+    await _prefs.remove(key);
   }
 
-  // ✅ التحقق من وجود مفتاح
-  static bool hasKey(String key) {
-    try {
-      if (_prefs == null) return false;
-      return _prefs?.containsKey(key) ?? false;
-    } catch (e) {
-      return false;
-    }
+  bool hasCachedData(String key) {
+    return _prefs.containsKey(key);
   }
+
+  bool get hasCachedChats => _prefs.containsKey('cached_chats');
 }

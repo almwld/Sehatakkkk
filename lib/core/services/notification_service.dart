@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_messaging/firebase_messaging.dart>';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -30,10 +30,7 @@ class NotificationService {
       iOS: iosSettings,
     );
 
-    await _localNotifications.initialize(
-      settings,
-      onDidReceiveNotificationResponse: _onNotificationTap,
-    );
+    await _localNotifications.initialize(settings);
 
     await _requestPermission();
     FirebaseMessaging.onMessage.listen(_handleMessage);
@@ -79,10 +76,6 @@ class NotificationService {
     }
   }
 
-  // ============================================================
-  // 📞 إشعارات المكالمات الواردة
-  // ============================================================
-
   Future<void> showIncomingCallNotification({
     required String callerName,
     required String chatId,
@@ -102,18 +95,6 @@ class NotificationService {
       sound: RawResourceAndroidNotificationSound('call_ringtone'),
       fullScreenIntent: true,
       styleInformation: const BigTextStyleInformation(''),
-      actions: [
-        AndroidNotificationAction(
-          'accept',
-          'قبول',
-          icon: 'accept_icon',
-        ),
-        AndroidNotificationAction(
-          'reject',
-          'رفض',
-          icon: 'reject_icon',
-        ),
-      ],
     );
 
     const DarwinNotificationDetails iosDetails =
@@ -133,7 +114,6 @@ class NotificationService {
     );
   }
 
-  // ✅ إشعار رسالة جديدة
   Future<void> showNewMessageNotification({
     required String senderName,
     required String message,
@@ -167,7 +147,6 @@ class NotificationService {
     );
   }
 
-  // ✅ إشعار تذكير موعد
   Future<void> showAppointmentReminder({
     required String doctorName,
     required String date,
@@ -200,7 +179,6 @@ class NotificationService {
     );
   }
 
-  // ✅ إشعار تذكير دواء
   Future<void> showMedicationReminder({
     required String medicineName,
     required String time,
@@ -232,10 +210,6 @@ class NotificationService {
     );
   }
 
-  // ============================================================
-  // 📨 معالجة الإشعارات
-  // ============================================================
-
   Future<void> _handleMessage(RemoteMessage message) async {
     print('📩 Message received: ${message.notification?.title}');
     final notification = message.notification;
@@ -261,9 +235,7 @@ class NotificationService {
 
   void _handleMessageOpened(RemoteMessage message) {
     print('📱 Message opened: ${message.data}');
-    // ✅ التنقل إلى الشاشة المناسبة
     if (message.data['type'] == 'incoming_call') {
-      // ✅ فتح شاشة المكالمة
       _navigateToCallScreen(
         chatId: message.data['chatId'] ?? '',
         callerName: message.data['callerName'] ?? 'مستخدم',
@@ -271,22 +243,9 @@ class NotificationService {
         isVideo: message.data['isVideo'] == 'true',
       );
     } else {
-      // ✅ فتح شاشة المحادثة
       _navigateToChatScreen(
         chatId: message.data['chatId'] ?? '',
       );
-    }
-  }
-
-  void _onNotificationTap(NotificationResponse response) {
-    print('🔔 Notification tapped: ${response.payload}');
-    if (response.payload != null) {
-      // ✅ التنقل بناءً على payload
-      if (response.id == 'accept') {
-        // ✅ قبول المكالمة
-      } else if (response.id == 'reject') {
-        // ✅ رفض المكالمة
-      }
     }
   }
 
@@ -296,16 +255,13 @@ class NotificationService {
     required String callerId,
     required bool isVideo,
   }) {
-    // TODO: التنقل إلى شاشة المكالمة
     print('🔗 Navigate to call: $chatId');
   }
 
   void _navigateToChatScreen({required String chatId}) {
-    // TODO: التنقل إلى شاشة المحادثة
     print('🔗 Navigate to chat: $chatId');
   }
 
-  // ✅ حذف التوكن عند تسجيل الخروج
   Future<void> deleteToken() async {
     try {
       final userId = _auth.currentUser?.uid;

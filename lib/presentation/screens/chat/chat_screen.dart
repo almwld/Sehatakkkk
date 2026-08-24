@@ -232,11 +232,11 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
         foregroundColor: isDark ? Colors.white : Colors.black87,
         elevation: 0,
         actions: [
-          /
+          IconButton(
             icon: Icon(Icons.search, color: isDark ? Colors.white : Colors.black87),
             onPressed: () {},
           ),
-          /
+          IconButton(
             icon: Icon(Icons.more_vert, color: isDark ? Colors.white : Colors.black87),
             onPressed: () {},
           ),
@@ -525,7 +525,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                     CircleAvatar(
                       radius: 18,
                       backgroundColor: Colors.green,
-                      child: /
+                      child: IconButton(
                         icon: const Icon(Icons.call, color: Colors.white, size: 18),
                         onPressed: () {
                           ToastService.showSuccess('✅ تم قبول المكالمة');
@@ -548,7 +548,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                     CircleAvatar(
                       radius: 18,
                       backgroundColor: Colors.red,
-                      child: /
+                      child: IconButton(
                         icon: const Icon(Icons.call_end, color: Colors.white, size: 18),
                         onPressed: () => ToastService.showError('❌ تم رفض المكالمة'),
                         padding: EdgeInsets.zero,
@@ -560,7 +560,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                 CircleAvatar(
                   radius: 20,
                   backgroundColor: AppColors.primary.withOpacity(0.1),
-                  child: /
+                  child: IconButton(
                     icon: Icon(isVideo ? Icons.videocam : Icons.phone, color: AppColors.primary, size: 20),
                     onPressed: () {
                       Navigator.push(
