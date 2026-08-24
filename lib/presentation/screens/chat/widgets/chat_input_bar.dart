@@ -25,8 +25,8 @@ class ChatInputBar extends StatefulWidget {
 class _ChatInputBarState extends State<ChatInputBar> {
   final TextEditingController _controller = TextEditingController();
   final ImagePicker _picker = ImagePicker();
-  bool _isRecording = false;
   bool _showVoiceRecorder = false;
+  bool _isTyping = false;
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +45,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF202c33) : Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
@@ -56,18 +56,22 @@ class _ChatInputBarState extends State<ChatInputBar> {
       ),
       child: Row(
         children: [
+          // ✅ زر المرفقات
           IconButton(
             icon: Icon(Icons.attach_file, color: isDark ? Colors.grey[400] : Colors.grey[600]),
             onPressed: _showAttachmentOptions,
           ),
+          // ✅ زر الصور
           IconButton(
             icon: Icon(Icons.photo_library, color: isDark ? Colors.grey[400] : Colors.grey[600]),
             onPressed: _pickImage,
           ),
+          // ✅ زر الموقع
           IconButton(
             icon: Icon(Icons.location_on, color: isDark ? Colors.grey[400] : Colors.grey[600]),
             onPressed: widget.onShareLocation,
           ),
+          // ✅ حقل النص
           Expanded(
             child: Container(
               decoration: BoxDecoration(
@@ -76,13 +80,16 @@ class _ChatInputBarState extends State<ChatInputBar> {
               ),
               child: TextField(
                 controller: _controller,
+                onChanged: (text) {
+                  setState(() => _isTyping = text.isNotEmpty);
+                },
                 onSubmitted: (_) => _sendMessage(),
                 style: TextStyle(
                   color: isDark ? Colors.white : Colors.black87,
                 ),
                 textAlign: TextAlign.right,
                 decoration: InputDecoration(
-                  hintText: 'رسالة...',
+                  hintText: 'اكتب رسالة...',
                   hintStyle: TextStyle(
                     color: isDark ? Colors.white54 : Colors.grey[600],
                   ),
@@ -100,6 +107,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
               ),
             ),
           ),
+          // ✅ زر التسجيل الصوتي (ضغط مطول)
           GestureDetector(
             onLongPress: _startRecording,
             onLongPressUp: _stopRecording,
@@ -116,6 +124,23 @@ class _ChatInputBarState extends State<ChatInputBar> {
               ),
             ),
           ),
+          // ✅ زر الإرسال (يظهر عند وجود نص)
+          if (_isTyping)
+            GestureDetector(
+              onTap: _sendMessage,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.send,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -126,6 +151,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
     if (text.isNotEmpty) {
       widget.onSendMessage(text);
       _controller.clear();
+      setState(() => _isTyping = false);
     }
   }
 
