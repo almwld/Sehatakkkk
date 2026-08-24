@@ -2,138 +2,160 @@ import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class ThemeManager {
+  // ✅ ثوابت الألوان للوضع النهاري
+  static const Color _lightTextColor = Color(0xFF333333);
+  static const Color _lightTextColorMedium = Color(0xFF444444);
+  static const Color _lightTextColorLight = Color(0xFF555555);
+  static const Color _lightLabelColor = Color(0xFF666666);
+  static const Color _lightLabelColorLight = Color(0xFF777777);
+  static const Color _lightLabelColorLighter = Color(0xFF888888);
+
+  // ✅ ثوابت الألوان للوضع الليلي
+  static const Color _darkTextColor = Color(0xFFE0E0E0);
+  static const Color _darkTextColorMedium = Color(0xFFCCCCCC);
+  static const Color _darkTextColorLight = Color(0xFFBBBBBB);
+  static const Color _darkLabelColor = Color(0xFFAAAAAA);
+  static const Color _darkLabelColorLight = Color(0xFF999999);
+  static const Color _darkLabelColorLighter = Color(0xFF888888);
+
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
       primaryColor: AppColors.primary,
       scaffoldBackgroundColor: const Color(0xFFF8FAFC),
-      fontFamily: 'ElMessiri', // ✅ الخط الافتراضي (ElMessiri)
+      fontFamily: 'NotoNaskhArabic',
       
-      // ✅ تخصيص AppBar
+      colorScheme: const ColorScheme.light(
+        primary: AppColors.primary,
+        secondary: AppColors.primaryLight,
+        surface: Color(0xFFF8FAFC),
+        background: Color(0xFFF8FAFC),
+        error: Colors.red,
+        onPrimary: Colors.white,
+        onSecondary: Colors.white,
+        onSurface: Color(0xFF333333),
+        onBackground: Color(0xFF333333),
+        onError: Colors.white,
+      ),
+      
       appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
         titleTextStyle: TextStyle(
-          fontFamily: 'ElMessiri', // ✅ عنوان الشاشة (ElMessiri)
+          fontFamily: 'ElMessiri',
           fontSize: 20,
-          fontWeight: FontWeight.bold,
-          color: Colors.black87,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
         ),
       ),
       
-      // ✅ تخصيص النصوص
       textTheme: const TextTheme(
-        // ✅ العناوين الرئيسية (NotoNaskhArabic)
+        // العناوين - أبيض
         displayLarge: TextStyle(
-          fontFamily: 'NotoNaskhArabic',
+          fontFamily: 'ElMessiri',
           fontSize: 32,
-          fontWeight: FontWeight.bold,
-          color: Colors.black87,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
         ),
         displayMedium: TextStyle(
-          fontFamily: 'NotoNaskhArabic',
+          fontFamily: 'ElMessiri',
           fontSize: 28,
-          fontWeight: FontWeight.bold,
-          color: Colors.black87,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
         ),
         displaySmall: TextStyle(
-          fontFamily: 'NotoNaskhArabic',
+          fontFamily: 'ElMessiri',
           fontSize: 24,
-          fontWeight: FontWeight.bold,
-          color: Colors.black87,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
         ),
-        
-        // ✅ عناوين الأقسام (NotoNaskhArabic)
         headlineLarge: TextStyle(
-          fontFamily: 'NotoNaskhArabic',
+          fontFamily: 'ElMessiri',
           fontSize: 22,
           fontWeight: FontWeight.w600,
-          color: Colors.black87,
+          color: Colors.white,
         ),
         headlineMedium: TextStyle(
-          fontFamily: 'NotoNaskhArabic',
+          fontFamily: 'ElMessiri',
           fontSize: 20,
           fontWeight: FontWeight.w600,
-          color: Colors.black87,
+          color: Colors.white,
         ),
         headlineSmall: TextStyle(
-          fontFamily: 'NotoNaskhArabic',
+          fontFamily: 'ElMessiri',
           fontSize: 18,
           fontWeight: FontWeight.w600,
-          color: Colors.black87,
+          color: Colors.white,
         ),
-        
-        // ✅ عناوين البطاقات (NotoNaskhArabic)
         titleLarge: TextStyle(
-          fontFamily: 'NotoNaskhArabic',
+          fontFamily: 'ElMessiri',
           fontSize: 16,
           fontWeight: FontWeight.w600,
-          color: Colors.black87,
+          color: Colors.white,
         ),
         titleMedium: TextStyle(
-          fontFamily: 'NotoNaskhArabic',
+          fontFamily: 'ElMessiri',
           fontSize: 14,
           fontWeight: FontWeight.w600,
-          color: Colors.black87,
+          color: Colors.white,
         ),
         titleSmall: TextStyle(
-          fontFamily: 'NotoNaskhArabic',
+          fontFamily: 'ElMessiri',
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: Colors.black87,
+          color: Colors.white,
         ),
         
-        // ✅ النصوص العادية (ElMessiri)
+        // النصوص العادية - داكن (للوضع النهاري)
         bodyLarge: TextStyle(
-          fontFamily: 'ElMessiri',
+          fontFamily: 'NotoNaskhArabic',
           fontSize: 16,
           fontWeight: FontWeight.normal,
-          color: Colors.black87,
+          color: _lightTextColor,
         ),
         bodyMedium: TextStyle(
-          fontFamily: 'ElMessiri',
+          fontFamily: 'NotoNaskhArabic',
           fontSize: 14,
           fontWeight: FontWeight.normal,
-          color: Colors.black87,
+          color: _lightTextColorMedium,
         ),
         bodySmall: TextStyle(
-          fontFamily: 'ElMessiri',
+          fontFamily: 'NotoNaskhArabic',
           fontSize: 12,
           fontWeight: FontWeight.normal,
-          color: Colors.black87,
+          color: _lightTextColorLight,
         ),
         
-        // ✅ التفاصيل الصغيرة (ElMessiri)
+        // التفاصيل الصغيرة
         labelLarge: TextStyle(
           fontFamily: 'ElMessiri',
           fontSize: 14,
           fontWeight: FontWeight.w500,
-          color: Colors.black87,
+          color: _lightLabelColor,
         ),
         labelMedium: TextStyle(
           fontFamily: 'ElMessiri',
           fontSize: 12,
           fontWeight: FontWeight.w500,
-          color: Colors.black87,
+          color: _lightLabelColorLight,
         ),
         labelSmall: TextStyle(
           fontFamily: 'ElMessiri',
           fontSize: 10,
           fontWeight: FontWeight.w500,
-          color: Colors.black87,
+          color: _lightLabelColorLighter,
         ),
       ),
       
-      // ✅ تخصيص الأزرار
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           textStyle: const TextStyle(
-            fontFamily: 'NotoNaskhArabic', // ✅ خط الأزرار (NotoNaskhArabic)
+            fontFamily: 'ElMessiri',
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -144,7 +166,6 @@ class ThemeManager {
         ),
       ),
       
-      // ✅ تخصيص الحقول النصية
       inputDecorationTheme: InputDecorationTheme(
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -159,12 +180,12 @@ class ThemeManager {
           borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
         hintStyle: const TextStyle(
-          fontFamily: 'ElMessiri', // ✅ خط التلميحات (ElMessiri)
+          fontFamily: 'NotoNaskhArabic',
           fontSize: 14,
           color: Colors.grey,
         ),
         labelStyle: const TextStyle(
-          fontFamily: 'NotoNaskhArabic', // ✅ خط التسميات (NotoNaskhArabic)
+          fontFamily: 'ElMessiri',
           fontSize: 14,
           fontWeight: FontWeight.w500,
         ),
@@ -178,112 +199,129 @@ class ThemeManager {
       brightness: Brightness.dark,
       primaryColor: AppColors.primary,
       scaffoldBackgroundColor: const Color(0xFF0B1121),
-      fontFamily: 'ElMessiri', // ✅ الخط الافتراضي (ElMessiri)
+      fontFamily: 'NotoNaskhArabic',
+      
+      colorScheme: const ColorScheme.dark(
+        primary: AppColors.primary,
+        secondary: AppColors.primaryLight,
+        surface: Color(0xFF1A2540),
+        background: Color(0xFF0B1121),
+        error: Colors.red,
+        onPrimary: Colors.white,
+        onSecondary: Colors.white,
+        onSurface: Color(0xFFE0E0E0),
+        onBackground: Color(0xFFE0E0E0),
+        onError: Colors.white,
+      ),
       
       appBarTheme: const AppBarTheme(
-        backgroundColor: Color(0xFF0B1121),
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
         titleTextStyle: TextStyle(
-          fontFamily: 'ElMessiri', // ✅ عنوان الشاشة (ElMessiri)
+          fontFamily: 'ElMessiri',
           fontSize: 20,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w600,
           color: Colors.white,
         ),
       ),
       
       textTheme: const TextTheme(
-        // ✅ العناوين الرئيسية (NotoNaskhArabic)
+        // العناوين - أبيض
         displayLarge: TextStyle(
-          fontFamily: 'NotoNaskhArabic',
+          fontFamily: 'ElMessiri',
           fontSize: 32,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w600,
           color: Colors.white,
         ),
         displayMedium: TextStyle(
-          fontFamily: 'NotoNaskhArabic',
+          fontFamily: 'ElMessiri',
           fontSize: 28,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w600,
           color: Colors.white,
         ),
         displaySmall: TextStyle(
-          fontFamily: 'NotoNaskhArabic',
+          fontFamily: 'ElMessiri',
           fontSize: 24,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w600,
           color: Colors.white,
         ),
         headlineLarge: TextStyle(
-          fontFamily: 'NotoNaskhArabic',
+          fontFamily: 'ElMessiri',
           fontSize: 22,
           fontWeight: FontWeight.w600,
           color: Colors.white,
         ),
         headlineMedium: TextStyle(
-          fontFamily: 'NotoNaskhArabic',
+          fontFamily: 'ElMessiri',
           fontSize: 20,
           fontWeight: FontWeight.w600,
           color: Colors.white,
         ),
         headlineSmall: TextStyle(
-          fontFamily: 'NotoNaskhArabic',
+          fontFamily: 'ElMessiri',
           fontSize: 18,
           fontWeight: FontWeight.w600,
           color: Colors.white,
         ),
         titleLarge: TextStyle(
-          fontFamily: 'NotoNaskhArabic',
+          fontFamily: 'ElMessiri',
           fontSize: 16,
           fontWeight: FontWeight.w600,
           color: Colors.white,
         ),
         titleMedium: TextStyle(
-          fontFamily: 'NotoNaskhArabic',
+          fontFamily: 'ElMessiri',
           fontSize: 14,
           fontWeight: FontWeight.w600,
           color: Colors.white,
         ),
         titleSmall: TextStyle(
-          fontFamily: 'NotoNaskhArabic',
+          fontFamily: 'ElMessiri',
           fontSize: 12,
           fontWeight: FontWeight.w600,
           color: Colors.white,
         ),
+        
+        // النصوص العادية - فاتحة (للوضع الليلي)
         bodyLarge: TextStyle(
-          fontFamily: 'ElMessiri',
+          fontFamily: 'NotoNaskhArabic',
           fontSize: 16,
           fontWeight: FontWeight.normal,
-          color: Colors.white,
+          color: _darkTextColor,
         ),
         bodyMedium: TextStyle(
-          fontFamily: 'ElMessiri',
+          fontFamily: 'NotoNaskhArabic',
           fontSize: 14,
           fontWeight: FontWeight.normal,
-          color: Colors.white,
+          color: _darkTextColorMedium,
         ),
         bodySmall: TextStyle(
-          fontFamily: 'ElMessiri',
+          fontFamily: 'NotoNaskhArabic',
           fontSize: 12,
           fontWeight: FontWeight.normal,
-          color: Colors.white,
+          color: _darkTextColorLight,
         ),
+        
+        // التفاصيل الصغيرة
         labelLarge: TextStyle(
           fontFamily: 'ElMessiri',
           fontSize: 14,
           fontWeight: FontWeight.w500,
-          color: Colors.white,
+          color: _darkLabelColor,
         ),
         labelMedium: TextStyle(
           fontFamily: 'ElMessiri',
           fontSize: 12,
           fontWeight: FontWeight.w500,
-          color: Colors.white,
+          color: _darkLabelColorLight,
         ),
         labelSmall: TextStyle(
           fontFamily: 'ElMessiri',
           fontSize: 10,
           fontWeight: FontWeight.w500,
-          color: Colors.white,
+          color: _darkLabelColorLighter,
         ),
       ),
       
@@ -292,7 +330,7 @@ class ThemeManager {
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           textStyle: const TextStyle(
-            fontFamily: 'NotoNaskhArabic', // ✅ خط الأزرار (NotoNaskhArabic)
+            fontFamily: 'ElMessiri',
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -317,16 +355,41 @@ class ThemeManager {
           borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
         hintStyle: const TextStyle(
-          fontFamily: 'ElMessiri', // ✅ خط التلميحات (ElMessiri)
+          fontFamily: 'NotoNaskhArabic',
           fontSize: 14,
           color: Colors.grey,
         ),
         labelStyle: const TextStyle(
-          fontFamily: 'NotoNaskhArabic', // ✅ خط التسميات (NotoNaskhArabic)
+          fontFamily: 'ElMessiri',
           fontSize: 14,
           fontWeight: FontWeight.w500,
         ),
       ),
     );
+  }
+
+  // ✅ دوال مساعدة
+  static TextStyle getBodyTextStyle(BuildContext context, {bool isDark = false}) {
+    return isDark
+        ? const TextStyle(
+            fontFamily: 'NotoNaskhArabic',
+            fontSize: 14,
+            color: _darkTextColorMedium,
+          )
+        : const TextStyle(
+            fontFamily: 'NotoNaskhArabic',
+            fontSize: 14,
+            color: _lightTextColorMedium,
+          );
+  }
+
+  static Color getBackgroundColor(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC);
+  }
+
+  static Color getTextColor(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark ? _darkTextColor : _lightTextColor;
   }
 }
