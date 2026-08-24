@@ -1,11 +1,12 @@
 // ============================================================
 // 📁 lib/presentation/screens/templates/templates_screen.dart
-// 🎨 شاشة اختيار وعرض القوالب
+// 🎨 شاشة اختيار القوالب
 // ============================================================
 
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/core/models/template_model.dart';
+import 'package:sehatak/core/services/template_service.dart';
 
 class TemplatesScreen extends StatefulWidget {
   const TemplatesScreen({super.key});
@@ -15,67 +16,17 @@ class TemplatesScreen extends StatefulWidget {
 }
 
 class _TemplatesScreenState extends State<TemplatesScreen> {
-  String _selectedTemplate = 'slope';
+  final TemplateService _templateService = TemplateService();
+  TemplateModel? _selectedTemplate;
   final TextEditingController _primaryController = TextEditingController();
   final TextEditingController _secondaryController = TextEditingController();
-
-  final List<Map<String, dynamic>> _templates = [
-    {
-      'id': 'slope',
-      'name': 'منحدر',
-      'icon': Icons.trending_up_rounded,
-      'preview': 'assets/templates/template_slope_preview.svg',
-      'bg': 'assets/templates/template_slope.svg',
-    },
-    {
-      'id': 'descent',
-      'name': 'نزول',
-      'icon': Icons.trending_down_rounded,
-      'preview': 'assets/templates/template_descent_preview.svg',
-      'bg': 'assets/templates/template_descent.svg',
-    },
-    {
-      'id': 'swell',
-      'name': 'انتفاخ',
-      'icon': Icons.waves_rounded,
-      'preview': 'assets/templates/template_swell_preview.svg',
-      'bg': 'assets/templates/template_swell.svg',
-    },
-    {
-      'id': 'drop',
-      'name': 'قطرة',
-      'icon': Icons.water_drop_rounded,
-      'preview': 'assets/templates/template_drop_preview.svg',
-      'bg': 'assets/templates/template_drop.svg',
-    },
-    {
-      'id': 'frame',
-      'name': 'إطار',
-      'icon': Icons.crop_7_5_rounded,
-      'preview': 'assets/templates/template_frame_preview.svg',
-      'bg': 'assets/templates/template_generic_box.svg',
-    },
-    {
-      'id': 'cover',
-      'name': 'غلاف',
-      'icon': Icons.photo_library_rounded,
-      'preview': 'assets/templates/template_cover_preview.svg',
-      'bg': 'assets/templates/template_cover_outer.svg',
-    },
-    {
-      'id': 'slide',
-      'name': 'انزلاق',
-      'icon': Icons.slideshow_rounded,
-      'preview': 'assets/templates/template_slide_preview.svg',
-      'bg': 'assets/templates/template_generic_box.svg',
-    },
-  ];
 
   @override
   void initState() {
     super.initState();
-    _primaryController.text = 'مرحباً بك في صحتك';
-    _secondaryController.text = 'منصة صحتك الشاملة';
+    _selectedTemplate = TemplateData.templates.first;
+    _primaryController.text = _selectedTemplate?.primaryText ?? '';
+    _secondaryController.text = _selectedTemplate?.secondaryText ?? '';
   }
 
   @override
@@ -123,29 +74,39 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
-                child: _buildTemplatePreview(),
+                child: _selectedTemplate != null
+                    ? _templateService.buildTemplateWidget(
+                        template: _selectedTemplate!,
+                        primaryText: _primaryController.text,
+                        secondaryText: _secondaryController.text,
+                        width: MediaQuery.of(context).size.width - 32,
+                        height: 300,
+                      )
+                    : const Center(child: Text('اختر قالباً')),
               ),
             ),
           ),
 
           // ✅ قائمة القوالب
           Container(
-            height: 110,
+            height: 120,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              itemCount: _templates.length,
+              itemCount: TemplateData.templates.length,
               itemBuilder: (context, index) {
-                final template = _templates[index];
-                final isSelected = _selectedTemplate == template['id'];
+                final template = TemplateData.templates[index];
+                final isSelected = _selectedTemplate?.id == template.id;
                 return GestureDetector(
                   onTap: () {
                     setState(() {
-                      _selectedTemplate = template['id'];
+                      _selectedTemplate = template;
+                      _primaryController.text = template.primaryText ?? '';
+                      _secondaryController.text = template.secondaryText ?? '';
                     });
                   },
                   child: Container(
-                    width: 70,
+                    width: 80,
                     margin: const EdgeInsets.only(right: 12),
                     decoration: BoxDecoration(
                       color: isDark ? const Color(0xFF1A2540) : Colors.white,
@@ -166,15 +127,15 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          template['icon'] as IconData,
+                          _getTemplateIcon(template.id),
                           color: isSelected ? AppColors.primary : Colors.grey,
-                          size: 28,
+                          size: 32,
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          template['name'] as String,
+                          template.name,
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: 11,
                             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                             color: isSelected ? AppColors.primary : Colors.grey,
                           ),
@@ -206,22 +167,18 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
                 TextField(
                   controller: _primaryController,
                   onChanged: (_) => setState(() {}),
-                  textAlign: TextAlign.right,
                   decoration: const InputDecoration(
                     labelText: 'النص الرئيسي',
                     border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.title_rounded),
                   ),
                 ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: _secondaryController,
                   onChanged: (_) => setState(() {}),
-                  textAlign: TextAlign.right,
                   decoration: const InputDecoration(
                     labelText: 'النص الثانوي',
                     border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.subtitles_rounded),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -259,108 +216,51 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
     );
   }
 
-  // ✅ بناء معاينة القالب
-  Widget _buildTemplatePreview() {
-    final template = _templates.firstWhere(
-      (t) => t['id'] == _selectedTemplate,
-      orElse: () => _templates.first,
-    );
-
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        // ✅ الخلفية
-        Container(
-          color: Colors.grey[900],
-          child: Image.asset(
-            template['bg'] as String,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return Center(
-                child: Icon(
-                  Icons.image_rounded,
-                  size: 80,
-                  color: Colors.grey[700],
-                ),
-              );
-            },
-          ),
-        ),
-        // ✅ النصوص
-        Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                _primaryController.text,
-                style: const TextStyle(
-                  fontFamily: 'ElMessiri',
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  shadows: [
-                    Shadow(
-                      color: Colors.black45,
-                      blurRadius: 10,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                _secondaryController.text,
-                style: const TextStyle(
-                  fontFamily: 'NotoNaskhArabic',
-                  fontSize: 18,
-                  color: Colors.white70,
-                  shadows: [
-                    Shadow(
-                      color: Colors.black45,
-                      blurRadius: 8,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-        // ✅ علامة القالب
-        Positioned(
-          bottom: 12,
-          right: 12,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              template['name'] as String,
-              style: const TextStyle(
-                fontSize: 10,
-                color: Colors.white70,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
+  IconData _getTemplateIcon(String id) {
+    switch (id) {
+      case 'slope':
+        return Icons.trending_up_rounded;
+      case 'descent':
+        return Icons.trending_down_rounded;
+      case 'swell':
+        return Icons.waves_rounded;
+      case 'drop':
+        return Icons.water_drop_rounded;
+      case 'frame':
+        return Icons.crop_7_5_rounded;
+      case 'cover':
+        return Icons.photo_library_rounded;
+      case 'slide':
+        return Icons.slideshow_rounded;
+      default:
+        return Icons.image_rounded;
+    }
   }
 
   void _shareTemplate() {
-    ToastService.showSuccess('📤 جاري المشاركة...');
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('📤 جاري المشاركة...'),
+        backgroundColor: AppColors.primary,
+      ),
+    );
   }
 
   void _saveTemplate() {
-    ToastService.showSuccess('✅ تم حفظ القالب');
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('✅ تم حفظ القالب'),
+        backgroundColor: Colors.green,
+      ),
+    );
   }
 
   void _downloadTemplate() {
-    ToastService.showSuccess('📥 جاري تحميل الصورة...');
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('📥 جاري تحميل الصورة...'),
+        backgroundColor: AppColors.primary,
+      ),
+    );
   }
 }
