@@ -47,33 +47,28 @@ class _TypingIndicatorState extends State<TypingIndicator>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2540) : Colors.grey[100],
+        color: isDark ? const Color(0xFF202c33) : Colors.grey[100],
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // ✅ النقاط المتحركة
-          Row(
-            children: List.generate(3, (index) {
-              return AnimatedBuilder(
-                animation: _animations[index],
-                builder: (context, child) {
-                  return Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 2),
-                    width: 8,
-                    height: 8 * (0.3 + 0.7 * _animations[index].value),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(
-                        0.3 + 0.7 * _animations[index].value,
-                      ),
-                      shape: BoxShape.circle,
-                    ),
-                  );
-                },
-              );
-            }),
-          ),
+          ...List.generate(3, (index) {
+            return AnimatedBuilder(
+              animation: _animations[index],
+              builder: (context, child) {
+                return Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 2),
+                  width: 6,
+                  height: 6 + 12 * _animations[index].value,
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.white54 : Colors.grey[600],
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                );
+              },
+            );
+          }),
           const SizedBox(width: 8),
           Text(
             widget.name != null ? '${widget.name} يكتب...' : 'يكتب...',
