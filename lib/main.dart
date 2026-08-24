@@ -17,7 +17,6 @@ import 'core/themes/theme_manager.dart';
 import 'core/services/cache_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/call_service.dart';
-import 'core/services/preload_service.dart';
 import 'core/routes/payment_routes.dart';
 import 'presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'presentation/bloc/theme_bloc/theme_bloc.dart';
@@ -26,23 +25,23 @@ import 'presentation/bloc/doctor_bloc/doctor_bloc.dart';
 import 'presentation/screens/splash_screen.dart';
 import 'presentation/screens/wallet/wallet_screen.dart';
 
+// ✅ معالج الخلفية للإشعارات
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print('📩 Handling background message: ${message.messageId}');
+  print('📩 Data: ${message.data}');
 }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // ✅ تحسين الذاكرة للصور
-  PaintingBinding.instance.imageCache.maximumSize = 100;
-  PaintingBinding.instance.imageCache.maximumSizeBytes = 50 << 20;
-  
+
+  // ✅ تحديد اتجاه الشاشة
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
+  // ✅ تهيئة Firebase
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -52,6 +51,7 @@ void main() async {
     print('❌ Firebase initialization error: $e');
   }
 
+  // ✅ تهيئة FCM
   try {
     final fcm = FirebaseMessaging.instance;
     await fcm.requestPermission(
@@ -59,22 +59,28 @@ void main() async {
       badge: true,
       sound: true,
     );
+
+    // ✅ تسجيل المعالج الخلفي
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+    // ✅ الحصول على التوكن
     final token = await fcm.getToken();
     print('✅ FCM Token: $token');
   } catch (e) {
     print('❌ FCM initialization error: $e');
   }
 
-  await CacheService().init();
-  await PreloadService().preloadEssentialData();
+  // ✅ تهيئة الكاش
+  await CacheService.init();
 
+  // ✅ تهيئة الإشعارات
   final notificationService = NotificationService();
   await notificationService.initialize();
 
   runApp(
     MultiProvider(
       providers: [
+        // ✅ UserProvider - باستخدام loadUserSafely
         ChangeNotifierProvider(
           create: (_) => UserProvider()..loadUserSafely(),
         ),
@@ -84,6 +90,7 @@ void main() async {
         ChangeNotifierProvider(
           create: (_) => BotProvider(),
         ),
+        // ✅ WalletProvider - مع تحقق آمن
         ChangeNotifierProvider(
           create: (_) {
             try {
@@ -126,9 +133,11 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
+    // ✅ الاستماع للإشعارات
     FirebaseMessaging.onMessage.listen(_handleMessage);
     FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpened);
 
+    // ✅ الاستماع لإشعارات المكالمات
     FirebaseMessaging.onMessage.listen((message) {
       if (message.data['type'] == 'incoming_call') {
         _callService.handleIncomingCall(context, message);
@@ -142,15 +151,18 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
     super.dispose();
   }
 
+  // ✅ معالجة العودة من الخلفية
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed) {
       print('🔄 App resumed from background');
       if (mounted) {
+        // ✅ إعادة تحميل بيانات المستخدم
         final userProvider = Provider.of<UserProvider>(context, listen: false);
         userProvider.loadUserSafely();
         
+        // ✅ تحديث حالة المستخدم في Firestore
         final user = FirebaseAuth.instance.currentUser;
         if (user != null) {
           FirebaseFirestore.instance.collection('users').doc(user.uid).update({
@@ -164,15 +176,16 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
 
   void _handleMessage(RemoteMessage message) {
     print('📩 New message: ${message.notification?.title}');
-    _notificationService.showNewMessageNotification(
-      senderName: message.data['senderName'] ?? 'مستخدم',
-      message: message.notification?.body ?? '',
-      chatId: message.data['chatId'] ?? '',
+    _notificationService.showNotification(
+      title: message.notification?.title ?? 'إشعار جديد',
+      body: message.notification?.body ?? '',
+      payload: message.data['chatId'] ?? '',
     );
   }
 
   void _handleMessageOpened(RemoteMessage message) {
     print('📱 Message opened: ${message.data}');
+    // ✅ التنقل إلى الشاشة المناسبة
     if (message.data['type'] == 'incoming_call') {
       _callService.handleIncomingCall(context, message);
     }
@@ -201,7 +214,6 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
                 Locale('en', 'US'),
               ],
               builder: (context, child) {
-                // ✅ الحفاظ على MediaQuery للاستجابة
                 return MediaQuery(
                   data: MediaQuery.of(context).copyWith(
                     textScaleFactor: fontProvider.fontScale,
