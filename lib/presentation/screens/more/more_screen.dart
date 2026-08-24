@@ -36,7 +36,7 @@ import 'package:sehatak/presentation/screens/help_center/help_center_screen.dart
 import 'package:sehatak/presentation/screens/contact_us/contact_us_screen.dart';
 import 'package:sehatak/presentation/screens/share_app/share_app_screen.dart';
 import 'package:sehatak/presentation/screens/rate_app/rate_app_screen.dart';
-import 'package:sehatak/presentation/screens/report_issue/report_issue_screen.dart>';
+import 'package:sehatak/presentation/screens/report_issue/report_issue_screen.dart';
 import 'package:sehatak/presentation/screens/download_data/download_data_screen.dart';
 import 'package:sehatak/presentation/screens/font_size/font_size_screen.dart';
 import 'package:sehatak/presentation/screens/privacy/privacy_screen.dart';
