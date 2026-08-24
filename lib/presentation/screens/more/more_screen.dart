@@ -36,7 +36,7 @@ import 'package:sehatak/presentation/screens/help_center/help_center_screen.dart
 import 'package:sehatak/presentation/screens/contact_us/contact_us_screen.dart';
 import 'package:sehatak/presentation/screens/share_app/share_app_screen.dart';
 import 'package:sehatak/presentation/screens/rate_app/rate_app_screen.dart';
-import 'package:sehatak/presentation/screens/report_issue/report_issue_screen.dart';
+import 'package:sehatak/presentation/screens/report_issue/report_issue_screen.dart>';
 import 'package:sehatak/presentation/screens/download_data/download_data_screen.dart';
 import 'package:sehatak/presentation/screens/font_size/font_size_screen.dart';
 import 'package:sehatak/presentation/screens/privacy/privacy_screen.dart';
@@ -173,15 +173,15 @@ class _MoreScreenState extends State<MoreScreen>
           {'icon': 'assets/images/ui/user_profile.png', 'title': 'الملف الشخصي', 'subtitle': 'إدارة ملفك الشخصي', 'screen': const PatientProfile()},
           {'icon': 'assets/images/ui/settings_gear.png', 'title': 'الإعدادات', 'subtitle': 'إعدادات التطبيق', 'screen': const SettingsScreen()},
           {'icon': 'assets/images/services/notifications.png', 'title': 'الإشعارات', 'subtitle': 'إدارة الإشعارات', 'screen': const NotificationsScreen()},
-          {'icon': 'assets/images/more/privacy.png', 'title': 'الخصوصية', 'subtitle': 'إعدادات الخصوصية', 'screen': const PrivacyScreen()},
-          {'icon': 'assets/images/more/terms_conditions.png', 'title': 'الشروط والأحكام', 'subtitle': 'عرض الشروط والأحكام', 'screen': const TermsScreen()},
-          {'icon': 'assets/images/more/about_app.png', 'title': 'عن التطبيق', 'subtitle': 'معلومات عن التطبيق', 'screen': const AboutScreen()},
-          {'icon': 'assets/images/more/help_center.png', 'title': 'مركز المساعدة', 'subtitle': 'الأسئلة الشائعة والدعم', 'screen': const HelpCenterScreen()},
-          {'icon': 'assets/images/more/contact_us.png', 'title': 'اتصل بنا', 'subtitle': 'تواصل مع فريق الدعم', 'screen': const ContactUsScreen()},
-          {'icon': 'assets/images/more/share_app.png', 'title': 'مشاركة التطبيق', 'subtitle': 'شارك التطبيق مع أصدقائك', 'screen': const ShareAppScreen()},
-          {'icon': 'assets/images/more/rate_app.png', 'title': 'تقييم التطبيق', 'subtitle': 'قيم التطبيق', 'screen': const RateAppScreen()},
-          {'icon': 'assets/images/more/report_problem.png', 'title': 'الإبلاغ عن مشكلة', 'subtitle': 'أبلغ عن مشكلة', 'screen': const ReportIssueScreen()},
-          {'icon': 'assets/images/more/download_data.png', 'title': 'تحميل البيانات', 'subtitle': 'تحميل بياناتك الصحية', 'screen': const DownloadDataScreen()},
+          {'icon': 'assets/images/privacy.png', 'title': 'الخصوصية', 'subtitle': 'إعدادات الخصوصية', 'screen': const PrivacyScreen()},
+          {'icon': 'assets/images/terms_conditions.png', 'title': 'الشروط والأحكام', 'subtitle': 'عرض الشروط والأحكام', 'screen': const TermsScreen()},
+          {'icon': 'assets/images/about/about_app.png', 'title': 'عن التطبيق', 'subtitle': 'معلومات عن التطبيق', 'screen': const AboutScreen()},
+          {'icon': 'assets/images/help_center.png', 'title': 'مركز المساعدة', 'subtitle': 'الأسئلة الشائعة والدعم', 'screen': const HelpCenterScreen()},
+          {'icon': 'assets/images/contact_us.png', 'title': 'اتصل بنا', 'subtitle': 'تواصل مع فريق الدعم', 'screen': const ContactUsScreen()},
+          {'icon': 'assets/images/share_app.png', 'title': 'مشاركة التطبيق', 'subtitle': 'شارك التطبيق مع أصدقائك', 'screen': const ShareAppScreen()},
+          {'icon': 'assets/images/rate_app.png', 'title': 'تقييم التطبيق', 'subtitle': 'قيم التطبيق', 'screen': const RateAppScreen()},
+          {'icon': 'assets/images/report_problem.png', 'title': 'الإبلاغ عن مشكلة', 'subtitle': 'أبلغ عن مشكلة', 'screen': const ReportIssueScreen()},
+          {'icon': 'assets/images/download_data.png', 'title': 'تحميل البيانات', 'subtitle': 'تحميل بياناتك الصحية', 'screen': const DownloadDataScreen()},
           {'icon': 'assets/images/ui/edit_button.png', 'title': 'حجم الخط', 'subtitle': 'تغيير حجم الخط', 'screen': const FontSizeScreen()},
         ];
       default:
@@ -199,7 +199,7 @@ class _MoreScreenState extends State<MoreScreen>
           {'icon': 'assets/images/services/blood_donation.png', 'title': 'التبرع بالدم', 'subtitle': 'مراكز التبرع بالدم', 'screen': const BloodDonationScreen()},
           {'icon': 'assets/images/ui/user_profile.png', 'title': 'الملف الشخصي', 'subtitle': 'إدارة ملفك الشخصي', 'screen': const PatientProfile()},
           {'icon': 'assets/images/ui/settings_gear.png', 'title': 'الإعدادات', 'subtitle': 'إعدادات التطبيق', 'screen': const SettingsScreen()},
-          {'icon': 'assets/images/services/all_services.png', 'title': 'جميع الخدمات', 'subtitle': 'استعراض جميع الخدمات', 'screen': const ServicesScreen()},
+          {'icon': 'assets/images/all_services.png', 'title': 'جميع الخدمات', 'subtitle': 'استعراض جميع الخدمات', 'screen': const ServicesScreen()},
           {'icon': 'assets/images/services/ai_assistant.png', 'title': 'المساعد الذكي', 'subtitle': 'اسأل المساعد الطبي', 'screen': const AiChatbotScreen()},
           {'icon': 'assets/images/services/medical_community.png', 'title': 'المجتمع الطبي', 'subtitle': 'تواصل مع المجتمع', 'screen': const HealthCommunityScreen()},
         ];
@@ -223,7 +223,9 @@ class _MoreScreenState extends State<MoreScreen>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _scrollController.dispose();
+    if (widget.scrollController == null) {
+      _scrollController.dispose();
+    }
     super.dispose();
   }
 
