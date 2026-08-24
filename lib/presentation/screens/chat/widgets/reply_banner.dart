@@ -42,7 +42,7 @@ class ReplyBanner extends StatelessWidget {
                   'الرد على $senderName',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 12,
+                    fontSize: 11,
                     color: AppColors.primary,
                   ),
                 ),
@@ -60,7 +60,11 @@ class ReplyBanner extends StatelessWidget {
             ),
           ),
           IconButton(
-            icon: Icon(Icons.close, size: 18, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+            icon: Icon(
+              Icons.close,
+              size: 18,
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
+            ),
             onPressed: onCancel,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
