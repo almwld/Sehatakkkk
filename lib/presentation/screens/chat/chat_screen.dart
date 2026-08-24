@@ -19,7 +19,7 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabController;
   
-  // ✅ فلاتر البحث كما في واتساب
+  // ✅ فلاتر البحث
   final List<Map<String, dynamic>> _filters = [
     {'label': 'الكل', 'icon': null},
     {'label': 'غير مقروءة', 'icon': null},
@@ -176,8 +176,8 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     );
   }
 
-  // ✅ شريط الفلاتر كما في واتساب
-  Widget _buildFilterChips() {
+  // ✅ شريط الفلاتر
+  Widget _buildFilterChips(bool isDark) {
     return SizedBox(
       height: 45,
       child: ListView.builder(
@@ -274,12 +274,12 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
   }
 
   // ============================================================
-  // 💬 تبويب المحادثات (مع فلاتر)
+  // 💬 تبويب المحادثات
   // ============================================================
   Widget _buildChatsTab(bool isDark) {
     return Column(
       children: [
-        // ✅ شريط البحث كما في واتساب
+        // ✅ شريط البحث
         Padding(
           padding: const EdgeInsets.all(10),
           child: Container(
@@ -308,7 +308,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
           ),
         ),
         // ✅ فلاتر
-        _buildFilterChips(),
+        _buildFilterChips(isDark),
         // ✅ قائمة المحادثات
         Expanded(
           child: StreamBuilder<QuerySnapshot>(

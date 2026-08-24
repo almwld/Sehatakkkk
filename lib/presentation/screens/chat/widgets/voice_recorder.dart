@@ -1,16 +1,21 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:record/record.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/toast_service.dart';
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
 
 class VoiceRecorder extends StatefulWidget {
+  final String chatId;
   final Function(String) onRecordingComplete;
 
   const VoiceRecorder({
     super.key,
+    required this.chatId,
     required this.onRecordingComplete,
   });
 
@@ -20,12 +25,18 @@ class VoiceRecorder extends StatefulWidget {
 
 class _VoiceRecorderState extends State<VoiceRecorder> with SingleTickerProviderStateMixin {
   final AudioRecorder _recorder = AudioRecorder();
+  final FirebaseStorage _storage = FirebaseStorage.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
   bool _isRecording = false;
+  bool _isUploading = false;
   bool _isLocked = false;
-  bool _isPaused = false;
   Duration _duration = Duration.zero;
   Timer? _timer;
   String? _recordingPath;
+  double _uploadProgress = 0.0;
+
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
 
@@ -92,9 +103,79 @@ class _VoiceRecorderState extends State<VoiceRecorder> with SingleTickerProvider
     _timer?.cancel();
     final path = await _recorder.stop();
     setState(() => _isRecording = false);
-    if (path != null) {
-      widget.onRecordingComplete(path);
+    if (path != null && _recordingPath != null) {
+      await _uploadAudio();
     }
+  }
+
+  Future<void> _uploadAudio() async {
+    if (_recordingPath == null) return;
+
+    setState(() => _isUploading = true);
+
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        ToastService.showError('❌ يرجى تسجيل الدخول');
+        return;
+      }
+
+      final file = File(_recordingPath!);
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}.m4a';
+      final ref = _storage
+          .ref()
+          .child('chats/${widget.chatId}/audio/$fileName');
+
+      // ✅ رفع الملف مع مراقبة التقدم
+      final uploadTask = ref.putFile(file);
+      
+      uploadTask.snapshotEvents.listen((snapshot) {
+        final progress = snapshot.bytesTransferred / snapshot.totalBytes;
+        setState(() => _uploadProgress = progress);
+      });
+
+      final snapshot = await uploadTask.whenComplete(() {});
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+
+      // ✅ حفظ الرسالة الصوتية في Firestore
+      await _saveVoiceMessage(downloadUrl);
+
+      ToastService.showSuccess('✅ تم إرسال الرسالة الصوتية');
+      widget.onRecordingComplete(downloadUrl);
+
+    } catch (e) {
+      ToastService.showError('❌ فشل رفع الصوت: $e');
+    } finally {
+      setState(() => _isUploading = false);
+    }
+  }
+
+  Future<void> _saveVoiceMessage(String audioUrl) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    final messageData = {
+      'text': '🎤 رسالة صوتية',
+      'senderId': user.uid,
+      'senderName': user.displayName ?? 'مستخدم',
+      'timestamp': FieldValue.serverTimestamp(),
+      'type': 'audio',
+      'audioUrl': audioUrl,
+      'duration': _duration.inSeconds,
+      'isRead': false,
+    };
+
+    await _firestore
+        .collection('chats')
+        .doc(widget.chatId)
+        .collection('messages')
+        .add(messageData);
+
+    await _firestore.collection('chats').doc(widget.chatId).update({
+      'lastMessage': '🎤 رسالة صوتية',
+      'lastMessageTime': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
   }
 
   void _cancelRecording() {
@@ -126,122 +207,174 @@ class _VoiceRecorderState extends State<VoiceRecorder> with SingleTickerProvider
         color: isDark ? const Color(0xFF111b21) : Colors.grey[100],
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // ✅ مؤشر الصوت
-          Container(
-            height: 40,
-            child: Row(
-              children: List.generate(_amplitudes.length, (index) {
-                final height = _amplitudes[index] * 30;
-                return Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 2),
-                    height: height.clamp(2.0, 30.0),
+      child: _isUploading
+          ? _buildUploadingUI(isDark)
+          : _buildRecordingUI(isDark),
+    );
+  }
+
+  Widget _buildUploadingUI(bool isDark) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.cloud_upload, size: 40, color: AppColors.primary),
+        const SizedBox(height: 12),
+        Text(
+          'جاري رفع الصوت...',
+          style: TextStyle(
+            color: isDark ? Colors.white : Colors.black87,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          width: 200,
+          height: 4,
+          decoration: BoxDecoration(
+            color: isDark ? Colors.grey[800] : Colors.grey[300],
+            borderRadius: BorderRadius.circular(2),
+          ),
+          child: FractionallySizedBox(
+            widthFactor: _uploadProgress,
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          '${(_uploadProgress * 100).toStringAsFixed(0)}%',
+          style: TextStyle(
+            fontSize: 12,
+            color: isDark ? Colors.grey[400] : Colors.grey[600],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRecordingUI(bool isDark) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // ✅ مؤشر الصوت
+        Container(
+          height: 40,
+          child: Row(
+            children: List.generate(_amplitudes.length, (index) {
+              final height = _amplitudes[index] * 30;
+              return Expanded(
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 2),
+                  height: height.clamp(2.0, 30.0),
+                  decoration: BoxDecoration(
+                    color: _isRecording
+                        ? (index % 2 == 0 ? AppColors.primary : Colors.grey)
+                        : Colors.grey,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              );
+            }),
+          ),
+        ),
+        const SizedBox(height: 12),
+        // ✅ الوقت
+        Center(
+          child: Text(
+            _isRecording ? _formatDuration(_duration) : '00:00',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: _isRecording ? Colors.red : Colors.grey,
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        // ✅ أزرار التحكم
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            // ✅ زر الإلغاء
+            GestureDetector(
+              onTap: _cancelRecording,
+              child: Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: Colors.grey[800],
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.close, color: Colors.white),
+              ),
+            ),
+            // ✅ زر القفل
+            GestureDetector(
+              onTap: _toggleLock,
+              child: Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: _isLocked ? AppColors.primary : Colors.grey[800],
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  _isLocked ? Icons.lock : Icons.lock_open,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            // ✅ زر التسجيل الرئيسي
+            GestureDetector(
+              onTap: _isRecording ? _stopRecording : _startRecording,
+              child: AnimatedBuilder(
+                animation: _pulseAnimation,
+                builder: (context, child) {
+                  return Container(
+                    width: 70,
+                    height: 70,
                     decoration: BoxDecoration(
-                      color: _isRecording
-                          ? (index % 2 == 0 ? AppColors.primary : Colors.grey)
-                          : Colors.grey,
-                      borderRadius: BorderRadius.circular(2),
+                      color: _isRecording ? Colors.red : AppColors.primary,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: (_isRecording ? Colors.red : AppColors.primary).withOpacity(0.4),
+                          blurRadius: 20,
+                          spreadRadius: _pulseAnimation.value * 5,
+                        ),
+                      ],
                     ),
-                  ),
-                );
-              }),
-            ),
-          ),
-          const SizedBox(height: 12),
-          // ✅ الوقت
-          Center(
-            child: Text(
-              _isRecording ? _formatDuration(_duration) : '00:00',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: _isRecording ? Colors.red : Colors.grey,
+                    child: Icon(
+                      _isRecording ? Icons.stop : Icons.mic,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                  );
+                },
               ),
             ),
-          ),
-          const SizedBox(height: 12),
-          // ✅ أزرار التحكم
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              // ✅ زر الإلغاء
-              GestureDetector(
-                onTap: _cancelRecording,
-                child: Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[800],
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.close, color: Colors.white),
+            // ✅ زر إرسال (غير مفعل أثناء التسجيل)
+            GestureDetector(
+              onTap: _isRecording ? null : _stopRecording,
+              child: Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: _isRecording ? Colors.grey[800] : Colors.green,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.send,
+                  color: _isRecording ? Colors.grey[600] : Colors.white,
                 ),
               ),
-              // ✅ زر القفل
-              GestureDetector(
-                onTap: _toggleLock,
-                child: Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: _isLocked ? AppColors.primary : Colors.grey[800],
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    _isLocked ? Icons.lock : Icons.lock_open,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              // ✅ زر التسجيل الرئيسي
-              GestureDetector(
-                onTap: _isRecording ? _stopRecording : _startRecording,
-                child: AnimatedBuilder(
-                  animation: _pulseAnimation,
-                  builder: (context, child) {
-                    return Container(
-                      width: 70,
-                      height: 70,
-                      decoration: BoxDecoration(
-                        color: _isRecording ? Colors.red : AppColors.primary,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: (_isRecording ? Colors.red : AppColors.primary).withOpacity(0.4),
-                            blurRadius: 20,
-                            spreadRadius: _pulseAnimation.value * 5,
-                          ),
-                        ],
-                      ),
-                      child: Icon(
-                        _isRecording ? Icons.stop : Icons.mic,
-                        color: Colors.white,
-                        size: 32,
-                      ),
-                    );
-                  },
-                ),
-              ),
-              // ✅ زر إرسال
-              GestureDetector(
-                onTap: _isRecording ? _stopRecording : null,
-                child: Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: _isRecording ? Colors.green : Colors.grey[800],
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.send, color: Colors.white),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
