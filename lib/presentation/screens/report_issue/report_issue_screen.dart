@@ -51,7 +51,6 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // ✅ محاكاة إرسال التقرير
       await Future.delayed(const Duration(seconds: 2));
       
       if (mounted) {
@@ -86,7 +85,6 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ✅ شرح
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -119,7 +117,6 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
             ),
             const SizedBox(height: 20),
 
-            // ✅ التصنيف
             DropdownButtonFormField<String>(
               value: _selectedCategory,
               items: _categories.map((category) {
@@ -143,7 +140,6 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
             ),
             const SizedBox(height: 16),
 
-            // ✅ عنوان المشكلة
             TextField(
               controller: _titleController,
               enabled: !_isLoading,
@@ -158,7 +154,6 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
             ),
             const SizedBox(height: 16),
 
-            // ✅ وصف المشكلة
             TextField(
               controller: _descriptionController,
               maxLines: 6,
@@ -178,7 +173,6 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
             ),
             const SizedBox(height: 16),
 
-            // ✅ البريد الإلكتروني
             TextField(
               controller: _emailController,
               enabled: !_isLoading,
@@ -194,7 +188,6 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
             ),
             const SizedBox(height: 24),
 
-            // ✅ زر الإرسال
             SizedBox(
               width: double.infinity,
               height: 56,
