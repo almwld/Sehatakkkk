@@ -5,7 +5,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/presentation/screens/call/incoming_call_screen.dart';
 import 'package:sehatak/presentation/screens/call/call_screen.dart';
 import 'package:sehatak/core/services/toast_service.dart';
-import 'package:sehatak/core/services/notification_service.dart';
 
 class CallService {
   static final CallService _instance = CallService._internal();
@@ -14,8 +13,10 @@ class CallService {
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final NotificationService _notificationService = NotificationService();
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
+
+  // ✅ مرجع التنقل (يتم تعيينه من main.dart)
+  GlobalKey<NavigatorState>? navigatorKey;
 
   // ✅ بدء مكالمة
   Future<void> startCall({
@@ -23,6 +24,7 @@ class CallService {
     required String callerName,
     required bool isVideo,
     required String chatId,
+    required BuildContext context,
   }) async {
     final user = _auth.currentUser;
     if (user == null) {
@@ -42,10 +44,8 @@ class CallService {
         'participants': [user.uid, receiverId],
       };
 
-      // ✅ حفظ معلومات المكالمة في Firestore
       await _firestore.collection('calls').doc(chatId).set(callData);
 
-      // ✅ إرسال إشعار للمستقبل
       await _sendCallNotification(
         receiverId: receiverId,
         callerName: callerName,
@@ -54,7 +54,6 @@ class CallService {
         callerId: user.uid,
       );
 
-      // ✅ الانتقال إلى شاشة المكالمة (انتظار)
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -69,7 +68,6 @@ class CallService {
     } catch (e) {
       print('❌ Start call error: $e');
       ToastService.showError('❌ فشل بدء المكالمة: $e');
-      rethrow;
     }
   }
 
@@ -82,70 +80,90 @@ class CallService {
     required String callerId,
   }) async {
     try {
-      // ✅ الحصول على توكن المستخدم
       final userDoc = await _firestore.collection('users').doc(receiverId).get();
       final fcmToken = userDoc.data()?['fcmToken'] as String?;
 
-      if (fcmToken != null) {
-        final payload = {
-          'type': 'incoming_call',
-          'callerName': callerName,
-          'isVideo': isVideo.toString(),
-          'chatId': chatId,
-          'callerId': callerId,
-        };
-
-        // ✅ إرسال الإشعار عبر FCM
-        final message = RemoteMessage(
-          notification: RemoteNotification(
-            title: isVideo ? '📹 مكالمة فيديو واردة' : '📞 مكالمة واردة',
-            body: 'من $callerName',
-            android: AndroidNotification(
-              channelId: 'call_channel',
-              priority: Priority.high,
-              sound: 'call_ringtone',
-              fullScreenIntent: true,
-              actions: [
-                AndroidNotificationAction(
-                  'accept',
-                  'قبول',
-                  icon: 'accept_icon',
-                ),
-                AndroidNotificationAction(
-                  'reject',
-                  'رفض',
-                  icon: 'reject_icon',
-                ),
-              ],
-            ),
-          ),
-          data: payload,
-          token: fcmToken,
-        );
-
-        await _fcm.send(message);
-        print('✅ Call notification sent to $receiverId');
-      } else {
+      if (fcmToken == null) {
         print('⚠️ No FCM token for user: $receiverId');
+        return;
       }
+
+      // ✅ استخدام الطريقة الصحيحة لإرسال الإشعار
+      final payload = {
+        'type': 'incoming_call',
+        'callerName': callerName,
+        'isVideo': isVideo.toString(),
+        'chatId': chatId,
+        'callerId': callerId,
+      };
+
+      // ✅ استخدام HTTP API لإرسال الإشعار
+      await _sendFCMNotification(
+        token: fcmToken,
+        title: isVideo ? '📹 مكالمة فيديو واردة' : '📞 مكالمة واردة',
+        body: 'من $callerName',
+        data: payload,
+      );
+
+      print('✅ Call notification sent to $receiverId');
     } catch (e) {
       print('❌ Notification error: $e');
     }
   }
 
+  // ✅ إرسال إشعار عبر FCM HTTP API
+  Future<void> _sendFCMNotification({
+    required String token,
+    required String title,
+    required String body,
+    required Map<String, String> data,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('https://fcm.googleapis.com/fcm/send'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'key=${await _getFCMKey()}',
+        },
+        body: jsonEncode({
+          'to': token,
+          'notification': {
+            'title': title,
+            'body': body,
+            'sound': 'call_ringtone',
+          },
+          'data': data,
+          'priority': 'high',
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        print('✅ FCM notification sent successfully');
+      } else {
+        print('❌ FCM notification failed: ${response.body}');
+      }
+    } catch (e) {
+      print('❌ FCM send error: $e');
+    }
+  }
+
+  // ✅ الحصول على مفتاح FCM
+  Future<String> _getFCMKey() async {
+    // ✅ استخدم مفتاح الخادم من Firebase Console
+    // هذا مجرد مثال، استخدم المفتاح الخاص بك
+    return 'YOUR_FCM_SERVER_KEY';
+  }
+
   // ✅ معالجة المكالمة الواردة
-  void handleIncomingCall(BuildContext context, RemoteMessage message) {
-    final data = message.data;
+  void handleIncomingCall(BuildContext context, Map<String, dynamic> data) {
     final callerName = data['callerName'] ?? 'مستخدم';
     final isVideo = data['isVideo'] == 'true';
     final chatId = data['chatId'] ?? '';
     final callerId = data['callerId'] ?? '';
 
-    // ✅ التحقق من أن المستخدم الحالي ليس المتصل
     final currentUser = _auth.currentUser;
     if (currentUser?.uid == callerId) return;
 
-    // ✅ عرض شاشة المكالمة الواردة
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -239,6 +257,3 @@ class CallService {
     }
   }
 }
-
-// ✅ غلاف للسياق (يستخدم في main.dart)
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
