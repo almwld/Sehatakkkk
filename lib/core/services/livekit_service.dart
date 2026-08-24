@@ -65,7 +65,7 @@ class LiveKitService {
           simulcast: false,
         ),
         defaultAudioPublishOptions: const AudioPublishOptions(
-          bitrate: 32000,
+          
         ),
       );
 

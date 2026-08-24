@@ -30,7 +30,10 @@ class NotificationService {
       iOS: iosSettings,
     );
 
-    await _localNotifications.initialize(settings);
+    await _localNotifications.initialize(
+      settings,
+      onDidReceiveNotificationResponse: _onNotificationTap,
+    );
 
     await _requestPermission();
     FirebaseMessaging.onMessage.listen(_handleMessage);
@@ -76,48 +79,11 @@ class NotificationService {
     }
   }
 
-  Future<void> showIncomingCallNotification({
-    required String callerName,
-    required String chatId,
-    required String callerId,
-    required bool isVideo,
-  }) async {
-    final title = isVideo ? '📹 مكالمة فيديو واردة' : '📞 مكالمة واردة';
-    
-    const AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-      'call_channel',
-      'مكالمات صحتك',
-      channelDescription: 'إشعارات المكالمات الواردة',
-      importance: Importance.max,
-      priority: Priority.max,
-      playSound: true,
-      sound: RawResourceAndroidNotificationSound('call_ringtone'),
-      fullScreenIntent: true,
-      styleInformation: const BigTextStyleInformation(''),
-    );
-
-    const DarwinNotificationDetails iosDetails =
-        DarwinNotificationDetails();
-
-    const NotificationDetails details = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
-
-    await _localNotifications.show(
-      DateTime.now().millisecondsSinceEpoch,
-      title,
-      'من $callerName',
-      details,
-      payload: chatId,
-    );
-  }
-
-  Future<void> showNewMessageNotification({
-    required String senderName,
-    required String message,
-    required String chatId,
+  // ✅ دالة showNotification العامة
+  Future<void> showNotification({
+    required String title,
+    required String body,
+    String payload = '',
   }) async {
     const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
@@ -140,75 +106,112 @@ class NotificationService {
 
     await _localNotifications.show(
       DateTime.now().millisecondsSinceEpoch,
-      '💬 رسالة جديدة من $senderName',
-      message,
+      title,
+      body,
+      details,
+      payload: payload,
+    );
+  }
+
+  // ✅ إشعار مكالمة واردة
+  Future<void> showIncomingCallNotification({
+    required String callerName,
+    required String chatId,
+    required bool isVideo,
+  }) async {
+    final title = isVideo ? '📹 مكالمة فيديو واردة' : '📞 مكالمة واردة';
+    
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+      'call_channel',
+      'مكالمات صحتك',
+      channelDescription: 'إشعارات المكالمات الواردة',
+      importance: Importance.max,
+      priority: Priority.max,
+      playSound: true,
+      sound: RawResourceAndroidNotificationSound('call_ringtone'),
+      fullScreenIntent: true,
+    );
+
+    const DarwinNotificationDetails iosDetails =
+        DarwinNotificationDetails();
+
+    const NotificationDetails details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _localNotifications.show(
+      DateTime.now().millisecondsSinceEpoch,
+      title,
+      'من $callerName',
       details,
       payload: chatId,
     );
   }
 
+  // ✅ إشعار رسالة جديدة
+  Future<void> showNewMessageNotification({
+    required String senderName,
+    required String message,
+    required String chatId,
+  }) async {
+    await showNotification(
+      title: '💬 رسالة جديدة من $senderName',
+      body: message,
+      payload: chatId,
+    );
+  }
+
+  // ✅ إشعار تذكير موعد
   Future<void> showAppointmentReminder({
     required String doctorName,
     required String date,
     required String time,
   }) async {
-    const AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-      'appointment_channel',
-      'مواعيد صحتك',
-      channelDescription: 'تذكير بالمواعيد الطبية',
-      importance: Importance.high,
-      priority: Priority.high,
-      playSound: true,
-    );
-
-    const DarwinNotificationDetails iosDetails =
-        DarwinNotificationDetails();
-
-    const NotificationDetails details = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
-
-    await _localNotifications.show(
-      DateTime.now().millisecondsSinceEpoch,
-      '🩺 تذكير بموعدك مع $doctorName',
-      'موعدك يوم $date الساعة $time',
-      details,
-      payload: 'appointment',
+    await showNotification(
+      title: '🩺 تذكير بموعدك مع $doctorName',
+      body: 'موعدك يوم $date الساعة $time',
     );
   }
 
+  // ✅ إشعار تذكير دواء
   Future<void> showMedicationReminder({
     required String medicineName,
     required String time,
   }) async {
-    const AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-      'medication_channel',
-      'تذكير الأدوية',
-      channelDescription: 'تذكير بتناول الأدوية',
-      importance: Importance.high,
-      priority: Priority.high,
-      playSound: true,
-    );
-
-    const DarwinNotificationDetails iosDetails =
-        DarwinNotificationDetails();
-
-    const NotificationDetails details = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
-
-    await _localNotifications.show(
-      DateTime.now().millisecondsSinceEpoch,
-      '💊 تذكير بدواء $medicineName',
-      'حان وقت تناول الدواء الساعة $time',
-      details,
-      payload: 'medication',
+    await showNotification(
+      title: '💊 تذكير بدواء $medicineName',
+      body: 'حان وقت تناول الدواء الساعة $time',
     );
   }
+
+  // ✅ إشعار تأكيد حجز
+  Future<void> showAppointmentConfirmed({
+    required String doctorName,
+    required String date,
+    required String time,
+  }) async {
+    await showNotification(
+      title: '✅ تم تأكيد موعدك مع $doctorName',
+      body: 'موعدك يوم $date الساعة $time',
+    );
+  }
+
+  // ✅ إشعار نجاح دفع
+  Future<void> showPaymentSuccess({
+    required double amount,
+    required String method,
+  }) async {
+    await showNotification(
+      title: '✅ تم الدفع بنجاح',
+      body: 'تم دفع ${amount.toStringAsFixed(0)} ر.ي عبر $method',
+    );
+  }
+
+  // ============================================================
+  // 📨 معالجة الإشعارات
+  // ============================================================
 
   Future<void> _handleMessage(RemoteMessage message) async {
     print('📩 Message received: ${message.notification?.title}');
@@ -221,7 +224,6 @@ class NotificationService {
       await showIncomingCallNotification(
         callerName: data['callerName'] ?? 'مستخدم',
         chatId: data['chatId'] ?? '',
-        callerId: data['callerId'] ?? '',
         isVideo: data['isVideo'] == 'true',
       );
     } else {
@@ -236,32 +238,17 @@ class NotificationService {
   void _handleMessageOpened(RemoteMessage message) {
     print('📱 Message opened: ${message.data}');
     if (message.data['type'] == 'incoming_call') {
-      _navigateToCallScreen(
-        chatId: message.data['chatId'] ?? '',
-        callerName: message.data['callerName'] ?? 'مستخدم',
-        callerId: message.data['callerId'] ?? '',
-        isVideo: message.data['isVideo'] == 'true',
-      );
+      // ✅ فتح شاشة المكالمة
     } else {
-      _navigateToChatScreen(
-        chatId: message.data['chatId'] ?? '',
-      );
+      // ✅ فتح شاشة المحادثة
     }
   }
 
-  void _navigateToCallScreen({
-    required String chatId,
-    required String callerName,
-    required String callerId,
-    required bool isVideo,
-  }) {
-    print('🔗 Navigate to call: $chatId');
+  void _onNotificationTap(NotificationResponse response) {
+    print('🔔 Notification tapped: ${response.payload}');
   }
 
-  void _navigateToChatScreen({required String chatId}) {
-    print('🔗 Navigate to chat: $chatId');
-  }
-
+  // ✅ حذف التوكن عند تسجيل الخروج
   Future<void> deleteToken() async {
     try {
       final userId = _auth.currentUser?.uid;

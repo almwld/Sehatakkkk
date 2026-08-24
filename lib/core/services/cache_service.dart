@@ -9,12 +9,21 @@ class CacheService {
   late SharedPreferences _prefs;
   bool _isInitialized = false;
 
-  Future<void> init() async {
-    if (_isInitialized) return;
+  static Future<CacheService> init() async {
+    final instance = CacheService();
+    await instance._init();
+    return instance;
+  }
+
+  Future<void> _init() async {
     _prefs = await SharedPreferences.getInstance();
     _isInitialized = true;
     print('✅ Cache service initialized');
   }
+
+  // ============================================================
+  // 💾 حفظ البيانات
+  // ============================================================
 
   Future<void> saveString(String key, String value) async {
     await _prefs.setString(key, value);
@@ -39,6 +48,10 @@ class CacheService {
   Future<int?> getInt(String key) async {
     return _prefs.getInt(key);
   }
+
+  // ============================================================
+  // 💾 حفظ البيانات كـ JSON
+  // ============================================================
 
   Future<void> saveJson(String key, Map<String, dynamic> value) async {
     await _prefs.setString(key, jsonEncode(value));
@@ -68,6 +81,10 @@ class CacheService {
     }
   }
 
+  // ============================================================
+  // 💾 حفظ بيانات المحادثات
+  // ============================================================
+
   Future<void> saveChats(List<Map<String, dynamic>> chats) async {
     await saveList('cached_chats', chats);
   }
@@ -78,6 +95,10 @@ class CacheService {
     return data.map((e) => e as Map<String, dynamic>).toList();
   }
 
+  // ============================================================
+  // 🗑️ حذف البيانات
+  // ============================================================
+
   Future<void> clearAll() async {
     await _prefs.clear();
   }
@@ -85,6 +106,10 @@ class CacheService {
   Future<void> remove(String key) async {
     await _prefs.remove(key);
   }
+
+  // ============================================================
+  // ✅ التحقق من وجود بيانات
+  // ============================================================
 
   bool hasCachedData(String key) {
     return _prefs.containsKey(key);

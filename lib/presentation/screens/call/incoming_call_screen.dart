@@ -74,7 +74,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
           if (!_isVibrating) break;
           await Future.delayed(const Duration(seconds: 1));
           if (_isVibrating) {
-            await Vibrate.vibrate(duration: 200);
+            await Vibrate.vibrate();
           }
         }
       }
