@@ -65,9 +65,9 @@
                 android:pathData="M369 62H413A12 12 0 0 1 425 74V410A12 12 0 0 1 413 422H369A12 12 0 0 1 357 410V74A12 12 0 0 1 369 62Z"
                 android:fillColor="#FFFFFF" />
 
-            <!-- ✅ حرف H - العارضة الأفقية مع فراغات (المعدلة) -->
+            <!-- ✅ حرف H - العارضة الأفقية (متلاصقة مع العمودين) -->
             <path
-                android:pathData="M166 180H346V252H166V180Z"
+                android:pathData="M155 180H357V252H155V180Z"
                 android:fillColor="#FFFFFF" />
 
             <!-- ✅ حرف H - اللوحة العلوية -->
