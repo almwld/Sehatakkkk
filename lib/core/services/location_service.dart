@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -9,9 +8,7 @@ class LocationService {
   factory LocationService() => _instance;
   LocationService._internal();
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-
+  // ✅ التحقق من أذونات الموقع
   Future<bool> checkPermissions() async {
     final serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
@@ -33,6 +30,7 @@ class LocationService {
     return true;
   }
 
+  // ✅ الحصول على الموقع الحالي
   Future<Position?> getCurrentLocation() async {
     try {
       final hasPermission = await checkPermissions();
@@ -49,6 +47,7 @@ class LocationService {
     }
   }
 
+  // ✅ الحصول على العنوان من الإحداثيات
   Future<String> getAddressFromLocation({
     required double latitude,
     required double longitude,
@@ -57,7 +56,13 @@ class LocationService {
       final placemarks = await placemarkFromCoordinates(latitude, longitude);
       if (placemarks.isNotEmpty) {
         final place = placemarks.first;
-        return '${place.street ?? ''} ${place.subLocality ?? ''} ${place.locality ?? ''} ${place.country ?? ''}';
+        final parts = [
+          place.street,
+          place.subLocality,
+          place.locality,
+          place.country,
+        ].where((p) => p != null && p.isNotEmpty).toList();
+        return parts.join('، ');
       }
       return 'موقع غير معروف';
     } catch (e) {
@@ -66,70 +71,7 @@ class LocationService {
     }
   }
 
-  Future<void> sendLocation({
-    required String chatId,
-    required double latitude,
-    required double longitude,
-    String? address,
-  }) async {
-    final user = _auth.currentUser;
-    if (user == null) return;
-
-    final locationAddress = address ?? await getAddressFromLocation(
-      latitude: latitude,
-      longitude: longitude,
-    );
-
-    final messageData = {
-      'text': '📍 $locationAddress',
-      'senderId': user.uid,
-      'senderName': user.displayName ?? 'مستخدم',
-      'timestamp': FieldValue.serverTimestamp(),
-      'type': 'location',
-      'latitude': latitude,
-      'longitude': longitude,
-      'address': locationAddress,
-      'isRead': false,
-    };
-
-    await _firestore
-        .collection('chats')
-        .doc(chatId)
-        .collection('messages')
-        .add(messageData);
-
-    await _firestore.collection('chats').doc(chatId).update({
-      'lastMessage': '📍 تم مشاركة موقع',
-      'lastMessageTime': FieldValue.serverTimestamp(),
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
-  }
-
-  Future<void> shareCurrentLocation({
-    required String chatId,
-    required VoidCallback onSuccess,
-    required VoidCallback onError,
-  }) async {
-    try {
-      final position = await getCurrentLocation();
-      if (position == null) {
-        onError();
-        return;
-      }
-
-      await sendLocation(
-        chatId: chatId,
-        latitude: position.latitude,
-        longitude: position.longitude,
-      );
-
-      onSuccess();
-    } catch (e) {
-      print('❌ Error sharing location: $e');
-      onError();
-    }
-  }
-
+  // ✅ حساب المسافة بين موقعين
   double calculateDistance({
     required double lat1,
     required double lon1,
@@ -139,6 +81,7 @@ class LocationService {
     return Geolocator.distanceBetween(lat1, lon1, lat2, lon2);
   }
 
+  // ✅ تنسيق المسافة
   String formatDistance(double meters) {
     if (meters < 1000) {
       return '${meters.toStringAsFixed(0)} م';

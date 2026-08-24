@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/services/location_service.dart';
 
 class LocationWidget extends StatefulWidget {
   final double latitude;
@@ -23,6 +24,7 @@ class LocationWidget extends StatefulWidget {
 
 class _LocationWidgetState extends State<LocationWidget> {
   late MapController _mapController;
+  final LocationService _locationService = LocationService();
 
   @override
   void initState() {
@@ -46,6 +48,7 @@ class _LocationWidgetState extends State<LocationWidget> {
         ),
         child: Stack(
           children: [
+            // ✅ الخريطة المصغرة
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: FlutterMap(
@@ -80,6 +83,7 @@ class _LocationWidgetState extends State<LocationWidget> {
                 ],
               ),
             ),
+            // ✅ تراكب شفاف
             Positioned.fill(
               child: Container(
                 decoration: BoxDecoration(
@@ -95,6 +99,7 @@ class _LocationWidgetState extends State<LocationWidget> {
                 ),
               ),
             ),
+            // ✅ العنوان
             Positioned(
               bottom: 8,
               left: 8,
@@ -118,6 +123,7 @@ class _LocationWidgetState extends State<LocationWidget> {
                 ),
               ),
             ),
+            // ✅ أيقونة الموقع
             const Positioned(
               top: 8,
               right: 8,
@@ -133,6 +139,7 @@ class _LocationWidgetState extends State<LocationWidget> {
     );
   }
 
+  // ✅ عرض الخريطة بالكامل
   void _showFullScreenMap() {
     showDialog(
       context: context,
@@ -145,6 +152,7 @@ class _LocationWidgetState extends State<LocationWidget> {
           color: Colors.black,
           child: Stack(
             children: [
+              // ✅ الخريطة كاملة
               FlutterMap(
                 options: MapOptions(
                   center: LatLng(widget.latitude, widget.longitude),
@@ -171,6 +179,7 @@ class _LocationWidgetState extends State<LocationWidget> {
                   ),
                 ],
               ),
+              // ✅ زر العودة
               Positioned(
                 top: 40,
                 right: 16,
@@ -179,6 +188,7 @@ class _LocationWidgetState extends State<LocationWidget> {
                   onPressed: () => Navigator.pop(context),
                 ),
               ),
+              // ✅ معلومات الموقع
               Positioned(
                 bottom: 40,
                 left: 16,
@@ -214,6 +224,18 @@ class _LocationWidgetState extends State<LocationWidget> {
                         style: TextStyle(
                           color: Colors.grey[500],
                           fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          // ✅ فتح في خرائط جوجل
+                        },
+                        icon: const Icon(Icons.map, size: 16),
+                        label: const Text('فتح في الخريطة'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
                         ),
                       ),
                     ],

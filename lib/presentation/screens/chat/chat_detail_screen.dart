@@ -712,3 +712,55 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     );
   }
 }
+
+// ✅ إضافة دالة مشاركة الموقع في chat_detail_screen.dart
+
+void _shareLocation() async {
+  final locationService = LocationService();
+  final position = await locationService.getCurrentLocation();
+  
+  if (position == null) {
+    ToastService.showError('❌ لا يمكن الحصول على الموقع');
+    return;
+  }
+
+  final address = await locationService.getAddressFromLocation(
+    latitude: position.latitude,
+    longitude: position.longitude,
+  );
+
+  // ✅ إرسال الموقع كرسالة
+  final messageData = {
+    'text': '📍 $address',
+    'senderId': _auth.currentUser?.uid ?? '',
+    'senderName': _auth.currentUser?.displayName ?? 'مستخدم',
+    'timestamp': FieldValue.serverTimestamp(),
+    'type': 'location',
+    'latitude': position.latitude,
+    'longitude': position.longitude,
+    'address': address,
+    'isRead': false,
+  };
+
+  await _firestore
+      .collection('chats')
+      .doc(widget.chatId)
+      .collection('messages')
+      .add(messageData);
+
+  await _firestore.collection('chats').doc(widget.chatId).update({
+    'lastMessage': '📍 تم مشاركة موقع',
+    'lastMessageTime': FieldValue.serverTimestamp(),
+    'updatedAt': FieldValue.serverTimestamp(),
+  });
+
+  ToastService.showSuccess('✅ تم مشاركة الموقع');
+  _scrollToBottom();
+}
+
+// ✅ إضافة زر الموقع في ChatInputBar
+// في ChatInputBar، أضف:
+IconButton(
+  icon: Icon(Icons.location_on, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+  onPressed: _shareLocation,
+),
