@@ -16,6 +16,8 @@ import 'widgets/media_viewer.dart';
 import 'widgets/chat_input_bar.dart';
 import 'widgets/contact_info_sheet.dart';
 import 'package:sehatak/core/services/location_service.dart';
+import 'package:sehatak/presentation/screens/call/call_screen.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class ChatDetailScreen extends StatefulWidget {
   final String chatId;
@@ -42,22 +44,80 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final ImagePicker _picker = ImagePicker();
   final LocationService _locationService = LocationService();
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   String? _replyToMessageId;
   Map<String, dynamic>? _replyToMessage;
   bool _isTyping = false;
+  bool _isRecording = false;
+  String? _recordingPath;
+  bool _showVoiceRecorder = false;
+
+  // ✅ معلومات الطبيب
+  Map<String, dynamic> _doctorInfo = {};
+  bool _isLoadingDoctor = true;
 
   @override
   void initState() {
     super.initState();
+    _loadDoctorInfo();
     _markAsRead();
+    _playNotificationSound();
   }
 
   @override
   void dispose() {
     _messageController.dispose();
     _scrollController.dispose();
+    _audioPlayer.dispose();
     super.dispose();
+  }
+
+  Future<void> _playNotificationSound() async {
+    try {
+      await _audioPlayer.play(AssetSource('audio/notification.mp3'));
+    } catch (e) {
+      print('⚠️ Sound error: $e');
+    }
+  }
+
+  Future<void> _loadDoctorInfo() async {
+    setState(() => _isLoadingDoctor = true);
+    try {
+      // ✅ جلب معلومات الطبيب من Firestore
+      final snapshot = await _firestore
+          .collection('doctors')
+          .where('name', isEqualTo: widget.userName)
+          .limit(1)
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        _doctorInfo = snapshot.docs.first.data();
+      } else {
+        // ✅ بيانات افتراضية
+        _doctorInfo = {
+          'name': widget.userName,
+          'specialty': 'طبيب عام',
+          'rating': 4.9,
+          'reviews': 328,
+          'experience': '10+ سنة',
+          'image': ImageKit.doctor1,
+          'available': true,
+        };
+      }
+    } catch (e) {
+      print('❌ Error loading doctor info: $e');
+      _doctorInfo = {
+        'name': widget.userName,
+        'specialty': 'طبيب عام',
+        'rating': 4.9,
+        'reviews': 328,
+        'experience': '10+ سنة',
+        'image': ImageKit.doctor1,
+        'available': true,
+      };
+    }
+    setState(() => _isLoadingDoctor = false);
   }
 
   Future<void> _markAsRead() async {
@@ -73,6 +133,11 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       for (final doc in messages.docs) {
         await doc.reference.update({'isRead': true});
       }
+
+      // ✅ تحديث unreadCount
+      await _firestore.collection('chats').doc(widget.chatId).update({
+        'unreadCount.${_auth.currentUser?.uid}': 0,
+      });
     } catch (e) {
       print('❌ Error marking as read: $e');
     }
@@ -114,9 +179,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         _replyToMessageId = null;
         _isTyping = false;
       });
+      _messageController.clear();
       _scrollToBottom();
     } catch (e) {
-      ToastService.showError('❌ فشل إرسال الرسالة');
+      ToastService.showError('❌ فشل إرسال الرسالة: $e');
     }
   }
 
@@ -222,6 +288,20 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     });
   }
 
+  void _startCall(bool isVideo) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CallScreen(
+          chatId: widget.chatId,
+          doctorName: widget.userName,
+          doctorId: widget.userId,
+          isVideo: isVideo,
+        ),
+      ),
+    );
+  }
+
   void _showReactions(String messageId) {
     showModalBottomSheet(
       context: context,
@@ -304,16 +384,29 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: GestureDetector(
-          onTap: () => _showContactInfo(),
+          onTap: _showContactInfo,
           child: Row(
             children: [
+              // ✅ صورة الطبيب (صورة واحدة فقط - محلية)
               CircleAvatar(
                 radius: 16,
-                backgroundImage: NetworkImage(ImageKit.doctor1),
+                backgroundImage: NetworkImage(_doctorInfo['image'] ?? ImageKit.doctor1),
                 child: const Icon(Icons.person, size: 16, color: Colors.white),
               ),
               const SizedBox(width: 8),
-              Text(widget.userName),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.userName,
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    _doctorInfo['specialty'] ?? 'طبيب عام',
+                    style: TextStyle(fontSize: 10, color: Colors.white70),
+                  ),
+                ],
+              ),
               const SizedBox(width: 8),
               Container(
                 width: 8,
@@ -330,17 +423,79 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         foregroundColor: isDark ? Colors.white : Colors.black87,
         elevation: 0,
         actions: [
+          // ✅ زر مكالمة صوتية
           IconButton(
             icon: const Icon(Icons.call),
-            onPressed: () => ToastService.showInfo('📞 جاري الاتصال...'),
+            onPressed: () => _startCall(false),
+            tooltip: 'مكالمة صوتية',
           ),
+          // ✅ زر مكالمة فيديو
           IconButton(
             icon: const Icon(Icons.videocam),
-            onPressed: () => ToastService.showInfo('📹 جاري مكالمة فيديو...'),
+            onPressed: () => _startCall(true),
+            tooltip: 'مكالمة فيديو',
           ),
-          IconButton(
+          // ✅ زر القائمة
+          PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
-            onPressed: _showChatOptions,
+            onSelected: (value) {
+              switch (value) {
+                case 'contact':
+                  _showContactInfo();
+                  break;
+                case 'search':
+                  ToastService.showInfo('🔍 بحث في المحادثة');
+                  break;
+                case 'mute':
+                  ToastService.showSuccess('🔇 تم كتم الإشعارات');
+                  break;
+                case 'delete':
+                  _deleteChat();
+                  break;
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'contact',
+                child: Row(
+                  children: [
+                    Icon(Icons.person, color: AppColors.primary),
+                    SizedBox(width: 8),
+                    Text('معلومات جهة الاتصال'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'search',
+                child: Row(
+                  children: [
+                    Icon(Icons.search, color: AppColors.primary),
+                    SizedBox(width: 8),
+                    Text('بحث في المحادثة'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'mute',
+                child: Row(
+                  children: [
+                    Icon(Icons.notifications_off, color: AppColors.primary),
+                    SizedBox(width: 8),
+                    Text('كتم الإشعارات'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'delete',
+                child: Row(
+                  children: [
+                    Icon(Icons.delete, color: Colors.red),
+                    SizedBox(width: 8),
+                    Text('حذف المحادثة', style: TextStyle(color: Colors.red)),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -366,7 +521,40 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                     .snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.hasError) {
-                    return Center(child: Text('❌ ${snapshot.error}'));
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.error_outline, size: 60, color: Colors.red[300]),
+                          const SizedBox(height: 16),
+                          Text(
+                            'حدث خطأ في تحميل الرسائل',
+                            style: TextStyle(
+                              color: isDark ? Colors.white : Colors.black87,
+                              fontSize: 16,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'يرجى المحاولة مرة أخرى',
+                            style: TextStyle(
+                              color: isDark ? Colors.grey[400] : Colors.grey[600],
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton.icon(
+                            onPressed: () => setState(() {}),
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('إعادة المحاولة'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
                   }
                   if (!snapshot.hasData) {
                     return const Center(child: CircularProgressIndicator());
@@ -409,6 +597,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     final text = message['text'] ?? '';
     final type = message['type'] ?? 'text';
     final imageUrl = message['imageUrl'];
+    final audioUrl = message['audioUrl'];
     final time = _formatTime(message['timestamp'] as Timestamp?);
     final isRead = message['isRead'] as bool? ?? false;
     final reactions = List<String>.from(message['reactions'] ?? []);
@@ -472,6 +661,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                         ),
                       );
                     }
+                    if (type == 'audio' && audioUrl != null) {
+                      ToastService.showInfo('🎵 تشغيل الصوت...');
+                    }
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -504,6 +696,24 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                 child: const Icon(Icons.broken_image, size: 40),
                               ),
                             ),
+                          ),
+                        if (type == 'audio' && audioUrl != null)
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.play_circle_filled,
+                                color: isMe ? Colors.white : AppColors.primary,
+                                size: 32,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '🎤 رسالة صوتية',
+                                style: TextStyle(
+                                  color: isMe ? Colors.white : (isDark ? Colors.white : Colors.black87),
+                                ),
+                              ),
+                            ],
                           ),
                         if (type == 'text' || (type == 'image' && text != '📷 صورة'))
                           Text(
@@ -654,46 +864,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       backgroundColor: Colors.transparent,
       builder: (context) => ContactInfoSheet(
         name: widget.userName,
-        phone: '+967 777 777 777',
-      ),
-    );
-  }
-
-  void _showChatOptions() {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => SafeArea(
-        child: Wrap(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.search, color: AppColors.primary),
-              title: const Text('بحث في المحادثة'),
-              onTap: () {
-                Navigator.pop(context);
-                ToastService.showInfo('🔍 جاري البحث...');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.notifications_off, color: AppColors.primary),
-              title: const Text('كتم الإشعارات'),
-              onTap: () {
-                Navigator.pop(context);
-                ToastService.showSuccess('🔇 تم كتم الإشعارات');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete, color: Colors.red),
-              title: const Text('حذف المحادثة', style: TextStyle(color: Colors.red)),
-              onTap: () {
-                Navigator.pop(context);
-                _deleteChat();
-              },
-            ),
-          ],
-        ),
+        phone: _doctorInfo['phone'] ?? '+967 777 777 777',
+        imageUrl: _doctorInfo['image'] ?? ImageKit.doctor1,
       ),
     );
   }
@@ -703,7 +875,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('حذف المحادثة'),
-        content: const Text('هل أنت متأكد من حذف هذه المحادثة؟'),
+        content: const Text('هل أنت متأكد من حذف هذه المحادثة؟ سيتم حذف جميع الرسائل.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
