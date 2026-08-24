@@ -30,7 +30,10 @@ class NotificationService {
       iOS: iosSettings,
     );
 
-    await _localNotifications.initialize(settings);
+    await _localNotifications.initialize(
+      settings,
+      onDidReceiveNotificationResponse: _onNotificationTap,
+    );
 
     await _requestPermission();
     FirebaseMessaging.onMessage.listen(_handleMessage);
@@ -47,7 +50,6 @@ class NotificationService {
       alert: true,
       badge: true,
       sound: true,
-      provisional: false,
     );
   }
 
@@ -72,97 +74,23 @@ class NotificationService {
         'fcmToken': token,
         'updatedAt': FieldValue.serverTimestamp(),
       });
-      print('✅ FCM token saved for user: $userId');
     } catch (e) {
       print('❌ Error saving FCM token: $e');
     }
   }
 
-  Future<void> showNotification({
-    required String title,
-    required String body,
-    String payload = '',
-  }) async {
-    await _showLocalNotification(
-      title: title,
-      body: body,
-      payload: payload,
-    );
-  }
+  // ============================================================
+  // 📞 إشعارات المكالمات الواردة
+  // ============================================================
 
-  Future<void> _handleMessage(RemoteMessage message) async {
-    print('📩 Message received: ${message.notification?.title}');
-    final notification = message.notification;
-    final data = message.data;
-
-    if (notification != null) {
-      if (data['type'] == 'incoming_call') {
-        await _showCallNotification(
-          title: notification.title ?? '📞 مكالمة واردة',
-          body: notification.body ?? '',
-          payload: data['chatId'] ?? '',
-          callerName: data['callerName'] ?? 'مستخدم',
-          isVideo: data['isVideo'] == 'true',
-        );
-      } else {
-        await _showLocalNotification(
-          title: notification.title ?? 'إشعار جديد',
-          body: notification.body ?? '',
-          payload: data['chatId'] ?? '',
-        );
-      }
-    }
-  }
-
-  void _handleMessageOpened(RemoteMessage message) {
-    print('📱 Message opened: ${message.data}');
-  }
-
-  void _onNotificationTap(NotificationResponse response) {
-    print('🔔 Notification tapped: ${response.payload}');
-  }
-
-  Future<void> _showLocalNotification({
-    required String title,
-    required String body,
-    required String payload,
-  }) async {
-    const AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-      'sehatak_channel',
-      'إشعارات صحتك',
-      channelDescription: 'إشعارات تطبيق صحتك',
-      importance: Importance.high,
-      priority: Priority.high,
-      playSound: true,
-      sound: RawResourceAndroidNotificationSound('notification'),
-      styleInformation: const BigTextStyleInformation(''),
-    );
-
-    const DarwinNotificationDetails iosDetails =
-        DarwinNotificationDetails();
-
-    const NotificationDetails details = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
-
-    await _localNotifications.show(
-      DateTime.now().millisecondsSinceEpoch,
-      title,
-      body,
-      details,
-      payload: payload,
-    );
-  }
-
-  Future<void> _showCallNotification({
-    required String title,
-    required String body,
-    required String payload,
+  Future<void> showIncomingCallNotification({
     required String callerName,
+    required String chatId,
+    required String callerId,
     required bool isVideo,
   }) async {
+    final title = isVideo ? '📹 مكالمة فيديو واردة' : '📞 مكالمة واردة';
+    
     const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
       'call_channel',
@@ -174,6 +102,18 @@ class NotificationService {
       sound: RawResourceAndroidNotificationSound('call_ringtone'),
       fullScreenIntent: true,
       styleInformation: const BigTextStyleInformation(''),
+      actions: [
+        AndroidNotificationAction(
+          'accept',
+          'قبول',
+          icon: 'accept_icon',
+        ),
+        AndroidNotificationAction(
+          'reject',
+          'رفض',
+          icon: 'reject_icon',
+        ),
+      ],
     );
 
     const DarwinNotificationDetails iosDetails =
@@ -187,65 +127,185 @@ class NotificationService {
     await _localNotifications.show(
       DateTime.now().millisecondsSinceEpoch,
       title,
-      body,
+      'من $callerName',
       details,
-      payload: payload,
+      payload: chatId,
     );
   }
 
+  // ✅ إشعار رسالة جديدة
   Future<void> showNewMessageNotification({
     required String senderName,
     required String message,
     required String chatId,
-    required String senderId,
   }) async {
-    await _showLocalNotification(
-      title: '💬 رسالة جديدة من $senderName',
-      body: message,
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+      'sehatak_channel',
+      'إشعارات صحتك',
+      channelDescription: 'إشعارات تطبيق صحتك',
+      importance: Importance.high,
+      priority: Priority.high,
+      playSound: true,
+      sound: RawResourceAndroidNotificationSound('notification'),
+    );
+
+    const DarwinNotificationDetails iosDetails =
+        DarwinNotificationDetails();
+
+    const NotificationDetails details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _localNotifications.show(
+      DateTime.now().millisecondsSinceEpoch,
+      '💬 رسالة جديدة من $senderName',
+      message,
+      details,
       payload: chatId,
     );
   }
 
-  Future<void> showIncomingCallNotification({
-    required String callerName,
-    required String chatId,
-    required String callerId,
-    required bool isVideo,
-  }) async {
-    final title = isVideo ? '📹 مكالمة فيديو واردة' : '📞 مكالمة واردة';
-    await _showCallNotification(
-      title: title,
-      body: 'من $callerName',
-      payload: chatId,
-      callerName: callerName,
-      isVideo: isVideo,
-    );
-  }
-
+  // ✅ إشعار تذكير موعد
   Future<void> showAppointmentReminder({
     required String doctorName,
     required String date,
     required String time,
-    required String appointmentId,
   }) async {
-    await _showLocalNotification(
-      title: '🩺 تذكير بموعدك مع $doctorName',
-      body: 'موعدك يوم $date الساعة $time',
-      payload: appointmentId,
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+      'appointment_channel',
+      'مواعيد صحتك',
+      channelDescription: 'تذكير بالمواعيد الطبية',
+      importance: Importance.high,
+      priority: Priority.high,
+      playSound: true,
+    );
+
+    const DarwinNotificationDetails iosDetails =
+        DarwinNotificationDetails();
+
+    const NotificationDetails details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _localNotifications.show(
+      DateTime.now().millisecondsSinceEpoch,
+      '🩺 تذكير بموعدك مع $doctorName',
+      'موعدك يوم $date الساعة $time',
+      details,
+      payload: 'appointment',
     );
   }
 
+  // ✅ إشعار تذكير دواء
   Future<void> showMedicationReminder({
     required String medicineName,
     required String time,
   }) async {
-    await _showLocalNotification(
-      title: '💊 تذكير بدواء $medicineName',
-      body: 'حان وقت تناول الدواء الساعة $time',
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+      'medication_channel',
+      'تذكير الأدوية',
+      channelDescription: 'تذكير بتناول الأدوية',
+      importance: Importance.high,
+      priority: Priority.high,
+      playSound: true,
+    );
+
+    const DarwinNotificationDetails iosDetails =
+        DarwinNotificationDetails();
+
+    const NotificationDetails details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _localNotifications.show(
+      DateTime.now().millisecondsSinceEpoch,
+      '💊 تذكير بدواء $medicineName',
+      'حان وقت تناول الدواء الساعة $time',
+      details,
       payload: 'medication',
     );
   }
 
+  // ============================================================
+  // 📨 معالجة الإشعارات
+  // ============================================================
+
+  Future<void> _handleMessage(RemoteMessage message) async {
+    print('📩 Message received: ${message.notification?.title}');
+    final notification = message.notification;
+    final data = message.data;
+
+    if (notification == null) return;
+
+    if (data['type'] == 'incoming_call') {
+      await showIncomingCallNotification(
+        callerName: data['callerName'] ?? 'مستخدم',
+        chatId: data['chatId'] ?? '',
+        callerId: data['callerId'] ?? '',
+        isVideo: data['isVideo'] == 'true',
+      );
+    } else {
+      await showNewMessageNotification(
+        senderName: data['senderName'] ?? 'مستخدم',
+        message: notification.body ?? '',
+        chatId: data['chatId'] ?? '',
+      );
+    }
+  }
+
+  void _handleMessageOpened(RemoteMessage message) {
+    print('📱 Message opened: ${message.data}');
+    // ✅ التنقل إلى الشاشة المناسبة
+    if (message.data['type'] == 'incoming_call') {
+      // ✅ فتح شاشة المكالمة
+      _navigateToCallScreen(
+        chatId: message.data['chatId'] ?? '',
+        callerName: message.data['callerName'] ?? 'مستخدم',
+        callerId: message.data['callerId'] ?? '',
+        isVideo: message.data['isVideo'] == 'true',
+      );
+    } else {
+      // ✅ فتح شاشة المحادثة
+      _navigateToChatScreen(
+        chatId: message.data['chatId'] ?? '',
+      );
+    }
+  }
+
+  void _onNotificationTap(NotificationResponse response) {
+    print('🔔 Notification tapped: ${response.payload}');
+    if (response.payload != null) {
+      // ✅ التنقل بناءً على payload
+      if (response.id == 'accept') {
+        // ✅ قبول المكالمة
+      } else if (response.id == 'reject') {
+        // ✅ رفض المكالمة
+      }
+    }
+  }
+
+  void _navigateToCallScreen({
+    required String chatId,
+    required String callerName,
+    required String callerId,
+    required bool isVideo,
+  }) {
+    // TODO: التنقل إلى شاشة المكالمة
+    print('🔗 Navigate to call: $chatId');
+  }
+
+  void _navigateToChatScreen({required String chatId}) {
+    // TODO: التنقل إلى شاشة المحادثة
+    print('🔗 Navigate to chat: $chatId');
+  }
+
+  // ✅ حذف التوكن عند تسجيل الخروج
   Future<void> deleteToken() async {
     try {
       final userId = _auth.currentUser?.uid;
@@ -254,7 +314,6 @@ class NotificationService {
       await _firestore.collection('users').doc(userId).update({
         'fcmToken': FieldValue.delete(),
       });
-      print('✅ FCM token deleted');
     } catch (e) {
       print('❌ Error deleting FCM token: $e');
     }

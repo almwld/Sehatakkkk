@@ -54,9 +54,7 @@ void main() async {
       badge: true,
       sound: true,
     );
-
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
     final token = await fcm.getToken();
     print('✅ FCM Token: $token');
   } catch (e) {
@@ -160,10 +158,10 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
 
   void _handleMessage(RemoteMessage message) {
     print('📩 New message: ${message.notification?.title}');
-    _notificationService.showNotification(
-      title: message.notification?.title ?? 'إشعار جديد',
-      body: message.notification?.body ?? '',
-      payload: message.data['chatId'] ?? '',
+    _notificationService.showNewMessageNotification(
+      senderName: message.data['senderName'] ?? 'مستخدم',
+      message: message.notification?.body ?? '',
+      chatId: message.data['chatId'] ?? '',
     );
   }
 
@@ -196,7 +194,6 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
                 Locale('ar', 'SA'),
                 Locale('en', 'US'),
               ],
-              // ✅ إضافة الخطوط
               builder: (context, child) {
                 return MediaQuery(
                   data: MediaQuery.of(context).copyWith(
