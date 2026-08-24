@@ -32,12 +32,11 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 void main() async {
-  // ✅ تحسين الأداء - تهيئة مبكرة
   WidgetsFlutterBinding.ensureInitialized();
   
-  // ✅ تقليل استهلاك الذاكرة للصور
+  // ✅ تحسين الذاكرة للصور
   PaintingBinding.instance.imageCache.maximumSize = 100;
-  PaintingBinding.instance.imageCache.maximumSizeBytes = 50 << 20; // 50 MB
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 50 << 20;
   
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -68,8 +67,6 @@ void main() async {
   }
 
   await CacheService().init();
-
-  // ✅ تحميل البيانات مسبقاً
   await PreloadService().preloadEssentialData();
 
   final notificationService = NotificationService();
@@ -204,6 +201,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
                 Locale('en', 'US'),
               ],
               builder: (context, child) {
+                // ✅ الحفاظ على MediaQuery للاستجابة
                 return MediaQuery(
                   data: MediaQuery.of(context).copyWith(
                     textScaleFactor: fontProvider.fontScale,
