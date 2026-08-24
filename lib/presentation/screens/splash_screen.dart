@@ -21,11 +21,10 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _loadingCtrl;
   late Animation<double> _loadingAnimation;
   final AudioPlayer _audioPlayer = AudioPlayer();
-
+  
   bool _isLoading = true;
   String _statusMessage = 'جاري التحميل...';
   double _progress = 0.0;
-  bool _isLoggedIn = false;
 
   // ✅ دوائر متحركة
   final List<CircleData> _circles = [
@@ -43,83 +42,98 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
 
-    _mainCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    )..forward();
-
-    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _mainCtrl, curve: Curves.easeOut),
-    );
-
-    _scaleAnimation = Tween<double>(begin: 0.85, end: 1.0).animate(
-      CurvedAnimation(parent: _mainCtrl, curve: Curves.easeOut),
-    );
-
-    _loadingCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 5),
-    )..repeat();
-
-    _loadingAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _loadingCtrl, curve: Curves.easeInOut),
-    );
-
     _playSplashSound();
-    _checkLoginStatus();
+    _initializeApp();
   }
 
-  Future<void> _checkLoginStatus() async {
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      final prefs = await SharedPreferences.getInstance();
-      final isLoggedInPrefs = prefs.getBool('is_logged_in') ?? false;
-      final savedUid = prefs.getString('user_uid') ?? '';
+  // ============================================================
+  // ✅ تهيئة التطبيق
+  // ============================================================
+  Future<void> _initializeApp() async {
+    setState(() {
+      _statusMessage = 'جاري تهيئة التطبيق...';
+      _progress = 0.1;
+    });
 
-      setState(() {
-        _isLoggedIn = user != null && isLoggedInPrefs && user.uid == savedUid;
-        _progress = 0.5;
-        _statusMessage = 'جاري التحقق من المستخدم...';
-      });
+    // ✅ تهيئة Firebase (محاكاة)
+    await Future.delayed(const Duration(milliseconds: 500));
 
-      if (user != null) {
-        await prefs.setBool('is_logged_in', true);
-        await prefs.setString('user_uid', user.uid);
-      } else {
-        await prefs.setBool('is_logged_in', false);
-      }
+    setState(() {
+      _statusMessage = 'جاري التحقق من المستخدم...';
+      _progress = 0.3;
+    });
 
-      setState(() {
-        _progress = 0.8;
-        _statusMessage = 'جاهز!';
-        _isLoading = false;
-      });
+    // ✅ التحقق من المستخدم
+    final user = FirebaseAuth.instance.currentUser;
 
-      await Future.delayed(const Duration(milliseconds: 2500));
+    setState(() {
+      _statusMessage = 'جاري تحميل البيانات...';
+      _progress = 0.6;
+    });
 
-      if (mounted) {
-        _navigateToNext();
-      }
-    } catch (e) {
-      print('❌ Error checking login status: $e');
-      setState(() {
-        _isLoading = false;
-        _isLoggedIn = false;
-        _statusMessage = 'حدث خطأ';
-      });
-      await Future.delayed(const Duration(seconds: 2));
-      if (mounted) {
-        _navigateToNext();
-      }
+    // ✅ حفظ حالة المستخدم في الكاش
+    await _cacheUserData(user);
+
+    setState(() {
+      _statusMessage = 'جاهز!';
+      _progress = 1.0;
+      _isLoading = false;
+    });
+
+    // ✅ الانتقال للشاشة التالية بعد 8 ثواني
+    Future.delayed(const Duration(seconds: 8), () {
+      if (!mounted) return;
+      _navigateToNext();
+    });
+  }
+
+  // ============================================================
+  // ✅ حفظ حالة المستخدم في الكاش
+  // ============================================================
+  Future<void> _cacheUserData(User? user) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (user != null) {
+      await prefs.setBool('is_logged_in', true);
+      await prefs.setString('user_uid', user.uid);
+      await prefs.setString('user_email', user.email ?? '');
+      await prefs.setString('user_name', user.displayName ?? 'مستخدم');
+      await prefs.setString('user_photo', user.photoURL ?? '');
+    } else {
+      await prefs.setBool('is_logged_in', false);
+      await prefs.remove('user_uid');
+      await prefs.remove('user_email');
+      await prefs.remove('user_name');
+      await prefs.remove('user_photo');
     }
   }
 
-  void _navigateToNext() {
-    if (!mounted) return;
+  // ============================================================
+  // ✅ تشغيل صوت السبلاش
+  // ============================================================
+  Future<void> _playSplashSound() async {
+    try {
+      await _audioPlayer.play(
+        AssetSource('audio/splash_sound.mp3'),
+        volume: 0.5,
+      );
+    } catch (e) {
+      debugPrint('❌ خطأ في تشغيل الصوت: $e');
+    }
+  }
+
+  // ============================================================
+  // ✅ الانتقال للشاشة التالية
+  // ============================================================
+  Future<void> _navigateToNext() async {
+    await _audioPlayer.stop();
 
     final user = FirebaseAuth.instance.currentUser;
+    final prefs = await SharedPreferences.getInstance();
+    final isLoggedIn = prefs.getBool('is_logged_in') ?? false;
 
-    if (_isLoggedIn && user != null) {
+    if (!mounted) return;
+
+    if (user != null && isLoggedIn) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const HomeScreen()),
@@ -132,19 +146,14 @@ class _SplashScreenState extends State<SplashScreen>
     }
   }
 
-  Future<void> _playSplashSound() async {
-    try {
-      await _audioPlayer.play(
-        AssetSource('audio/splash_sound.mp3'),
-        volume: 0.5,
-      );
-    } catch (e) {
-      debugPrint('❌ خطأ في تشغيل الصوت: $e');
-    }
-  }
-
+  // ============================================================
+  // ✅ زر تخطي للمطورين
+  // ============================================================
   void _skipSplash() {
-    _navigateToNext();
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const HomeScreen()),
+    );
   }
 
   @override
@@ -164,6 +173,29 @@ class _SplashScreenState extends State<SplashScreen>
     final lottieWidth = screenWidth * 0.50;
     final lottieHeight = lottieWidth * (180 / 320);
 
+    // ✅ التحكمات المتحركة
+    _mainCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..forward();
+
+    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _mainCtrl, curve: Curves.easeIn),
+    );
+
+    _scaleAnimation = Tween<double>(begin: 0.7, end: 1.0).animate(
+      CurvedAnimation(parent: _mainCtrl, curve: Curves.elasticOut),
+    );
+
+    _loadingCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat();
+
+    _loadingAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _loadingCtrl, curve: Curves.easeInOut),
+    );
+
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -172,8 +204,14 @@ class _SplashScreenState extends State<SplashScreen>
         child: SafeArea(
           child: Stack(
             children: [
+              // ============================================================
+              // ✅ دوائر متحركة في الخلفية
+              // ============================================================
               ..._circles.map((circle) => _buildAnimatedCircle(circle)),
 
+              // ============================================================
+              // ✅ زر تخطي للمطورين
+              // ============================================================
               Positioned(
                 top: 16,
                 right: 16,
@@ -203,6 +241,9 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
               ),
 
+              // ============================================================
+              // ✅ المحتوى الرئيسي
+              // ============================================================
               Center(
                 child: SingleChildScrollView(
                   physics: const ClampingScrollPhysics(),
@@ -219,6 +260,7 @@ class _SplashScreenState extends State<SplashScreen>
                             children: [
                               SizedBox(height: screenHeight * 0.05),
 
+                              // ✅ Lottie Animation
                               Transform.scale(
                                 scale: _scaleAnimation.value,
                                 child: ConstrainedBox(
@@ -231,7 +273,7 @@ class _SplashScreenState extends State<SplashScreen>
                                   child: Lottie.asset(
                                     'assets/animations/sehatak_animation.json',
                                     fit: BoxFit.contain,
-                                    repeat: false,
+                                    repeat: true,
                                     errorBuilder: (context, error, stackTrace) {
                                       return Icon(
                                         Icons.health_and_safety,
@@ -245,6 +287,7 @@ class _SplashScreenState extends State<SplashScreen>
 
                               SizedBox(height: screenHeight * 0.04),
 
+                              // ✅ النص الرئيسي
                               Transform.scale(
                                 scale: _scaleAnimation.value,
                                 child: const Column(
@@ -273,6 +316,7 @@ class _SplashScreenState extends State<SplashScreen>
 
                               SizedBox(height: screenHeight * 0.02),
 
+                              // ✅ الشعار
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 20,
@@ -293,6 +337,7 @@ class _SplashScreenState extends State<SplashScreen>
 
                               SizedBox(height: screenHeight * 0.04),
 
+                              // ✅ شريط التقدم
                               Container(
                                 width: screenWidth * 0.6,
                                 height: 4,
@@ -318,6 +363,7 @@ class _SplashScreenState extends State<SplashScreen>
 
                               const SizedBox(height: 12),
 
+                              // ✅ حالة التحميل
                               Text(
                                 _statusMessage,
                                 style: TextStyle(
@@ -329,6 +375,9 @@ class _SplashScreenState extends State<SplashScreen>
 
                               SizedBox(height: screenHeight * 0.03),
 
+                              // ============================================================
+                              // ✅ "صحتك أولاً"
+                              // ============================================================
                               Column(
                                 children: [
                                   const Text(
@@ -375,6 +424,9 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
+  // ============================================================
+  // ✅ دوائر متحركة
+  // ============================================================
   Widget _buildAnimatedCircle(CircleData circle) {
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 0, end: 2 * 3.14159),
@@ -404,6 +456,9 @@ class _SplashScreenState extends State<SplashScreen>
   }
 }
 
+// ============================================================
+// ✅ بيانات الدوائر
+// ============================================================
 class CircleData {
   final double size;
   final int duration;
