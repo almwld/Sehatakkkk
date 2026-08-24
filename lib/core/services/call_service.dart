@@ -5,6 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/presentation/screens/call/incoming_call_screen.dart';
 import 'package:sehatak/presentation/screens/call/call_screen.dart';
 import 'package:sehatak/core/services/toast_service.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class CallService {
   static final CallService _instance = CallService._internal();
@@ -14,9 +16,6 @@ class CallService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
-
-  // ✅ مرجع التنقل (يتم تعيينه من main.dart)
-  GlobalKey<NavigatorState>? navigatorKey;
 
   // ✅ بدء مكالمة
   Future<void> startCall({
@@ -88,7 +87,6 @@ class CallService {
         return;
       }
 
-      // ✅ استخدام الطريقة الصحيحة لإرسال الإشعار
       final payload = {
         'type': 'incoming_call',
         'callerName': callerName,
@@ -97,7 +95,6 @@ class CallService {
         'callerId': callerId,
       };
 
-      // ✅ استخدام HTTP API لإرسال الإشعار
       await _sendFCMNotification(
         token: fcmToken,
         title: isVideo ? '📹 مكالمة فيديو واردة' : '📞 مكالمة واردة',
@@ -150,12 +147,39 @@ class CallService {
   // ✅ الحصول على مفتاح FCM
   Future<String> _getFCMKey() async {
     // ✅ استخدم مفتاح الخادم من Firebase Console
-    // هذا مجرد مثال، استخدم المفتاح الخاص بك
     return 'YOUR_FCM_SERVER_KEY';
   }
 
-  // ✅ معالجة المكالمة الواردة
-  void handleIncomingCall(BuildContext context, Map<String, dynamic> data) {
+  // ✅ معالجة المكالمة الواردة (تقبل RemoteMessage)
+  void handleIncomingCall(BuildContext context, RemoteMessage message) {
+    final data = message.data;
+    final callerName = data['callerName'] ?? 'مستخدم';
+    final isVideo = data['isVideo'] == 'true';
+    final chatId = data['chatId'] ?? '';
+    final callerId = data['callerId'] ?? '';
+
+    final currentUser = _auth.currentUser;
+    if (currentUser?.uid == callerId) return;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => IncomingCallScreen(
+          callerName: callerName,
+          callerId: callerId,
+          isVideo: isVideo,
+          chatId: chatId,
+          onCallAnswered: (accepted) {
+            _logCallResponse(chatId, accepted);
+          },
+        ),
+        fullscreenDialog: true,
+      ),
+    );
+  }
+
+  // ✅ معالجة المكالمة الواردة (تقبل Map)
+  void handleIncomingCallData(BuildContext context, Map<String, dynamic> data) {
     final callerName = data['callerName'] ?? 'مستخدم';
     final isVideo = data['isVideo'] == 'true';
     final chatId = data['chatId'] ?? '';
