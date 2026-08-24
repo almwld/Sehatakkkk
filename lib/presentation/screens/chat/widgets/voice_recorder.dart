@@ -8,6 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/toast_service.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class VoiceRecorder extends StatefulWidget {
   final String chatId;
@@ -30,18 +31,18 @@ class _VoiceRecorderState extends State<VoiceRecorder> with SingleTickerProvider
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   bool _isRecording = false;
+  bool _isPaused = false;
   bool _isUploading = false;
   bool _isLocked = false;
+  bool _hasPermission = false;
   Duration _duration = Duration.zero;
   Timer? _timer;
   String? _recordingPath;
   double _uploadProgress = 0.0;
+  List<double> _amplitudes = List.generate(30, (_) => 0.0);
 
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
-
-  // ✅ مؤشر الصوت
-  final List<double> _amplitudes = List.generate(30, (_) => 0.0);
 
   @override
   void initState() {
@@ -53,6 +54,7 @@ class _VoiceRecorderState extends State<VoiceRecorder> with SingleTickerProvider
     _pulseAnimation = Tween<double>(begin: 1.0, end: 1.3).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
+    _checkPermissions();
   }
 
   @override
@@ -63,49 +65,81 @@ class _VoiceRecorderState extends State<VoiceRecorder> with SingleTickerProvider
     super.dispose();
   }
 
+  Future<void> _checkPermissions() async {
+    final status = await Permission.microphone.request();
+    setState(() => _hasPermission = status.isGranted);
+    if (!_hasPermission) {
+      ToastService.showError('❌ يرجى منح إذن الميكروفون');
+    }
+  }
+
   Future<void> _startRecording() async {
+    if (!_hasPermission) {
+      await _checkPermissions();
+      return;
+    }
+
     try {
-      if (await _recorder.hasPermission()) {
-        final tempDir = await getTemporaryDirectory();
-        final path = '${tempDir.path}/audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
-        await _recorder.start(
-          RecordConfig(
-            encoder: AudioEncoder.aacLc,
-            sampleRate: 44100,
-            bitRate: 128000,
-          ),
-          path: path,
-        );
+      final tempDir = await getTemporaryDirectory();
+      final path = '${tempDir.path}/audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
+      
+      await _recorder.start(
+        RecordConfig(
+          encoder: AudioEncoder.aacLc,
+          sampleRate: 44100,
+          bitRate: 128000,
+        ),
+        path: path,
+      );
+      
+      setState(() {
+        _isRecording = true;
+        _recordingPath = path;
+        _duration = Duration.zero;
+        _amplitudes = List.generate(30, (_) => 0.0);
+      });
+      
+      _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
         setState(() {
-          _isRecording = true;
-          _recordingPath = path;
-          _duration = Duration.zero;
-        });
-        _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-          setState(() => _duration += const Duration(seconds: 1));
+          _duration += const Duration(milliseconds: 100);
           _updateAmplitudes();
         });
-      }
+      });
     } catch (e) {
       ToastService.showError('❌ فشل بدء التسجيل: $e');
     }
   }
 
   void _updateAmplitudes() {
-    // محاكاة مؤشر الصوت
     for (int i = 0; i < _amplitudes.length; i++) {
-      _amplitudes[i] = (0.3 + (DateTime.now().millisecondsSinceEpoch % 100) / 100).clamp(0.0, 1.0);
+      _amplitudes[i] = (0.2 + (DateTime.now().millisecondsSinceEpoch % 80) / 100).clamp(0.0, 1.0);
     }
-    setState(() {});
   }
 
   Future<void> _stopRecording() async {
     _timer?.cancel();
     final path = await _recorder.stop();
     setState(() => _isRecording = false);
+    
     if (path != null && _recordingPath != null) {
       await _uploadAudio();
     }
+  }
+
+  Future<void> _pauseRecording() async {
+    if (_isPaused) {
+      await _recorder.resume();
+      _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+        setState(() {
+          _duration += const Duration(milliseconds: 100);
+          _updateAmplitudes();
+        });
+      });
+    } else {
+      await _recorder.pause();
+      _timer?.cancel();
+    }
+    setState(() => _isPaused = !_isPaused);
   }
 
   Future<void> _uploadAudio() async {
@@ -126,7 +160,6 @@ class _VoiceRecorderState extends State<VoiceRecorder> with SingleTickerProvider
           .ref()
           .child('chats/${widget.chatId}/audio/$fileName');
 
-      // ✅ رفع الملف مع مراقبة التقدم
       final uploadTask = ref.putFile(file);
       
       uploadTask.snapshotEvents.listen((snapshot) {
@@ -137,7 +170,6 @@ class _VoiceRecorderState extends State<VoiceRecorder> with SingleTickerProvider
       final snapshot = await uploadTask.whenComplete(() {});
       final downloadUrl = await snapshot.ref.getDownloadURL();
 
-      // ✅ حفظ الرسالة الصوتية في Firestore
       await _saveVoiceMessage(downloadUrl);
 
       ToastService.showSuccess('✅ تم إرسال الرسالة الصوتية');
@@ -182,6 +214,7 @@ class _VoiceRecorderState extends State<VoiceRecorder> with SingleTickerProvider
     _timer?.cancel();
     setState(() => _isRecording = false);
     _recorder.stop();
+    ToastService.showInfo('❌ تم إلغاء التسجيل');
   }
 
   void _toggleLock() {
@@ -206,53 +239,44 @@ class _VoiceRecorderState extends State<VoiceRecorder> with SingleTickerProvider
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF111b21) : Colors.grey[100],
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+          width: 1,
+        ),
       ),
       child: _isUploading
           ? _buildUploadingUI(isDark)
-          : _buildRecordingUI(isDark),
+          : _isRecording
+              ? _buildRecordingUI(isDark)
+              : _buildIdleUI(isDark),
     );
   }
 
-  Widget _buildUploadingUI(bool isDark) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const Icon(Icons.cloud_upload, size: 40, color: AppColors.primary),
-        const SizedBox(height: 12),
-        Text(
-          'جاري رفع الصوت...',
-          style: TextStyle(
-            color: isDark ? Colors.white : Colors.black87,
-            fontWeight: FontWeight.bold,
-          ),
+  Widget _buildIdleUI(bool isDark) {
+    return GestureDetector(
+      onTap: _startRecording,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF2a3942) : Colors.grey[200],
+          borderRadius: BorderRadius.circular(12),
         ),
-        const SizedBox(height: 8),
-        Container(
-          width: 200,
-          height: 4,
-          decoration: BoxDecoration(
-            color: isDark ? Colors.grey[800] : Colors.grey[300],
-            borderRadius: BorderRadius.circular(2),
-          ),
-          child: FractionallySizedBox(
-            widthFactor: _uploadProgress,
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(2),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.mic, color: AppColors.primary, size: 28),
+            const SizedBox(width: 12),
+            Text(
+              'اضغط للتسجيل',
+              style: TextStyle(
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
               ),
             ),
-          ),
+          ],
         ),
-        const SizedBox(height: 4),
-        Text(
-          '${(_uploadProgress * 100).toStringAsFixed(0)}%',
-          style: TextStyle(
-            fontSize: 12,
-            color: isDark ? Colors.grey[400] : Colors.grey[600],
-          ),
-        ),
-      ],
+      ),
     );
   }
 
@@ -271,9 +295,9 @@ class _VoiceRecorderState extends State<VoiceRecorder> with SingleTickerProvider
                   margin: const EdgeInsets.symmetric(horizontal: 2),
                   height: height.clamp(2.0, 30.0),
                   decoration: BoxDecoration(
-                    color: _isRecording
-                        ? (index % 2 == 0 ? AppColors.primary : Colors.grey)
-                        : Colors.grey,
+                    color: _isPaused
+                        ? Colors.orange
+                        : (index % 2 == 0 ? AppColors.primary : Colors.grey),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -282,54 +306,45 @@ class _VoiceRecorderState extends State<VoiceRecorder> with SingleTickerProvider
           ),
         ),
         const SizedBox(height: 12),
+        
         // ✅ الوقت
         Center(
           child: Text(
-            _isRecording ? _formatDuration(_duration) : '00:00',
+            _formatDuration(_duration),
             style: TextStyle(
-              fontSize: 24,
+              fontSize: 28,
               fontWeight: FontWeight.bold,
-              color: _isRecording ? Colors.red : Colors.grey,
+              color: _isPaused ? Colors.orange : Colors.red,
             ),
           ),
         ),
         const SizedBox(height: 12),
+        
         // ✅ أزرار التحكم
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             // ✅ زر الإلغاء
-            GestureDetector(
+            _buildControlButton(
+              icon: Icons.close,
+              color: Colors.red,
               onTap: _cancelRecording,
-              child: Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  color: Colors.grey[800],
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.close, color: Colors.white),
-              ),
+            ),
+            // ✅ زر الإيقاف المؤقت
+            _buildControlButton(
+              icon: _isPaused ? Icons.play_arrow : Icons.pause,
+              color: Colors.orange,
+              onTap: _pauseRecording,
             ),
             // ✅ زر القفل
-            GestureDetector(
+            _buildControlButton(
+              icon: _isLocked ? Icons.lock : Icons.lock_open,
+              color: _isLocked ? AppColors.primary : Colors.grey,
               onTap: _toggleLock,
-              child: Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  color: _isLocked ? AppColors.primary : Colors.grey[800],
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  _isLocked ? Icons.lock : Icons.lock_open,
-                  color: Colors.white,
-                ),
-              ),
             ),
             // ✅ زر التسجيل الرئيسي
             GestureDetector(
-              onTap: _isRecording ? _stopRecording : _startRecording,
+              onTap: _stopRecording,
               child: AnimatedBuilder(
                 animation: _pulseAnimation,
                 builder: (context, child) {
@@ -337,18 +352,18 @@ class _VoiceRecorderState extends State<VoiceRecorder> with SingleTickerProvider
                     width: 70,
                     height: 70,
                     decoration: BoxDecoration(
-                      color: _isRecording ? Colors.red : AppColors.primary,
+                      color: Colors.red,
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: (_isRecording ? Colors.red : AppColors.primary).withOpacity(0.4),
+                          color: Colors.red.withOpacity(0.4),
                           blurRadius: 20,
                           spreadRadius: _pulseAnimation.value * 5,
                         ),
                       ],
                     ),
-                    child: Icon(
-                      _isRecording ? Icons.stop : Icons.mic,
+                    child: const Icon(
+                      Icons.stop,
                       color: Colors.white,
                       size: 32,
                     ),
@@ -356,23 +371,81 @@ class _VoiceRecorderState extends State<VoiceRecorder> with SingleTickerProvider
                 },
               ),
             ),
-            // ✅ زر إرسال (غير مفعل أثناء التسجيل)
-            GestureDetector(
-              onTap: _isRecording ? null : _stopRecording,
-              child: Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  color: _isRecording ? Colors.grey[800] : Colors.green,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.send,
-                  color: _isRecording ? Colors.grey[600] : Colors.white,
-                ),
-              ),
+            // ✅ زر إرسال
+            _buildControlButton(
+              icon: Icons.send,
+              color: Colors.green,
+              onTap: _stopRecording,
             ),
           ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildControlButton({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 50,
+        height: 50,
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          shape: BoxShape.circle,
+          border: Border.all(color: color, width: 2),
+        ),
+        child: Icon(
+          icon,
+          color: color,
+          size: 24,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUploadingUI(bool isDark) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.cloud_upload, size: 48, color: AppColors.primary),
+        const SizedBox(height: 12),
+        Text(
+          'جاري رفع الصوت...',
+          style: TextStyle(
+            color: isDark ? Colors.white : Colors.black87,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          width: 200,
+          height: 6,
+          decoration: BoxDecoration(
+            color: isDark ? Colors.grey[800] : Colors.grey[300],
+            borderRadius: BorderRadius.circular(3),
+          ),
+          child: FractionallySizedBox(
+            widthFactor: _uploadProgress,
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          '${(_uploadProgress * 100).toStringAsFixed(0)}%',
+          style: TextStyle(
+            fontSize: 12,
+            color: isDark ? Colors.grey[400] : Colors.grey[600],
+          ),
         ),
       ],
     );
