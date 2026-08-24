@@ -17,6 +17,7 @@ import 'core/themes/theme_manager.dart';
 import 'core/services/cache_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/call_service.dart';
+import 'core/services/preload_service.dart';
 import 'core/routes/payment_routes.dart';
 import 'presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'presentation/bloc/theme_bloc/theme_bloc.dart';
@@ -31,8 +32,13 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 void main() async {
+  // ✅ تحسين الأداء - تهيئة مبكرة
   WidgetsFlutterBinding.ensureInitialized();
-
+  
+  // ✅ تقليل استهلاك الذاكرة للصور
+  PaintingBinding.instance.imageCache.maximumSize = 100;
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 50 << 20; // 50 MB
+  
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -61,7 +67,10 @@ void main() async {
     print('❌ FCM initialization error: $e');
   }
 
-  await CacheService.init();
+  await CacheService().init();
+
+  // ✅ تحميل البيانات مسبقاً
+  await PreloadService().preloadEssentialData();
 
   final notificationService = NotificationService();
   await notificationService.initialize();
