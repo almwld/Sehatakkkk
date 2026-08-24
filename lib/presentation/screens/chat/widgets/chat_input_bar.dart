@@ -5,13 +5,17 @@ import 'voice_recorder.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ChatInputBar extends StatefulWidget {
+  final String chatId;
   final Function(String) onSendMessage;
   final Function(String) onSendImage;
+  final VoidCallback onShareLocation;
 
   const ChatInputBar({
     super.key,
+    required this.chatId,
     required this.onSendMessage,
     required this.onSendImage,
+    required this.onShareLocation,
   });
 
   @override
@@ -30,10 +34,10 @@ class _ChatInputBarState extends State<ChatInputBar> {
 
     if (_showVoiceRecorder) {
       return VoiceRecorder(
+        chatId: widget.chatId,
         onRecordingComplete: (path) {
           setState(() => _showVoiceRecorder = false);
           ToastService.showSuccess('✅ تم تسجيل الصوت بنجاح');
-          // TODO: إرسال الصوت
         },
       );
     }
@@ -52,17 +56,18 @@ class _ChatInputBarState extends State<ChatInputBar> {
       ),
       child: Row(
         children: [
-          // ✅ زر المرفقات
           IconButton(
             icon: Icon(Icons.attach_file, color: isDark ? Colors.grey[400] : Colors.grey[600]),
             onPressed: _showAttachmentOptions,
           ),
-          // ✅ زر الصور
           IconButton(
             icon: Icon(Icons.photo_library, color: isDark ? Colors.grey[400] : Colors.grey[600]),
             onPressed: _pickImage,
           ),
-          // ✅ حقل النص
+          IconButton(
+            icon: Icon(Icons.location_on, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+            onPressed: widget.onShareLocation,
+          ),
           Expanded(
             child: Container(
               decoration: BoxDecoration(
@@ -95,7 +100,6 @@ class _ChatInputBarState extends State<ChatInputBar> {
               ),
             ),
           ),
-          // ✅ زر التسجيل الصوتي (ضغط مطول)
           GestureDetector(
             onLongPress: _startRecording,
             onLongPressUp: _stopRecording,

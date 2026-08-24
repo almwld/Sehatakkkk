@@ -15,6 +15,7 @@ import 'widgets/message_reactions.dart';
 import 'widgets/media_viewer.dart';
 import 'widgets/chat_input_bar.dart';
 import 'widgets/contact_info_sheet.dart';
+import 'package:sehatak/core/services/location_service.dart';
 
 class ChatDetailScreen extends StatefulWidget {
   final String chatId;
@@ -40,6 +41,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final ImagePicker _picker = ImagePicker();
+  final LocationService _locationService = LocationService();
 
   String? _replyToMessageId;
   Map<String, dynamic>? _replyToMessage;
@@ -160,6 +162,54 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     }
   }
 
+  void _shareLocation() async {
+    try {
+      final position = await _locationService.getCurrentLocation();
+      
+      if (position == null) {
+        ToastService.showError('❌ لا يمكن الحصول على الموقع');
+        return;
+      }
+
+      final address = await _locationService.getAddressFromLocation(
+        latitude: position.latitude,
+        longitude: position.longitude,
+      );
+
+      final user = _auth.currentUser;
+      if (user == null) return;
+
+      final messageData = {
+        'text': '📍 $address',
+        'senderId': user.uid,
+        'senderName': user.displayName ?? 'مستخدم',
+        'timestamp': FieldValue.serverTimestamp(),
+        'type': 'location',
+        'latitude': position.latitude,
+        'longitude': position.longitude,
+        'address': address,
+        'isRead': false,
+      };
+
+      await _firestore
+          .collection('chats')
+          .doc(widget.chatId)
+          .collection('messages')
+          .add(messageData);
+
+      await _firestore.collection('chats').doc(widget.chatId).update({
+        'lastMessage': '📍 تم مشاركة موقع',
+        'lastMessageTime': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      ToastService.showSuccess('✅ تم مشاركة الموقع');
+      _scrollToBottom();
+    } catch (e) {
+      ToastService.showError('❌ فشل مشاركة الموقع: $e');
+    }
+  }
+
   void _scrollToBottom() {
     Future.delayed(const Duration(milliseconds: 300), () {
       if (_scrollController.hasClients) {
@@ -231,7 +281,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   }
 
   void _copyMessage(String text) {
-    // TODO: نسخ النص
     ToastService.showSuccess('✅ تم نسخ النص');
   }
 
@@ -298,7 +347,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       body: ChatBackground(
         child: Column(
           children: [
-            // ✅ شريط الرد على رسالة
             if (_replyToMessage != null)
               ReplyBanner(
                 message: _replyToMessage?['text'] ?? '',
@@ -308,7 +356,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                   _replyToMessageId = null;
                 }),
               ),
-            // ✅ قائمة الرسائل
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
                 stream: _firestore
@@ -346,10 +393,11 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 },
               ),
             ),
-            // ✅ حقل الإدخال
             ChatInputBar(
+              chatId: widget.chatId,
               onSendMessage: _sendMessage,
               onSendImage: _sendImage,
+              onShareLocation: _shareLocation,
             ),
           ],
         ),
@@ -372,7 +420,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       child: Column(
         crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
-          // ✅ رسالة مقتبسة
           if (replyToText != null)
             Container(
               padding: const EdgeInsets.all(8),
@@ -407,7 +454,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 ],
               ),
             ),
-          // ✅ فقاعة الرسالة
           Row(
             mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -488,7 +534,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                             ],
                           ],
                         ),
-                        // ✅ ردود الفعل
                         if (reactions.isNotEmpty)
                           Container(
                             margin: const EdgeInsets.only(top: 4),
@@ -547,7 +592,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              // ✅ ردود الفعل السريعة
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -559,7 +603,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 ],
               ),
               const Divider(),
-              // ✅ خيارات الرسالة
               ListTile(
                 leading: const Icon(Icons.reply, color: AppColors.primary),
                 title: const Text('رد'),
@@ -599,7 +642,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     return GestureDetector(
       onTap: () {
         Navigator.pop(context);
-        // TODO: إضافة رد فعل
       },
       child: Text(emoji, style: const TextStyle(fontSize: 32)),
     );
@@ -712,55 +754,3 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     );
   }
 }
-
-// ✅ إضافة دالة مشاركة الموقع في chat_detail_screen.dart
-
-void _shareLocation() async {
-  final locationService = LocationService();
-  final position = await locationService.getCurrentLocation();
-  
-  if (position == null) {
-    ToastService.showError('❌ لا يمكن الحصول على الموقع');
-    return;
-  }
-
-  final address = await locationService.getAddressFromLocation(
-    latitude: position.latitude,
-    longitude: position.longitude,
-  );
-
-  // ✅ إرسال الموقع كرسالة
-  final messageData = {
-    'text': '📍 $address',
-    'senderId': _auth.currentUser?.uid ?? '',
-    'senderName': _auth.currentUser?.displayName ?? 'مستخدم',
-    'timestamp': FieldValue.serverTimestamp(),
-    'type': 'location',
-    'latitude': position.latitude,
-    'longitude': position.longitude,
-    'address': address,
-    'isRead': false,
-  };
-
-  await _firestore
-      .collection('chats')
-      .doc(widget.chatId)
-      .collection('messages')
-      .add(messageData);
-
-  await _firestore.collection('chats').doc(widget.chatId).update({
-    'lastMessage': '📍 تم مشاركة موقع',
-    'lastMessageTime': FieldValue.serverTimestamp(),
-    'updatedAt': FieldValue.serverTimestamp(),
-  });
-
-  ToastService.showSuccess('✅ تم مشاركة الموقع');
-  _scrollToBottom();
-}
-
-// ✅ إضافة زر الموقع في ChatInputBar
-// في ChatInputBar، أضف:
-IconButton(
-  icon: Icon(Icons.location_on, color: isDark ? Colors.grey[400] : Colors.grey[600]),
-  onPressed: _shareLocation,
-),

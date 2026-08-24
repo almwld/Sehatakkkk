@@ -5,7 +5,6 @@ import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 import 'package:sehatak/presentation/screens/chat/chat_detail_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_booking_screen.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
 class DoctorDetailsScreen extends StatefulWidget {
   final String doctorId;
@@ -79,7 +78,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
         'reviews': 328,
         'fee': '500',
         'available': true,
-        'about': 'استشاري باطنية وأطفال مع خبرة واسعة.',
+        'about': 'استشاري باطنية وأطفال مع خبرة واسعة في تشخيص وعلاج الأمراض المزمنة والحادة.',
         'hospital': 'مستشفى الثورة العام',
         'availability': ['السبت - الأربعاء: 9 ص - 5 م'],
         'image': ImageKit.doctor1,
@@ -92,7 +91,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
         'reviews': 256,
         'fee': '450',
         'available': true,
-        'about': 'أخصائي قلوب ذو خبرة عالية.',
+        'about': 'أخصائي قلوب ذو خبرة عالية في تشخيص وعلاج أمراض القلب والشرايين.',
         'hospital': 'مستشفى الكويت',
         'availability': ['الأحد - الخميس: 10 ص - 4 م'],
         'image': ImageKit.doctor2,
@@ -105,7 +104,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
         'reviews': 189,
         'fee': '420',
         'available': true,
-        'about': 'أخصائية أطفال متابعة التطور الصحي للأطفال.',
+        'about': 'أخصائية أطفال متابعة التطور الصحي للأطفال من الولادة حتى المراهقة.',
         'hospital': 'مستشفى السبعين',
         'availability': ['السبت - الأربعاء: 8 ص - 2 م'],
         'image': ImageKit.doctor3,
@@ -132,7 +131,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
             builder: (_) => ChatDetailScreen(
               chatId: 'chat_${widget.doctorId}_${DateTime.now().millisecondsSinceEpoch}',
               userName: _doctor['name'],
-              userId: widget.doctorId,
+              userId: _doctor['id'] ?? widget.doctorId,
               isDoctor: true,
             ),
           ),
@@ -142,7 +141,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => DoctorBookingScreen(doctorId: widget.doctorId),
+            builder: (_) => const DoctorBookingScreen(doctorId: '1'),
           ),
         );
         break;
@@ -246,11 +245,10 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
                       border: Border.all(color: AppColors.primary, width: 3),
                     ),
                     child: ClipOval(
-                      child: CachedNetworkImage(
+                      child: AppImage(
                         imageUrl: _doctor['image'],
                         fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(color: Colors.grey[200], child: const Icon(Icons.person, size: 40)),
-                        errorWidget: (context, url, error) => Container(color: Colors.grey[200], child: const Icon(Icons.person, size: 40)),
+                        errorWidget: const Icon(Icons.person, size: 60, color: Colors.grey),
                       ),
                     ),
                   ),
