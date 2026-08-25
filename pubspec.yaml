@@ -188,7 +188,6 @@ flutter:
     - assets/fonts/
 
     # 🖼️ الأيقونات
-    - assets/icons/map_pins/
     - assets/icons/social/
 
     # 📷 الصور - الخدمات
@@ -357,4 +356,4 @@ flutter:
         - asset: assets/fonts/NotoNaskhArabic-VariableFont_wght.ttf
 
 dependency_overrides:
-  google_fonts: ^6.1.0
+  google_fonts: ^5.1.0

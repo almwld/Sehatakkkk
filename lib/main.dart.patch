@@ -1,0 +1,7 @@
+// ✅ في main.dart، استبدل:
+_callService.handleIncomingCall(context, message);
+
+// ✅ بـ:
+_callService.handleIncomingCall(context, message);
+// ✅ أو استخدم handleIncomingCallData:
+// _callService.handleIncomingCallData(context, message.data);

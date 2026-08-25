@@ -1,8 +1,8 @@
-// ✅ في chat_detail_screen.dart، استبدل PopupMenuButton بالتالي:
+// ✅ في chat_screen.dart، استبدل PopupMenuButton بالقائمة التالية:
 
-// ✅ زر القائمة
+// ✅ زر القائمة - إعدادات الدردشة
 PopupMenuButton<String>(
-  icon: const Icon(Icons.more_vert),
+  icon: Icon(Icons.more_vert, color: isDark ? Colors.white : Colors.black87),
   onSelected: (value) {
     switch (value) {
       case 'settings':
@@ -10,26 +10,26 @@ PopupMenuButton<String>(
           context,
           MaterialPageRoute(
             builder: (_) => ChatSettingsScreen(
-              chatId: widget.chatId,
-              chatName: widget.userName,
+              chatId: 'global',
+              chatName: 'جميع المحادثات',
             ),
           ),
         );
         break;
-      case 'contact':
-        _showContactInfo();
+      case 'background':
+        ToastService.showInfo('🖼️ تغيير خلفية الدردشة');
         break;
-      case 'search':
-        ToastService.showInfo('🔍 بحث في المحادثة');
+      case 'notifications':
+        ToastService.showInfo('🔔 إدارة الإشعارات');
         break;
-      case 'mute':
-        ToastService.showSuccess('🔇 تم كتم الإشعارات');
+      case 'mode':
+        ToastService.showInfo('🌙 تغيير الوضع');
         break;
       case 'export':
-        ToastService.showInfo('📤 تصدير المحادثة');
+        ToastService.showInfo('📤 تصدير المحادثات');
         break;
-      case 'delete':
-        _deleteChat();
+      case 'clear':
+        _clearAllChats();
         break;
     }
   },
@@ -45,32 +45,32 @@ PopupMenuButton<String>(
       ),
     ),
     const PopupMenuItem(
-      value: 'contact',
+      value: 'background',
       child: Row(
         children: [
-          Icon(Icons.person, color: AppColors.primary),
+          Icon(Icons.wallpaper, color: AppColors.primary),
           SizedBox(width: 8),
-          Text('معلومات جهة الاتصال'),
+          Text('خلفية الدردشة'),
         ],
       ),
     ),
     const PopupMenuItem(
-      value: 'search',
+      value: 'notifications',
       child: Row(
         children: [
-          Icon(Icons.search, color: AppColors.primary),
+          Icon(Icons.notifications, color: AppColors.primary),
           SizedBox(width: 8),
-          Text('بحث في المحادثة'),
+          Text('الإشعارات'),
         ],
       ),
     ),
     const PopupMenuItem(
-      value: 'mute',
+      value: 'mode',
       child: Row(
         children: [
-          Icon(Icons.notifications_off, color: AppColors.primary),
+          Icon(Icons.dark_mode, color: AppColors.primary),
           SizedBox(width: 8),
-          Text('كتم الإشعارات'),
+          Text('الوضع المظلم'),
         ],
       ),
     ),
@@ -80,17 +80,17 @@ PopupMenuButton<String>(
         children: [
           Icon(Icons.ios_share, color: AppColors.primary),
           SizedBox(width: 8),
-          Text('تصدير المحادثة'),
+          Text('تصدير المحادثات'),
         ],
       ),
     ),
     const PopupMenuItem(
-      value: 'delete',
+      value: 'clear',
       child: Row(
         children: [
-          Icon(Icons.delete, color: Colors.red),
+          Icon(Icons.delete_sweep, color: Colors.red),
           SizedBox(width: 8),
-          Text('حذف المحادثة', style: TextStyle(color: Colors.red)),
+          Text('حذف الكل', style: TextStyle(color: Colors.red)),
         ],
       ),
     ),
