@@ -187,20 +187,8 @@ flutter:
     - assets/fonts/
 
     # 🖼️ الأيقونات
-    - assets/icons/app_icon.png
-    - assets/icons/app_icon.svg
-    - assets/icons/consultations/
-    - assets/icons/core/
-    - assets/icons/mini_specialties/
-    - assets/icons/navigation/
-    - assets/icons/offers/
-    - assets/icons/payment/
-    - assets/icons/plans/
-    - assets/icons/png_core/
-    - assets/icons/png_specialties/
-    - assets/icons/services/
+    - assets/icons/map_pins/
     - assets/icons/social/
-    - assets/icons/specialties/
 
     # 📷 الصور - الخدمات
     - assets/images/services/
@@ -216,41 +204,126 @@ flutter:
     # 📷 الصور - التتبع
     - assets/images/tracking/
     - assets/images/tracking/age.png
+    - assets/images/tracking/ambulance.png
+    - assets/images/tracking/blood_donation.png
     - assets/images/tracking/blood_pressure.png
     - assets/images/tracking/blood_sugar.png
+    - assets/images/tracking/calendar_booking.png
+    - assets/images/tracking/favorites.png
+    - assets/images/tracking/first_aid.png
+    - assets/images/tracking/fitness.png
     - assets/images/tracking/fruits.png
+    - assets/images/tracking/height_cm.png
+    - assets/images/tracking/medical_records.png
+    - assets/images/tracking/medical_report.png
+    - assets/images/tracking/mental_health.png
+    - assets/images/tracking/nutrition.png
+    - assets/images/tracking/patient.png
+    - assets/images/tracking/services_blood_donation.png
+    - assets/images/tracking/services_laboratory.png
     - assets/images/tracking/sleep_tracking.png
+    - assets/images/tracking/tracking_blood_sugar.png
+    - assets/images/tracking/vaccination.png
     - assets/images/tracking/walking.png
     - assets/images/tracking/water_drinking.png
-    - assets/images/tracking/weight.png
+    - assets/images/tracking/weight_tracking.png
 
     # 📷 الصور - الواجهة
     - assets/images/ui/
+    - assets/images/ui/about_app.png
+    - assets/images/ui/all_services.png
+    - assets/images/ui/analyses.png
+    - assets/images/ui/blood_sugar_3d.png
+    - assets/images/ui/blood_type.png
+    - assets/images/ui/child.png
+    - assets/images/ui/comment_button.png
+    - assets/images/ui/contact_us.png
+    - assets/images/ui/doctor_avatar.png
+    - assets/images/ui/doctors_team.png
+    - assets/images/ui/download_data.png
     - assets/images/ui/edit_button.png
+    - assets/images/ui/emergency.png
+    - assets/images/ui/emoji_button_3d.png
+    - assets/images/ui/experience.png
+    - assets/images/ui/family.png
+    - assets/images/ui/favorites.png
+    - assets/images/ui/height_cm.png
+    - assets/images/ui/help_center.png
+    - assets/images/ui/lab1.png
     - assets/images/ui/like_button.png
+    - assets/images/ui/logout.png
+    - assets/images/ui/medicine10.png
+    - assets/images/ui/medicine8.png
+    - assets/images/ui/more_menu.png
+    - assets/images/ui/packages.png
+    - assets/images/ui/packages_subscriptions.png
+    - assets/images/ui/patient.png
+    - assets/images/ui/privacy.png
+    - assets/images/ui/report_problem.png
+    - assets/images/ui/settings.png
     - assets/images/ui/settings_gear.png
+    - assets/images/ui/share_app.png
+    - assets/images/ui/system_notifications.png
+    - assets/images/ui/terms_conditions.png
     - assets/images/ui/user_profile.png
+    - assets/images/ui/visits.png
 
-    # 📷 الصور - الدردشة والخلفيات
+    # 📷 الصور - الدردشة
     - assets/images/chat/
-    - assets/images/chat_background.svg
+    - assets/images/chat/ai_assistant.png
+    - assets/images/chat/audio_record.png
+    - assets/images/chat/audio_record_3d.png
+    - assets/images/chat/calendar_booking.png
+    - assets/images/chat/chat_bubble.png
+    - assets/images/chat/ic_content_add_yours.svg
+    - assets/images/chat/ic_content_sticker_location_emerald.svg
+    - assets/images/chat/ic_content_sticker_music_emerald.svg
+    - assets/images/chat/ic_content_sticker_photo_emerald.svg
+    - assets/images/chat/microphone.png
+    - assets/images/chat/phone_call.png
+    - assets/images/chat/play_button.png
+    - assets/images/chat/unsupported-message.svg
+    - assets/images/chat/video_call.png
+
+    # 📷 الصور - خلفيات الدردشة
+    - assets/images/sehatak_chat_wallpaper_auto.svg
+    - assets/images/sehatak_chat_wallpaper_dark.svg
+    - assets/images/sehatak_chat_wallpaper_dark_1080x2160.png
+    - assets/images/sehatak_chat_wallpaper_light.svg
+    - assets/images/sehatak_chat_wallpaper_light_1080x2160.png
 
     # 📷 الصور - الأيقونات
     - assets/images/icons/doctors/
     - assets/images/icons/fast_services/
-    - assets/images/icons/roles/
     - assets/images/icons/search/
     - assets/images/icons/top_bar/
 
     # 📷 الصور - الدفع والمحافظ
     - assets/images/payment/
+    - assets/images/payment/easy.png
+    - assets/images/payment/floosak.png
+    - assets/images/payment/jawali.png
+    - assets/images/payment/jeeb.png
+    - assets/images/payment/kash.png
+    - assets/images/payment/kash_one.png
+    - assets/images/payment/kremi.png
+    - assets/images/payment/mobile_money.png
+    - assets/images/payment/yemen_wallet.png
+
+    # 📷 الصور - المحافظ
     - assets/images/wallets/
+    - assets/images/wallets/payments.png
+    - assets/images/wallets/wallet.png
 
     # 📷 الصور - التواصل الاجتماعي
     - assets/images/social/
-
-    # 📷 صور أخرى
-    - assets/images/placeholder.png
+    - assets/images/social/apple.png
+    - assets/images/social/facebook.png
+    - assets/images/social/google.png
+    - assets/images/social/instagram.png
+    - assets/images/social/tiktok.png
+    - assets/images/social/x_twitter.png
+    - assets/images/social/youtube.png
 
     # 🎨 قوالب الصور
     - assets/images/chat/mediatemplate/
@@ -283,4 +356,4 @@ flutter:
         - asset: assets/fonts/NotoNaskhArabic-VariableFont_wght.ttf
 
 dependency_overrides:
-  google_fonts: ^5.1.0
+  google_fonts: ^6.1.0
