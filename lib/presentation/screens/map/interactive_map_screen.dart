@@ -35,7 +35,6 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
   String _selectedLayer = 'خريطة داكنة';
   Position? _currentPosition;
   LatLng? _selectedLocation;
-  int _currentStep = 2;
   String _searchQuery = '';
   String _selectedCategory = 'الكل';
 
@@ -997,27 +996,31 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                   ),
                 ),
                 if (_selectedLocation != null)
-                  Marker(
-                    width: 60,
-                    height: 60,
-                    point: _selectedLocation!,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.primary,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withOpacity(0.4),
-                            blurRadius: 12,
+                  MarkerLayer(
+                    markers: [
+                      Marker(
+                        width: 60,
+                        height: 60,
+                        point: _selectedLocation!,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.primary,
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primary.withOpacity(0.4),
+                                blurRadius: 12,
+                              ),
+                            ],
                           ),
-                        ],
+                          child: const Icon(
+                            Icons.location_on,
+                            color: Colors.white,
+                            size: 30,
+                          ),
+                        ),
                       ),
-                      child: const Icon(
-                        Icons.location_on,
-                        color: Colors.white,
-                        size: 30,
-                      ),
-                    ),
+                    ],
                   ),
               ],
             ),
