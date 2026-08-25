@@ -1,0 +1,10 @@
+<!--
+  - (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+  -->
+
+<svg width="100%" height="100%" viewBox="0 0 64 64" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path fill="#fff" d="M0 0h64v10.5H0z"/>
+    <rect x="11" y="3.3" width="42" height="4" rx="2" fill="#000"/>
+    <path fill="#fff" d="M0 53.5h64V64H0z"/>
+    <rect x="16.5" y="56.8" width="31" height="4" rx="2" fill="#000"/>
+</svg>

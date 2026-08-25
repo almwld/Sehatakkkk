@@ -1,0 +1,16 @@
+
+<!--
+  - (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+  -->
+<svg width="100%" height="100%" viewBox="0 0 64 64" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <g clip-path="url(#a)"><path fill="#fff" d="M64 21H0V0h64z"/>
+        <circle cx="32" cy="-64" r="91" transform="rotate(180 32 -64)" fill="#fff"/>
+        <rect x="40" y="17" width="31" height="4" rx="2" transform="rotate(180 40 17)" fill="#000"/>
+        <rect x="51" y="9" width="42" height="4" rx="2" transform="rotate(180 51 9)" fill="#000"/>
+    </g>
+    <defs>
+        <clipPath id="a">
+            <path fill="#fff" transform="rotate(180 32 32)" d="M0 0h64v64H0z"/>
+        </clipPath>
+    </defs>
+</svg>
