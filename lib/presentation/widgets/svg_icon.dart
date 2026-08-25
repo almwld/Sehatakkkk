@@ -35,11 +35,6 @@ class SvgIcon extends StatelessWidget {
 /// ✅ أيقونات جاهزة للاستخدام
 class AppIcons {
   // ========== Navigation ==========
-  static const String home = 'assets/icons/navigation/home.svg';
-  static const String doctor = 'assets/icons/navigation/doctor.svg';
-  static const String pharmacy = 'assets/icons/navigation/pharmacy.svg';
-  static const String healthRecord = 'assets/icons/navigation/health_record.svg';
-  static const String more = 'assets/icons/navigation/more.svg';
 
   // ========== Services ==========
   static const String chat = 'assets/icons/services/chat.svg';
@@ -56,11 +51,6 @@ class AppIcons {
   static const String pulmonology = 'assets/icons/specialties/pulmonology.svg';
 
   // ========== Lab ==========
-  static const String blood = 'assets/icons/lab/blood.svg';
-  static const String xray = 'assets/icons/lab/xray.svg';
-  static const String testTube = 'assets/icons/lab/test_tube.svg';
-  static const String virus = 'assets/icons/lab/virus.svg';
-  static const String dna = 'assets/icons/lab/dna.svg';
 
   // ========== Social ==========
   static const String facebook = 'assets/icons/social/facebook.svg';
@@ -75,10 +65,6 @@ class AppIcons {
   static const String family = 'assets/icons/plans/family.svg';
 
   // ========== Consultations ==========
-  static const String textConsult = 'assets/icons/consultations/text.svg';
-  static const String audioConsult = 'assets/icons/consultations/audio.svg';
-  static const String videoConsult = 'assets/icons/consultations/video.svg';
-  static const String emergencyConsult = 'assets/icons/consultations/emergency.svg';
 
   // ========== Offers ==========
   static const String discount = 'assets/icons/offers/discount.svg';
