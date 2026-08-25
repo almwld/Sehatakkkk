@@ -2,8 +2,10 @@ import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/constants/imagekit.dart';
+import 'package:sehatak/core/services/nextcloud_service.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 class ChatRoomScreen extends StatefulWidget {
   final String? roomId;
@@ -25,72 +27,410 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
+  final NextcloudService _nextcloud = NextcloudService();
+  final Connectivity _connectivity = Connectivity();
 
   bool _isTyping = false;
-  List<Map<String, dynamic>> _messages = [];
-  List<Map<String, dynamic>> _members = [];
   bool _isLoading = true;
+  bool _useNextcloud = false;
+  bool _isOnline = true;
+  bool _isOfflineMode = false;
+  String _chatUrl = '';
+  String _otherUserId = '';
 
   @override
   void initState() {
     super.initState();
-    _loadMessages();
-    _loadMembers();
+    _checkConnectivity();
+    _initializeChat();
+    _getOtherUser();
+    
+    _connectivity.onConnectivityChanged.listen((result) {
+      setState(() {
+        _isOnline = result != ConnectivityResult.none;
+        _isOfflineMode = !_isOnline;
+        if (_isOnline) {
+          _initializeChat();
+        }
+      });
+    });
   }
 
-  Future<void> _loadMessages() async {
-    if (widget.roomId == null) return;
+  Future<void> _checkConnectivity() async {
+    final result = await _connectivity.checkConnectivity();
+    _isOnline = result != ConnectivityResult.none;
+    _isOfflineMode = !_isOnline;
+  }
+
+  Future<void> _getOtherUser() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || widget.roomId == null) return;
+
     try {
-      final snapshot = await FirebaseFirestore.instance
+      final doc = await FirebaseFirestore.instance
           .collection('chat_rooms')
           .doc(widget.roomId)
-          .collection('messages')
-          .orderBy('timestamp', descending: true)
-          .limit(50)
           .get();
-
-      setState(() {
-        _messages = snapshot.docs.map((doc) {
-          final data = doc.data();
-          return {
-            'id': doc.id,
-            'text': data['text'] ?? '',
-            'senderId': data['senderId'] ?? '',
-            'senderName': data['senderName'] ?? 'مستخدم',
-            'timestamp': data['timestamp'],
-            'type': data['type'] ?? 'text',
-          };
-        }).toList();
-        _isLoading = false;
-      });
+      if (doc.exists) {
+        final data = doc.data();
+        final participants = List<String>.from(data?['participants'] ?? []);
+        _otherUserId = participants.firstWhere((id) => id != user.uid, orElse: () => '');
+      }
     } catch (e) {
-      setState(() => _isLoading = false);
+      print('❌ Error getting other user: $e');
     }
   }
 
-  Future<void> _loadMembers() async {
-    if (widget.roomId == null) return;
+  Future<void> _initializeChat() async {
+    setState(() => _isLoading = true);
+    
     try {
-      final snapshot = await FirebaseFirestore.instance
-          .collection('chat_rooms')
-          .doc(widget.roomId)
-          .collection('members')
-          .get();
-
-      setState(() {
-        _members = snapshot.docs.map((doc) {
-          final data = doc.data();
-          return {
-            'id': doc.id,
-            'name': data['name'] ?? 'مستخدم',
-            'image': data['image'] ?? '',
-            'isOnline': data['isOnline'] ?? false,
-          };
-        }).toList();
-      });
+      if (_isOnline) {
+        final isAvailable = await _nextcloud.checkServerStatus();
+        if (isAvailable && widget.roomId != null) {
+          _useNextcloud = true;
+          final currentUser = FirebaseAuth.instance.currentUser;
+          if (currentUser != null && _otherUserId.isNotEmpty) {
+            _chatUrl = await _nextcloud.getChatUrl(
+              widget.roomId!,
+              _otherUserId,
+            );
+          }
+        }
+      }
     } catch (e) {
-      // تجاهل الأخطاء
+      print('❌ Nextcloud error: $e');
+      _useNextcloud = false;
     }
+
+    setState(() => _isLoading = false);
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    _scrollController.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Scaffold(
+      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                widget.roomName ?? 'الدردشة',
+                style: TextStyle(
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+            if (_isOfflineMode) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.orange,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text(
+                  'غير متصل',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+        backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
+        foregroundColor: isDark ? Colors.white : Colors.black87,
+        elevation: 0,
+        actions: [
+          if (_useNextcloud && _isOnline)
+            IconButton(
+              icon: Icon(Icons.cloud_rounded, color: AppColors.primary),
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('☁️ متصل بـ Nextcloud Talk'),
+                    backgroundColor: AppColors.primary,
+                    duration: Duration(seconds: 1),
+                  ),
+                );
+              },
+            ),
+          if (_isOfflineMode)
+            IconButton(
+              icon: Icon(Icons.wifi_off_rounded, color: Colors.orange),
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('📶 غير متصل - يتم عرض الرسائل المخزنة محلياً'),
+                    backgroundColor: Colors.orange,
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              },
+            ),
+        ],
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _useNextcloud && _chatUrl.isNotEmpty && _isOnline
+              ? _buildNextcloudChat()
+              : _buildFirestoreChat(isDark),
+    );
+  }
+
+  Widget _buildNextcloudChat() {
+    final controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setBackgroundColor(const Color(0xFFF8FAFC))
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onProgress: (progress) {
+            print('📱 Loading: $progress%');
+          },
+          onPageFinished: (url) {
+            print('✅ Nextcloud chat loaded: $url');
+          },
+        ),
+      )
+      ..loadRequest(Uri.parse(_chatUrl));
+
+    return Container(
+      margin: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: WebViewWidget(controller: controller),
+    );
+  }
+
+  Widget _buildFirestoreChat(bool isDark) {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return const Center(child: Text('يرجى تسجيل الدخول'));
+    }
+
+    return Column(
+      children: [
+        if (_isOfflineMode)
+          Container(
+            padding: const EdgeInsets.all(8),
+            color: Colors.orange.withOpacity(0.1),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.wifi_off, color: Colors.orange, size: 16),
+                const SizedBox(width: 8),
+                Text(
+                  '📶 غير متصل - يتم عرض الرسائل المخزنة محلياً',
+                  style: TextStyle(
+                    color: Colors.orange,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        Expanded(
+          child: widget.roomId == null
+              ? _buildEmptyState(isDark)
+              : StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('chat_rooms')
+                      .doc(widget.roomId)
+                      .collection('messages')
+                      .orderBy('timestamp', descending: true)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (snapshot.hasError) {
+                      return Center(child: Text('❌ ${snapshot.error}'));
+                    }
+
+                    final messages = snapshot.data?.docs ?? [];
+                    if (messages.isEmpty) {
+                      return _buildEmptyChatState(isDark);
+                    }
+
+                    return ListView.builder(
+                      controller: _scrollController,
+                      reverse: true,
+                      padding: const EdgeInsets.all(12),
+                      itemCount: messages.length,
+                      itemBuilder: (context, index) {
+                        final message = messages[index];
+                        final data = message.data() as Map<String, dynamic>;
+                        final isMe = data['senderId'] == user.uid;
+                        return _buildMessageBubble(data, isMe, isDark);
+                      },
+                    );
+                  },
+                ),
+        ),
+        _buildInputField(isDark),
+      ],
+    );
+  }
+
+  Widget _buildMessageBubble(Map<String, dynamic> message, bool isMe, bool isDark) {
+    final text = message['text'] ?? '';
+    final time = _formatTime(message['timestamp']);
+    final isPending = message['pending'] == true;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        children: [
+          Flexible(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: isMe ? AppColors.primary : (isDark ? const Color(0xFF1A2540) : Colors.grey[200]),
+                borderRadius: BorderRadius.circular(16).copyWith(
+                  bottomRight: isMe ? const Radius.circular(4) : const Radius.circular(16),
+                  bottomLeft: isMe ? const Radius.circular(16) : const Radius.circular(4),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    text,
+                    style: TextStyle(
+                      color: isMe ? Colors.white : (isDark ? Colors.white : Colors.black87),
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        time,
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: isMe ? Colors.white70 : Colors.grey[500],
+                        ),
+                      ),
+                      if (isMe && isPending) ...[
+                        const SizedBox(width: 4),
+                        const SizedBox(
+                          width: 12,
+                          height: 12,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white70,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInputField(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2540) : Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 4,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            icon: Icon(Icons.attach_file, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+            onPressed: _showAttachmentOptions,
+          ),
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF0B1121) : Colors.grey[100],
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: TextField(
+                controller: _textController,
+                focusNode: _focusNode,
+                onChanged: (text) {
+                  setState(() => _isTyping = text.trim().isNotEmpty);
+                },
+                onSubmitted: (_) => _sendMessage(),
+                style: TextStyle(
+                  color: isDark ? Colors.white : Colors.black87,
+                  fontSize: 14,
+                ),
+                textAlign: TextAlign.right,
+                decoration: InputDecoration(
+                  hintText: _isOnline ? 'اكتب رسالتك...' : '📶 غير متصل - سيتم الإرسال عند الاتصال',
+                  hintStyle: TextStyle(
+                    color: _isOnline 
+                        ? (isDark ? Colors.grey[500] : Colors.grey[400])
+                        : Colors.orange,
+                    fontSize: 14,
+                  ),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                ),
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: _sendMessage,
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: _isTyping ? AppColors.primary : Colors.transparent,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: _isTyping ? AppColors.primary : (isDark ? Colors.grey[600]! : Colors.grey[300]!),
+                  width: 1.5,
+                ),
+              ),
+              child: Icon(
+                _isTyping ? Icons.send : Icons.mic,
+                color: _isTyping ? Colors.white : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                size: 20,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _sendMessage() {
@@ -100,21 +440,102 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
-    FirebaseFirestore.instance
-        .collection('chat_rooms')
-        .doc(widget.roomId ?? 'temp')
-        .collection('messages')
-        .add({
+    final messageData = {
       'text': text,
       'senderId': user.uid,
       'senderName': user.displayName ?? 'مستخدم',
       'timestamp': FieldValue.serverTimestamp(),
       'type': 'text',
-    });
+      'pending': !_isOnline,
+    };
+
+    FirebaseFirestore.instance
+        .collection('chat_rooms')
+        .doc(widget.roomId ?? 'temp')
+        .collection('messages')
+        .add(messageData);
+
+    if (widget.roomId != null) {
+      FirebaseFirestore.instance.collection('chat_rooms').doc(widget.roomId).update({
+        'lastMessage': text,
+        'lastMessageTime': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    }
+
+    if (_isOnline && _useNextcloud && _chatUrl.isNotEmpty) {
+      _nextcloud.sendMessage(widget.roomId ?? '', text);
+    }
 
     _textController.clear();
     setState(() => _isTyping = false);
     _scrollToBottom();
+  }
+
+  void _showAttachmentOptions() {
+    if (!_isOnline) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('📶 لا يمكن مشاركة الملفات في وضع Offline'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library, color: AppColors.primary),
+              title: const Text('صورة من المعرض'),
+              onTap: () {
+                Navigator.pop(context);
+                _sendMedia('image');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt, color: AppColors.primary),
+              title: const Text('التقاط صورة'),
+              onTap: () {
+                Navigator.pop(context);
+                _sendMedia('camera');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.picture_as_pdf, color: AppColors.primary),
+              title: const Text('إرسال ملف'),
+              onTap: () {
+                Navigator.pop(context);
+                _sendMedia('file');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.location_on, color: AppColors.primary),
+              title: const Text('مشاركة الموقع'),
+              onTap: () {
+                Navigator.pop(context);
+                _sendMedia('location');
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _sendMedia(String type) async {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('📎 جاري إرسال $type...'),
+        backgroundColor: AppColors.primary,
+      ),
+    );
   }
 
   void _scrollToBottom() {
@@ -127,217 +548,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         );
       }
     });
-  }
-
-  void _showCreateGroupDialog() {
-    final TextEditingController nameController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: 'إنشاء مجموعة جديدة',
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'اسم المجموعة',
-                hintText: 'أدخل اسم المجموعة',
-                prefixIcon: Icon(Icons.group),
-              ),
-              textAlign: TextAlign.right,
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'سيتم إضافتك كعضو أول في المجموعة',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(_),
-            child: const Text('إلغاء'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final name = nameController.text.trim();
-              if (name.isNotEmpty) {
-                _createGroup(name);
-                Navigator.pop(_);
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('إنشاء'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _createGroup(String name) async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
-    try {
-      final docRef = await FirebaseFirestore.instance
-          .collection('chat_rooms')
-          .add({
-        'name': name,
-        'isGroup': true,
-        'createdBy': user.uid,
-        'createdAt': FieldValue.serverTimestamp(),
-        'image': ImageKit.doctor1,
-      });
-
-      await FirebaseFirestore.instance
-          .collection('chat_rooms')
-          .doc(docRef.id)
-          .collection('members')
-          .doc(user.uid)
-          .set({
-        'name': user.displayName ?? 'مستخدم',
-        'image': user.photoURL ?? '',
-        'isOnline': true,
-        'joinedAt': FieldValue.serverTimestamp(),
-      });
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✅ تم إنشاء المجموعة بنجاح'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('❌ فشل إنشاء المجموعة: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
-  void _addMember() {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: 'إضافة عضو',
-        content: TextField(
-          decoration: const InputDecoration(
-            labelText: 'البريد الإلكتروني',
-            hintText: 'أدخل بريد العضو',
-            prefixIcon: Icon(Icons.person_add),
-          ),
-          textAlign: TextAlign.right,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(_),
-            child: const Text('إلغاء'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(_),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('إضافة'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final user = FirebaseAuth.instance.currentUser;
-
-    return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: CustomAppBar(
-        title: Text(widget.roomName ?? 'غرفة الدردشة'),
-        backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
-        foregroundColor: isDark ? Colors.white : Colors.black87,
-        elevation: 0,
-        actions: [
-          if (widget.isGroup) ...[
-            IconButton(
-              icon: const Icon(Icons.person_add),
-              onPressed: _addMember,
-              tooltip: 'إضافة عضو',
-            ),
-            IconButton(
-              icon: const Icon(Icons.info_outline),
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                  ),
-                  builder: (_) => _buildMembersSheet(isDark),
-                );
-              },
-              tooltip: 'الأعضاء',
-            ),
-          ],
-        ],
-      ),
-      floatingActionButton: widget.roomId == null
-          ? FloatingActionButton(
-              onPressed: _showCreateGroupDialog,
-              backgroundColor: AppColors.primary,
-              child: const Icon(Icons.group_add, color: Colors.white),
-            )
-          : null,
-      body: widget.roomId == null
-          ? _buildEmptyState(isDark)
-          : Column(
-              children: [
-                if (_isLoading)
-                  const Expanded(
-                    child: Center(child: CircularProgressIndicator()),
-                  )
-                else if (_messages.isEmpty)
-                  Expanded(
-                    child: _buildEmptyChatState(isDark),
-                  )
-                else
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        image: DecorationImage(
-                          image: const AssetImage('assets/images/chat_background.svg'),
-                          fit: BoxFit.cover,
-                          opacity: isDark ? 0.1 : 0.3,
-                        ),
-                      ),
-                      child: ListView.builder(
-                        controller: _scrollController,
-                        reverse: true,
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                        itemCount: _messages.length,
-                        itemBuilder: (context, index) {
-                          final msg = _messages[index];
-                          final isMe = msg['senderId'] == user?.uid;
-                          return _buildMessageBubble(msg, isMe, isDark);
-                        },
-                      ),
-                    ),
-                  ),
-                _buildInputField(isDark),
-              ],
-            ),
-    );
   }
 
   Widget _buildEmptyState(bool isDark) {
@@ -369,16 +579,12 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
-            onPressed: _showCreateGroupDialog,
+            onPressed: () {},
             icon: const Icon(Icons.group_add),
             label: const Text('إنشاء مجموعة'),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
             ),
           ),
         ],
@@ -412,247 +618,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               fontSize: 13,
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMessageBubble(Map<String, dynamic> msg, bool isMe, bool isDark) {
-    final text = msg['text'] ?? '';
-    final time = _formatTime(msg['timestamp']);
-    final senderName = msg['senderName'] ?? 'مستخدم';
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Column(
-        crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-        children: [
-          if (!isMe)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 2),
-              child: Text(
-                senderName,
-                style: TextStyle(
-                  fontSize: 10,
-                  color: isDark ? Colors.grey[400] : Colors.grey[600],
-                ),
-              ),
-            ),
-          Row(
-            mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            textDirection: TextDirection.rtl,
-            children: [
-              if (!isMe) ...[
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Image.network(
-                    ImageKit.doctor1,
-                    width: 28,
-                    height: 28,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => CircleAvatar(
-                      radius: 14,
-                      backgroundColor: AppColors.primary.withOpacity(0.1),
-                      child: Text(
-                        senderName.isNotEmpty ? senderName[0] : 'م',
-                        style: TextStyle(
-                          color: AppColors.primary,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 6),
-              ],
-              Container(
-                constraints: BoxConstraints(
-                  maxWidth: MediaQuery.of(context).size.width * 0.7,
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: isMe ? AppColors.primary : (isDark ? const Color(0xFF1A2540) : Colors.white),
-                  borderRadius: BorderRadius.circular(12).copyWith(
-                    bottomLeft: isMe ? const Radius.circular(12) : const Radius.circular(4),
-                    bottomRight: isMe ? const Radius.circular(4) : const Radius.circular(12),
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      text,
-                      style: TextStyle(
-                        color: isMe ? Colors.white : (isDark ? Colors.white : Colors.black87),
-                        fontSize: 14,
-                      ),
-                      textAlign: isMe ? TextAlign.end : TextAlign.start,
-                    ),
-                    if (time.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Text(
-                          time,
-                          style: TextStyle(
-                            fontSize: 9,
-                            color: isMe ? Colors.white70 : (isDark ? Colors.grey[500] : Colors.grey[600]),
-                          ),
-                          textAlign: isMe ? TextAlign.end : TextAlign.start,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInputField(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2540) : Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 4,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
-        textDirection: TextDirection.rtl,
-        children: [
-          IconButton(
-            icon: Icon(Icons.attach_file, color: isDark ? Colors.grey[400] : Colors.grey[600]),
-            onPressed: () {},
-          ),
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF0B1121) : Colors.grey[100],
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: TextField(
-                  controller: _textController,
-                  focusNode: _focusNode,
-                  onChanged: (text) {
-                    setState(() => _isTyping = text.trim().isNotEmpty);
-                  },
-                  onSubmitted: (_) => _sendMessage(),
-                  style: TextStyle(
-                    color: isDark ? Colors.white : Colors.black87,
-                    fontSize: 14,
-                  ),
-                  textAlign: TextAlign.right,
-                  decoration: InputDecoration(
-                    hintText: 'اكتب رسالتك...',
-                    hintStyle: TextStyle(
-                      color: isDark ? Colors.grey[500] : Colors.grey[400],
-                      fontSize: 14,
-                    ),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          IconButton(
-            icon: Icon(Icons.emoji_emotions_outlined, color: isDark ? Colors.grey[400] : Colors.grey[600]),
-            onPressed: () {},
-          ),
-          GestureDetector(
-            onTap: _sendMessage,
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: _isTyping ? AppColors.primary : Colors.transparent,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: _isTyping ? AppColors.primary : (isDark ? Colors.grey[600]! : Colors.grey[300]!),
-                  width: 1.5,
-                ),
-              ),
-              child: Icon(
-                _isTyping ? Icons.send : Icons.mic,
-                color: _isTyping ? Colors.white : (isDark ? Colors.grey[400] : Colors.grey[600]),
-                size: 20,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMembersSheet(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.grey[300],
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'أعضاء المجموعة',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          ..._members.map((member) {
-            return ListTile(
-              leading: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: Image.network(
-                  member['image'] ?? ImageKit.doctor1,
-                  width: 40,
-                  height: 40,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => CircleAvatar(
-                    backgroundColor: AppColors.primary.withOpacity(0.1),
-                    child: Text(
-                      (member['name'] ?? 'م')[0],
-                      style: TextStyle(
-                        color: AppColors.primary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              title: Text(
-                member['name'] ?? 'مستخدم',
-                style: TextStyle(
-                  color: isDark ? Colors.white : Colors.black87,
-                ),
-              ),
-              trailing: Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: member['isOnline'] == true ? Colors.green : Colors.grey,
-                  shape: BoxShape.circle,
-                ),
-              ),
-            );
-          }),
-          const SizedBox(height: 16),
         ],
       ),
     );
