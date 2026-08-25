@@ -7,9 +7,9 @@ class NextcloudService {
   factory NextcloudService() => _instance;
   NextcloudService._internal();
 
-  // ✅ بيانات Tab Digital (شريك Nextcloud)
+  // ✅ بيانات Tab Digital (شريك Nextcloud) - المؤكدة
   String baseUrl = 'https://noa.it.tabdigital.cloud';
-  String username = 'PlatformSehatak';
+  String username = 'PlatformSehatak@gmail.com';
   String password = '10.10.10.1010.10.10.10';
 
   Future<String> getChatUrl(String chatId, String userId) async {
@@ -27,6 +27,8 @@ class NextcloudService {
         final data = jsonDecode(response.body);
         return data['ocs']['data']['url'];
       } else {
+        // ✅ محاولة تشخيص الخطأ
+        print('❌ Error response: ${response.body}');
         throw Exception('فشل إنشاء غرفة الدردشة: ${response.statusCode}');
       }
     } catch (e) {
@@ -56,8 +58,25 @@ class NextcloudService {
       final response = await http.get(
         Uri.parse('$baseUrl/status.php'),
       );
+      print('✅ Server status: ${response.statusCode}');
       return response.statusCode == 200;
     } catch (e) {
+      print('❌ Server status error: $e');
+      return false;
+    }
+  }
+
+  // ✅ اختبار المصادقة
+  Future<bool> testAuth() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/ocs/v2.php/cloud/user'),
+        headers: _getHeaders(),
+      );
+      print('✅ Auth test: ${response.statusCode}');
+      return response.statusCode == 200;
+    } catch (e) {
+      print('❌ Auth test error: $e');
       return false;
     }
   }
