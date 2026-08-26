@@ -1,4 +1,5 @@
 import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 
 class LocationService {
   static final LocationService _instance = LocationService._internal();
@@ -30,8 +31,43 @@ class LocationService {
     }
   }
 
+  // ✅ إضافة دالة getAddressFromLocation
+  Future<String> getAddressFromLocation({
+    required double latitude,
+    required double longitude,
+  }) async {
+    try {
+      final placemarks = await placemarkFromCoordinates(
+        latitude,
+        longitude,
+        localeIdentifier: 'ar',
+      );
+      
+      if (placemarks.isNotEmpty) {
+        final place = placemarks.first;
+        final parts = <String>[];
+        
+        if (place.street != null && place.street!.isNotEmpty) {
+          parts.add(place.street!);
+        }
+        if (place.locality != null && place.locality!.isNotEmpty) {
+          parts.add(place.locality!);
+        }
+        if (place.country != null && place.country!.isNotEmpty) {
+          parts.add(place.country!);
+        }
+        
+        return parts.join('، ');
+      }
+      
+      return 'موقع غير معروف';
+    } catch (e) {
+      print('⚠️ Error getting address: $e');
+      return 'موقع غير معروف';
+    }
+  }
+
   Future<List<Map<String, dynamic>>> getNearbyServices() async {
-    // محاكاة بيانات الخدمات القريبة
     return [
       {
         'id': '1',
@@ -67,6 +103,6 @@ class LocationService {
   }
 
   Future<double> getDistance(double lat1, double lng1, double lat2, double lng2) async {
-    return Geolocator.distanceBetween(lat1, lng1, lat2, lng2) / 1000; // تحويل إلى كيلومتر
+    return Geolocator.distanceBetween(lat1, lng1, lat2, lng2) / 1000;
   }
 }
