@@ -1,0 +1,90 @@
+
+// ✅ استبدال دالة initState بهذا الكود:
+
+@override
+void initState() {
+  super.initState();
+  
+  // ✅ تحميل البيانات المخزنة فوراً (Offline)
+  _loadCachedData();
+  
+  // ✅ تحميل البيانات من Firebase في الخلفية (بعد 2 ثانية)
+  Future.delayed(const Duration(seconds: 2), () {
+    _loadUserDataInBackground();
+  });
+  
+  // ✅ مراقبة التمرير
+  widget.scrollController?.addListener(_onScroll);
+}
+
+// ✅ دالة تحميل البيانات المخزنة (تعمل فوراً)
+Future<void> _loadCachedData() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    
+    // تحميل البيانات المخزنة
+    final cachedData = prefs.getString('home_data');
+    if (cachedData != null) {
+      // عرض البيانات المخزنة فوراً
+      setState(() {
+        _dataLoaded = true;
+        _isLoading = false;
+      });
+    } else {
+      // استخدام البيانات الافتراضية
+      _loadDefaultData();
+    }
+  } catch (e) {
+    print('⚠️ Error loading cached data: $e');
+    _loadDefaultData();
+  }
+}
+
+// ✅ دالة تحميل البيانات الافتراضية (تعمل دائماً)
+void _loadDefaultData() {
+  setState(() {
+    _bannerImages = _defaultBannerImages;
+    _topDoctors = _defaultTopDoctors;
+    _quickServices = _defaultQuickServices;
+    _products = _defaultProducts;
+    _featuredHospitals = _defaultFeaturedHospitals;
+    _featuredLabs = _defaultFeaturedLabs;
+    _featuredPharmacies = _defaultFeaturedPharmacies;
+    _healthArticles = _defaultHealthArticles;
+    _dailyTips = _defaultDailyTips;
+    _communityPosts = _defaultCommunityPosts;
+    _dataLoaded = true;
+    _isLoading = false;
+  });
+}
+
+// ✅ دالة تحميل البيانات من Firebase (خلفية)
+Future<void> _loadUserDataInBackground() async {
+  try {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    // تحميل البيانات من Firebase
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+
+    if (doc.exists) {
+      final data = doc.data();
+      setState(() {
+        _userName = data?['name'] ?? user.displayName ?? 'مستخدم';
+        _userEmail = user.email ?? '';
+        _userRole = data?['role'] ?? data?['type'] ?? 'مريض';
+        _userAvatar = data?['avatar'] ?? '';
+        _isLoggedIn = true;
+      });
+      
+      // حفظ البيانات في الكاش
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('home_data', 'cached');
+    }
+  } catch (e) {
+    print('⚠️ Error loading user data: $e');
+  }
+}

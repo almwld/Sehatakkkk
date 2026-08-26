@@ -33,11 +33,6 @@ dependencies:
   google_fonts: ^6.1.0
   step_progress_indicator: ^1.0.2
   circular_countdown_timer: ^0.2.4
-  animated_heart: ^1.2.4
-  flutter_staggered_animations: ^1.1.0
-  simple_animations: ^5.0.2
-  animations: ^2.0.11
-  rive: ^0.13.0
 
   # ============================================================
   # 🧠 State Management - إدارة الحالة
@@ -389,3 +384,5 @@ flutter:
 
 dependency_overrides:
   google_fonts: ^5.1.0
+
+  # استخدام AnimatedContainer و AnimationController بدلاً من ذلك

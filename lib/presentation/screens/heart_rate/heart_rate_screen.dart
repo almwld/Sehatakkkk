@@ -6,7 +6,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:animated_heart/animated_heart.dart';
+import 'package:sehatak/presentation/widgets/animated_heart.dart';
 import 'package:lottie/lottie.dart';
 import 'package:sehatak/services/heart_rate_service.dart';
 import 'package:sehatak/presentation/widgets/educational/camera_tutorial_overlay.dart';

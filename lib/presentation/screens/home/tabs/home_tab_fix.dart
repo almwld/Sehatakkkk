@@ -1,15 +1,23 @@
-// ✅ إصلاح home_tab.dart - إزالة الاستيرادات والخدمات غير الموجودة
+// ✅ دالة _loadCachedData المعدلة - تعمل فوراً بدون انتظار
 
-// حذف الاستيرادات غير الموجودة
-// import 'package:health_connect/health_connect.dart';
-// import 'package:sehatak/core/services/advanced_notification_service.dart';
-// import 'package:sehatak/core/services/image_cache_service.dart';
-// import 'package:sehatak/core/services/location_service.dart';
-// import 'package:sehatak/core/services/weather_service.dart';
-// import 'package:sehatak/core/services/medication_service.dart';
-// import 'package:sehatak/core/services/appointment_service.dart';
-// import 'package:sehatak/core/services/ai_recommendation_service.dart';
-// import 'package:sehatak/core/services/symptom_service.dart';
-// import 'package:sehatak/core/services/customization_service.dart';
-
-// ✅ استخدم النسخة الأصلية من home_tab.dart بدون الخدمات الإضافية
+Future<void> _loadCachedData() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    
+    // تحميل البيانات المخزنة (إن وجدت)
+    final cachedBanners = prefs.getStringList('home_banners');
+    if (cachedBanners != null && cachedBanners.isNotEmpty) {
+      setState(() {
+        _bannerImages = cachedBanners;
+        _dataLoaded = true;
+        _isLoading = false;
+      });
+    } else {
+      // استخدام البيانات الافتراضية فوراً
+      _loadDefaultData();
+    }
+  } catch (e) {
+    // في حالة الخطأ، استخدام البيانات الافتراضية
+    _loadDefaultData();
+  }
+}
