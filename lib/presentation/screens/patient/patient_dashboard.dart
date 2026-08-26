@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/screens/patient/patient_medical_history.dart';
 import 'package:sehatak/presentation/screens/patient/patient_prescriptions.dart';
 import 'package:sehatak/presentation/screens/patient/patient_appointments.dart';
@@ -23,10 +28,11 @@ import 'package:sehatak/presentation/screens/blood_pressure/blood_pressure_scree
 import 'package:sehatak/presentation/screens/glucose_tracker/glucose_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/weight_tracker/weight_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/sleep_tracker/sleep_tracker_screen.dart';
+import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
+import 'dart:ui' as ui;
 
 class PatientDashboard extends StatefulWidget {
   final ScrollController? scrollController;
-
   const PatientDashboard({super.key, this.scrollController});
 
   @override
@@ -34,64 +40,28 @@ class PatientDashboard extends StatefulWidget {
 }
 
 class _PatientDashboardState extends State<PatientDashboard> {
-  String _userName = 'مريض';
+  String _userName = 'مستخدم';
   String _userEmail = '';
   String _userRole = 'مريض';
+  String _userId = '';
+  String _userPhone = '';
+  String _patientNumber = 'SH-2024-0012';
+  String _userAvatar = '';
+  String _subscriptionType = 'مجاني';
+  String _subscriptionColor = '#9E9E9E';
   bool _isLoading = true;
+  bool _isSharing = false;
+  final ImagePicker _picker = ImagePicker();
 
-  // ✅ المؤشرات الحيوية - أيقونات مكبرة بدون حاويات
   final List<Map<String, dynamic>> _vitals = [
-    {
-      'icon': 'assets/images/tracking/blood_pressure.png',
-      'label': 'ضغط الدم',
-      'value': '120/80',
-      'unit': 'مم زئبق',
-      'color': Colors.red,
-      'screen': const BloodPressureScreen(),
-    },
-    {
-      'icon': 'assets/images/tracking/blood_sugar.png',
-      'label': 'سكر الدم',
-      'value': '98',
-      'unit': 'مجم/دل',
-      'color': Colors.orange,
-      'screen': const GlucoseTrackerScreen(),
-    },
-    {
-      'icon': 'assets/images/tracking/fitness.png',
-      'label': 'اللياقة',
-      'value': '85',
-      'unit': '%',
-      'color': Colors.green,
-      'screen': const SleepTrackerScreen(),
-    },
-    {
-      'icon': 'assets/images/tracking/weight_tracking.png',
-      'label': 'الوزن',
-      'value': '72',
-      'unit': 'كجم',
-      'color': Colors.purple,
-      'screen': const WeightTrackerScreen(),
-    },
-    {
-      'icon': 'assets/images/tracking/nutrition.png',
-      'label': 'التغذية',
-      'value': 'جيد',
-      'unit': '',
-      'color': Colors.teal,
-      'screen': const HealthDashboard(),
-    },
-    {
-      'icon': 'assets/images/tracking/mental_health.png',
-      'label': 'الصحة النفسية',
-      'value': 'ممتاز',
-      'unit': '',
-      'color': Colors.indigo,
-      'screen': const HealthDashboard(),
-    },
+    {'icon': 'assets/images/tracking/blood_pressure.png', 'label': 'ضغط الدم', 'value': '120/80', 'unit': 'مم زئبق', 'color': Colors.red, 'screen': const BloodPressureScreen()},
+    {'icon': 'assets/images/tracking/blood_sugar.png', 'label': 'سكر الدم', 'value': '98', 'unit': 'مجم/دل', 'color': Colors.orange, 'screen': const GlucoseTrackerScreen()},
+    {'icon': 'assets/images/tracking/fitness.png', 'label': 'اللياقة', 'value': '85', 'unit': '%', 'color': Colors.green, 'screen': const SleepTrackerScreen()},
+    {'icon': 'assets/images/tracking/weight_tracking.png', 'label': 'الوزن', 'value': '72', 'unit': 'كجم', 'color': Colors.purple, 'screen': const WeightTrackerScreen()},
+    {'icon': 'assets/images/tracking/nutrition.png', 'label': 'التغذية', 'value': 'جيد', 'unit': '', 'color': Colors.teal, 'screen': const HealthDashboard()},
+    {'icon': 'assets/images/tracking/mental_health.png', 'label': 'الصحة النفسية', 'value': 'ممتاز', 'unit': '', 'color': Colors.indigo, 'screen': const HealthDashboard()},
   ];
 
-  // ✅ الخدمات الطبية - أيقونات مكبرة بدون حاويات
   final List<Map<String, dynamic>> _services = [
     {'icon': 'assets/images/services/calendar_booking.png', 'label': 'المواعيد', 'color': Colors.green, 'screen': const PatientAppointments()},
     {'icon': 'assets/images/services/medications.png', 'label': 'الأدوية', 'color': Colors.orange, 'screen': const MedicinesScreen()},
@@ -120,38 +90,288 @@ class _PatientDashboardState extends State<PatientDashboard> {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+        _userId = user.uid;
+        final doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+
         if (doc.exists) {
           final data = doc.data();
           setState(() {
-            _userName = data?['name'] ?? user.displayName ?? 'مريض';
+            _userName = data?['name'] ?? user.displayName ?? 'مستخدم';
             _userEmail = user.email ?? '';
             _userRole = data?['role'] ?? data?['type'] ?? 'مريض';
+            _userPhone = data?['phone'] ?? '';
+            _userAvatar = data?['avatar'] ?? '';
+            _patientNumber = data?['patientNumber'] ?? _generatePatientNumber();
+            _subscriptionType = data?['subscriptionType'] ?? 'مجاني';
+            _subscriptionColor = _getSubscriptionColor(_subscriptionType);
           });
+          if (doc.data()?['patientNumber'] == null) {
+            await _savePatientNumber();
+          }
         } else {
           setState(() {
-            _userName = user.displayName ?? 'مريض';
+            _userName = user.displayName ?? 'مستخدم';
             _userEmail = user.email ?? '';
             _userRole = 'مريض';
           });
+          await _savePatientNumber();
         }
       }
-    } catch (e) {}
+    } catch (e) {
+      print('❌ Error loading user data: $e');
+    }
     setState(() => _isLoading = false);
   }
 
-  String _getDashboardTitle() {
-    switch (_userRole.toLowerCase()) {
-      case 'طبيب': case 'doctor': return 'لوحة الطبيب';
-      case 'ممرض': case 'nurse': return 'لوحة الممرض';
-      case 'مشرف': case 'supervisor': case 'admin': return 'لوحة المشرف';
-      case 'صيدلي': case 'pharmacist': return 'لوحة الصيدلي';
-      case 'فني': case 'technician': return 'لوحة الفني';
-      default: return 'لوحة المريض';
+  String _generatePatientNumber() {
+    final now = DateTime.now();
+    final year = now.year;
+    final random = DateTime.now().millisecondsSinceEpoch.toString().substring(8, 12);
+    return 'SH-$year-$random';
+  }
+
+  String _getSubscriptionColor(String type) {
+    switch (type.toLowerCase()) {
+      case 'ذهبية':
+      case 'gold':
+        return '#FFD700';
+      case 'ماسية':
+      case 'diamond':
+        return '#00BCD4';
+      case 'فضية':
+      case 'silver':
+        return '#9E9E9E';
+      case 'برونزية':
+      case 'bronze':
+        return '#CD7F32';
+      case 'عائلية':
+      case 'family':
+        return '#4CAF50';
+      default:
+        return '#9E9E9E';
     }
   }
 
-  // ✅ دالة عرض الأيقونة - بدون حاويات
+  Future<void> _savePatientNumber() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .set({
+        'patientNumber': _patientNumber,
+        'name': _userName,
+        'email': _userEmail,
+        'role': _userRole,
+        'phone': _userPhone,
+        'subscriptionType': _subscriptionType,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      print('✅ Patient number saved: $_patientNumber');
+    } catch (e) {
+      print('❌ Error saving patient number: $e');
+    }
+  }
+
+  // ✅ دالة رفع الصورة
+  Future<void> _pickImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 500,
+        maxHeight: 500,
+        imageQuality: 80,
+      );
+      
+      if (image == null) return;
+      
+      ToastService.showInfo('⏳ جاري رفع الصورة...');
+      
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        ToastService.showError('❌ يرجى تسجيل الدخول أولاً');
+        return;
+      }
+
+      // رفع الصورة إلى Firebase Storage
+      final ref = FirebaseStorage.instance
+          .ref()
+          .child('users/${user.uid}/avatar.jpg');
+      
+      await ref.putFile(File(image.path));
+      final downloadUrl = await ref.getDownloadURL();
+      
+      // حفظ الرابط في Firestore
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .update({'avatar': downloadUrl});
+      
+      setState(() {
+        _userAvatar = downloadUrl;
+      });
+      
+      ToastService.showSuccess('✅ تم رفع الصورة بنجاح');
+    } catch (e) {
+      ToastService.showError('❌ فشل رفع الصورة: $e');
+    }
+  }
+
+  // ✅ دالة المشاركة
+  Future<void> _shareProfile() async {
+    setState(() => _isSharing = true);
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        ToastService.showError('❌ يرجى تسجيل الدخول أولاً');
+        return;
+      }
+
+      final shareText = '''
+🏥 ملفي الصحي - صحتك (Sehatak)
+
+👤 الاسم: $_userName
+📧 البريد: $_userEmail
+📱 الهاتف: $_userPhone
+🆔 رقم المريض: $_patientNumber
+👤 الدور: $_userRole
+💳 الباقة: $_subscriptionType
+📅 تاريخ الانضمام: ${DateTime.now().toLocal().toString().split(' ')[0]}
+
+📊 إحصائيات سريعة:
+• ضغط الدم: 120/80 مم زئبق
+• سكر الدم: 98 مجم/دل
+• الوزن: 72 كجم
+• اللياقة: 85%
+
+🩺 الخدمات المتاحة:
+✓ المواعيد الطبية
+✓ الأدوية والوصفات
+✓ المختبرات والتحاليل
+✓ الاستشارات الطبية
+✓ الصيدلية والتوصيل
+✓ السجلات الطبية
+
+🔗 تم إنشاء هذا الملف بواسطة تطبيق صحتك - Sehatak
+📱 حمل التطبيق الآن!
+''';
+
+      await Share.share(shareText, subject: 'ملفي الصحي - صحتك');
+      ToastService.showSuccess('✅ تم مشاركة الملف الصحي بنجاح');
+    } catch (e) {
+      ToastService.showError('❌ فشل مشاركة الملف: $e');
+    }
+    setState(() => _isSharing = false);
+  }
+
+  // ✅ دالة الباركود
+  void _showQRCode() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                '📱 ملفي الصحي',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                width: 200,
+                height: 200,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: _buildQRCode(),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'رقم المريض: $_patientNumber',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '$_userName • $_userRole',
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        ToastService.showSuccess('✅ تم حفظ الباركود');
+                      },
+                      icon: const Icon(Icons.download),
+                      label: const Text('تحميل'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('إغلاق'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQRCode() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.qr_code,
+            size: 120,
+            color: AppColors.primary,
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              _patientNumber,
+              style: TextStyle(
+                fontSize: 10,
+                color: AppColors.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getDashboardTitle() {
+    return 'لوحة المستخدم';
+  }
+
   Widget _buildIcon(String path, {double size = 40, Color? color}) {
     return Image.asset(
       path,
@@ -189,12 +409,23 @@ class _PatientDashboardState extends State<PatientDashboard> {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: () {},
+            icon: _isSharing
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : const Icon(Icons.share),
+            onPressed: _isSharing ? null : _shareProfile,
+            tooltip: 'مشاركة الملف الصحي',
           ),
           IconButton(
             icon: const Icon(Icons.qr_code),
-            onPressed: () {},
+            onPressed: _showQRCode,
+            tooltip: 'عرض الباركود',
           ),
         ],
       ),
@@ -205,15 +436,10 @@ class _PatientDashboardState extends State<PatientDashboard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ✅ بطاقة المريض
                   _buildPatientCard(isDark),
                   const SizedBox(height: 16),
-
-                  // ✅ الباقة النشطة
                   _buildActiveSubscriptionCard(isDark),
                   const SizedBox(height: 16),
-
-                  // ✅ المؤشرات الحيوية
                   const Text(
                     'المؤشرات الحيوية',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -221,8 +447,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
                   const SizedBox(height: 10),
                   _buildVitalsGrid(isDark),
                   const SizedBox(height: 16),
-
-                  // ✅ وصول سريع - أيقونات مكبرة
                   const Text(
                     'وصول سريع',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -230,8 +454,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
                   const SizedBox(height: 10),
                   _buildQuickAccess(isDark),
                   const SizedBox(height: 16),
-
-                  // ✅ الخدمات الطبية
                   const Text(
                     'الخدمات الطبية',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -239,8 +461,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
                   const SizedBox(height: 10),
                   _buildServicesList(isDark),
                   const SizedBox(height: 16),
-
-                  // ✅ الأمراض المزمنة
                   const Text(
                     'الأمراض المزمنة',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -248,8 +468,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
                   const SizedBox(height: 10),
                   _buildChronicConditions(isDark),
                   const SizedBox(height: 16),
-
-                  // ✅ التطعيمات
                   const Text(
                     'التطعيمات',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -257,8 +475,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
                   const SizedBox(height: 10),
                   _buildVaccinations(isDark),
                   const SizedBox(height: 16),
-
-                  // ✅ الحساسية
                   const Text(
                     'الحساسية',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -272,52 +488,90 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ✅ بطاقة المريض
   Widget _buildPatientCard(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [AppColors.primary, AppColors.primaryDark],
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const PatientProfile()),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [AppColors.primary, AppColors.primaryDark],
+          ),
+          borderRadius: BorderRadius.circular(16),
         ),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        children: [
-          const CircleAvatar(
-            radius: 38,
-            backgroundColor: Colors.white24,
-            child: Text('أح', style: TextStyle(fontSize: 30, color: Colors.white)),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            _userName,
-            style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          Text(
-            _userEmail,
-            style: const TextStyle(color: Colors.white70, fontSize: 12),
-          ),
-          const Text(
-            'رقم المريض: SH-2024-0012',
-            style: TextStyle(color: Colors.white70, fontSize: 11),
-          ),
-          const Text(
-            'العمر: 29 سنة • فصيلة الدم: O+',
-            style: TextStyle(color: Colors.white70, fontSize: 11),
-          ),
-          const SizedBox(height: 12),
-          // ✅ فصيلة الدم - أيقونات بدون حاويات
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildVitalStat('assets/images/tracking/blood_pressure.png', 'الدم', 'O+'),
-              _buildVitalStat('assets/images/tracking/weight_tracking.png', 'الوزن', '72 كجم'),
-              _buildVitalStat('assets/images/tracking/fitness.png', 'الطول', '175 سم'),
-              _buildVitalStat('assets/images/tracking/blood_pressure.png', 'الضغط', 'طبيعي'),
-            ],
-          ),
-        ],
+        child: Column(
+          children: [
+            // ✅ صورة المستخدم - قابلة للنقر لرفع الصورة
+            GestureDetector(
+              onTap: _pickImage,
+              child: Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 40,
+                    backgroundColor: Colors.white24,
+                    backgroundImage: _userAvatar.isNotEmpty
+                        ? NetworkImage(_userAvatar)
+                        : null,
+                    child: _userAvatar.isEmpty
+                        ? Text(
+                            _userName.isNotEmpty ? _userName[0].toUpperCase() : 'م',
+                            style: const TextStyle(fontSize: 30, color: Colors.white),
+                          )
+                        : null,
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.camera_alt,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              _userName,
+              style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              _userEmail,
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
+            ),
+            Text(
+              'رقم المريض: $_patientNumber',
+              style: const TextStyle(color: Colors.white70, fontSize: 11),
+            ),
+            const Text(
+              'العمر: 29 سنة • فصيلة الدم: O+',
+              style: TextStyle(color: Colors.white70, fontSize: 11),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildVitalStat('assets/images/tracking/blood_pressure.png', 'الدم', 'O+'),
+                _buildVitalStat('assets/images/tracking/weight_tracking.png', 'الوزن', '72 كجم'),
+                _buildVitalStat('assets/images/tracking/fitness.png', 'الطول', '175 سم'),
+                _buildVitalStat('assets/images/tracking/blood_pressure.png', 'الضغط', 'طبيعي'),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -333,8 +587,31 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ✅ الباقة النشطة
+  // ✅ الباقة النشطة - ألوان حسب نوع الاشتراك
   Widget _buildActiveSubscriptionCard(bool isDark) {
+    // ✅ ألوان الباقات المختلفة
+    Map<String, Color> subscriptionColors = {
+      'ذهبية': Colors.amber,
+      'ماسية': Colors.cyan,
+      'فضية': Colors.grey,
+      'برونزية': Colors.brown,
+      'عائلية': Colors.green,
+      'مجاني': Colors.grey,
+    };
+
+    Map<String, String> subscriptionIcons = {
+      'ذهبية': '⭐',
+      'ماسية': '💎',
+      'فضية': '🥈',
+      'برونزية': '🥉',
+      'عائلية': '👨‍👩‍👧‍👦',
+      'مجاني': '🆓',
+    };
+
+    final Color subscriptionColor = subscriptionColors[_subscriptionType] ?? Colors.grey;
+    final String subscriptionIcon = subscriptionIcons[_subscriptionType] ?? '🆓';
+    final String subscriptionStatus = _subscriptionType == 'مجاني' ? 'مجانية' : 'مفعّلة';
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -346,16 +623,36 @@ class _PatientDashboardState extends State<PatientDashboard> {
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [AppColors.primary, Colors.purple.shade600],
+            colors: [subscriptionColor, subscriptionColor.withOpacity(0.7)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: subscriptionColor.withOpacity(0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Row(
           children: [
-            // ✅ أيقونة الباقات - مسار صحيح
-            _buildIcon('assets/images/services/packages.png', size: 34, color: Colors.white),
+            // ✅ أيقونة الباقة
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Center(
+                child: Text(
+                  subscriptionIcon,
+                  style: const TextStyle(fontSize: 24),
+                ),
+              ),
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -365,15 +662,19 @@ class _PatientDashboardState extends State<PatientDashboard> {
                     'الباقة النشطة',
                     style: TextStyle(color: Colors.white70, fontSize: 12),
                   ),
-                  const Text(
-                    'الباقة الذهبية',
-                    style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                  Text(
+                    'الباقة $_subscriptionType',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   Row(
                     children: [
-                      const Icon(Icons.star, color: AppColors.amber, size: 14),
+                      Icon(Icons.star, color: AppColors.amber, size: 14),
                       const SizedBox(width: 4),
-                      const Text(
+                      Text(
                         'مميزات حصرية',
                         style: TextStyle(color: Colors.white70, fontSize: 11),
                       ),
@@ -384,9 +685,13 @@ class _PatientDashboardState extends State<PatientDashboard> {
                           color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Text(
-                          'مفعّلة',
-                          style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w500),
+                        child: Text(
+                          subscriptionStatus,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
                     ],
@@ -401,7 +706,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ✅ المؤشرات الحيوية - أيقونات مكبرة بدون حاويات
   Widget _buildVitalsGrid(bool isDark) {
     return GridView.builder(
       shrinkWrap: true,
@@ -436,8 +740,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // ✅ أيقونة مكبرة (36 -> 42)
-                _buildIcon(vital['icon'] as String, size: 42, color: color),
+                _buildIcon(vital['icon'] as String, size: 48, color: color),
                 const SizedBox(height: 6),
                 Text(
                   vital['value'] as String,
@@ -466,7 +769,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ✅ وصول سريع - أيقونات مكبرة بدون حاويات
   Widget _buildQuickAccess(bool isDark) {
     final quickServices = [
       {'icon': 'assets/images/services/calendar_booking.png', 'label': 'المواعيد', 'screen': const PatientAppointments()},
@@ -485,7 +787,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
           },
           child: Column(
             children: [
-              // ✅ أيقونة مكبرة (50 -> 56)
               _buildIcon(service['icon'] as String, size: 56, color: AppColors.primary),
               const SizedBox(height: 4),
               Text(
@@ -499,7 +800,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ✅ الخدمات الطبية - أيقونات مكبرة بدون حاويات
   Widget _buildServicesList(bool isDark) {
     return ListView.builder(
       shrinkWrap: true,
@@ -527,7 +827,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
             ),
             child: Row(
               children: [
-                // ✅ أيقونة مكبرة (28 -> 36)
                 _buildIcon(service['icon'] as String, size: 36, color: color),
                 const SizedBox(width: 12),
                 Expanded(
@@ -564,7 +863,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ✅ الأمراض المزمنة
   Widget _buildChronicConditions(bool isDark) {
     final conditions = [
       {'name': 'ارتفاع ضغط الدم', 'diagnosed': '15 مارس 2023', 'status': 'تحت السيطرة', 'color': AppColors.error, 'icon': Icons.favorite_border},
@@ -641,7 +939,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ✅ التطعيمات
   Widget _buildVaccinations(bool isDark) {
     final vaccines = [
       {'name': 'كوفيد-19', 'info': 'فايزر • جرعتين', 'date': 'آخر: يناير 2025', 'done': true},
@@ -670,7 +967,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
               if (vaccines.indexOf(vaccine) > 0) const Divider(),
               Row(
                 children: [
-                  // ✅ أيقونة مكبرة (32 -> 36)
                   _buildIcon(
                     done ? 'assets/images/services/health_tips.png' : 'assets/images/services/emergency.png',
                     size: 36,
@@ -704,7 +1000,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ✅ الحساسية
   Widget _buildAllergies(bool isDark) {
     final allergies = [
       {'icon': 'assets/images/services/emergency.png', 'name': 'فول سوداني', 'color': AppColors.error},
@@ -728,7 +1023,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // ✅ أيقونة مكبرة (18 -> 24)
               _buildIcon(allergy['icon'] as String, size: 24, color: color),
               const SizedBox(width: 4),
               Text(
