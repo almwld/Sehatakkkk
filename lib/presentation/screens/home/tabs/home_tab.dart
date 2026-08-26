@@ -3002,3 +3002,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 }
+
+  // ⏱️ وقت التهيئة
+  static const int _initDelaySeconds = 4;
