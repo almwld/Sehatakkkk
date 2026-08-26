@@ -867,3 +867,7 @@ dependency_overrides:
   # 🚶 تتبع الخطوات
   step_progress_indicator: ^1.0.2
   circular_countdown_timer: ^0.2.4
+
+  # 🚶 تتبع الخطوات
+  step_progress_indicator: ^1.0.2
+  circular_countdown_timer: ^0.2.4
