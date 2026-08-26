@@ -1,7 +1,5 @@
-import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 
 class HospitalDetailsScreen extends StatefulWidget {
@@ -19,48 +17,16 @@ class HospitalDetailsScreen extends StatefulWidget {
 }
 
 class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
-  late Map<String, dynamic> _hospital;
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadHospitalData();
-  }
-
-  void _loadHospitalData() {
-    setState(() {
-      _hospital = widget.hospitalData ?? {
-        'id': widget.hospitalId,
-        'name': 'مستشفى 22 مايو',
-        'location': 'صنعاء - حدة',
-        'rating': 4.9,
-        'reviews': 328,
-        'image': ImageKit.hospital1,
-        'open': true,
-        'phone': '+967 1 234 567',
-        'email': 'info@hospital.com',
-      };
-      _isLoading = false;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    if (_isLoading) {
-      return Scaffold(
-        body: const Center(child: CircularProgressIndicator(color: AppColors.primary)),
-      );
-    }
+    final hospital = widget.hospitalData ?? {};
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: Text(_hospital['name'] ?? 'مستشفى'),
-        backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
-        foregroundColor: isDark ? Colors.white : Colors.black87,
+        title: Text(hospital['name'] ?? 'تفاصيل المستشفى'),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -68,89 +34,135 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              height: 200,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                image: DecorationImage(
-                  image: NetworkImage(_hospital['image'] ?? ''),
-                  fit: BoxFit.cover,
-                ),
+            // صورة المستشفى
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: AppImage(
+                imageUrl: hospital['image'] ?? '',
+                height: 200,
+                width: double.infinity,
+                fit: BoxFit.cover,
               ),
             ),
             const SizedBox(height: 16),
+
+            // اسم المستشفى
             Text(
-              _hospital['name'] ?? 'مستشفى',
-              style: TextStyle(
-                fontSize: 22,
+              hospital['name'] ?? 'اسم المستشفى',
+              style: const TextStyle(
+                fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : Colors.black87,
               ),
             ),
             const SizedBox(height: 8),
+
+            // الموقع
             Row(
               children: [
-                const Icon(Icons.location_on, color: AppColors.primary, size: 18),
-                const SizedBox(width: 4),
+                Icon(Icons.location_on, color: AppColors.primary, size: 20),
+                const SizedBox(width: 8),
                 Text(
-                  _hospital['location'] ?? 'صنعاء',
+                  hospital['location'] ?? 'الموقع غير معروف',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 16,
                     color: isDark ? Colors.grey[400] : Colors.grey[600],
                   ),
                 ),
-                const Spacer(),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            // التقييم
+            Row(
+              children: [
+                const Icon(Icons.star, color: Colors.amber, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  '${hospital['rating'] ?? 4.5}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(width: 16),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: _hospital['open'] == true ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                    color: (hospital['open'] ?? true)
+                        ? Colors.green.withOpacity(0.1)
+                        : Colors.red.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    _hospital['open'] == true ? 'مفتوح' : 'مغلق',
+                    (hospital['open'] ?? true) ? '🟢 مفتوح' : '🔴 مغلق',
                     style: TextStyle(
-                      fontSize: 11,
-                      color: _hospital['open'] == true ? Colors.green : Colors.red,
-                      fontWeight: FontWeight.w500,
+                      color: (hospital['open'] ?? true) ? Colors.green : Colors.red,
+                      fontSize: 14,
                     ),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1A2540) : Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
-                ],
-              ),
-              child: Column(
-                children: [
-                  _buildInfoRow(Icons.phone, 'الهاتف', _hospital['phone'] ?? '+967 1 234 567', isDark),
-                  _buildInfoRow(Icons.email, 'البريد الإلكتروني', _hospital['email'] ?? 'info@hospital.com', isDark),
-                  _buildInfoRow(Icons.star, 'التقييم', '${_hospital['rating']} (${_hospital['reviews']} تقييم)', isDark),
-                ],
-              ),
-            ),
+
+            const Divider(),
             const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  ToastService.showSuccess('جاري حجز موعد...');
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+
+            // معلومات إضافية
+            _buildInfoRow('🏥 النوع', hospital['type'] ?? 'عام'),
+            _buildInfoRow('🛏️ عدد الأسرة', '${hospital['beds'] ?? 100} سرير'),
+            _buildInfoRow('📞 الهاتف', hospital['phone'] ?? 'غير متوفر'),
+
+            const SizedBox(height: 24),
+
+            // أزرار الإجراءات
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      // حجز موعد
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('جاري حجز موعد...'),
+                          backgroundColor: AppColors.primary,
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.calendar_today),
+                    label: const Text('حجز موعد'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
                 ),
-                child: const Text('حجز موعد', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      // الاتصال
+                      final phone = hospital['phone'] ?? '';
+                      if (phone.isNotEmpty) {
+                        // فتح تطبيق الهاتف
+                      }
+                    },
+                    icon: const Icon(Icons.phone),
+                    label: const Text('اتصال'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -158,24 +170,26 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen> {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value, bool isDark) {
+  Widget _buildInfoRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 18, color: AppColors.primary),
-          const SizedBox(width: 8),
           Text(
-            '$label: ',
-            style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+            label,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
           ),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               value,
               style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: isDark ? Colors.white : Colors.black87,
+                fontSize: 16,
+                color: Colors.grey[600],
               ),
             ),
           ),

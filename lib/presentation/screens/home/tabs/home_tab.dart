@@ -14,6 +14,7 @@ import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
 import 'package:sehatak/presentation/screens/medication/medicines_screen.dart';
 import 'package:sehatak/presentation/screens/hospital/hospital_screen.dart';
+import 'package:sehatak/presentation/screens/hospital/hospital_details_screen.dart';
 import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
 import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
 import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart';
