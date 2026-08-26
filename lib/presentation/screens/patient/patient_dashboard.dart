@@ -32,7 +32,7 @@ import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // ============================================================
-// 🎨 CustomPainter للدائرة المتدرجة (خارج الكلاس)
+// 🎨 CustomPainter للدائرة المتدرجة
 // ============================================================
 class CircularProgressPainter extends CustomPainter {
   final double progress;
@@ -104,7 +104,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
   String _patientNumber = 'SH-2024-0012';
   String _userAvatar = '';
   String _subscriptionType = 'مجاني';
-  String _subscriptionColor = '#9E9E9E';
+  String _subscriptionColor = '#6C757D'; // ✅ اللون الرمادي للباقة المجانية
   bool _isLoading = true;
   bool _isSharing = false;
   bool _isOffline = false;
@@ -115,7 +115,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
   bool _dataLoaded = false;
 
   // ============================================================
-  // 📦 بيانات المؤشرات الحيوية
+  // 📦 المؤشرات الحيوية الأصلية
   // ============================================================
   final List<Map<String, dynamic>> _vitals = [
     {
@@ -335,12 +335,20 @@ class _PatientDashboardState extends State<PatientDashboard> {
   // ============================================================
   String _getSubscriptionColor(String type) {
     switch (type.toLowerCase()) {
-      case 'ذهبية': case 'gold': return '#FFD700';
-      case 'ماسية': case 'diamond': return '#00BCD4';
-      case 'فضية': case 'silver': return '#9E9E9E';
-      case 'برونزية': case 'bronze': return '#CD7F32';
-      case 'عائلية': case 'family': return '#4CAF50';
-      default: return '#9E9E9E';
+      case 'ذهبية': case 'gold': 
+        return '#FFD700'; // ذهبي
+      case 'ماسية': case 'diamond': 
+        return '#00BCD4'; // فيروزي
+      case 'فضية': case 'silver': 
+        return '#9E9E9E'; // فضي
+      case 'برونزية': case 'bronze': 
+        return '#CD7F32'; // برونزي
+      case 'عائلية': case 'family': 
+        return '#4CAF50'; // أخضر
+      case 'مجاني': case 'free': 
+        return '#6C757D'; // ✅ رمادي للباقة المجانية
+      default: 
+        return '#6C757D'; // رمادي افتراضي
     }
   }
 
@@ -773,16 +781,17 @@ class _PatientDashboardState extends State<PatientDashboard> {
   }
 
   // ============================================================
-  // 💳 الباقة النشطة
+  // 💳 الباقة النشطة - ألوان حسب النوع مع اللون الرمادي للمجانية
   // ============================================================
   Widget _buildActiveSubscriptionCard(bool isDark) {
+    // ✅ ألوان الباقات حسب النوع
     final Map<String, Color> subscriptionColors = {
       'ذهبية': Colors.amber,
       'ماسية': Colors.cyan,
       'فضية': Colors.grey,
       'برونزية': Colors.brown,
       'عائلية': Colors.green,
-      'مجاني': Colors.grey,
+      'مجاني': Colors.grey, // ✅ رمادي للباقة المجانية
     };
 
     final Map<String, String> subscriptionIcons = {
@@ -791,7 +800,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
       'فضية': '🥈',
       'برونزية': '🥉',
       'عائلية': '👨‍👩‍👧‍👦',
-      'مجاني': '🆓',
+      'مجاني': '🆓', // ✅ أيقونة مجانية
     };
 
     final Color subscriptionColor = subscriptionColors[_subscriptionType] ?? Colors.grey;
@@ -892,7 +901,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
   }
 
   // ============================================================
-  // 📊 المؤشرات الحيوية - مع رسم بياني دائري
+  // 📊 المؤشرات الحيوية - المؤشرات الأصلية مع رسم بياني دائري
   // ============================================================
   Widget _buildVitalsGrid(bool isDark) {
     return GridView.builder(
