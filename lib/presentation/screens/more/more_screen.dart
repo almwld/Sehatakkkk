@@ -155,14 +155,14 @@ class _MoreScreenState extends State<MoreScreen>
     switch (_selectedCategory) {
       case 'رعاية عائلية':
         return [
-          {'icon': 'assets/images/services/womens_health.png', 'title': 'صحة المرأة', 'subtitle': 'متابعة الدورة والحمل', 'screen': const FamilyPlanningScreen()},
-          {'icon': 'assets/images/tracking/child.png', 'title': 'نمو الطفل', 'subtitle': 'مراحل التطور', 'screen': const FamilyPlanningScreen()},
+          {'icon': 'assets/images/pregnancy_follow_up.png', 'title': 'صحة المرأة', 'subtitle': 'متابعة الدورة والحمل', 'screen': const FamilyPlanningScreen()},
+          {'icon': 'assets/images/childhealth.png', 'title': 'نمو الطفل', 'subtitle': 'مراحل التطور', 'screen': const FamilyPlanningScreen()},
           {'icon': 'assets/images/services/hospital.png', 'title': 'طبيب العائلة', 'subtitle': 'رعاية منزلية متكاملة', 'screen': const DoctorsListScreen()},
-          {'icon': 'assets/images/services/womens_health.png', 'title': 'متابعة الحمل', 'subtitle': 'أسابيع الحمل بدقة', 'screen': const FamilyPlanningScreen()},
+          {'icon': 'assets/images/pregnancy_follow_up.png', 'title': 'متابعة الحمل', 'subtitle': 'أسابيع الحمل بدقة', 'screen': const FamilyPlanningScreen()},
           {'icon': 'assets/images/tracking/mental_health.png', 'title': 'الصحة النفسية', 'subtitle': 'دعم الصحة النفسية', 'screen': const MentalHealthScreen()},
           {'icon': 'assets/images/tracking/fruits.png', 'title': 'نظام غذائي', 'subtitle': 'خطط غذائية صحية', 'screen': const DietPlanScreen()},
           {'icon': 'assets/images/tracking/sleep_tracking.png', 'title': 'تتبع النوم', 'subtitle': 'مراقبة جودة النوم', 'screen': const SleepTrackerScreen()},
-          {'icon': 'assets/images/services/vaccination.png', 'title': 'التطعيمات', 'subtitle': 'جدول التطعيمات', 'screen': const VaccinationScreen()},
+          {'icon': 'assets/images/tracking/vaccination.png', 'title': 'التطعيمات', 'subtitle': 'جدول التطعيمات', 'screen': const VaccinationScreen()},
         ];
       case 'أدوات تشخيصية':
         return [
