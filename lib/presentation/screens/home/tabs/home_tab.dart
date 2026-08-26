@@ -6,7 +6,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:health_connect/health_connect.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:sehatak/core/services/advanced_notification_service.dart';
 import 'package:sehatak/core/services/image_cache_service.dart';
