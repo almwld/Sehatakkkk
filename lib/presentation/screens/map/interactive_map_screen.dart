@@ -13,6 +13,13 @@ class InteractiveMapScreen extends StatefulWidget {
   const InteractiveMapScreen({super.key, this.type = 'hospitals', this.orderId});
 
   @override
+  void _loadIcons() {
+    _hospitalIcon = SvgAssetLoader('assets/icons/map_pins/hospital.svg').loadPicture(null, null);
+    _pharmacyIcon = SvgAssetLoader('assets/icons/map_pins/pharmacy.svg').loadPicture(null, null);
+    _laboratoryIcon = SvgAssetLoader('assets/icons/map_pins/laboratory.svg').loadPicture(null, null);
+    _medicalIcon = SvgAssetLoader('assets/icons/map_pins/medical.svg').loadPicture(null, null);
+    _clinicIcon = SvgAssetLoader('assets/icons/map_pins/clinic.svg').loadPicture(null, null);
+  }
   State<InteractiveMapScreen> createState() => _InteractiveMapScreenState();
 }
 
@@ -580,8 +587,19 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
             child: Center(
               child: isSelected
                   ? const Icon(Icons.check, color: Colors.white, size: 20)
-                  : Icon(
-                      _getIconForCategory(place['category'] as String),
+                  : SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: SvgPicture(
+                        _getIconProviderForCategory(place['category'] as String),
+                        fit: BoxFit.contain,
+                        colorFilter: const ColorFilter.mode(
+                          AppColors.primary,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                    ),
+            ),
                       color: AppColors.primary,
                       size: 18,
                     ),
@@ -595,21 +613,6 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
   // ============================================================
   // 🎨 الحصول على الأيقونة حسب الفئة
   // ============================================================
-  IconData _getIconForCategory(String category) {
-    switch (category) {
-      case 'hospitals':
-        return Icons.local_hospital;
-      case 'pharmacies':
-        return Icons.local_pharmacy;
-      case 'labs':
-        return Icons.science;
-      case 'clinics':
-        return Icons.healing;
-      case 'other':
-        return Icons.place;
-      default:
-        return Icons.place;
-    }
   }
 
   // ============================================================
@@ -670,8 +673,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                     color: AppColors.primary.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
-                    _getIconForCategory(place['category'] as String),
+                  child: _getCategoryIcon(place['category'] as String, size: 28),
                     color: AppColors.primary,
                     size: 24,
                   ),
@@ -849,6 +851,13 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
   // 🏗️ بناء الواجهة
   // ============================================================
   @override
+  void _loadIcons() {
+    _hospitalIcon = SvgAssetLoader('assets/icons/map_pins/hospital.svg').loadPicture(null, null);
+    _pharmacyIcon = SvgAssetLoader('assets/icons/map_pins/pharmacy.svg').loadPicture(null, null);
+    _laboratoryIcon = SvgAssetLoader('assets/icons/map_pins/laboratory.svg').loadPicture(null, null);
+    _medicalIcon = SvgAssetLoader('assets/icons/map_pins/medical.svg').loadPicture(null, null);
+    _clinicIcon = SvgAssetLoader('assets/icons/map_pins/clinic.svg').loadPicture(null, null);
+  }
   void initState() {
     super.initState();
     _mapController = MapController();
@@ -860,6 +869,13 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
   }
 
   @override
+  void _loadIcons() {
+    _hospitalIcon = SvgAssetLoader('assets/icons/map_pins/hospital.svg').loadPicture(null, null);
+    _pharmacyIcon = SvgAssetLoader('assets/icons/map_pins/pharmacy.svg').loadPicture(null, null);
+    _laboratoryIcon = SvgAssetLoader('assets/icons/map_pins/laboratory.svg').loadPicture(null, null);
+    _medicalIcon = SvgAssetLoader('assets/icons/map_pins/medical.svg').loadPicture(null, null);
+    _clinicIcon = SvgAssetLoader('assets/icons/map_pins/clinic.svg').loadPicture(null, null);
+  }
   void dispose() {
     _mapController.dispose();
     _animationController.dispose();
@@ -868,6 +884,13 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
   }
 
   @override
+  void _loadIcons() {
+    _hospitalIcon = SvgAssetLoader('assets/icons/map_pins/hospital.svg').loadPicture(null, null);
+    _pharmacyIcon = SvgAssetLoader('assets/icons/map_pins/pharmacy.svg').loadPicture(null, null);
+    _laboratoryIcon = SvgAssetLoader('assets/icons/map_pins/laboratory.svg').loadPicture(null, null);
+    _medicalIcon = SvgAssetLoader('assets/icons/map_pins/medical.svg').loadPicture(null, null);
+    _clinicIcon = SvgAssetLoader('assets/icons/map_pins/clinic.svg').loadPicture(null, null);
+  }
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -981,9 +1004,22 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                             ),
                           ],
                         ),
-                        child: Center(
-                          child: Text(
-                            markers.length.toString(),
+            child: Center(
+              child: isSelected
+                  ? const Icon(Icons.check, color: Colors.white, size: 20)
+                  : SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: SvgPicture(
+                        _getIconProviderForCategory(place['category'] as String),
+                        fit: BoxFit.contain,
+                        colorFilter: const ColorFilter.mode(
+                          AppColors.primary,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                    ),
+            ),
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -1070,3 +1106,59 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
     );
   }
 }
+
+  // ============================================================
+  // 🎨 الحصول على أيقونة SVG حسب الفئة
+  // ============================================================
+  PictureProvider _getIconProviderForCategory(String category) {
+    switch (category) {
+      case 'hospitals':
+        return _hospitalIcon;
+      case 'pharmacies':
+        return _pharmacyIcon;
+      case 'labs':
+        return _laboratoryIcon;
+      case 'clinics':
+        return _clinicIcon;
+      case 'other':
+        return _medicalIcon;
+      default:
+        return _medicalIcon;
+    }
+  }
+
+  // ============================================================
+  // 🎨 أيقونة SVG لعرض التفاصيل
+  // ============================================================
+  Widget _getCategoryIcon(String category, {double size = 24}) {
+    final provider = _getIconProviderForCategory(category);
+    return SvgPicture(
+      provider,
+      width: size,
+      height: size,
+      colorFilter: const ColorFilter.mode(
+        AppColors.primary,
+        BlendMode.srcIn,
+      ),
+    );
+  }
+
+  // ============================================================
+  // 🎨 الحصول على الأيقونة حسب الفئة (Material Icons - للاحتياط)
+  // ============================================================
+  IconData _getIconForCategory(String category) {
+    switch (category) {
+      case 'hospitals':
+        return Icons.local_hospital;
+      case 'pharmacies':
+        return Icons.local_pharmacy;
+      case 'labs':
+        return Icons.science;
+      case 'clinics':
+        return Icons.healing;
+      case 'other':
+        return Icons.place;
+      default:
+        return Icons.place;
+    }
+  }
