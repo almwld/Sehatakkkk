@@ -30,6 +30,7 @@ import 'package:sehatak/presentation/screens/weight_tracker/weight_tracker_scree
 import 'package:sehatak/presentation/screens/sleep_tracker/sleep_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
 import 'dart:ui' as ui;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PatientDashboard extends StatefulWidget {
   final ScrollController? scrollController;
@@ -40,6 +41,9 @@ class PatientDashboard extends StatefulWidget {
 }
 
 class _PatientDashboardState extends State<PatientDashboard> {
+  // ============================================================
+  // 📊 متغيرات الحالة
+  // ============================================================
   String _userName = 'مستخدم';
   String _userEmail = '';
   String _userRole = 'مريض';
@@ -51,15 +55,78 @@ class _PatientDashboardState extends State<PatientDashboard> {
   String _subscriptionColor = '#9E9E9E';
   bool _isLoading = true;
   bool _isSharing = false;
+  bool _isOffline = false;
   final ImagePicker _picker = ImagePicker();
+  
+  // ✅ بيانات مخزنة مؤقتاً للـ Offline
+  Map<String, dynamic> _cachedUserData = {};
+  List<Map<String, dynamic>> _cachedVitals = [];
+  bool _dataLoaded = false;
 
+  // ============================================================
+  // 📦 بيانات المؤشرات الحيوية (مع أقصى قيمة للنسبة)
+  // ============================================================
   final List<Map<String, dynamic>> _vitals = [
-    {'icon': 'assets/images/tracking/blood_pressure.png', 'label': 'ضغط الدم', 'value': '120/80', 'unit': 'مم زئبق', 'color': Colors.red, 'screen': const BloodPressureScreen()},
-    {'icon': 'assets/images/tracking/blood_sugar.png', 'label': 'سكر الدم', 'value': '98', 'unit': 'مجم/دل', 'color': Colors.orange, 'screen': const GlucoseTrackerScreen()},
-    {'icon': 'assets/images/tracking/fitness.png', 'label': 'اللياقة', 'value': '85', 'unit': '%', 'color': Colors.green, 'screen': const SleepTrackerScreen()},
-    {'icon': 'assets/images/tracking/weight_tracking.png', 'label': 'الوزن', 'value': '72', 'unit': 'كجم', 'color': Colors.purple, 'screen': const WeightTrackerScreen()},
-    {'icon': 'assets/images/tracking/nutrition.png', 'label': 'التغذية', 'value': 'جيد', 'unit': '', 'color': Colors.teal, 'screen': const HealthDashboard()},
-    {'icon': 'assets/images/tracking/mental_health.png', 'label': 'الصحة النفسية', 'value': 'ممتاز', 'unit': '', 'color': Colors.indigo, 'screen': const HealthDashboard()},
+    {
+      'icon': 'assets/images/tracking/blood_pressure.png',
+      'label': 'ضغط الدم',
+      'value': '120/80',
+      'unit': 'مم زئبق',
+      'color': Colors.red,
+      'maxValue': 180,
+      'currentValue': 120,
+      'screen': const BloodPressureScreen()
+    },
+    {
+      'icon': 'assets/images/tracking/blood_sugar.png',
+      'label': 'سكر الدم',
+      'value': '98',
+      'unit': 'مجم/دل',
+      'color': Colors.orange,
+      'maxValue': 200,
+      'currentValue': 98,
+      'screen': const GlucoseTrackerScreen()
+    },
+    {
+      'icon': 'assets/images/tracking/fitness.png',
+      'label': 'اللياقة',
+      'value': '85',
+      'unit': '%',
+      'color': Colors.green,
+      'maxValue': 100,
+      'currentValue': 85,
+      'screen': const SleepTrackerScreen()
+    },
+    {
+      'icon': 'assets/images/tracking/weight_tracking.png',
+      'label': 'الوزن',
+      'value': '72',
+      'unit': 'كجم',
+      'color': Colors.purple,
+      'maxValue': 120,
+      'currentValue': 72,
+      'screen': const WeightTrackerScreen()
+    },
+    {
+      'icon': 'assets/images/tracking/nutrition.png',
+      'label': 'التغذية',
+      'value': 'جيد',
+      'unit': '',
+      'color': Colors.teal,
+      'maxValue': 10,
+      'currentValue': 8,
+      'screen': const HealthDashboard()
+    },
+    {
+      'icon': 'assets/images/tracking/mental_health.png',
+      'label': 'الصحة النفسية',
+      'value': 'ممتاز',
+      'unit': '',
+      'color': Colors.indigo,
+      'maxValue': 10,
+      'currentValue': 9,
+      'screen': const HealthDashboard()
+    },
   ];
 
   final List<Map<String, dynamic>> _services = [
@@ -79,53 +146,138 @@ class _PatientDashboardState extends State<PatientDashboard> {
     {'icon': 'assets/images/services/packages.png', 'label': 'الباقات', 'color': Colors.amber, 'screen': const SubscriptionsScreen()},
   ];
 
+  // ============================================================
+  // 🔄 دورة الحياة - تحميل البيانات مع Offline
+  // ============================================================
   @override
   void initState() {
     super.initState();
-    _loadUserData();
+    // ✅ عرض البيانات المخزنة فوراً
+    _loadCachedData();
+    // ✅ تحميل البيانات من Firebase في الخلفية
+    _loadUserDataInBackground();
   }
 
-  Future<void> _loadUserData() async {
-    setState(() => _isLoading = true);
+  // ============================================================
+  // 💾 تحميل البيانات المخزنة محلياً (Offline)
+  // ============================================================
+  Future<void> _loadCachedData() async {
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        _userId = user.uid;
-        final doc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .get();
+      final prefs = await SharedPreferences.getInstance();
+      
+      // تحميل بيانات المستخدم المخزنة
+      final cachedUserName = prefs.getString('cached_user_name');
+      final cachedUserEmail = prefs.getString('cached_user_email');
+      final cachedUserRole = prefs.getString('cached_user_role');
+      final cachedPatientNumber = prefs.getString('cached_patient_number');
+      final cachedSubscriptionType = prefs.getString('cached_subscription_type');
+      final cachedUserAvatar = prefs.getString('cached_user_avatar');
+      
+      if (cachedUserName != null) {
+        setState(() {
+          _userName = cachedUserName;
+          _userEmail = cachedUserEmail ?? '';
+          _userRole = cachedUserRole ?? 'مريض';
+          _patientNumber = cachedPatientNumber ?? _generatePatientNumber();
+          _subscriptionType = cachedSubscriptionType ?? 'مجاني';
+          _subscriptionColor = _getSubscriptionColor(_subscriptionType);
+          _userAvatar = cachedUserAvatar ?? '';
+          _dataLoaded = true;
+        });
+      }
+    } catch (e) {
+      print('⚠️ Error loading cached data: $e');
+    }
+  }
 
-        if (doc.exists) {
-          final data = doc.data();
-          setState(() {
-            _userName = data?['name'] ?? user.displayName ?? 'مستخدم';
-            _userEmail = user.email ?? '';
-            _userRole = data?['role'] ?? data?['type'] ?? 'مريض';
-            _userPhone = data?['phone'] ?? '';
-            _userAvatar = data?['avatar'] ?? '';
-            _patientNumber = data?['patientNumber'] ?? _generatePatientNumber();
-            _subscriptionType = data?['subscriptionType'] ?? 'مجاني';
-            _subscriptionColor = _getSubscriptionColor(_subscriptionType);
-          });
-          if (doc.data()?['patientNumber'] == null) {
-            await _savePatientNumber();
-          }
-        } else {
-          setState(() {
-            _userName = user.displayName ?? 'مستخدم';
-            _userEmail = user.email ?? '';
-            _userRole = 'مريض';
-          });
+  // ============================================================
+  // 💾 حفظ البيانات محلياً
+  // ============================================================
+  Future<void> _saveToCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('cached_user_name', _userName);
+      await prefs.setString('cached_user_email', _userEmail);
+      await prefs.setString('cached_user_role', _userRole);
+      await prefs.setString('cached_patient_number', _patientNumber);
+      await prefs.setString('cached_subscription_type', _subscriptionType);
+      await prefs.setString('cached_user_avatar', _userAvatar);
+      print('✅ Data saved to cache');
+    } catch (e) {
+      print('⚠️ Error saving to cache: $e');
+    }
+  }
+
+  // ============================================================
+  // 📥 تحميل البيانات من Firebase (خلفية)
+  // ============================================================
+  Future<void> _loadUserDataInBackground() async {
+    try {
+      // تأخير 10 ثواني قبل التحميل
+      await Future.delayed(const Duration(seconds: 10));
+      
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      _userId = user.uid;
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get()
+          .timeout(
+            const Duration(seconds: 15),
+            onTimeout: () {
+              setState(() => _isOffline = true);
+              throw Exception('Connection timeout');
+            },
+          );
+
+      if (doc.exists) {
+        final data = doc.data();
+        setState(() {
+          _userName = data?['name'] ?? user.displayName ?? 'مستخدم';
+          _userEmail = user.email ?? '';
+          _userRole = data?['role'] ?? data?['type'] ?? 'مريض';
+          _userPhone = data?['phone'] ?? '';
+          _userAvatar = data?['avatar'] ?? '';
+          _patientNumber = data?['patientNumber'] ?? _generatePatientNumber();
+          _subscriptionType = data?['subscriptionType'] ?? 'مجاني';
+          _subscriptionColor = _getSubscriptionColor(_subscriptionType);
+          _isOffline = false;
+          _isLoading = false;
+        });
+        
+        // حفظ البيانات في الكاش
+        await _saveToCache();
+        
+        if (doc.data()?['patientNumber'] == null) {
           await _savePatientNumber();
         }
+      } else {
+        setState(() {
+          _userName = user.displayName ?? 'مستخدم';
+          _userEmail = user.email ?? '';
+          _userRole = 'مريض';
+          _isLoading = false;
+        });
+        await _savePatientNumber();
       }
     } catch (e) {
       print('❌ Error loading user data: $e');
+      setState(() {
+        _isOffline = true;
+        _isLoading = false;
+        // استخدام البيانات المخزنة
+      });
     }
-    setState(() => _isLoading = false);
   }
 
+  // ============================================================
+  // 🆔 توليد رقم المريض
+  // ============================================================
   String _generatePatientNumber() {
     final now = DateTime.now();
     final year = now.year;
@@ -133,28 +285,23 @@ class _PatientDashboardState extends State<PatientDashboard> {
     return 'SH-$year-$random';
   }
 
+  // ============================================================
+  // 🎨 ألوان الباقة حسب النوع
+  // ============================================================
   String _getSubscriptionColor(String type) {
     switch (type.toLowerCase()) {
-      case 'ذهبية':
-      case 'gold':
-        return '#FFD700';
-      case 'ماسية':
-      case 'diamond':
-        return '#00BCD4';
-      case 'فضية':
-      case 'silver':
-        return '#9E9E9E';
-      case 'برونزية':
-      case 'bronze':
-        return '#CD7F32';
-      case 'عائلية':
-      case 'family':
-        return '#4CAF50';
-      default:
-        return '#9E9E9E';
+      case 'ذهبية': case 'gold': return '#FFD700';
+      case 'ماسية': case 'diamond': return '#00BCD4';
+      case 'فضية': case 'silver': return '#9E9E9E';
+      case 'برونزية': case 'bronze': return '#CD7F32';
+      case 'عائلية': case 'family': return '#4CAF50';
+      default: return '#9E9E9E';
     }
   }
 
+  // ============================================================
+  // 💾 حفظ رقم المريض في Firebase
+  // ============================================================
   Future<void> _savePatientNumber() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -171,13 +318,16 @@ class _PatientDashboardState extends State<PatientDashboard> {
         'subscriptionType': _subscriptionType,
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
+      await _saveToCache();
       print('✅ Patient number saved: $_patientNumber');
     } catch (e) {
       print('❌ Error saving patient number: $e');
     }
   }
 
-  // ✅ دالة رفع الصورة
+  // ============================================================
+  // 📸 رفع الصورة
+  // ============================================================
   Future<void> _pickImage() async {
     try {
       final XFile? image = await _picker.pickImage(
@@ -197,7 +347,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
         return;
       }
 
-      // رفع الصورة إلى Firebase Storage
       final ref = FirebaseStorage.instance
           .ref()
           .child('users/${user.uid}/avatar.jpg');
@@ -205,7 +354,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
       await ref.putFile(File(image.path));
       final downloadUrl = await ref.getDownloadURL();
       
-      // حفظ الرابط في Firestore
       await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
@@ -215,13 +363,16 @@ class _PatientDashboardState extends State<PatientDashboard> {
         _userAvatar = downloadUrl;
       });
       
+      await _saveToCache();
       ToastService.showSuccess('✅ تم رفع الصورة بنجاح');
     } catch (e) {
       ToastService.showError('❌ فشل رفع الصورة: $e');
     }
   }
 
-  // ✅ دالة المشاركة
+  // ============================================================
+  // 📤 مشاركة الملف الصحي
+  // ============================================================
   Future<void> _shareProfile() async {
     setState(() => _isSharing = true);
     try {
@@ -268,7 +419,9 @@ class _PatientDashboardState extends State<PatientDashboard> {
     setState(() => _isSharing = false);
   }
 
-  // ✅ دالة الباركود
+  // ============================================================
+  // 📱 عرض الباركود
+  // ============================================================
   void _showQRCode() {
     showDialog(
       context: context,
@@ -280,10 +433,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                '📱 ملفي الصحي',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
+              const Text('📱 ملفي الصحي', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
               Container(
                 width: 200,
@@ -296,23 +446,15 @@ class _PatientDashboardState extends State<PatientDashboard> {
                 child: _buildQRCode(),
               ),
               const SizedBox(height: 12),
-              Text(
-                'رقم المريض: $_patientNumber',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              ),
+              Text('رقم المريض: $_patientNumber', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
               const SizedBox(height: 4),
-              Text(
-                '$_userName • $_userRole',
-                style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-              ),
+              Text('$_userName • $_userRole', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
               const SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: () {
-                        ToastService.showSuccess('✅ تم حفظ الباركود');
-                      },
+                      onPressed: () => ToastService.showSuccess('✅ تم حفظ الباركود'),
                       icon: const Icon(Icons.download),
                       label: const Text('تحميل'),
                       style: ElevatedButton.styleFrom(
@@ -337,16 +479,15 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
+  // ============================================================
+  // 🎨 بناء الباركود
+  // ============================================================
   Widget _buildQRCode() {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.qr_code,
-            size: 120,
-            color: AppColors.primary,
-          ),
+          Icon(Icons.qr_code, size: 120, color: AppColors.primary),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -368,10 +509,16 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
+  // ============================================================
+  // 🏷️ عنوان لوحة المستخدم
+  // ============================================================
   String _getDashboardTitle() {
     return 'لوحة المستخدم';
   }
 
+  // ============================================================
+  // 🖼️ عرض الأيقونة
+  // ============================================================
   Widget _buildIcon(String path, {double size = 40, Color? color}) {
     return Image.asset(
       path,
@@ -384,6 +531,9 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
+  // ============================================================
+  // 🏗️ بناء الواجهة الرئيسية
+  // ============================================================
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -396,6 +546,16 @@ class _PatientDashboardState extends State<PatientDashboard> {
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
+          if (_isOffline)
+            Container(
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.orange.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Text('📶 غير متصل', style: TextStyle(fontSize: 9, color: Colors.orange)),
+            ),
           Container(
             margin: const EdgeInsets.only(right: 8),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -410,14 +570,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
           ),
           IconButton(
             icon: _isSharing
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  )
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)))
                 : const Icon(Icons.share),
             onPressed: _isSharing ? null : _shareProfile,
             tooltip: 'مشاركة الملف الصحي',
@@ -429,7 +582,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
           ),
         ],
       ),
-      body: _isLoading
+      body: _isLoading && !_dataLoaded
           ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
           : SingleChildScrollView(
               padding: const EdgeInsets.all(14),
@@ -440,45 +593,27 @@ class _PatientDashboardState extends State<PatientDashboard> {
                   const SizedBox(height: 16),
                   _buildActiveSubscriptionCard(isDark),
                   const SizedBox(height: 16),
-                  const Text(
-                    'المؤشرات الحيوية',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
+                  const Text('المؤشرات الحيوية', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 10),
                   _buildVitalsGrid(isDark),
                   const SizedBox(height: 16),
-                  const Text(
-                    'وصول سريع',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
+                  const Text('وصول سريع', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 10),
                   _buildQuickAccess(isDark),
                   const SizedBox(height: 16),
-                  const Text(
-                    'الخدمات الطبية',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
+                  const Text('الخدمات الطبية', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 10),
                   _buildServicesList(isDark),
                   const SizedBox(height: 16),
-                  const Text(
-                    'الأمراض المزمنة',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
+                  const Text('الأمراض المزمنة', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 10),
                   _buildChronicConditions(isDark),
                   const SizedBox(height: 16),
-                  const Text(
-                    'التطعيمات',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
+                  const Text('التطعيمات', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 10),
                   _buildVaccinations(isDark),
                   const SizedBox(height: 16),
-                  const Text(
-                    'الحساسية',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
+                  const Text('الحساسية', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 10),
                   _buildAllergies(isDark),
                   const SizedBox(height: 80),
@@ -488,6 +623,9 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
+  // ============================================================
+  // 🏥 بطاقة المريض
+  // ============================================================
   Widget _buildPatientCard(bool isDark) {
     return GestureDetector(
       onTap: () {
@@ -506,7 +644,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
         ),
         child: Column(
           children: [
-            // ✅ صورة المستخدم - قابلة للنقر لرفع الصورة
             GestureDetector(
               onTap: _pickImage,
               child: Stack(
@@ -576,6 +713,9 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
+  // ============================================================
+  // 📊 إحصائية حيوية صغيرة
+  // ============================================================
   Widget _buildVitalStat(String iconPath, String label, String value) {
     return Column(
       children: [
@@ -587,10 +727,11 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ✅ الباقة النشطة - ألوان حسب نوع الاشتراك
+  // ============================================================
+  // 💳 الباقة النشطة
+  // ============================================================
   Widget _buildActiveSubscriptionCard(bool isDark) {
-    // ✅ ألوان الباقات المختلفة
-    Map<String, Color> subscriptionColors = {
+    final Map<String, Color> subscriptionColors = {
       'ذهبية': Colors.amber,
       'ماسية': Colors.cyan,
       'فضية': Colors.grey,
@@ -599,7 +740,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
       'مجاني': Colors.grey,
     };
 
-    Map<String, String> subscriptionIcons = {
+    final Map<String, String> subscriptionIcons = {
       'ذهبية': '⭐',
       'ماسية': '💎',
       'فضية': '🥈',
@@ -638,7 +779,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
         ),
         child: Row(
           children: [
-            // ✅ أيقونة الباقة
             Container(
               width: 44,
               height: 44,
@@ -706,29 +846,36 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
+  // ============================================================
+  // 📊 المؤشرات الحيوية - مع رسم بياني دائري
+  // ============================================================
   Widget _buildVitalsGrid(bool isDark) {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-        childAspectRatio: 1.1,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 1.0,
       ),
       itemCount: _vitals.length,
       itemBuilder: (context, index) {
         final vital = _vitals[index];
         final color = vital['color'] as Color;
+        final maxValue = vital['maxValue'] as double;
+        final currentValue = vital['currentValue'] as double;
+        final percentage = (currentValue / maxValue).clamp(0.0, 1.0);
+
         return GestureDetector(
           onTap: () {
             Navigator.push(context, MaterialPageRoute(builder: (_) => vital['screen'] as Widget));
           },
           child: Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1A2540) : Colors.white,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.04),
@@ -740,12 +887,45 @@ class _PatientDashboardState extends State<PatientDashboard> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildIcon(vital['icon'] as String, size: 48, color: color),
+                // ✅ رسم بياني دائري مع نسبة
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SizedBox(
+                      width: 60,
+                      height: 60,
+                      child: CustomPaint(
+                        painter: _CircularProgressPainter(
+                          progress: percentage,
+                          backgroundColor: color.withOpacity(0.15),
+                          progressColor: color,
+                          strokeWidth: 6,
+                        ),
+                        child: const SizedBox(width: 60, height: 60),
+                      ),
+                    ),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _buildIcon(vital['icon'] as String, size: 20, color: color),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${(percentage * 100).toInt()}%',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: color,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 6),
                 Text(
                   vital['value'] as String,
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: isDark ? Colors.white : Colors.black87,
                   ),
@@ -769,6 +949,62 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
+  // ============================================================
+  // 🎨 CustomPainter للدائرة المتدرجة
+  // ============================================================
+  class _CircularProgressPainter extends CustomPainter {
+    final double progress;
+    final Color backgroundColor;
+    final Color progressColor;
+    final double strokeWidth;
+
+    _CircularProgressPainter({
+      required this.progress,
+      required this.backgroundColor,
+      required this.progressColor,
+      this.strokeWidth = 6,
+    });
+
+    @override
+    void paint(Canvas canvas, Size size) {
+      final center = Offset(size.width / 2, size.height / 2);
+      final radius = size.width / 2 - strokeWidth / 2;
+
+      final backgroundPaint = Paint()
+        ..color = backgroundColor
+        ..strokeWidth = strokeWidth
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round;
+
+      canvas.drawCircle(center, radius, backgroundPaint);
+
+      final progressPaint = Paint()
+        ..color = progressColor
+        ..strokeWidth = strokeWidth
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round;
+
+      final startAngle = -90 * (3.14159 / 180);
+      final sweepAngle = 360 * (3.14159 / 180) * progress;
+
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        startAngle,
+        sweepAngle,
+        false,
+        progressPaint,
+      );
+    }
+
+    @override
+    bool shouldRepaint(_CircularProgressPainter oldDelegate) {
+      return oldDelegate.progress != progress;
+    }
+  }
+
+  // ============================================================
+  // ⚡ وصول سريع
+  // ============================================================
   Widget _buildQuickAccess(bool isDark) {
     final quickServices = [
       {'icon': 'assets/images/services/calendar_booking.png', 'label': 'المواعيد', 'screen': const PatientAppointments()},
@@ -800,6 +1036,9 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
+  // ============================================================
+  // 📋 قائمة الخدمات
+  // ============================================================
   Widget _buildServicesList(bool isDark) {
     return ListView.builder(
       shrinkWrap: true,
@@ -863,6 +1102,9 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
+  // ============================================================
+  // 🩺 الأمراض المزمنة
+  // ============================================================
   Widget _buildChronicConditions(bool isDark) {
     final conditions = [
       {'name': 'ارتفاع ضغط الدم', 'diagnosed': '15 مارس 2023', 'status': 'تحت السيطرة', 'color': AppColors.error, 'icon': Icons.favorite_border},
@@ -939,6 +1181,9 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
+  // ============================================================
+  // 💉 التطعيمات
+  // ============================================================
   Widget _buildVaccinations(bool isDark) {
     final vaccines = [
       {'name': 'كوفيد-19', 'info': 'فايزر • جرعتين', 'date': 'آخر: يناير 2025', 'done': true},
@@ -1000,6 +1245,9 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
+  // ============================================================
+  // 🤧 الحساسية
+  // ============================================================
   Widget _buildAllergies(bool isDark) {
     final allergies = [
       {'icon': 'assets/images/services/emergency.png', 'name': 'فول سوداني', 'color': AppColors.error},
