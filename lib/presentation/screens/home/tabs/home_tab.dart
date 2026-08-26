@@ -1,9 +1,9 @@
-import 'package:shimmer/shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/core/services/health_score_service.dart';
@@ -115,7 +115,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'id': 'd5', 'name': 'د. فاطمة صديقي', 'specialty': 'نساء وولادة', 'rating': 4.8, 'reviews': 210, 'image': ImageKit.doctor5},
   ];
 
-  // ✅ أيقونات الخدمات السريعة - PNG (بدون حاويات، بدون تلوين)
   final List<Map<String, dynamic>> _defaultQuickServices = [
     {'icon': 'assets/images/services/pharmacy.png', 'label': 'صيدلية', 'screen': const PharmacyScreen()},
     {'icon': 'assets/images/services/emergency.png', 'label': 'طوارئ', 'screen': const EmergencyNumbers()},
@@ -174,7 +173,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     {'title': 'العناية بالبشرة في الصيف', 'category': 'جلدية', 'time': 'منذ يوم', 'image': ImageKit.skinCare},
   ];
 
-  // ✅ نصائح يومية - PNG من tracking (بدون تلوين)
   final List<Map<String, dynamic>> _defaultDailyTips = [
     {
       'title': 'شرب الماء',
@@ -500,7 +498,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  // ✅ شريط البحث - أيقونات بدون تلوين (أبيض)
                   GestureDetector(
                     onTap: () {
                       showSearch(
@@ -516,12 +513,10 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                       ),
                       child: Row(
                         children: [
-                          // ✅ أيقونة البحث - بيضاء شفافة (بدون تلوين)
                           Image.asset(
                             'assets/images/icons/search/Search button.png',
                             width: 20,
                             height: 20,
-                            color: Colors.white.withOpacity(0.7),
                             errorBuilder: (context, error, stackTrace) {
                               return Icon(Icons.search, color: Colors.white.withOpacity(0.7), size: 20);
                             },
@@ -536,12 +531,10 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                               ),
                             ),
                           ),
-                          // ✅ أيقونة الميكروفون - بيضاء شفافة (بدون تلوين)
                           Image.asset(
                             'assets/images/chat/microphone.png',
                             width: 20,
                             height: 20,
-                            color: Colors.white.withOpacity(0.7),
                             errorBuilder: (context, error, stackTrace) {
                               return Icon(Icons.mic, color: Colors.white.withOpacity(0.7), size: 20);
                             },
@@ -840,7 +833,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ============================================================
-  // ✅ خدمات سريعة - PNG بدون حاويات وبدون تلوين
+  // ✅ خدمات سريعة - PNG بدون حاويات
   // ============================================================
   Widget _buildQuickServicesRow(bool isDark) {
     return SizedBox(
@@ -859,7 +852,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // ✅ أيقونة PNG بدون تلوين وبدون حاوية
                   Image.asset(
                     service['icon'] as String,
                     width: 40,
@@ -1150,7 +1142,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         final hospital = _featuredHospitals[index];
         return GestureDetector(
           onTap: () {
-            _goTo(context, HospitalScreen(
+            _goTo(context, HospitalDetailsScreen(
               hospitalId: hospital['id'] as String,
               hospitalData: hospital,
             ));
@@ -1257,7 +1249,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
-                            _goTo(context, HospitalScreen(
+                            _goTo(context, HospitalDetailsScreen(
                               hospitalId: hospital['id'] as String,
                               hospitalData: hospital,
                             ));
@@ -1564,9 +1556,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  // ============================================================
-  // 📊 نصائح يومية - PNG بدون تلوين
-  // ============================================================
   Widget _buildDailyTipsGrid(bool isDark) {
     return GridView.builder(
       shrinkWrap: true,
@@ -1592,7 +1581,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // ✅ PNG بدون تلوين
                 Image.asset(
                   tip['icon'] as String,
                   width: 32,
@@ -1842,7 +1830,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[400], borderRadius: BorderRadius.circular(2)))),
             const SizedBox(height: 16),
             Row(children: [
-              // ✅ PNG بدون تلوين
               Image.asset(
                 tip['icon'] as String,
                 width: 32,
