@@ -57,6 +57,10 @@ import 'package:sehatak/core/services/toast_service.dart';
 // ============================================================
 class SideCurvedClipper extends CustomClipper<Path> {
   @override
+  // ✅ عرض البيانات فوراً حتى لو لم تكتمل التهيئة
+  if (!_dataLoaded) {
+    _loadDefaultData();
+  }
   Path getClip(Size size) {
     var path = Path();
     path.moveTo(0, 0);
@@ -76,6 +80,10 @@ class SideCurvedClipper extends CustomClipper<Path> {
   }
 
   @override
+  // ✅ عرض البيانات فوراً حتى لو لم تكتمل التهيئة
+  if (!_dataLoaded) {
+    _loadDefaultData();
+  }
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
 
@@ -96,6 +104,10 @@ class CircularProgressPainter extends CustomPainter {
   });
 
   @override
+  // ✅ عرض البيانات فوراً حتى لو لم تكتمل التهيئة
+  if (!_dataLoaded) {
+    _loadDefaultData();
+  }
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2 - strokeWidth / 2;
@@ -127,6 +139,10 @@ class CircularProgressPainter extends CustomPainter {
   }
 
   @override
+  // ✅ عرض البيانات فوراً حتى لو لم تكتمل التهيئة
+  if (!_dataLoaded) {
+    _loadDefaultData();
+  }
   bool shouldRepaint(CircularProgressPainter oldDelegate) {
     return oldDelegate.progress != progress;
   }
@@ -142,11 +158,19 @@ class HomeTab extends StatefulWidget {
   const HomeTab({super.key, this.scrollController, this.isBottomBarVisible});
 
   @override
+  // ✅ عرض البيانات فوراً حتى لو لم تكتمل التهيئة
+  if (!_dataLoaded) {
+    _loadDefaultData();
+  }
   State<HomeTab> createState() => _HomeTabState();
 }
 
 class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   @override
+  // ✅ عرض البيانات فوراً حتى لو لم تكتمل التهيئة
+  if (!_dataLoaded) {
+    _loadDefaultData();
+  }
   bool get wantKeepAlive => true;
 
   // ============================================================
@@ -333,6 +357,10 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   // 🔄 دورة الحياة - تهيئة جميع الخدمات
   // ============================================================
   @override
+  // ✅ عرض البيانات فوراً حتى لو لم تكتمل التهيئة
+  if (!_dataLoaded) {
+    _loadDefaultData();
+  }
   void initState() {
     super.initState();
     _loadCachedData();
@@ -359,6 +387,10 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   @override
+  // ✅ عرض البيانات فوراً حتى لو لم تكتمل التهيئة
+  if (!_dataLoaded) {
+    _loadDefaultData();
+  }
   void dispose() {
     widget.scrollController?.removeListener(_onScroll);
     super.dispose();
@@ -1117,6 +1149,10 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   // 🏗️ بناء الواجهة الرئيسية
   // ============================================================
   @override
+  // ✅ عرض البيانات فوراً حتى لو لم تكتمل التهيئة
+  if (!_dataLoaded) {
+    _loadDefaultData();
+  }
   Widget build(BuildContext context) {
     super.build(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
