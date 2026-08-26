@@ -1149,7 +1149,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         final hospital = _featuredHospitals[index];
         return GestureDetector(
           onTap: () {
-            _goTo(context, HospitalDetailsScreen(
+            _goTo(context, HospitalScreen(
               hospitalId: hospital['id'] as String,
               hospitalData: hospital,
             ));
@@ -1256,7 +1256,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
-                            _goTo(context, HospitalDetailsScreen(
+                            _goTo(context, HospitalScreen(
                               hospitalId: hospital['id'] as String,
                               hospitalData: hospital,
                             ));
