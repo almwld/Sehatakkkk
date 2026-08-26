@@ -13,13 +13,6 @@ class InteractiveMapScreen extends StatefulWidget {
   const InteractiveMapScreen({super.key, this.type = 'hospitals', this.orderId});
 
   @override
-  void _loadIcons() {
-    _hospitalIcon = SvgAssetLoader('assets/icons/map_pins/hospital.svg').loadPicture(null, null);
-    _pharmacyIcon = SvgAssetLoader('assets/icons/map_pins/pharmacy.svg').loadPicture(null, null);
-    _laboratoryIcon = SvgAssetLoader('assets/icons/map_pins/laboratory.svg').loadPicture(null, null);
-    _medicalIcon = SvgAssetLoader('assets/icons/map_pins/medical.svg').loadPicture(null, null);
-    _clinicIcon = SvgAssetLoader('assets/icons/map_pins/clinic.svg').loadPicture(null, null);
-  }
   State<InteractiveMapScreen> createState() => _InteractiveMapScreenState();
 }
 
@@ -32,11 +25,11 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
   // ============================================================
   // 📌 أيقونات SVG من مجلد map_pins
   // ============================================================
-  late final PictureProvider _hospitalIcon;
-  late final PictureProvider _pharmacyIcon;
-  late final PictureProvider _laboratoryIcon;
-  late final PictureProvider _medicalIcon;
-  late final PictureProvider _clinicIcon;
+  late final BytesLoader _hospitalIcon;
+  late final BytesLoader _pharmacyIcon;
+  late final BytesLoader _laboratoryIcon;
+  late final BytesLoader _medicalIcon;
+  late final BytesLoader _clinicIcon;
 
   static const LatLng sanaaCenter = LatLng(15.3694, 44.1910);
   String _selectedLayer = 'خريطة داكنة';
@@ -68,436 +61,624 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
   // ============================================================
   // 🏥 المستشفيات (100)
   // ============================================================
-  final List<Map<String, dynamic>> _hospitals = [
-    {'name': 'مستشفى الثورة العام', 'address': 'شارع الزبيري، باب اليمن', 'lat': 15.3500, 'lng': 44.2000, 'phone': '01-222222', 'type': 'حكومي', 'beds': '500', 'emergency': true, 'rating': 4.5, 'category': 'hospitals'},
-    {'name': 'المستشفى الجمهوري', 'address': 'شارع الزبيري، ميدان التحرير', 'lat': 15.3530, 'lng': 44.2010, 'phone': '01-999444', 'type': 'حكومي', 'beds': '450', 'emergency': true, 'rating': 4.3, 'category': 'hospitals'},
-    {'name': 'مستشفى الكويت الجامعي', 'address': 'شارع الخمسين، الحصبة', 'lat': 15.3800, 'lng': 44.2100, 'phone': '01-333333', 'type': 'جامعي', 'beds': '400', 'emergency': true, 'rating': 4.4, 'category': 'hospitals'},
-    {'name': 'مستشفى السبعين للأمومة', 'address': 'السبعين، شارع الأربعين', 'lat': 15.3100, 'lng': 44.1800, 'phone': '01-444444', 'type': 'تخصصي', 'beds': '300', 'emergency': true, 'rating': 4.2, 'category': 'hospitals'},
-    {'name': 'المستشفى العسكري', 'address': 'شارع القاهرة، التحرير', 'lat': 15.3550, 'lng': 44.2050, 'phone': '01-777777', 'type': 'عسكري', 'beds': '600', 'emergency': true, 'rating': 4.6, 'category': 'hospitals'},
-    {'name': 'مستشفى آزال', 'address': 'شارع هائل، التحرير', 'lat': 15.3600, 'lng': 44.1950, 'phone': '01-555555', 'type': 'خاص', 'beds': '150', 'emergency': true, 'rating': 4.7, 'category': 'hospitals'},
-    {'name': 'مستشفى اليمن الألماني', 'address': 'شارع الستين، أمام الخطوط الجوية', 'lat': 15.3450, 'lng': 44.1750, 'phone': '01-111222', 'type': 'خاص', 'beds': '200', 'emergency': true, 'rating': 4.8, 'category': 'hospitals'},
-    {'name': 'مستشفى النقيب', 'address': 'شارع العدين، شارع الستين', 'lat': 15.3300, 'lng': 44.1850, 'phone': '01-888888', 'type': 'خاص', 'beds': '100', 'emergency': false, 'rating': 4.0, 'category': 'hospitals'},
-    {'name': 'مستشفى العلوم الحديثة', 'address': 'شارع الخمسين، تقاطع هائل', 'lat': 15.3750, 'lng': 44.2000, 'phone': '01-999999', 'type': 'خاص', 'beds': '120', 'emergency': true, 'rating': 4.2, 'category': 'hospitals'},
-    {'name': 'مستشفى الأمل', 'address': 'شارع الزبيري، بجانب البنك المركزي', 'lat': 15.3490, 'lng': 44.2020, 'phone': '01-222333', 'type': 'خاص', 'beds': '80', 'emergency': true, 'rating': 4.1, 'category': 'hospitals'},
-    {'name': 'مستشفى الحياة', 'address': 'شارع هائل، جولة كنتاكي', 'lat': 15.3630, 'lng': 44.1940, 'phone': '01-333444', 'type': 'خاص', 'beds': '90', 'emergency': true, 'rating': 4.3, 'category': 'hospitals'},
-    {'name': 'مستشفى الصفوة', 'address': 'شارع التحرير، عمارة الكبوس', 'lat': 15.3580, 'lng': 44.1930, 'phone': '01-444555', 'type': 'خاص', 'beds': '110', 'emergency': false, 'rating': 3.8, 'category': 'hospitals'},
-    {'name': 'مستشفى الخليج', 'address': 'شارع الستين، مجمع النخبة', 'lat': 15.3350, 'lng': 44.1820, 'phone': '01-555666', 'type': 'خاص', 'beds': '130', 'emergency': true, 'rating': 4.0, 'category': 'hospitals'},
-    {'name': 'مستشفى ابن النفيس', 'address': 'شارع باب اليمن، وسط المدينة', 'lat': 15.3470, 'lng': 44.2030, 'phone': '01-666777', 'type': 'خاص', 'beds': '70', 'emergency': false, 'rating': 3.7, 'category': 'hospitals'},
-    {'name': 'مستشفى الرازي', 'address': 'شارع الخمسين، حي الأندلس', 'lat': 15.3720, 'lng': 44.2020, 'phone': '01-777888', 'type': 'خاص', 'beds': '160', 'emergency': true, 'rating': 4.4, 'category': 'hospitals'},
-    {'name': 'مستشفى الأهلي', 'address': 'شارع القاهرة، بجانب السفارة', 'lat': 15.3520, 'lng': 44.2040, 'phone': '01-888999', 'type': 'خاص', 'beds': '140', 'emergency': true, 'rating': 4.2, 'category': 'hospitals'},
-    {'name': 'مستشفى فلسطين', 'address': 'شارع الستين، شارع تعز', 'lat': 15.3200, 'lng': 44.1790, 'phone': '01-999000', 'type': 'خاص', 'beds': '100', 'emergency': false, 'rating': 3.6, 'category': 'hospitals'},
-    {'name': 'مستشفى 22 مايو', 'address': 'شارع الأربعين، شارع صخر', 'lat': 15.3150, 'lng': 44.1770, 'phone': '01-000111', 'type': 'حكومي', 'beds': '220', 'emergency': true, 'rating': 4.0, 'category': 'hospitals'},
-    {'name': 'مستشفى 48', 'address': 'شارع الستين، بجانب جولة 48', 'lat': 15.3380, 'lng': 44.1880, 'phone': '01-111333', 'type': 'حكومي', 'beds': '180', 'emergency': true, 'rating': 4.1, 'category': 'hospitals'},
-    {'name': 'مستشفى جامعة الإيمان', 'address': 'شارع العدين، طريق عمران', 'lat': 15.3800, 'lng': 44.2150, 'phone': '01-222444', 'type': 'جامعي', 'beds': '300', 'emergency': true, 'rating': 4.4, 'category': 'hospitals'},
-    {'name': 'مستشفى الفارابي', 'address': 'شارع هائل، حي الروضة', 'lat': 15.3680, 'lng': 44.1920, 'phone': '01-333555', 'type': 'خاص', 'beds': '85', 'emergency': false, 'rating': 3.9, 'category': 'hospitals'},
-    {'name': 'مستشفى الحكمة', 'address': 'شارع الزبيري، عمارة النجار', 'lat': 15.3460, 'lng': 44.1990, 'phone': '01-444666', 'type': 'خاص', 'beds': '95', 'emergency': true, 'rating': 4.0, 'category': 'hospitals'},
-    {'name': 'مستشفى السلام', 'address': 'شارع التحرير، وسط البلد', 'lat': 15.3560, 'lng': 44.1960, 'phone': '01-555777', 'type': 'خاص', 'beds': '75', 'emergency': false, 'rating': 3.5, 'category': 'hospitals'},
-    {'name': 'مستشفى القدس', 'address': 'شارع الستين، جولة المصباحي', 'lat': 15.3260, 'lng': 44.1810, 'phone': '01-666888', 'type': 'خاص', 'beds': '105', 'emergency': true, 'rating': 4.1, 'category': 'hospitals'},
-    {'name': 'مستشفى ابن سينا', 'address': 'شارع الخمسين، دار الرئاسة', 'lat': 15.3700, 'lng': 44.2040, 'phone': '01-777999', 'type': 'خاص', 'beds': '190', 'emergency': true, 'rating': 4.6, 'category': 'hospitals'},
-    {'name': 'مستشفى الأقصى', 'address': 'شارع باب اليمن، سوق الملح', 'lat': 15.3440, 'lng': 44.2010, 'phone': '01-888000', 'type': 'خاص', 'beds': '60', 'emergency': false, 'rating': 3.4, 'category': 'hospitals'},
-    {'name': 'مستشفى النور', 'address': 'شارع القاهرة، حي السياسي', 'lat': 15.3530, 'lng': 44.2070, 'phone': '01-999111', 'type': 'خاص', 'beds': '115', 'emergency': true, 'rating': 4.2, 'category': 'hospitals'},
-    {'name': 'مستشفى الهدى', 'address': 'شارع الستين، الحديدة', 'lat': 15.3400, 'lng': 44.1740, 'phone': '01-000222', 'type': 'خاص', 'beds': '88', 'emergency': false, 'rating': 3.7, 'category': 'hospitals'},
-    {'name': 'مستشفى الفيحاء', 'address': 'شارع العدين، السنينة', 'lat': 15.3900, 'lng': 44.2120, 'phone': '01-111444', 'type': 'خاص', 'beds': '125', 'emergency': true, 'rating': 4.3, 'category': 'hospitals'},
-    {'name': 'مستشفى الرحمة', 'address': 'شارع هائل، شارع الأربعين', 'lat': 15.3640, 'lng': 44.1980, 'phone': '01-222555', 'type': 'خاص', 'beds': '72', 'emergency': false, 'rating': 3.6, 'category': 'hospitals'},
-    {'name': 'مستشفى طيبة', 'address': 'شارع الزبيري، باب شعوب', 'lat': 15.3550, 'lng': 44.1970, 'phone': '01-333666', 'type': 'خاص', 'beds': '135', 'emergency': true, 'rating': 4.4, 'category': 'hospitals'},
-    {'name': 'مستشفى الجزيرة', 'address': 'شارع التحرير، بجانب البريد', 'lat': 15.3610, 'lng': 44.1910, 'phone': '01-444777', 'type': 'خاص', 'beds': '80', 'emergency': false, 'rating': 3.8, 'category': 'hospitals'},
-    {'name': 'مستشفى الهلال', 'address': 'شارع الستين، مجمع الصمد', 'lat': 15.3320, 'lng': 44.1830, 'phone': '01-555888', 'type': 'خاص', 'beds': '98', 'emergency': true, 'rating': 4.0, 'category': 'hospitals'},
-    {'name': 'مستشفى الزهراء', 'address': 'شارع الخمسين، مدينة النور', 'lat': 15.3770, 'lng': 44.2060, 'phone': '01-666999', 'type': 'خاص', 'beds': '145', 'emergency': true, 'rating': 4.5, 'category': 'hospitals'},
-    {'name': 'مستشفى الأندلس', 'address': 'شارع باب اليمن، شارع صالح', 'lat': 15.3430, 'lng': 44.2000, 'phone': '01-777000', 'type': 'خاص', 'beds': '68', 'emergency': false, 'rating': 3.5, 'category': 'hospitals'},
-    {'name': 'مستشفى التعاون', 'address': 'شارع القاهرة، بجانب المجلس', 'lat': 15.3580, 'lng': 44.2080, 'phone': '01-888111', 'type': 'حكومي', 'beds': '280', 'emergency': true, 'rating': 3.9, 'category': 'hospitals'},
-    {'name': 'مستشفى الإخلاص', 'address': 'شارع الستين، تقاطع تعز', 'lat': 15.3180, 'lng': 44.1760, 'phone': '01-999222', 'type': 'خاص', 'beds': '55', 'emergency': false, 'rating': 3.2, 'category': 'hospitals'},
-    {'name': 'مستشفى الوفاء', 'address': 'شارع هائل، أمام المطار', 'lat': 15.3730, 'lng': 44.1900, 'phone': '01-000333', 'type': 'خاص', 'beds': '108', 'emergency': true, 'rating': 4.1, 'category': 'hospitals'},
-    {'name': 'مستشفى الصادق', 'address': 'شارع الزبيري، شارع السائلة', 'lat': 15.3480, 'lng': 44.1960, 'phone': '01-111555', 'type': 'خاص', 'beds': '92', 'emergency': false, 'rating': 3.7, 'category': 'hospitals'},
-    {'name': 'مستشفى اليمامة', 'address': 'شارع العدين، طريق صنعاء', 'lat': 15.3850, 'lng': 44.2130, 'phone': '01-222666', 'type': 'خاص', 'beds': '118', 'emergency': true, 'rating': 4.2, 'category': 'hospitals'},
-    {'name': 'مستشفى البراء', 'address': 'شارع التحرير، عمارة الحمدي', 'lat': 15.3540, 'lng': 44.1940, 'phone': '01-333777', 'type': 'خاص', 'beds': '65', 'emergency': false, 'rating': 3.4, 'category': 'hospitals'},
-    {'name': 'مستشفى الإسراء', 'address': 'شارع الستين، شارع العدين', 'lat': 15.3340, 'lng': 44.1840, 'phone': '01-444888', 'type': 'خاص', 'beds': '132', 'emergency': true, 'rating': 4.3, 'category': 'hospitals'},
-    {'name': 'مستشفى العباس', 'address': 'شارع الخمسين، بجانب الخطوط', 'lat': 15.3760, 'lng': 44.2030, 'phone': '01-555999', 'type': 'خاص', 'beds': '78', 'emergency': false, 'rating': 3.6, 'category': 'hospitals'},
-    {'name': 'مستشفى الزيتون', 'address': 'شارع باب اليمن، سوق الحلقة', 'lat': 15.3420, 'lng': 44.1980, 'phone': '01-666000', 'type': 'خاص', 'beds': '85', 'emergency': true, 'rating': 3.9, 'category': 'hospitals'},
-    {'name': 'مستشفى دار الشفاء', 'address': 'شارع القاهرة، حي الحشيشي', 'lat': 15.3570, 'lng': 44.2060, 'phone': '01-777111', 'type': 'خاص', 'beds': '155', 'emergency': true, 'rating': 4.5, 'category': 'hospitals'},
-    {'name': 'مستشفى البشير', 'address': 'شارع الستين، جولة 48', 'lat': 15.3370, 'lng': 44.1890, 'phone': '01-888222', 'type': 'خاص', 'beds': '102', 'emergency': false, 'rating': 3.8, 'category': 'hospitals'},
-    {'name': 'مستشفى القاسمي', 'address': 'شارع هائل، نهاية الخط', 'lat': 15.3660, 'lng': 44.1930, 'phone': '01-999333', 'type': 'خاص', 'beds': '175', 'emergency': true, 'rating': 4.4, 'category': 'hospitals'},
-    {'name': 'مستشفى الفردوس', 'address': 'شارع الزبيري، عمارة النجم', 'lat': 15.3510, 'lng': 44.1950, 'phone': '01-000444', 'type': 'خاص', 'beds': '58', 'emergency': false, 'rating': 3.3, 'category': 'hospitals'},
-    {'name': 'مستشفى 7 يوليو', 'address': 'شارع العدين، السنينة الشمالية', 'lat': 15.3920, 'lng': 44.2160, 'phone': '01-111666', 'type': 'حكومي', 'beds': '350', 'emergency': true, 'rating': 4.0, 'category': 'hospitals'},
-    {'name': 'مستشفى الوحدة', 'address': 'شارع الخمسين، حي المطار', 'lat': 15.3740, 'lng': 44.2080, 'phone': '01-222777', 'type': 'خاص', 'beds': '112', 'emergency': true, 'rating': 4.2, 'category': 'hospitals'},
-    {'name': 'مستشفى الأقصى الجديد', 'address': 'شارع التحرير، أمام البنك', 'lat': 15.3590, 'lng': 44.1950, 'phone': '01-333888', 'type': 'خاص', 'beds': '95', 'emergency': false, 'rating': 3.7, 'category': 'hospitals'},
-    {'name': 'مستشفى النهضة', 'address': 'شارع الستين، شارع مأرب', 'lat': 15.3280, 'lng': 44.1800, 'phone': '01-444999', 'type': 'خاص', 'beds': '148', 'emergency': true, 'rating': 4.3, 'category': 'hospitals'},
-    {'name': 'مستشفى الإسراء التخصصي', 'address': 'شارع باب اليمن، بجانب الجامع', 'lat': 15.3450, 'lng': 44.1970, 'phone': '01-555000', 'type': 'خاص', 'beds': '168', 'emergency': true, 'rating': 4.6, 'category': 'hospitals'},
-    {'name': 'مستشفى السلامة', 'address': 'شارع القاهرة، بجانب سوق القات', 'lat': 15.3500, 'lng': 44.2030, 'phone': '01-666111', 'type': 'خاص', 'beds': '62', 'emergency': false, 'rating': 3.2, 'category': 'hospitals'},
-    {'name': 'مستشفى العروبة', 'address': 'شارع الستين، طريق الحديدة', 'lat': 15.3160, 'lng': 44.1750, 'phone': '01-777222', 'type': 'خاص', 'beds': '138', 'emergency': true, 'rating': 4.1, 'category': 'hospitals'},
-    {'name': 'مستشفى جيبلا', 'address': 'شارع هائل، فرع الجامعة', 'lat': 15.3690, 'lng': 44.1970, 'phone': '01-888333', 'type': 'خاص', 'beds': '88', 'emergency': false, 'rating': 3.5, 'category': 'hospitals'},
-    {'name': 'مستشفى الأطباء', 'address': 'شارع الخمسين، خلف الجامعة', 'lat': 15.3780, 'lng': 44.2050, 'phone': '01-000555', 'type': 'خاص', 'beds': '125', 'emergency': false, 'rating': 3.9, 'category': 'hospitals'},
-    {'name': 'مستشفى اليمن الدولي', 'address': 'شارع الستين، جولة آية', 'lat': 15.3410, 'lng': 44.1720, 'phone': '01-111777', 'type': 'خاص', 'beds': '210', 'emergency': true, 'rating': 4.7, 'category': 'hospitals'},
-    {'name': 'مستشفى العاصمة', 'address': 'شارع الزبيري، شارع القاهرة', 'lat': 15.3525, 'lng': 44.1995, 'phone': '01-222888', 'type': 'خاص', 'beds': '120', 'emergency': true, 'rating': 4.0, 'category': 'hospitals'},
-    {'name': 'مستشفى التقوى', 'address': 'شارع هائل، جولة التقوى', 'lat': 15.3655, 'lng': 44.1955, 'phone': '01-444111', 'type': 'خاص', 'beds': '110', 'emergency': false, 'rating': 3.6, 'category': 'hospitals'},
-    {'name': 'مستشفى الهداية', 'address': 'شارع الخمسين، حي الهداية', 'lat': 15.3795, 'lng': 44.2095, 'phone': '01-555222', 'type': 'خاص', 'beds': '85', 'emergency': true, 'rating': 3.9, 'category': 'hospitals'},
-    {'name': 'مستشفى الشفاء', 'address': 'شارع التحرير، حي الشفاء', 'lat': 15.3575, 'lng': 44.1925, 'phone': '01-666333', 'type': 'خاص', 'beds': '100', 'emergency': true, 'rating': 4.1, 'category': 'hospitals'},
-    {'name': 'مستشفى الأمان', 'address': 'شارع باب اليمن، حي الأمان', 'lat': 15.3465, 'lng': 44.1985, 'phone': '01-777444', 'type': 'خاص', 'beds': '75', 'emergency': false, 'rating': 3.4, 'category': 'hospitals'},
-    {'name': 'مستشفى البناء', 'address': 'شارع القاهرة، حي البناء', 'lat': 15.3545, 'lng': 44.2055, 'phone': '01-888555', 'type': 'خاص', 'beds': '130', 'emergency': true, 'rating': 4.2, 'category': 'hospitals'},
-    {'name': 'مستشفى النجاح', 'address': 'شارع الستين، حي النجاح', 'lat': 15.3315, 'lng': 44.1775, 'phone': '01-999666', 'type': 'خاص', 'beds': '90', 'emergency': false, 'rating': 3.5, 'category': 'hospitals'},
-    {'name': 'مستشفى التقدم', 'address': 'شارع العدين، حي التقدم', 'lat': 15.3875, 'lng': 44.2155, 'phone': '01-000777', 'type': 'خاص', 'beds': '105', 'emergency': true, 'rating': 3.8, 'category': 'hospitals'},
-    {'name': 'مستشفى الأمل الجديد', 'address': 'شارع الزبيري، حي الأمل', 'lat': 15.3495, 'lng': 44.2015, 'phone': '01-111888', 'type': 'خاص', 'beds': '70', 'emergency': false, 'rating': 3.3, 'category': 'hospitals'},
-    {'name': 'مستشفى الحياة الجديد', 'address': 'شارع هائل، حي الحياة', 'lat': 15.3625, 'lng': 44.1975, 'phone': '01-222999', 'type': 'خاص', 'beds': '115', 'emergency': true, 'rating': 4.0, 'category': 'hospitals'},
-    {'name': 'مستشفى السلام الجديد', 'address': 'شارع الخمسين، حي السلام', 'lat': 15.3715, 'lng': 44.2075, 'phone': '01-333111', 'type': 'خاص', 'beds': '95', 'emergency': true, 'rating': 3.7, 'category': 'hospitals'},
-    {'name': 'مستشفى النصر', 'address': 'شارع التحرير، حي النصر', 'lat': 15.3555, 'lng': 44.1935, 'phone': '01-444222', 'type': 'خاص', 'beds': '80', 'emergency': false, 'rating': 3.4, 'category': 'hospitals'},
-    {'name': 'مستشفى الفتح', 'address': 'شارع باب اليمن، حي الفتح', 'lat': 15.3485, 'lng': 44.2025, 'phone': '01-555333', 'type': 'خاص', 'beds': '110', 'emergency': true, 'rating': 4.1, 'category': 'hospitals'},
-    {'name': 'مستشفى الأصالة', 'address': 'شارع القاهرة، حي الأصالة', 'lat': 15.3515, 'lng': 44.2045, 'phone': '01-666444', 'type': 'خاص', 'beds': '75', 'emergency': false, 'rating': 3.2, 'category': 'hospitals'},
-    {'name': 'مستشفى الريان', 'address': 'شارع الستين، حي الريان', 'lat': 15.3395, 'lng': 44.1735, 'phone': '01-777555', 'type': 'خاص', 'beds': '120', 'emergency': true, 'rating': 3.9, 'category': 'hospitals'},
-    {'name': 'مستشفى المنار', 'address': 'شارع العدين، حي المنار', 'lat': 15.3835, 'lng': 44.2115, 'phone': '01-888666', 'type': 'خاص', 'beds': '85', 'emergency': false, 'rating': 3.5, 'category': 'hospitals'},
-    {'name': 'مستشفى الوفاء الجديد', 'address': 'شارع الزبيري، حي الوفاء', 'lat': 15.3475, 'lng': 44.1975, 'phone': '01-999777', 'type': 'خاص', 'beds': '100', 'emergency': true, 'rating': 4.0, 'category': 'hospitals'},
-    {'name': 'مستشفى العطاء', 'address': 'شارع هائل، حي العطاء', 'lat': 15.3675, 'lng': 44.1945, 'phone': '01-000888', 'type': 'خاص', 'beds': '90', 'emergency': true, 'rating': 3.6, 'category': 'hospitals'},
-    {'name': 'مستشفى الشروق', 'address': 'شارع الخمسين، حي الشروق', 'lat': 15.3755, 'lng': 44.2045, 'phone': '01-111999', 'type': 'خاص', 'beds': '105', 'emergency': false, 'rating': 3.4, 'category': 'hospitals'},
-    {'name': 'مستشفى السعادة', 'address': 'شارع التحرير، حي السعادة', 'lat': 15.3585, 'lng': 44.1905, 'phone': '01-222000', 'type': 'خاص', 'beds': '75', 'emergency': true, 'rating': 3.8, 'category': 'hospitals'},
-    {'name': 'مستشفى البشائر', 'address': 'شارع باب اليمن، حي البشائر', 'lat': 15.3435, 'lng': 44.1995, 'phone': '01-333111', 'type': 'خاص', 'beds': '85', 'emergency': false, 'rating': 3.3, 'category': 'hospitals'},
-    {'name': 'مستشفى الكرامة', 'address': 'شارع القاهرة، حي الكرامة', 'lat': 15.3565, 'lng': 44.2075, 'phone': '01-444222', 'type': 'خاص', 'beds': '110', 'emergency': true, 'rating': 4.2, 'category': 'hospitals'},
-    {'name': 'مستشفى الأمل الكبير', 'address': 'شارع الستين، حي الأمل الكبير', 'lat': 15.3335, 'lng': 44.1815, 'phone': '01-555333', 'type': 'خاص', 'beds': '95', 'emergency': true, 'rating': 3.7, 'category': 'hospitals'},
-    {'name': 'مستشفى الصحة الجديد', 'address': 'شارع العدين، حي الصحة', 'lat': 15.3895, 'lng': 44.2135, 'phone': '01-666444', 'type': 'خاص', 'beds': '80', 'emergency': false, 'rating': 3.5, 'category': 'hospitals'},
-    {'name': 'مستشفى الحياة الكبير', 'address': 'شارع الزبيري، حي الحياة الكبير', 'lat': 15.3505, 'lng': 44.2005, 'phone': '01-777555', 'type': 'خاص', 'beds': '120', 'emergency': true, 'rating': 4.3, 'category': 'hospitals'},
-    {'name': 'مستشفى التضامن', 'address': 'شارع هائل، حي التضامن', 'lat': 15.3635, 'lng': 44.1965, 'phone': '01-888666', 'type': 'خاص', 'beds': '70', 'emergency': false, 'rating': 3.2, 'category': 'hospitals'},
-    {'name': 'مستشفى الازدهار', 'address': 'شارع الخمسين، حي الازدهار', 'lat': 15.3725, 'lng': 44.2065, 'phone': '01-999777', 'type': 'خاص', 'beds': '105', 'emergency': true, 'rating': 3.9, 'category': 'hospitals'},
-    {'name': 'مستشفى الأنوار', 'address': 'شارع التحرير، حي الأنوار', 'lat': 15.3565, 'lng': 44.1945, 'phone': '01-000888', 'type': 'خاص', 'beds': '90', 'emergency': true, 'rating': 3.6, 'category': 'hospitals'},
-    {'name': 'مستشفى الأمانة', 'address': 'شارع الزبيري، حي الأمانة', 'lat': 15.3538, 'lng': 44.2035, 'phone': '01-112233', 'type': 'حكومي', 'beds': '250', 'emergency': true, 'rating': 4.5, 'category': 'hospitals'},
-    {'name': 'مستشفى صنعاء الدولي', 'address': 'شارع التحرير، حي صنعاء', 'lat': 15.3671, 'lng': 44.1966, 'phone': '01-223344', 'type': 'خاص', 'beds': '300', 'emergency': true, 'rating': 4.7, 'category': 'hospitals'},
-    {'name': 'مستشفى الجمهورية الجديد', 'address': 'شارع الستين، حي الجمهورية', 'lat': 15.3412, 'lng': 44.1878, 'phone': '01-334455', 'type': 'حكومي', 'beds': '320', 'emergency': true, 'rating': 4.2, 'category': 'hospitals'},
-    {'name': 'مستشفى السلام الدولي', 'address': 'شارع الخمسين، حي السلام الدولي', 'lat': 15.3743, 'lng': 44.2109, 'phone': '01-445566', 'type': 'خاص', 'beds': '180', 'emergency': true, 'rating': 4.6, 'category': 'hospitals'},
-    {'name': 'مستشفى الشفاء التخصصي', 'address': 'شارع القاهرة، حي الشفاء التخصصي', 'lat': 15.3294, 'lng': 44.1741, 'phone': '01-556677', 'type': 'تخصصي', 'beds': '140', 'emergency': true, 'rating': 4.4, 'category': 'hospitals'},
-    {'name': 'مستشفى الحياة الجديد', 'address': 'شارع هائل، حي الحياة الجديد', 'lat': 15.3825, 'lng': 44.2132, 'phone': '01-667788', 'type': 'خاص', 'beds': '110', 'emergency': false, 'rating': 3.9, 'category': 'hospitals'},
-    {'name': 'مستشفى النصر العام', 'address': 'شارع الأربعين، حي النصر العام', 'lat': 15.3166, 'lng': 44.1803, 'phone': '01-778899', 'type': 'حكومي', 'beds': '260', 'emergency': true, 'rating': 4.1, 'category': 'hospitals'},
-    {'name': 'مستشفى الوفاء الجديد', 'address': 'شارع العدين، حي الوفاء الجديد', 'lat': 15.3907, 'lng': 44.2174, 'phone': '01-889900', 'type': 'خاص', 'beds': '95', 'emergency': false, 'rating': 3.7, 'category': 'hospitals'},
-    {'name': 'مستشفى التعاون الجديد', 'address': 'شارع باب اليمن، حي التعاون الجديد', 'lat': 15.3438, 'lng': 44.1996, 'phone': '01-990011', 'type': 'حكومي', 'beds': '290', 'emergency': true, 'rating': 4.0, 'category': 'hospitals'},
-    {'name': 'مستشفى الاتحاد', 'address': 'شارع صنعاء، حي الاتحاد', 'lat': 15.3569, 'lng': 44.1927, 'phone': '01-001122', 'type': 'خاص', 'beds': '130', 'emergency': true, 'rating': 4.3, 'category': 'hospitals'},
-    {'name': 'مستشفى الأمل الشامل', 'address': 'شارع مأرب، حي الأمل الشامل', 'lat': 15.3300, 'lng': 44.1858, 'phone': '01-112200', 'type': 'خاص', 'beds': '85', 'emergency': false, 'rating': 3.8, 'category': 'hospitals'},
-    {'name': 'مستشفى البشير الجديد', 'address': 'شارع تعز، حي البشير الجديد', 'lat': 15.3631, 'lng': 44.2089, 'phone': '01-223311', 'type': 'خاص', 'beds': '100', 'emergency': true, 'rating': 4.2, 'category': 'hospitals'},
-    {'name': 'مستشفى الصحة الشامل', 'address': 'شارع الحديدة، حي الصحة الشامل', 'lat': 15.3472, 'lng': 44.1760, 'phone': '01-334422', 'type': 'خاص', 'beds': '120', 'emergency': true, 'rating': 4.5, 'category': 'hospitals'},
-    {'name': 'مستشفى الهلال الجديد', 'address': 'شارع عمران، حي الهلال الجديد', 'lat': 15.3803, 'lng': 44.2141, 'phone': '01-445533', 'type': 'خاص', 'beds': '155', 'emergency': true, 'rating': 4.1, 'category': 'hospitals'},
-  ];
+  final List<Map<String, dynamic>> _hospitals = List.generate(100, (index) {
+    final names = [
+      'مستشفى الثورة العام', 'المستشفى الجمهوري', 'مستشفى الكويت الجامعي',
+      'مستشفى السبعين للأمومة', 'المستشفى العسكري', 'مستشفى آزال',
+      'مستشفى اليمن الألماني', 'مستشفى النقيب', 'مستشفى العلوم الحديثة',
+      'مستشفى الأمل', 'مستشفى الحياة', 'مستشفى الصفوة',
+      'مستشفى الخليج', 'مستشفى ابن النفيس', 'مستشفى الرازي',
+      'مستشفى الأهلي', 'مستشفى فلسطين', 'مستشفى 22 مايو',
+      'مستشفى 48', 'مستشفى جامعة الإيمان', 'مستشفى الفارابي',
+      'مستشفى الحكمة', 'مستشفى السلام', 'مستشفى القدس',
+      'مستشفى ابن سينا', 'مستشفى الأقصى', 'مستشفى النور',
+      'مستشفى الهدى', 'مستشفى الفيحاء', 'مستشفى الرحمة',
+      'مستشفى طيبة', 'مستشفى الجزيرة', 'مستشفى الهلال',
+      'مستشفى الزهراء', 'مستشفى الأندلس', 'مستشفى التعاون',
+      'مستشفى الإخلاص', 'مستشفى الوفاء', 'مستشفى الصادق',
+      'مستشفى اليمامة', 'مستشفى البراء', 'مستشفى الإسراء',
+      'مستشفى العباس', 'مستشفى الزيتون', 'مستشفى دار الشفاء',
+      'مستشفى البشير', 'مستشفى القاسمي', 'مستشفى الفردوس',
+      'مستشفى 7 يوليو', 'مستشفى الوحدة', 'مستشفى الأقصى الجديد',
+      'مستشفى النهضة', 'مستشفى الإسراء التخصصي', 'مستشفى السلامة',
+      'مستشفى العروبة', 'مستشفى جيبلا', 'مستشفى الأطباء',
+      'مستشفى اليمن الدولي', 'مستشفى العاصمة', 'مستشفى التقوى',
+      'مستشفى الهداية', 'مستشفى الشفاء', 'مستشفى الأمان',
+      'مستشفى البناء', 'مستشفى النجاح', 'مستشفى التقدم',
+      'مستشفى الأمل الجديد', 'مستشفى الحياة الجديد', 'مستشفى السلام الجديد',
+      'مستشفى النصر', 'مستشفى الفتح', 'مستشفى الأصالة',
+      'مستشفى الريان', 'مستشفى المنار', 'مستشفى الوفاء الجديد',
+      'مستشفى العطاء', 'مستشفى الشروق', 'مستشفى السعادة',
+      'مستشفى البشائر', 'مستشفى الكرامة', 'مستشفى الأمل الكبير',
+      'مستشفى الصحة الجديد', 'مستشفى الحياة الكبير', 'مستشفى التضامن',
+      'مستشفى الازدهار', 'مستشفى الأنوار', 'مستشفى الأمانة',
+      'مستشفى صنعاء الدولي', 'مستشفى الجمهورية الجديد', 'مستشفى السلام الدولي',
+      'مستشفى الشفاء التخصصي', 'مستشفى الحياة الجديد', 'مستشفى النصر العام',
+      'مستشفى الوفاء الجديد', 'مستشفى التعاون الجديد', 'مستشفى الاتحاد',
+      'مستشفى الأمل الشامل', 'مستشفى البشير الجديد', 'مستشفى الصحة الشامل',
+      'مستشفى الهلال الجديد'
+    ];
+    final addresses = [
+      'شارع الزبيري، باب اليمن', 'شارع الزبيري، ميدان التحرير',
+      'شارع الخمسين، الحصبة', 'السبعين، شارع الأربعين',
+      'شارع القاهرة، التحرير', 'شارع هائل، التحرير',
+      'شارع الستين، أمام الخطوط الجوية', 'شارع العدين، شارع الستين',
+      'شارع الخمسين، تقاطع هائل', 'شارع الزبيري، بجانب البنك المركزي',
+      'شارع هائل، جولة كنتاكي', 'شارع التحرير، عمارة الكبوس',
+      'شارع الستين، مجمع النخبة', 'شارع باب اليمن، وسط المدينة',
+      'شارع الخمسين، حي الأندلس', 'شارع القاهرة، بجانب السفارة',
+      'شارع الستين، شارع تعز', 'شارع الأربعين، شارع صخر',
+      'شارع الستين، بجانب جولة 48', 'شارع العدين، طريق عمران',
+      'شارع هائل، حي الروضة', 'شارع الزبيري، عمارة النجار',
+      'شارع التحرير، وسط البلد', 'شارع الستين، جولة المصباحي',
+      'شارع الخمسين، دار الرئاسة', 'شارع باب اليمن، سوق الملح',
+      'شارع القاهرة، حي السياسي', 'شارع الستين، الحديدة',
+      'شارع العدين، السنينة', 'شارع هائل، شارع الأربعين',
+      'شارع الزبيري، باب شعوب', 'شارع التحرير، بجانب البريد',
+      'شارع الستين، مجمع الصمد', 'شارع الخمسين، مدينة النور',
+      'شارع باب اليمن، شارع صالح', 'شارع القاهرة، بجانب المجلس',
+      'شارع الستين، تقاطع تعز', 'شارع هائل، أمام المطار',
+      'شارع الزبيري، شارع السائلة', 'شارع العدين، طريق صنعاء',
+      'شارع التحرير، عمارة الحمدي', 'شارع الستين، شارع العدين',
+      'شارع الخمسين، بجانب الخطوط', 'شارع باب اليمن، سوق الحلقة',
+      'شارع القاهرة، حي الحشيشي', 'شارع الستين، جولة 48',
+      'شارع هائل، نهاية الخط', 'شارع الزبيري، عمارة النجم',
+      'شارع العدين، السنينة الشمالية', 'شارع الخمسين، حي المطار',
+      'شارع التحرير، أمام البنك', 'شارع الستين، شارع مأرب',
+      'شارع باب اليمن، بجانب الجامع', 'شارع القاهرة، بجانب سوق القات',
+      'شارع الستين، طريق الحديدة', 'شارع هائل، فرع الجامعة',
+      'شارع الخمسين، خلف الجامعة', 'شارع الستين، جولة آية',
+      'شارع الزبيري، شارع القاهرة', 'شارع هائل، جولة التقوى',
+      'شارع الخمسين، حي الهداية', 'شارع التحرير، حي الشفاء',
+      'شارع باب اليمن، حي الأمان', 'شارع القاهرة، حي البناء',
+      'شارع الستين، حي النجاح', 'شارع العدين، حي التقدم',
+      'شارع الزبيري، حي الأمل', 'شارع هائل، حي الحياة',
+      'شارع الخمسين، حي السلام', 'شارع التحرير، حي النصر',
+      'شارع باب اليمن، حي الفتح', 'شارع القاهرة، حي الأصالة',
+      'شارع الستين، حي الريان', 'شارع العدين، حي المنار',
+      'شارع الزبيري، حي الوفاء', 'شارع هائل، حي العطاء',
+      'شارع الخمسين، حي الشروق', 'شارع التحرير، حي السعادة',
+      'شارع باب اليمن، حي البشائر', 'شارع القاهرة، حي الكرامة',
+      'شارع الستين، حي الأمل الكبير', 'شارع العدين، حي الصحة',
+      'شارع الزبيري، حي الحياة الكبير', 'شارع هائل، حي التضامن',
+      'شارع الخمسين، حي الازدهار', 'شارع التحرير، حي الأنوار',
+      'شارع الزبيري، حي الأمانة', 'شارع التحرير، حي صنعاء',
+      'شارع الستين، حي الجمهورية', 'شارع الخمسين، حي السلام الدولي',
+      'شارع القاهرة، حي الشفاء التخصصي', 'شارع هائل، حي الحياة الجديد',
+      'شارع الأربعين، حي النصر العام', 'شارع العدين، حي الوفاء الجديد',
+      'شارع باب اليمن، حي التعاون الجديد', 'شارع صنعاء، حي الاتحاد',
+      'شارع مأرب، حي الأمل الشامل', 'شارع تعز، حي البشير الجديد',
+      'شارع الحديدة، حي الصحة الشامل', 'شارع عمران، حي الهلال الجديد'
+    ];
+    final lats = [
+      15.3500, 15.3530, 15.3800, 15.3100, 15.3550, 15.3600,
+      15.3450, 15.3300, 15.3750, 15.3490, 15.3630, 15.3580,
+      15.3350, 15.3470, 15.3720, 15.3520, 15.3200, 15.3150,
+      15.3380, 15.3800, 15.3680, 15.3460, 15.3560, 15.3260,
+      15.3700, 15.3440, 15.3530, 15.3400, 15.3900, 15.3640,
+      15.3550, 15.3610, 15.3320, 15.3770, 15.3430, 15.3580,
+      15.3180, 15.3730, 15.3480, 15.3850, 15.3540, 15.3340,
+      15.3760, 15.3420, 15.3570, 15.3370, 15.3660, 15.3510,
+      15.3920, 15.3740, 15.3590, 15.3280, 15.3450, 15.3500,
+      15.3160, 15.3690, 15.3780, 15.3410, 15.3525, 15.3655,
+      15.3795, 15.3575, 15.3465, 15.3545, 15.3315, 15.3875,
+      15.3495, 15.3625, 15.3715, 15.3555, 15.3485, 15.3515,
+      15.3395, 15.3835, 15.3475, 15.3675, 15.3755, 15.3585,
+      15.3435, 15.3565, 15.3335, 15.3895, 15.3505, 15.3635,
+      15.3725, 15.3565, 15.3538, 15.3671, 15.3412, 15.3743,
+      15.3294, 15.3825, 15.3166, 15.3907, 15.3438, 15.3569,
+      15.3300, 15.3631, 15.3472, 15.3803
+    ];
+    final lngs = [
+      44.2000, 44.2010, 44.2100, 44.1800, 44.2050, 44.1950,
+      44.1750, 44.1850, 44.2000, 44.2020, 44.1940, 44.1930,
+      44.1820, 44.2030, 44.2020, 44.2040, 44.1790, 44.1770,
+      44.1880, 44.2150, 44.1920, 44.1990, 44.1960, 44.1810,
+      44.2040, 44.2010, 44.2070, 44.1740, 44.2120, 44.1980,
+      44.1970, 44.1910, 44.1830, 44.2060, 44.2000, 44.2080,
+      44.1760, 44.1900, 44.1960, 44.2130, 44.1940, 44.1840,
+      44.2030, 44.1980, 44.2060, 44.1890, 44.1930, 44.1950,
+      44.2160, 44.2080, 44.1950, 44.1800, 44.1970, 44.2030,
+      44.1750, 44.1970, 44.2050, 44.1720, 44.1995, 44.1955,
+      44.2095, 44.1925, 44.1985, 44.2055, 44.1775, 44.2155,
+      44.2015, 44.1975, 44.2075, 44.1935, 44.2025, 44.2045,
+      44.1735, 44.2115, 44.1975, 44.1945, 44.2045, 44.1905,
+      44.1995, 44.2075, 44.1815, 44.2135, 44.2005, 44.1965,
+      44.2065, 44.1945, 44.2035, 44.1966, 44.1878, 44.2109,
+      44.1741, 44.2132, 44.1803, 44.2174, 44.1996, 44.1927,
+      44.1858, 44.2089, 44.1760, 44.2141
+    ];
+    return {
+      'name': names[index % names.length],
+      'address': addresses[index % addresses.length],
+      'lat': lats[index % lats.length],
+      'lng': lngs[index % lngs.length],
+      'phone': '01-${100000 + index}',
+      'type': 'خاص',
+      'beds': '${100 + index}',
+      'emergency': true,
+      'rating': 4.0 + (index % 10) / 10,
+      'category': 'hospitals',
+    };
+  });
 
   // ============================================================
   // 💊 الصيدليات (100)
   // ============================================================
-  final List<Map<String, dynamic>> _pharmacies = [
-    {'name': 'صيدلية الشفاء', 'address': 'شارع الزبيري، أمام مستشفى الثورة', 'lat': 15.3510, 'lng': 44.1990, 'phone': '01-123456', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.5, 'category': 'pharmacies'},
-    {'name': 'صيدلية اليمن', 'address': 'شارع التحرير، بجانب البنك المركزي', 'lat': 15.3580, 'lng': 44.1930, 'phone': '01-234567', 'hours': '8 ص - 12 م', 'delivery': true, 'rating': 4.2, 'category': 'pharmacies'},
-    {'name': 'صيدلية الأمل', 'address': 'شارع هائل، أمام جامعة صنعاء', 'lat': 15.3650, 'lng': 44.1970, 'phone': '01-345678', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.6, 'category': 'pharmacies'},
-    {'name': 'صيدلية ابن حيان', 'address': 'شارع الستين، الحصبة', 'lat': 15.3820, 'lng': 44.2080, 'phone': '01-456789', 'hours': '8 ص - 11 م', 'delivery': false, 'rating': 3.9, 'category': 'pharmacies'},
-    {'name': 'صيدلية الشهيد', 'address': 'شارع القاهرة، باب اليمن', 'lat': 15.3480, 'lng': 44.2020, 'phone': '01-567890', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.3, 'category': 'pharmacies'},
-    {'name': 'صيدلية النصر', 'address': 'شارع الأربعين، شارع الستين', 'lat': 15.3250, 'lng': 44.1830, 'phone': '01-678901', 'hours': '9 ص - 10 م', 'delivery': false, 'rating': 3.7, 'category': 'pharmacies'},
-    {'name': 'صيدلية الحياة', 'address': 'شارع الزبيري، عمارة النعمان', 'lat': 15.3520, 'lng': 44.1980, 'phone': '01-789012', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.4, 'category': 'pharmacies'},
-    {'name': 'صيدلية البرج', 'address': 'شارع هائل، جولة كنتاكي', 'lat': 15.3620, 'lng': 44.1960, 'phone': '01-890123', 'hours': '8 ص - 12 م', 'delivery': true, 'rating': 4.0, 'category': 'pharmacies'},
-    {'name': 'صيدلية اليقين', 'address': 'شارع التحرير، عمارة البساطي', 'lat': 15.3570, 'lng': 44.1940, 'phone': '01-901234', 'hours': '24 ساعة', 'delivery': false, 'rating': 3.8, 'category': 'pharmacies'},
-    {'name': 'صيدلية الوطنية', 'address': 'شارع الستين، أمام المستشفى العسكري', 'lat': 15.3540, 'lng': 44.2030, 'phone': '01-012345', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.5, 'category': 'pharmacies'},
-    {'name': 'صيدلية الصحة', 'address': 'شارع الخمسين، الحصبة', 'lat': 15.3780, 'lng': 44.2070, 'phone': '01-112233', 'hours': '9 ص - 10 م', 'delivery': false, 'rating': 3.6, 'category': 'pharmacies'},
-    {'name': 'صيدلية الإيمان', 'address': 'شارع باب اليمن، سوق الملح', 'lat': 15.3430, 'lng': 44.2000, 'phone': '01-223344', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.2, 'category': 'pharmacies'},
-    {'name': 'صيدلية الرازي', 'address': 'شارع القاهرة، حي السياسي', 'lat': 15.3550, 'lng': 44.2060, 'phone': '01-334455', 'hours': '8 ص - 11 م', 'delivery': false, 'rating': 3.9, 'category': 'pharmacies'},
-    {'name': 'صيدلية القدس', 'address': 'شارع العدين، السنينة', 'lat': 15.3860, 'lng': 44.2110, 'phone': '01-445566', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.3, 'category': 'pharmacies'},
-    {'name': 'صيدلية الأقصى', 'address': 'شارع الأربعين، شارع صخر', 'lat': 15.3140, 'lng': 44.1780, 'phone': '01-556677', 'hours': '8 ص - 10 م', 'delivery': false, 'rating': 3.5, 'category': 'pharmacies'},
-    {'name': 'صيدلية النور', 'address': 'شارع الزبيري، بجانب برج زبيدة', 'lat': 15.3490, 'lng': 44.1960, 'phone': '01-667788', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.4, 'category': 'pharmacies'},
-    {'name': 'صيدلية الهدى', 'address': 'شارع الستين، شارع تعز', 'lat': 15.3190, 'lng': 44.1790, 'phone': '01-778899', 'hours': '9 ص - 12 م', 'delivery': true, 'rating': 3.8, 'category': 'pharmacies'},
-    {'name': 'صيدلية الفاروق', 'address': 'شارع هائل، حي الروضة', 'lat': 15.3670, 'lng': 44.1920, 'phone': '01-889900', 'hours': '24 ساعة', 'delivery': false, 'rating': 4.0, 'category': 'pharmacies'},
-    {'name': 'صيدلية السلام', 'address': 'شارع التحرير، وسط البلد', 'lat': 15.3560, 'lng': 44.1950, 'phone': '01-990011', 'hours': '8 ص - 11 م', 'delivery': true, 'rating': 4.1, 'category': 'pharmacies'},
-    {'name': 'صيدلية الوفاء', 'address': 'شارع الخمسين، دار الرئاسة', 'lat': 15.3710, 'lng': 44.2040, 'phone': '01-001122', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.5, 'category': 'pharmacies'},
-    {'name': 'صيدلية الأندلس', 'address': 'شارع باب اليمن، شارع صالح', 'lat': 15.3440, 'lng': 44.1990, 'phone': '01-112244', 'hours': '8 ص - 10 م', 'delivery': false, 'rating': 3.6, 'category': 'pharmacies'},
-    {'name': 'صيدلية الحكمة', 'address': 'شارع الستين، جولة المصباحي', 'lat': 15.3270, 'lng': 44.1810, 'phone': '01-223355', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.2, 'category': 'pharmacies'},
-    {'name': 'صيدلية الأطباء', 'address': 'شارع القاهرة، بجانب السفارة', 'lat': 15.3520, 'lng': 44.2050, 'phone': '01-334466', 'hours': '9 ص - 11 م', 'delivery': false, 'rating': 3.7, 'category': 'pharmacies'},
-    {'name': 'صيدلية المستقبل', 'address': 'شارع الزبيري، شارع السائلة', 'lat': 15.3470, 'lng': 44.1950, 'phone': '01-445577', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.3, 'category': 'pharmacies'},
-    {'name': 'صيدلية التعاون', 'address': 'شارع هائل، شارع الأربعين', 'lat': 15.3630, 'lng': 44.1980, 'phone': '01-556688', 'hours': '8 ص - 12 م', 'delivery': true, 'rating': 4.0, 'category': 'pharmacies'},
-    {'name': 'صيدلية المدينة', 'address': 'شارع الستين، مجمع النخبة', 'lat': 15.3330, 'lng': 44.1820, 'phone': '01-667799', 'hours': '24 ساعة', 'delivery': false, 'rating': 3.8, 'category': 'pharmacies'},
-    {'name': 'صيدلية اليمامة', 'address': 'شارع التحرير، عمارة الحمدي', 'lat': 15.3540, 'lng': 44.1920, 'phone': '01-778800', 'hours': '9 ص - 10 م', 'delivery': true, 'rating': 4.1, 'category': 'pharmacies'},
-    {'name': 'صيدلية الربيع', 'address': 'شارع العدين، طريق عمران', 'lat': 15.3880, 'lng': 44.2140, 'phone': '01-889911', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.4, 'category': 'pharmacies'},
-    {'name': 'صيدلية الجزيرة', 'address': 'شارع الخمسين، بجانب الخطوط', 'lat': 15.3730, 'lng': 44.2060, 'phone': '01-990022', 'hours': '8 ص - 11 م', 'delivery': false, 'rating': 3.5, 'category': 'pharmacies'},
-    {'name': 'صيدلية الأقصى الجديدة', 'address': 'شارع باب اليمن، سوق الحلقة', 'lat': 15.3410, 'lng': 44.1980, 'phone': '01-001133', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.2, 'category': 'pharmacies'},
-    {'name': 'صيدلية الهلال', 'address': 'شارع الستين، شارع مأرب', 'lat': 15.3290, 'lng': 44.1780, 'phone': '01-112255', 'hours': '8 ص - 10 م', 'delivery': false, 'rating': 3.7, 'category': 'pharmacies'},
-    {'name': 'صيدلية الزهراء', 'address': 'شارع القاهرة، حي الحشيشي', 'lat': 15.3560, 'lng': 44.2070, 'phone': '01-223366', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.5, 'category': 'pharmacies'},
-    {'name': 'صيدلية الأمن', 'address': 'شارع الزبيري، عمارة النجم', 'lat': 15.3500, 'lng': 44.1940, 'phone': '01-334477', 'hours': '9 ص - 12 م', 'delivery': true, 'rating': 3.9, 'category': 'pharmacies'},
-    {'name': 'صيدلية الإخلاص', 'address': 'شارع هائل، نهاية الخط', 'lat': 15.3660, 'lng': 44.1930, 'phone': '01-445588', 'hours': '24 ساعة', 'delivery': false, 'rating': 4.0, 'category': 'pharmacies'},
-    {'name': 'صيدلية طيبة', 'address': 'شارع التحرير، أمام البنك', 'lat': 15.3590, 'lng': 44.1960, 'phone': '01-556699', 'hours': '8 ص - 11 م', 'delivery': true, 'rating': 4.3, 'category': 'pharmacies'},
-    {'name': 'صيدلية الصفوة', 'address': 'شارع الستين، تقاطع تعز', 'lat': 15.3170, 'lng': 44.1760, 'phone': '01-667700', 'hours': '24 ساعة', 'delivery': true, 'rating': 3.6, 'category': 'pharmacies'},
-    {'name': 'صيدلية النهضة', 'address': 'شارع الخمسين، مدينة النور', 'lat': 15.3760, 'lng': 44.2050, 'phone': '01-778811', 'hours': '9 ص - 10 م', 'delivery': false, 'rating': 3.8, 'category': 'pharmacies'},
-    {'name': 'صيدلية الفيحاء', 'address': 'شارع باب اليمن، بجانب الجامع', 'lat': 15.3450, 'lng': 44.1970, 'phone': '01-889922', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.4, 'category': 'pharmacies'},
-    {'name': 'صيدلية الرحمة', 'address': 'شارع العدين، طريق صنعاء', 'lat': 15.3840, 'lng': 44.2120, 'phone': '01-990033', 'hours': '8 ص - 12 م', 'delivery': true, 'rating': 3.9, 'category': 'pharmacies'},
-    {'name': 'صيدلية البراء', 'address': 'شارع القاهرة، بجانب المجلس', 'lat': 15.3570, 'lng': 44.2080, 'phone': '01-001144', 'hours': '24 ساعة', 'delivery': false, 'rating': 4.1, 'category': 'pharmacies'},
-    {'name': 'صيدلية العروبة', 'address': 'شارع الستين، طريق الحديدة', 'lat': 15.3150, 'lng': 44.1740, 'phone': '01-112266', 'hours': '9 ص - 11 م', 'delivery': true, 'rating': 3.7, 'category': 'pharmacies'},
-    {'name': 'صيدلية الفردوس', 'address': 'شارع الزبيري، باب شعوب', 'lat': 15.3540, 'lng': 44.1970, 'phone': '01-223377', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.2, 'category': 'pharmacies'},
-    {'name': 'صيدلية العنقاء', 'address': 'شارع هائل، فرع الجامعة', 'lat': 15.3680, 'lng': 44.1940, 'phone': '01-334488', 'hours': '8 ص - 10 م', 'delivery': false, 'rating': 3.6, 'category': 'pharmacies'},
-    {'name': 'صيدلية البشير', 'address': 'شارع التحرير، عمارة الكبوس', 'lat': 15.3600, 'lng': 44.1910, 'phone': '01-445599', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.0, 'category': 'pharmacies'},
-    {'name': 'صيدلية النجاح', 'address': 'شارع الستين، مجمع الصمد', 'lat': 15.3310, 'lng': 44.1840, 'phone': '01-556600', 'hours': '9 ص - 12 م', 'delivery': true, 'rating': 3.8, 'category': 'pharmacies'},
-    {'name': 'صيدلية اليمن السعيد', 'address': 'شارع الخمسين، حي المطار', 'lat': 15.3750, 'lng': 44.2090, 'phone': '01-667711', 'hours': '24 ساعة', 'delivery': false, 'rating': 4.3, 'category': 'pharmacies'},
-    {'name': 'صيدلية دار الدواء', 'address': 'شارع باب اليمن، شارع صالح', 'lat': 15.3420, 'lng': 44.1990, 'phone': '01-778822', 'hours': '8 ص - 11 م', 'delivery': true, 'rating': 4.1, 'category': 'pharmacies'},
-    {'name': 'صيدلية اليسر', 'address': 'شارع القاهرة، بجانب سوق القات', 'lat': 15.3510, 'lng': 44.2040, 'phone': '01-889933', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.5, 'category': 'pharmacies'},
-    {'name': 'صيدلية الريان', 'address': 'شارع الستين، شارع العدين', 'lat': 15.3350, 'lng': 44.1860, 'phone': '01-990044', 'hours': '9 ص - 10 م', 'delivery': false, 'rating': 3.5, 'category': 'pharmacies'},
-    {'name': 'صيدلية الإحسان', 'address': 'شارع الزبيري، عمارة النجار', 'lat': 15.3460, 'lng': 44.1980, 'phone': '01-001155', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.2, 'category': 'pharmacies'},
-    {'name': 'صيدلية السعادة', 'address': 'شارع هائل، أمام المطار', 'lat': 15.3720, 'lng': 44.1890, 'phone': '01-112277', 'hours': '8 ص - 12 م', 'delivery': true, 'rating': 4.0, 'category': 'pharmacies'},
-    {'name': 'صيدلية التوفيق', 'address': 'شارع التحرير، بجانب البريد', 'lat': 15.3610, 'lng': 44.1920, 'phone': '01-223388', 'hours': '24 ساعة', 'delivery': false, 'rating': 3.7, 'category': 'pharmacies'},
-    {'name': 'صيدلية الخير', 'address': 'شارع العدين، السنينة الشمالية', 'lat': 15.3910, 'lng': 44.2150, 'phone': '01-334499', 'hours': '9 ص - 11 م', 'delivery': true, 'rating': 4.4, 'category': 'pharmacies'},
-    {'name': 'صيدلية الأنوار', 'address': 'شارع الستين، جولة 48', 'lat': 15.3360, 'lng': 44.1870, 'phone': '01-445500', 'hours': '24 ساعة', 'delivery': true, 'rating': 3.9, 'category': 'pharmacies'},
-    {'name': 'صيدلية الجامعة', 'address': 'شارع الخمسين، خلف الجامعة', 'lat': 15.3790, 'lng': 44.2040, 'phone': '01-556611', 'hours': '8 ص - 10 م', 'delivery': false, 'rating': 3.6, 'category': 'pharmacies'},
-    {'name': 'صيدلية الهداية', 'address': 'شارع باب اليمن، ميدان التحرير', 'lat': 15.3480, 'lng': 44.2010, 'phone': '01-667722', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.3, 'category': 'pharmacies'},
-    {'name': 'صيدلية المنار', 'address': 'شارع القاهرة، حي السياسي', 'lat': 15.3540, 'lng': 44.2040, 'phone': '01-778833', 'hours': '9 ص - 12 م', 'delivery': true, 'rating': 4.0, 'category': 'pharmacies'},
-    {'name': 'صيدلية التقوى', 'address': 'شارع الستين، شارع الستين الشمالي', 'lat': 15.3390, 'lng': 44.1710, 'phone': '01-889944', 'hours': '24 ساعة', 'delivery': false, 'rating': 3.8, 'category': 'pharmacies'},
-    {'name': 'صيدلية الروضة', 'address': 'شارع هائل، جولة كنتاكي', 'lat': 15.3640, 'lng': 44.1960, 'phone': '01-990055', 'hours': '8 ص - 11 م', 'delivery': true, 'rating': 4.2, 'category': 'pharmacies'},
-    {'name': 'صيدلية البستان', 'address': 'شارع الزبيري، أمام الخطوط الجوية', 'lat': 15.3470, 'lng': 44.2000, 'phone': '01-001166', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.5, 'category': 'pharmacies'},
-    {'name': 'صيدلية الأزهر', 'address': 'شارع الستين، حي الأزهر', 'lat': 15.3355, 'lng': 44.1865, 'phone': '01-112277', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.1, 'category': 'pharmacies'},
-    {'name': 'صيدلية التقوى الجديدة', 'address': 'شارع هائل، جولة التقوى', 'lat': 15.3655, 'lng': 44.1955, 'phone': '01-223388', 'hours': '8 ص - 11 م', 'delivery': false, 'rating': 3.6, 'category': 'pharmacies'},
-    {'name': 'صيدلية الهداية الجديدة', 'address': 'شارع الخمسين، حي الهداية', 'lat': 15.3795, 'lng': 44.2095, 'phone': '01-334499', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.3, 'category': 'pharmacies'},
-    {'name': 'صيدلية الشفاء الجديدة', 'address': 'شارع التحرير، حي الشفاء', 'lat': 15.3575, 'lng': 44.1925, 'phone': '01-445500', 'hours': '9 ص - 12 م', 'delivery': true, 'rating': 3.9, 'category': 'pharmacies'},
-    {'name': 'صيدلية الأمان', 'address': 'شارع باب اليمن، حي الأمان', 'lat': 15.3465, 'lng': 44.1985, 'phone': '01-556611', 'hours': '24 ساعة', 'delivery': false, 'rating': 4.0, 'category': 'pharmacies'},
-    {'name': 'صيدلية البناء', 'address': 'شارع القاهرة، حي البناء', 'lat': 15.3545, 'lng': 44.2055, 'phone': '01-667722', 'hours': '8 ص - 10 م', 'delivery': true, 'rating': 4.2, 'category': 'pharmacies'},
-    {'name': 'صيدلية النجاح الجديدة', 'address': 'شارع الستين، حي النجاح', 'lat': 15.3315, 'lng': 44.1775, 'phone': '01-778833', 'hours': '24 ساعة', 'delivery': true, 'rating': 3.8, 'category': 'pharmacies'},
-    {'name': 'صيدلية التقدم', 'address': 'شارع العدين، حي التقدم', 'lat': 15.3875, 'lng': 44.2155, 'phone': '01-889944', 'hours': '9 ص - 11 م', 'delivery': false, 'rating': 3.7, 'category': 'pharmacies'},
-    {'name': 'صيدلية الأمل الكبير', 'address': 'شارع الزبيري، حي الأمل الكبير', 'lat': 15.3495, 'lng': 44.2015, 'phone': '01-990055', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.4, 'category': 'pharmacies'},
-    {'name': 'صيدلية الحياة الكبيرة', 'address': 'شارع هائل، حي الحياة الكبير', 'lat': 15.3625, 'lng': 44.1975, 'phone': '01-001166', 'hours': '8 ص - 12 م', 'delivery': true, 'rating': 4.1, 'category': 'pharmacies'},
-    {'name': 'صيدلية السلام الكبيرة', 'address': 'شارع الخمسين، حي السلام الكبير', 'lat': 15.3715, 'lng': 44.2075, 'phone': '01-112277', 'hours': '24 ساعة', 'delivery': false, 'rating': 3.6, 'category': 'pharmacies'},
-    {'name': 'صيدلية النصر الجديدة', 'address': 'شارع التحرير، حي النصر', 'lat': 15.3555, 'lng': 44.1935, 'phone': '01-223388', 'hours': '9 ص - 10 م', 'delivery': true, 'rating': 4.0, 'category': 'pharmacies'},
-    {'name': 'صيدلية الفتح الجديدة', 'address': 'شارع باب اليمن، حي الفتح', 'lat': 15.3485, 'lng': 44.2025, 'phone': '01-334499', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.3, 'category': 'pharmacies'},
-    {'name': 'صيدلية الأصالة', 'address': 'شارع القاهرة، حي الأصالة', 'lat': 15.3515, 'lng': 44.2045, 'phone': '01-445500', 'hours': '8 ص - 11 م', 'delivery': false, 'rating': 3.5, 'category': 'pharmacies'},
-    {'name': 'صيدلية الريان الجديدة', 'address': 'شارع الستين، حي الريان', 'lat': 15.3395, 'lng': 44.1735, 'phone': '01-556611', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.2, 'category': 'pharmacies'},
-    {'name': 'صيدلية المنار الجديدة', 'address': 'شارع العدين، حي المنار', 'lat': 15.3835, 'lng': 44.2115, 'phone': '01-667722', 'hours': '9 ص - 12 م', 'delivery': true, 'rating': 3.9, 'category': 'pharmacies'},
-    {'name': 'صيدلية الوفاء الكبيرة', 'address': 'شارع الزبيري، حي الوفاء', 'lat': 15.3475, 'lng': 44.1975, 'phone': '01-778833', 'hours': '24 ساعة', 'delivery': false, 'rating': 4.1, 'category': 'pharmacies'},
-    {'name': 'صيدلية العطاء', 'address': 'شارع هائل، حي العطاء', 'lat': 15.3675, 'lng': 44.1945, 'phone': '01-889944', 'hours': '8 ص - 10 م', 'delivery': true, 'rating': 3.8, 'category': 'pharmacies'},
-    {'name': 'صيدلية الشروق', 'address': 'شارع الخمسين، حي الشروق', 'lat': 15.3755, 'lng': 44.2045, 'phone': '01-990055', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.4, 'category': 'pharmacies'},
-    {'name': 'صيدلية السعادة الجديدة', 'address': 'شارع التحرير، حي السعادة', 'lat': 15.3585, 'lng': 44.1905, 'phone': '01-001166', 'hours': '9 ص - 11 م', 'delivery': false, 'rating': 3.6, 'category': 'pharmacies'},
-    {'name': 'صيدلية البشائر', 'address': 'شارع باب اليمن، حي البشائر', 'lat': 15.3435, 'lng': 44.1995, 'phone': '01-112277', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.0, 'category': 'pharmacies'},
-    {'name': 'صيدلية الكرامة', 'address': 'شارع القاهرة، حي الكرامة', 'lat': 15.3565, 'lng': 44.2075, 'phone': '01-223388', 'hours': '8 ص - 12 م', 'delivery': true, 'rating': 4.3, 'category': 'pharmacies'},
-    {'name': 'صيدلية الصحة الجديدة', 'address': 'شارع الستين، حي الصحة', 'lat': 15.3335, 'lng': 44.1815, 'phone': '01-334499', 'hours': '24 ساعة', 'delivery': false, 'rating': 3.7, 'category': 'pharmacies'},
-    {'name': 'صيدلية التضامن', 'address': 'شارع العدين، حي التضامن', 'lat': 15.3895, 'lng': 44.2135, 'phone': '01-445500', 'hours': '9 ص - 10 م', 'delivery': true, 'rating': 3.9, 'category': 'pharmacies'},
-    {'name': 'صيدلية الازدهار', 'address': 'شارع الزبيري، حي الازدهار', 'lat': 15.3505, 'lng': 44.2005, 'phone': '01-556611', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.2, 'category': 'pharmacies'},
-    {'name': 'صيدلية الأنوار الجديدة', 'address': 'شارع هائل، حي الأنوار', 'lat': 15.3635, 'lng': 44.1965, 'phone': '01-667722', 'hours': '8 ص - 11 م', 'delivery': false, 'rating': 3.5, 'category': 'pharmacies'},
-    {'name': 'صيدلية الأمانة', 'address': 'شارع الزبيري، حي الأمانة', 'lat': 15.3538, 'lng': 44.2035, 'phone': '01-112233', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.5, 'category': 'pharmacies'},
-    {'name': 'صيدلية صنعاء', 'address': 'شارع التحرير، حي صنعاء', 'lat': 15.3671, 'lng': 44.1966, 'phone': '01-223344', 'hours': '8 ص - 12 م', 'delivery': true, 'rating': 4.2, 'category': 'pharmacies'},
-    {'name': 'صيدلية التحرير الجديدة', 'address': 'شارع الستين، حي التحرير الجديدة', 'lat': 15.3412, 'lng': 44.1878, 'phone': '01-334455', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.6, 'category': 'pharmacies'},
-    {'name': 'صيدلية الخمسين', 'address': 'شارع الخمسين، حي الخمسين', 'lat': 15.3743, 'lng': 44.2109, 'phone': '01-445566', 'hours': '9 ص - 10 م', 'delivery': false, 'rating': 4.0, 'category': 'pharmacies'},
-    {'name': 'صيدلية القاهرة الجديدة', 'address': 'شارع القاهرة، حي القاهرة الجديدة', 'lat': 15.3294, 'lng': 44.1741, 'phone': '01-556677', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.3, 'category': 'pharmacies'},
-    {'name': 'صيدلية العدين الجديدة', 'address': 'شارع هائل، حي العدين الجديدة', 'lat': 15.3825, 'lng': 44.2132, 'phone': '01-667788', 'hours': '8 ص - 11 م', 'delivery': true, 'rating': 4.1, 'category': 'pharmacies'},
-    {'name': 'صيدلية هائل الجديدة', 'address': 'شارع الأربعين، حي هائل الجديدة', 'lat': 15.3166, 'lng': 44.1803, 'phone': '01-778899', 'hours': '24 ساعة', 'delivery': false, 'rating': 3.8, 'category': 'pharmacies'},
-    {'name': 'صيدلية الأربعين', 'address': 'شارع باب اليمن، حي الأربعين', 'lat': 15.3907, 'lng': 44.2174, 'phone': '01-889900', 'hours': '9 ص - 12 م', 'delivery': true, 'rating': 4.4, 'category': 'pharmacies'},
-    {'name': 'صيدلية باب اليمن الجديدة', 'address': 'شارع صنعاء، حي باب اليمن الجديدة', 'lat': 15.3438, 'lng': 44.1996, 'phone': '01-990011', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.2, 'category': 'pharmacies'},
-    {'name': 'صيدلية صنعاء الكبرى', 'address': 'شارع مأرب، حي صنعاء الكبرى', 'lat': 15.3569, 'lng': 44.1927, 'phone': '01-001122', 'hours': '8 ص - 10 م', 'delivery': false, 'rating': 3.9, 'category': 'pharmacies'},
-    {'name': 'صيدلية مأرب', 'address': 'شارع تعز، حي مأرب', 'lat': 15.3300, 'lng': 44.1858, 'phone': '01-112200', 'hours': '24 ساعة', 'delivery': true, 'rating': 4.5, 'category': 'pharmacies'},
-    {'name': 'صيدلية تعز الجديدة', 'address': 'شارع الحديدة، حي تعز الجديدة', 'lat': 15.3631, 'lng': 44.2089, 'phone': '01-223311', 'hours': '8 ص - 11 م', 'delivery': true, 'rating': 4.1, 'category': 'pharmacies'},
-    {'name': 'صيدلية الحديدة', 'address': 'شارع عمران، حي الحديدة', 'lat': 15.3472, 'lng': 44.1760, 'phone': '01-334422', 'hours': '24 ساعة', 'delivery': false, 'rating': 3.7, 'category': 'pharmacies'},
-    {'name': 'صيدلية عمران', 'address': 'شارع الجديد، حي عمران', 'lat': 15.3803, 'lng': 44.2141, 'phone': '01-445533', 'hours': '9 ص - 10 م', 'delivery': true, 'rating': 4.3, 'category': 'pharmacies'},
-  ];
+  final List<Map<String, dynamic>> _pharmacies = List.generate(100, (index) {
+    final names = [
+      'صيدلية الشفاء', 'صيدلية اليمن', 'صيدلية الأمل',
+      'صيدلية ابن حيان', 'صيدلية الشهيد', 'صيدلية النصر',
+      'صيدلية الحياة', 'صيدلية البرج', 'صيدلية اليقين',
+      'صيدلية الوطنية', 'صيدلية الصحة', 'صيدلية الإيمان',
+      'صيدلية الرازي', 'صيدلية القدس', 'صيدلية الأقصى',
+      'صيدلية النور', 'صيدلية الهدى', 'صيدلية الفاروق',
+      'صيدلية السلام', 'صيدلية الوفاء', 'صيدلية الأندلس',
+      'صيدلية الحكمة', 'صيدلية الأطباء', 'صيدلية المستقبل',
+      'صيدلية التعاون', 'صيدلية المدينة', 'صيدلية اليمامة',
+      'صيدلية الربيع', 'صيدلية الجزيرة', 'صيدلية الأقصى الجديدة',
+      'صيدلية الهلال', 'صيدلية الزهراء', 'صيدلية الأمن',
+      'صيدلية الإخلاص', 'صيدلية طيبة', 'صيدلية الصفوة',
+      'صيدلية النهضة', 'صيدلية الفيحاء', 'صيدلية الرحمة',
+      'صيدلية البراء', 'صيدلية العروبة', 'صيدلية الفردوس',
+      'صيدلية العنقاء', 'صيدلية البشير', 'صيدلية النجاح',
+      'صيدلية اليمن السعيد', 'صيدلية دار الدواء', 'صيدلية اليسر',
+      'صيدلية الريان', 'صيدلية الإحسان', 'صيدلية السعادة',
+      'صيدلية التوفيق', 'صيدلية الخير', 'صيدلية الأنوار',
+      'صيدلية الجامعة', 'صيدلية الهداية', 'صيدلية المنار',
+      'صيدلية التقوى', 'صيدلية الروضة', 'صيدلية البستان',
+      'صيدلية الأزهر', 'صيدلية التقوى الجديدة', 'صيدلية الهداية الجديدة',
+      'صيدلية الشفاء الجديدة', 'صيدلية الأمان', 'صيدلية البناء',
+      'صيدلية النجاح الجديدة', 'صيدلية التقدم', 'صيدلية الأمل الكبير',
+      'صيدلية الحياة الكبيرة', 'صيدلية السلام الكبيرة', 'صيدلية النصر الجديدة',
+      'صيدلية الفتح الجديدة', 'صيدلية الأصالة', 'صيدلية الريان الجديدة',
+      'صيدلية المنار الجديدة', 'صيدلية الوفاء الكبيرة', 'صيدلية العطاء',
+      'صيدلية الشروق', 'صيدلية السعادة الجديدة', 'صيدلية البشائر',
+      'صيدلية الكرامة', 'صيدلية الصحة الجديدة', 'صيدلية التضامن',
+      'صيدلية الازدهار', 'صيدلية الأنوار الجديدة', 'صيدلية الأمانة',
+      'صيدلية صنعاء', 'صيدلية التحرير الجديدة', 'صيدلية الخمسين',
+      'صيدلية القاهرة الجديدة', 'صيدلية العدين الجديدة', 'صيدلية هائل الجديدة',
+      'صيدلية الأربعين', 'صيدلية باب اليمن الجديدة', 'صيدلية صنعاء الكبرى',
+      'صيدلية مأرب', 'صيدلية تعز الجديدة', 'صيدلية الحديدة',
+      'صيدلية عمران'
+    ];
+    final addresses = [
+      'شارع الزبيري، أمام مستشفى الثورة', 'شارع التحرير، بجانب البنك المركزي',
+      'شارع هائل، أمام جامعة صنعاء', 'شارع الستين، الحصبة',
+      'شارع القاهرة، باب اليمن', 'شارع الأربعين، شارع الستين',
+      'شارع الزبيري، عمارة النعمان', 'شارع هائل، جولة كنتاكي',
+      'شارع التحرير، عمارة البساطي', 'شارع الستين، أمام المستشفى العسكري',
+      'شارع الخمسين، الحصبة', 'شارع باب اليمن، سوق الملح',
+      'شارع القاهرة، حي السياسي', 'شارع العدين، السنينة',
+      'شارع الأربعين، شارع صخر', 'شارع الزبيري، بجانب برج زبيدة',
+      'شارع الستين، شارع تعز', 'شارع هائل، حي الروضة',
+      'شارع التحرير، وسط البلد', 'شارع الخمسين، دار الرئاسة',
+      'شارع باب اليمن، شارع صالح', 'شارع الستين، جولة المصباحي',
+      'شارع القاهرة، بجانب السفارة', 'شارع الزبيري، شارع السائلة',
+      'شارع هائل، شارع الأربعين', 'شارع الستين، مجمع النخبة',
+      'شارع التحرير، عمارة الحمدي', 'شارع العدين، طريق عمران',
+      'شارع الخمسين، بجانب الخطوط', 'شارع باب اليمن، سوق الحلقة',
+      'شارع الستين، شارع مأرب', 'شارع القاهرة، حي الحشيشي',
+      'شارع الزبيري، عمارة النجم', 'شارع هائل، نهاية الخط',
+      'شارع التحرير، أمام البنك', 'شارع الستين، تقاطع تعز',
+      'شارع الخمسين، مدينة النور', 'شارع باب اليمن، بجانب الجامع',
+      'شارع العدين، طريق صنعاء', 'شارع القاهرة، بجانب المجلس',
+      'شارع الستين، طريق الحديدة', 'شارع الزبيري، باب شعوب',
+      'شارع هائل، فرع الجامعة', 'شارع التحرير، عمارة الكبوس',
+      'شارع الستين، مجمع الصمد', 'شارع الخمسين، حي المطار',
+      'شارع باب اليمن، شارع صالح', 'شارع القاهرة، بجانب سوق القات',
+      'شارع الستين، شارع العدين', 'شارع الزبيري، عمارة النجار',
+      'شارع هائل، أمام المطار', 'شارع التحرير، بجانب البريد',
+      'شارع العدين، السنينة الشمالية', 'شارع الستين، جولة 48',
+      'شارع الخمسين، خلف الجامعة', 'شارع باب اليمن، ميدان التحرير',
+      'شارع القاهرة، حي السياسي', 'شارع الستين، شارع الستين الشمالي',
+      'شارع هائل، جولة كنتاكي', 'شارع الزبيري، أمام الخطوط الجوية',
+      'شارع الستين، حي الأزهر', 'شارع هائل، جولة التقوى',
+      'شارع الخمسين، حي الهداية', 'شارع التحرير، حي الشفاء',
+      'شارع باب اليمن، حي الأمان', 'شارع القاهرة، حي البناء',
+      'شارع الستين، حي النجاح', 'شارع العدين، حي التقدم',
+      'شارع الزبيري، حي الأمل الكبير', 'شارع هائل، حي الحياة الكبير',
+      'شارع الخمسين، حي السلام الكبير', 'شارع التحرير، حي النصر',
+      'شارع باب اليمن، حي الفتح', 'شارع القاهرة، حي الأصالة',
+      'شارع الستين، حي الريان', 'شارع العدين، حي المنار',
+      'شارع الزبيري، حي الوفاء', 'شارع هائل، حي العطاء',
+      'شارع الخمسين، حي الشروق', 'شارع التحرير، حي السعادة',
+      'شارع باب اليمن، حي البشائر', 'شارع القاهرة، حي الكرامة',
+      'شارع الستين، حي الصحة', 'شارع العدين، حي التضامن',
+      'شارع الزبيري، حي الازدهار', 'شارع هائل، حي الأنوار',
+      'شارع الزبيري، حي الأمانة', 'شارع التحرير، حي صنعاء',
+      'شارع الستين، حي التحرير الجديدة', 'شارع الخمسين، حي الخمسين',
+      'شارع القاهرة، حي القاهرة الجديدة', 'شارع هائل، حي العدين الجديدة',
+      'شارع الأربعين، حي هائل الجديدة', 'شارع باب اليمن، حي الأربعين',
+      'شارع صنعاء، حي باب اليمن الجديدة', 'شارع مأرب، حي صنعاء الكبرى',
+      'شارع تعز، حي مأرب', 'شارع الحديدة، حي تعز الجديدة',
+      'شارع عمران، حي الحديدة', 'شارع الجديد، حي عمران'
+    ];
+    final lats = [
+      15.3510, 15.3580, 15.3650, 15.3820, 15.3480, 15.3250,
+      15.3520, 15.3620, 15.3570, 15.3540, 15.3780, 15.3430,
+      15.3550, 15.3860, 15.3140, 15.3490, 15.3190, 15.3670,
+      15.3560, 15.3710, 15.3440, 15.3270, 15.3520, 15.3470,
+      15.3630, 15.3330, 15.3540, 15.3880, 15.3730, 15.3410,
+      15.3290, 15.3560, 15.3500, 15.3660, 15.3590, 15.3170,
+      15.3760, 15.3450, 15.3840, 15.3570, 15.3150, 15.3540,
+      15.3680, 15.3600, 15.3310, 15.3750, 15.3420, 15.3510,
+      15.3350, 15.3460, 15.3720, 15.3610, 15.3910, 15.3360,
+      15.3790, 15.3480, 15.3540, 15.3390, 15.3640, 15.3470,
+      15.3355, 15.3655, 15.3795, 15.3575, 15.3465, 15.3545,
+      15.3315, 15.3875, 15.3495, 15.3625, 15.3715, 15.3555,
+      15.3485, 15.3515, 15.3395, 15.3835, 15.3475, 15.3675,
+      15.3755, 15.3585, 15.3435, 15.3565, 15.3335, 15.3895,
+      15.3505, 15.3635, 15.3538, 15.3671, 15.3412, 15.3743,
+      15.3294, 15.3825, 15.3166, 15.3907, 15.3438, 15.3569,
+      15.3300, 15.3631, 15.3472, 15.3803
+    ];
+    final lngs = [
+      44.1990, 44.1930, 44.1970, 44.2080, 44.2020, 44.1830,
+      44.1980, 44.1960, 44.1940, 44.2030, 44.2070, 44.2000,
+      44.2060, 44.2110, 44.1780, 44.1960, 44.1790, 44.1920,
+      44.1950, 44.2040, 44.1990, 44.1810, 44.2050, 44.1950,
+      44.1980, 44.1820, 44.1920, 44.2140, 44.2060, 44.1980,
+      44.1780, 44.2070, 44.1940, 44.1930, 44.1960, 44.1760,
+      44.2050, 44.1970, 44.2120, 44.2080, 44.1740, 44.1970,
+      44.1940, 44.1910, 44.1840, 44.2090, 44.1990, 44.2040,
+      44.1860, 44.1980, 44.1890, 44.1920, 44.2150, 44.1870,
+      44.2040, 44.2010, 44.2040, 44.1710, 44.1960, 44.2000,
+      44.1865, 44.1955, 44.2095, 44.1925, 44.1985, 44.2055,
+      44.1775, 44.2155, 44.2015, 44.1975, 44.2075, 44.1935,
+      44.2025, 44.2045, 44.1735, 44.2115, 44.1975, 44.1945,
+      44.2045, 44.1905, 44.1995, 44.2075, 44.1815, 44.2135,
+      44.2005, 44.1965, 44.2035, 44.1966, 44.1878, 44.2109,
+      44.1741, 44.2132, 44.1803, 44.2174, 44.1996, 44.1927,
+      44.1858, 44.2089, 44.1760, 44.2141
+    ];
+    return {
+      'name': names[index % names.length],
+      'address': addresses[index % addresses.length],
+      'lat': lats[index % lats.length],
+      'lng': lngs[index % lngs.length],
+      'phone': '01-${200000 + index}',
+      'hours': index % 2 == 0 ? '24 ساعة' : '8 ص - 10 م',
+      'delivery': index % 2 == 0,
+      'rating': 3.5 + (index % 15) / 10,
+      'category': 'pharmacies',
+    };
+  });
 
   // ============================================================
   // 🔬 المختبرات (100)
   // ============================================================
-  final List<Map<String, dynamic>> _labs = [
-    {'name': 'المختبر الوطني', 'address': 'شارع الستين، أمام المستشفى العسكري', 'lat': 15.3540, 'lng': 44.2030, 'phone': '01-012345', 'tests': '650+', 'accredited': true, 'rating': 4.7, 'category': 'labs'},
-    {'name': 'مختبر الثقة', 'address': 'شارع الزبيري، عمارة النعمان', 'lat': 15.3520, 'lng': 44.1980, 'phone': '01-123456', 'tests': '520+', 'accredited': true, 'rating': 4.5, 'category': 'labs'},
-    {'name': 'مختبر البرج', 'address': 'شارع هائل، جولة كنتاكي', 'lat': 15.3620, 'lng': 44.1960, 'phone': '01-234567', 'tests': '480+', 'accredited': true, 'rating': 4.2, 'category': 'labs'},
-    {'name': 'مختبر اليقين', 'address': 'شارع التحرير، عمارة البساطي', 'lat': 15.3570, 'lng': 44.1940, 'phone': '01-345678', 'tests': '350+', 'accredited': true, 'rating': 4.0, 'category': 'labs'},
-    {'name': 'مختبرات الحياة', 'address': 'شارع الخمسين، الحصبة', 'lat': 15.3780, 'lng': 44.2070, 'phone': '01-456789', 'tests': '420+', 'accredited': false, 'rating': 3.8, 'category': 'labs'},
-    {'name': 'معمل ابن سينا', 'address': 'شارع الزبيري، بجانب برج زبيدة', 'lat': 15.3490, 'lng': 44.1960, 'phone': '01-567890', 'tests': '380+', 'accredited': true, 'rating': 4.3, 'category': 'labs'},
-    {'name': 'مختبر الأمل', 'address': 'شارع هائل، أمام جامعة صنعاء', 'lat': 15.3650, 'lng': 44.1970, 'phone': '01-678901', 'tests': '290+', 'accredited': false, 'rating': 3.6, 'category': 'labs'},
-    {'name': 'معامل النخبة', 'address': 'شارع الستين، مجمع النخبة', 'lat': 15.3330, 'lng': 44.1820, 'phone': '01-789012', 'tests': '550+', 'accredited': true, 'rating': 4.6, 'category': 'labs'},
-    {'name': 'مختبر الشروق', 'address': 'شارع القاهرة، باب اليمن', 'lat': 15.3480, 'lng': 44.2020, 'phone': '01-890123', 'tests': '310+', 'accredited': false, 'rating': 3.5, 'category': 'labs'},
-    {'name': 'معمل الدقة', 'address': 'شارع العدين، السنينة', 'lat': 15.3860, 'lng': 44.2110, 'phone': '01-901234', 'tests': '460+', 'accredited': true, 'rating': 4.4, 'category': 'labs'},
-    {'name': 'مختبر الصحة', 'address': 'شارع الأربعين، شارع صخر', 'lat': 15.3140, 'lng': 44.1780, 'phone': '01-112345', 'tests': '270+', 'accredited': false, 'rating': 3.4, 'category': 'labs'},
-    {'name': 'معامل اليمن', 'address': 'شارع التحرير، عمارة الحمدي', 'lat': 15.3540, 'lng': 44.1920, 'phone': '01-223456', 'tests': '500+', 'accredited': true, 'rating': 4.5, 'category': 'labs'},
-    {'name': 'مختبر القدس', 'address': 'شارع الخمسين، دار الرئاسة', 'lat': 15.3710, 'lng': 44.2040, 'phone': '01-334567', 'tests': '340+', 'accredited': true, 'rating': 4.1, 'category': 'labs'},
-    {'name': 'معمل الإسراء', 'address': 'شارع الستين، جولة المصباحي', 'lat': 15.3260, 'lng': 44.1810, 'phone': '01-445678', 'tests': '390+', 'accredited': false, 'rating': 3.7, 'category': 'labs'},
-    {'name': 'مختبر الهدى', 'address': 'شارع باب اليمن، سوق الملح', 'lat': 15.3440, 'lng': 44.2010, 'phone': '01-556789', 'tests': '280+', 'accredited': false, 'rating': 3.3, 'category': 'labs'},
-    {'name': 'معمل الشفاء', 'address': 'شارع القاهرة، حي السياسي', 'lat': 15.3530, 'lng': 44.2070, 'phone': '01-667890', 'tests': '410+', 'accredited': true, 'rating': 4.2, 'category': 'labs'},
-    {'name': 'مختبر الفيحاء', 'address': 'شارع العدين، السنينة', 'lat': 15.3900, 'lng': 44.2120, 'phone': '01-778901', 'tests': '330+', 'accredited': true, 'rating': 4.0, 'category': 'labs'},
-    {'name': 'معمل الأندلس', 'address': 'شارع الزبيري، باب شعوب', 'lat': 15.3550, 'lng': 44.1970, 'phone': '01-889012', 'tests': '370+', 'accredited': false, 'rating': 3.8, 'category': 'labs'},
-    {'name': 'مختبر السلام', 'address': 'شارع التحرير، وسط البلد', 'lat': 15.3560, 'lng': 44.1960, 'phone': '01-990123', 'tests': '260+', 'accredited': false, 'rating': 3.2, 'category': 'labs'},
-    {'name': 'معمل النهضة', 'address': 'شارع هائل، حي الروضة', 'lat': 15.3680, 'lng': 44.1920, 'phone': '01-001234', 'tests': '440+', 'accredited': true, 'rating': 4.3, 'category': 'labs'},
-    {'name': 'مختبر العباس', 'address': 'شارع الخمسين، الحصبة', 'lat': 15.3800, 'lng': 44.2100, 'phone': '01-112345', 'tests': '360+', 'accredited': true, 'rating': 4.1, 'category': 'labs'},
-    {'name': 'معمل الرازي', 'address': 'شارع الستين، أمام المستشفى العسكري', 'lat': 15.3540, 'lng': 44.2030, 'phone': '01-223456', 'tests': '490+', 'accredited': true, 'rating': 4.6, 'category': 'labs'},
-    {'name': 'مختبر الإخلاص', 'address': 'شارع القاهرة، باب اليمن', 'lat': 15.3480, 'lng': 44.2020, 'phone': '01-334567', 'tests': '300+', 'accredited': false, 'rating': 3.4, 'category': 'labs'},
-    {'name': 'معمل الزهراء', 'address': 'شارع العدين، طريق عمران', 'lat': 15.3800, 'lng': 44.2150, 'phone': '01-445678', 'tests': '420+', 'accredited': true, 'rating': 4.4, 'category': 'labs'},
-    {'name': 'مختبر الأمانة', 'address': 'شارع الزبيري، عمارة النجار', 'lat': 15.3460, 'lng': 44.1990, 'phone': '01-556789', 'tests': '290+', 'accredited': false, 'rating': 3.3, 'category': 'labs'},
-    {'name': 'معمل التقوى', 'address': 'شارع هائل، جولة التقوى', 'lat': 15.3655, 'lng': 44.1955, 'phone': '01-667890', 'tests': '380+', 'accredited': true, 'rating': 4.2, 'category': 'labs'},
-    {'name': 'مختبر الهداية', 'address': 'شارع الخمسين، حي الهداية', 'lat': 15.3795, 'lng': 44.2095, 'phone': '01-778901', 'tests': '320+', 'accredited': false, 'rating': 3.6, 'category': 'labs'},
-    {'name': 'معمل الشروق', 'address': 'شارع التحرير، حي الشروق', 'lat': 15.3755, 'lng': 44.2045, 'phone': '01-889012', 'tests': '400+', 'accredited': true, 'rating': 4.0, 'category': 'labs'},
-    {'name': 'مختبر النور', 'address': 'شارع باب اليمن، سوق الحلقة', 'lat': 15.3420, 'lng': 44.1980, 'phone': '01-990123', 'tests': '270+', 'accredited': false, 'rating': 3.2, 'category': 'labs'},
-    {'name': 'معمل الحياة', 'address': 'شارع القاهرة، حي الحشيشي', 'lat': 15.3570, 'lng': 44.2060, 'phone': '01-001234', 'tests': '450+', 'accredited': true, 'rating': 4.5, 'category': 'labs'},
-    {'name': 'مختبر الكرامة', 'address': 'شارع الستين، جولة 48', 'lat': 15.3370, 'lng': 44.1890, 'phone': '01-112345', 'tests': '310+', 'accredited': false, 'rating': 3.5, 'category': 'labs'},
-    {'name': 'معمل القاسمي', 'address': 'شارع هائل، نهاية الخط', 'lat': 15.3660, 'lng': 44.1930, 'phone': '01-223456', 'tests': '470+', 'accredited': true, 'rating': 4.3, 'category': 'labs'},
-    {'name': 'مختبر الفردوس', 'address': 'شارع الزبيري، عمارة النجم', 'lat': 15.3510, 'lng': 44.1950, 'phone': '01-334567', 'tests': '280+', 'accredited': false, 'rating': 3.3, 'category': 'labs'},
-    {'name': 'معمل الوحدة', 'address': 'شارع الخمسين، حي المطار', 'lat': 15.3740, 'lng': 44.2080, 'phone': '01-445678', 'tests': '390+', 'accredited': true, 'rating': 4.1, 'category': 'labs'},
-    {'name': 'مختبر الأقصى', 'address': 'شارع التحرير، أمام البنك', 'lat': 15.3590, 'lng': 44.1950, 'phone': '01-556789', 'tests': '260+', 'accredited': false, 'rating': 3.1, 'category': 'labs'},
-    {'name': 'معمل النهضة', 'address': 'شارع الستين، شارع مأرب', 'lat': 15.3280, 'lng': 44.1800, 'phone': '01-667890', 'tests': '430+', 'accredited': true, 'rating': 4.4, 'category': 'labs'},
-    {'name': 'مختبر الإسراء التخصصي', 'address': 'شارع باب اليمن، بجانب الجامع', 'lat': 15.3450, 'lng': 44.1970, 'phone': '01-778901', 'tests': '500+', 'accredited': true, 'rating': 4.6, 'category': 'labs'},
-    {'name': 'معمل السلامة', 'address': 'شارع القاهرة، بجانب سوق القات', 'lat': 15.3500, 'lng': 44.2030, 'phone': '01-889012', 'tests': '250+', 'accredited': false, 'rating': 3.0, 'category': 'labs'},
-    {'name': 'مختبر العروبة', 'address': 'شارع الستين، طريق الحديدة', 'lat': 15.3160, 'lng': 44.1750, 'phone': '01-990123', 'tests': '340+', 'accredited': true, 'rating': 3.9, 'category': 'labs'},
-    {'name': 'معمل جيبلا', 'address': 'شارع هائل، فرع الجامعة', 'lat': 15.3690, 'lng': 44.1970, 'phone': '01-001234', 'tests': '370+', 'accredited': false, 'rating': 3.7, 'category': 'labs'},
-    {'name': 'مختبر الأطباء', 'address': 'شارع الخمسين، خلف الجامعة', 'lat': 15.3780, 'lng': 44.2050, 'phone': '01-112345', 'tests': '410+', 'accredited': true, 'rating': 4.2, 'category': 'labs'},
-    {'name': 'معمل اليمن الدولي', 'address': 'شارع الستين، جولة آية', 'lat': 15.3410, 'lng': 44.1720, 'phone': '01-223456', 'tests': '520+', 'accredited': true, 'rating': 4.7, 'category': 'labs'},
-    {'name': 'مختبر العاصمة', 'address': 'شارع الزبيري، شارع القاهرة', 'lat': 15.3525, 'lng': 44.1995, 'phone': '01-334567', 'tests': '360+', 'accredited': true, 'rating': 4.0, 'category': 'labs'},
-    {'name': 'معمل التقوى الجديد', 'address': 'شارع هائل، جولة التقوى', 'lat': 15.3655, 'lng': 44.1955, 'phone': '01-445678', 'tests': '380+', 'accredited': true, 'rating': 4.2, 'category': 'labs'},
-    {'name': 'مختبر الهداية الجديد', 'address': 'شارع الخمسين، حي الهداية', 'lat': 15.3795, 'lng': 44.2095, 'phone': '01-556789', 'tests': '320+', 'accredited': false, 'rating': 3.6, 'category': 'labs'},
-    {'name': 'معمل الشفاء الجديد', 'address': 'شارع التحرير، حي الشفاء', 'lat': 15.3575, 'lng': 44.1925, 'phone': '01-667890', 'tests': '400+', 'accredited': true, 'rating': 4.0, 'category': 'labs'},
-    {'name': 'مختبر الأمان', 'address': 'شارع باب اليمن، حي الأمان', 'lat': 15.3465, 'lng': 44.1985, 'phone': '01-778901', 'tests': '290+', 'accredited': false, 'rating': 3.4, 'category': 'labs'},
-    {'name': 'معمل البناء', 'address': 'شارع القاهرة، حي البناء', 'lat': 15.3545, 'lng': 44.2055, 'phone': '01-889012', 'tests': '430+', 'accredited': true, 'rating': 4.3, 'category': 'labs'},
-    {'name': 'مختبر النجاح', 'address': 'شارع الستين، حي النجاح', 'lat': 15.3315, 'lng': 44.1775, 'phone': '01-990123', 'tests': '310+', 'accredited': false, 'rating': 3.5, 'category': 'labs'},
-    {'name': 'معمل التقدم', 'address': 'شارع العدين، حي التقدم', 'lat': 15.3875, 'lng': 44.2155, 'phone': '01-001234', 'tests': '390+', 'accredited': true, 'rating': 4.1, 'category': 'labs'},
-    {'name': 'مختبر الأمل الجديد', 'address': 'شارع الزبيري، حي الأمل', 'lat': 15.3495, 'lng': 44.2015, 'phone': '01-112345', 'tests': '270+', 'accredited': false, 'rating': 3.3, 'category': 'labs'},
-    {'name': 'معمل الحياة الجديد', 'address': 'شارع هائل، حي الحياة', 'lat': 15.3625, 'lng': 44.1975, 'phone': '01-223456', 'tests': '450+', 'accredited': true, 'rating': 4.5, 'category': 'labs'},
-    {'name': 'مختبر السلام الجديد', 'address': 'شارع الخمسين، حي السلام', 'lat': 15.3715, 'lng': 44.2075, 'phone': '01-334567', 'tests': '340+', 'accredited': true, 'rating': 3.9, 'category': 'labs'},
-    {'name': 'معمل النصر', 'address': 'شارع التحرير، حي النصر', 'lat': 15.3555, 'lng': 44.1935, 'phone': '01-445678', 'tests': '280+', 'accredited': false, 'rating': 3.2, 'category': 'labs'},
-    {'name': 'مختبر الفتح', 'address': 'شارع باب اليمن، حي الفتح', 'lat': 15.3485, 'lng': 44.2025, 'phone': '01-556789', 'tests': '360+', 'accredited': true, 'rating': 4.0, 'category': 'labs'},
-    {'name': 'معمل الأصالة', 'address': 'شارع القاهرة، حي الأصالة', 'lat': 15.3515, 'lng': 44.2045, 'phone': '01-667890', 'tests': '300+', 'accredited': false, 'rating': 3.4, 'category': 'labs'},
-    {'name': 'مختبر الريان', 'address': 'شارع الستين، حي الريان', 'lat': 15.3395, 'lng': 44.1735, 'phone': '01-778901', 'tests': '420+', 'accredited': true, 'rating': 4.3, 'category': 'labs'},
-    {'name': 'معمل المنار', 'address': 'شارع العدين، حي المنار', 'lat': 15.3835, 'lng': 44.2115, 'phone': '01-889012', 'tests': '330+', 'accredited': false, 'rating': 3.7, 'category': 'labs'},
-    {'name': 'مختبر الوفاء الجديد', 'address': 'شارع الزبيري، حي الوفاء', 'lat': 15.3475, 'lng': 44.1975, 'phone': '01-990123', 'tests': '380+', 'accredited': true, 'rating': 4.1, 'category': 'labs'},
-    {'name': 'معمل العطاء', 'address': 'شارع هائل، حي العطاء', 'lat': 15.3675, 'lng': 44.1945, 'phone': '01-001234', 'tests': '310+', 'accredited': false, 'rating': 3.5, 'category': 'labs'},
-    {'name': 'مختبر الشروق الجديد', 'address': 'شارع الخمسين، حي الشروق', 'lat': 15.3755, 'lng': 44.2045, 'phone': '01-112345', 'tests': '400+', 'accredited': true, 'rating': 4.2, 'category': 'labs'},
-    {'name': 'معمل السعادة', 'address': 'شارع التحرير، حي السعادة', 'lat': 15.3585, 'lng': 44.1905, 'phone': '01-223456', 'tests': '290+', 'accredited': false, 'rating': 3.3, 'category': 'labs'},
-    {'name': 'مختبر البشائر', 'address': 'شارع باب اليمن، حي البشائر', 'lat': 15.3435, 'lng': 44.1995, 'phone': '01-334567', 'tests': '340+', 'accredited': true, 'rating': 3.8, 'category': 'labs'},
-    {'name': 'معمل الكرامة الجديد', 'address': 'شارع القاهرة، حي الكرامة', 'lat': 15.3565, 'lng': 44.2075, 'phone': '01-445678', 'tests': '460+', 'accredited': true, 'rating': 4.5, 'category': 'labs'},
-    {'name': 'مختبر الأمل الكبير', 'address': 'شارع الستين، حي الأمل الكبير', 'lat': 15.3335, 'lng': 44.1815, 'phone': '01-556789', 'tests': '350+', 'accredited': true, 'rating': 4.0, 'category': 'labs'},
-    {'name': 'معمل الصحة الجديد', 'address': 'شارع العدين، حي الصحة', 'lat': 15.3895, 'lng': 44.2135, 'phone': '01-667890', 'tests': '310+', 'accredited': false, 'rating': 3.6, 'category': 'labs'},
-    {'name': 'مختبر الحياة الكبير', 'address': 'شارع الزبيري، حي الحياة الكبير', 'lat': 15.3505, 'lng': 44.2005, 'phone': '01-778901', 'tests': '480+', 'accredited': true, 'rating': 4.6, 'category': 'labs'},
-    {'name': 'معمل التضامن', 'address': 'شارع هائل، حي التضامن', 'lat': 15.3635, 'lng': 44.1965, 'phone': '01-889012', 'tests': '270+', 'accredited': false, 'rating': 3.1, 'category': 'labs'},
-    {'name': 'مختبر الازدهار', 'address': 'شارع الخمسين، حي الازدهار', 'lat': 15.3725, 'lng': 44.2065, 'phone': '01-990123', 'tests': '410+', 'accredited': true, 'rating': 4.3, 'category': 'labs'},
-    {'name': 'معمل الأنوار', 'address': 'شارع التحرير، حي الأنوار', 'lat': 15.3565, 'lng': 44.1945, 'phone': '01-001234', 'tests': '320+', 'accredited': false, 'rating': 3.5, 'category': 'labs'},
-    {'name': 'مختبر الأمانة الجديد', 'address': 'شارع الزبيري، حي الأمانة', 'lat': 15.3538, 'lng': 44.2035, 'phone': '01-112345', 'tests': '440+', 'accredited': true, 'rating': 4.4, 'category': 'labs'},
-    {'name': 'معمل صنعاء الدولي', 'address': 'شارع التحرير، حي صنعاء الدولي', 'lat': 15.3671, 'lng': 44.1966, 'phone': '01-223456', 'tests': '500+', 'accredited': true, 'rating': 4.8, 'category': 'labs'},
-    {'name': 'مختبر الجمهورية الجديد', 'address': 'شارع الستين، حي الجمهورية الجديد', 'lat': 15.3412, 'lng': 44.1878, 'phone': '01-334567', 'tests': '380+', 'accredited': true, 'rating': 4.2, 'category': 'labs'},
-    {'name': 'معمل السلام الدولي', 'address': 'شارع الخمسين، حي السلام الدولي', 'lat': 15.3743, 'lng': 44.2109, 'phone': '01-445678', 'tests': '460+', 'accredited': true, 'rating': 4.6, 'category': 'labs'},
-    {'name': 'مختبر الشفاء التخصصي', 'address': 'شارع القاهرة، حي الشفاء التخصصي', 'lat': 15.3294, 'lng': 44.1741, 'phone': '01-556789', 'tests': '390+', 'accredited': true, 'rating': 4.3, 'category': 'labs'},
-    {'name': 'معمل الحياة الجديد', 'address': 'شارع هائل، حي الحياة الجديد', 'lat': 15.3825, 'lng': 44.2132, 'phone': '01-667890', 'tests': '340+', 'accredited': true, 'rating': 3.9, 'category': 'labs'},
-    {'name': 'مختبر النصر العام', 'address': 'شارع الأربعين، حي النصر العام', 'lat': 15.3166, 'lng': 44.1803, 'phone': '01-778901', 'tests': '420+', 'accredited': true, 'rating': 4.1, 'category': 'labs'},
-    {'name': 'معمل الوفاء الجديد', 'address': 'شارع العدين، حي الوفاء الجديد', 'lat': 15.3907, 'lng': 44.2174, 'phone': '01-889012', 'tests': '300+', 'accredited': false, 'rating': 3.5, 'category': 'labs'},
-    {'name': 'مختبر التعاون الجديد', 'address': 'شارع باب اليمن، حي التعاون الجديد', 'lat': 15.3438, 'lng': 44.1996, 'phone': '01-990123', 'tests': '450+', 'accredited': true, 'rating': 4.4, 'category': 'labs'},
-    {'name': 'معمل الاتحاد', 'address': 'شارع صنعاء، حي الاتحاد', 'lat': 15.3569, 'lng': 44.1927, 'phone': '01-001234', 'tests': '370+', 'accredited': true, 'rating': 4.2, 'category': 'labs'},
-    {'name': 'مختبر الأمل الشامل', 'address': 'شارع مأرب، حي الأمل الشامل', 'lat': 15.3300, 'lng': 44.1858, 'phone': '01-112345', 'tests': '310+', 'accredited': false, 'rating': 3.6, 'category': 'labs'},
-    {'name': 'معمل البشير الجديد', 'address': 'شارع تعز، حي البشير الجديد', 'lat': 15.3631, 'lng': 44.2089, 'phone': '01-223456', 'tests': '400+', 'accredited': true, 'rating': 4.3, 'category': 'labs'},
-    {'name': 'مختبر الصحة الشامل', 'address': 'شارع الحديدة، حي الصحة الشامل', 'lat': 15.3472, 'lng': 44.1760, 'phone': '01-334567', 'tests': '430+', 'accredited': true, 'rating': 4.5, 'category': 'labs'},
-    {'name': 'معمل الهلال الجديد', 'address': 'شارع عمران، حي الهلال الجديد', 'lat': 15.3803, 'lng': 44.2141, 'phone': '01-445678', 'tests': '360+', 'accredited': true, 'rating': 4.1, 'category': 'labs'},
-  ];
+  final List<Map<String, dynamic>> _labs = List.generate(100, (index) {
+    final names = [
+      'المختبر الوطني', 'مختبر الثقة', 'مختبر البرج',
+      'مختبر اليقين', 'مختبرات الحياة', 'معمل ابن سينا',
+      'مختبر الأمل', 'معامل النخبة', 'مختبر الشروق',
+      'معمل الدقة', 'مختبر الصحة', 'معامل اليمن',
+      'مختبر القدس', 'معمل الإسراء', 'مختبر الهدى',
+      'معمل الشفاء', 'مختبر الفيحاء', 'معمل الأندلس',
+      'مختبر السلام', 'معمل النهضة', 'مختبر العباس',
+      'معمل الرازي', 'مختبر الإخلاص', 'معمل الزهراء',
+      'مختبر الأمانة', 'معمل التقوى', 'مختبر الهداية',
+      'معمل الشروق', 'مختبر النور', 'معمل الحياة',
+      'مختبر الكرامة', 'معمل القاسمي', 'مختبر الفردوس',
+      'معمل الوحدة', 'مختبر الأقصى', 'معمل النهضة',
+      'مختبر الإسراء التخصصي', 'معمل السلامة', 'مختبر العروبة',
+      'معمل جيبلا', 'مختبر الأطباء', 'معمل اليمن الدولي',
+      'مختبر العاصمة', 'معمل التقوى الجديد', 'مختبر الهداية الجديد',
+      'معمل الشفاء الجديد', 'مختبر الأمان', 'معمل البناء',
+      'مختبر النجاح', 'معمل التقدم', 'مختبر الأمل الجديد',
+      'معمل الحياة الجديد', 'مختبر السلام الجديد', 'معمل النصر',
+      'مختبر الفتح', 'معمل الأصالة', 'مختبر الريان',
+      'معمل المنار', 'مختبر الوفاء الجديد', 'معمل العطاء',
+      'مختبر الشروق الجديد', 'معمل السعادة', 'مختبر البشائر',
+      'معمل الكرامة الجديد', 'مختبر الأمل الكبير', 'معمل الصحة الجديد',
+      'مختبر الحياة الكبير', 'معمل التضامن', 'مختبر الازدهار',
+      'معمل الأنوار', 'مختبر الأمانة الجديد', 'معمل صنعاء الدولي',
+      'مختبر الجمهورية الجديد', 'معمل السلام الدولي', 'مختبر الشفاء التخصصي',
+      'معمل الحياة الجديد', 'مختبر النصر العام', 'معمل الوفاء الجديد',
+      'مختبر التعاون الجديد', 'معمل الاتحاد', 'مختبر الأمل الشامل',
+      'معمل البشير الجديد', 'مختبر الصحة الشامل', 'معمل الهلال الجديد'
+    ];
+    final addresses = [
+      'شارع الستين، أمام المستشفى العسكري', 'شارع الزبيري، عمارة النعمان',
+      'شارع هائل، جولة كنتاكي', 'شارع التحرير، عمارة البساطي',
+      'شارع الخمسين، الحصبة', 'شارع الزبيري، بجانب برج زبيدة',
+      'شارع هائل، أمام جامعة صنعاء', 'شارع الستين، مجمع النخبة',
+      'شارع القاهرة، باب اليمن', 'شارع العدين، السنينة',
+      'شارع الأربعين، شارع صخر', 'شارع التحرير، عمارة الحمدي',
+      'شارع الخمسين، دار الرئاسة', 'شارع الستين، جولة المصباحي',
+      'شارع باب اليمن، سوق الملح', 'شارع القاهرة، حي السياسي',
+      'شارع العدين، السنينة', 'شارع الزبيري، باب شعوب',
+      'شارع التحرير، وسط البلد', 'شارع هائل، حي الروضة',
+      'شارع الخمسين، الحصبة', 'شارع الستين، أمام المستشفى العسكري',
+      'شارع القاهرة، باب اليمن', 'شارع العدين، طريق عمران',
+      'شارع الزبيري، عمارة النجار', 'شارع هائل، جولة التقوى',
+      'شارع الخمسين، حي الهداية', 'شارع التحرير، حي الشروق',
+      'شارع باب اليمن، سوق الحلقة', 'شارع القاهرة، حي الحشيشي',
+      'شارع الستين، جولة 48', 'شارع هائل، نهاية الخط',
+      'شارع الزبيري، عمارة النجم', 'شارع الخمسين، حي المطار',
+      'شارع التحرير، أمام البنك', 'شارع الستين، شارع مأرب',
+      'شارع باب اليمن، بجانب الجامع', 'شارع القاهرة، بجانب سوق القات',
+      'شارع الستين، طريق الحديدة', 'شارع هائل، فرع الجامعة',
+      'شارع الخمسين، خلف الجامعة', 'شارع الستين، جولة آية',
+      'شارع الزبيري، شارع القاهرة', 'شارع هائل، جولة التقوى',
+      'شارع الخمسين، حي الهداية', 'شارع التحرير، حي الشفاء',
+      'شارع باب اليمن، حي الأمان', 'شارع القاهرة، حي البناء',
+      'شارع الستين، حي النجاح', 'شارع العدين، حي التقدم',
+      'شارع الزبيري، حي الأمل', 'شارع هائل، حي الحياة',
+      'شارع الخمسين، حي السلام', 'شارع التحرير، حي النصر',
+      'شارع باب اليمن، حي الفتح', 'شارع القاهرة، حي الأصالة',
+      'شارع الستين، حي الريان', 'شارع العدين، حي المنار',
+      'شارع الزبيري، حي الوفاء', 'شارع هائل، حي العطاء',
+      'شارع الخمسين، حي الشروق', 'شارع التحرير، حي السعادة',
+      'شارع باب اليمن، حي البشائر', 'شارع القاهرة، حي الكرامة',
+      'شارع الستين، حي الأمل الكبير', 'شارع العدين، حي الصحة',
+      'شارع الزبيري، حي الحياة الكبير', 'شارع هائل، حي التضامن',
+      'شارع الخمسين، حي الازدهار', 'شارع التحرير، حي الأنوار',
+      'شارع الزبيري، حي الأمانة', 'شارع التحرير، حي صنعاء الدولي',
+      'شارع الستين، حي الجمهورية الجديد', 'شارع الخمسين، حي السلام الدولي',
+      'شارع القاهرة، حي الشفاء التخصصي', 'شارع هائل، حي الحياة الجديد',
+      'شارع الأربعين، حي النصر العام', 'شارع العدين، حي الوفاء الجديد',
+      'شارع باب اليمن، حي التعاون الجديد', 'شارع صنعاء، حي الاتحاد',
+      'شارع مأرب، حي الأمل الشامل', 'شارع تعز، حي البشير الجديد',
+      'شارع الحديدة، حي الصحة الشامل', 'شارع عمران، حي الهلال الجديد'
+    ];
+    final lats = [
+      15.3540, 15.3520, 15.3620, 15.3570, 15.3780, 15.3490,
+      15.3650, 15.3330, 15.3480, 15.3860, 15.3140, 15.3540,
+      15.3710, 15.3260, 15.3440, 15.3530, 15.3900, 15.3550,
+      15.3560, 15.3680, 15.3800, 15.3540, 15.3480, 15.3800,
+      15.3460, 15.3655, 15.3795, 15.3755, 15.3420, 15.3570,
+      15.3370, 15.3660, 15.3510, 15.3740, 15.3590, 15.3280,
+      15.3450, 15.3500, 15.3160, 15.3690, 15.3780, 15.3410,
+      15.3525, 15.3655, 15.3795, 15.3575, 15.3465, 15.3545,
+      15.3315, 15.3875, 15.3495, 15.3625, 15.3715, 15.3555,
+      15.3485, 15.3515, 15.3395, 15.3835, 15.3475, 15.3675,
+      15.3755, 15.3585, 15.3435, 15.3565, 15.3335, 15.3895,
+      15.3505, 15.3635, 15.3725, 15.3565, 15.3538, 15.3671,
+      15.3412, 15.3743, 15.3294, 15.3825, 15.3166, 15.3907,
+      15.3438, 15.3569, 15.3300, 15.3631, 15.3472, 15.3803
+    ];
+    final lngs = [
+      44.2030, 44.1980, 44.1960, 44.1940, 44.2070, 44.1960,
+      44.1970, 44.1820, 44.2020, 44.2110, 44.1780, 44.1920,
+      44.2040, 44.1810, 44.2010, 44.2070, 44.2120, 44.1970,
+      44.1960, 44.1920, 44.2100, 44.2030, 44.2020, 44.2150,
+      44.1990, 44.1955, 44.2095, 44.2045, 44.1980, 44.2060,
+      44.1890, 44.1930, 44.1950, 44.2080, 44.1950, 44.1800,
+      44.1970, 44.2030, 44.1750, 44.1970, 44.2050, 44.1720,
+      44.1995, 44.1955, 44.2095, 44.1925, 44.1985, 44.2055,
+      44.1775, 44.2155, 44.2015, 44.1975, 44.2075, 44.1935,
+      44.2025, 44.2045, 44.1735, 44.2115, 44.1975, 44.1945,
+      44.2045, 44.1905, 44.1995, 44.2075, 44.1815, 44.2135,
+      44.2005, 44.1965, 44.2065, 44.1945, 44.2035, 44.1966,
+      44.1878, 44.2109, 44.1741, 44.2132, 44.1803, 44.2174,
+      44.1996, 44.1927, 44.1858, 44.2089, 44.1760, 44.2141
+    ];
+    return {
+      'name': names[index % names.length],
+      'address': addresses[index % addresses.length],
+      'lat': lats[index % lats.length],
+      'lng': lngs[index % lngs.length],
+      'phone': '01-${300000 + index}',
+      'tests': '${300 + index}+',
+      'accredited': index % 2 == 0,
+      'rating': 3.0 + (index % 20) / 10,
+      'category': 'labs',
+    };
+  });
 
   // ============================================================
-  // 🏥 عيادات ومستوصفات خاصة (60)
+  // 🏥 عيادات (60)
   // ============================================================
-  final List<Map<String, dynamic>> _clinics = [
-    {'name': 'عيادة الدكتور أحمد', 'address': 'شارع الزبيري، أمام البنك', 'lat': 15.3495, 'lng': 44.1995, 'phone': '01-111222', 'specialty': 'باطنية', 'rating': 4.5, 'category': 'clinics'},
-    {'name': 'عيادة الدكتور خالد', 'address': 'شارع التحرير، عمارة الكبوس', 'lat': 15.3585, 'lng': 44.1945, 'phone': '01-222333', 'specialty': 'قلبية', 'rating': 4.3, 'category': 'clinics'},
-    {'name': 'عيادة الدكتورة سارة', 'address': 'شارع هائل، جولة كنتاكي', 'lat': 15.3645, 'lng': 44.1975, 'phone': '01-333444', 'specialty': 'أطفال', 'rating': 4.6, 'category': 'clinics'},
-    {'name': 'عيادة الدكتور علي', 'address': 'شارع الستين، مجمع النخبة', 'lat': 15.3345, 'lng': 44.1835, 'phone': '01-444555', 'specialty': 'جلدية', 'rating': 4.2, 'category': 'clinics'},
-    {'name': 'عيادة الدكتورة فاطمة', 'address': 'شارع القاهرة، باب اليمن', 'lat': 15.3475, 'lng': 44.2015, 'phone': '01-555666', 'specialty': 'نساء وولادة', 'rating': 4.7, 'category': 'clinics'},
-    {'name': 'عيادة الدكتور عمر', 'address': 'شارع الخمسين، الحصبة', 'lat': 15.3795, 'lng': 44.2085, 'phone': '01-666777', 'specialty': 'عظام', 'rating': 4.4, 'category': 'clinics'},
-    {'name': 'عيادة الدكتورة نادية', 'address': 'شارع باب اليمن، سوق الملح', 'lat': 15.3445, 'lng': 44.2005, 'phone': '01-777888', 'specialty': 'نفسية', 'rating': 4.1, 'category': 'clinics'},
-    {'name': 'عيادة الدكتور يوسف', 'address': 'شارع العدين، السنينة', 'lat': 15.3875, 'lng': 44.2125, 'phone': '01-888999', 'specialty': 'أنف وأذن وحنجرة', 'rating': 4.0, 'category': 'clinics'},
-    {'name': 'عيادة الدكتورة حنان', 'address': 'شارع الأربعين، شارع صخر', 'lat': 15.3135, 'lng': 44.1795, 'phone': '01-999000', 'specialty': 'أسنان', 'rating': 4.3, 'category': 'clinics'},
-    {'name': 'عيادة الدكتور محمد', 'address': 'شارع الزبيري، باب شعوب', 'lat': 15.3565, 'lng': 44.1985, 'phone': '01-000111', 'specialty': 'باطنية', 'rating': 4.2, 'category': 'clinics'},
-    {'name': 'عيادة الدكتور يامي', 'address': 'شارع التحرير، بجانب البريد', 'lat': 15.3625, 'lng': 44.1925, 'phone': '01-111333', 'specialty': 'قلبية', 'rating': 4.1, 'category': 'clinics'},
-    {'name': 'عيادة الدكتورة ليلى', 'address': 'شارع هائل، حي الروضة', 'lat': 15.3695, 'lng': 44.1935, 'phone': '01-222444', 'specialty': 'أطفال', 'rating': 4.8, 'category': 'clinics'},
-    {'name': 'عيادة الدكتور حسن', 'address': 'شارع الستين، جولة المصباحي', 'lat': 15.3275, 'lng': 44.1825, 'phone': '01-333555', 'specialty': 'جلدية', 'rating': 4.0, 'category': 'clinics'},
-    {'name': 'عيادة الدكتورة مها', 'address': 'شارع القاهرة، حي السياسي', 'lat': 15.3545, 'lng': 44.2055, 'phone': '01-444666', 'specialty': 'نساء وولادة', 'rating': 4.6, 'category': 'clinics'},
-    {'name': 'عيادة الدكتور رامي', 'address': 'شارع الخمسين، دار الرئاسة', 'lat': 15.3725, 'lng': 44.2055, 'phone': '01-555777', 'specialty': 'عظام', 'rating': 4.3, 'category': 'clinics'},
-    {'name': 'عيادة الدكتورة سلمى', 'address': 'شارع باب اليمن، شارع صالح', 'lat': 15.3455, 'lng': 44.1995, 'phone': '01-666888', 'specialty': 'نفسية', 'rating': 4.2, 'category': 'clinics'},
-    {'name': 'عيادة الدكتور زيد', 'address': 'شارع العدين، طريق عمران', 'lat': 15.3815, 'lng': 44.2145, 'phone': '01-777999', 'specialty': 'أنف وأذن وحنجرة', 'rating': 3.9, 'category': 'clinics'},
-    {'name': 'عيادة الدكتورة رنا', 'address': 'شارع الأربعين، شارع الستين', 'lat': 15.3245, 'lng': 44.1845, 'phone': '01-888000', 'specialty': 'أسنان', 'rating': 4.4, 'category': 'clinics'},
-    {'name': 'عيادة الدكتور ماجد', 'address': 'شارع الزبيري، عمارة النجار', 'lat': 15.3475, 'lng': 44.2005, 'phone': '01-999111', 'specialty': 'باطنية', 'rating': 4.1, 'category': 'clinics'},
-    {'name': 'عيادة الدكتورة أمل', 'address': 'شارع التحرير، عمارة الحمدي', 'lat': 15.3555, 'lng': 44.1935, 'phone': '01-000222', 'specialty': 'قلبية', 'rating': 4.3, 'category': 'clinics'},
-    {'name': 'عيادة الدكتور بدر', 'address': 'شارع هائل، شارع الأربعين', 'lat': 15.3665, 'lng': 44.1965, 'phone': '01-111444', 'specialty': 'أطفال', 'rating': 4.5, 'category': 'clinics'},
-    {'name': 'عيادة الدكتورة نوال', 'address': 'شارع الستين، مجمع الصمد', 'lat': 15.3335, 'lng': 44.1845, 'phone': '01-222555', 'specialty': 'جلدية', 'rating': 4.0, 'category': 'clinics'},
-    {'name': 'عيادة الدكتور خليل', 'address': 'شارع القاهرة، بجانب المجلس', 'lat': 15.3595, 'lng': 44.2075, 'phone': '01-333666', 'specialty': 'نساء وولادة', 'rating': 4.2, 'category': 'clinics'},
-    {'name': 'عيادة الدكتورة هدى', 'address': 'شارع الخمسين، خلف الجامعة', 'lat': 15.3795, 'lng': 44.2065, 'phone': '01-444777', 'specialty': 'عظام', 'rating': 4.1, 'category': 'clinics'},
-    {'name': 'عيادة الدكتور يعود', 'address': 'شارع باب اليمن، سوق الحلقة', 'lat': 15.3435, 'lng': 44.1995, 'phone': '01-555888', 'specialty': 'نفسية', 'rating': 3.8, 'category': 'clinics'},
-    {'name': 'عيادة الدكتورة منى', 'address': 'شارع العدين، السنينة الشمالية', 'lat': 15.3915, 'lng': 44.2155, 'phone': '01-666999', 'specialty': 'أنف وأذن وحنجرة', 'rating': 4.0, 'category': 'clinics'},
-    {'name': 'عيادة الدكتور هشام', 'address': 'شارع الأربعين، شارع صخر', 'lat': 15.3155, 'lng': 44.1785, 'phone': '01-777000', 'specialty': 'أسنان', 'rating': 4.3, 'category': 'clinics'},
-    {'name': 'عيادة الدكتورة ريم', 'address': 'شارع الزبيري، بجانب برج زبيدة', 'lat': 15.3505, 'lng': 44.1975, 'phone': '01-888111', 'specialty': 'باطنية', 'rating': 4.4, 'category': 'clinics'},
-    {'name': 'عيادة الدكتور حامد', 'address': 'شارع التحرير، أمام البنك', 'lat': 15.3605, 'lng': 44.1955, 'phone': '01-999222', 'specialty': 'قلبية', 'rating': 4.2, 'category': 'clinics'},
-    {'name': 'عيادة الدكتورة عبير', 'address': 'شارع هائل، فرع الجامعة', 'lat': 15.3705, 'lng': 44.1955, 'phone': '01-000333', 'specialty': 'أطفال', 'rating': 4.7, 'category': 'clinics'},
-    {'name': 'عيادة الدكتور عادل', 'address': 'شارع الستين، جولة 48', 'lat': 15.3385, 'lng': 44.1885, 'phone': '01-111555', 'specialty': 'جلدية', 'rating': 3.9, 'category': 'clinics'},
-    {'name': 'عيادة الدكتورة غادة', 'address': 'شارع القاهرة، حي الحشيشي', 'lat': 15.3585, 'lng': 44.2075, 'phone': '01-222666', 'specialty': 'نساء وولادة', 'rating': 4.5, 'category': 'clinics'},
-    {'name': 'عيادة الدكتور راشد', 'address': 'شارع الخمسين، مدينة النور', 'lat': 15.3785, 'lng': 44.2075, 'phone': '01-333777', 'specialty': 'عظام', 'rating': 4.1, 'category': 'clinics'},
-    {'name': 'عيادة الدكتورة شيماء', 'address': 'شارع باب اليمن، بجانب الجامع', 'lat': 15.3465, 'lng': 44.1985, 'phone': '01-444888', 'specialty': 'نفسية', 'rating': 4.2, 'category': 'clinics'},
-    {'name': 'عيادة الدكتور فهد', 'address': 'شارع العدين، طريق صنعاء', 'lat': 15.3865, 'lng': 44.2125, 'phone': '01-555999', 'specialty': 'أنف وأذن وحنجرة', 'rating': 3.9, 'category': 'clinics'},
-    {'name': 'عيادة الدكتورة إيمان', 'address': 'شارع الأربعين، شارع الستين', 'lat': 15.3215, 'lng': 44.1815, 'phone': '01-666000', 'specialty': 'أسنان', 'rating': 4.3, 'category': 'clinics'},
-    {'name': 'عيادة الدكتور جمال', 'address': 'شارع الزبيري، عمارة النجم', 'lat': 15.3525, 'lng': 44.1965, 'phone': '01-777111', 'specialty': 'باطنية', 'rating': 4.0, 'category': 'clinics'},
-    {'name': 'عيادة الدكتورة رابعة', 'address': 'شارع التحرير، عمارة الكبوس', 'lat': 15.3595, 'lng': 44.1925, 'phone': '01-888222', 'specialty': 'قلبية', 'rating': 4.2, 'category': 'clinics'},
-    {'name': 'عيادة الدكتور ناصر', 'address': 'شارع هائل، نهاية الخط', 'lat': 15.3675, 'lng': 44.1945, 'phone': '01-999333', 'specialty': 'أطفال', 'rating': 4.4, 'category': 'clinics'},
-    {'name': 'عيادة الدكتورة سميرة', 'address': 'شارع الستين، تقاطع تعز', 'lat': 15.3175, 'lng': 44.1775, 'phone': '01-000444', 'specialty': 'جلدية', 'rating': 3.8, 'category': 'clinics'},
-    {'name': 'عيادة الدكتور وليد', 'address': 'شارع القاهرة، بجانب السفارة', 'lat': 15.3535, 'lng': 44.2055, 'phone': '01-111666', 'specialty': 'نساء وولادة', 'rating': 4.6, 'category': 'clinics'},
-    {'name': 'عيادة الدكتورة نجلاء', 'address': 'شارع الخمسين، حي المطار', 'lat': 15.3765, 'lng': 44.2095, 'phone': '01-222777', 'specialty': 'عظام', 'rating': 4.1, 'category': 'clinics'},
-    {'name': 'عيادة الدكتور مراد', 'address': 'شارع باب اليمن، ميدان التحرير', 'lat': 15.3495, 'lng': 44.2025, 'phone': '01-333888', 'specialty': 'نفسية', 'rating': 4.0, 'category': 'clinics'},
-    {'name': 'عيادة الدكتورة هناء', 'address': 'شارع العدين، حي السنينة', 'lat': 15.3895, 'lng': 44.2145, 'phone': '01-444999', 'specialty': 'أنف وأذن وحنجرة', 'rating': 4.2, 'category': 'clinics'},
-    {'name': 'عيادة الدكتور زياد', 'address': 'شارع الأربعين، حي الصخر', 'lat': 15.3185, 'lng': 44.1795, 'phone': '01-555000', 'specialty': 'أسنان', 'rating': 4.5, 'category': 'clinics'},
-    {'name': 'عيادة الدكتورة منال', 'address': 'شارع الزبيري، حي الأندلس', 'lat': 15.3515, 'lng': 44.1985, 'phone': '01-666111', 'specialty': 'باطنية', 'rating': 4.3, 'category': 'clinics'},
-    {'name': 'عيادة الدكتور أكرم', 'address': 'شارع التحرير، حي البلد', 'lat': 15.3615, 'lng': 44.1935, 'phone': '01-777222', 'specialty': 'قلبية', 'rating': 4.1, 'category': 'clinics'},
-    {'name': 'عيادة الدكتورة بسمة', 'address': 'شارع هائل، حي الروضة', 'lat': 15.3715, 'lng': 44.1945, 'phone': '01-888333', 'specialty': 'أطفال', 'rating': 4.7, 'category': 'clinics'},
-    {'name': 'عيادة الدكتور أسامة', 'address': 'شارع الستين، حي النخبة', 'lat': 15.3355, 'lng': 44.1855, 'phone': '01-999444', 'specialty': 'جلدية', 'rating': 4.0, 'category': 'clinics'},
-    {'name': 'عيادة الدكتورة فائزة', 'address': 'شارع القاهرة، حي السياسي', 'lat': 15.3555, 'lng': 44.2065, 'phone': '01-000555', 'specialty': 'نساء وولادة', 'rating': 4.4, 'category': 'clinics'},
-    {'name': 'عيادة الدكتور نبيل', 'address': 'شارع الخمسين، حي النور', 'lat': 15.3775, 'lng': 44.2085, 'phone': '01-111777', 'specialty': 'عظام', 'rating': 4.2, 'category': 'clinics'},
-    {'name': 'عيادة الدكتورة سهى', 'address': 'شارع باب اليمن، حي السلام', 'lat': 15.3475, 'lng': 44.2015, 'phone': '01-222888', 'specialty': 'نفسية', 'rating': 4.1, 'category': 'clinics'},
-    {'name': 'عيادة الدكتور رياض', 'address': 'شارع العدين، حي التقدم', 'lat': 15.3885, 'lng': 44.2165, 'phone': '01-333999', 'specialty': 'أنف وأذن وحنجرة', 'rating': 3.9, 'category': 'clinics'},
-    {'name': 'عيادة الدكتورة وفاء', 'address': 'شارع الأربعين، حي النصر', 'lat': 15.3175, 'lng': 44.1805, 'phone': '01-444000', 'specialty': 'أسنان', 'rating': 4.3, 'category': 'clinics'},
-    {'name': 'عيادة الدكتور يليم', 'address': 'شارع الزبيري، حي العاصمة', 'lat': 15.3535, 'lng': 44.1995, 'phone': '01-555111', 'specialty': 'باطنية', 'rating': 4.0, 'category': 'clinics'},
-    {'name': 'عيادة الدكتورة حليمة', 'address': 'شارع التحرير، حي الشفاء', 'lat': 15.3635, 'lng': 44.1945, 'phone': '01-666222', 'specialty': 'قلبية', 'rating': 4.2, 'category': 'clinics'},
-    {'name': 'عيادة الدكتور معاذ', 'address': 'شارع هائل، حي الوفاء', 'lat': 15.3735, 'lng': 44.1955, 'phone': '01-777333', 'specialty': 'أطفال', 'rating': 4.6, 'category': 'clinics'},
-    {'name': 'عيادة الدكتورة خديجة', 'address': 'شارع الستين، حي الصمد', 'lat': 15.3375, 'lng': 44.1865, 'phone': '01-888444', 'specialty': 'جلدية', 'rating': 4.1, 'category': 'clinics'},
-    {'name': 'عيادة الدكتور بهاء', 'address': 'شارع القاهرة، حي الأمانة', 'lat': 15.3575, 'lng': 44.2085, 'phone': '01-999555', 'specialty': 'نساء وولادة', 'rating': 4.5, 'category': 'clinics'},
-    {'name': 'عيادة الدكتورة سناء', 'address': 'شارع الخمسين، حي الازدهار', 'lat': 15.3805, 'lng': 44.2105, 'phone': '01-000666', 'specialty': 'عظام', 'rating': 4.3, 'category': 'clinics'},
-  ];
+  final List<Map<String, dynamic>> _clinics = List.generate(60, (index) {
+    final names = [
+      'عيادة الدكتور أحمد', 'عيادة الدكتور خالد', 'عيادة الدكتورة سارة',
+      'عيادة الدكتور علي', 'عيادة الدكتورة فاطمة', 'عيادة الدكتور عمر',
+      'عيادة الدكتورة نادية', 'عيادة الدكتور يوسف', 'عيادة الدكتورة حنان',
+      'عيادة الدكتور محمد', 'عيادة الدكتور يامي', 'عيادة الدكتورة ليلى',
+      'عيادة الدكتور حسن', 'عيادة الدكتورة مها', 'عيادة الدكتور رامي',
+      'عيادة الدكتورة سلمى', 'عيادة الدكتور زيد', 'عيادة الدكتورة رنا',
+      'عيادة الدكتور ماجد', 'عيادة الدكتورة أمل', 'عيادة الدكتور بدر',
+      'عيادة الدكتورة نوال', 'عيادة الدكتور خليل', 'عيادة الدكتورة هدى',
+      'عيادة الدكتور يعود', 'عيادة الدكتورة منى', 'عيادة الدكتور هشام',
+      'عيادة الدكتورة ريم', 'عيادة الدكتور حامد', 'عيادة الدكتورة عبير',
+      'عيادة الدكتور عادل', 'عيادة الدكتورة غادة', 'عيادة الدكتور راشد',
+      'عيادة الدكتورة شيماء', 'عيادة الدكتور فهد', 'عيادة الدكتورة إيمان',
+      'عيادة الدكتور جمال', 'عيادة الدكتورة رابعة', 'عيادة الدكتور ناصر',
+      'عيادة الدكتورة سميرة', 'عيادة الدكتور وليد', 'عيادة الدكتورة نجلاء',
+      'عيادة الدكتور مراد', 'عيادة الدكتورة هناء', 'عيادة الدكتور زياد',
+      'عيادة الدكتورة منال', 'عيادة الدكتور أكرم', 'عيادة الدكتورة بسمة',
+      'عيادة الدكتور أسامة', 'عيادة الدكتورة فائزة', 'عيادة الدكتور نبيل',
+      'عيادة الدكتورة سهى', 'عيادة الدكتور رياض', 'عيادة الدكتورة وفاء',
+      'عيادة الدكتور يليم', 'عيادة الدكتورة حليمة', 'عيادة الدكتور معاذ',
+      'عيادة الدكتورة خديجة', 'عيادة الدكتور بهاء', 'عيادة الدكتورة سناء'
+    ];
+    final specialties = [
+      'باطنية', 'قلبية', 'أطفال', 'جلدية', 'نساء وولادة', 'عظام',
+      'نفسية', 'أنف وأذن وحنجرة', 'أسنان', 'باطنية', 'قلبية', 'أطفال',
+      'جلدية', 'نساء وولادة', 'عظام', 'نفسية', 'أنف وأذن وحنجرة', 'أسنان',
+      'باطنية', 'قلبية', 'أطفال', 'جلدية', 'نساء وولادة', 'عظام',
+      'نفسية', 'أنف وأذن وحنجرة', 'أسنان', 'باطنية', 'قلبية', 'أطفال',
+      'جلدية', 'نساء وولادة', 'عظام', 'نفسية', 'أنف وأذن وحنجرة', 'أسنان',
+      'باطنية', 'قلبية', 'أطفال', 'جلدية', 'نساء وولادة', 'عظام',
+      'نفسية', 'أنف وأذن وحنجرة', 'أسنان', 'باطنية', 'قلبية', 'أطفال',
+      'جلدية', 'نساء وولادة', 'عظام', 'نفسية', 'أنف وأذن وحنجرة', 'أسنان',
+      'باطنية', 'قلبية', 'أطفال', 'جلدية', 'نساء وولادة', 'عظام'
+    ];
+    final addresses = [
+      'شارع الزبيري، أمام البنك', 'شارع التحرير، عمارة الكبوس',
+      'شارع هائل، جولة كنتاكي', 'شارع الستين، مجمع النخبة',
+      'شارع القاهرة، باب اليمن', 'شارع الخمسين، الحصبة',
+      'شارع باب اليمن، سوق الملح', 'شارع العدين، السنينة',
+      'شارع الأربعين، شارع صخر', 'شارع الزبيري، باب شعوب',
+      'شارع التحرير، بجانب البريد', 'شارع هائل، حي الروضة',
+      'شارع الستين، جولة المصباحي', 'شارع القاهرة، حي السياسي',
+      'شارع الخمسين، دار الرئاسة', 'شارع باب اليمن، شارع صالح',
+      'شارع العدين، طريق عمران', 'شارع الأربعين، شارع الستين',
+      'شارع الزبيري، عمارة النجار', 'شارع التحرير، عمارة الحمدي',
+      'شارع هائل، شارع الأربعين', 'شارع الستين، مجمع الصمد',
+      'شارع القاهرة، بجانب المجلس', 'شارع الخمسين، خلف الجامعة',
+      'شارع باب اليمن، سوق الحلقة', 'شارع العدين، السنينة الشمالية',
+      'شارع الأربعين، شارع صخر', 'شارع الزبيري، بجانب برج زبيدة',
+      'شارع التحرير، أمام البنك', 'شارع هائل، فرع الجامعة',
+      'شارع الستين، جولة 48', 'شارع القاهرة، حي الحشيشي',
+      'شارع الخمسين، مدينة النور', 'شارع باب اليمن، بجانب الجامع',
+      'شارع العدين، طريق صنعاء', 'شارع الأربعين، شارع الستين',
+      'شارع الزبيري، عمارة النجم', 'شارع التحرير، عمارة الكبوس',
+      'شارع هائل، نهاية الخط', 'شارع الستين، تقاطع تعز',
+      'شارع القاهرة، بجانب السفارة', 'شارع الخمسين، حي المطار',
+      'شارع باب اليمن، ميدان التحرير', 'شارع العدين، حي السنينة',
+      'شارع الأربعين، حي الصخر', 'شارع الزبيري، حي الأندلس',
+      'شارع التحرير، حي البلد', 'شارع هائل، حي الروضة',
+      'شارع الستين، حي النخبة', 'شارع القاهرة، حي السياسي',
+      'شارع الخمسين، حي النور', 'شارع باب اليمن، حي السلام',
+      'شارع العدين، حي التقدم', 'شارع الأربعين، حي النصر',
+      'شارع الزبيري، حي العاصمة', 'شارع التحرير، حي الشفاء',
+      'شارع هائل، حي الوفاء', 'شارع الستين، حي الصمد',
+      'شارع القاهرة، حي الأمانة', 'شارع الخمسين، حي الازدهار'
+    ];
+    final lats = [
+      15.3495, 15.3585, 15.3645, 15.3345, 15.3475, 15.3795,
+      15.3445, 15.3875, 15.3135, 15.3565, 15.3625, 15.3695,
+      15.3275, 15.3545, 15.3725, 15.3455, 15.3815, 15.3245,
+      15.3475, 15.3555, 15.3665, 15.3335, 15.3595, 15.3795,
+      15.3435, 15.3915, 15.3155, 15.3505, 15.3605, 15.3705,
+      15.3385, 15.3585, 15.3785, 15.3465, 15.3865, 15.3215,
+      15.3525, 15.3595, 15.3675, 15.3175, 15.3535, 15.3765,
+      15.3495, 15.3895, 15.3185, 15.3515, 15.3615, 15.3715,
+      15.3355, 15.3555, 15.3775, 15.3475, 15.3885, 15.3175,
+      15.3535, 15.3635, 15.3735, 15.3375, 15.3575, 15.3805
+    ];
+    final lngs = [
+      44.1995, 44.1945, 44.1975, 44.1835, 44.2015, 44.2085,
+      44.2005, 44.2125, 44.1795, 44.1985, 44.1925, 44.1935,
+      44.1825, 44.2055, 44.2055, 44.1995, 44.2145, 44.1845,
+      44.2005, 44.1935, 44.1965, 44.1845, 44.2075, 44.2065,
+      44.1995, 44.2155, 44.1785, 44.1975, 44.1955, 44.1955,
+      44.1885, 44.2075, 44.2075, 44.1985, 44.2125, 44.1815,
+      44.1965, 44.1925, 44.1945, 44.1775, 44.2055, 44.2095,
+      44.2025, 44.2145, 44.1795, 44.1985, 44.1935, 44.1945,
+      44.1855, 44.2065, 44.2085, 44.2015, 44.2165, 44.1805,
+      44.1995, 44.1945, 44.1955, 44.1865, 44.2085, 44.2105
+    ];
+    return {
+      'name': names[index % names.length],
+      'address': addresses[index % addresses.length],
+      'lat': lats[index % lats.length],
+      'lng': lngs[index % lngs.length],
+      'phone': '01-${400000 + index}',
+      'specialty': specialties[index % specialties.length],
+      'rating': 3.8 + (index % 12) / 10,
+      'category': 'clinics',
+    };
+  });
 
   // ============================================================
-  // 📌 أخرى (مراكز صحية، تأمين، إسعاف، خيرية) - 60
+  // 📌 أخرى (60)
   // ============================================================
-  final List<Map<String, dynamic>> _other = [
-    {'name': 'مركز صحي الزبيري', 'address': 'شارع الزبيري، وسط البلد', 'lat': 15.3515, 'lng': 44.1985, 'phone': '01-111222', 'type': 'مركز صحي', 'rating': 4.3, 'category': 'other'},
-    {'name': 'مركز صحي التحرير', 'address': 'شارع التحرير، ميدان التحرير', 'lat': 15.3595, 'lng': 44.1925, 'phone': '01-222333', 'type': 'مركز صحي', 'rating': 4.1, 'category': 'other'},
-    {'name': 'مركز صحي هائل', 'address': 'شارع هائل، جولة كنتاكي', 'lat': 15.3655, 'lng': 44.1955, 'phone': '01-333444', 'type': 'مركز صحي', 'rating': 4.4, 'category': 'other'},
-    {'name': 'مركز صحي الحصبة', 'address': 'شارع الخمسين، الحصبة', 'lat': 15.3815, 'lng': 44.2095, 'phone': '01-444555', 'type': 'مركز صحي', 'rating': 3.9, 'category': 'other'},
-    {'name': 'مركز صحي باب اليمن', 'address': 'شارع باب اليمن، سوق الملح', 'lat': 15.3455, 'lng': 44.1995, 'phone': '01-555666', 'type': 'مركز صحي', 'rating': 4.2, 'category': 'other'},
-    {'name': 'مركز صحي العدين', 'address': 'شارع العدين، السنينة', 'lat': 15.3885, 'lng': 44.2135, 'phone': '01-666777', 'type': 'مركز صحي', 'rating': 4.0, 'category': 'other'},
-    {'name': 'هيئة التأمين الصحي', 'address': 'شارع الزبيري، عمارة النعمان', 'lat': 15.3505, 'lng': 44.1975, 'phone': '01-777888', 'type': 'تأمين صحي', 'rating': 4.5, 'category': 'other'},
-    {'name': 'شركة التأمين الوطنية', 'address': 'شارع التحرير، بجانب البنك', 'lat': 15.3585, 'lng': 44.1935, 'phone': '01-888999', 'type': 'تأمين صحي', 'rating': 4.2, 'category': 'other'},
-    {'name': 'شركة اليمن للتأمين', 'address': 'شارع الستين، مجمع النخبة', 'lat': 15.3365, 'lng': 44.1835, 'phone': '01-999000', 'type': 'تأمين صحي', 'rating': 4.0, 'category': 'other'},
-    {'name': 'هلال أحمر يمني', 'address': 'شارع القاهرة، باب اليمن', 'lat': 15.3485, 'lng': 44.2015, 'phone': '199', 'type': 'إسعاف', 'rating': 4.8, 'category': 'other'},
-    {'name': 'جمعية الهلال الأحمر', 'address': 'شارع الخمسين، دار الرئاسة', 'lat': 15.3735, 'lng': 44.2055, 'phone': '199', 'type': 'إسعاف', 'rating': 4.7, 'category': 'other'},
-    {'name': 'مركز الإسعاف الوطني', 'address': 'شارع الستين، جولة 48', 'lat': 15.3395, 'lng': 44.1895, 'phone': '199', 'type': 'إسعاف', 'rating': 4.6, 'category': 'other'},
-    {'name': 'جمعية الأمل الخيرية', 'address': 'شارع الزبيري، باب شعوب', 'lat': 15.3575, 'lng': 44.1965, 'phone': '01-111000', 'type': 'خيرية', 'rating': 4.4, 'category': 'other'},
-    {'name': 'مؤسسة الصحة الخيرية', 'address': 'شارع التحرير، وسط البلد', 'lat': 15.3625, 'lng': 44.1915, 'phone': '01-222111', 'type': 'خيرية', 'rating': 4.3, 'category': 'other'},
-    {'name': 'جمعية الشفاء الخيرية', 'address': 'شارع هائل، حي الروضة', 'lat': 15.3705, 'lng': 44.1945, 'phone': '01-333222', 'type': 'خيرية', 'rating': 4.2, 'category': 'other'},
-    {'name': 'مركز صحي السبعين', 'address': 'السبعين، شارع الأربعين', 'lat': 15.3125, 'lng': 44.1815, 'phone': '01-444333', 'type': 'مركز صحي', 'rating': 3.8, 'category': 'other'},
-    {'name': 'مركز صحي النهضة', 'address': 'شارع الأربعين، شارع صخر', 'lat': 15.3165, 'lng': 44.1765, 'phone': '01-555444', 'type': 'مركز صحي', 'rating': 4.1, 'category': 'other'},
-    {'name': 'مركز صحي السلام', 'address': 'شارع الستين، طريق الحديدة', 'lat': 15.3185, 'lng': 44.1735, 'phone': '01-666555', 'type': 'مركز صحي', 'rating': 3.9, 'category': 'other'},
-    {'name': 'مركز صحي الفتح', 'address': 'شارع القاهرة، حي السياسي', 'lat': 15.3565, 'lng': 44.2045, 'phone': '01-777666', 'type': 'مركز صحي', 'rating': 4.0, 'category': 'other'},
-    {'name': 'مركز صحي النصر', 'address': 'شارع العدين، السنينة الشمالية', 'lat': 15.3935, 'lng': 44.2165, 'phone': '01-888777', 'type': 'مركز صحي', 'rating': 3.7, 'category': 'other'},
-    {'name': 'مركز صحي الأمل', 'address': 'شارع باب اليمن، سوق الحلقة', 'lat': 15.3425, 'lng': 44.1985, 'phone': '01-999888', 'type': 'مركز صحي', 'rating': 4.3, 'category': 'other'},
-    {'name': 'شركة الرعاية للتأمين', 'address': 'شارع الزبيري، عمارة النجم', 'lat': 15.3535, 'lng': 44.1965, 'phone': '01-111999', 'type': 'تأمين صحي', 'rating': 4.1, 'category': 'other'},
-    {'name': 'شركة الصحة للتأمين', 'address': 'شارع التحرير، عمارة الحمدي', 'lat': 15.3605, 'lng': 44.1945, 'phone': '01-222888', 'type': 'تأمين صحي', 'rating': 3.9, 'category': 'other'},
-    {'name': 'شركة العناية للتأمين', 'address': 'شارع هائل، فرع الجامعة', 'lat': 15.3715, 'lng': 44.1965, 'phone': '01-333777', 'type': 'تأمين صحي', 'rating': 4.2, 'category': 'other'},
-    {'name': 'مركز الإسعاف المتقدم', 'address': 'شارع الخمسين، خلف الجامعة', 'lat': 15.3805, 'lng': 44.2075, 'phone': '199', 'type': 'إسعاف', 'rating': 4.5, 'category': 'other'},
-    {'name': 'مركز الإسعاف السريع', 'address': 'شارع الستين، جولة آية', 'lat': 15.3425, 'lng': 44.1735, 'phone': '199', 'type': 'إسعاف', 'rating': 4.4, 'category': 'other'},
-    {'name': 'مركز الإسعاف الميداني', 'address': 'شارع القاهرة، حي الحشيشي', 'lat': 15.3595, 'lng': 44.2085, 'phone': '199', 'type': 'إسعاف', 'rating': 4.3, 'category': 'other'},
-    {'name': 'جمعية البر الخيرية', 'address': 'شارع الزبيري، باب اليمن', 'lat': 15.3465, 'lng': 44.2025, 'phone': '01-444111', 'type': 'خيرية', 'rating': 4.6, 'category': 'other'},
-    {'name': 'مؤسسة السلام الخيرية', 'address': 'شارع التحرير، بجانب البريد', 'lat': 15.3635, 'lng': 44.1915, 'phone': '01-555222', 'type': 'خيرية', 'rating': 4.3, 'category': 'other'},
-    {'name': 'جمعية الوفاء الخيرية', 'address': 'شارع هائل، حي الأندلس', 'lat': 15.3725, 'lng': 44.1935, 'phone': '01-666333', 'type': 'خيرية', 'rating': 4.1, 'category': 'other'},
-    {'name': 'مركز صحي العاصمة', 'address': 'شارع الزبيري، شارع القاهرة', 'lat': 15.3525, 'lng': 44.2005, 'phone': '01-777444', 'type': 'مركز صحي', 'rating': 4.0, 'category': 'other'},
-    {'name': 'مركز صحي صنعاء', 'address': 'شارع التحرير، حي صنعاء', 'lat': 15.3685, 'lng': 44.1955, 'phone': '01-888555', 'type': 'مركز صحي', 'rating': 4.2, 'category': 'other'},
-    {'name': 'مركز صحي اليمن', 'address': 'شارع الستين، حي اليمن', 'lat': 15.3405, 'lng': 44.1755, 'phone': '01-999666', 'type': 'مركز صحي', 'rating': 3.8, 'category': 'other'},
-    {'name': 'مركز صحي الوحدة', 'address': 'شارع الخمسين، حي الوحدة', 'lat': 15.3755, 'lng': 44.2065, 'phone': '01-000777', 'type': 'مركز صحي', 'rating': 4.1, 'category': 'other'},
-    {'name': 'مركز صحي الاتحاد', 'address': 'شارع القاهرة، حي الاتحاد', 'lat': 15.3575, 'lng': 44.2055, 'phone': '01-111888', 'type': 'مركز صحي', 'rating': 3.9, 'category': 'other'},
-    {'name': 'مركز صحي الإخلاص', 'address': 'شارع العدين، حي الإخلاص', 'lat': 15.3905, 'lng': 44.2145, 'phone': '01-222999', 'type': 'مركز صحي', 'rating': 4.0, 'category': 'other'},
-    {'name': 'شركة الأمان للتأمين', 'address': 'شارع الزبيري، عمارة النجار', 'lat': 15.3485, 'lng': 44.2005, 'phone': '01-333111', 'type': 'تأمين صحي', 'rating': 4.3, 'category': 'other'},
-    {'name': 'شركة الثقة للتأمين', 'address': 'شارع التحرير، عمارة الكبوس', 'lat': 15.3615, 'lng': 44.1935, 'phone': '01-444222', 'type': 'تأمين صحي', 'rating': 4.0, 'category': 'other'},
-    {'name': 'شركة السلام للتأمين', 'address': 'شارع هائل، جولة كنتاكي', 'lat': 15.3665, 'lng': 44.1965, 'phone': '01-555333', 'type': 'تأمين صحي', 'rating': 4.2, 'category': 'other'},
-    {'name': 'مركز الإسعاف الجوي', 'address': 'شارع الخمسين، المطار', 'lat': 15.3775, 'lng': 44.2115, 'phone': '199', 'type': 'إسعاف', 'rating': 4.7, 'category': 'other'},
-    {'name': 'مركز الإسعاف البحري', 'address': 'شارع الستين، جولة المصباحي', 'lat': 15.3285, 'lng': 44.1825, 'phone': '199', 'type': 'إسعاف', 'rating': 4.5, 'category': 'other'},
-    {'name': 'مركز الإسعاف البري', 'address': 'شارع القاهرة، باب اليمن', 'lat': 15.3495, 'lng': 44.2035, 'phone': '199', 'type': 'إسعاف', 'rating': 4.4, 'category': 'other'},
-    {'name': 'جمعية العطاء الخيرية', 'address': 'شارع الزبيري، باب شعوب', 'lat': 15.3585, 'lng': 44.1975, 'phone': '01-666444', 'type': 'خيرية', 'rating': 4.5, 'category': 'other'},
-    {'name': 'مؤسسة الوفاق الخيرية', 'address': 'شارع التحرير، وسط البلد', 'lat': 15.3645, 'lng': 44.1925, 'phone': '01-777555', 'type': 'خيرية', 'rating': 4.2, 'category': 'other'},
-    {'name': 'جمعية الإحسان الخيرية', 'address': 'شارع هائل، حي الروضة', 'lat': 15.3735, 'lng': 44.1955, 'phone': '01-888666', 'type': 'خيرية', 'rating': 4.0, 'category': 'other'},
-    {'name': 'مركز صحي الفردوس', 'address': 'شارع الزبيري، حي الفردوس', 'lat': 15.3545, 'lng': 44.1995, 'phone': '01-999777', 'type': 'مركز صحي', 'rating': 3.9, 'category': 'other'},
-    {'name': 'مركز صحي النجاح', 'address': 'شارع التحرير، حي النجاح', 'lat': 15.3625, 'lng': 44.1965, 'phone': '01-000888', 'type': 'مركز صحي', 'rating': 4.3, 'category': 'other'},
-    {'name': 'مركز صحي التقدم', 'address': 'شارع الستين، حي التقدم', 'lat': 15.3375, 'lng': 44.1875, 'phone': '01-111999', 'type': 'مركز صحي', 'rating': 4.1, 'category': 'other'},
-    {'name': 'مركز صحي الكرامة', 'address': 'شارع الخمسين، حي الكرامة', 'lat': 15.3765, 'lng': 44.2075, 'phone': '01-222000', 'type': 'مركز صحي', 'rating': 4.0, 'category': 'other'},
-    {'name': 'مركز صحي الأمان', 'address': 'شارع القاهرة، حي الأمان', 'lat': 15.3565, 'lng': 44.2065, 'phone': '01-333111', 'type': 'مركز صحي', 'rating': 3.8, 'category': 'other'},
-    {'name': 'مركز صحي الوفاء', 'address': 'شارع العدين، حي الوفاء', 'lat': 15.3895, 'lng': 44.2155, 'phone': '01-444222', 'type': 'مركز صحي', 'rating': 4.2, 'category': 'other'},
-    {'name': 'شركة الإخلاص للتأمين', 'address': 'شارع الزبيري، عمارة النجم', 'lat': 15.3525, 'lng': 44.1985, 'phone': '01-555333', 'type': 'تأمين صحي', 'rating': 4.1, 'category': 'other'},
-    {'name': 'شركة الصفوة للتأمين', 'address': 'شارع التحرير، عمارة البساطي', 'lat': 15.3595, 'lng': 44.1955, 'phone': '01-666444', 'type': 'تأمين صحي', 'rating': 3.9, 'category': 'other'},
-    {'name': 'شركة الريان للتأمين', 'address': 'شارع هائل، نهاية الخط', 'lat': 15.3685, 'lng': 44.1945, 'phone': '01-777555', 'type': 'تأمين صحي', 'rating': 4.3, 'category': 'other'},
-    {'name': 'مركز الإسعاف الشامل', 'address': 'شارع الستين، مجمع الصمد', 'lat': 15.3325, 'lng': 44.1855, 'phone': '199', 'type': 'إسعاف', 'rating': 4.6, 'category': 'other'},
-    {'name': 'مركز الإسعاف المتكامل', 'address': 'شارع الخمسين، مدينة النور', 'lat': 15.3785, 'lng': 44.2085, 'phone': '199', 'type': 'إسعاف', 'rating': 4.5, 'category': 'other'},
-    {'name': 'مركز الإسعاف الوطني الجديد', 'address': 'شارع القاهرة، حي السياسي', 'lat': 15.3535, 'lng': 44.2055, 'phone': '199', 'type': 'إسعاف', 'rating': 4.4, 'category': 'other'},
-    {'name': 'جمعية النهضة الخيرية', 'address': 'شارع الزبيري، باب اليمن', 'lat': 15.3475, 'lng': 44.2015, 'phone': '01-888777', 'type': 'خيرية', 'rating': 4.6, 'category': 'other'},
-    {'name': 'مؤسسة الأمل الخيرية', 'address': 'شارع التحرير، بجانب البنك', 'lat': 15.3605, 'lng': 44.1945, 'phone': '01-999888', 'type': 'خيرية', 'rating': 4.3, 'category': 'other'},
-    {'name': 'جمعية الخير الدائمة', 'address': 'شارع هائل، حي الأندلس', 'lat': 15.3715, 'lng': 44.1955, 'phone': '01-000999', 'type': 'خيرية', 'rating': 4.1, 'category': 'other'},
-  ];
+  final List<Map<String, dynamic>> _other = List.generate(60, (index) {
+    final names = [
+      'مركز صحي الزبيري', 'مركز صحي التحرير', 'مركز صحي هائل',
+      'مركز صحي الحصبة', 'مركز صحي باب اليمن', 'مركز صحي العدين',
+      'هيئة التأمين الصحي', 'شركة التأمين الوطنية', 'شركة اليمن للتأمين',
+      'هلال أحمر يمني', 'جمعية الهلال الأحمر', 'مركز الإسعاف الوطني',
+      'جمعية الأمل الخيرية', 'مؤسسة الصحة الخيرية', 'جمعية الشفاء الخيرية',
+      'مركز صحي السبعين', 'مركز صحي النهضة', 'مركز صحي السلام',
+      'مركز صحي الفتح', 'مركز صحي النصر', 'مركز صحي الأمل',
+      'شركة الرعاية للتأمين', 'شركة الصحة للتأمين', 'شركة العناية للتأمين',
+      'مركز الإسعاف المتقدم', 'مركز الإسعاف السريع', 'مركز الإسعاف الميداني',
+      'جمعية البر الخيرية', 'مؤسسة السلام الخيرية', 'جمعية الوفاء الخيرية',
+      'مركز صحي العاصمة', 'مركز صحي صنعاء', 'مركز صحي اليمن',
+      'مركز صحي الوحدة', 'مركز صحي الاتحاد', 'مركز صحي الإخلاص',
+      'شركة الأمان للتأمين', 'شركة الثقة للتأمين', 'شركة السلام للتأمين',
+      'مركز الإسعاف الجوي', 'مركز الإسعاف البحري', 'مركز الإسعاف البري',
+      'جمعية العطاء الخيرية', 'مؤسسة الوفاق الخيرية', 'جمعية الإحسان الخيرية',
+      'مركز صحي الفردوس', 'مركز صحي النجاح', 'مركز صحي التقدم',
+      'مركز صحي الكرامة', 'مركز صحي الأمان', 'مركز صحي الوفاء',
+      'شركة الإخلاص للتأمين', 'شركة الصفوة للتأمين', 'شركة الريان للتأمين',
+      'مركز الإسعاف الشامل', 'مركز الإسعاف المتكامل', 'مركز الإسعاف الوطني الجديد',
+      'جمعية النهضة الخيرية', 'مؤسسة الأمل الخيرية', 'جمعية الخير الدائمة'
+    ];
+    final types = [
+      'مركز صحي', 'مركز صحي', 'مركز صحي', 'مركز صحي', 'مركز صحي', 'مركز صحي',
+      'تأمين صحي', 'تأمين صحي', 'تأمين صحي', 'إسعاف', 'إسعاف', 'إسعاف',
+      'خيرية', 'خيرية', 'خيرية', 'مركز صحي', 'مركز صحي', 'مركز صحي',
+      'مركز صحي', 'مركز صحي', 'مركز صحي', 'تأمين صحي', 'تأمين صحي', 'تأمين صحي',
+      'إسعاف', 'إسعاف', 'إسعاف', 'خيرية', 'خيرية', 'خيرية',
+      'مركز صحي', 'مركز صحي', 'مركز صحي', 'مركز صحي', 'مركز صحي', 'مركز صحي',
+      'تأمين صحي', 'تأمين صحي', 'تأمين صحي', 'إسعاف', 'إسعاف', 'إسعاف',
+      'خيرية', 'خيرية', 'خيرية', 'مركز صحي', 'مركز صحي', 'مركز صحي',
+      'مركز صحي', 'مركز صحي', 'مركز صحي', 'تأمين صحي', 'تأمين صحي', 'تأمين صحي',
+      'إسعاف', 'إسعاف', 'إسعاف', 'خيرية', 'خيرية', 'خيرية'
+    ];
+    final addresses = [
+      'شارع الزبيري، وسط البلد', 'شارع التحرير، ميدان التحرير',
+      'شارع هائل، جولة كنتاكي', 'شارع الخمسين، الحصبة',
+      'شارع باب اليمن، سوق الملح', 'شارع العدين، السنينة',
+      'شارع الزبيري، عمارة النعمان', 'شارع التحرير، بجانب البنك',
+      'شارع الستين، مجمع النخبة', 'شارع القاهرة، باب اليمن',
+      'شارع الخمسين، دار الرئاسة', 'شارع الستين، جولة 48',
+      'شارع الزبيري، باب شعوب', 'شارع التحرير، وسط البلد',
+      'شارع هائل، حي الروضة', 'السبعين، شارع الأربعين',
+      'شارع الأربعين، شارع صخر', 'شارع الستين، طريق الحديدة',
+      'شارع القاهرة، حي السياسي', 'شارع العدين، السنينة الشمالية',
+      'شارع باب اليمن، سوق الحلقة', 'شارع الزبيري، عمارة النجم',
+      'شارع التحرير، عمارة الحمدي', 'شارع هائل، فرع الجامعة',
+      'شارع الخمسين، خلف الجامعة', 'شارع الستين، جولة آية',
+      'شارع القاهرة، حي الحشيشي', 'شارع الزبيري، باب اليمن',
+      'شارع التحرير، بجانب البريد', 'شارع هائل، حي الأندلس',
+      'شارع الزبيري، شارع القاهرة', 'شارع التحرير، حي صنعاء',
+      'شارع الستين، حي اليمن', 'شارع الخمسين، حي الوحدة',
+      'شارع القاهرة، حي الاتحاد', 'شارع العدين، حي الإخلاص',
+      'شارع الزبيري، عمارة النجار', 'شارع التحرير، عمارة الكبوس',
+      'شارع هائل، جولة كنتاكي', 'شارع الخمسين، المطار',
+      'شارع الستين، جولة المصباحي', 'شارع القاهرة، باب اليمن',
+      'شارع الزبيري، باب شعوب', 'شارع التحرير، وسط البلد',
+      'شارع هائل، حي الروضة', 'شارع الزبيري، حي الفردوس',
+      'شارع التحرير، حي النجاح', 'شارع الستين، حي التقدم',
+      'شارع الخمسين، حي الكرامة', 'شارع القاهرة، حي الأمان',
+      'شارع العدين، حي الوفاء', 'شارع الزبيري، عمارة النجم',
+      'شارع التحرير، عمارة البساطي', 'شارع هائل، نهاية الخط',
+      'شارع الستين، مجمع الصمد', 'شارع الخمسين، مدينة النور',
+      'شارع القاهرة، حي السياسي', 'شارع الزبيري، باب اليمن',
+      'شارع التحرير، بجانب البنك', 'شارع هائل، حي الأندلس'
+    ];
+    final lats = [
+      15.3515, 15.3595, 15.3655, 15.3815, 15.3455, 15.3885,
+      15.3505, 15.3585, 15.3365, 15.3485, 15.3735, 15.3395,
+      15.3575, 15.3625, 15.3705, 15.3125, 15.3165, 15.3185,
+      15.3565, 15.3935, 15.3425, 15.3535, 15.3605, 15.3715,
+      15.3805, 15.3425, 15.3595, 15.3465, 15.3635, 15.3725,
+      15.3525, 15.3685, 15.3405, 15.3755, 15.3575, 15.3905,
+      15.3485, 15.3615, 15.3665, 15.3775, 15.3285, 15.3495,
+      15.3585, 15.3645, 15.3735, 15.3545, 15.3625, 15.3375,
+      15.3765, 15.3565, 15.3895, 15.3525, 15.3595, 15.3685,
+      15.3325, 15.3785, 15.3535, 15.3475, 15.3605, 15.3715
+    ];
+    final lngs = [
+      44.1985, 44.1925, 44.1955, 44.2095, 44.1995, 44.2135,
+      44.1975, 44.1935, 44.1835, 44.2015, 44.2055, 44.1895,
+      44.1965, 44.1915, 44.1945, 44.1815, 44.1765, 44.1735,
+      44.2045, 44.2165, 44.1985, 44.1965, 44.1945, 44.1965,
+      44.2075, 44.1735, 44.2085, 44.2025, 44.1915, 44.1935,
+      44.2005, 44.1955, 44.1755, 44.2065, 44.2055, 44.2145,
+      44.2005, 44.1935, 44.1965, 44.2115, 44.1825, 44.2035,
+      44.1975, 44.1925, 44.1955, 44.1995, 44.1965, 44.1875,
+      44.2075, 44.2065, 44.2155, 44.1985, 44.1955, 44.1945,
+      44.1855, 44.2085, 44.2055, 44.2015, 44.1945, 44.1955
+    ];
+    return {
+      'name': names[index % names.length],
+      'address': addresses[index % addresses.length],
+      'lat': lats[index % lats.length],
+      'lng': lngs[index % lngs.length],
+      'phone': index < 10 ? '199' : '01-${500000 + index}',
+      'type': types[index % types.length],
+      'rating': 3.7 + (index % 13) / 10,
+      'category': 'other',
+    };
+  });
 
   // ============================================================
   // 🏥 دمج جميع الأماكن معاً
@@ -523,7 +704,6 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
     }
     
     return places.where((place) {
-      // تصفية حسب الفئة
       if (_selectedCategory != 'الكل') {
         final categoryMap = {
           'مستشفيات': 'hospitals',
@@ -538,7 +718,6 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
         }
       }
       
-      // تصفية حسب البحث
       if (_searchQuery.isNotEmpty) {
         final name = (place['name'] as String).toLowerCase();
         final address = (place['address'] as String).toLowerCase();
@@ -550,6 +729,93 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
       
       return true;
     }).toList();
+  }
+
+  // ============================================================
+  // 🖼️ تحميل أيقونات SVG
+  // ============================================================
+  void _loadIcons() {
+    _hospitalIcon = SvgAssetLoader('assets/icons/map_pins/hospital.svg');
+    _pharmacyIcon = SvgAssetLoader('assets/icons/map_pins/pharmacy.svg');
+    _laboratoryIcon = SvgAssetLoader('assets/icons/map_pins/laboratory.svg');
+    _medicalIcon = SvgAssetLoader('assets/icons/map_pins/medical.svg');
+    _clinicIcon = SvgAssetLoader('assets/icons/map_pins/clinic.svg');
+  }
+
+  // ============================================================
+  // 🎨 الحصول على أيقونة SVG حسب الفئة
+  // ============================================================
+  BytesLoader _getIconProviderForCategory(String category) {
+    switch (category) {
+      case 'hospitals':
+        return _hospitalIcon;
+      case 'pharmacies':
+        return _pharmacyIcon;
+      case 'labs':
+        return _laboratoryIcon;
+      case 'clinics':
+        return _clinicIcon;
+      case 'other':
+        return _medicalIcon;
+      default:
+        return _medicalIcon;
+    }
+  }
+
+  // ============================================================
+  // 🎨 أيقونة SVG لعرض التفاصيل
+  // ============================================================
+  Widget _getCategoryIcon(String category, {double size = 24}) {
+    final provider = _getIconProviderForCategory(category);
+    return SvgPicture(
+      provider,
+      width: size,
+      height: size,
+      colorFilter: const ColorFilter.mode(
+        AppColors.primary,
+        BlendMode.srcIn,
+      ),
+    );
+  }
+
+  // ============================================================
+  // 🎨 أيقونة احتياطية (Material Icons)
+  // ============================================================
+  IconData _getIconForCategory(String category) {
+    switch (category) {
+      case 'hospitals':
+        return Icons.local_hospital;
+      case 'pharmacies':
+        return Icons.local_pharmacy;
+      case 'labs':
+        return Icons.science;
+      case 'clinics':
+        return Icons.healing;
+      case 'other':
+        return Icons.place;
+      default:
+        return Icons.place;
+    }
+  }
+
+  // ============================================================
+  // 🏷️ الحصول على اسم الفئة بالعربية
+  // ============================================================
+  String _getCategoryLabel(String category) {
+    switch (category) {
+      case 'hospitals':
+        return 'مستشفى';
+      case 'pharmacies':
+        return 'صيدلية';
+      case 'labs':
+        return 'مختبر';
+      case 'clinics':
+        return 'عيادة';
+      case 'other':
+        return 'أخرى';
+      default:
+        return 'أخرى';
+    }
   }
 
   // ============================================================
@@ -600,39 +866,10 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                       ),
                     ),
             ),
-                      color: AppColors.primary,
-                      size: 18,
-                    ),
-            ),
           ),
         ),
       );
     }).toList();
-  }
-
-  // ============================================================
-  // 🎨 الحصول على الأيقونة حسب الفئة
-  // ============================================================
-  }
-
-  // ============================================================
-  // 🏷️ الحصول على اسم الفئة بالعربية
-  // ============================================================
-  String _getCategoryLabel(String category) {
-    switch (category) {
-      case 'hospitals':
-        return 'مستشفى';
-      case 'pharmacies':
-        return 'صيدلية';
-      case 'labs':
-        return 'مختبر';
-      case 'clinics':
-        return 'عيادة';
-      case 'other':
-        return 'أخرى';
-      default:
-        return 'أخرى';
-    }
   }
 
   // ============================================================
@@ -674,9 +911,6 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                     shape: BoxShape.circle,
                   ),
                   child: _getCategoryIcon(place['category'] as String, size: 28),
-                    color: AppColors.primary,
-                    size: 24,
-                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -851,13 +1085,6 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
   // 🏗️ بناء الواجهة
   // ============================================================
   @override
-  void _loadIcons() {
-    _hospitalIcon = SvgAssetLoader('assets/icons/map_pins/hospital.svg').loadPicture(null, null);
-    _pharmacyIcon = SvgAssetLoader('assets/icons/map_pins/pharmacy.svg').loadPicture(null, null);
-    _laboratoryIcon = SvgAssetLoader('assets/icons/map_pins/laboratory.svg').loadPicture(null, null);
-    _medicalIcon = SvgAssetLoader('assets/icons/map_pins/medical.svg').loadPicture(null, null);
-    _clinicIcon = SvgAssetLoader('assets/icons/map_pins/clinic.svg').loadPicture(null, null);
-  }
   void initState() {
     super.initState();
     _mapController = MapController();
@@ -865,17 +1092,11 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
       vsync: this,
       duration: const Duration(milliseconds: 500),
     )..forward();
+    _loadIcons();
     _getCurrentLocation();
   }
 
   @override
-  void _loadIcons() {
-    _hospitalIcon = SvgAssetLoader('assets/icons/map_pins/hospital.svg').loadPicture(null, null);
-    _pharmacyIcon = SvgAssetLoader('assets/icons/map_pins/pharmacy.svg').loadPicture(null, null);
-    _laboratoryIcon = SvgAssetLoader('assets/icons/map_pins/laboratory.svg').loadPicture(null, null);
-    _medicalIcon = SvgAssetLoader('assets/icons/map_pins/medical.svg').loadPicture(null, null);
-    _clinicIcon = SvgAssetLoader('assets/icons/map_pins/clinic.svg').loadPicture(null, null);
-  }
   void dispose() {
     _mapController.dispose();
     _animationController.dispose();
@@ -884,13 +1105,6 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
   }
 
   @override
-  void _loadIcons() {
-    _hospitalIcon = SvgAssetLoader('assets/icons/map_pins/hospital.svg').loadPicture(null, null);
-    _pharmacyIcon = SvgAssetLoader('assets/icons/map_pins/pharmacy.svg').loadPicture(null, null);
-    _laboratoryIcon = SvgAssetLoader('assets/icons/map_pins/laboratory.svg').loadPicture(null, null);
-    _medicalIcon = SvgAssetLoader('assets/icons/map_pins/medical.svg').loadPicture(null, null);
-    _clinicIcon = SvgAssetLoader('assets/icons/map_pins/clinic.svg').loadPicture(null, null);
-  }
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -1004,22 +1218,9 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                             ),
                           ],
                         ),
-            child: Center(
-              child: isSelected
-                  ? const Icon(Icons.check, color: Colors.white, size: 20)
-                  : SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: SvgPicture(
-                        _getIconProviderForCategory(place['category'] as String),
-                        fit: BoxFit.contain,
-                        colorFilter: const ColorFilter.mode(
-                          AppColors.primary,
-                          BlendMode.srcIn,
-                        ),
-                      ),
-                    ),
-            ),
+                        child: Center(
+                          child: Text(
+                            markers.length.toString(),
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -1106,59 +1307,3 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
     );
   }
 }
-
-  // ============================================================
-  // 🎨 الحصول على أيقونة SVG حسب الفئة
-  // ============================================================
-  PictureProvider _getIconProviderForCategory(String category) {
-    switch (category) {
-      case 'hospitals':
-        return _hospitalIcon;
-      case 'pharmacies':
-        return _pharmacyIcon;
-      case 'labs':
-        return _laboratoryIcon;
-      case 'clinics':
-        return _clinicIcon;
-      case 'other':
-        return _medicalIcon;
-      default:
-        return _medicalIcon;
-    }
-  }
-
-  // ============================================================
-  // 🎨 أيقونة SVG لعرض التفاصيل
-  // ============================================================
-  Widget _getCategoryIcon(String category, {double size = 24}) {
-    final provider = _getIconProviderForCategory(category);
-    return SvgPicture(
-      provider,
-      width: size,
-      height: size,
-      colorFilter: const ColorFilter.mode(
-        AppColors.primary,
-        BlendMode.srcIn,
-      ),
-    );
-  }
-
-  // ============================================================
-  // 🎨 الحصول على الأيقونة حسب الفئة (Material Icons - للاحتياط)
-  // ============================================================
-  IconData _getIconForCategory(String category) {
-    switch (category) {
-      case 'hospitals':
-        return Icons.local_hospital;
-      case 'pharmacies':
-        return Icons.local_pharmacy;
-      case 'labs':
-        return Icons.science;
-      case 'clinics':
-        return Icons.healing;
-      case 'other':
-        return Icons.place;
-      default:
-        return Icons.place;
-    }
-  }
