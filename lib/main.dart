@@ -71,7 +71,7 @@ void main() async {
   }
 
   // ✅ تهيئة الكاش
-  await CacheService.init();
+  await CacheService().init();
 
   // ✅ تهيئة الإشعارات
   final notificationService = NotificationService();
