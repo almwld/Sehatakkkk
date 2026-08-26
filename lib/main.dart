@@ -19,30 +19,27 @@ import 'core/services/notification_service.dart';
 import 'core/services/call_service.dart';
 import 'core/routes/payment_routes.dart';
 import 'presentation/bloc/auth_bloc/auth_bloc.dart';
-import 'presentation/bloc/theme_bloc/theme_bloc.dart';
+import 'presentation/bloc/theme_bloc/theme_bloc.dart>';
 import 'presentation/bloc/chat_bloc/chat_bloc.dart';
 import 'presentation/bloc/doctor_bloc/doctor_bloc.dart';
 import 'presentation/screens/splash_screen.dart';
 import 'presentation/screens/wallet/wallet_screen.dart';
 import 'presentation/screens/sleep_tracker/sleep_tracker_screen.dart';
+import 'presentation/screens/step_tracker/step_tracker_screen.dart';
 
-// ✅ معالج الخلفية للإشعارات
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print('📩 Handling background message: ${message.messageId}');
-  print('📩 Data: ${message.data}');
 }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ✅ تحديد اتجاه الشاشة
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
-  // ✅ تهيئة Firebase
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -52,7 +49,6 @@ void main() async {
     print('❌ Firebase initialization error: $e');
   }
 
-  // ✅ تهيئة FCM
   try {
     final fcm = FirebaseMessaging.instance;
     await fcm.requestPermission(
@@ -60,19 +56,15 @@ void main() async {
       badge: true,
       sound: true,
     );
-
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
     final token = await fcm.getToken();
     print('✅ FCM Token: $token');
   } catch (e) {
     print('❌ FCM initialization error: $e');
   }
 
-  // ✅ تهيئة الكاش
   await CacheService.init();
 
-  // ✅ تهيئة الإشعارات
   final notificationService = NotificationService();
   await notificationService.initialize();
 

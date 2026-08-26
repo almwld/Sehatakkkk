@@ -863,3 +863,7 @@ flutter:
 
 dependency_overrides:
   google_fonts: ^5.1.0
+
+  # 🚶 تتبع الخطوات
+  step_progress_indicator: ^1.0.2
+  circular_countdown_timer: ^0.2.4
