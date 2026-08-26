@@ -142,7 +142,7 @@ class _MoreScreenState extends State<MoreScreen>
         return [
           {'icon': 'assets/images/services/womens_health.png', 'title': 'صحة المرأة', 'subtitle': 'متابعة الدورة والحمل', 'screen': const FamilyPlanningScreen()},
           {'icon': 'assets/images/services/medical_articles.png', 'title': 'نمو الطفل', 'subtitle': 'مراحل التطور', 'screen': const FamilyPlanningScreen()},
-          {'icon': 'assets/images/services/hospital.png', 'title': 'طبيب العائلة', 'subtitle': 'رعاية منزلية متكاملة', 'screen': const DoctorsListScreen()},
+          {'icon': 'assets/images/tracking/map_location.png', 'title': 'طبيب العائلة', 'subtitle': 'رعاية منزلية متكاملة', 'screen': const DoctorsListScreen()},
           {'icon': 'assets/images/services/womens_health.png', 'title': 'متابعة الحمل', 'subtitle': 'أسابيع الحمل بدقة', 'screen': const FamilyPlanningScreen()},
           {'icon': 'assets/images/tracking/age.png', 'title': 'الصحة النفسية', 'subtitle': 'دعم الصحة النفسية', 'screen': const MentalHealthScreen()},
           {'icon': 'assets/images/tracking/fruits.png', 'title': 'نظام غذائي', 'subtitle': 'خطط غذائية صحية', 'screen': const DietPlanScreen()},
@@ -163,8 +163,8 @@ class _MoreScreenState extends State<MoreScreen>
           {'icon': 'assets/images/services/pharmacy.png', 'title': 'صيدلية', 'subtitle': 'طلب الأدوية وتوصيلها', 'screen': const PharmacyScreen()},
           {'icon': 'assets/images/services/laboratory.png', 'title': 'مختبرات', 'subtitle': 'حجز التحاليل والفحوصات', 'screen': const LabsListScreen()},
           {'icon': 'assets/images/services/health_insurance.png', 'title': 'تأمين صحي', 'subtitle': 'خطط التأمين والاشتراك', 'screen': const InsuranceCompanies()},
-          {'icon': 'assets/images/services/hospital.png', 'title': 'خرائط المرافق', 'subtitle': 'أقرب المستشفيات والصيدليات', 'screen': const InteractiveMapScreen()},
-          {'icon': 'assets/images/services/hospital.png', 'title': 'المستشفيات', 'subtitle': 'أقرب المستشفيات', 'screen': const InteractiveMapScreen()},
+          {'icon': 'assets/images/tracking/map_location.png', 'title': 'خرائط المرافق', 'subtitle': 'أقرب المستشفيات والصيدليات', 'screen': const InteractiveMapScreen()},
+          {'icon': 'assets/images/tracking/map_location.png', 'title': 'المستشفيات', 'subtitle': 'أقرب المستشفيات', 'screen': const InteractiveMapScreen()},
           {'icon': 'assets/images/services/wallet.png', 'title': 'المحفظة', 'subtitle': 'إدارة محفظتك', 'screen': const WalletScreen()},
           {'icon': 'assets/images/services/packages.png', 'title': 'الباقات', 'subtitle': 'عرض الباقات المتاحة', 'screen': const SubscriptionsScreen()},
         ];
@@ -186,7 +186,7 @@ class _MoreScreenState extends State<MoreScreen>
         ];
       default:
         return [
-          {'icon': 'assets/images/services/hospital.png', 'title': 'الأطباء', 'subtitle': 'استشر أفضل الأطباء', 'screen': const DoctorsListScreen()},
+          {'icon': 'assets/images/tracking/map_location.png', 'title': 'الأطباء', 'subtitle': 'استشر أفضل الأطباء', 'screen': const DoctorsListScreen()},
           {'icon': 'assets/images/services/pharmacy.png', 'title': 'الصيدلية', 'subtitle': 'طلب الأدوية وتوصيلها', 'screen': const PharmacyScreen()},
           {'icon': 'assets/images/services/laboratory.png', 'title': 'المختبرات', 'subtitle': 'حجز التحاليل والفحوصات', 'screen': const LabsListScreen()},
           {'icon': 'assets/images/services/first_aid.png', 'title': 'الطوارئ', 'subtitle': 'أرقام الطوارئ والمساعدة', 'screen': const EmergencyNumbers()},
@@ -194,7 +194,7 @@ class _MoreScreenState extends State<MoreScreen>
           {'icon': 'assets/images/services/medical_articles.png', 'title': 'صحتك', 'subtitle': 'متابعة حالتك الصحية', 'screen': const HealthDashboard()},
           {'icon': 'assets/images/services/wallet.png', 'title': 'المحفظة', 'subtitle': 'إدارة محفظتك', 'screen': const WalletScreen()},
           {'icon': 'assets/images/services/medical_articles.png', 'title': 'المواعيد', 'subtitle': 'إدارة مواعيدك', 'screen': const AppointmentsScreen()},
-          {'icon': 'assets/images/services/hospital.png', 'title': 'الخريطة', 'subtitle': 'المنشآت الصحية القريبة', 'screen': const InteractiveMapScreen()},
+          {'icon': 'assets/images/tracking/map_location.png', 'title': 'الخريطة', 'subtitle': 'المنشآت الصحية القريبة', 'screen': const InteractiveMapScreen()},
           {'icon': 'assets/images/services/packages.png', 'title': 'التأمين الصحي', 'subtitle': 'خطط التأمين والاشتراكات', 'screen': const InsuranceCompanies()},
           {'icon': 'assets/images/services/blood_donation.png', 'title': 'التبرع بالدم', 'subtitle': 'مراكز التبرع بالدم', 'screen': const BloodDonationScreen()},
           {'icon': 'assets/images/ui/user_profile.png', 'title': 'الملف الشخصي', 'subtitle': 'إدارة ملفك الشخصي', 'screen': const PatientProfile()},
@@ -293,7 +293,10 @@ class _MoreScreenState extends State<MoreScreen>
             ),
             const SizedBox(height: 12),
             _buildVitalsGrid(isDark),
-            const SizedBox(height: 24),
+            
+            // ✅ زيادة المسافة لإنزال الخدمات قليلاً
+            const SizedBox(height: 32),
+            
             Text(
               'الخدمات',
               style: TextStyle(
@@ -302,9 +305,9 @@ class _MoreScreenState extends State<MoreScreen>
                 color: isDark ? Colors.white : Colors.black87,
               ),
             ),
-            const SizedBox(height: 12),
-            _buildCategoriesBar(isDark),
             const SizedBox(height: 16),
+            _buildCategoriesBar(isDark),
+            const SizedBox(height: 20),
             _buildFilteredServicesGrid(isDark),
             const SizedBox(height: 24),
             _buildLogoutButton(isDark),
@@ -314,6 +317,7 @@ class _MoreScreenState extends State<MoreScreen>
     );
   }
 
+  // ✅ تم تكبير الأيقونات وضبط الأبعاد
   Widget _buildVitalsGrid(bool isDark) {
     return GridView.builder(
       shrinkWrap: true,
@@ -322,7 +326,8 @@ class _MoreScreenState extends State<MoreScreen>
         crossAxisCount: 4,
         crossAxisSpacing: 10,
         mainAxisSpacing: 10,
-        childAspectRatio: 0.95,
+        // ✅ زيادة الارتفاع (تقليل النسبة) لاستيعاب الأيقونة الأكبر
+        childAspectRatio: 0.86,
       ),
       itemCount: _vitals.length,
       itemBuilder: (context, index) {
@@ -330,7 +335,7 @@ class _MoreScreenState extends State<MoreScreen>
         return GestureDetector(
           onTap: () => _navigateTo(vital['screen'] as Widget),
           child: Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(8), // ✅ تقليل الحواف لتعويض الحجم
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1A2540) : Colors.white,
               borderRadius: BorderRadius.circular(14),
@@ -349,7 +354,8 @@ class _MoreScreenState extends State<MoreScreen>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildIcon(vital['icon'] as String, size: 48),
+                // ✅ تكبير الأيقونة من 44 إلى 52
+                _buildIcon(vital['icon'] as String, size: 52),
                 const SizedBox(height: 6),
                 Text(
                   vital['value'] as String,
@@ -366,6 +372,7 @@ class _MoreScreenState extends State<MoreScreen>
                     color: isDark ? Colors.grey[400] : Colors.grey[600],
                   ),
                 ),
+                const SizedBox(height: 2),
                 Text(
                   vital['label'] as String,
                   style: TextStyle(
@@ -394,21 +401,31 @@ class _MoreScreenState extends State<MoreScreen>
         itemBuilder: (context, index) {
           final category = _categories[index];
           final isSelected = _selectedCategory == category;
+
           return GestureDetector(
             onTap: () => setState(() => _selectedCategory = category),
             child: Container(
               margin: const EdgeInsets.only(right: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               decoration: BoxDecoration(
                 color: isSelected ? AppColors.primary : (isDark ? const Color(0xFF1A2540) : Colors.grey[100]),
                 borderRadius: BorderRadius.circular(20),
+                boxShadow: isSelected ? [
+                  BoxShadow(
+                    color: AppColors.primary.withOpacity(0.3),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  )
+                ] : [],
               ),
-              child: Text(
-                category,
-                style: TextStyle(
-                  color: isSelected ? Colors.white : (isDark ? Colors.grey[400] : Colors.grey[700]),
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  fontSize: 12,
+              child: Center(
+                child: Text(
+                  category,
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : (isDark ? Colors.grey[400] : Colors.grey[700]),
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    fontSize: 12,
+                  ),
                 ),
               ),
             ),
@@ -418,6 +435,7 @@ class _MoreScreenState extends State<MoreScreen>
     );
   }
 
+  // ✅ ضبط أبعاد شبكة الخدمات
   Widget _buildFilteredServicesGrid(bool isDark) {
     final services = _filteredServices;
 
@@ -442,7 +460,8 @@ class _MoreScreenState extends State<MoreScreen>
         crossAxisCount: 3,
         crossAxisSpacing: 10,
         mainAxisSpacing: 10,
-        childAspectRatio: 0.85,
+        // ✅ زيادة الارتفاع (تقليل النسبة) لضمان ظهور النص بشكل كامل
+        childAspectRatio: 0.80,
       ),
       itemCount: services.length,
       itemBuilder: (context, index) {
@@ -466,7 +485,7 @@ class _MoreScreenState extends State<MoreScreen>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _buildIcon(service['icon'] as String, size: 44),
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
                 Text(
                   service['title'] as String,
                   style: TextStyle(
@@ -478,6 +497,7 @@ class _MoreScreenState extends State<MoreScreen>
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
+                const SizedBox(height: 4),
                 Text(
                   service['subtitle'] as String,
                   style: TextStyle(
