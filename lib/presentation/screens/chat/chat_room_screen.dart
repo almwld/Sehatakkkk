@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/nextcloud_service.dart';
+import 'package:sehatak/core/constants/app_images.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class ChatRoomScreen extends StatefulWidget {
@@ -38,12 +39,24 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   String _chatUrl = '';
   String _otherUserId = '';
 
+  // ✅ خلفيات الدردشة
+  final List<String> _wallpapers = [
+    'assets/images/sehatak_chat_wallpaper_light.svg',
+    'assets/images/sehatak_chat_wallpaper_dark.svg',
+    'assets/images/sehatak_chat_wallpaper_light_1080x2160.png',
+    'assets/images/sehatak_chat_wallpaper_dark_1080x2160.png',
+    'assets/images/sehatak_chat_wallpaper_auto.svg',
+  ];
+
+  int _selectedWallpaperIndex = 0;
+
   @override
   void initState() {
     super.initState();
     _checkConnectivity();
     _initializeChat();
     _getOtherUser();
+    _loadWallpaperPreference();
     
     _connectivity.onConnectivityChanged.listen((result) {
       setState(() {
@@ -54,6 +67,22 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         }
       });
     });
+  }
+
+  Future<void> _loadWallpaperPreference() async {
+    // ✅ تحميل خلفية محفوظة
+    final prefs = await SharedPreferences.getInstance();
+    final savedIndex = prefs.getInt('chat_wallpaper_index');
+    if (savedIndex != null && savedIndex < _wallpapers.length) {
+      setState(() {
+        _selectedWallpaperIndex = savedIndex;
+      });
+    }
+  }
+
+  Future<void> _saveWallpaperPreference(int index) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('chat_wallpaper_index', index);
   }
 
   Future<void> _checkConnectivity() async {
@@ -114,9 +143,89 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     super.dispose();
   }
 
+  void _showWallpaperPicker() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'اختر خلفية الدردشة',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 120,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: _wallpapers.length,
+                itemBuilder: (context, index) {
+                  final isSelected = _selectedWallpaperIndex == index;
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _selectedWallpaperIndex = index;
+                        _saveWallpaperPreference(index);
+                      });
+                      Navigator.pop(context);
+                    },
+                    child: Container(
+                      width: 80,
+                      margin: const EdgeInsets.only(right: 12),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: isSelected ? AppColors.primary : Colors.transparent,
+                          width: 3,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.asset(
+                          _wallpapers[index],
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            color: Colors.grey[200],
+                            child: Icon(
+                              Icons.image_rounded,
+                              color: Colors.grey[400],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final wallpaper = _wallpapers[_selectedWallpaperIndex];
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
@@ -155,6 +264,11 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         foregroundColor: isDark ? Colors.white : Colors.black87,
         elevation: 0,
         actions: [
+          // ✅ زر تغيير الخلفية
+          IconButton(
+            icon: Icon(Icons.wallpaper_rounded, color: isDark ? Colors.white : Colors.black87),
+            onPressed: _showWallpaperPicker,
+          ),
           if (_useNextcloud && _isOnline)
             IconButton(
               icon: Icon(Icons.cloud_rounded, color: AppColors.primary),
@@ -183,11 +297,20 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
             ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _useNextcloud && _chatUrl.isNotEmpty && _isOnline
-              ? _buildNextcloudChat()
-              : _buildFirestoreChat(isDark),
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage(wallpaper),
+            fit: BoxFit.cover,
+            opacity: 0.3,
+          ),
+        ),
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _useNextcloud && _chatUrl.isNotEmpty && _isOnline
+                ? _buildNextcloudChat()
+                : _buildFirestoreChat(isDark),
+      ),
     );
   }
 
@@ -210,7 +333,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     return Container(
       margin: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.white.withOpacity(0.9),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -235,16 +358,16 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         if (_isOfflineMode)
           Container(
             padding: const EdgeInsets.all(8),
-            color: Colors.orange.withOpacity(0.1),
+            color: Colors.orange.withOpacity(0.8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.wifi_off, color: Colors.orange, size: 16),
+                Icon(Icons.wifi_off, color: Colors.white, size: 16),
                 const SizedBox(width: 8),
-                Text(
+                const Text(
                   '📶 غير متصل - يتم عرض الرسائل المخزنة محلياً',
                   style: TextStyle(
-                    color: Colors.orange,
+                    color: Colors.white,
                     fontSize: 12,
                   ),
                 ),
@@ -308,11 +431,18 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: isMe ? AppColors.primary : (isDark ? const Color(0xFF1A2540) : Colors.grey[200]),
+                color: isMe ? AppColors.primary : (isDark ? const Color(0xFF1A2540) : Colors.white.withOpacity(0.9)),
                 borderRadius: BorderRadius.circular(16).copyWith(
                   bottomRight: isMe ? const Radius.circular(4) : const Radius.circular(16),
                   bottomLeft: isMe ? const Radius.circular(16) : const Radius.circular(4),
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
@@ -361,7 +491,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2540) : Colors.white,
+        color: isDark ? const Color(0xFF1A2540) : Colors.white.withOpacity(0.95),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
