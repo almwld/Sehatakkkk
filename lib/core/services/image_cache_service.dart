@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:sehatak/core/services/cache_service.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 class ImageCacheService {
   static final ImageCacheService _instance = ImageCacheService._internal();
   factory ImageCacheService() => _instance;
   ImageCacheService._internal();
 
-  final CacheService _cache = CacheService();
-  
   Widget cachedImage(
     String url, {
     double? width,
@@ -23,10 +21,6 @@ class ImageCacheService {
       height: height,
       fit: fit,
       cacheKey: url,
-      cacheManager: CustomCacheManager(
-        maxAge: cacheDuration,
-        maxNrOfCacheObjects: 100,
-      ),
       placeholder: (context, url) => _buildPlaceholder(width, height),
       errorWidget: (context, url, error) => _buildErrorWidget(width, height),
       imageBuilder: (context, imageProvider) {
@@ -60,15 +54,4 @@ class ImageCacheService {
       child: const Icon(Icons.broken_image, color: Colors.grey, size: 40),
     );
   }
-}
-
-class CustomCacheManager extends BaseCacheManager {
-  CustomCacheManager({
-    required Duration maxAge,
-    required int maxNrOfCacheObjects,
-  }) : super(
-    key: 'custom_cache',
-    maxAge: maxAge,
-    maxNrOfCacheObjects: maxNrOfCacheObjects,
-  );
 }
