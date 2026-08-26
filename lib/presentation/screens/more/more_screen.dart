@@ -95,7 +95,7 @@ class _MoreScreenState extends State<MoreScreen>
       'screen': const SleepTrackerScreen()
     },
     {
-      'icon': 'assets/images/tracking/weight.png',
+      'icon': 'assets/images/tracking/weight_tracking.png',
       'label': 'الوزن',
       'value': '72',
       'unit': 'كجم',
@@ -152,7 +152,7 @@ class _MoreScreenState extends State<MoreScreen>
         return [
           {'icon': 'assets/images/tracking/blood_pressure.png', 'title': 'ضغط الدم', 'subtitle': 'متابعة ضغط الدم', 'screen': const BloodPressureScreen()},
           {'icon': 'assets/images/tracking/blood_sugar.png', 'title': 'تتبع السكر', 'subtitle': 'مراقبة مستوى السكر', 'screen': const GlucoseTrackerScreen()},
-          {'icon': 'assets/images/tracking/weight.png', 'title': 'الوزن', 'subtitle': 'تتبع الوزن واللياقة', 'screen': const WeightTrackerScreen()},
+          {'icon': 'assets/images/tracking/weight_tracking.png', 'title': 'الوزن', 'subtitle': 'تتبع الوزن واللياقة', 'screen': const WeightTrackerScreen()},
           {'icon': 'assets/images/services/first_aid.png', 'title': 'تذكير الأدوية', 'subtitle': 'تذكير بمواعيد الأدوية', 'screen': const MedicationReminderScreen()},
           {'icon': 'assets/images/services/blood_donation.png', 'title': 'التبرع بالدم', 'subtitle': 'مراكز التبرع بالدم', 'screen': const BloodDonationScreen()},
           {'icon': 'assets/images/services/medical_articles.png', 'title': 'المقالات الطبية', 'subtitle': 'أحدث المقالات الطبية', 'screen': const ArticlesScreen()},
