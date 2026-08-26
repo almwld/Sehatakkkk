@@ -791,7 +791,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
       'فضية': Colors.grey,
       'برونزية': Colors.brown,
       'عائلية': Colors.green,
-      'مجاني': Colors.grey, // ✅ رمادي للباقة المجانية
+      'مجاني': Colors.purple, // ✅ رمادي للباقة المجانية
     };
 
     final Map<String, String> subscriptionIcons = {
