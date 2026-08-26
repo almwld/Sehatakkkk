@@ -29,8 +29,60 @@ import 'package:sehatak/presentation/screens/glucose_tracker/glucose_tracker_scr
 import 'package:sehatak/presentation/screens/weight_tracker/weight_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/sleep_tracker/sleep_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
-import 'dart:ui' as ui;
 import 'package:shared_preferences/shared_preferences.dart';
+
+// ============================================================
+// 🎨 CustomPainter للدائرة المتدرجة (خارج الكلاس)
+// ============================================================
+class CircularProgressPainter extends CustomPainter {
+  final double progress;
+  final Color backgroundColor;
+  final Color progressColor;
+  final double strokeWidth;
+
+  CircularProgressPainter({
+    required this.progress,
+    required this.backgroundColor,
+    required this.progressColor,
+    this.strokeWidth = 6,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2 - strokeWidth / 2;
+
+    final backgroundPaint = Paint()
+      ..color = backgroundColor
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawCircle(center, radius, backgroundPaint);
+
+    final progressPaint = Paint()
+      ..color = progressColor
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    final startAngle = -90 * (3.14159 / 180);
+    final sweepAngle = 360 * (3.14159 / 180) * progress;
+
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      startAngle,
+      sweepAngle,
+      false,
+      progressPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(CircularProgressPainter oldDelegate) {
+    return oldDelegate.progress != progress;
+  }
+}
 
 class PatientDashboard extends StatefulWidget {
   final ScrollController? scrollController;
@@ -58,13 +110,12 @@ class _PatientDashboardState extends State<PatientDashboard> {
   bool _isOffline = false;
   final ImagePicker _picker = ImagePicker();
   
-  // ✅ بيانات مخزنة مؤقتاً للـ Offline
   Map<String, dynamic> _cachedUserData = {};
   List<Map<String, dynamic>> _cachedVitals = [];
   bool _dataLoaded = false;
 
   // ============================================================
-  // 📦 بيانات المؤشرات الحيوية (مع أقصى قيمة للنسبة)
+  // 📦 بيانات المؤشرات الحيوية
   // ============================================================
   final List<Map<String, dynamic>> _vitals = [
     {
@@ -147,25 +198,22 @@ class _PatientDashboardState extends State<PatientDashboard> {
   ];
 
   // ============================================================
-  // 🔄 دورة الحياة - تحميل البيانات مع Offline
+  // 🔄 دورة الحياة
   // ============================================================
   @override
   void initState() {
     super.initState();
-    // ✅ عرض البيانات المخزنة فوراً
     _loadCachedData();
-    // ✅ تحميل البيانات من Firebase في الخلفية
     _loadUserDataInBackground();
   }
 
   // ============================================================
-  // 💾 تحميل البيانات المخزنة محلياً (Offline)
+  // 💾 تحميل البيانات المخزنة محلياً
   // ============================================================
   Future<void> _loadCachedData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       
-      // تحميل بيانات المستخدم المخزنة
       final cachedUserName = prefs.getString('cached_user_name');
       final cachedUserEmail = prefs.getString('cached_user_email');
       final cachedUserRole = prefs.getString('cached_user_role');
@@ -213,7 +261,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
   // ============================================================
   Future<void> _loadUserDataInBackground() async {
     try {
-      // تأخير 10 ثواني قبل التحميل
       await Future.delayed(const Duration(seconds: 10));
       
       final user = FirebaseAuth.instance.currentUser;
@@ -250,7 +297,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
           _isLoading = false;
         });
         
-        // حفظ البيانات في الكاش
         await _saveToCache();
         
         if (doc.data()?['patientNumber'] == null) {
@@ -270,7 +316,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
       setState(() {
         _isOffline = true;
         _isLoading = false;
-        // استخدام البيانات المخزنة
       });
     }
   }
@@ -887,7 +932,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // ✅ رسم بياني دائري مع نسبة
                 Stack(
                   alignment: Alignment.center,
                   children: [
@@ -895,7 +939,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
                       width: 60,
                       height: 60,
                       child: CustomPaint(
-                        painter: _CircularProgressPainter(
+                        painter: CircularProgressPainter(
                           progress: percentage,
                           backgroundColor: color.withOpacity(0.15),
                           progressColor: color,
@@ -947,59 +991,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
         );
       },
     );
-  }
-
-  // ============================================================
-  // 🎨 CustomPainter للدائرة المتدرجة
-  // ============================================================
-  class _CircularProgressPainter extends CustomPainter {
-    final double progress;
-    final Color backgroundColor;
-    final Color progressColor;
-    final double strokeWidth;
-
-    _CircularProgressPainter({
-      required this.progress,
-      required this.backgroundColor,
-      required this.progressColor,
-      this.strokeWidth = 6,
-    });
-
-    @override
-    void paint(Canvas canvas, Size size) {
-      final center = Offset(size.width / 2, size.height / 2);
-      final radius = size.width / 2 - strokeWidth / 2;
-
-      final backgroundPaint = Paint()
-        ..color = backgroundColor
-        ..strokeWidth = strokeWidth
-        ..style = PaintingStyle.stroke
-        ..strokeCap = StrokeCap.round;
-
-      canvas.drawCircle(center, radius, backgroundPaint);
-
-      final progressPaint = Paint()
-        ..color = progressColor
-        ..strokeWidth = strokeWidth
-        ..style = PaintingStyle.stroke
-        ..strokeCap = StrokeCap.round;
-
-      final startAngle = -90 * (3.14159 / 180);
-      final sweepAngle = 360 * (3.14159 / 180) * progress;
-
-      canvas.drawArc(
-        Rect.fromCircle(center: center, radius: radius),
-        startAngle,
-        sweepAngle,
-        false,
-        progressPaint,
-      );
-    }
-
-    @override
-    bool shouldRepaint(_CircularProgressPainter oldDelegate) {
-      return oldDelegate.progress != progress;
-    }
   }
 
   // ============================================================
