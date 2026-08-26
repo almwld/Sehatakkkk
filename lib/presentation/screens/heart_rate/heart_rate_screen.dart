@@ -1,13 +1,16 @@
 // ============================================================
 // 📁 lib/presentation/screens/heart_rate/heart_rate_screen.dart
-// 🫀 شاشة قياس نبضات القلب
+// 🫀 شاشة قياس نبضات القلب مع تعليم متحرك
 // ============================================================
 
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:animated_heart/animated_heart.dart';
+import 'package:lottie/lottie.dart';
 import 'package:sehatak/services/heart_rate_service.dart';
+import 'package:sehatak/presentation/widgets/educational/camera_tutorial_overlay.dart';
+import 'package:sehatak/presentation/widgets/educational/animated_tutorial_widget.dart';
 
 class HeartRateScreen extends StatefulWidget {
   const HeartRateScreen({super.key});
@@ -30,7 +33,9 @@ class _HeartRateScreenState extends State<HeartRateScreen>
   List<double> _waveformData = [];
   bool _isMeasuring = false;
   bool _isInitializing = false;
-  int _statusCode = 0; // 0: متوقف, 1: قياس, 2: جيد
+  bool _showTutorial = true;
+  int _statusCode = 0;
+  bool _showEducationalHint = false;
   
   String get _statusText {
     switch (_statusCode) {
@@ -53,6 +58,8 @@ class _HeartRateScreenState extends State<HeartRateScreen>
   // 🎬 الرسوم المتحركة
   late AnimationController _heartController;
   late Animation<double> _heartScale;
+  late AnimationController _breathController;
+  late Animation<double> _breathAnimation;
   double _heartSize = 80.0;
   
   // 📡 Streams
@@ -62,19 +69,20 @@ class _HeartRateScreenState extends State<HeartRateScreen>
   StreamSubscription<List<double>>? _waveformSubscription;
   StreamSubscription<int>? _statusSubscription;
   Timer? _updateTimer;
-  Timer? _animationTimer;
+  Timer? _hintTimer;
 
   // ============================================================
-  🔄 دورة الحياة
+  // 🔄 دورة الحياة
   // ============================================================
   @override
   void initState() {
     super.initState();
-    _initHeartAnimation();
+    _initAnimations();
     _initializeService();
+    _showEducationalHintAfterDelay();
   }
 
-  void _initHeartAnimation() {
+  void _initAnimations() {
     _heartController = AnimationController(
       duration: const Duration(milliseconds: 600),
       vsync: this,
@@ -85,6 +93,26 @@ class _HeartRateScreenState extends State<HeartRateScreen>
         curve: Curves.easeInOut,
       ),
     );
+    
+    _breathController = AnimationController(
+      duration: const Duration(seconds: 4),
+      vsync: this,
+    )..repeat(reverse: true);
+    
+    _breathAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _breathController,
+        curve: Curves.easeInOut,
+      ),
+    );
+  }
+
+  void _showEducationalHintAfterDelay() {
+    _hintTimer = Timer(const Duration(seconds: 5), () {
+      if (mounted && !_isMeasuring) {
+        setState(() => _showEducationalHint = true);
+      }
+    });
   }
 
   Future<void> _initializeService() async {
@@ -125,6 +153,7 @@ class _HeartRateScreenState extends State<HeartRateScreen>
         _isMeasuring = true;
         _statusCode = 1;
         _currentBPM = 0;
+        _showEducationalHint = false;
       });
       
       await _service.startMeasurement();
@@ -179,15 +208,15 @@ class _HeartRateScreenState extends State<HeartRateScreen>
       _heartController.stop();
     });
     
-    _showResultsDialog();
+    if (_currentBPM > 0) {
+      _showResultsDialog();
+    }
   }
 
   // ============================================================
   📊 عرض النتائج
   // ============================================================
   void _showResultsDialog() {
-    if (_currentBPM == 0) return;
-    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -204,21 +233,13 @@ class _HeartRateScreenState extends State<HeartRateScreen>
             const SizedBox(height: 8),
             _buildResultRow(Icons.timeline, 'متوسط النبض', '${_averageBPM.toStringAsFixed(0)} BPM', Colors.purple),
             const Divider(),
-            Text(
-              _getHealthAdvice(),
-              style: const TextStyle(fontSize: 14, color: Colors.grey),
-            ),
+            _buildHealthAdvice(),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('حسناً'),
-          ),
-          TextButton.icon(
-            onPressed: () => _exportData(),
-            icon: const Icon(Icons.share, size: 16),
-            label: const Text('مشاركة'),
           ),
         ],
       ),
@@ -237,16 +258,41 @@ class _HeartRateScreenState extends State<HeartRateScreen>
     );
   }
 
-  String _getHealthAdvice() {
-    if (_currentBPM < 60) return '💪 نبضك في المعدل الطبيعي للرياضيين';
-    if (_currentBPM < 80) return '😊 نبضك في المعدل الطبيعي';
-    if (_currentBPM < 100) return '🧘 حاول التنفس بعمق لتهدئة نبضك';
-    return '⚠️ نبضك مرتفع، استشر طبيباً إذا استمر';
-  }
-
-  void _exportData() async {
-    // تصدير البيانات
-    _showSnackBar('📤 جاري تصدير البيانات...', Colors.blue);
+  Widget _buildHealthAdvice() {
+    String advice;
+    IconData icon;
+    Color color;
+    
+    if (_currentBPM < 60) {
+      advice = '💪 نبضك في المعدل الطبيعي للرياضيين';
+      icon = Icons.fitness_center;
+      color = Colors.green;
+    } else if (_currentBPM < 80) {
+      advice = '😊 نبضك في المعدل الطبيعي';
+      icon = Icons.sentiment_satisfied;
+      color = Colors.blue;
+    } else if (_currentBPM < 100) {
+      advice = '🧘 حاول التنفس بعمق لتهدئة نبضك';
+      icon = Icons.self_improvement;
+      color = Colors.orange;
+    } else {
+      advice = '⚠️ نبضك مرتفع، استشر طبيباً إذا استمر';
+      icon = Icons.warning;
+      color = Colors.red;
+    }
+    
+    return Row(
+      children: [
+        Icon(icon, color: color, size: 20),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            advice,
+            style: TextStyle(fontSize: 14, color: color),
+          ),
+        ),
+      ],
+    );
   }
 
   // ============================================================
@@ -254,8 +300,27 @@ class _HeartRateScreenState extends State<HeartRateScreen>
   // ============================================================
   Widget _buildWaveformChart() {
     if (_waveformData.isEmpty) {
-      return const Center(
-        child: Text('⏳ انتظار الإشارة...', style: TextStyle(color: Colors.grey)),
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Lottie.asset(
+              'assets/animations/wave_animation.json',
+              height: 60,
+              width: 60,
+              errorBuilder: (_, __, ___) => Icon(
+                Icons.waves,
+                size: 40,
+                color: Colors.grey.shade400,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              '⏳ انتظار الإشارة...',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ],
+        ),
       );
     }
 
@@ -315,180 +380,272 @@ class _HeartRateScreenState extends State<HeartRateScreen>
         elevation: 0,
         actions: [
           IconButton(
+            icon: const Icon(Icons.help_outline),
+            onPressed: () => setState(() => _showTutorial = true),
+            tooltip: 'تعليمات',
+          ),
+          IconButton(
             icon: const Icon(Icons.history),
             onPressed: _showHistory,
             tooltip: 'السجل',
           ),
         ],
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              // ❤️ القلب المتحرك
-              Center(
-                child: AnimatedBuilder(
-                  animation: _heartScale,
-                  builder: (context, child) {
-                    return Transform.scale(
-                      scale: _isMeasuring ? _heartScale.value : 1.0,
-                      child: AnimatedHeart(
-                        size: _heartSize,
-                        color: _isMeasuring ? Colors.red : Colors.grey.shade400,
-                        animated: _isMeasuring,
-                        animationDuration: const Duration(milliseconds: 600),
-                      ),
-                    );
-                  },
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                // ❤️ القلب المتحرك
+                Center(
+                  child: AnimatedBuilder(
+                    animation: _breathAnimation,
+                    builder: (context, child) {
+                      return Transform.scale(
+                        scale: _breathAnimation.value,
+                        child: AnimatedBuilder(
+                          animation: _heartScale,
+                          builder: (context, child) {
+                            return Transform.scale(
+                              scale: _isMeasuring ? _heartScale.value : 1.0,
+                              child: AnimatedHeart(
+                                size: _heartSize,
+                                color: _isMeasuring ? Colors.red : Colors.grey.shade400,
+                                animated: _isMeasuring,
+                                animationDuration: const Duration(milliseconds: 600),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
+                  ),
                 ),
-              ),
-              
-              const SizedBox(height: 20),
-              
-              // 📊 قيمة BPM
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  Text(
-                    _currentBPM == 0 ? '--' : '$_currentBPM',
-                    style: const TextStyle(
-                      fontSize: 64,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.red,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'BPM',
-                    style: TextStyle(fontSize: 24, color: Colors.grey),
-                  ),
-                ],
-              ),
-              
-              const SizedBox(height: 8),
-              
-              // 📊 معلومات إضافية
-              Row(
-                children: [
-                  _buildInfoCard(
-                    'تشبع الأوكسجين',
-                    '${_oxygenSaturation.toStringAsFixed(1)}%',
-                    Icons.air,
-                    Colors.blue,
-                  ),
-                  const SizedBox(width: 8),
-                  _buildInfoCard(
-                    'جودة الإشارة',
-                    '${(_signalQuality * 100).toStringAsFixed(0)}%',
-                    Icons.signal_cellular_alt,
-                    Colors.green,
-                  ),
-                  const SizedBox(width: 8),
-                  _buildInfoCard(
-                    'متوسط النبض',
-                    '${_averageBPM.toStringAsFixed(0)} BPM',
-                    Icons.timeline,
-                    Colors.purple,
-                  ),
-                ],
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // 📝 حالة القياس
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: _statusColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: _statusColor.withOpacity(0.3)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+                
+                const SizedBox(height: 20),
+                
+                // 📊 قيمة BPM
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
                   children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: _statusColor,
-                        shape: BoxShape.circle,
+                    AnimatedDefaultTextStyle(
+                      duration: const Duration(milliseconds: 300),
+                      style: TextStyle(
+                        fontSize: _currentBPM == 0 ? 36 : 64,
+                        fontWeight: FontWeight.bold,
+                        color: _currentBPM == 0 ? Colors.grey : Colors.red,
+                      ),
+                      child: Text(
+                        _currentBPM == 0 ? '--' : '$_currentBPM',
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      _statusText,
-                      style: TextStyle(
-                        color: _statusColor,
-                        fontSize: 14,
+                    const Text(
+                      'BPM',
+                      style: TextStyle(fontSize: 24, color: Colors.grey),
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 8),
+                
+                // 📊 معلومات إضافية
+                Row(
+                  children: [
+                    _buildInfoCard(
+                      'تشبع الأوكسجين',
+                      '${_oxygenSaturation.toStringAsFixed(1)}%',
+                      Icons.air,
+                      Colors.blue,
+                    ),
+                    const SizedBox(width: 8),
+                    _buildInfoCard(
+                      'جودة الإشارة',
+                      '${(_signalQuality * 100).toStringAsFixed(0)}%',
+                      Icons.signal_cellular_alt,
+                      Colors.green,
+                    ),
+                    const SizedBox(width: 8),
+                    _buildInfoCard(
+                      'متوسط النبض',
+                      '${_averageBPM.toStringAsFixed(0)} BPM',
+                      Icons.timeline,
+                      Colors.purple,
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 16),
+                
+                // 📝 حالة القياس
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: _statusColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: _statusColor.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 500),
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: _statusColor,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      AnimatedDefaultTextStyle(
+                        duration: const Duration(milliseconds: 500),
+                        style: TextStyle(
+                          color: _statusColor,
+                          fontSize: 14,
+                        ),
+                        child: Text(_statusText),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(height: 20),
+                
+                // 📈 الرسم البياني
+                _buildWaveformChart(),
+                
+                const SizedBox(height: 20),
+                
+                // 🎮 زر التحكم
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _isInitializing ? null : _toggleMeasurement,
+                    icon: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      child: Icon(
+                        _isMeasuring ? Icons.stop : Icons.play_arrow,
+                        key: ValueKey(_isMeasuring),
                       ),
                     ),
-                  ],
-                ),
-              ),
-              
-              const SizedBox(height: 20),
-              
-              // 📈 الرسم البياني
-              _buildWaveformChart(),
-              
-              const SizedBox(height: 20),
-              
-              // 🎮 زر التحكم
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: _isInitializing ? null : _toggleMeasurement,
-                  icon: Icon(_isMeasuring ? Icons.stop : Icons.play_arrow),
-                  label: Text(
-                    _isMeasuring ? 'إيقاف القياس' : 'بدء القياس',
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _isMeasuring ? Colors.red : Colors.green,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                    label: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      child: Text(
+                        _isMeasuring ? 'إيقاف القياس' : 'بدء القياس',
+                        key: ValueKey(_isMeasuring),
+                        style: const TextStyle(fontSize: 16),
+                      ),
                     ),
-                    elevation: 4,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _isMeasuring ? Colors.red : Colors.green,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 4,
+                    ),
                   ),
                 ),
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // 💡 الإرشادات
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.orange.shade50,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.orange.shade200),
+                
+                const SizedBox(height: 16),
+                
+                // 💡 الإرشادات السريعة
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.orange.shade200),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: const [
+                          Icon(Icons.lightbulb, color: Colors.orange),
+                          SizedBox(width: 8),
+                          Text('💡 إرشادات سريعة', style: TextStyle(fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      const Text('• ضع إصبعك برفق على الكاميرا الخلفية', style: TextStyle(fontSize: 12)),
+                      const Text('• تأكد من تغطية الفلاش بإصبعك', style: TextStyle(fontSize: 12)),
+                      const Text('• حافظ على ثبات إصبعك أثناء القياس', style: TextStyle(fontSize: 12)),
+                    ],
+                  ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text('💡 إرشادات القياس', style: TextStyle(fontWeight: FontWeight.bold)),
-                    SizedBox(height: 8),
-                    Text('• ضع إصبعك برفق على الكاميرا الخلفية', style: TextStyle(fontSize: 12)),
-                    Text('• تأكد من تغطية الفلاش بإصبعك', style: TextStyle(fontSize: 12)),
-                    Text('• حافظ على ثبات إصبعك أثناء القياس', style: TextStyle(fontSize: 12)),
-                    Text('• لا تضغط بشدة على الكاميرا', style: TextStyle(fontSize: 12)),
-                    Text('• استمر لمدة 30 ثانية للحصول على قراءة دقيقة', style: TextStyle(fontSize: 12)),
-                    SizedBox(height: 8),
-                    Text(
-                      '⚠️ هذا التطبيق ليس جهازاً طبياً، النتائج للاسترشاد فقط',
-                      style: TextStyle(fontSize: 11, color: Colors.orange),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
+          
+          // ✅ تراكب التعليم
+          if (_showTutorial)
+            CameraTutorialOverlay(
+              onDismiss: () => setState(() => _showTutorial = false),
+              isMeasuring: _isMeasuring,
+            ),
+          
+          // ✅ رسالة تعليمية منبثقة
+          if (_showEducationalHint && !_isMeasuring)
+            Positioned(
+              bottom: 100,
+              left: 20,
+              right: 20,
+              child: Material(
+                color: Colors.transparent,
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.blue.shade200),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.tips_and_updates, color: Colors.blue),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              '📖 كيفية القياس',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                            Text(
+                              'اضغط "بدء القياس" ثم ضع إصبعك على الكاميرا',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, size: 18),
+                        onPressed: () => setState(() => _showEducationalHint = false),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -514,12 +671,14 @@ class _HeartRateScreenState extends State<HeartRateScreen>
           children: [
             Icon(icon, color: color, size: 20),
             const SizedBox(height: 4),
-            Text(
-              value,
-              style: const TextStyle(
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 300),
+              style: TextStyle(
                 fontWeight: FontWeight.bold,
-                fontSize: 14,
+                fontSize: value.contains('%') ? 12 : 14,
+                color: color,
               ),
+              child: Text(value),
             ),
             Text(
               label,
@@ -604,7 +763,9 @@ class _HeartRateScreenState extends State<HeartRateScreen>
     _waveformSubscription?.cancel();
     _statusSubscription?.cancel();
     _updateTimer?.cancel();
+    _hintTimer?.cancel();
     _heartController.dispose();
+    _breathController.dispose();
     _service.dispose();
     super.dispose();
   }
