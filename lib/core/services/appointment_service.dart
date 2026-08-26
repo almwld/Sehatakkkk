@@ -12,7 +12,6 @@ class AppointmentService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<void> init() async {
-    await _cache.init();
     print('✅ AppointmentService initialized');
   }
 

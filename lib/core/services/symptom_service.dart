@@ -35,7 +35,6 @@ class SymptomService {
   ];
 
   Future<void> init() async {
-    await _cache.init();
     print('✅ SymptomService initialized');
   }
 

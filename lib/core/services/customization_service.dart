@@ -1,15 +1,12 @@
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sehatak/core/services/cache_service.dart';
 
 class CustomizationService {
   static final CustomizationService _instance = CustomizationService._internal();
   factory CustomizationService() => _instance;
   CustomizationService._internal();
 
-  final CacheService _cache = CacheService();
   SharedPreferences? _prefs;
 
-  // الأقسام الافتراضية
   final List<String> _defaultSections = [
     'quick_services',
     'top_doctors',
@@ -38,22 +35,7 @@ class CustomizationService {
     'community': 'مجتمع صحتك',
   };
 
-  final Map<String, IconData> _sectionIcons = {
-    'quick_services': Icons.grid_view,
-    'top_doctors': Icons.medical_services,
-    'favorites': Icons.favorite,
-    'products': Icons.shopping_bag,
-    'hospitals': Icons.local_hospital,
-    'labs': Icons.science,
-    'pharmacies': Icons.local_pharmacy,
-    'articles': Icons.article,
-    'daily_tips': Icons.lightbulb,
-    'discover': Icons.explore,
-    'community': Icons.people,
-  };
-
   Future<void> init() async {
-    await _cache.init();
     _prefs = await SharedPreferences.getInstance();
     print('✅ CustomizationService initialized');
   }
@@ -63,12 +45,10 @@ class CustomizationService {
       if (_prefs == null) {
         _prefs = await SharedPreferences.getInstance();
       }
-      
       final sections = _prefs!.getStringList('visible_sections');
       if (sections != null && sections.isNotEmpty) {
         return sections;
       }
-      
       return _defaultSections;
     } catch (e) {
       print('⚠️ Error getting visible sections: $e');
@@ -109,7 +89,6 @@ class CustomizationService {
       if (_prefs == null) {
         _prefs = await SharedPreferences.getInstance();
       }
-
       return {
         'theme': _prefs!.getString('theme') ?? 'light',
         'fontSize': _prefs!.getString('fontSize') ?? 'medium',
@@ -136,7 +115,6 @@ class CustomizationService {
       if (_prefs == null) {
         _prefs = await SharedPreferences.getInstance();
       }
-
       preferences.forEach((key, value) {
         if (value is String) {
           _prefs!.setString(key, value);
@@ -146,7 +124,6 @@ class CustomizationService {
           _prefs!.setInt(key, value);
         }
       });
-      
       print('✅ User preferences updated');
     } catch (e) {
       print('⚠️ Error updating user preferences: $e');
@@ -157,11 +134,25 @@ class CustomizationService {
     return _sectionNames[key] ?? key;
   }
 
-  IconData getSectionIcon(String key) {
-    return _sectionIcons[key] ?? Icons.category;
+  // ✅ إزالة IconData واستخدام String بدلاً منه
+  String getSectionIcon(String key) {
+    final icons = {
+      'quick_services': 'assets/images/services/consultation.png',
+      'top_doctors': 'assets/images/services/consultation.png',
+      'favorites': 'assets/images/ui/favorites.png',
+      'products': 'assets/images/services/medications.png',
+      'hospitals': 'assets/images/services/hospital.png',
+      'labs': 'assets/images/services/laboratory.png',
+      'pharmacies': 'assets/images/services/pharmacy.png',
+      'articles': 'assets/images/services/medical_articles.png',
+      'daily_tips': 'assets/images/services/health_tips.png',
+      'discover': 'assets/images/services/packages.png',
+      'community': 'assets/images/services/medical_community.png',
+    };
+    return icons[key] ?? 'assets/images/ui/all_services.png';
   }
 
-  List<Map<String, dynamic>> getSectionsWithStatus() async {
+  Future<List<Map<String, dynamic>>> getSectionsWithStatus() async {
     final visible = await getVisibleSections();
     return _defaultSections.map((section) {
       return {

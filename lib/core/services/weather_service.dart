@@ -13,7 +13,6 @@ class WeatherService {
 
   Future<void> init() async {
     print('✅ WeatherService initialized');
-    await _cache.init();
   }
 
   Future<Map<String, dynamic>> getCurrentWeather({

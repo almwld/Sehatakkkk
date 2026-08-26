@@ -31,7 +31,6 @@ class LocationService {
     }
   }
 
-  // ✅ إضافة دالة getAddressFromLocation
   Future<String> getAddressFromLocation({
     required double latitude,
     required double longitude,
@@ -40,7 +39,6 @@ class LocationService {
       final placemarks = await placemarkFromCoordinates(
         latitude,
         longitude,
-        localeIdentifier: 'ar',
       );
       
       if (placemarks.isNotEmpty) {
