@@ -24,6 +24,7 @@ import 'presentation/bloc/chat_bloc/chat_bloc.dart';
 import 'presentation/bloc/doctor_bloc/doctor_bloc.dart';
 import 'presentation/screens/splash_screen.dart';
 import 'presentation/screens/wallet/wallet_screen.dart';
+import 'presentation/screens/sleep_tracker/sleep_tracker_screen.dart';
 
 // ✅ معالج الخلفية للإشعارات
 @pragma('vm:entry-point')
@@ -60,10 +61,8 @@ void main() async {
       sound: true,
     );
 
-    // ✅ تسجيل المعالج الخلفي
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-    // ✅ الحصول على التوكن
     final token = await fcm.getToken();
     print('✅ FCM Token: $token');
   } catch (e) {
@@ -71,7 +70,7 @@ void main() async {
   }
 
   // ✅ تهيئة الكاش
-  await CacheService().init();
+  await CacheService.init();
 
   // ✅ تهيئة الإشعارات
   final notificationService = NotificationService();
@@ -80,7 +79,6 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        // ✅ UserProvider - باستخدام loadUserSafely
         ChangeNotifierProvider(
           create: (_) => UserProvider()..loadUserSafely(),
         ),
@@ -90,7 +88,6 @@ void main() async {
         ChangeNotifierProvider(
           create: (_) => BotProvider(),
         ),
-        // ✅ WalletProvider - مع تحقق آمن
         ChangeNotifierProvider(
           create: (_) {
             try {
@@ -133,11 +130,9 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    // ✅ الاستماع للإشعارات
     FirebaseMessaging.onMessage.listen(_handleMessage);
     FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpened);
 
-    // ✅ الاستماع لإشعارات المكالمات
     FirebaseMessaging.onMessage.listen((message) {
       if (message.data['type'] == 'incoming_call') {
         _callService.handleIncomingCall(context, message);
@@ -151,18 +146,15 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  // ✅ معالجة العودة من الخلفية
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed) {
       print('🔄 App resumed from background');
       if (mounted) {
-        // ✅ إعادة تحميل بيانات المستخدم
         final userProvider = Provider.of<UserProvider>(context, listen: false);
         userProvider.loadUserSafely();
-        
-        // ✅ تحديث حالة المستخدم في Firestore
+
         final user = FirebaseAuth.instance.currentUser;
         if (user != null) {
           FirebaseFirestore.instance.collection('users').doc(user.uid).update({
@@ -185,7 +177,6 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
 
   void _handleMessageOpened(RemoteMessage message) {
     print('📱 Message opened: ${message.data}');
-    // ✅ التنقل إلى الشاشة المناسبة
     if (message.data['type'] == 'incoming_call') {
       _callService.handleIncomingCall(context, message);
     }
