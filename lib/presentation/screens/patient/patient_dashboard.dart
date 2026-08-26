@@ -104,7 +104,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
   String _patientNumber = 'SH-2024-0012';
   String _userAvatar = '';
   String _subscriptionType = 'مجاني';
-  String _subscriptionColor = '#6C757D'; // ✅ اللون الرمادي للباقة المجانية
   bool _isLoading = true;
   bool _isSharing = false;
   bool _isOffline = false;
@@ -228,7 +227,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
           _userRole = cachedUserRole ?? 'مريض';
           _patientNumber = cachedPatientNumber ?? _generatePatientNumber();
           _subscriptionType = cachedSubscriptionType ?? 'مجاني';
-          _subscriptionColor = _getSubscriptionColor(_subscriptionType);
           _userAvatar = cachedUserAvatar ?? '';
           _dataLoaded = true;
         });
@@ -292,7 +290,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
           _userAvatar = data?['avatar'] ?? '';
           _patientNumber = data?['patientNumber'] ?? _generatePatientNumber();
           _subscriptionType = data?['subscriptionType'] ?? 'مجاني';
-          _subscriptionColor = _getSubscriptionColor(_subscriptionType);
           _isOffline = false;
           _isLoading = false;
         });
@@ -331,24 +328,58 @@ class _PatientDashboardState extends State<PatientDashboard> {
   }
 
   // ============================================================
-  // 🎨 ألوان الباقة حسب النوع
+  // 🎨 ألوان الباقة حسب النوع - مع التدرج الأصلي للباقة المجانية
   // ============================================================
   String _getSubscriptionColor(String type) {
     switch (type.toLowerCase()) {
       case 'ذهبية': case 'gold': 
-        return '#FFD700'; // ذهبي
+        return '#FFD700';
       case 'ماسية': case 'diamond': 
-        return '#00BCD4'; // فيروزي
+        return '#00BCD4';
       case 'فضية': case 'silver': 
-        return '#9E9E9E'; // فضي
+        return '#9E9E9E';
       case 'برونزية': case 'bronze': 
-        return '#CD7F32'; // برونزي
+        return '#CD7F32';
       case 'عائلية': case 'family': 
-        return '#4CAF50'; // أخضر
+        return '#4CAF50';
       case 'مجاني': case 'free': 
-        return '#6C757D'; // ✅ رمادي للباقة المجانية
+        return '#9C27B0'; // ✅ بنفسجي (اللون الأساسي)
       default: 
-        return '#6C757D'; // رمادي افتراضي
+        return '#9C27B0';
+    }
+  }
+
+  // ✅ الحصول على التدرج اللوني للباقة المجانية (بنفسجي + أخضر)
+  List<Color> _getSubscriptionGradient(String type) {
+    switch (type.toLowerCase()) {
+      case 'ذهبية': case 'gold': 
+        return [Colors.amber, Colors.orange];
+      case 'ماسية': case 'diamond': 
+        return [Colors.cyan, Colors.blue];
+      case 'فضية': case 'silver': 
+        return [Colors.grey, Colors.blueGrey];
+      case 'برونزية': case 'bronze': 
+        return [Colors.brown, Colors.orange];
+      case 'عائلية': case 'family': 
+        return [Colors.green, Colors.teal];
+      case 'مجاني': case 'free': 
+        // ✅ التدرج الأصلي: بنفسجي + أخضر مدمج
+        return [Colors.purple.shade400, Colors.green.shade400];
+      default: 
+        return [Colors.purple.shade400, Colors.green.shade400];
+    }
+  }
+
+  // ✅ الحصول على أيقونة الباقة
+  String _getSubscriptionIcon(String type) {
+    switch (type.toLowerCase()) {
+      case 'ذهبية': case 'gold': return '⭐';
+      case 'ماسية': case 'diamond': return '💎';
+      case 'فضية': case 'silver': return '🥈';
+      case 'برونزية': case 'bronze': return '🥉';
+      case 'عائلية': case 'family': return '👨‍👩‍👧‍👦';
+      case 'مجاني': case 'free': return '🆓';
+      default: return '🆓';
     }
   }
 
@@ -781,31 +812,13 @@ class _PatientDashboardState extends State<PatientDashboard> {
   }
 
   // ============================================================
-  // 💳 الباقة النشطة - ألوان حسب النوع مع اللون الرمادي للمجانية
+  // 💳 الباقة النشطة - مع التدرج الأصلي (بنفسجي + أخضر للمجانية)
   // ============================================================
   Widget _buildActiveSubscriptionCard(bool isDark) {
-    // ✅ ألوان الباقات حسب النوع
-    final Map<String, Color> subscriptionColors = {
-      'ذهبية': Colors.amber,
-      'ماسية': Colors.cyan,
-      'فضية': Colors.grey,
-      'برونزية': Colors.brown,
-      'عائلية': Colors.green,
-      'مجاني': Colors.purple, // ✅ رمادي للباقة المجانية
-    };
-
-    final Map<String, String> subscriptionIcons = {
-      'ذهبية': '⭐',
-      'ماسية': '💎',
-      'فضية': '🥈',
-      'برونزية': '🥉',
-      'عائلية': '👨‍👩‍👧‍👦',
-      'مجاني': '🆓', // ✅ أيقونة مجانية
-    };
-
-    final Color subscriptionColor = subscriptionColors[_subscriptionType] ?? Colors.grey;
-    final String subscriptionIcon = subscriptionIcons[_subscriptionType] ?? '🆓';
-    final String subscriptionStatus = _subscriptionType == 'مجاني' ? 'مجانية' : 'مفعّلة';
+    // ✅ الحصول على التدرج اللوني حسب نوع الباقة
+    List<Color> gradientColors = _getSubscriptionGradient(_subscriptionType);
+    String subscriptionIcon = _getSubscriptionIcon(_subscriptionType);
+    String subscriptionStatus = _subscriptionType == 'مجاني' ? 'مجانية' : 'مفعّلة';
 
     return GestureDetector(
       onTap: () {
@@ -817,15 +830,16 @@ class _PatientDashboardState extends State<PatientDashboard> {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
+          // ✅ استخدام التدرج اللوني المدمج (بنفسجي + أخضر للمجانية)
           gradient: LinearGradient(
-            colors: [subscriptionColor, subscriptionColor.withOpacity(0.7)],
+            colors: gradientColors,
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: subscriptionColor.withOpacity(0.3),
+              color: gradientColors.first.withOpacity(0.3),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -901,7 +915,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
   }
 
   // ============================================================
-  // 📊 المؤشرات الحيوية - المؤشرات الأصلية مع رسم بياني دائري
+  // 📊 المؤشرات الحيوية
   // ============================================================
   Widget _buildVitalsGrid(bool isDark) {
     return GridView.builder(
