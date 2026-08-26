@@ -207,10 +207,15 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.favorite_border,
-            size: 80,
-            color: isDark ? Colors.grey.shade600 : Colors.grey.shade400,
+          Image.asset(
+            'assets/images/ui/favorites.png',
+            width: 80,
+            height: 80,
+            errorBuilder: (_, __, ___) => Icon(
+              Icons.favorite_border,
+              size: 80,
+              color: isDark ? Colors.grey.shade600 : Colors.grey.shade400,
+            ),
           ),
           const SizedBox(height: 16),
           Text(
@@ -250,6 +255,22 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     final subtitle = item['subtitle'] ?? item['specialty'] ?? item['location'] ?? '';
     final rating = item['rating'] ?? 4.5;
 
+    // ✅ أيقونة محلية حسب النوع
+    String getIconPath(String type) {
+      switch (type) {
+        case 'أطباء':
+          return 'assets/images/services/consultation.png';
+        case 'مستشفيات':
+          return 'assets/images/services/hospital.png';
+        case 'صيدليات':
+          return 'assets/images/services/pharmacy.png';
+        case 'مختبرات':
+          return 'assets/images/services/laboratory.png';
+        default:
+          return 'assets/images/ui/favorites.png';
+      }
+    }
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
@@ -266,7 +287,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       ),
       child: Row(
         children: [
-          // ✅ أيقونة النوع
+          // ✅ أيقونة محلية
           Container(
             width: 50,
             height: 50,
@@ -275,10 +296,15 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
-              child: Icon(
-                _getTypeIcon(type),
-                color: _getTypeColor(type),
-                size: 24,
+              child: Image.asset(
+                getIconPath(type),
+                width: 28,
+                height: 28,
+                errorBuilder: (_, __, ___) => Icon(
+                  _getTypeIcon(type),
+                  color: _getTypeColor(type),
+                  size: 24,
+                ),
               ),
             ),
           ),
