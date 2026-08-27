@@ -1,6 +1,6 @@
 // ============================================================
 // 📁 lib/presentation/screens/sleep_tracker/sleep_tracker_screen.dart
-// 🛌 شاشة تتبع النوم الرئيسية
+// Sleep شاشة تتبع النوم الرئيسية
 // ============================================================
 
 import 'dart:async';
@@ -18,7 +18,7 @@ class SleepTrackerScreen extends StatefulWidget {
 class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
   final SleepTrackerService _service = SleepTrackerService();
 
-  // ✅ بيانات النوم
+  // OK بيانات النوم
   double _lastNightSleep = 7.5;
   double _sleepQuality = 7.0;
   String _sleepQualityText = 'جيد';
@@ -29,7 +29,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
   double _bestQuality = 0.0;
   int _totalSessions = 0;
 
-  // ✅ حالة التتبع
+  // OK حالة التتبع
   bool _isTracking = false;
   DateTime? _trackingStartTime;
   Timer? _trackingTimer;
@@ -79,7 +79,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
         _bestQuality = stats['best_quality'] ?? 0.0;
       });
     } catch (e) {
-      print('⚠️ خطأ في تحميل الإحصائيات: $e');
+      print('Warning خطأ في تحميل الإحصائيات: $e');
     }
   }
 
@@ -94,7 +94,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
         }
       });
     } catch (e) {
-      print('⚠️ خطأ في تحميل بيانات الأسبوع: $e');
+      print('Warning خطأ في تحميل بيانات الأسبوع: $e');
       _generateDefaultWeekData();
     }
   }
@@ -136,7 +136,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
       setState(() {});
     });
 
-    // ✅ بدء التتبع في الخلفية
+    // OK بدء التتبع في الخلفية
     await _service.startTracking();
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -155,14 +155,14 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
       _isTracking = false;
     });
 
-    // ✅ إيقاف التتبع وجلب النتائج
+    // OK إيقاف التتبع وجلب النتائج
     final result = await _service.stopTracking();
 
     await _loadData();
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('✅ تم إيقاف التتبع - الجودة: ${result['quality'].toStringAsFixed(1)}/10'),
+        content: Text('OK تم إيقاف التتبع - الجودة: ${result['quality'].toStringAsFixed(1)}/10'),
         backgroundColor: Colors.green,
         duration: const Duration(seconds: 3),
       ),
@@ -187,13 +187,13 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
             _buildReportRow('⭐ الجودة', '${result['quality'].toStringAsFixed(1)}/10'),
             _buildReportRow('🎤 الشخير', '${result['snore']} مرة'),
             const Divider(),
-            _buildReportRow('📊 التقييم', '$_sleepQualityText $_sleepEmoji'),
+            _buildReportRow('Stats التقييم', '$_sleepQualityText $_sleepEmoji'),
             const SizedBox(height: 8),
             ..._getTips(result['quality']).map((tip) => Padding(
               padding: const EdgeInsets.only(left: 8, top: 2),
               child: Row(
                 children: [
-                  const Text('💡 ', style: TextStyle(fontSize: 12)),
+                  const Text('Tip ', style: TextStyle(fontSize: 12)),
                   Expanded(
                     child: Text(
                       tip,
@@ -421,7 +421,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
             const SizedBox(height: 16),
 
             // ============================================================
-            // 📊 الإحصائيات السريعة
+            // Stats الإحصائيات السريعة
             // ============================================================
             Row(
               children: [
@@ -454,7 +454,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    '📊 تقدم النوم الأسبوعي',
+                    'Stats تقدم النوم الأسبوعي',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                   const SizedBox(height: 12),
@@ -513,7 +513,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
             const SizedBox(height: 16),
 
             // ============================================================
-            // 💡 نصائح
+            // Tip نصائح
             // ============================================================
             Container(
               padding: const EdgeInsets.all(16),
@@ -533,7 +533,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
                     padding: const EdgeInsets.only(bottom: 4),
                     child: Row(
                       children: [
-                        const Text('💡 ', style: TextStyle(fontSize: 12)),
+                        const Text('Tip ', style: TextStyle(fontSize: 12)),
                         Expanded(
                           child: Text(
                             tip,
@@ -590,14 +590,14 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('📊 الإحصائيات'),
+        title: const Text('Stats الإحصائيات'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildStatRow('📈 عدد الجلسات', '${stats['total_sessions']}'),
             _buildStatRow('⭐ أفضل جودة', '${(stats['best_quality'] ?? 0).toStringAsFixed(1)}/10'),
-            _buildStatRow('📊 متوسط الجودة', '${(stats['avg_quality'] ?? 0).toStringAsFixed(1)}/10'),
+            _buildStatRow('Stats متوسط الجودة', '${(stats['avg_quality'] ?? 0).toStringAsFixed(1)}/10'),
             _buildStatRow('⏰ متوسط المدة', '${(stats['avg_duration'] ?? 0).toStringAsFixed(1)} ساعة'),
             _buildStatRow('🎤 آخر شخير', '${stats['last_snore'] ?? 0} مرة'),
             const Divider(),
@@ -646,7 +646,7 @@ class _SleepTrackerScreenState extends State<SleepTrackerScreen> {
               await _loadData();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('✅ تم حذف جميع البيانات'),
+                  content: Text('OK تم حذف جميع البيانات'),
                   backgroundColor: Colors.green,
                 ),
               );

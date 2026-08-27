@@ -1,6 +1,6 @@
 // ============================================================
 // 📁 lib/services/heart_rate_service.dart
-// 🫀 خدمة قياس نبضات القلب باستخدام الكاميرا
+// Heart Rate خدمة قياس نبضات القلب باستخدام الكاميرا
 // ============================================================
 
 import 'dart:async';
@@ -148,16 +148,16 @@ class HeartRateService {
       await _cameraController!.setFocusMode(FocusMode.locked);
       
       _isInitialized = true;
-      debugPrint('✅ كاميرا مهيأة بنجاح');
+      debugPrint('Success كاميرا مهيأة بنجاح');
       
     } catch (e) {
-      debugPrint('❌ خطأ في تهيئة الكاميرا: $e');
+      debugPrint('Error خطأ في تهيئة الكاميرا: $e');
       rethrow;
     }
   }
 
   // ============================================================
-  🚀 بدء القياس
+  Start بدء القياس
   // ============================================================
   Future<void> startMeasurement() async {
     if (!_isInitialized) {
@@ -181,7 +181,7 @@ class HeartRateService {
     _prevLowPass = 0.0;
     _prevHighPass = 0.0;
     
-    debugPrint('🫀 بدء قياس النبض...');
+    debugPrint('Heart Rate بدء قياس النبض...');
     _statusController.add(1);
     
     _cameraController!.startImageStream(_processImage);
@@ -209,11 +209,11 @@ class HeartRateService {
     _stopForegroundService();
     _statusController.add(0);
     
-    debugPrint('⏹️ إيقاف قياس النبض');
+    debugPrint('Stop إيقاف قياس النبض');
   }
 
   // ============================================================
-  📸 معالجة الإطارات
+  Processing معالجة الإطارات
   // ============================================================
   void _processImage(CameraImage image) {
     if (!_isMeasuring) return;
@@ -250,7 +250,7 @@ class HeartRateService {
       }
       
     } catch (e) {
-      debugPrint('⚠️ خطأ في معالجة الإطار: $e');
+      debugPrint('Warning خطأ في معالجة الإطار: $e');
     }
   }
 
@@ -446,7 +446,7 @@ class HeartRateService {
       await prefs.setInt('last_measurement_time', DateTime.now().millisecondsSinceEpoch);
       
     } catch (e) {
-      debugPrint('⚠️ خطأ في حفظ القياس: $e');
+      debugPrint('Warning خطأ في حفظ القياس: $e');
     }
   }
 
@@ -498,7 +498,7 @@ class HeartRateService {
       };
       
     } catch (e) {
-      debugPrint('⚠️ خطأ في جلب الإحصائيات: $e');
+      debugPrint('Warning خطأ في جلب الإحصائيات: $e');
       return {};
     }
   }
@@ -508,7 +508,7 @@ class HeartRateService {
   // ============================================================
   void _startForegroundService() {
     FlutterForegroundTask.startService(
-      notificationTitle: '🫀 قياس نبضات القلب',
+      notificationTitle: 'Heart Rate قياس نبضات القلب',
       notificationText: 'جاري قياس نبضات قلبك...',
       notificationIcon: 'ic_launcher',
     );

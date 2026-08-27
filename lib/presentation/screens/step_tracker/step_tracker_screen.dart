@@ -1,9 +1,3 @@
-// ============================================================
-// 📁 lib/presentation/screens/step_tracker/step_tracker_screen.dart
-// 🚶 شاشة تتبع الخطوات والمشي
-// ============================================================
-
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:step_progress_indicator/step_progress_indicator.dart';
@@ -19,18 +13,14 @@ class StepTrackerScreen extends StatefulWidget {
 
 class _StepTrackerScreenState extends State<StepTrackerScreen> {
   final StepTrackerService _service = StepTrackerService();
-  StreamSubscription<int>? _stepSubscription;
-  Timer? _updateTimer;
-
-  // ✅ بيانات الخطوات
+  
   int _steps = 0;
   double _distance = 0.0;
   int _calories = 0;
   int _stepGoal = 10000;
   double _progress = 0.0;
   double _speed = 0.0;
-
-  // ✅ إحصائيات
+  
   Map<String, dynamic> _stats = {};
   List<Map<String, dynamic>> _weeklyData = [];
   bool _isTracking = false;
@@ -42,25 +32,8 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
   }
 
   Future<void> _initializeTracker() async {
-    // ✅ بدء تتبع الخطوات
     await _service.startStepTracking();
-
-    // ✅ الاستماع لتحديثات الخطوات
-    _stepSubscription = _service.stepStream.listen((steps) {
-      setState(() {
-        _steps = steps;
-        _updateProgress();
-      });
-    });
-
-    // ✅ تحميل البيانات
     await _loadData();
-
-    // ✅ بدء التحديث الدوري
-    _updateTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      _updateData();
-    });
-
     setState(() {
       _isTracking = true;
     });
@@ -82,23 +55,9 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
     });
   }
 
-  void _updateData() {
-    setState(() {
-      _steps = _service.todaySteps;
-      _distance = _service.distance;
-      _calories = _service.calories;
-      _speed = _service.speed;
-      _updateProgress();
-    });
-  }
-
   void _updateProgress() {
     _progress = _stepGoal > 0 ? (_steps / _stepGoal).clamp(0.0, 1.0) : 0.0;
   }
-
-  // ============================================================
-  📊 الرسم البياني الأسبوعي
-  // ============================================================
 
   Widget _buildWeeklyChart() {
     if (_weeklyData.isEmpty) {
@@ -114,7 +73,7 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
       spots.add(FlSpot(i.toDouble(), steps.toDouble()));
     }
 
-    double maxY = spots.isEmpty ? 1000 : spots.map((s) => s.y).reduce(max) * 1.2;
+    double maxY = spots.isEmpty ? 1000 : spots.map((s) => s.y).reduce((a, b) => a > b ? a : b) * 1.2;
 
     return Container(
       height: 200,
@@ -188,10 +147,6 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
     );
   }
 
-  // ============================================================
-  📊 بطاقة الإحصائيات
-  // ============================================================
-
   Widget _buildStatCard(String title, String value, IconData icon, Color color) {
     return Expanded(
       child: Container(
@@ -229,10 +184,6 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
       ),
     );
   }
-
-  // ============================================================
-  📈 مؤشر التقدم
-  // ============================================================
 
   Widget _buildProgressIndicator() {
     return Container(
@@ -312,10 +263,6 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
     );
   }
 
-  // ============================================================
-  📱 بناء الواجهة
-  // ============================================================
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -340,16 +287,8 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ============================================================
-            // 📈 مؤشر التقدم
-            // ============================================================
             _buildProgressIndicator(),
-
             const SizedBox(height: 16),
-
-            // ============================================================
-            // 📊 الإحصائيات السريعة
-            // ============================================================
             Row(
               children: [
                 _buildStatCard(
@@ -374,12 +313,7 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
                 ),
               ],
             ),
-
             const SizedBox(height: 16),
-
-            // ============================================================
-            // 📊 الرسم البياني الأسبوعي
-            // ============================================================
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -404,12 +338,7 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
                 ],
               ),
             ),
-
             const SizedBox(height: 16),
-
-            // ============================================================
-            // 💡 نصائح
-            // ============================================================
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -437,10 +366,6 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
       ),
     );
   }
-
-  // ============================================================
-  📊 عرض الإحصائيات
-  // ============================================================
 
   void _showStatsDialog() {
     showDialog(
@@ -473,8 +398,6 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
 
   @override
   void dispose() {
-    _stepSubscription?.cancel();
-    _updateTimer?.cancel();
     _service.stopTracking();
     super.dispose();
   }

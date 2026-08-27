@@ -1,6 +1,7 @@
+import 'package:path_provider/path_provider.dart';
 // ============================================================
 // 📁 lib/services/sleep_tracker_service.dart
-// 🛌 خدمة تتبع النوم - كاملة (بدون تصدير بيانات)
+// Sleep خدمة تتبع النوم - كاملة (بدون تصدير بيانات)
 // ============================================================
 
 import 'dart:async';
@@ -21,7 +22,7 @@ class SleepTrackerService {
   SleepTrackerService._internal();
 
   // ============================================================
-  // 📊 متغيرات الحالة
+  // Stats متغيرات الحالة
   // ============================================================
   
   Database? _database;
@@ -97,7 +98,7 @@ class SleepTrackerService {
   }
 
   // ============================================================
-  // 📊 2. قراءة بيانات الحساسات
+  // Stats 2. قراءة بيانات الحساسات
   // ============================================================
 
   Future<void> _readSensorData() async {
@@ -112,7 +113,7 @@ class SleepTrackerService {
     _stomachSleepCount = 0;
 
     try {
-      // ✅ قراءة Accelerometer
+      // Success قراءة Accelerometer
       Completer<void> accCompleter = Completer();
       List<AccelerometerEvent> accEvents = [];
 
@@ -120,7 +121,7 @@ class SleepTrackerService {
         accEvents.add(event);
       });
 
-      // ✅ قراءة Gyroscope
+      // Success قراءة Gyroscope
       Completer<void> gyroCompleter = Completer();
       List<GyroscopeEvent> gyroEvents = [];
 
@@ -128,19 +129,19 @@ class SleepTrackerService {
         gyroEvents.add(event);
       });
 
-      // ✅ جمع البيانات لمدة 30 ثانية
+      // Success جمع البيانات لمدة 30 ثانية
       await Future.delayed(const Duration(seconds: 30));
       await accSubscription.cancel();
       await gyroSubscription.cancel();
 
-      // ✅ تحليل بيانات Accelerometer
+      // Success تحليل بيانات Accelerometer
       for (var event in accEvents) {
         double magnitude = sqrt(
           event.x * event.x + event.y * event.y + event.z * event.z
         );
         _movementData.add(magnitude);
 
-        // ✅ تحليل مراحل النوم
+        // Success تحليل مراحل النوم
         if (magnitude > 0.8) {
           _awakeCount++;
         } else if (magnitude > 0.4) {
@@ -152,11 +153,11 @@ class SleepTrackerService {
         }
       }
 
-      // ✅ تحليل بيانات Gyroscope
+      // Success تحليل بيانات Gyroscope
       for (var event in gyroEvents) {
         _gyroscopeData.add(event.x.abs() + event.y.abs() + event.z.abs());
 
-        // ✅ تحليل وضعية النوم
+        // Success تحليل وضعية النوم
         if (event.x.abs() > 0.5) {
           _sideSleepCount++;
         } else if (event.y.abs() > 0.5) {
@@ -166,17 +167,17 @@ class SleepTrackerService {
         }
       }
 
-      print('✅ تم جمع ${_movementData.length} نقطة حركة');
-      print('✅ تم جمع ${_gyroscopeData.length} نقطة جيروسكوب');
+      print('Success تم جمع ${_movementData.length} نقطة حركة');
+      print('Success تم جمع ${_gyroscopeData.length} نقطة جيروسكوب');
 
     } catch (e) {
-      print('⚠️ خطأ في قراءة الحساسات: $e');
+      print('Warning خطأ في قراءة الحساسات: $e');
       _generateDefaultSensorData();
     }
   }
 
   void _generateDefaultSensorData() {
-    // ✅ بيانات افتراضية للاختبار
+    // Success بيانات افتراضية للاختبار
     _movementData = List.generate(300, (index) => 0.2 + (index % 10) * 0.08);
     _gyroscopeData = List.generate(300, (index) => 0.1 + (index % 8) * 0.05);
     _deepSleepCount = 120;
@@ -217,7 +218,7 @@ class SleepTrackerService {
       }
 
     } catch (e) {
-      print('⚠️ خطأ في التسجيل الصوتي: $e');
+      print('Warning خطأ في التسجيل الصوتي: $e');
       _snoreCount = (DateTime.now().millisecondsSinceEpoch % 20).toInt();
       _audioData = List.generate(100, (index) => 0.2 + (index % 5) * 0.1);
     }
@@ -238,7 +239,7 @@ class SleepTrackerService {
           List<int> chunk = bytes.sublist(i, i + 2048);
           double avg = chunk.map((b) => b.toDouble()).reduce((a, b) => a + b) / chunk.length;
 
-          // ✅ الكشف عن الشخير
+          // Success الكشف عن الشخير
           if (avg > threshold && avg < 1.0) {
             _snoreCount++;
           }
@@ -246,10 +247,10 @@ class SleepTrackerService {
         }
       }
 
-      print('✅ تم تحليل الصوت: ${_audioData.length} نقطة، $_snoreCount شخير');
+      print('Success تم تحليل الصوت: ${_audioData.length} نقطة، $_snoreCount شخير');
 
     } catch (e) {
-      print('⚠️ خطأ في تحليل الصوت: $e');
+      print('Warning خطأ في تحليل الصوت: $e');
       _snoreCount = (DateTime.now().millisecondsSinceEpoch % 20).toInt();
       _audioData = List.generate(100, (index) => 0.2 + (index % 5) * 0.1);
     }
@@ -273,7 +274,7 @@ class SleepTrackerService {
     };
 
     if (_movementData.isEmpty) {
-      // ✅ بيانات افتراضية
+      // Success بيانات افتراضية
       analysis['deep_sleep'] = 3.0 + (DateTime.now().millisecondsSinceEpoch % 2).toDouble();
       analysis['light_sleep'] = 3.5 + (DateTime.now().millisecondsSinceEpoch % 2).toDouble();
       analysis['rem_sleep'] = 1.5;
@@ -285,7 +286,7 @@ class SleepTrackerService {
       return analysis;
     }
 
-    // ✅ حساب مراحل النوم
+    // Success حساب مراحل النوم
     double totalCount = _deepSleepCount + _lightSleepCount + _remSleepCount + _awakeCount;
     if (totalCount > 0) {
       analysis['deep_sleep'] = (_deepSleepCount / totalCount) * 8.0;
@@ -294,7 +295,7 @@ class SleepTrackerService {
       analysis['awake'] = (_awakeCount / totalCount) * 8.0;
     }
 
-    // ✅ حساب وضعيات النوم
+    // Success حساب وضعيات النوم
     double totalPosition = _sideSleepCount + _backSleepCount + _stomachSleepCount;
     if (totalPosition > 0) {
       analysis['side_sleep'] = (_sideSleepCount / totalPosition * 100).round();
@@ -302,21 +303,21 @@ class SleepTrackerService {
       analysis['stomach_sleep'] = (_stomachSleepCount / totalPosition * 100).round();
     }
 
-    // ✅ حساب جودة النوم
+    // Success حساب جودة النوم
     double totalSleep = analysis['deep_sleep'] + analysis['light_sleep'] + analysis['rem_sleep'];
     double qualityScore = (totalSleep / 8.0) * 10.0;
 
-    // ✅ خصم بسبب الشخير
+    // Success خصم بسبب الشخير
     if (_snoreCount > 20) {
       qualityScore -= 2.0;
     }
 
-    // ✅ خصم بسبب التحرك الكثير
+    // Success خصم بسبب التحرك الكثير
     if (_movementData.length > 500) {
       qualityScore -= 1.0;
     }
 
-    // ✅ إضافة نقاط لوضعية النوم الجيدة
+    // Success إضافة نقاط لوضعية النوم الجيدة
     if (analysis['side_sleep'] > 50) {
       qualityScore += 0.5;
     }
@@ -356,14 +357,14 @@ class SleepTrackerService {
       'timestamp': now.millisecondsSinceEpoch,
     });
 
-    // ✅ حفظ في SharedPreferences
+    // Success حفظ في SharedPreferences
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble('last_quality', analysis['quality']);
     await prefs.setDouble('last_duration', totalSleep);
     await prefs.setInt('last_timestamp', now.millisecondsSinceEpoch);
     await prefs.setInt('last_snore', _snoreCount);
 
-    print('✅ تم حفظ بيانات النوم');
+    print('Success تم حفظ بيانات النوم');
   }
 
   // ============================================================
@@ -375,28 +376,28 @@ class SleepTrackerService {
       print('🌙 بدء تتبع النوم في الخلفية');
       _sleepStartTime = DateTime.now();
 
-      // ✅ قراءة بيانات الحساسات
+      // Success قراءة بيانات الحساسات
       await _readSensorData();
 
-      // ✅ تسجيل وتحليل الصوت
+      // Success تسجيل وتحليل الصوت
       await _recordAndAnalyzeAudio();
 
-      // ✅ تحليل البيانات
+      // Success تحليل البيانات
       var analysis = await _analyzeData();
 
-      // ✅ حفظ النتائج
+      // Success حفظ النتائج
       await _saveResults(analysis);
 
-      // ✅ إرسال إشعار
+      // Success إرسال إشعار
       await _sendNotification(
         '🌙 تقرير النوم',
         'الجودة: ${analysis['quality'].toStringAsFixed(1)}/10 | المدة: ${(analysis['deep_sleep'] + analysis['light_sleep'] + analysis['rem_sleep']).toStringAsFixed(1)} ساعة',
       );
 
-      print('✅ تم الانتهاء من تتبع النوم');
+      print('Success تم الانتهاء من تتبع النوم');
 
     } catch (e) {
-      print('❌ خطأ في تتبع النوم الخلفي: $e');
+      print('Error خطأ في تتبع النوم الخلفي: $e');
     }
   }
 
@@ -444,28 +445,28 @@ class SleepTrackerService {
         platformChannelSpecifics,
       );
 
-      print('✅ تم إرسال الإشعار');
+      print('Success تم إرسال الإشعار');
     } catch (e) {
-      print('⚠️ خطأ في إرسال الإشعار: $e');
+      print('Warning خطأ في إرسال الإشعار: $e');
     }
   }
 
   // ============================================================
-  // 📊 8. الحصول على إحصائيات
+  // Stats 8. الحصول على إحصائيات
   // ============================================================
 
   Future<Map<String, dynamic>> getStats() async {
     final db = await database;
     final prefs = await SharedPreferences.getInstance();
 
-    // ✅ أحدث جلسة
+    // Success أحدث جلسة
     List<Map<String, dynamic>> lastSession = await db.query(
       'sleep_sessions',
       orderBy: 'timestamp DESC',
       limit: 1,
     );
 
-    // ✅ جميع الجلسات
+    // Success جميع الجلسات
     List<Map<String, dynamic>> allSessions = await db.query('sleep_sessions');
 
     Map<String, dynamic> stats = {
@@ -550,7 +551,7 @@ class SleepTrackerService {
     await prefs.remove('last_timestamp');
     await prefs.remove('last_snore');
 
-    print('✅ تم حذف جميع البيانات');
+    print('Success تم حذف جميع البيانات');
   }
 
   // ============================================================

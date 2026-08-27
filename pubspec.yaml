@@ -381,3 +381,13 @@ flutter:
 # ============================================================
 dependency_overrides:
   google_fonts: ^5.1.0
+
+  # 📊 مؤشرات التقدم
+  step_progress_indicator: ^1.0.2
+  circular_countdown_timer: ^0.2.4
+  flutter_animate: ^4.5.0
+  simple_animations: ^5.0.2
+  animations: ^2.0.11
+  
+  # 🎨 رسوم متحركة
+  rive: ^0.13.0

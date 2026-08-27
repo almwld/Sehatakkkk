@@ -1,6 +1,6 @@
 // ============================================================
 // 📁 lib/presentation/screens/heart_rate/heart_rate_screen.dart
-// 🫀 شاشة قياس نبضات القلب مع تعليم متحرك
+// Heart Rate شاشة قياس نبضات القلب مع تعليم متحرك
 // ============================================================
 
 import 'dart:async';
@@ -24,7 +24,7 @@ class _HeartRateScreenState extends State<HeartRateScreen>
   final HeartRateService _service = HeartRateService();
   
   // ============================================================
-  // 📊 متغيرات الحالة
+  // Stats متغيرات الحالة
   // ============================================================
   int _currentBPM = 0;
   double _oxygenSaturation = 98.0;
@@ -41,7 +41,7 @@ class _HeartRateScreenState extends State<HeartRateScreen>
     switch (_statusCode) {
       case 0: return 'اضغط "ابدأ" لقياس نبضك';
       case 1: return 'جاري القياس... حافظ على ثبات إصبعك';
-      case 2: return '✅ قياس مستقر';
+      case 2: return 'OK قياس مستقر';
       default: return 'جاري التهيئة...';
     }
   }
@@ -132,7 +132,7 @@ class _HeartRateScreenState extends State<HeartRateScreen>
         _isInitializing = false;
         _statusCode = 0;
       });
-      _showSnackBar('❌ فشل التهيئة: $e', Colors.red);
+      _showSnackBar('Error فشل التهيئة: $e', Colors.red);
     }
   }
 
@@ -188,7 +188,7 @@ class _HeartRateScreenState extends State<HeartRateScreen>
         _isMeasuring = false;
         _statusCode = 0;
       });
-      _showSnackBar('❌ فشل بدء القياس: $e', Colors.red);
+      _showSnackBar('Error فشل بدء القياس: $e', Colors.red);
     }
   }
 
@@ -214,13 +214,13 @@ class _HeartRateScreenState extends State<HeartRateScreen>
   }
 
   // ============================================================
-  📊 عرض النتائج
+  Stats عرض النتائج
   // ============================================================
   void _showResultsDialog() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('🫀 نتائج القياس'),
+        title: const Text('Heart Rate نتائج القياس'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -276,7 +276,7 @@ class _HeartRateScreenState extends State<HeartRateScreen>
       icon = Icons.self_improvement;
       color = Colors.orange;
     } else {
-      advice = '⚠️ نبضك مرتفع، استشر طبيباً إذا استمر';
+      advice = 'Warning نبضك مرتفع، استشر طبيباً إذا استمر';
       icon = Icons.warning;
       color = Colors.red;
     }
@@ -296,7 +296,7 @@ class _HeartRateScreenState extends State<HeartRateScreen>
   }
 
   // ============================================================
-  📊 الرسم البياني
+  Stats الرسم البياني
   // ============================================================
   Widget _buildWaveformChart() {
     if (_waveformData.isEmpty) {
@@ -374,7 +374,7 @@ class _HeartRateScreenState extends State<HeartRateScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('🫀 نبضات القلب'),
+        title: const Text('Heart Rate نبضات القلب'),
         backgroundColor: Colors.red.shade700,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -425,7 +425,7 @@ class _HeartRateScreenState extends State<HeartRateScreen>
                 
                 const SizedBox(height: 20),
                 
-                // 📊 قيمة BPM
+                // Stats قيمة BPM
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -452,7 +452,7 @@ class _HeartRateScreenState extends State<HeartRateScreen>
                 
                 const SizedBox(height: 8),
                 
-                // 📊 معلومات إضافية
+                // Stats معلومات إضافية
                 Row(
                   children: [
                     _buildInfoCard(
@@ -554,7 +554,7 @@ class _HeartRateScreenState extends State<HeartRateScreen>
                 
                 const SizedBox(height: 16),
                 
-                // 💡 الإرشادات السريعة
+                // Tip الإرشادات السريعة
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -569,7 +569,7 @@ class _HeartRateScreenState extends State<HeartRateScreen>
                         children: const [
                           Icon(Icons.lightbulb, color: Colors.orange),
                           SizedBox(width: 8),
-                          Text('💡 إرشادات سريعة', style: TextStyle(fontWeight: FontWeight.bold)),
+                          Text('Tip إرشادات سريعة', style: TextStyle(fontWeight: FontWeight.bold)),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -583,14 +583,14 @@ class _HeartRateScreenState extends State<HeartRateScreen>
             ),
           ),
           
-          // ✅ تراكب التعليم
+          // OK تراكب التعليم
           if (_showTutorial)
             CameraTutorialOverlay(
               onDismiss: () => setState(() => _showTutorial = false),
               isMeasuring: _isMeasuring,
             ),
           
-          // ✅ رسالة تعليمية منبثقة
+          // OK رسالة تعليمية منبثقة
           if (_showEducationalHint && !_isMeasuring)
             Positioned(
               bottom: 100,
@@ -694,7 +694,7 @@ class _HeartRateScreenState extends State<HeartRateScreen>
   }
 
   // ============================================================
-  📊 عرض السجل
+  Stats عرض السجل
   // ============================================================
   void _showHistory() async {
     final stats = await _service.getStatistics();
@@ -702,7 +702,7 @@ class _HeartRateScreenState extends State<HeartRateScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('📊 سجل القياسات'),
+        title: const Text('Stats سجل القياسات'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,

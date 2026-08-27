@@ -1,6 +1,6 @@
 // ============================================================
 // 📁 lib/services/step_tracker_service.dart
-// 🚶 خدمة تتبع الخطوات والمشي
+// Steps خدمة تتبع الخطوات والمشي
 // ============================================================
 
 import 'dart:async';
@@ -25,7 +25,7 @@ class StepTrackerService {
   Timer? _periodicTimer;
   final StreamController<int> _stepController = StreamController<int>.broadcast();
 
-  // ✅ بيانات الخطوات
+  // Success بيانات الخطوات
   int _stepCount = 0;
   int _todaySteps = 0;
   double _distance = 0.0;
@@ -33,13 +33,13 @@ class StepTrackerService {
   double _speed = 0.0;
   int _stepGoal = 10000;
 
-  // ✅ بيانات الحركة
+  // Success بيانات الحركة
   List<double> _accelerometerData = [];
   bool _isWalking = false;
   DateTime? _walkStartTime;
   double _lastMagnitude = 0.0;
 
-  // ✅ Stream للخطوات
+  // Success Stream للخطوات
   Stream<int> get stepStream => _stepController.stream;
 
   // ============================================================
@@ -95,12 +95,12 @@ class StepTrackerService {
   }
 
   // ============================================================
-  📊 بدء تتبع الخطوات
+  Stats بدء تتبع الخطوات
   // ============================================================
 
   Future<void> startStepTracking() async {
     try {
-      // ✅ طلب الأذونات
+      // Success طلب الأذونات
       if (!await Permission.sensors.isGranted) {
         await Permission.sensors.request();
       }
@@ -108,19 +108,19 @@ class StepTrackerService {
         await Permission.activityRecognition.request();
       }
 
-      // ✅ بدء الاستماع للحساسات
+      // Success بدء الاستماع للحساسات
       _accelerometerSubscription = accelerometerEvents.listen(_processAccelerometer);
 
-      // ✅ تحميل بيانات اليوم
+      // Success تحميل بيانات اليوم
       await _loadTodayData();
 
-      // ✅ بدء التتبع الدوري
+      // Success بدء التتبع الدوري
       _startPeriodicTracking();
 
-      print('🚶 بدأ تتبع الخطوات');
+      print('Steps بدأ تتبع الخطوات');
 
     } catch (e) {
-      print('❌ خطأ في بدء تتبع الخطوات: $e');
+      print('Error خطأ في بدء تتبع الخطوات: $e');
     }
   }
 
@@ -129,19 +129,19 @@ class StepTrackerService {
   // ============================================================
 
   void _processAccelerometer(AccelerometerEvent event) {
-    // ✅ حساب مقدار الحركة
+    // Success حساب مقدار الحركة
     double magnitude = sqrt(event.x * event.x + event.y * event.y + event.z * event.z);
 
-    // ✅ إضافة البيانات للتحليل
+    // Success إضافة البيانات للتحليل
     _accelerometerData.add(magnitude);
     if (_accelerometerData.length > 100) {
       _accelerometerData.removeAt(0);
     }
 
-    // ✅ كشف المشي
+    // Success كشف المشي
     _detectWalking(magnitude);
 
-    // ✅ تحديث السرعة
+    // Success تحديث السرعة
     if (_isWalking && _walkStartTime != null) {
       Duration walkDuration = DateTime.now().difference(_walkStartTime!);
       if (walkDuration.inSeconds > 0) {
@@ -153,28 +153,28 @@ class StepTrackerService {
   }
 
   // ============================================================
-  🚶 خوارزمية اكتشاف الخطوات
+  Steps خوارزمية اكتشاف الخطوات
   // ============================================================
 
   void _detectWalking(double magnitude) {
     double stepThreshold = 1.2;
 
-    // ✅ التحقق من وجود حركة كافية
+    // Success التحقق من وجود حركة كافية
     if (magnitude > stepThreshold) {
-      // ✅ استخدام خوارزمية الذروة
+      // Success استخدام خوارزمية الذروة
       if (_accelerometerData.length >= 3) {
         double prev = _accelerometerData[_accelerometerData.length - 3];
         double current = _accelerometerData[_accelerometerData.length - 2];
         double next = _accelerometerData[_accelerometerData.length - 1];
 
-        // ✅ الكشف عن الذروة (الخطوة)
+        // Success الكشف عن الذروة (الخطوة)
         if (current > prev && current > next && current > stepThreshold) {
           _addStep();
         }
       }
     }
 
-    // ✅ تحديث حالة المشي
+    // Success تحديث حالة المشي
     bool wasWalking = _isWalking;
     _isWalking = magnitude > 0.8;
 
@@ -191,16 +191,16 @@ class StepTrackerService {
     _stepCount++;
     _todaySteps++;
 
-    // ✅ حساب المسافة (متوسط طول الخطوة 0.76 متر)
+    // Success حساب المسافة (متوسط طول الخطوة 0.76 متر)
     _distance += 0.00076; // كيلومتر
 
-    // ✅ حساب السعرات الحرارية
+    // Success حساب السعرات الحرارية
     _calories += 1;
 
-    // ✅ إرسال التحديث
+    // Success إرسال التحديث
     _stepController.add(_todaySteps);
 
-    // ✅ حفظ البيانات دورياً
+    // Success حفظ البيانات دورياً
     if (_stepCount % 10 == 0) {
       _saveCurrentData();
     }
@@ -297,7 +297,7 @@ class StepTrackerService {
   }
 
   // ============================================================
-  📊 الحصول على البيانات
+  Stats الحصول على البيانات
   // ============================================================
 
   Future<List<Map<String, dynamic>>> getWeeklySteps() async {
