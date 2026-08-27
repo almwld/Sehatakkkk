@@ -1,11 +1,10 @@
 name: sehatak
-description: تطبيق صحي متكامل لتتبع النوم والخطوات ونبضات القلب
+description: A comprehensive healthcare platform for Yemen
 publish_to: 'none'
 version: 1.1.0+2
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
-  flutter: '>=3.16.0'
 
 dependencies:
   flutter:
@@ -14,7 +13,7 @@ dependencies:
     sdk: flutter
 
   # ============================================================
-  # 🎨 UI / UX - واجهة المستخدم
+  # 🎨 UI / UX
   # ============================================================
   cupertino_icons: ^1.0.6
   iconsax: ^0.0.8
@@ -32,7 +31,7 @@ dependencies:
   google_fonts: ^6.1.0
 
   # ============================================================
-  # 🧠 State Management - إدارة الحالة
+  # 🧠 State Management
   # ============================================================
   flutter_bloc: ^8.1.3
   bloc: ^8.1.2
@@ -41,12 +40,12 @@ dependencies:
   get_it: ^7.6.7
 
   # ============================================================
-  # 🗺️ Navigation - التنقل
+  # 🗺️ Navigation
   # ============================================================
   go_router: ^13.0.1
 
   # ============================================================
-  # 🔥 Firebase - الخدمات السحابية
+  # 🔥 Firebase
   # ============================================================
   firebase_core: ^2.25.4
   firebase_auth: ^4.17.4
@@ -59,7 +58,7 @@ dependencies:
   google_sign_in: ^6.2.1
 
   # ============================================================
-  # 🌐 Networking - الشبكات
+  # 🌐 Networking
   # ============================================================
   http: ^1.2.0
   dio: ^5.4.0
@@ -68,35 +67,35 @@ dependencies:
   socket_io_client: ^2.0.3
 
   # ============================================================
-  # 💾 Local Storage - التخزين المحلي
+  # 💾 Local Storage
   # ============================================================
   shared_preferences: ^2.2.2
   sqflite: ^2.3.0
-  path: any
+  path: ^1.8.3
   path_provider: ^2.1.1
   hive_flutter: ^1.1.0
 
   # ============================================================
-  # 🛠️ Utilities - الأدوات المساعدة
+  # 🛠️ Utilities
   # ============================================================
   intl: ^0.18.1
-  connectivity_plus: ^5.0.2
+  connectivity_plus: ^4.0.0
   url_launcher: ^6.2.3
   share_plus: ^7.2.1
   package_info_plus: ^5.0.1
-  device_info_plus: ^9.1.1
-  permission_handler: ^11.0.1
+  device_info_plus: ^8.0.0
+  permission_handler: ^10.0.0
   local_auth: ^2.1.8
   flutter_app_badger: ^1.5.0
-  flutter_local_notifications: ^16.3.0
-  workmanager: ^0.5.0
+  flutter_local_notifications: ^15.0.0
+  workmanager: ^0.4.0
   flutter_background_service: ^5.0.5
-  sensors_plus: ^5.0.0
+  sensors_plus: ^4.0.0
   flutter_vibrate: ^1.3.0
   flutter_foreground_task: ^5.1.0
 
   # ============================================================
-  # 📸 Media - الوسائط
+  # 📸 Media
   # ============================================================
   image_picker: ^1.0.7
   camera: ^0.10.5
@@ -108,14 +107,14 @@ dependencies:
   flutter_image_compress: ^2.0.0
 
   # ============================================================
-  # 📊 Export - تصدير البيانات
+  # 📊 Export
   # ============================================================
   csv: ^5.0.0
   pdf: ^3.10.4
   printing: ^5.11.1
 
   # ============================================================
-  # 🗺️ Maps & Location - الخرائط والموقع
+  # 🗺️ Maps & Location
   # ============================================================
   flutter_map: ^6.1.0
   latlong2: ^0.9.1
@@ -124,46 +123,46 @@ dependencies:
   flutter_map_marker_cluster: ^1.3.3
 
   # ============================================================
-  # 🌐 WebView - عرض الويب
+  # 🌐 WebView
   # ============================================================
   webview_flutter: ^4.4.0
 
   # ============================================================
-  # 📞 Real-time Communication - التواصل الفوري
+  # 📞 Real-time Communication
   # ============================================================
   livekit_client: ^1.5.6
   flutter_webrtc: 0.9.47
 
   # ============================================================
-  # 🔐 Security & Encryption - الأمن والتشفير
+  # 🔐 Security & Encryption
   # ============================================================
   pointycastle: ^3.7.3
   crypto: ^3.0.3
   dart_jsonwebtoken: ^2.4.0
 
   # ============================================================
-  # 🤖 AI & Machine Learning - الذكاء الاصطناعي
+  # 🤖 AI & Machine Learning
   # ============================================================
   google_generative_ai: ^0.4.0
   speech_to_text: ^6.6.0
   flutter_tts: ^3.8.2
 
   # ============================================================
-  # 📦 JSON & Code Generation - توليد الكود
+  # 📦 JSON & Code Generation
   # ============================================================
   json_serializable: ^6.7.1
   build_runner: ^2.4.7
   retrofit_generator: ^8.0.6
 
   # ============================================================
-  # 🍞 Toast & Messages - الإشعارات
+  # 🍞 Toast & Messages
   # ============================================================
   fluttertoast: ^8.2.4
   overlay_support: ^2.1.0
   bot_toast: ^4.1.3
 
   # ============================================================
-  # ⚡ تحسين الأداء
+  # ⚡ Performance
   # ============================================================
   blurhash: ^1.1.0
   flutter_cache_manager: ^3.3.0
@@ -180,20 +179,20 @@ flutter:
   uses-material-design: true
 
   assets:
-    # 🎬 الرسوم المتحركة
+    # 🎬 Animations
     - assets/animations/
-
-    # 🎵 الصوت
+    
+    # 🎵 Audio
     - assets/audio/
-
-    # 🔤 الخطوط
+    
+    # 🔤 Fonts
     - assets/fonts/
-
-    # 🖼️ الأيقونات
+    
+    # 🖼️ Icons
     - assets/icons/map_pins/
     - assets/icons/social/
-
-    # 📷 الصور - الخدمات
+    
+    # 📷 Services Images
     - assets/images/services/
     - assets/images/services/ai_assistant.png
     - assets/images/services/blood_donation.png
@@ -219,8 +218,8 @@ flutter:
     - assets/images/services/video_consultation.png
     - assets/images/services/wallet.png
     - assets/images/services/womens_health.png
-
-    # 📷 الصور - التتبع
+    
+    # 📷 Tracking Images
     - assets/images/tracking/
     - assets/images/tracking/age.png
     - assets/images/tracking/ambulance.png
@@ -246,8 +245,8 @@ flutter:
     - assets/images/tracking/walking.png
     - assets/images/tracking/water_drinking.png
     - assets/images/tracking/weight_tracking.png
-
-    # 📷 الصور - الواجهة
+    
+    # 📷 UI Images
     - assets/images/ui/
     - assets/images/ui/about_app.png
     - assets/images/ui/all_services.png
@@ -287,8 +286,8 @@ flutter:
     - assets/images/ui/terms_conditions.png
     - assets/images/ui/user_profile.png
     - assets/images/ui/visits.png
-
-    # 📷 الصور - الدردشة
+    
+    # 📷 Chat Images
     - assets/images/chat/
     - assets/images/chat/ai_assistant.png
     - assets/images/chat/audio_record.png
@@ -304,21 +303,21 @@ flutter:
     - assets/images/chat/play_button.png
     - assets/images/chat/unsupported-message.svg
     - assets/images/chat/video_call.png
-
-    # 📷 الصور - خلفيات الدردشة
+    
+    # 📷 Chat Wallpapers
     - assets/images/sehatak_chat_wallpaper_auto.svg
     - assets/images/sehatak_chat_wallpaper_dark.svg
     - assets/images/sehatak_chat_wallpaper_dark_1080x2160.png
     - assets/images/sehatak_chat_wallpaper_light.svg
     - assets/images/sehatak_chat_wallpaper_light_1080x2160.png
-
-    # 📷 الصور - الأيقونات
+    
+    # 📷 Icons
     - assets/images/icons/doctors/
     - assets/images/icons/fast_services/
     - assets/images/icons/search/
     - assets/images/icons/top_bar/
-
-    # 📷 الصور - الدفع والمحافظ
+    
+    # 📷 Payment & Wallets
     - assets/images/payment/
     - assets/images/payment/easy.png
     - assets/images/payment/floosak.png
@@ -329,13 +328,13 @@ flutter:
     - assets/images/payment/kremi.png
     - assets/images/payment/mobile_money.png
     - assets/images/payment/yemen_wallet.png
-
-    # 📷 الصور - المحافظ
+    
+    # 📷 Wallets
     - assets/images/wallets/
     - assets/images/wallets/payments.png
     - assets/images/wallets/wallet.png
-
-    # 📷 الصور - التواصل الاجتماعي
+    
+    # 📷 Social
     - assets/images/social/
     - assets/images/social/apple.png
     - assets/images/social/facebook.png
@@ -344,15 +343,15 @@ flutter:
     - assets/images/social/tiktok.png
     - assets/images/social/x_twitter.png
     - assets/images/social/youtube.png
-
-    # 📷 الصور - أخرى
+    
+    # 📷 Other
     - assets/images/childhealth.png
     - assets/images/pregnancy_follow_up.png
-
-    # 🎨 قوالب الصور
+    
+    # 🎨 Templates
     - assets/images/chat/mediatemplate/
     - assets/templates/
-
+    
     # 📁 SVG
     - assets/svg/
 
@@ -381,9 +380,3 @@ flutter:
 
 dependency_overrides:
   google_fonts: ^5.1.0
-
-  # استخدام AnimatedContainer و AnimationController بدلاً من ذلك
-
-  # 🔄 بدائل للحزم المحذوفة (متوافقة مع Dart 3.2.0)
-  # circular_countdown_timer ← استخدم Timer.periodic بدلاً منه
-  # rive ← استخدم Lottie بدلاً منه
