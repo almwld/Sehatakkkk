@@ -176,21 +176,34 @@ dev_dependencies:
 # ============================================================
 flutter:
   uses-material-design: true
-  
+
   assets:
     # 🎬 Animations
     - assets/animations/
-    
+
     # 🎵 Audio
     - assets/audio/
-    
+
     # 🔤 Fonts
     - assets/fonts/
-    
-    # 🖼️ Icons
-    - assets/icons/map_pins/
-    - assets/icons/social/
-    
+
+    # 🖼️ Icons - Map Pins
+    - assets/icons/map_pins/clinic.svg
+    - assets/icons/map_pins/hospital.svg
+    - assets/icons/map_pins/laboratory.svg
+    - assets/icons/map_pins/medical.svg
+    - assets/icons/map_pins/pharmacy.svg
+
+    # 🖼️ Icons - Social
+    - assets/icons/social/chat_modern.svg
+    - assets/icons/social/discord.svg
+    - assets/icons/social/facebook.svg
+    - assets/icons/social/instagram.svg
+    - assets/icons/social/linkedin.svg
+    - assets/icons/social/twitter.svg
+    - assets/icons/social/whatsapp.svg
+    - assets/icons/social/x_twitter.svg
+
     # 📷 Services Images
     - assets/images/services/
     - assets/images/services/ai_assistant.png
@@ -217,7 +230,7 @@ flutter:
     - assets/images/services/video_consultation.png
     - assets/images/services/wallet.png
     - assets/images/services/womens_health.png
-    
+
     # 📷 Tracking Images
     - assets/images/tracking/
     - assets/images/tracking/age.png
@@ -244,7 +257,7 @@ flutter:
     - assets/images/tracking/walking.png
     - assets/images/tracking/water_drinking.png
     - assets/images/tracking/weight_tracking.png
-    
+
     # 📷 UI Images
     - assets/images/ui/
     - assets/images/ui/about_app.png
@@ -285,7 +298,7 @@ flutter:
     - assets/images/ui/terms_conditions.png
     - assets/images/ui/user_profile.png
     - assets/images/ui/visits.png
-    
+
     # 📷 Chat Images
     - assets/images/chat/
     - assets/images/chat/ai_assistant.png
@@ -302,20 +315,20 @@ flutter:
     - assets/images/chat/play_button.png
     - assets/images/chat/unsupported-message.svg
     - assets/images/chat/video_call.png
-    
+
     # 📷 Chat Wallpapers
     - assets/images/sehatak_chat_wallpaper_auto.svg
     - assets/images/sehatak_chat_wallpaper_dark.svg
     - assets/images/sehatak_chat_wallpaper_dark_1080x2160.png
     - assets/images/sehatak_chat_wallpaper_light.svg
     - assets/images/sehatak_chat_wallpaper_light_1080x2160.png
-    
+
     # 📷 Icons
     - assets/images/icons/doctors/
     - assets/images/icons/fast_services/
     - assets/images/icons/search/
     - assets/images/icons/top_bar/
-    
+
     # 📷 Payment & Wallets
     - assets/images/payment/
     - assets/images/payment/easy.png
@@ -327,12 +340,12 @@ flutter:
     - assets/images/payment/kremi.png
     - assets/images/payment/mobile_money.png
     - assets/images/payment/yemen_wallet.png
-    
+
     # 📷 Wallets
     - assets/images/wallets/
     - assets/images/wallets/payments.png
     - assets/images/wallets/wallet.png
-    
+
     # 📷 Social
     - assets/images/social/
     - assets/images/social/apple.png
@@ -342,18 +355,18 @@ flutter:
     - assets/images/social/tiktok.png
     - assets/images/social/x_twitter.png
     - assets/images/social/youtube.png
-    
+
     # 📷 Other
     - assets/images/childhealth.png
     - assets/images/pregnancy_follow_up.png
-    
+
     # 🎨 Templates
     - assets/images/chat/mediatemplate/
     - assets/templates/
-    
+
     # 📁 SVG
     - assets/svg/
-  
+
   fonts:
     - family: ElMessiri
       fonts:
@@ -379,10 +392,3 @@ flutter:
 
 dependency_overrides:
   google_fonts: ^5.1.0
-
-    # 🗺️ Map Pins Icons
-    - assets/icons/map_pins/clinic.svg
-    - assets/icons/map_pins/hospital.svg
-    - assets/icons/map_pins/laboratory.svg
-    - assets/icons/map_pins/medical.svg
-    - assets/icons/map_pins/pharmacy.svg
