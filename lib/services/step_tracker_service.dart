@@ -1,3 +1,4 @@
+/*
 // ============================================================
 // 📁 lib/services/step_tracker_service.dart
 // 🚶 خدمة تتبع الخطوات والمشي
@@ -359,3 +360,4 @@ class StepTrackerService {
     _stepController.close();
   }
 }
+*/

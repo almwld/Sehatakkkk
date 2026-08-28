@@ -1,3 +1,4 @@
+/*
 // ============================================================
 // 📁 lib/services/heart_rate_service.dart
 // Heart Rate خدمة قياس نبضات القلب باستخدام الكاميرا
@@ -530,3 +531,4 @@ class HeartRateService {
     _cameraController?.dispose();
   }
 }
+*/

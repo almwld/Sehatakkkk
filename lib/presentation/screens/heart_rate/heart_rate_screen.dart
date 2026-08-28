@@ -1,3 +1,4 @@
+/*
 // ============================================================
 // 📁 lib/presentation/screens/heart_rate/heart_rate_screen.dart
 // 🫀 شاشة قياس نبضات القلب
@@ -646,3 +647,4 @@ class _HeartRateScreenState extends State<HeartRateScreen>
     super.dispose();
   }
 }
+*/
