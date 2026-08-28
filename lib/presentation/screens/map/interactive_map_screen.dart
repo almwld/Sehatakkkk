@@ -22,15 +22,6 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
   late AnimationController _animationController;
   final TextEditingController _searchController = TextEditingController();
 
-  // ============================================================
-  // 📌 أيقونات SVG من مجلد map_pins
-  // ============================================================
-  late final BytesLoader _hospitalIcon;
-  late final BytesLoader _pharmacyIcon;
-  late final BytesLoader _laboratoryIcon;
-  late final BytesLoader _medicalIcon;
-  late final BytesLoader _clinicIcon;
-
   static const LatLng sanaaCenter = LatLng(15.3694, 44.1910);
   String _selectedLayer = 'خريطة داكنة';
   Position? _currentPosition;
@@ -58,9 +49,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
     },
   };
 
-  // ============================================================
   // 🏥 المستشفيات (100)
-  // ============================================================
   final List<Map<String, dynamic>> _hospitals = List.generate(100, (index) {
     final names = [
       'مستشفى الثورة العام', 'المستشفى الجمهوري', 'مستشفى الكويت الجامعي',
@@ -202,9 +191,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
     };
   });
 
-  // ============================================================
   // 💊 الصيدليات (100)
-  // ============================================================
   final List<Map<String, dynamic>> _pharmacies = List.generate(100, (index) {
     final names = [
       'صيدلية الشفاء', 'صيدلية اليمن', 'صيدلية الأمل',
@@ -345,9 +332,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
     };
   });
 
-  // ============================================================
   // 🔬 المختبرات (100)
-  // ============================================================
   final List<Map<String, dynamic>> _labs = List.generate(100, (index) {
     final names = [
       'المختبر الوطني', 'مختبر الثقة', 'مختبر البرج',
@@ -468,9 +453,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
     };
   });
 
-  // ============================================================
   // 🏥 عيادات (60)
-  // ============================================================
   final List<Map<String, dynamic>> _clinics = List.generate(60, (index) {
     final names = [
       'عيادة الدكتور أحمد', 'عيادة الدكتور خالد', 'عيادة الدكتورة سارة',
@@ -574,9 +557,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
     };
   });
 
-  // ============================================================
   // 📌 أخرى (60)
-  // ============================================================
   final List<Map<String, dynamic>> _other = List.generate(60, (index) {
     final names = [
       'مركز صحي الزبيري', 'مركز صحي التحرير', 'مركز صحي هائل',
@@ -680,9 +661,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
     };
   });
 
-  // ============================================================
-  // 🏥 دمج جميع الأماكن معاً
-  // ============================================================
+  // دمج جميع الأماكن
   List<Map<String, dynamic>> get _allPlaces {
     return [
       ..._hospitals,
@@ -693,9 +672,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
     ];
   }
 
-  // ============================================================
-  // 🔍 دالة البحث والتصفية
-  // ============================================================
+  // دالة البحث والتصفية
   List<Map<String, dynamic>> _getFilteredPlaces() {
     final places = _allPlaces;
     
@@ -731,56 +708,43 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
     }).toList();
   }
 
-  // ============================================================
-  // 🖼️ تحميل أيقونات SVG
-  // ============================================================
-  void _loadIcons() {
-    _hospitalIcon = SvgAssetLoader('assets/icons/map_pins/hospital.svg');
-    _pharmacyIcon = SvgAssetLoader('assets/icons/map_pins/pharmacy.svg');
-    _laboratoryIcon = SvgAssetLoader('assets/icons/map_pins/laboratory.svg');
-    _medicalIcon = SvgAssetLoader('assets/icons/map_pins/medical.svg');
-    _clinicIcon = SvgAssetLoader('assets/icons/map_pins/clinic.svg');
-  }
-
-  // ============================================================
-  // 🎨 الحصول على أيقونة SVG حسب الفئة
-  // ============================================================
-  BytesLoader _getIconProviderForCategory(String category) {
+  // 🎨 الحصول على مسار الأيقونة حسب الفئة
+  String _getIconPath(String category) {
     switch (category) {
       case 'hospitals':
-        return _hospitalIcon;
+        return 'assets/icons/map_pins/hospital.svg';
       case 'pharmacies':
-        return _pharmacyIcon;
+        return 'assets/icons/map_pins/pharmacy.svg';
       case 'labs':
-        return _laboratoryIcon;
+        return 'assets/icons/map_pins/laboratory.svg';
       case 'clinics':
-        return _clinicIcon;
+        return 'assets/icons/map_pins/clinic.svg';
       case 'other':
-        return _medicalIcon;
+        return 'assets/icons/map_pins/medical.svg';
       default:
-        return _medicalIcon;
+        return 'assets/icons/map_pins/medical.svg';
     }
   }
 
-  // ============================================================
   // 🎨 أيقونة SVG لعرض التفاصيل
-  // ============================================================
-  Widget _getCategoryIcon(String category, {double size = 24}) {
-    final provider = _getIconProviderForCategory(category);
-    return SvgPicture(
-      provider,
+  Widget _getCategoryIconWidget(String category, {double size = 24}) {
+    return SvgPicture.asset(
+      _getIconPath(category),
       width: size,
       height: size,
       colorFilter: const ColorFilter.mode(
         AppColors.primary,
         BlendMode.srcIn,
       ),
+      placeholderBuilder: (context) => const SizedBox(
+        width: 24,
+        height: 24,
+        child: CircularProgressIndicator(strokeWidth: 2),
+      ),
     );
   }
 
-  // ============================================================
   // 🎨 أيقونة احتياطية (Material Icons)
-  // ============================================================
   IconData _getIconForCategory(String category) {
     switch (category) {
       case 'hospitals':
@@ -798,9 +762,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
     }
   }
 
-  // ============================================================
   // 🏷️ الحصول على اسم الفئة بالعربية
-  // ============================================================
   String _getCategoryLabel(String category) {
     switch (category) {
       case 'hospitals':
@@ -818,9 +780,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
     }
   }
 
-  // ============================================================
   // 🎨 بناء العلامات (Markers) مع Clustering
-  // ============================================================
   List<Marker> _buildMarkers() {
     final filtered = _getFilteredPlaces();
     
@@ -856,12 +816,17 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                   : SizedBox(
                       width: 22,
                       height: 22,
-                      child: SvgPicture(
-                        _getIconProviderForCategory(place['category'] as String),
+                      child: SvgPicture.asset(
+                        _getIconPath(place['category'] as String),
                         fit: BoxFit.contain,
                         colorFilter: const ColorFilter.mode(
                           AppColors.primary,
                           BlendMode.srcIn,
+                        ),
+                        placeholderBuilder: (context) => Icon(
+                          _getIconForCategory(place['category'] as String),
+                          color: AppColors.primary,
+                          size: 20,
                         ),
                       ),
                     ),
@@ -872,9 +837,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
     }).toList();
   }
 
-  // ============================================================
   // 📋 عرض تفاصيل المكان
-  // ============================================================
   void _showPlaceDetails(Map<String, dynamic> place) {
     setState(() {
       _selectedLocation = LatLng(place['lat'] as double, place['lng'] as double);
@@ -910,7 +873,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                     color: AppColors.primary.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: _getCategoryIcon(place['category'] as String, size: 28),
+                  child: _getCategoryIconWidget(place['category'] as String, size: 28),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -1042,9 +1005,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
     );
   }
 
-  // ============================================================
   // 🌐 فتح الرابط
-  // ============================================================
   Future<void> _launchUrl(String url) async {
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
@@ -1052,9 +1013,7 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
     }
   }
 
-  // ============================================================
   // 📍 الحصول على الموقع الحالي
-  // ============================================================
   Future<void> _getCurrentLocation() async {
     try {
       final position = await Geolocator.getCurrentPosition(
@@ -1072,18 +1031,13 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
     }
   }
 
-  // ============================================================
   // 🎨 اختيار طبقة الخريطة
-  // ============================================================
   void _selectLayer(String layerName) {
     setState(() {
       _selectedLayer = layerName;
     });
   }
 
-  // ============================================================
-  // 🏗️ بناء الواجهة
-  // ============================================================
   @override
   void initState() {
     super.initState();
@@ -1092,7 +1046,6 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
       vsync: this,
       duration: const Duration(milliseconds: 500),
     )..forward();
-    _loadIcons();
     _getCurrentLocation();
   }
 
