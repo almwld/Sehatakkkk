@@ -9,7 +9,6 @@ import 'package:share_plus/share_plus.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:sehatak/core/services/advanced_notification_service.dart';
 import 'package:sehatak/core/services/image_cache_service.dart';
-import 'package:sehatak/core/services/location_service.dart';
 import 'package:sehatak/core/services/weather_service.dart';
 import 'package:sehatak/core/services/medication_service.dart';
 import 'package:sehatak/core/services/appointment_service.dart';
@@ -380,7 +379,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   Future<void> _initializeServices() async {
     try {
       await _notificationService.initialize();
-      await _locationService.initialize();  // تم التصحيح
       await _weatherService.init();
       await _medicationService.init();
       await _appointmentService.init();
@@ -542,7 +540,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   // ============================================================
   Future<void> _loadNearbyServices() async {
     try {
-      final nearby = await _locationService.getNearby();  // تم التصحيح
       setState(() => _nearbyServices = nearby);
     } catch (e) { print('⚠️ فشل تحميل الخدمات القريبة: $e'); }
   }
