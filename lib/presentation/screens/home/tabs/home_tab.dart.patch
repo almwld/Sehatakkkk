@@ -88,3 +88,131 @@ Future<void> _loadUserDataInBackground() async {
     print('⚠️ Error loading user data: $e');
   }
 }
+
+// ✅ استبدال دالة initState بهذا الكود:
+
+@override
+void initState() {
+  super.initState();
+  
+  // ✅ تحميل البيانات المخزنة فوراً (Offline)
+  _loadCachedData();
+  
+  // ✅ تحميل البيانات من Firebase في الخلفية
+  _loadUserDataInBackground();
+  
+  // ✅ مراقبة التمرير
+  widget.scrollController?.addListener(_onScroll);
+}
+
+// ✅ دالة تحميل البيانات المخزنة (تعمل فوراً)
+Future<void> _loadCachedData() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    
+    // تحميل البيانات المخزنة
+    final cachedData = prefs.getString('home_data');
+    if (cachedData != null) {
+      final data = jsonDecode(cachedData) as Map<String, dynamic>;
+      setState(() {
+        _bannerImages = List<String>.from(data['banners'] ?? _defaultBannerImages);
+        _topDoctors = List<Map<String, dynamic>>.from(data['doctors'] ?? _defaultTopDoctors);
+        _quickServices = List<Map<String, dynamic>>.from(data['services'] ?? _defaultQuickServices);
+        _products = List<Map<String, dynamic>>.from(data['products'] ?? _defaultProducts);
+        _featuredHospitals = List<Map<String, dynamic>>.from(data['hospitals'] ?? _defaultFeaturedHospitals);
+        _featuredLabs = List<Map<String, dynamic>>.from(data['labs'] ?? _defaultFeaturedLabs);
+        _featuredPharmacies = List<Map<String, dynamic>>.from(data['pharmacies'] ?? _defaultFeaturedPharmacies);
+        _healthArticles = List<Map<String, dynamic>>.from(data['articles'] ?? _defaultHealthArticles);
+        _dailyTips = List<Map<String, dynamic>>.from(data['tips'] ?? _defaultDailyTips);
+        _communityPosts = List<Map<String, dynamic>>.from(data['posts'] ?? _defaultCommunityPosts);
+        _dataLoaded = true;
+        _isLoading = false;
+      });
+    } else {
+      // استخدام البيانات الافتراضية
+      _loadDefaultData();
+    }
+  } catch (e) {
+    print('⚠️ Error loading cached data: $e');
+    _loadDefaultData();
+  }
+}
+
+// ✅ دالة تحميل البيانات الافتراضية (تعمل دائماً)
+void _loadDefaultData() {
+  setState(() {
+    _bannerImages = _defaultBannerImages;
+    _topDoctors = _defaultTopDoctors;
+    _quickServices = _defaultQuickServices;
+    _products = _defaultProducts;
+    _featuredHospitals = _defaultFeaturedHospitals;
+    _featuredLabs = _defaultFeaturedLabs;
+    _featuredPharmacies = _defaultFeaturedPharmacies;
+    _healthArticles = _defaultHealthArticles;
+    _dailyTips = _defaultDailyTips;
+    _communityPosts = _defaultCommunityPosts;
+    _dataLoaded = true;
+    _isLoading = false;
+  });
+}
+
+// ✅ دالة تحميل البيانات من Firebase (خلفية)
+Future<void> _loadUserDataInBackground() async {
+  try {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get()
+        .timeout(
+          const Duration(seconds: 10),
+          onTimeout: () {
+            setState(() => _isOffline = true);
+            throw Exception('Connection timeout');
+          },
+        );
+
+    if (doc.exists) {
+      final data = doc.data();
+      setState(() {
+        _userName = data?['name'] ?? user.displayName ?? 'مستخدم';
+        _userEmail = user.email ?? '';
+        _userRole = data?['role'] ?? data?['type'] ?? 'مريض';
+        _userAvatar = data?['avatar'] ?? '';
+        _isLoggedIn = true;
+        _isOffline = false;
+      });
+      
+      // حفظ البيانات في الكاش
+      await _saveDataToCache();
+    }
+  } catch (e) {
+    print('⚠️ Error loading user data: $e');
+    setState(() => _isOffline = true);
+  }
+}
+
+// ✅ حفظ البيانات في الكاش
+Future<void> _saveDataToCache() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final data = {
+      'banners': _bannerImages,
+      'doctors': _topDoctors,
+      'services': _quickServices,
+      'products': _products,
+      'hospitals': _featuredHospitals,
+      'labs': _featuredLabs,
+      'pharmacies': _featuredPharmacies,
+      'articles': _healthArticles,
+      'tips': _dailyTips,
+      'posts': _communityPosts,
+    };
+    await prefs.setString('home_data', jsonEncode(data));
+    print('✅ Data saved to cache');
+  } catch (e) {
+    print('⚠️ Error saving to cache: $e');
+  }
+}
