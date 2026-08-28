@@ -57,10 +57,6 @@ import 'package:sehatak/core/services/toast_service.dart';
 // ============================================================
 class SideCurvedClipper extends CustomClipper<Path> {
   @override
-  // ✅ عرض البيانات فوراً حتى لو لم تكتمل التهيئة
-  if (!_dataLoaded) {
-    _loadDefaultData();
-  }
   Path getClip(Size size) {
     var path = Path();
     path.moveTo(0, 0);
@@ -80,10 +76,6 @@ class SideCurvedClipper extends CustomClipper<Path> {
   }
 
   @override
-  // ✅ عرض البيانات فوراً حتى لو لم تكتمل التهيئة
-  if (!_dataLoaded) {
-    _loadDefaultData();
-  }
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
 
@@ -104,10 +96,6 @@ class CircularProgressPainter extends CustomPainter {
   });
 
   @override
-  // ✅ عرض البيانات فوراً حتى لو لم تكتمل التهيئة
-  if (!_dataLoaded) {
-    _loadDefaultData();
-  }
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2 - strokeWidth / 2;
@@ -139,10 +127,6 @@ class CircularProgressPainter extends CustomPainter {
   }
 
   @override
-  // ✅ عرض البيانات فوراً حتى لو لم تكتمل التهيئة
-  if (!_dataLoaded) {
-    _loadDefaultData();
-  }
   bool shouldRepaint(CircularProgressPainter oldDelegate) {
     return oldDelegate.progress != progress;
   }
@@ -158,25 +142,17 @@ class HomeTab extends StatefulWidget {
   const HomeTab({super.key, this.scrollController, this.isBottomBarVisible});
 
   @override
-  // ✅ عرض البيانات فوراً حتى لو لم تكتمل التهيئة
-  if (!_dataLoaded) {
-    _loadDefaultData();
-  }
   State<HomeTab> createState() => _HomeTabState();
 }
 
 class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   @override
-  // ✅ عرض البيانات فوراً حتى لو لم تكتمل التهيئة
-  if (!_dataLoaded) {
-    _loadDefaultData();
-  }
   bool get wantKeepAlive => true;
 
   // ============================================================
   // 📊 متغيرات الحالة
   // ============================================================
-  bool _isLoading = true;
+  bool _isLoading = false;
   bool _isLoggedIn = false;
   String _userName = 'مستخدم';
   int _currentBanner = 0;
@@ -189,7 +165,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   double _heartAnim = 0;
   bool _isOffline = false;
   double _appBarOpacity = 1.0;
-  bool _dataLoaded = false;
+  bool _dataLoaded = true;
   bool _showScrollTopButton = false;
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
   List<Map<String, dynamic>> _favorites = [];
@@ -357,13 +333,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   // 🔄 دورة الحياة - تهيئة جميع الخدمات
   // ============================================================
   @override
-  // ✅ عرض البيانات فوراً حتى لو لم تكتمل التهيئة
-  if (!_dataLoaded) {
-    _loadDefaultData();
-  }
   void initState() {
     super.initState();
-    _loadCachedData();
+    _loadDefaultData();
     _initializeServices();
     _loadUserPreferences();
     _setupStreams();
@@ -375,9 +347,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     _loadNearbyServices();
     _loadRecentSearches();
     _loadRecentSymptoms();
+    _loadDataInBackground();
     widget.scrollController?.addListener(_onScroll);
 
-    // استماع للإشعارات
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       setState(() {
         _notificationCount++;
@@ -387,10 +359,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   @override
-  // ✅ عرض البيانات فوراً حتى لو لم تكتمل التهيئة
-  if (!_dataLoaded) {
-    _loadDefaultData();
-  }
   void dispose() {
     widget.scrollController?.removeListener(_onScroll);
     super.dispose();
@@ -425,37 +393,8 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ============================================================
-  // 💾 تحميل البيانات المخزنة مؤقتاً
+  // 📦 تحميل البيانات الافتراضية فوراً
   // ============================================================
-  Future<void> _loadCachedData() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      
-      final cachedBanners = prefs.getStringList('home_banners');
-      if (cachedBanners != null && cachedBanners.isNotEmpty) {
-        setState(() { _bannerImages = cachedBanners; });
-      } else { _bannerImages = _defaultBannerImages; }
-      
-      _topDoctors = _defaultTopDoctors;
-      _quickServices = _defaultQuickServices;
-      _products = _defaultProducts;
-      _featuredHospitals = _defaultFeaturedHospitals;
-      _featuredLabs = _defaultFeaturedLabs;
-      _featuredPharmacies = _defaultFeaturedPharmacies;
-      _healthArticles = _defaultHealthArticles;
-      _dailyTips = _defaultDailyTips;
-      _communityPosts = _defaultCommunityPosts;
-      
-      _loadUserData();
-      await _loadHealthScore();
-      
-      setState(() { _dataLoaded = true; _isLoading = false; });
-    } catch (e) {
-      print('⚠️ فشل تحميل الكاش: $e');
-      _loadDefaultData();
-    }
-  }
-
   void _loadDefaultData() {
     setState(() {
       _bannerImages = _defaultBannerImages;
@@ -473,11 +412,29 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     });
   }
 
-  Future<void> _saveDataToCache() async {
+  // ============================================================
+  // 🔥 تحميل Firebase في الخلفية
+  // ============================================================
+  Future<void> _loadDataInBackground() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setStringList('home_banners', _bannerImages);
-    } catch (e) { print('⚠️ فشل حفظ الكاش: $e'); }
+      await Future.delayed(const Duration(milliseconds: 500));
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+        if (doc.exists && mounted) {
+          final data = doc.data();
+          setState(() {
+            _userName = data?['name'] ?? user.displayName ?? 'مستخدم';
+            _isLoggedIn = true;
+          });
+        }
+      }
+    } catch (e) {
+      print('⚠️ فشل تحميل Firebase (خلفي): $e');
+    }
   }
 
   // ============================================================
@@ -686,7 +643,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   Future<void> _refreshData() async {
     setState(() => _isRetrying = true);
     try {
-      await _loadCachedData();
+      await _loadDefaultData();
       await _loadNotificationCount();
       await _loadUpcomingMedications();
       await _loadUpcomingAppointments();
@@ -737,7 +694,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   // ❤️ دوال التفاعل الكاملة
   // ============================================================
   
-  // 1️⃣ مشاركة حقيقية للمنشور
   void _sharePost(int index) {
     final post = _communityPosts[index];
     Share.share(
@@ -756,7 +712,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     } catch (e) { print('⚠️ فشل تحديث عدد المشاركات: $e'); }
   }
 
-  // 2️⃣ إعجابات حقيقية
   Future<void> _toggleLike(int index) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
@@ -803,7 +758,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     } catch (e) { ToastService.showError('❌ فشل تحديث الإعجاب'); }
   }
 
-  // 3️⃣ حفظ المنشورات
   Future<void> _savePost(int index) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
@@ -840,7 +794,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     } catch (e) { ToastService.showError('❌ فشل حفظ المنشور'); }
   }
 
-  // 4️⃣ تقارير المنشورات
   Future<void> _reportPost(int index) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
@@ -862,7 +815,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     } catch (e) { ToastService.showError('❌ فشل الإبلاغ'); }
   }
 
-  // 5️⃣ تعليقات حقيقية متداخلة مع منشن ووسوم
   void _showComments(Map<String, dynamic> post, int index) {
     showModalBottomSheet(
       context: context,
@@ -959,14 +911,12 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                       suffixIcon: IconButton(
                         icon: const Icon(Icons.tag, size: 18, color: Colors.grey),
                         onPressed: () {
-                          // عرض اقتراحات الوسوم
                           ToastService.showSuccess('اكتب # لبدء الوسم');
                         },
                       ),
                     ),
                     textDirection: TextDirection.rtl,
                     onChanged: (value) {
-                      // اقتراح الأسماء عند كتابة @
                       if (value.endsWith('@')) {
                         ToastService.showSuccess('اقتراحات المستخدمين...');
                       }
@@ -1011,7 +961,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
           ),
           title: GestureDetector(
             onTap: () {
-              // منشن المستخدم
               ToastService.showSuccess('@${data['userName']}');
             },
             child: Text(data['userName'] ?? 'مستخدم'),
@@ -1020,7 +969,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(data['comment'] ?? ''),
-              // عرض الهاشتاجات في التعليق
               if (data['comment'] != null && data['comment'].contains('#'))
                 Wrap(
                   children: (data['comment'] as String)
@@ -1114,7 +1062,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       setState(() { _communityPosts[index]['comments']++; });
       ToastService.showSuccess('✅ تم إضافة التعليق');
       
-      // إشعار للمستخدم الممنشن
       final mentions = _extractMentions(comment);
       for (var mentionedUser in mentions) {
         await _notificationService.sendMentionNotification(mentionedUser, user.displayName ?? 'مستخدم');
@@ -1149,10 +1096,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   // 🏗️ بناء الواجهة الرئيسية
   // ============================================================
   @override
-  // ✅ عرض البيانات فوراً حتى لو لم تكتمل التهيئة
-  if (!_dataLoaded) {
-    _loadDefaultData();
-  }
   Widget build(BuildContext context) {
     super.build(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -1186,31 +1129,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                         _buildStatsRow(),
                         const SizedBox(height: 16),
                       ],
-                      // 🔔 الإشعارات
-                      _buildNotificationWidget(),
-                      const SizedBox(height: 16),
-                      // 💊 تذكير الأدوية
-                      if (_upcomingMedications.isNotEmpty)
-                        _buildMedicationReminder(),
-                      // 📅 المواعيد القادمة
-                      if (_upcomingAppointments.isNotEmpty)
-                        _buildAppointmentsSummary(),
-                      // 🌤️ الطقس
-                      if (_weatherData != null)
-                        _buildWeatherWidget(),
-                      // 📍 الخدمات القريبة
-                      if (_nearbyServices.isNotEmpty)
-                        _buildNearbyServices(),
-                      // 🤖 توصيات الذكاء الاصطناعي
-                      if (_aiRecommendation != null)
-                        _buildAIRecommendation(),
-                      // 🩺 الأعراض الأخيرة
-                      if (_recentSymptoms.isNotEmpty)
-                        _buildRecentSymptoms(),
-                      // 📊 عمليات البحث الأخيرة
-                      if (_recentSearches.isNotEmpty)
-                        _buildRecentSearchesWidget(),
-                      // 🎨 الأقسام المخصصة
                       _buildSectionWithCustomization(
                         title: 'خدمات سريعة',
                         isDark: isDark,
@@ -1271,6 +1189,10 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                         sectionKey: 'discover',
                         child: _buildDiscoverGrid(isDark),
                       ),
+                      if (_weatherData != null)
+                        _buildWeatherWidget(),
+                      if (_aiRecommendation != null)
+                        _buildAIRecommendation(),
                       _buildSectionWithCustomization(
                         title: 'مجتمع صحتك',
                         isDark: isDark,
@@ -1301,7 +1223,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               child: const Icon(Icons.arrow_upward, color: Colors.white),
             ),
           ),
-        // زر إضافة أعراض سريع
         if (_isLoggedIn)
           Positioned(
             bottom: 140,
@@ -1312,7 +1233,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               child: const Icon(Icons.health_and_safety, color: Colors.white),
             ),
           ),
-        // زر إعادة المحاولة إذا كان هناك خطأ
         if (_hasError && _dataLoaded)
           Positioned(
             bottom: 200,
@@ -1435,72 +1355,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         child,
         const SizedBox(height: 16),
       ],
-    );
-  }
-
-  // ============================================================
-  // 🧩 ويدجت الإشعارات
-  // ============================================================
-  Widget _buildNotificationWidget() {
-    if (_notificationCount == 0) return const SizedBox.shrink();
-    return GestureDetector(
-      onTap: () => _goTo(context, const NotificationsScreen()),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [AppColors.primary.withOpacity(0.1), AppColors.primary.withOpacity(0.05)],
-          ),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.primary.withOpacity(0.2)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(Icons.notifications, color: AppColors.primary, size: 20),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'إشعارات جديدة',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  Text(
-                    'لديك $_notificationCount إشعاراً جديداً',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.primary.withOpacity(0.7),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.red,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                '$_notificationCount',
-                style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-              ),
-            ),
-            const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.primary),
-          ],
-        ),
-      ),
     );
   }
 
@@ -1651,54 +1505,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               ),
             ),
             const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.cyan),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ============================================================
-  // 📍 الخدمات القريبة
-  // ============================================================
-  Widget _buildNearbyServices() {
-    return GestureDetector(
-      onTap: () => _goTo(context, const NearbyScreen()),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.green.withOpacity(0.1), Colors.green.withOpacity(0.05)],
-          ),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.green.withOpacity(0.2)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.location_on, color: Colors.green, size: 20),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    '📍 بالقرب منك',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    '${_nearbyServices.length} خدمات قريبة',
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.green),
           ],
         ),
       ),
@@ -2040,7 +1846,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   Widget _buildBannerCarousel(bool isDark) {
     if (_bannerImages.isEmpty) {
       return Container(
-        height: 140,
+        height: 180,
         decoration: BoxDecoration(color: isDark ? const Color(0xFF1A2540) : Colors.grey[200], borderRadius: BorderRadius.circular(16)),
         child: const Center(child: Text('لا توجد بانرات')),
       );
@@ -2050,13 +1856,13 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       children: [
         CarouselSlider(
           options: CarouselOptions(
-            height: 140,
+            height: 180,
             autoPlay: true,
             autoPlayInterval: const Duration(seconds: 4),
             autoPlayAnimationDuration: const Duration(milliseconds: 800),
             autoPlayCurve: Curves.fastOutSlowIn,
             enlargeCenterPage: true,
-            viewportFraction: 0.95,
+            viewportFraction: 0.92,
             onPageChanged: (index, reason) => setState(() => _currentBanner = index),
           ),
           items: _bannerImages.map((url) {
@@ -2070,7 +1876,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                 borderRadius: BorderRadius.circular(16),
                 child: AppImage(
                   imageUrl: url,
-                  height: 140,
+                  height: 180,
                   width: double.infinity,
                   fit: BoxFit.cover,
                 ),
@@ -2726,7 +2532,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         crossAxisCount: 2,
         crossAxisSpacing: 10,
         mainAxisSpacing: 10,
-        childAspectRatio: 1.2,
+        childAspectRatio: 1.1,
       ),
       itemCount: _dailyTips.length,
       itemBuilder: (context, index) {
@@ -2745,9 +2551,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               children: [
                 Image.asset(
                   tip['icon'] as String,
-                  width: 32,
-                  height: 32,
-                  errorBuilder: (_, __, ___) => Icon(Icons.image, color: isDark ? Colors.grey[400] : Colors.grey[600], size: 28),
+                  width: 48,
+                  height: 48,
+                  errorBuilder: (_, __, ___) => Icon(Icons.image, color: isDark ? Colors.grey[400] : Colors.grey[600], size: 40),
                 ),
                 const SizedBox(height: 8),
                 Text(tip['title'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.primary), textAlign: TextAlign.center),
@@ -2979,7 +2785,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[400], borderRadius: BorderRadius.circular(2)))),
             const SizedBox(height: 16),
             Row(children: [
-              Image.asset(tip['icon'] as String, width: 32, height: 32, errorBuilder: (_, __, ___) => Icon(Icons.image, color: Colors.grey[600], size: 28)),
+              Image.asset(tip['icon'] as String, width: 48, height: 48, errorBuilder: (_, __, ___) => Icon(Icons.image, color: Colors.grey[600], size: 40)),
               const SizedBox(width: 12),
               Expanded(child: Text(tip['title'] as String, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
             ]),
@@ -3002,6 +2808,3 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     );
   }
 }
-
-  // ⏱️ وقت التهيئة
-  static const int _initDelaySeconds = 4;
