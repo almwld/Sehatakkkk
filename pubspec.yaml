@@ -325,7 +325,6 @@ flutter:
 
     # 📷 Icons
     - assets/images/icons/doctors/
-    - assets/images/icons/fast_services/
     - assets/images/icons/search/
     - assets/images/icons/top_bar/
 
@@ -361,8 +360,6 @@ flutter:
     - assets/images/pregnancy_follow_up.png
 
     # 🎨 Templates
-    - assets/images/chat/mediatemplate/
-    - assets/templates/
 
     # 📁 SVG
     - assets/svg/
