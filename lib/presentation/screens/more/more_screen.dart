@@ -20,7 +20,6 @@ import 'package:sehatak/presentation/screens/consultation/consultation_screen.da
 import 'package:sehatak/presentation/screens/blood_pressure/blood_pressure_screen.dart';
 import 'package:sehatak/presentation/screens/glucose_tracker/glucose_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/weight_tracker/weight_tracker_screen.dart';
-import 'package:sehatak/presentation/screens/sleep_tracker/sleep_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/medication/medication_reminder_screen.dart';
 import 'package:sehatak/presentation/screens/medical_reports/medical_reports_screen.dart';
 import 'package:sehatak/presentation/screens/health_community/health_community_screen.dart';
@@ -104,7 +103,6 @@ class _MoreScreenState extends State<MoreScreen>
       'value': '85',
       'unit': '%',
       'color': Colors.green,
-      'screen': const SleepTrackerScreen()
     },
     {
       'icon': 'assets/images/tracking/weight_tracking.png',
@@ -136,7 +134,6 @@ class _MoreScreenState extends State<MoreScreen>
       'value': '7.5',
       'unit': 'ساعات',
       'color': Colors.purple,
-      'screen': const SleepTrackerScreen()
     },
     {
       'icon': 'assets/images/tracking/water_drinking.png',
@@ -161,7 +158,6 @@ class _MoreScreenState extends State<MoreScreen>
           {'icon': 'assets/images/pregnancy_follow_up.png', 'title': 'متابعة الحمل', 'subtitle': 'أسابيع الحمل بدقة', 'screen': const FamilyPlanningScreen()},
           {'icon': 'assets/images/tracking/mental_health.png', 'title': 'الصحة النفسية', 'subtitle': 'دعم الصحة النفسية', 'screen': const MentalHealthScreen()},
           {'icon': 'assets/images/tracking/fruits.png', 'title': 'نظام غذائي', 'subtitle': 'خطط غذائية صحية', 'screen': const DietPlanScreen()},
-          {'icon': 'assets/images/tracking/sleep_tracking.png', 'title': 'تتبع النوم', 'subtitle': 'مراقبة جودة النوم', 'screen': const SleepTrackerScreen()},
           {'icon': 'assets/images/tracking/vaccination.png', 'title': 'التطعيمات', 'subtitle': 'جدول التطعيمات', 'screen': const VaccinationScreen()},
         ];
       case 'أدوات تشخيصية':

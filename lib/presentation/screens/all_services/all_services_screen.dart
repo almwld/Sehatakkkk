@@ -31,7 +31,6 @@ import 'package:sehatak/presentation/screens/first_aid/first_aid_screen.dart';
 import 'package:sehatak/presentation/screens/blood_pressure/blood_pressure_screen.dart';
 import 'package:sehatak/presentation/screens/glucose_tracker/glucose_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/weight_tracker/weight_tracker_screen.dart';
-import 'package:sehatak/presentation/screens/sleep_tracker/sleep_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/medication/medication_reminder_screen.dart';
 import 'package:sehatak/presentation/screens/medical_reports/medical_reports_screen.dart';
 
@@ -344,7 +343,6 @@ class _AllServicesScreenState extends State<AllServicesScreen> {
       'icon': 'assets/images/tracking/sleep_tracking.png',
       'category': 'الرعاية الصحية',
       'description': 'تتبع جودة النوم',
-      'screen': const SleepTrackerScreen(),
       'color': Colors.indigo,
       'popular': false,
     },
