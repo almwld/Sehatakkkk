@@ -206,9 +206,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   final WeatherService _weatherService = WeatherService();
 
   // 📍 الموقع والخدمات القريبة
-  LocationService _locationService = LocationService();
-  List<Map<String, dynamic>> _nearbyServices = [];
-  double _distanceToNearby = 0;
 
   // 🎨 تخصيص الأقسام
   List<String> _visibleSections = [];
@@ -343,7 +340,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     _loadUpcomingAppointments();
     _loadAIRecommendation();
     _loadWeather();
-    _loadNearbyServices();
     _loadRecentSearches();
     _loadRecentSymptoms();
     _loadDataInBackground();
@@ -538,11 +534,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   // ============================================================
   // 📍 الخدمات القريبة
   // ============================================================
-  Future<void> _loadNearbyServices() async {
-    try {
-      setState(() => _nearbyServices = nearby);
-    } catch (e) { print('⚠️ فشل تحميل الخدمات القريبة: $e'); }
-  }
 
   // ============================================================
   // 🎨 تفضيلات المستخدم
@@ -646,7 +637,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       await _loadUpcomingAppointments();
       await _loadAIRecommendation();
       await _loadWeather();
-      await _loadNearbyServices();
       await _loadRecentSearches();
       await _loadRecentSymptoms();
       setState(() { _hasError = false; _retryCount = 0; });
