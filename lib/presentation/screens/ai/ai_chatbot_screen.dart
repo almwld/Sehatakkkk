@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/services/local_ai/local_medical_ai.dart';
+import 'package:sehatak/core/services/local_ai/local_medical_ai.dart';
 
 class AiChatbotScreen extends StatefulWidget {
   const AiChatbotScreen({super.key});
@@ -15,6 +15,59 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
   final ChatBot _chatBot = ChatBot();
   final List<Map<String, dynamic>> _messages = [];
   bool _isLoading = false;
+  bool _showQuickQuestions = true;
+
+  // ✅ الأسئلة الافتراضية الجاهزة
+  final List<Map<String, dynamic>> _quickQuestions = [
+    {
+      'icon': '💊',
+      'title': 'معلومات عن الدواء',
+      'question': 'ما هي استخدامات الباراسيتامول؟',
+      'color': Colors.blue,
+    },
+    {
+      'icon': '🩺',
+      'title': 'تحليل الأعراض',
+      'question': 'ما هي أعراض الأنفلونزا؟',
+      'color': Colors.green,
+    },
+    {
+      'icon': '🚑',
+      'title': 'الإسعافات الأولية',
+      'question': 'كيف أتعامل مع الحروق؟',
+      'color': Colors.red,
+    },
+    {
+      'icon': '💡',
+      'title': 'نصائح صحية',
+      'question': 'كيف أحافظ على صحة قلبي؟',
+      'color': Colors.orange,
+    },
+    {
+      'icon': '😷',
+      'title': 'الوقاية من الأمراض',
+      'question': 'كيف أقوي مناعتي؟',
+      'color': Colors.purple,
+    },
+    {
+      'icon': '🧠',
+      'title': 'الصحة النفسية',
+      'question': 'كيف أتخلص من التوتر والقلق؟',
+      'color': Colors.indigo,
+    },
+    {
+      'icon': '🥗',
+      'title': 'التغذية الصحية',
+      'question': 'ما هي الأطعمة المفيدة للصحة؟',
+      'color': Colors.teal,
+    },
+    {
+      'icon': '💤',
+      'title': 'النوم الصحي',
+      'question': 'كم ساعة نوم يحتاجها الجسم؟',
+      'color': Colors.pink,
+    },
+  ];
 
   @override
   void initState() {
@@ -30,6 +83,11 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
     });
   }
 
+  void _sendQuickQuestion(String question) {
+    _messageController.text = question;
+    _sendMessage();
+  }
+
   void _sendMessage() async {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
@@ -42,6 +100,7 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
       });
       _messageController.clear();
       _isLoading = true;
+      _showQuickQuestions = false;
     });
     _scrollToBottom();
 
@@ -90,6 +149,7 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
               setState(() {
                 _messages.clear();
                 _addWelcomeMessage();
+                _showQuickQuestions = true;
               });
               Navigator.pop(context);
             },
@@ -110,16 +170,28 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
       appBar: AppBar(
         title: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.smart_toy,
-                color: AppColors.primary,
-                size: 20,
+            // ✅ أيقونة المساعد الصحي
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(
+                'assets/images/services/ai_assistant.png',
+                width: 32,
+                height: 32,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.smart_toy,
+                      color: AppColors.primary,
+                      size: 20,
+                    ),
+                  );
+                },
               ),
             ),
             const SizedBox(width: 8),
@@ -157,6 +229,9 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
       ),
       body: Column(
         children: [
+          // ✅ الأسئلة الافتراضية السريعة
+          if (_showQuickQuestions && _messages.length <= 1)
+            _buildQuickQuestions(isDark),
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
@@ -176,6 +251,88 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
     );
   }
 
+  // ============================================================
+  // 📝 الأسئلة الافتراضية السريعة
+  // ============================================================
+  Widget _buildQuickQuestions(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: Text(
+              '📌 اسألني عن:',
+              style: TextStyle(
+                fontSize: 12,
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          SizedBox(
+            height: 100,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: _quickQuestions.length,
+              itemBuilder: (context, index) {
+                final q = _quickQuestions[index];
+                return GestureDetector(
+                  onTap: () => _sendQuickQuestion(q['question'] as String),
+                  child: Container(
+                    width: 110,
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1A2540) : Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.02),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          q['icon'] as String,
+                          style: const TextStyle(fontSize: 24),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          q['title'] as String,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // 💬 رسالة
+  // ============================================================
   Widget _buildMessage(Map<String, dynamic> message, bool isDark) {
     final isUser = message['isUser'] as bool;
 
@@ -191,13 +348,24 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!isUser)
-            CircleAvatar(
-              radius: 16,
-              backgroundColor: AppColors.primary.withOpacity(0.1),
-              child: const Icon(
-                Icons.smart_toy,
-                color: AppColors.primary,
-                size: 18,
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Image.asset(
+                'assets/images/services/ai_assistant.png',
+                width: 32,
+                height: 32,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return CircleAvatar(
+                    radius: 16,
+                    backgroundColor: AppColors.primary.withOpacity(0.1),
+                    child: const Icon(
+                      Icons.smart_toy,
+                      color: AppColors.primary,
+                      size: 18,
+                    ),
+                  );
+                },
               ),
             ),
           if (!isUser) const SizedBox(width: 8),
@@ -252,18 +420,32 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
     );
   }
 
+  // ============================================================
+  // ✏️ مؤشر الكتابة
+  // ============================================================
   Widget _buildTypingIndicator(bool isDark) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 16,
-            backgroundColor: AppColors.primary.withOpacity(0.1),
-            child: const Icon(
-              Icons.smart_toy,
-              color: AppColors.primary,
-              size: 18,
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Image.asset(
+              'assets/images/services/ai_assistant.png',
+              width: 32,
+              height: 32,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) {
+                return CircleAvatar(
+                  radius: 16,
+                  backgroundColor: AppColors.primary.withOpacity(0.1),
+                  child: const Icon(
+                    Icons.smart_toy,
+                    color: AppColors.primary,
+                    size: 18,
+                  ),
+                );
+              },
             ),
           ),
           const SizedBox(width: 8),
@@ -307,6 +489,9 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
     );
   }
 
+  // ============================================================
+  // 📥 شريط الإدخال
+  // ============================================================
   Widget _buildInputBar(bool isDark) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -322,6 +507,31 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
       ),
       child: Row(
         children: [
+          // ✅ أيقونة المساعد الصحي في شريط الإدخال
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.asset(
+              'assets/images/services/ai_assistant.png',
+              width: 28,
+              height: 28,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.smart_toy,
+                    color: AppColors.primary,
+                    size: 18,
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(width: 8),
           Expanded(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12),
