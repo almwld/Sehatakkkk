@@ -380,7 +380,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   Future<void> _initializeServices() async {
     try {
       await _notificationService.initialize();
-      await _locationService.init();
+      await _locationService.initialize();  // تم التصحيح
       await _weatherService.init();
       await _medicationService.init();
       await _appointmentService.init();
@@ -542,7 +542,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   // ============================================================
   Future<void> _loadNearbyServices() async {
     try {
-      final nearby = await _locationService.getNearbyServices();
+      final nearby = await _locationService.getNearby();  // تم التصحيح
       setState(() => _nearbyServices = nearby);
     } catch (e) { print('⚠️ فشل تحميل الخدمات القريبة: $e'); }
   }
@@ -643,7 +643,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   Future<void> _refreshData() async {
     setState(() => _isRetrying = true);
     try {
-      await _loadDefaultData();
+      _loadDefaultData();  // تم إزالة await
       await _loadNotificationCount();
       await _loadUpcomingMedications();
       await _loadUpcomingAppointments();

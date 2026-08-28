@@ -61,7 +61,7 @@ void main() async {
     print('❌ FCM initialization error: $e');
   }
 
-  await CacheService.init();
+  // await CacheService.init();  // تم التعليق
 
   final notificationService = NotificationService();
   await notificationService.initialize();
