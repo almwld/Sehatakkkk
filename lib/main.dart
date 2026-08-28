@@ -1,132 +1,219 @@
 import 'package:flutter/material.dart';
-import 'package:workmanager/workmanager.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'presentation/screens/sleep_tracker/sleep_tracker_screen.dart';
-import 'presentation/screens/step_tracker/step_tracker_screen.dart';
-import 'presentation/screens/heart_rate/heart_rate_screen.dart';
-import 'services/sleep_tracker_service.dart';
-import 'services/step_tracker_service.dart';
-import 'services/heart_rate_service.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'firebase_options.dart';
+import 'core/providers/font_size_provider.dart';
+import 'core/providers/user_provider.dart';
+import 'core/providers/bot_provider.dart';
+import 'core/providers/wallet_provider.dart';
+import 'core/providers/cart_provider.dart';
+import 'core/themes/theme_manager.dart';
+import 'core/services/cache_service.dart';
+import 'core/services/notification_service.dart';
+import 'core/services/call_service.dart';
+import 'core/routes/payment_routes.dart';
+import 'presentation/bloc/auth_bloc/auth_bloc.dart';
+import 'presentation/bloc/theme_bloc/theme_bloc.dart';
+import 'presentation/bloc/chat_bloc/chat_bloc.dart';
+import 'presentation/bloc/doctor_bloc/doctor_bloc.dart';
+import 'presentation/screens/splash_screen.dart';
+import 'presentation/screens/home/home_screen.dart';
 
 @pragma('vm:entry-point')
-void callbackDispatcher() {
-  Workmanager().executeTask((task, inputData) async {
-    switch (task) {
-      case 'trackSleep':
-        await SleepTrackerService().trackSleepInBackground();
-        break;
-      case 'trackSteps':
-        await StepTrackerService().startStepTracking();
-        break;
-    }
-    return Future.value(true);
-  });
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  print('📩 Handling background message: ${message.messageId}');
 }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  await Workmanager().initialize(
-    callbackDispatcher,
-    isInDebugMode: false,
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    print('✅ Firebase initialized successfully');
+  } catch (e) {
+    print('❌ Firebase initialization error: $e');
+  }
+
+  try {
+    final fcm = FirebaseMessaging.instance;
+    await fcm.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    final token = await fcm.getToken();
+    print('✅ FCM Token: $token');
+  } catch (e) {
+    print('❌ FCM initialization error: $e');
+  }
+
+  await CacheService.init();
+
+  final notificationService = NotificationService();
+  await notificationService.initialize();
+
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => UserProvider()..loadUserSafely(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => FontSizeProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => BotProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) {
+            try {
+              final user = FirebaseAuth.instance.currentUser;
+              return WalletProvider(uid: user?.uid ?? '');
+            } catch (e) {
+              print('❌ WalletProvider error: $e');
+              return WalletProvider(uid: '');
+            }
+          },
+        ),
+        ChangeNotifierProvider(
+          create: (_) => CartProvider(),
+        ),
+        BlocProvider(
+          create: (_) => AuthBloc()..add(CheckAuthStatus()),
+        ),
+        BlocProvider(create: (_) => ThemeBloc()),
+        BlocProvider(create: (_) => ChatBloc()),
+        BlocProvider(create: (_) => DoctorBloc()),
+      ],
+      child: const SehatakApp(),
+    ),
   );
-  
-  await Workmanager().registerPeriodicTask(
-    'trackSleep',
-    'trackSleep',
-    frequency: const Duration(hours: 1),
-  );
-  
-  await Workmanager().registerPeriodicTask(
-    'trackSteps',
-    'trackSteps',
-    frequency: const Duration(minutes: 30),
-  );
-  
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
-  
-  const AndroidInitializationSettings initializationSettingsAndroid =
-      AndroidInitializationSettings('@mipmap/ic_launcher');
-  
-  const DarwinInitializationSettings initializationSettingsIOS =
-      DarwinInitializationSettings();
-  
-  const InitializationSettings initializationSettings = InitializationSettings(
-    android: initializationSettingsAndroid,
-    iOS: initializationSettingsIOS,
-  );
-  
-  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
-  
-  await Permission.microphone.request();
-  await Permission.sensors.request();
-  await Permission.storage.request();
-  await Permission.activityRecognition.request();
-  await Permission.camera.request();
-  
-  runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class SehatakApp extends StatefulWidget {
+  const SehatakApp({super.key});
+
+  @override
+  State<SehatakApp> createState() => _SehatakAppState();
+}
+
+class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
+  final CallService _callService = CallService();
+  final NotificationService _notificationService = NotificationService();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
+    FirebaseMessaging.onMessage.listen(_handleMessage);
+    FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpened);
+
+    FirebaseMessaging.onMessage.listen((message) {
+      if (message.data['type'] == 'incoming_call') {
+        _callService.handleIncomingCall(context, message);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      print('🔄 App resumed from background');
+      if (mounted) {
+        final userProvider = Provider.of<UserProvider>(context, listen: false);
+        userProvider.loadUserSafely();
+        
+        final user = FirebaseAuth.instance.currentUser;
+        if (user != null) {
+          FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+            'isOnline': true,
+            'lastSeen': FieldValue.serverTimestamp(),
+          });
+        }
+      }
+    }
+  }
+
+  void _handleMessage(RemoteMessage message) {
+    print('📩 New message: ${message.notification?.title}');
+    _notificationService.showNotification(
+      title: message.notification?.title ?? 'إشعار جديد',
+      body: message.notification?.body ?? '',
+      payload: message.data['chatId'] ?? '',
+    );
+  }
+
+  void _handleMessageOpened(RemoteMessage message) {
+    print('📱 Message opened: ${message.data}');
+    if (message.data['type'] == 'incoming_call') {
+      _callService.handleIncomingCall(context, message);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Sehatak',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        fontFamily: 'Cairo',
-        useMaterial3: true,
-      ),
-      home: const MainScreen(),
+    return BlocBuilder<ThemeBloc, ThemeState>(
+      builder: (context, themeState) {
+        return Consumer<FontSizeProvider>(
+          builder: (context, fontProvider, child) {
+            return MaterialApp(
+              title: 'صحتك - Sehatak',
+              debugShowCheckedModeBanner: false,
+              locale: const Locale('ar', 'SA'),
+              theme: ThemeManager.lightTheme,
+              darkTheme: ThemeManager.darkTheme,
+              themeMode: themeState.themeMode,
+              localizationsDelegates: const [
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: const [
+                Locale('ar', 'SA'),
+                Locale('en', 'US'),
+              ],
+              builder: (context, child) {
+                return MediaQuery(
+                  data: MediaQuery.of(context).copyWith(
+                    textScaleFactor: fontProvider.fontScale,
+                  ),
+                  child: Directionality(
+                    textDirection: TextDirection.rtl,
+                    child: child!,
+                  ),
+                );
+              },
+              home: const SplashScreen(),
+              onGenerateRoute: PaymentRoutes.onGenerateRoute,
+              navigatorKey: navigatorKey,
+            );
+          },
+        );
+      },
     );
   }
 }
 
-class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
-
-  @override
-  State<MainScreen> createState() => _MainScreenState();
-}
-
-class _MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 0;
-
-  final List<Widget> _screens = const [
-    StepTrackerScreen(),
-    SleepTrackerScreen(),
-    HeartRateScreen(),
-  ];
-
-  final List<Map<String, dynamic>> _items = [
-    {'title': '🚶 خطوات', 'icon': Icons.directions_walk, 'color': Colors.blue},
-    {'title': '🛌 نوم', 'icon': Icons.bedtime, 'color': Colors.indigo},
-    {'title': '🫀 نبضات', 'icon': Icons.favorite, 'color': Colors.red},
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: _screens[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) => setState(() => _selectedIndex = index),
-        items: _items.map((item) {
-          return BottomNavigationBarItem(
-            icon: Icon(item['icon']),
-            label: item['title'],
-          );
-        }).toList(),
-        selectedItemColor: _items[_selectedIndex]['color'],
-        unselectedItemColor: Colors.grey,
-        showUnselectedLabels: true,
-        type: BottomNavigationBarType.fixed,
-      ),
-    );
-  }
-}
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
