@@ -379,3 +379,10 @@ flutter:
 
 dependency_overrides:
   google_fonts: ^5.1.0
+
+    # 🗺️ Map Pins Icons
+    - assets/icons/map_pins/clinic.svg
+    - assets/icons/map_pins/hospital.svg
+    - assets/icons/map_pins/laboratory.svg
+    - assets/icons/map_pins/medical.svg
+    - assets/icons/map_pins/pharmacy.svg
