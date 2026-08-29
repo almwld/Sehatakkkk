@@ -1,5 +1,6 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
@@ -128,13 +129,17 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
         ToastService.showSuccess('📹 جاري بدء مكالمة فيديو...');
         break;
       case 'chat':
+        final user = FirebaseAuth.instance.currentUser;
+        final userId = user?.uid ?? '';
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (_) => ChatDetailScreen(
               chatId: 'chat_${widget.doctorId}_${DateTime.now().millisecondsSinceEpoch}',
+              userId: userId,
               userName: _doctor['name'],
-              userId: _doctor['id'] ?? widget.doctorId,
+              userImage: _doctor['image'],
+              isDoctor: true, // ✅ تم إضافة isDoctor
             ),
           ),
         );
