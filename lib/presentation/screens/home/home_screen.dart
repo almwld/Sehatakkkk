@@ -1,7 +1,15 @@
+// ============================================================
+// 📁 lib/presentation/screens/home/home_screen.dart
+// 🏠 الشاشة الرئيسية - مع شريط سفلي متحرك
+// ✅ متوافق مع الملفات الموجودة ولا يتعارض معها
+// ============================================================
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/managers/global_scroll_manager.dart';
+import 'package:sehatak/core/widgets/scroll_detector.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
 import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
@@ -12,6 +20,17 @@ import 'package:sehatak/presentation/screens/more/more_screen.dart';
 import 'package:sehatak/presentation/widgets/common/custom_bottom_nav_bar.dart';
 import 'package:sehatak/presentation/screens/home/tabs/home_tab.dart';
 
+// ✅ مفتاح ثابت لكل شاشة - يمنع فقدان الحالة
+class ScreenKeys {
+  static const home = ValueKey('home_tab');
+  static const doctors = ValueKey('doctors_tab');
+  static const pharmacy = ValueKey('pharmacy_tab');
+  static const chat = ValueKey('chat_tab');
+  static const labs = ValueKey('labs_tab');
+  static const patient = ValueKey('patient_tab');
+  static const more = ValueKey('more_tab');
+}
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -21,11 +40,13 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int _currentIndex = 0;
-  final ScrollController _scrollController = ScrollController();
   bool _isLoggedIn = false;
   bool _isBottomBarVisible = true;
+  final ScrollController _scrollController = ScrollController();
+  final GlobalScrollManager _scrollManager = GlobalScrollManager();
 
-  final List<Widget> _screens = [];
+  // ✅ استخدام Map بدلاً من List للحفاظ على المفاتيح
+  late final Map<int, Widget> _screens;
 
   @override
   void initState() {
@@ -51,25 +72,30 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   void _checkLoginStatus() {
     final user = FirebaseAuth.instance.currentUser;
-    setState(() {
-      _isLoggedIn = user != null;
-    });
+    // ✅ تجنب setState إذا لم يتغير شيء
+    final newStatus = user != null;
+    if (_isLoggedIn != newStatus && mounted) {
+      setState(() {
+        _isLoggedIn = newStatus;
+      });
+    }
   }
 
   void _initializeScreens() {
-    _screens.clear();
-    _screens.addAll([
-      HomeTab(
+    // ✅ استخدام ValueKey لكل شاشة يمنع فقدان الحالة
+    _screens = {
+      0: HomeTab(
+        key: ScreenKeys.home,
         scrollController: _scrollController,
         isBottomBarVisible: ValueNotifier<bool>(_isBottomBarVisible),
       ),
-      const DoctorsListScreen(),
-      const PharmacyScreen(),
-      const ChatScreen(),
-      const LabsListScreen(),
-      const PatientDashboard(),
-      const MoreScreen(),
-    ]);
+      1: const DoctorsListScreen(key: ScreenKeys.doctors),
+      2: const PharmacyScreen(key: ScreenKeys.pharmacy),
+      3: const ChatScreen(key: ScreenKeys.chat),
+      4: const LabsListScreen(key: ScreenKeys.labs),
+      5: const PatientDashboard(key: ScreenKeys.patient),
+      6: const MoreScreen(key: ScreenKeys.more),
+    };
   }
 
   void _onTabTap(int index) {
@@ -84,9 +110,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       return;
     }
 
-    setState(() {
-      _currentIndex = index;
-    });
+    if (_currentIndex != index && mounted) {
+      setState(() {
+        _currentIndex = index;
+      });
+    }
 
     HapticFeedback.lightImpact();
   }
@@ -99,7 +127,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       body: IndexedStack(
         index: _currentIndex,
-        children: _screens,
+        // ✅ استخدام values من Map مع المفاتيح الثابتة
+        children: _screens.values.toList(),
       ),
       bottomNavigationBar: CustomBottomNavigationBar(
         currentIndex: _currentIndex,
@@ -114,6 +143,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             _checkLoginStatus();
           });
         },
+        scrollManager: _scrollManager, // ✅ تمرير المدير للشريط
       ),
     );
   }

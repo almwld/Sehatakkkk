@@ -30,9 +30,6 @@ import 'package:sehatak/presentation/screens/weight_tracker/weight_tracker_scree
 import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// ============================================================
-// 🎨 CustomPainter للدائرة المتدرجة
-// ============================================================
 class CircularProgressPainter extends CustomPainter {
   final double progress;
   final Color backgroundColor;
@@ -85,6 +82,7 @@ class CircularProgressPainter extends CustomPainter {
 
 class PatientDashboard extends StatefulWidget {
   final ScrollController? scrollController;
+
   const PatientDashboard({super.key, this.scrollController});
 
   @override
@@ -92,17 +90,14 @@ class PatientDashboard extends StatefulWidget {
 }
 
 class _PatientDashboardState extends State<PatientDashboard> {
-  // ============================================================
-  // 📊 متغيرات الحالة
-  // ============================================================
-  String _userName = 'مستخدم';
+  String _userName = 'مريض';
   String _userEmail = '';
   String _userRole = 'مريض';
   String _userId = '';
   String _userPhone = '';
   String _patientNumber = 'SH-2024-0012';
   String _userAvatar = '';
-  String _subscriptionType = 'مجاني';
+  String _subscriptionType = 'مجانية';
   bool _isLoading = true;
   bool _isSharing = false;
   bool _isOffline = false;
@@ -112,9 +107,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
   List<Map<String, dynamic>> _cachedVitals = [];
   bool _dataLoaded = false;
 
-  // ============================================================
-  // 📦 المؤشرات الحيوية الأصلية
-  // ============================================================
   final List<Map<String, dynamic>> _vitals = [
     {
       'icon': 'assets/images/tracking/blood_pressure.png',
@@ -124,7 +116,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
       'color': Colors.red,
       'maxValue': 180,
       'currentValue': 120,
-      'screen': const BloodPressureScreen()
+      'screen': const BloodPressureScreen(),
     },
     {
       'icon': 'assets/images/tracking/blood_sugar.png',
@@ -134,7 +126,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
       'color': Colors.orange,
       'maxValue': 200,
       'currentValue': 98,
-      'screen': const GlucoseTrackerScreen()
+      'screen': const GlucoseTrackerScreen(),
     },
     {
       'icon': 'assets/images/tracking/fitness.png',
@@ -144,6 +136,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
       'color': Colors.green,
       'maxValue': 100,
       'currentValue': 85,
+      'screen': const HealthDashboard(),
     },
     {
       'icon': 'assets/images/tracking/weight_tracking.png',
@@ -153,7 +146,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
       'color': Colors.purple,
       'maxValue': 120,
       'currentValue': 72,
-      'screen': const WeightTrackerScreen()
+      'screen': const WeightTrackerScreen(),
     },
     {
       'icon': 'assets/images/tracking/nutrition.png',
@@ -163,7 +156,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
       'color': Colors.teal,
       'maxValue': 10,
       'currentValue': 8,
-      'screen': const HealthDashboard()
+      'screen': const HealthDashboard(),
     },
     {
       'icon': 'assets/images/tracking/mental_health.png',
@@ -173,7 +166,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
       'color': Colors.indigo,
       'maxValue': 10,
       'currentValue': 9,
-      'screen': const HealthDashboard()
+      'screen': const HealthDashboard(),
     },
   ];
 
@@ -194,9 +187,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     {'icon': 'assets/images/services/packages.png', 'label': 'الباقات', 'color': Colors.amber, 'screen': const SubscriptionsScreen()},
   ];
 
-  // ============================================================
-  // 🔄 دورة الحياة
-  // ============================================================
   @override
   void initState() {
     super.initState();
@@ -204,9 +194,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     _loadUserDataInBackground();
   }
 
-  // ============================================================
-  // 💾 تحميل البيانات المخزنة محلياً
-  // ============================================================
   Future<void> _loadCachedData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -217,6 +204,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
       final cachedPatientNumber = prefs.getString('cached_patient_number');
       final cachedSubscriptionType = prefs.getString('cached_subscription_type');
       final cachedUserAvatar = prefs.getString('cached_user_avatar');
+      final cachedUserPhone = prefs.getString('cached_user_phone');
       
       if (cachedUserName != null) {
         setState(() {
@@ -224,8 +212,9 @@ class _PatientDashboardState extends State<PatientDashboard> {
           _userEmail = cachedUserEmail ?? '';
           _userRole = cachedUserRole ?? 'مريض';
           _patientNumber = cachedPatientNumber ?? _generatePatientNumber();
-          _subscriptionType = cachedSubscriptionType ?? 'مجاني';
+          _subscriptionType = cachedSubscriptionType ?? 'مجانية';
           _userAvatar = cachedUserAvatar ?? '';
+          _userPhone = cachedUserPhone ?? '';
           _dataLoaded = true;
         });
       }
@@ -234,9 +223,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     }
   }
 
-  // ============================================================
-  // 💾 حفظ البيانات محلياً
-  // ============================================================
   Future<void> _saveToCache() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -246,18 +232,16 @@ class _PatientDashboardState extends State<PatientDashboard> {
       await prefs.setString('cached_patient_number', _patientNumber);
       await prefs.setString('cached_subscription_type', _subscriptionType);
       await prefs.setString('cached_user_avatar', _userAvatar);
+      await prefs.setString('cached_user_phone', _userPhone);
       print('✅ Data saved to cache');
     } catch (e) {
       print('⚠️ Error saving to cache: $e');
     }
   }
 
-  // ============================================================
-  // 📥 تحميل البيانات من Firebase (خلفية)
-  // ============================================================
   Future<void> _loadUserDataInBackground() async {
     try {
-      await Future.delayed(const Duration(seconds: 10));
+      await Future.delayed(const Duration(seconds: 2));
       
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
@@ -281,13 +265,13 @@ class _PatientDashboardState extends State<PatientDashboard> {
       if (doc.exists) {
         final data = doc.data();
         setState(() {
-          _userName = data?['name'] ?? user.displayName ?? 'مستخدم';
+          _userName = data?['name'] ?? user.displayName ?? 'مريض';
           _userEmail = user.email ?? '';
           _userRole = data?['role'] ?? data?['type'] ?? 'مريض';
           _userPhone = data?['phone'] ?? '';
           _userAvatar = data?['avatar'] ?? '';
           _patientNumber = data?['patientNumber'] ?? _generatePatientNumber();
-          _subscriptionType = data?['subscriptionType'] ?? 'مجاني';
+          _subscriptionType = data?['subscriptionType'] ?? data?['subscription'] ?? 'مجانية';
           _isOffline = false;
           _isLoading = false;
         });
@@ -299,9 +283,10 @@ class _PatientDashboardState extends State<PatientDashboard> {
         }
       } else {
         setState(() {
-          _userName = user.displayName ?? 'مستخدم';
+          _userName = user.displayName ?? 'مريض';
           _userEmail = user.email ?? '';
           _userRole = 'مريض';
+          _subscriptionType = 'مجانية';
           _isLoading = false;
         });
         await _savePatientNumber();
@@ -315,9 +300,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     }
   }
 
-  // ============================================================
-  // 🆔 توليد رقم المريض
-  // ============================================================
   String _generatePatientNumber() {
     final now = DateTime.now();
     final year = now.year;
@@ -325,65 +307,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     return 'SH-$year-$random';
   }
 
-  // ============================================================
-  // 🎨 ألوان الباقة حسب النوع - مع التدرج الأصلي للباقة المجانية
-  // ============================================================
-  String _getSubscriptionColor(String type) {
-    switch (type.toLowerCase()) {
-      case 'ذهبية': case 'gold': 
-        return '#FFD700';
-      case 'ماسية': case 'diamond': 
-        return '#00BCD4';
-      case 'فضية': case 'silver': 
-        return '#9E9E9E';
-      case 'برونزية': case 'bronze': 
-        return '#CD7F32';
-      case 'عائلية': case 'family': 
-        return '#4CAF50';
-      case 'مجاني': case 'free': 
-        return '#9C27B0'; // ✅ بنفسجي (اللون الأساسي)
-      default: 
-        return '#9C27B0';
-    }
-  }
-
-  // ✅ الحصول على التدرج اللوني للباقة المجانية (بنفسجي + أخضر)
-  List<Color> _getSubscriptionGradient(String type) {
-    switch (type.toLowerCase()) {
-      case 'ذهبية': case 'gold': 
-        return [Colors.amber, Colors.orange];
-      case 'ماسية': case 'diamond': 
-        return [Colors.cyan, Colors.blue];
-      case 'فضية': case 'silver': 
-        return [Colors.grey, Colors.blueGrey];
-      case 'برونزية': case 'bronze': 
-        return [Colors.brown, Colors.orange];
-      case 'عائلية': case 'family': 
-        return [Colors.green, Colors.teal];
-      case 'مجاني': case 'free': 
-        // ✅ التدرج الأصلي: بنفسجي + أخضر مدمج
-        return [Colors.purple.shade400, Colors.green.shade400];
-      default: 
-        return [Colors.purple.shade400, Colors.green.shade400];
-    }
-  }
-
-  // ✅ الحصول على أيقونة الباقة
-  String _getSubscriptionIcon(String type) {
-    switch (type.toLowerCase()) {
-      case 'ذهبية': case 'gold': return '⭐';
-      case 'ماسية': case 'diamond': return '💎';
-      case 'فضية': case 'silver': return '🥈';
-      case 'برونزية': case 'bronze': return '🥉';
-      case 'عائلية': case 'family': return '👨‍👩‍👧‍👦';
-      case 'مجاني': case 'free': return '🆓';
-      default: return '🆓';
-    }
-  }
-
-  // ============================================================
-  // 💾 حفظ رقم المريض في Firebase
-  // ============================================================
   Future<void> _savePatientNumber() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -407,9 +330,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     }
   }
 
-  // ============================================================
-  // 📸 رفع الصورة
-  // ============================================================
   Future<void> _pickImage() async {
     try {
       final XFile? image = await _picker.pickImage(
@@ -452,9 +372,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     }
   }
 
-  // ============================================================
-  // 📤 مشاركة الملف الصحي
-  // ============================================================
   Future<void> _shareProfile() async {
     setState(() => _isSharing = true);
     try {
@@ -501,9 +418,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     setState(() => _isSharing = false);
   }
 
-  // ============================================================
-  // 📱 عرض الباركود
-  // ============================================================
   void _showQRCode() {
     showDialog(
       context: context,
@@ -561,9 +475,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ============================================================
-  // 🎨 بناء الباركود
-  // ============================================================
   Widget _buildQRCode() {
     return Center(
       child: Column(
@@ -591,16 +502,60 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ============================================================
-  // 🏷️ عنوان لوحة المستخدم
-  // ============================================================
-  String _getDashboardTitle() {
-    return 'لوحة المستخدم';
+  List<Color> _getSubscriptionGradient(String type) {
+    switch (type.toLowerCase()) {
+      case 'ذهبية': case 'gold': 
+        return [Colors.amber, Colors.orange];
+      case 'ماسية': case 'diamond': 
+        return [Colors.cyan, Colors.blue];
+      case 'فضية': case 'silver': 
+        return [Colors.grey, Colors.blueGrey];
+      case 'برونزية': case 'bronze': 
+        return [Colors.brown, Colors.orange];
+      case 'عائلية': case 'family': 
+        return [Colors.green, Colors.teal];
+      case 'مجانية': case 'free': case '': 
+        return [Colors.purple.shade400, Colors.green.shade400];
+      default: 
+        return [Colors.purple.shade400, Colors.green.shade400];
+    }
   }
 
-  // ============================================================
-  // 🖼️ عرض الأيقونة
-  // ============================================================
+  String _getSubscriptionStatus(String type) {
+    switch (type.toLowerCase()) {
+      case 'ذهبية': case 'gold': return 'ذهبية';
+      case 'ماسية': case 'diamond': return 'ماسية';
+      case 'فضية': case 'silver': return 'فضية';
+      case 'برونزية': case 'bronze': return 'برونزية';
+      case 'عائلية': case 'family': return 'عائلية';
+      case 'مجانية': case 'free': case '': return 'مجانية';
+      default: return 'مجانية';
+    }
+  }
+
+  String _getSubscriptionDisplayName(String type) {
+    switch (type.toLowerCase()) {
+      case 'ذهبية': case 'gold': return 'الذهبية';
+      case 'ماسية': case 'diamond': return 'الماسية';
+      case 'فضية': case 'silver': return 'الفضية';
+      case 'برونزية': case 'bronze': return 'البرونزية';
+      case 'عائلية': case 'family': return 'العائلية';
+      case 'مجانية': case 'free': case '': return 'المجانية';
+      default: return 'المجانية';
+    }
+  }
+
+  String _getDashboardTitle() {
+    switch (_userRole.toLowerCase()) {
+      case 'طبيب': case 'doctor': return 'لوحة الطبيب';
+      case 'ممرض': case 'nurse': return 'لوحة الممرض';
+      case 'مشرف': case 'supervisor': case 'admin': return 'لوحة المشرف';
+      case 'صيدلي': case 'pharmacist': return 'لوحة الصيدلي';
+      case 'فني': case 'technician': return 'لوحة الفني';
+      default: return 'لوحة المريض';
+    }
+  }
+
   Widget _buildIcon(String path, {double size = 40, Color? color}) {
     return Image.asset(
       path,
@@ -613,9 +568,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ============================================================
-  // 🏗️ بناء الواجهة الرئيسية
-  // ============================================================
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -675,27 +627,45 @@ class _PatientDashboardState extends State<PatientDashboard> {
                   const SizedBox(height: 16),
                   _buildActiveSubscriptionCard(isDark),
                   const SizedBox(height: 16),
-                  const Text('المؤشرات الحيوية', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'المؤشرات الحيوية',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 10),
                   _buildVitalsGrid(isDark),
                   const SizedBox(height: 16),
-                  const Text('وصول سريع', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'وصول سريع',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 10),
                   _buildQuickAccess(isDark),
                   const SizedBox(height: 16),
-                  const Text('الخدمات الطبية', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'الخدمات الطبية',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 10),
                   _buildServicesList(isDark),
                   const SizedBox(height: 16),
-                  const Text('الأمراض المزمنة', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'الأمراض المزمنة',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 10),
                   _buildChronicConditions(isDark),
                   const SizedBox(height: 16),
-                  const Text('التطعيمات', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'التطعيمات',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 10),
                   _buildVaccinations(isDark),
                   const SizedBox(height: 16),
-                  const Text('الحساسية', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'الحساسية',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 10),
                   _buildAllergies(isDark),
                   const SizedBox(height: 80),
@@ -705,9 +675,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ============================================================
-  // 🏥 بطاقة المريض
-  // ============================================================
   Widget _buildPatientCard(bool isDark) {
     return GestureDetector(
       onTap: () {
@@ -795,9 +762,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ============================================================
-  // 📊 إحصائية حيوية صغيرة
-  // ============================================================
   Widget _buildVitalStat(String iconPath, String label, String value) {
     return Column(
       children: [
@@ -809,14 +773,10 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ============================================================
-  // 💳 الباقة النشطة - مع التدرج الأصلي (بنفسجي + أخضر للمجانية)
-  // ============================================================
   Widget _buildActiveSubscriptionCard(bool isDark) {
-    // ✅ الحصول على التدرج اللوني حسب نوع الباقة
     List<Color> gradientColors = _getSubscriptionGradient(_subscriptionType);
-    String subscriptionIcon = _getSubscriptionIcon(_subscriptionType);
-    String subscriptionStatus = _subscriptionType == 'مجاني' ? 'مجانية' : 'مفعّلة';
+    String subscriptionStatus = _getSubscriptionStatus(_subscriptionType);
+    String subscriptionDisplayName = _getSubscriptionDisplayName(_subscriptionType);
 
     return GestureDetector(
       onTap: () {
@@ -828,7 +788,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          // ✅ استخدام التدرج اللوني المدمج (بنفسجي + أخضر للمجانية)
           gradient: LinearGradient(
             colors: gradientColors,
             begin: Alignment.topLeft,
@@ -853,9 +812,10 @@ class _PatientDashboardState extends State<PatientDashboard> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Center(
-                child: Text(
-                  subscriptionIcon,
-                  style: const TextStyle(fontSize: 24),
+                child: _buildIcon(
+                  'assets/images/services/packages.png',
+                  size: 28,
+                  color: Colors.white,
                 ),
               ),
             ),
@@ -869,7 +829,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
                     style: TextStyle(color: Colors.white70, fontSize: 12),
                   ),
                   Text(
-                    'الباقة $_subscriptionType',
+                    'الباقة $subscriptionDisplayName',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 20,
@@ -880,7 +840,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
                     children: [
                       Icon(Icons.star, color: AppColors.amber, size: 14),
                       const SizedBox(width: 4),
-                      Text(
+                      const Text(
                         'مميزات حصرية',
                         style: TextStyle(color: Colors.white70, fontSize: 11),
                       ),
@@ -912,9 +872,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ============================================================
-  // 📊 المؤشرات الحيوية
-  // ============================================================
   Widget _buildVitalsGrid(bool isDark) {
     return GridView.builder(
       shrinkWrap: true,
@@ -923,90 +880,101 @@ class _PatientDashboardState extends State<PatientDashboard> {
         crossAxisCount: 3,
         crossAxisSpacing: 10,
         mainAxisSpacing: 10,
-        childAspectRatio: 1.0,
+        childAspectRatio: 0.9,
       ),
       itemCount: _vitals.length,
       itemBuilder: (context, index) {
         final vital = _vitals[index];
         final color = vital['color'] as Color;
-        final maxValue = vital['maxValue'] as double;
-        final currentValue = vital['currentValue'] as double;
-        final percentage = (currentValue / maxValue).clamp(0.0, 1.0);
+        final hasProgress = vital.containsKey('maxValue') && vital.containsKey('currentValue');
+        double? percentage;
+        if (hasProgress) {
+          final maxValue = vital['maxValue'] as double;
+          final currentValue = vital['currentValue'] as double;
+          percentage = (currentValue / maxValue).clamp(0.0, 1.0);
+        }
 
         return GestureDetector(
           onTap: () {
             Navigator.push(context, MaterialPageRoute(builder: (_) => vital['screen'] as Widget));
           },
           child: Container(
-            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1A2540) : Colors.white,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  color.withOpacity(isDark ? 0.12 : 0.06),
+                  color.withOpacity(isDark ? 0.04 : 0.02),
+                ],
+              ),
               borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: color.withOpacity(isDark ? 0.15 : 0.08),
+                width: 1,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
+                  color: isDark 
+                      ? Colors.black.withOpacity(0.2) 
+                      : color.withOpacity(0.05),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
               ],
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    SizedBox(
-                      width: 60,
-                      height: 60,
-                      child: CustomPaint(
-                        painter: CircularProgressPainter(
-                          progress: percentage,
-                          backgroundColor: color.withOpacity(0.15),
-                          progressColor: color,
-                          strokeWidth: 6,
-                        ),
-                        child: const SizedBox(width: 60, height: 60),
-                      ),
-                    ),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (hasProgress && percentage != null)
+                    Stack(
+                      alignment: Alignment.center,
                       children: [
-                        _buildIcon(vital['icon'] as String, size: 20, color: color),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${(percentage * 100).toInt()}%',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: color,
+                        SizedBox(
+                          width: 55,
+                          height: 55,
+                          child: CustomPaint(
+                            painter: CircularProgressPainter(
+                              progress: percentage,
+                              backgroundColor: color.withOpacity(0.12),
+                              progressColor: color,
+                              strokeWidth: 5,
+                            ),
                           ),
                         ),
+                        _buildIcon(
+                          vital['icon'] as String,
+                          size: 22,
+                          color: color,
+                        ),
                       ],
+                    )
+                  else
+                    _buildIcon(vital['icon'] as String, size: 42, color: color),
+                  const SizedBox(height: 6),
+                  Text(
+                    vital['value'] as String,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : Colors.black87,
                     ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  vital['value'] as String,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black87,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  vital['label'] as String,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  Text(
+                    vital['label'] as String,
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
@@ -1014,9 +982,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ============================================================
-  // ⚡ وصول سريع
-  // ============================================================
   Widget _buildQuickAccess(bool isDark) {
     final quickServices = [
       {'icon': 'assets/images/services/calendar_booking.png', 'label': 'المواعيد', 'screen': const PatientAppointments()},
@@ -1048,9 +1013,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ============================================================
-  // 📋 قائمة الخدمات
-  // ============================================================
   Widget _buildServicesList(bool isDark) {
     return ListView.builder(
       shrinkWrap: true,
@@ -1114,9 +1076,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ============================================================
-  // 🩺 الأمراض المزمنة
-  // ============================================================
   Widget _buildChronicConditions(bool isDark) {
     final conditions = [
       {'name': 'ارتفاع ضغط الدم', 'diagnosed': '15 مارس 2023', 'status': 'تحت السيطرة', 'color': AppColors.error, 'icon': Icons.favorite_border},
@@ -1193,9 +1152,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ============================================================
-  // 💉 التطعيمات
-  // ============================================================
   Widget _buildVaccinations(bool isDark) {
     final vaccines = [
       {'name': 'كوفيد-19', 'info': 'فايزر • جرعتين', 'date': 'آخر: يناير 2025', 'done': true},
@@ -1257,9 +1213,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  // ============================================================
-  // 🤧 الحساسية
-  // ============================================================
   Widget _buildAllergies(bool isDark) {
     final allergies = [
       {'icon': 'assets/images/services/emergency.png', 'name': 'فول سوداني', 'color': AppColors.error},

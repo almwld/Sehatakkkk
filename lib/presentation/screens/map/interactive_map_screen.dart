@@ -783,58 +783,46 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
   // 🎨 بناء العلامات (Markers) مع Clustering
   List<Marker> _buildMarkers() {
     final filtered = _getFilteredPlaces();
-    
+
     return filtered.map((place) {
+      final category = place['category'] as String? ?? 'other';
+      final lat = (place['lat'] as num).toDouble();
+      final lng = (place['lng'] as num).toDouble();
       final isSelected = _selectedLocation != null &&
-          _selectedLocation!.latitude == place['lat'] &&
-          _selectedLocation!.longitude == place['lng'];
-      
+          _selectedLocation!.latitude == lat &&
+          _selectedLocation!.longitude == lng;
+
       return Marker(
-        width: 40,
-        height: 40,
-        point: LatLng(place['lat'] as double, place['lng'] as double),
+        point: LatLng(lat, lng),
+        width: isSelected ? 68 : 58,
+        height: isSelected ? 86 : 74,
+        alignment: Alignment.bottomCenter,
         child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
           onTap: () => _showPlaceDetails(place),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            width: isSelected ? 48 : 36,
-            height: isSelected ? 48 : 36,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: isSelected ? AppColors.primary : Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
+          child: AnimatedScale(
+            scale: isSelected ? 1.10 : 1.0,
+            duration: const Duration(milliseconds: 180),
+            child: SizedBox(
+              width: isSelected ? 64 : 54,
+              height: isSelected ? 82 : 70,
+              child: SvgPicture.asset(
+                _getIconPath(category),
+                fit: BoxFit.contain,
+                alignment: Alignment.bottomCenter,
+                placeholderBuilder: (context) => Center(
+                  child: Icon(
+                    _getIconForCategory(category),
+                    color: AppColors.primary,
+                    size: isSelected ? 34 : 28,
+                  ),
                 ),
-              ],
-            ),
-            child: Center(
-              child: isSelected
-                  ? const Icon(Icons.check, color: Colors.white, size: 20)
-                  : SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: SvgPicture.asset(
-                        _getIconPath(place['category'] as String),
-                        fit: BoxFit.contain,
-                        colorFilter: const ColorFilter.mode(
-                          AppColors.primary,
-                          BlendMode.srcIn,
-                        ),
-                        placeholderBuilder: (context) => Icon(
-                          _getIconForCategory(place['category'] as String),
-                          color: AppColors.primary,
-                          size: 20,
-                        ),
-                      ),
-                    ),
+              ),
             ),
           ),
         ),
       );
-    }).toList();
+    }).toList(growable: false);
   }
 
   // 📋 عرض تفاصيل المكان
@@ -1078,12 +1066,22 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
         children: [
           // 🔍 شريط البحث
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
                 hintText: 'ابحث عن مستشفى، صيدلية، مختبر، عيادة...',
-                prefixIcon: const Icon(Icons.search),
+                prefixIcon: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Image.asset(
+                    'assets/images/icons/search/Search button.png',
+                    width: 20,
+                    height: 20,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) =>
+                        const Icon(Icons.search, size: 20),
+                  ),
+                ),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear),
@@ -1093,8 +1091,9 @@ class _InteractiveMapScreenState extends State<InteractiveMapScreen>
                         },
                       )
                     : null,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                   borderSide: BorderSide.none,
                 ),
                 filled: true,

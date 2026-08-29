@@ -1,11 +1,20 @@
+// ============================================================
+// 📱 شاشة المحادثات الرئيسية - نسخة مصححة
+// ============================================================
+
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sehatak/bloc/chat/chat_bloc.dart';
+import 'package:sehatak/bloc/chat/chat_event.dart';
+import 'package:sehatak/bloc/chat/chat_state.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/constants/imagekit.dart';
-import 'package:sehatak/core/services/nextcloud_service.dart';
-import 'package:sehatak/presentation/screens/chat/chat_room_screen.dart';
-import 'package:sehatak/presentation/screens/chat/new_chat_screen.dart';
+import 'package:sehatak/core/constants/app_strings.dart';
+import 'package:sehatak/core/constants/text_styles.dart';
+import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/models/chat_model.dart';
+import 'package:sehatak/presentation/screens/chat/chat_detail_screen.dart';
+import 'package:sehatak/presentation/screens/chat/widgets/chat_shimmer.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -14,110 +23,29 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final NextcloudService _nextcloud = NextcloudService();
-  
-  List<Map<String, dynamic>> _chats = [];
-  bool _isLoading = true;
-  bool _isOnline = true;
+class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  final List<Map<String, dynamic>> _tabs = [
+    {'icon': Icons.chat_bubble_outline, 'label': AppStrings.chats},
+    {'icon': Icons.call_outlined, 'label': AppStrings.calls},
+    {'icon': Icons.circle_outlined, 'label': AppStrings.stories},
+  ];
 
   @override
   void initState() {
     super.initState();
-    _loadChats();
-    _checkConnectivity();
+    _tabController = TabController(length: 3, vsync: this, initialIndex: 0);
+    context.read<ChatBloc>().add(LoadChatsEvent());
   }
 
-  Future<void> _checkConnectivity() async {
-    final isOnline = await _nextcloud.checkServerStatus();
-    setState(() => _isOnline = isOnline);
-  }
-
-  Future<void> _loadChats() async {
-    setState(() => _isLoading = true);
-    
-    final user = _auth.currentUser;
-    if (user == null) {
-      setState(() => _isLoading = false);
-      return;
-    }
-
-    try {
-      final snapshot = await _firestore
-          .collection('chat_rooms')
-          .where('participants', arrayContains: user.uid)
-          .orderBy('lastMessageTime', descending: true)
-          .get();
-
-      setState(() {
-        _chats = snapshot.docs.map((doc) {
-          final data = doc.data();
-          final participants = Map<String, dynamic>.from(data['participantsData'] ?? {});
-          final otherUser = participants.keys.firstWhere(
-            (key) => key != user.uid,
-            orElse: () => '',
-          );
-          final otherUserData = otherUser.isNotEmpty ? participants[otherUser] : null;
-
-          return {
-            'id': doc.id,
-            'name': otherUserData?['name'] ?? 'مستخدم',
-            'image': otherUserData?['image'] ?? '',
-            'lastMessage': data['lastMessage'] ?? 'ابدأ المحادثة',
-            'lastMessageTime': data['lastMessageTime'],
-            'unreadCount': data['unreadCount']?[user.uid] ?? 0,
-            'isGroup': data['type'] == 'group',
-          };
-        }).toList();
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() => _isLoading = false);
-      print('❌ Error loading chats: $e');
-    }
-  }
-
-  String _formatTime(dynamic time) {
-    if (time == null) return '';
-    try {
-      if (time is Timestamp) {
-        final date = time.toDate();
-        final now = DateTime.now();
-        final diff = now.difference(date);
-        if (diff.inMinutes < 1) return 'الآن';
-        if (diff.inHours < 1) return 'منذ ${diff.inMinutes} د';
-        if (diff.inDays < 1) return 'منذ ${diff.inHours} س';
-        if (diff.inDays < 7) return 'منذ ${diff.inDays} ي';
-        return '${date.day}/${date.month}';
-      }
-      return '';
-    } catch (_) {
-      return '';
-    }
-  }
-
-  void _navigateToChat(Map<String, dynamic> chat) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ChatRoomScreen(
-          roomId: chat['id'],
-          roomName: chat['name'],
-          isGroup: chat['isGroup'] ?? false,
-        ),
-      ),
-    ).then((_) => _loadChats());
-  }
-
-  void _startNewChat() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const NewChatScreen(),
-      ),
-    ).then((_) => _loadChats());
+  @override
+  void dispose() {
+    _tabController.dispose();
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -125,139 +53,237 @@ class _ChatScreenState extends State<ChatScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text('المحادثات'),
-        backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
-        foregroundColor: isDark ? Colors.white : Colors.black87,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.search, color: isDark ? Colors.white : Colors.black87),
-            onPressed: _startNewChat,
+      backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+      appBar: _buildAppBar(isDark),
+      body: Column(
+        children: [
+          _buildTabBar(isDark),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildChatsTab(isDark),
+                _buildCallsTab(isDark),
+                _buildStoriesTab(isDark),
+              ],
+            ),
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _chats.isEmpty
-              ? _buildEmptyState(isDark)
-              : ListView.builder(
-                  padding: const EdgeInsets.all(12),
-                  itemCount: _chats.length,
-                  itemBuilder: (context, index) {
-                    final chat = _chats[index];
-                    return _buildChatTile(chat, isDark);
-                  },
-                ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _startNewChat,
-        backgroundColor: AppColors.primary,
-        child: const Icon(Icons.chat_bubble_outline, color: Colors.white),
+      floatingActionButton: _buildFloatingActionButton(),
+    );
+  }
+
+  AppBar _buildAppBar(bool isDark) {
+    return AppBar(
+      title: Text(
+        AppStrings.chats,
+        style: TextStyle(
+          color: isDark ? Colors.white : Colors.black87,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      backgroundColor: isDark ? AppColors.darkBackground : Colors.white,
+      foregroundColor: isDark ? Colors.white : Colors.black87,
+      elevation: 0,
+      actions: [
+        IconButton(
+          icon: Icon(Icons.search, color: isDark ? Colors.white : Colors.black87),
+          onPressed: () => ToastService.showInfo('🔍 جاري البحث...'),
+        ),
+        IconButton(
+          icon: Icon(Icons.refresh, color: isDark ? Colors.white : Colors.black87),
+          onPressed: () => context.read<ChatBloc>().add(RefreshChatsEvent()),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTabBar(bool isDark) {
+    return Container(
+      color: isDark ? AppColors.darkBackground : Colors.white,
+      child: TabBar(
+        controller: _tabController,
+        labelColor: AppColors.primary,
+        unselectedLabelColor: isDark ? Colors.grey[400] : Colors.grey[600],
+        indicatorColor: AppColors.primary,
+        indicatorSize: TabBarIndicatorSize.label,
+        labelStyle: TextStyles.buttonMedium,
+        tabs: _tabs.map((tab) {
+          return Tab(
+            icon: Icon(tab['icon'] as IconData),
+            text: tab['label'] as String,
+          );
+        }).toList(),
       ),
     );
   }
 
-  Widget _buildChatTile(Map<String, dynamic> chat, bool isDark) {
-    final name = chat['name'] as String;
-    final image = chat['image'] as String;
-    final lastMessage = chat['lastMessage'] as String;
-    final unreadCount = chat['unreadCount'] as int? ?? 0;
-    final time = _formatTime(chat['lastMessageTime']);
+  Widget _buildFloatingActionButton() {
+    return FloatingActionButton(
+      onPressed: () => ToastService.showInfo('🔍 ابحث عن طبيب'),
+      backgroundColor: AppColors.primary,
+      child: const Icon(Icons.chat_bubble_outline, color: Colors.white),
+    );
+  }
+
+  // ============================================================
+  // 📱 تبويب المحادثات
+  // ============================================================
+
+  Widget _buildChatsTab(bool isDark) {
+    return Column(
+      children: [
+        _buildSearchBar(isDark),
+        Expanded(
+          child: BlocBuilder<ChatBloc, ChatState>(
+            builder: (context, state) {
+              if (state is ChatLoadingState || state is ChatRefreshingState) {
+                return ChatShimmer(isDark: isDark);
+              }
+
+              if (state is ChatErrorState) {
+                return _buildErrorState(isDark, state.message);
+              }
+
+              if (state is ChatsLoadedState) {
+                final chats = _filterChats(state.chats);
+                if (chats.isEmpty) {
+                  return _buildEmptyState(isDark);
+                }
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  itemCount: chats.length,
+                  itemBuilder: (context, index) {
+                    final chat = chats[index];
+                    final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
+                    return _buildChatTile(chat, userId, isDark);
+                  },
+                );
+              }
+
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSearchBar(bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Container(
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkCard : Colors.grey[100],
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: TextField(
+          controller: _searchController,
+          onChanged: (value) => setState(() => _searchQuery = value),
+          style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+          textAlign: TextAlign.right,
+          decoration: InputDecoration(
+            hintText: AppStrings.searchChats,
+            hintStyle: TextStyle(color: isDark ? Colors.grey[500] : Colors.grey[400]),
+            prefixIcon: Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+            border: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChatTile(ChatModel chat, String userId, bool isDark) {
+    final name = chat.getOtherParticipantName(userId);
+    final image = chat.getOtherParticipantImage(userId);
+    final unread = chat.getUnreadCount(userId);
 
     return GestureDetector(
-      onTap: () => _navigateToChat(chat),
+      onTap: () {
+        context.read<ChatBloc>().add(MarkAsReadEvent(chatId: chat.id));
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ChatDetailScreen(
+              chatId: chat.id,
+              userId: userId,
+              userName: name,
+              userImage: image,
+            ),
+          ),
+        );
+      },
       child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
+        margin: const EdgeInsets.only(bottom: 4),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1A2540) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          color: isDark ? AppColors.darkCard : Colors.white,
+          borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 4,
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 6,
               offset: const Offset(0, 2),
             ),
           ],
         ),
         child: Row(
           children: [
-            // ✅ صورة المستخدم
             CircleAvatar(
-              radius: 24,
+              radius: 26,
               backgroundColor: AppColors.primary.withOpacity(0.1),
-              backgroundImage: image.isNotEmpty ? NetworkImage(image) : null,
-              child: image.isEmpty
-                  ? Text(
-                      name.isNotEmpty ? name[0] : 'م',
-                      style: TextStyle(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
-                    )
-                  : null,
+              child: Text(
+                name.isNotEmpty ? name[0] : 'م',
+                style: TextStyle(
+                  color: AppColors.primary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
             const SizedBox(width: 12),
-            // ✅ معلومات المحادثة
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          name,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                            color: isDark ? Colors.white : Colors.black87,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      Text(
-                        time,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: isDark ? Colors.grey[500] : Colors.grey[400],
-                        ),
-                      ),
-                    ],
+                  Text(
+                    name,
+                    style: TextStyle(
+                      fontWeight: unread > 0 ? FontWeight.bold : FontWeight.w600,
+                      fontSize: 15,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 2),
                   Row(
                     children: [
                       Expanded(
                         child: Text(
-                          lastMessage,
+                          chat.lastMessage,
                           style: TextStyle(
                             fontSize: 13,
-                            color: unreadCount > 0
+                            color: unread > 0
                                 ? (isDark ? Colors.white : Colors.black87)
                                 : (isDark ? Colors.grey[400] : Colors.grey[600]),
-                            fontWeight: unreadCount > 0 ? FontWeight.w600 : FontWeight.normal,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      if (unreadCount > 0)
+                      if (unread > 0)
                         Container(
                           padding: const EdgeInsets.all(4),
                           decoration: const BoxDecoration(
                             color: AppColors.primary,
                             shape: BoxShape.circle,
                           ),
-                          constraints: const BoxConstraints(
-                            minWidth: 20,
-                            minHeight: 20,
-                          ),
+                          constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
                           child: Text(
-                            '$unreadCount',
+                            '$unread',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 10,
@@ -277,6 +303,244 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  // ============================================================
+  // 📞 تبويب المكالمات
+  // ============================================================
+
+  Widget _buildCallsTab(bool isDark) {
+    final calls = [
+      {'name': 'د. أحمد المؤيد', 'type': 'audio', 'status': 'answered', 'time': '10:30 ص', 'duration': '5:23'},
+      {'name': 'د. خالد النخلاني', 'type': 'video', 'status': 'missed', 'time': 'أمس', 'duration': ''},
+      {'name': 'د. أسماء الهندي', 'type': 'audio', 'status': 'incoming', 'time': 'منذ ساعة', 'duration': ''},
+    ];
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(12),
+      itemCount: calls.length,
+      itemBuilder: (context, index) {
+        final call = calls[index];
+        final name = call['name'] ?? 'مستخدم';
+        final type = call['type'] ?? 'audio';
+        final status = call['status'] ?? 'answered';
+        final time = call['time'] ?? '';
+        final isMissed = status == 'missed';
+        final isIncoming = status == 'incoming';
+        final isVideo = type == 'video';
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkCard : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: AppColors.primary.withOpacity(0.1),
+                child: Text(
+                  name.isNotEmpty ? name[0] : 'م',
+                  style: const TextStyle(color: AppColors.primary),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Icon(
+                          isMissed ? Icons.phone_missed : isIncoming ? Icons.call_received : Icons.phone_callback,
+                          size: 14,
+                          color: isMissed ? Colors.red : isIncoming ? AppColors.primary : Colors.green,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          isMissed ? 'مكالمة فائتة' : isIncoming ? 'مكالمة واردة...' : 'واردة',
+                          style: TextStyle(
+                            color: isMissed ? Colors.red : isIncoming ? AppColors.primary : Colors.green,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          time,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDark ? Colors.grey[500] : Colors.grey[400],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: Icon(
+                  isVideo ? Icons.videocam : Icons.call,
+                  color: AppColors.primary,
+                ),
+                onPressed: () => ToastService.showInfo('📞 جاري الاتصال...'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // ============================================================
+  // 📸 تبويب الحالات
+  // ============================================================
+
+  Widget _buildStoriesTab(bool isDark) {
+    final stories = [
+      {'name': 'د. أحمد المؤيد', 'time': 'منذ 5 دقائق'},
+      {'name': 'د. خالد النخلاني', 'time': 'منذ ساعة'},
+      {'name': 'د. أسماء الهندي', 'time': 'منذ 3 ساعات'},
+    ];
+
+    return Column(
+      children: [
+        _buildAddStoryCard(isDark),
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            itemCount: stories.length,
+            itemBuilder: (context, index) {
+              final story = stories[index];
+              return _buildStoryItem(story, isDark);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAddStoryCard(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      child: GestureDetector(
+        onTap: () => ToastService.showInfo('📸 جاري فتح الكاميرا...'),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkCard : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.primary, width: 2),
+                ),
+                child: const Icon(Icons.add, color: AppColors.primary, size: 28),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      AppStrings.addStory,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                    Text(
+                      'شارك لحظة مع أطبائك',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStoryItem(Map<String, dynamic> story, bool isDark) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkCard : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            backgroundColor: AppColors.primary.withOpacity(0.1),
+            child: Text(
+              (story['name'] as String).isNotEmpty ? story['name'][0] : 'م',
+              style: const TextStyle(color: AppColors.primary),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  story['name'] ?? 'مستخدم',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+                Text(
+                  story['time'] ?? '',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.share, color: AppColors.primary),
+            onPressed: () => ToastService.showSuccess('✅ تم مشاركة الحالة'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // 🛠️ دوال مساعدة
+  // ============================================================
+
+  List<ChatModel> _filterChats(List<ChatModel> chats) {
+    if (_searchQuery.isEmpty) return chats;
+    final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
+    return chats.where((chat) {
+      final name = chat.getOtherParticipantName(userId);
+      return name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+             chat.lastMessage.toLowerCase().contains(_searchQuery.toLowerCase());
+    }).toList();
+  }
+
   Widget _buildEmptyState(bool isDark) {
     return Center(
       child: Column(
@@ -289,26 +553,69 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'لا توجد محادثات',
+            AppStrings.noChats,
             style: TextStyle(
-              fontSize: 20,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
               color: isDark ? Colors.white : Colors.black87,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'ابحث عن طبيب وابدأ محادثة',
+            AppStrings.startNewChat,
             style: TextStyle(
-              fontSize: 14,
               color: isDark ? Colors.grey[400] : Colors.grey[600],
+              fontSize: 14,
             ),
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
-            onPressed: _startNewChat,
-            icon: const Icon(Icons.add_comment_rounded),
-            label: const Text('محادثة جديدة'),
+            onPressed: () => ToastService.showInfo('🔍 ابحث عن طبيب'),
+            icon: const Icon(Icons.search),
+            label: const Text('البحث عن طبيب'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(bool isDark, String message) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.wifi_off, size: 60, color: isDark ? Colors.grey[600] : Colors.grey[400]),
+          const SizedBox(height: 16),
+          Text(
+            'حدث خطأ',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            message,
+            style: TextStyle(
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
+              fontSize: 14,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () => context.read<ChatBloc>().add(RefreshChatsEvent()),
+            icon: const Icon(Icons.refresh),
+            label: const Text('إعادة المحاولة'),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,

@@ -1,0 +1,15 @@
+// ✅ استبدال FontSizeProvider في settings_screen.dart
+
+// ❌ القديم (يسبب أخطاء):
+color: fontSizeProvider.getScaleColor().withOpacity(0.1),
+fontSizeProvider.getScaleIcon(),
+color: fontSizeProvider.getScaleColor(),
+'${fontSizeProvider.fontSizePercent}%',
+fontSizeProvider.getScaleLabel(),
+
+// ✅ الجديد (يعمل):
+color: Colors.blue.withOpacity(0.1),
+Icons.text_fields,
+color: Colors.blue,
+'${((fontSizeProvider.fontScale - 0.8) / 0.6 * 100).round()}%',
+fontSizeProvider.fontScale >= 1.1 ? 'كبير' : 'متوسط',

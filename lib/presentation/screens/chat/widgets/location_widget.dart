@@ -1,136 +1,101 @@
-import 'package:flutter/material.dart';
-import 'package:latlong2/latlong.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/services/location_service.dart';
+// ============================================================
+// 📍 عرض الموقع على الخريطة
+// ============================================================
 
-class LocationWidget extends StatefulWidget {
+import 'package:flutter/material.dart';
+import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/services/toast_service.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+class LocationWidget extends StatelessWidget {
   final double latitude;
   final double longitude;
-  final String address;
-  final String senderName;
+  final String? address;
+  final bool isInteractive;
 
   const LocationWidget({
     super.key,
     required this.latitude,
     required this.longitude,
-    required this.address,
-    required this.senderName,
+    this.address,
+    this.isInteractive = true,
   });
-
-  @override
-  State<LocationWidget> createState() => _LocationWidgetState();
-}
-
-class _LocationWidgetState extends State<LocationWidget> {
-  late MapController _mapController;
-  final LocationService _locationService = LocationService();
-
-  @override
-  void initState() {
-    super.initState();
-    _mapController = MapController();
-  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final point = LatLng(widget.latitude, widget.longitude);
 
     return GestureDetector(
-      onTap: _showFullScreenMap,
+      onTap: isInteractive ? _openInMaps : null,
       child: Container(
-        width: 250,
-        height: 150,
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1A2540) : Colors.white,
           borderRadius: BorderRadius.circular(12),
-          color: isDark ? Colors.grey[800] : Colors.grey[200],
+          border: Border.all(
+            color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+          ),
         ),
-        child: Stack(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ✅ الخريطة المصغرة
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: FlutterMap(
-                mapController: _mapController,
-                options: MapOptions(
-                  center: point,
-                  zoom: 15,
-                  interactionOptions: const InteractionOptions(
-                    enableMultiFingerGestureRace: false,
-                    enableScrollWheel: false,
+            Row(
+              children: [
+                Icon(
+                  Icons.location_on,
+                  color: AppColors.primary,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    address ?? 'موقع غير معروف',
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Colors.black87,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
-                children: [
-                  TileLayer(
-                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'com.sehatak.app',
+              ],
+            ),
+            const SizedBox(height: 8),
+            Container(
+              height: 100,
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(8),
+                image: const DecorationImage(
+                  image: NetworkImage(
+                    'https://maps.googleapis.com/maps/api/staticmap?'
+                    'center=0,0&zoom=13&size=400x200&maptype=roadmap&markers=0,0',
                   ),
-                  MarkerLayer(
-                    markers: [
-                      Marker(
-                        point: point,
-                        width: 40,
-                        height: 40,
-                        child: const Icon(
-                          Icons.location_on,
-                          color: Colors.red,
-                          size: 40,
-                        ),
+                  fit: BoxFit.cover,
+                ),
+              ),
+              child: Center(
+                child: Text(
+                  '📍 ${latitude.toStringAsFixed(6)}, ${longitude.toStringAsFixed(6)}',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black.withOpacity(0.7),
+                        blurRadius: 4,
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
-            // ✅ تراكب شفاف
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withOpacity(0.3),
-                    ],
-                  ),
                 ),
               ),
             ),
-            // ✅ العنوان
-            Positioned(
-              bottom: 8,
-              left: 8,
-              right: 8,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.6),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  widget.address,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-            // ✅ أيقونة الموقع
-            const Positioned(
-              top: 8,
-              right: 8,
-              child: Icon(
-                Icons.location_on,
-                color: Colors.red,
-                size: 24,
+            const SizedBox(height: 8),
+            Text(
+              'اضغط لفتح في الخريطة',
+              style: TextStyle(
+                fontSize: 11,
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
               ),
             ),
           ],
@@ -139,113 +104,16 @@ class _LocationWidgetState extends State<LocationWidget> {
     );
   }
 
-  // ✅ عرض الخريطة بالكامل
-  void _showFullScreenMap() {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        insetPadding: EdgeInsets.zero,
-        child: Container(
-          width: double.infinity,
-          height: double.infinity,
-          color: Colors.black,
-          child: Stack(
-            children: [
-              // ✅ الخريطة كاملة
-              FlutterMap(
-                options: MapOptions(
-                  center: LatLng(widget.latitude, widget.longitude),
-                  zoom: 15,
-                ),
-                children: [
-                  TileLayer(
-                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'com.sehatak.app',
-                  ),
-                  MarkerLayer(
-                    markers: [
-                      Marker(
-                        point: LatLng(widget.latitude, widget.longitude),
-                        width: 60,
-                        height: 60,
-                        child: const Icon(
-                          Icons.location_on,
-                          color: Colors.red,
-                          size: 60,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              // ✅ زر العودة
-              Positioned(
-                top: 40,
-                right: 16,
-                child: IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white, size: 32),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ),
-              // ✅ معلومات الموقع
-              Positioned(
-                bottom: 40,
-                left: 16,
-                right: 16,
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.7),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        widget.address,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '📍 موقع ${widget.senderName}',
-                        style: TextStyle(
-                          color: Colors.grey[400],
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'الإحداثيات: ${widget.latitude.toStringAsFixed(6)}, ${widget.longitude.toStringAsFixed(6)}',
-                        style: TextStyle(
-                          color: Colors.grey[500],
-                          fontSize: 12,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          // ✅ فتح في خرائط جوجل
-                        },
-                        icon: const Icon(Icons.map, size: 16),
-                        label: const Text('فتح في الخريطة'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  Future<void> _openInMaps() async {
+    final url = 'https://maps.google.com/?q=$latitude,$longitude';
+    try {
+      if (await canLaunchUrl(Uri.parse(url))) {
+        await launchUrl(Uri.parse(url));
+      } else {
+        ToastService.showError('❌ لا يمكن فتح الخريطة');
+      }
+    } catch (e) {
+      ToastService.showError('❌ فشل فتح الخريطة: $e');
+    }
   }
 }

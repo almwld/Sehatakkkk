@@ -1,11 +1,13 @@
 // ============================================================
 // 📱 CustomBottomNavigationBar - شريط التنقل السفلي المخصص
+// ✅ يدعم التمرير العالمي عبر GlobalScrollManager
 // ============================================================
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/rendering.dart'; // ✅ هام جداً لـ ScrollDirection
+import 'package:flutter/rendering.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/managers/global_scroll_manager.dart';
 
 class CustomBottomNavigationBar extends StatefulWidget {
   final int currentIndex;
@@ -13,6 +15,7 @@ class CustomBottomNavigationBar extends StatefulWidget {
   final ScrollController scrollController;
   final bool isLoggedIn;
   final VoidCallback onAuthRequired;
+  final GlobalScrollManager? scrollManager; // ✅ إضافة اختياري
 
   const CustomBottomNavigationBar({
     super.key,
@@ -21,6 +24,7 @@ class CustomBottomNavigationBar extends StatefulWidget {
     required this.scrollController,
     required this.isLoggedIn,
     required this.onAuthRequired,
+    this.scrollManager,
   });
 
   @override
@@ -31,24 +35,25 @@ class CustomBottomNavigationBar extends StatefulWidget {
 class _CustomBottomNavigationBarState
     extends State<CustomBottomNavigationBar>
     with SingleTickerProviderStateMixin {
-  // ✅ نفس متغيرات HomeScreen
+  
+  // ✅ استخدام ValueNotifier محلي
   final ValueNotifier<bool> _isBottomBarVisible = ValueNotifier<bool>(true);
 
   // ✅ قائمة عناصر التنقل
-  final List<NavItem> _navItems = [
-    const NavItem(index: 0, icon: Icons.home_rounded, label: 'الرئيسية'),
-    const NavItem(index: 1, icon: Icons.person_search_rounded, label: 'الأطباء'),
-    const NavItem(index: 2, icon: Icons.local_pharmacy_rounded, label: 'الصيدلية'),
-    const NavItem(
+  final List<NavItem> _navItems = const [
+    NavItem(index: 0, icon: Icons.home_rounded, label: 'الرئيسية'),
+    NavItem(index: 1, icon: Icons.person_search_rounded, label: 'الأطباء'),
+    NavItem(index: 2, icon: Icons.local_pharmacy_rounded, label: 'الصيدلية'),
+    NavItem(
       index: 3,
       icon: Icons.chat_rounded,
       label: 'الدردشة',
       isSpecial: true,
       isProtected: true,
     ),
-    const NavItem(index: 4, icon: Icons.science_rounded, label: 'مختبرات', isProtected: true),
-    const NavItem(index: 5, icon: Icons.folder_rounded, label: 'صحتي', isProtected: true),
-    const NavItem(index: 6, icon: Icons.grid_view_rounded, label: 'المزيد'),
+    NavItem(index: 4, icon: Icons.science_rounded, label: 'مختبرات', isProtected: true),
+    NavItem(index: 5, icon: Icons.folder_rounded, label: 'صحتي', isProtected: true),
+    NavItem(index: 6, icon: Icons.grid_view_rounded, label: 'المزيد'),
   ];
 
   @override
@@ -64,7 +69,7 @@ class _CustomBottomNavigationBarState
     super.dispose();
   }
 
-  // ✅ دالة التمرير والاختفاء - تستخدم ScrollDirection من flutter/rendering.dart
+  // ✅ دالة التمرير والاختفاء
   void _onScroll() {
     if (!widget.scrollController.hasClients) return;
 
@@ -74,12 +79,16 @@ class _CustomBottomNavigationBarState
     if (direction == ScrollDirection.reverse) {
       if (_isBottomBarVisible.value != false) {
         _isBottomBarVisible.value = false;
+        // ✅ إعلام المدير العالمي
+        widget.scrollManager?.hide();
       }
     }
     // ⬆️ تمرير للأعلى → إظهار الشريط
     else if (direction == ScrollDirection.forward) {
       if (_isBottomBarVisible.value != true) {
         _isBottomBarVisible.value = true;
+        // ✅ إعلام المدير العالمي
+        widget.scrollManager?.show();
       }
     }
   }
@@ -248,6 +257,11 @@ class _CustomBottomNavigationBarState
 
     HapticFeedback.lightImpact();
     widget.onTap(item.index);
+    
+    // ✅ إظهار الشريط عند التنقل
+    _isBottomBarVisible.value = true;
+    widget.scrollManager?.show();
+    widget.scrollManager?.reset();
   }
 }
 

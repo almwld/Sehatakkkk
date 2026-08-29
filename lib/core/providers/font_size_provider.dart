@@ -1,64 +1,65 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class FontSizeProvider extends ChangeNotifier {
-  static const String _fontSizeKey = 'font_size';
-  static const double _defaultFontSize = 1.0;
-  static const double _minFontSize = 0.8;
-  static const double _maxFontSize = 1.6;
-
-  double _fontScale = _defaultFontSize;
-
-  FontSizeProvider() {
-    _loadFontSize();
-  }
+  double _fontScale = 1.0;
+  static const double _minScale = 0.8;
+  static const double _maxScale = 1.4;
+  static const double _step = 0.1;
 
   double get fontScale => _fontScale;
-  double get fontSizePercent => (_fontScale * 100).roundToDouble();
 
-  Future<void> _loadFontSize() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      _fontScale = prefs.getDouble(_fontSizeKey) ?? _defaultFontSize;
-      notifyListeners();
-    } catch (e) {
-      _fontScale = _defaultFontSize;
-    }
+  // ✅ الحصول على نسبة الحجم كنسبة مئوية
+  int get fontSizePercent => ((_fontScale - 0.8) / 0.6 * 100).round();
+
+  // ✅ الحصول على لون المقياس
+  Color getScaleColor() {
+    if (_fontScale <= 0.9) return Colors.blue;
+    if (_fontScale <= 1.1) return Colors.green;
+    if (_fontScale <= 1.2) return Colors.orange;
+    return Colors.red;
   }
 
-  Future<void> setFontScale(double value) async {
-    _fontScale = value.clamp(_minFontSize, _maxFontSize);
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setDouble(_fontSizeKey, _fontScale);
-    } catch (e) {
-      // Ignore
-    }
-    notifyListeners();
-  }
-
-  Future<void> resetToDefault() async {
-    await setFontScale(_defaultFontSize);
-  }
-
-  String getScaleLabel() {
-    if (_fontScale <= 0.85) return 'صغير';
-    if (_fontScale <= 1.05) return 'متوسط';
-    if (_fontScale <= 1.25) return 'كبير';
-    return 'كبير جداً';
-  }
-
+  // ✅ الحصول على أيقونة المقياس
   IconData getScaleIcon() {
-    if (_fontScale <= 0.85) return Icons.text_decrease;
-    if (_fontScale <= 1.05) return Icons.text_fields;
-    if (_fontScale <= 1.25) return Icons.text_increase;
+    if (_fontScale <= 0.9) return Icons.text_decrease;
+    if (_fontScale <= 1.1) return Icons.text_fields;
+    if (_fontScale <= 1.2) return Icons.text_increase;
     return Icons.text_increase;
   }
 
-  Color getScaleColor() {
-    if (_fontScale <= 0.85) return Colors.blue;
-    if (_fontScale <= 1.05) return Colors.green;
-    if (_fontScale <= 1.25) return Colors.orange;
-    return Colors.red;
+  // ✅ الحصول على تسمية المقياس
+  String getScaleLabel() {
+    if (_fontScale <= 0.9) return 'صغير';
+    if (_fontScale <= 1.1) return 'متوسط';
+    if (_fontScale <= 1.2) return 'كبير';
+    return 'كبير جداً';
+  }
+
+  // ✅ زيادة حجم الخط
+  void increaseFontSize() {
+    if (_fontScale < _maxScale) {
+      _fontScale = (_fontScale + _step).clamp(_minScale, _maxScale);
+      notifyListeners();
+    }
+  }
+
+  // ✅ إنقاص حجم الخط
+  void decreaseFontSize() {
+    if (_fontScale > _minScale) {
+      _fontScale = (_fontScale - _step).clamp(_minScale, _maxScale);
+      notifyListeners();
+    }
+  }
+
+  // ✅ إعادة تعيين حجم الخط
+  void resetFontSize() {
+    _fontScale = 1.0;
+    notifyListeners();
+  }
+
+  // ✅ تعيين حجم الخط مباشرة
+  void setFontScale(double scale) {
+    _fontScale = scale.clamp(_minScale, _maxScale);
+    notifyListeners();
   }
 }

@@ -1,6 +1,9 @@
+// ============================================================
+// ⏳ تأثير التحميل المتقدم
+// ============================================================
+
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:sehatak/core/constants/app_colors.dart';
 
 class ChatShimmer extends StatelessWidget {
   final bool isDark;
@@ -77,44 +80,6 @@ class ChatShimmer extends StatelessWidget {
             ),
           );
         },
-      ),
-    );
-  }
-}
-
-class MessageShimmer extends StatelessWidget {
-  final bool isDark;
-  final bool isMe;
-
-  const MessageShimmer({
-    super.key,
-    required this.isDark,
-    this.isMe = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Shimmer.fromColors(
-      baseColor: isDark ? const Color(0xFF1A2540) : Colors.grey[300]!,
-      highlightColor: isDark ? const Color(0xFF2D3A54) : Colors.grey[100]!,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-          children: [
-            Container(
-              width: 150,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16).copyWith(
-                  bottomRight: isMe ? const Radius.circular(4) : const Radius.circular(16),
-                  bottomLeft: isMe ? const Radius.circular(16) : const Radius.circular(4),
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
