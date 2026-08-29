@@ -5,7 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_messaging/firebase_messaging.dart>';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'firebase_options.dart';
 import 'core/providers/font_size_provider.dart';
@@ -23,7 +23,7 @@ import 'presentation/bloc/theme_bloc/theme_bloc.dart';
 import 'presentation/bloc/chat_bloc/chat_bloc.dart';
 import 'presentation/bloc/doctor_bloc/doctor_bloc.dart';
 import 'presentation/screens/splash_screen.dart';
-import 'presentation/screens/home/home_screen.dart';
+import 'presentation/screens/wallet/wallet_screen.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -32,12 +32,14 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
+  // ✅ 1. تحديد اتجاه الشاشة فوراً
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
+  // ✅ 2. تهيئة Firebase فوراً
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -47,6 +49,7 @@ void main() async {
     print('❌ Firebase initialization error: $e');
   }
 
+  // ✅ 3. تهيئة FCM في الخلفية
   try {
     final fcm = FirebaseMessaging.instance;
     await fcm.requestPermission(
@@ -61,11 +64,14 @@ void main() async {
     print('❌ FCM initialization error: $e');
   }
 
-  // await CacheService.init();  // تم التعليق
+  // ✅ 4. تهيئة الكاش
+  await CacheService.init();
 
+  // ✅ 5. تهيئة الإشعارات
   final notificationService = NotificationService();
   await notificationService.initialize();
 
+  // ✅ 6. تشغيل التطبيق فوراً
   runApp(
     MultiProvider(
       providers: [
@@ -205,6 +211,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
                   ),
                 );
               },
+              // ✅ استخدام SplashScreen مباشرة
               home: const SplashScreen(),
               onGenerateRoute: PaymentRoutes.onGenerateRoute,
               navigatorKey: navigatorKey,

@@ -18,8 +18,8 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // ✅ تأخير بسيط جداً لظهور شاشة البداية (500ms فقط)
-    Future.delayed(const Duration(milliseconds: 500), () {
+    // ✅ تأخير بسيط جداً (300ms فقط)
+    Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted) {
         _checkLoginStatus();
       }
@@ -28,7 +28,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _checkLoginStatus() async {
     try {
-      // ✅ التحقق من المستخدم بسرعة
+      // ✅ التحقق من المستخدم فوراً
       final user = FirebaseAuth.instance.currentUser;
       
       if (!mounted) return;
@@ -64,7 +64,7 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // ✅ أيقونة بسيطة وسريعة
+            // ✅ أيقونة سريعة
             Container(
               width: 100,
               height: 100,
@@ -96,11 +96,12 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            if (_isLoading)
-              const CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-              ),
+            // ✅ مؤشر تحميل
+            const CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            ),
             if (_errorMessage.isNotEmpty) ...[
+              const SizedBox(height: 16),
               Text(
                 _errorMessage,
                 style: const TextStyle(color: Colors.white70),
