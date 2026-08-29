@@ -5,7 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_messaging/firebase_messaging.dart>';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'firebase_options.dart';
 import 'core/providers/font_size_provider.dart';
@@ -33,74 +33,65 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ✅ 1. تحديد اتجاه الشاشة فوراً
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
-  // ✅ 2. تهيئة Firebase فوراً
+  // ✅ تهيئة Firebase
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    print('✅ Firebase initialized successfully');
+    print('✅ Firebase initialized');
   } catch (e) {
-    print('❌ Firebase initialization error: $e');
+    print('❌ Firebase error: $e');
   }
 
-  // ✅ 3. تهيئة FCM في الخلفية
+  // ✅ تهيئة FCM
   try {
     final fcm = FirebaseMessaging.instance;
-    await fcm.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+    await fcm.requestPermission();
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     final token = await fcm.getToken();
     print('✅ FCM Token: $token');
   } catch (e) {
-    print('❌ FCM initialization error: $e');
+    print('❌ FCM error: $e');
   }
 
-  // ✅ 4. تهيئة الكاش
-  await CacheService.init();
+  // ✅ تهيئة الكاش والإشعارات
+  try {
+    await CacheService.init();
+  } catch (e) {
+    print('❌ Cache error: $e');
+  }
 
-  // ✅ 5. تهيئة الإشعارات
-  final notificationService = NotificationService();
-  await notificationService.initialize();
+  try {
+    final notificationService = NotificationService();
+    await notificationService.initialize();
+  } catch (e) {
+    print('❌ Notification error: $e');
+  }
 
-  // ✅ 6. تشغيل التطبيق فوراً
+  // ✅ تشغيل التطبيق
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => UserProvider()..loadUserSafely(),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => FontSizeProvider(),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => BotProvider(),
-        ),
+        ChangeNotifierProvider(create: (_) => UserProvider()..loadUserSafely()),
+        ChangeNotifierProvider(create: (_) => FontSizeProvider()),
+        ChangeNotifierProvider(create: (_) => BotProvider()),
         ChangeNotifierProvider(
           create: (_) {
             try {
               final user = FirebaseAuth.instance.currentUser;
               return WalletProvider(uid: user?.uid ?? '');
             } catch (e) {
-              print('❌ WalletProvider error: $e');
               return WalletProvider(uid: '');
             }
           },
         ),
-        ChangeNotifierProvider(
-          create: (_) => CartProvider(),
-        ),
-        BlocProvider(
-          create: (_) => AuthBloc()..add(CheckAuthStatus()),
-        ),
+        ChangeNotifierProvider(create: (_) => CartProvider()),
+        BlocProvider(create: (_) => AuthBloc()..add(CheckAuthStatus())),
         BlocProvider(create: (_) => ThemeBloc()),
         BlocProvider(create: (_) => ChatBloc()),
         BlocProvider(create: (_) => DoctorBloc()),
@@ -146,7 +137,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed) {
-      print('🔄 App resumed from background');
+      print('🔄 App resumed');
       if (mounted) {
         final userProvider = Provider.of<UserProvider>(context, listen: false);
         userProvider.loadUserSafely();
@@ -211,7 +202,6 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
                   ),
                 );
               },
-              // ✅ استخدام SplashScreen مباشرة
               home: const SplashScreen(),
               onGenerateRoute: PaymentRoutes.onGenerateRoute,
               navigatorKey: navigatorKey,
