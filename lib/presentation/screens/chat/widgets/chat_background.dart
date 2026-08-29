@@ -1,22 +1,14 @@
-// ============================================================
-// 🖼️ خلفية الدردشة
-// ============================================================
-
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class ChatBackground extends StatelessWidget {
   final Widget child;
   final bool showPattern;
-  final String? imagePath;
-  final Color? backgroundColor;
 
   const ChatBackground({
     super.key,
     required this.child,
     this.showPattern = true,
-    this.imagePath,
-    this.backgroundColor,
   });
 
   @override
@@ -25,21 +17,28 @@ class ChatBackground extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: backgroundColor ?? (isDark ? AppColors.darkBackground : AppColors.lightBackground),
-        image: imagePath != null
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: isDark
+              ? [
+                  const Color(0xFF0B1121),
+                  const Color(0xFF1A2540),
+                ]
+              : [
+                  const Color(0xFFE8F5E9),
+                  const Color(0xFFC8E6C9),
+                ],
+        ),
+        image: showPattern
             ? DecorationImage(
-                image: AssetImage(imagePath!),
+                image: const AssetImage('assets/images/chat_background.svg'),
                 fit: BoxFit.cover,
-                opacity: 0.8,
-              )
-            : null,
-        gradient: imagePath == null && backgroundColor == null
-            ? LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: isDark
-                    ? [AppColors.darkBackground, AppColors.darkCard]
-                    : [AppColors.lightBackground, Colors.white],
+                opacity: isDark ? 0.1 : 0.15,
+                colorFilter: ColorFilter.mode(
+                  isDark ? Colors.white : Colors.black,
+                  BlendMode.softLight,
+                ),
               )
             : null,
       ),
@@ -48,28 +47,32 @@ class ChatBackground extends StatelessWidget {
   }
 }
 
-// ============================================================
-// 🖼️ منتقي خلفية الدردشة
-// ============================================================
-
-class ChatBackgroundSelector extends StatelessWidget {
-  final String currentBackground;
+// ✅ خلفيات مخصصة للدردشة
+class ChatBackgroundSelector extends StatefulWidget {
   final Function(String) onBackgroundSelected;
 
   const ChatBackgroundSelector({
     super.key,
-    required this.currentBackground,
     required this.onBackgroundSelected,
   });
 
+  @override
+  State<ChatBackgroundSelector> createState() => _ChatBackgroundSelectorState();
+}
+
+class _ChatBackgroundSelectorState extends State<ChatBackgroundSelector> {
   final List<Map<String, dynamic>> _backgrounds = [
     {'name': 'افتراضي', 'color': null, 'image': null},
     {'name': 'داكن', 'color': const Color(0xFF0B1121), 'image': null},
     {'name': 'فاتح', 'color': const Color(0xFFE8F5E9), 'image': null},
-    {'name': 'أزرق', 'color': const Color(0xFFE3F2FD), 'image': null},
+    {'name': 'أنيق', 'color': const Color(0xFFF5F5F5), 'image': null},
     {'name': 'طبيعة', 'image': 'assets/images/chat_bg_nature.jpg', 'color': null},
     {'name': 'بحر', 'image': 'assets/images/chat_bg_sea.jpg', 'color': null},
+    {'name': 'سماء', 'image': 'assets/images/chat_bg_sky.jpg', 'color': null},
+    {'name': 'أزهار', 'image': 'assets/images/chat_bg_flowers.jpg', 'color': null},
   ];
+
+  String _selectedBackground = 'افتراضي';
 
   @override
   Widget build(BuildContext context) {
@@ -84,6 +87,7 @@ class ChatBackgroundSelector extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // ✅ شريط السحب
           Center(
             child: Container(
               width: 40,
@@ -95,28 +99,35 @@ class ChatBackgroundSelector extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
+          // ✅ العنوان
+          Text(
             'اختر خلفية الدردشة',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
           ),
           const SizedBox(height: 16),
+          // ✅ شبكة الخلفيات
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              childAspectRatio: 1,
+              crossAxisCount: 4,
+              childAspectRatio: 0.9,
               crossAxisSpacing: 8,
               mainAxisSpacing: 8,
             ),
             itemCount: _backgrounds.length,
             itemBuilder: (context, index) {
               final bg = _backgrounds[index];
-              final isSelected = currentBackground == bg['name'];
+              final isSelected = _selectedBackground == bg['name'];
 
               return GestureDetector(
                 onTap: () {
-                  onBackgroundSelected(bg['name']);
+                  setState(() => _selectedBackground = bg['name']);
+                  widget.onBackgroundSelected(bg['name']);
                   Navigator.pop(context);
                 },
                 child: Container(
@@ -163,7 +174,6 @@ class ChatBackgroundSelector extends StatelessWidget {
                                 : Colors.white,
                             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                           ),
-                          textAlign: TextAlign.center,
                         ),
                       ),
                     ],
@@ -172,6 +182,7 @@ class ChatBackgroundSelector extends StatelessWidget {
               );
             },
           ),
+          const SizedBox(height: 16),
         ],
       ),
     );

@@ -237,12 +237,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(0.1),
+                          color: fontSizeProvider.getScaleColor().withOpacity(0.1),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Icon(
-                          Icons.text_fields,
-                          color: Colors.blue,
+                          fontSizeProvider.getScaleIcon(),
+                          color: fontSizeProvider.getScaleColor(),
                           size: 24,
                         ),
                       ),
@@ -263,13 +263,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                   decoration: BoxDecoration(
-                                    color: Colors.blue.withOpacity(0.15),
+                                    color: fontSizeProvider.getScaleColor().withOpacity(0.15),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
-                                    '${((fontSizeProvider.fontScale - 0.8) / 0.6 * 100).round()}%',
+                                    '${fontSizeProvider.fontSizePercent}%',
                                     style: TextStyle(
-                                      color: Colors.blue,
+                                      color: fontSizeProvider.getScaleColor(),
                                       fontWeight: FontWeight.bold,
                                       fontSize: 12,
                                     ),
@@ -277,7 +277,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  fontSizeProvider.fontScale >= 1.1 ? "كبير" : "متوسط",
+                                  fontSizeProvider.getScaleLabel(),
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: isDark ? Colors.grey[400] : Colors.grey[600],

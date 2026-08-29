@@ -1,24 +1,15 @@
 class AppStrings {
-  // ============================================================
-  // 🏷️ معلومات التطبيق
-  // ============================================================
-  
+  // App Info
   static const String appName = 'منصة صحتك';
   static const String appVersion = '1.0.0';
   static const String appSlogan = 'رعايتك الصحية بين يديك';
 
-  // ============================================================
-  // 👋 الترحيب
-  // ============================================================
-  
+  // Welcome
   static const String welcomeBack = 'مرحباً بك';
   static const String welcomeMessage = 'منصة صحية متكاملة لرعايتك أينما كنت';
   static const String welcomeSubtitle = 'صحتك تهمنا';
 
-  // ============================================================
-  // 🔐 المصادقة
-  // ============================================================
-  
+  // Auth
   static const String login = 'تسجيل الدخول';
   static const String register = 'إنشاء حساب';
   static const String forgotPassword = 'نسيت كلمة المرور؟';
@@ -47,20 +38,14 @@ class AppStrings {
   static const String resendOTP = 'إعادة إرسال الرمز';
   static const String verify = 'تحقق';
 
-  // ============================================================
-  // 🧭 التنقل
-  // ============================================================
-  
+  // Navigation
   static const String home = 'الرئيسية';
   static const String appointments = 'المواعيد';
   static const String consultations = 'الاستشارات';
   static const String healthFile = 'الملف الصحي';
   static const String more = 'المزيد';
 
-  // ============================================================
-  // 🏠 الرئيسية
-  // ============================================================
-  
+  // Home
   static const String medicalConsultation = 'استشارة طبية';
   static const String startConsultation = 'ابدأ الاستشارة';
   static const String medicines = 'الأدوية';
@@ -77,10 +62,7 @@ class AppStrings {
   static const String goodEvening = 'مساء الخير';
   static const String howAreYouFeeling = 'كيف تشعر اليوم؟';
 
-  // ============================================================
-  // 👨‍⚕️ الأطباء
-  // ============================================================
-  
+  // Doctors
   static const String doctors = 'الأطباء';
   static const String doctorsSpecialists = 'أطباء متخصصون';
   static const String doctorProfile = 'الملف الشخصي للطبيب';
@@ -95,10 +77,7 @@ class AppStrings {
   static const String currencyYER = 'ريال يمني';
   static const String currencyUSD = 'دولار';
 
-  // ============================================================
-  // 📅 المواعيد
-  // ============================================================
-  
+  // Appointments
   static const String myAppointments = 'مواعيدي';
   static const String upcomingAppointments = 'المواعيد القادمة';
   static const String pastAppointments = 'المواعيد السابقة';
@@ -112,10 +91,7 @@ class AppStrings {
   static const String appointmentConfirmed = 'تم تأكيد الموعد';
   static const String appointmentCancelled = 'تم إلغاء الموعد';
 
-  // ============================================================
-  // 💊 الصيدليات
-  // ============================================================
-  
+  // Pharmacy
   static const String pharmacies = 'الصيدليات';
   static const String products = 'المنتجات';
   static const String categories = 'الأقسام';
@@ -130,10 +106,7 @@ class AppStrings {
   static const String orderTracking = 'تتبع الطلب';
   static const String reorder = 'إعادة الطلب';
 
-  // ============================================================
-  // 🧪 المختبرات
-  // ============================================================
-  
+  // Lab
   static const String labs = 'المختبرات';
   static const String tests = 'التحاليل';
   static const String testPackages = 'باقات التحاليل';
@@ -142,10 +115,7 @@ class AppStrings {
   static const String downloadResults = 'تحميل النتائج';
   static const String shareResults = 'مشاركة النتائج';
 
-  // ============================================================
-  // 🏥 التأمين الصحي
-  // ============================================================
-  
+  // Insurance
   static const String insurance = 'التأمين الصحي';
   static const String insuranceCompanies = 'شركات التأمين';
   static const String insurancePlans = 'خطط التأمين';
@@ -155,10 +125,7 @@ class AppStrings {
   static const String coverageDetails = 'تفاصيل التغطية';
   static const String networkHospitals = 'المستشفيات المشمولة';
 
-  // ============================================================
-  // 📊 الصحة
-  // ============================================================
-  
+  // Health
   static const String healthDashboard = 'لوحة الصحة';
   static const String vitalSigns = 'العلامات الحيوية';
   static const String bloodPressure = 'ضغط الدم';
@@ -175,10 +142,7 @@ class AppStrings {
   static const String reminders = 'التذكيرات';
   static const String addReminder = 'إضافة تذكير';
 
-  // ============================================================
-  // 📁 الملف الصحي
-  // ============================================================
-  
+  // Medical File
   static const String medicalHistory = 'السجل الطبي';
   static const String diagnoses = 'التشخيصات';
   static const String medications = 'الأدوية';
@@ -190,10 +154,7 @@ class AppStrings {
   static const String prescriptions = 'الوصفات الطبية';
   static const String familyMembers = 'أفراد العائلة';
 
-  // ============================================================
-  // 🚨 الطوارئ
-  // ============================================================
-  
+  // Emergency
   static const String emergency = 'الطوارئ';
   static const String sos = 'إنذار الطوارئ';
   static const String emergencyNumbers = 'أرقام الطوارئ';
@@ -205,10 +166,7 @@ class AppStrings {
   static const String police = 'الشرطة';
   static const String fireDepartment = 'الدفاع المدني';
 
-  // ============================================================
-  // 💳 المدفوعات
-  // ============================================================
-  
+  // Payment
   static const String payment = 'الدفع';
   static const String wallet = 'المحفظة';
   static const String balance = 'الرصيد';
@@ -220,10 +178,7 @@ class AppStrings {
   static const String subscriptions = 'الاشتراكات';
   static const String subscriptionPlans = 'خطط الاشتراك';
 
-  // ============================================================
-  // ⚙️ الإعدادات
-  // ============================================================
-  
+  // Settings
   static const String settings = 'الإعدادات';
   static const String profile = 'الملف الشخصي';
   static const String account = 'الحساب';
@@ -242,10 +197,7 @@ class AppStrings {
   static const String shareApp = 'شارك التطبيق';
   static const String deleteAccount = 'حذف الحساب';
 
-  // ============================================================
-  // 📊 التقارير
-  // ============================================================
-  
+  // Reports
   static const String reports = 'التقارير';
   static const String medicalReport = 'التقرير الطبي';
   static const String labReport = 'تقرير المختبر';
@@ -254,10 +206,7 @@ class AppStrings {
   static const String downloadPDF = 'تحميل PDF';
   static const String shareReport = 'مشاركة التقرير';
 
-  // ============================================================
-  // 💬 الرسائل العامة
-  // ============================================================
-  
+  // Messages
   static const String success = 'نجاح';
   static const String error = 'خطأ';
   static const String warning = 'تحذير';
@@ -296,10 +245,7 @@ class AppStrings {
   static const String readMore = 'قراءة المزيد';
   static const String seeAll = 'عرض الكل';
 
-  // ============================================================
-  // ✅ التحقق (Validation)
-  // ============================================================
-  
+  // Validation
   static const String requiredField = 'هذا الحقل مطلوب';
   static const String invalidEmail = 'بريد إلكتروني غير صالح';
   static const String invalidPhone = 'رقم هاتف غير صالح';
@@ -307,20 +253,4 @@ class AppStrings {
   static const String passwordsDontMatch = 'كلمتا المرور غير متطابقتين';
   static const String invalidDate = 'تاريخ غير صالح';
   static const String invalidName = 'الاسم غير صالح';
-
-  // ============================================================
-  // 💬 نصوص الدردشة (Chat)
-  // ============================================================
-  
-  static const String chats = 'المحادثات';
-  static const String calls = 'المكالمات';
-  static const String stories = 'الحالات';
-  static const String addStory = 'أضف حالة جديدة';
-  static const String noChats = 'لا توجد محادثات';
-  static const String startNewChat = 'ابدأ محادثة جديدة';
-  static const String searchChats = 'ابحث عن محادثة...';
-  static const String noMessages = 'لا توجد رسائل';
-  static const String startChat = 'ابدأ المحادثة الآن';
-  static const String typeMessage = 'اكتب رسالتك...';
-  static const String chatSettings = 'إعدادات الدردشة';
 }

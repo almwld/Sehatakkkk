@@ -1,15 +1,22 @@
-// ============================================================
-// ⚙️ شاشة إعدادات الدردشة
-// ============================================================
-
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/constants/app_strings.dart';
+import 'package:sehatak/core/constants/text_styles.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/core/services/cache_service.dart';
+import 'package:sehatak/presentation/screens/chat/widgets/chat_background.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 
 class ChatSettingsScreen extends StatefulWidget {
-  const ChatSettingsScreen({super.key});
+  final String chatId;
+  final String chatName;
+
+  const ChatSettingsScreen({
+    super.key,
+    required this.chatId,
+    required this.chatName,
+  });
 
   @override
   State<ChatSettingsScreen> createState() => _ChatSettingsScreenState();
@@ -17,19 +24,20 @@ class ChatSettingsScreen extends StatefulWidget {
 
 class _ChatSettingsScreenState extends State<ChatSettingsScreen> {
   final CacheService _cache = CacheService();
-  
-  bool _darkMode = false;
-  bool _notifications = true;
-  bool _sound = true;
-  bool _vibration = true;
+  bool _isDarkMode = false;
+  bool _isMuted = false;
+  bool _isPinned = false;
+  bool _isArchived = false;
   double _fontSize = 14.0;
   String _selectedBackground = 'افتراضي';
 
   final List<Map<String, dynamic>> _backgrounds = [
-    {'name': 'افتراضي', 'color': null},
-    {'name': 'داكن', 'color': const Color(0xFF0B1121)},
-    {'name': 'فاتح', 'color': const Color(0xFFE8F5E9)},
-    {'name': 'أزرق', 'color': const Color(0xFFE3F2FD)},
+    {'name': 'افتراضي', 'color': null, 'image': null},
+    {'name': 'داكن', 'color': const Color(0xFF0B1121), 'image': null},
+    {'name': 'فاتح', 'color': const Color(0xFFE8F5E9), 'image': null},
+    {'name': 'أنيق', 'color': const Color(0xFFF5F5F5), 'image': null},
+    {'name': 'طبيعة', 'image': 'assets/images/chat_bg_nature.jpg', 'color': null},
+    {'name': 'بحر', 'image': 'assets/images/chat_bg_sea.jpg', 'color': null},
   ];
 
   @override
@@ -40,13 +48,13 @@ class _ChatSettingsScreenState extends State<ChatSettingsScreen> {
 
   Future<void> _loadSettings() async {
     try {
-      final settings = await _cache.getJson('chat_settings');
+      final settings = await _cache.getJson('chat_settings_${widget.chatId}');
       if (settings != null) {
         setState(() {
-          _darkMode = settings['darkMode'] ?? false;
-          _notifications = settings['notifications'] ?? true;
-          _sound = settings['sound'] ?? true;
-          _vibration = settings['vibration'] ?? true;
+          _isDarkMode = settings['isDarkMode'] ?? false;
+          _isMuted = settings['isMuted'] ?? false;
+          _isPinned = settings['isPinned'] ?? false;
+          _isArchived = settings['isArchived'] ?? false;
           _fontSize = settings['fontSize'] ?? 14.0;
           _selectedBackground = settings['background'] ?? 'افتراضي';
         });
@@ -58,18 +66,67 @@ class _ChatSettingsScreenState extends State<ChatSettingsScreen> {
 
   Future<void> _saveSettings() async {
     try {
-      await _cache.saveJson('chat_settings', {
-        'darkMode': _darkMode,
-        'notifications': _notifications,
-        'sound': _sound,
-        'vibration': _vibration,
+      await _cache.saveJson('chat_settings_${widget.chatId}', {
+        'isDarkMode': _isDarkMode,
+        'isMuted': _isMuted,
+        'isPinned': _isPinned,
+        'isArchived': _isArchived,
         'fontSize': _fontSize,
         'background': _selectedBackground,
       });
       ToastService.showSuccess('✅ تم حفظ الإعدادات');
     } catch (e) {
-      ToastService.showError('❌ فشل حفظ الإعدادات: $e');
+      print('❌ Error saving settings: $e');
+      ToastService.showError('❌ فشل حفظ الإعدادات');
     }
+  }
+
+  Future<void> _exportChat() async {
+    try {
+      // ✅ تصدير المحادثة
+      final dir = await getApplicationDocumentsDirectory();
+      final file = File('${dir.path}/chat_${widget.chatId}_${DateTime.now().millisecondsSinceEpoch}.txt');
+      
+      String content = 'محادثة مع ${widget.chatName}\n';
+      content += '=' * 40 + '\n\n';
+      content += 'تم التصدير في: ${DateTime.now().toString()}\n\n';
+      
+      await file.writeAsString(content);
+      
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: '📄 تصدير محادثة مع ${widget.chatName}',
+      );
+      
+      ToastService.showSuccess('✅ تم تصدير المحادثة');
+    } catch (e) {
+      ToastService.showError('❌ فشل تصدير المحادثة: $e');
+    }
+  }
+
+  Future<void> _deleteChat() async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('حذف المحادثة'),
+        content: Text('هل أنت متأكد من حذف المحادثة مع ${widget.chatName}؟'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('إلغاء'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pop(context);
+              ToastService.showSuccess('✅ تم حذف المحادثة');
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('حذف'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -79,7 +136,7 @@ class _ChatSettingsScreenState extends State<ChatSettingsScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text(AppStrings.chatSettings),
+        title: const Text('إعدادات الدردشة'),
         backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
         foregroundColor: isDark ? Colors.white : Colors.black87,
         elevation: 0,
@@ -92,14 +149,35 @@ class _ChatSettingsScreenState extends State<ChatSettingsScreen> {
       ),
       body: ListView(
         children: [
+          // ✅ معلومات الدردشة
+          _buildSection(
+            title: 'معلومات الدردشة',
+            children: [
+              ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: AppColors.primary,
+                  child: Text(
+                    widget.chatName.isNotEmpty ? widget.chatName[0] : 'م',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+                title: Text(widget.chatName),
+                subtitle: Text('معرف: ${widget.chatId.substring(0, 8)}...'),
+              ),
+            ],
+          ),
+
+          // ✅ المظهر
           _buildSection(
             title: 'المظهر',
             children: [
               SwitchListTile(
                 title: const Text('الوضع المظلم'),
-                subtitle: const Text('تفعيل الوضع المظلم في الدردشة'),
-                value: _darkMode,
-                onChanged: (value) => setState(() => _darkMode = value),
+                subtitle: const Text('تفعيل الوضع المظلم لهذه الدردشة'),
+                value: _isDarkMode,
+                onChanged: (value) {
+                  setState(() => _isDarkMode = value);
+                },
                 activeColor: AppColors.primary,
               ),
               ListTile(
@@ -107,7 +185,7 @@ class _ChatSettingsScreenState extends State<ChatSettingsScreen> {
                 title: const Text('خلفية الدردشة'),
                 subtitle: Text(_selectedBackground),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: _showBackgroundSelector,
+                onTap: () => _showBackgroundSelector(),
               ),
               ListTile(
                 leading: const Icon(Icons.text_fields, color: AppColors.primary),
@@ -124,6 +202,7 @@ class _ChatSettingsScreenState extends State<ChatSettingsScreen> {
                         }
                       },
                     ),
+                    const SizedBox(width: 4),
                     IconButton(
                       icon: const Icon(Icons.add, size: 20),
                       onPressed: () {
@@ -137,48 +216,61 @@ class _ChatSettingsScreenState extends State<ChatSettingsScreen> {
               ),
             ],
           ),
+
+          // ✅ الإعدادات
           _buildSection(
-            title: 'الإشعارات',
+            title: 'الإعدادات',
             children: [
               SwitchListTile(
-                title: const Text('الإشعارات'),
-                subtitle: const Text('تفعيل إشعارات الدردشة'),
-                value: _notifications,
-                onChanged: (value) => setState(() => _notifications = value),
+                title: const Text('كتم الإشعارات'),
+                subtitle: const Text('إيقاف إشعارات هذه الدردشة'),
+                value: _isMuted,
+                onChanged: (value) {
+                  setState(() => _isMuted = value);
+                  ToastService.showSuccess(value ? '🔇 تم كتم الإشعارات' : '🔔 تم تفعيل الإشعارات');
+                },
                 activeColor: AppColors.primary,
               ),
               SwitchListTile(
-                title: const Text('الصوت'),
-                subtitle: const Text('تشغيل صوت الإشعارات'),
-                value: _sound,
-                onChanged: (value) => setState(() => _sound = value),
+                title: const Text('تثبيت المحادثة'),
+                subtitle: const Text('تثبيت هذه الدردشة في الأعلى'),
+                value: _isPinned,
+                onChanged: (value) {
+                  setState(() => _isPinned = value);
+                  ToastService.showSuccess(value ? '📌 تم تثبيت المحادثة' : '📌 تم إلغاء التثبيت');
+                },
                 activeColor: AppColors.primary,
               ),
               SwitchListTile(
-                title: const Text('الاهتزاز'),
-                subtitle: const Text('تفعيل الاهتزاز مع الإشعارات'),
-                value: _vibration,
-                onChanged: (value) => setState(() => _vibration = value),
+                title: const Text('أرشفة المحادثة'),
+                subtitle: const Text('إخفاء المحادثة من القائمة الرئيسية'),
+                value: _isArchived,
+                onChanged: (value) {
+                  setState(() => _isArchived = value);
+                  ToastService.showSuccess(value ? '📦 تم أرشفة المحادثة' : '📦 تم استعادة المحادثة');
+                },
                 activeColor: AppColors.primary,
               ),
             ],
           ),
+
+          // ✅ التصدير والحذف
           _buildSection(
             title: 'البيانات',
             children: [
               ListTile(
                 leading: const Icon(Icons.ios_share, color: AppColors.primary),
-                title: const Text('تصدير المحادثات'),
-                subtitle: const Text('تصدير جميع المحادثات كملف نصي'),
+                title: const Text('تصدير المحادثة'),
+                subtitle: const Text('تصدير المحادثة كملف نصي'),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () => ToastService.showInfo('📤 جاري تصدير المحادثات...'),
+                onTap: _exportChat,
               ),
               ListTile(
-                leading: const Icon(Icons.delete_forever, color: Colors.red),
-                title: const Text('حذف جميع المحادثات', style: TextStyle(color: Colors.red)),
-                subtitle: const Text('حذف جميع المحادثات نهائياً', style: TextStyle(color: Colors.red)),
+                leading: const Icon(Icons.delete, color: Colors.red),
+                title: const Text('حذف المحادثة', style: TextStyle(color: Colors.red)),
+                subtitle: const Text('حذف جميع رسائل هذه المحادثة', style: TextStyle(color: Colors.red)),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.red),
-                onTap: _showDeleteAllConfirmation,
+                onTap: _deleteChat,
               ),
             ],
           ),
@@ -223,73 +315,21 @@ class _ChatSettingsScreenState extends State<ChatSettingsScreen> {
   void _showBackgroundSelector() {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'اختر خلفية الدردشة',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _backgrounds.map((bg) {
-                final isSelected = _selectedBackground == bg['name'];
-                return GestureDetector(
-                  onTap: () {
-                    setState(() => _selectedBackground = bg['name']);
-                    Navigator.pop(context);
-                    ToastService.showSuccess('✅ تم تغيير الخلفية');
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: bg['color'] ?? Colors.grey[200],
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isSelected ? AppColors.primary : Colors.transparent,
-                        width: 2,
-                      ),
-                    ),
-                    child: Text(
-                      bg['name'],
-                      style: TextStyle(
-                        color: bg['color'] != null ? Colors.white : Colors.black87,
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
-      ),
-    );
-  }
-
-  void _showDeleteAllConfirmation() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('حذف جميع المحادثات'),
-        content: const Text('هل أنت متأكد من حذف جميع المحادثات؟ هذا الإجراء لا يمكن التراجع عنه.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ToastService.showSuccess('✅ تم حذف جميع المحادثات');
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('حذف الكل'),
-          ),
-        ],
+        child: ChatBackgroundSelector(
+          currentBackground: _selectedBackground,
+          onBackgroundSelected: (name) {
+            setState(() => _selectedBackground = name);
+            Navigator.pop(context);
+            ToastService.showSuccess('✅ تم تغيير الخلفية');
+          },
+        ),
       ),
     );
   }

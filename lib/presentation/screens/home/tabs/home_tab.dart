@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -206,6 +205,8 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   Map<String, dynamic>? _weatherData;
   final WeatherService _weatherService = WeatherService();
 
+  // 📍 الموقع والخدمات القريبة
+
   // 🎨 تخصيص الأقسام
   List<String> _visibleSections = [];
   final CustomizationService _customizationService = CustomizationService();
@@ -213,12 +214,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   // 🩺 الأعراض
   final SymptomService _symptomService = SymptomService();
   List<Map<String, dynamic>> _recentSymptoms = [];
-
-  // 📦 الاشتراكات
-  StreamSubscription<RemoteMessage>? _fcmSubscription;
-  StreamSubscription<QuerySnapshot>? _postsSubscription;
-  StreamSubscription<QuerySnapshot>? _doctorsSubscription;
-  StreamSubscription<QuerySnapshot>? _hospitalsSubscription;
 
   // ============================================================
   // 📦 البيانات الأساسية
@@ -337,24 +332,20 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   void initState() {
     super.initState();
     _loadDefaultData();
-    _initializeServicesSafe();
+    _initializeServices();
     _loadUserPreferences();
     _setupStreams();
     _loadNotificationCount();
     _loadUpcomingMedications();
     _loadUpcomingAppointments();
-    _loadAIRecommendationSafe();
-    _loadWeatherSafe();
+    _loadAIRecommendation();
+    _loadWeather();
     _loadRecentSearches();
     _loadRecentSymptoms();
     _loadDataInBackground();
-    
-    if (widget.scrollController != null) {
-      widget.scrollController!.addListener(_onScroll);
-    }
+    widget.scrollController?.addListener(_onScroll);
 
-    _fcmSubscription = FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      if (!mounted) return;
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       setState(() {
         _notificationCount++;
       });
@@ -364,15 +355,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
 
   @override
   void dispose() {
-    _fcmSubscription?.cancel();
-    _postsSubscription?.cancel();
-    _doctorsSubscription?.cancel();
-    _hospitalsSubscription?.cancel();
-    
-    if (widget.scrollController != null) {
-      widget.scrollController!.removeListener(_onScroll);
-    }
-    
+    widget.scrollController?.removeListener(_onScroll);
     super.dispose();
   }
 
@@ -387,43 +370,26 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   }
 
   // ============================================================
-  // 🔧 تهيئة الخدمات بأمان
+  // 🔧 تهيئة الخدمات
   // ============================================================
-  Future<void> _initializeServicesSafe() async {
+  Future<void> _initializeServices() async {
     try {
       await _notificationService.initialize();
-    } catch (e) { print('⚠️ فشل تهيئة الإشعارات: $e'); }
-    
-    try {
       await _weatherService.init();
-    } catch (e) { print('⚠️ فشل تهيئة الطقس: $e'); }
-    
-    try {
       await _medicationService.init();
-    } catch (e) { print('⚠️ فشل تهيئة الأدوية: $e'); }
-    
-    try {
       await _appointmentService.init();
-    } catch (e) { print('⚠️ فشل تهيئة المواعيد: $e'); }
-    
-    try {
       await _aiService.init();
-    } catch (e) { print('⚠️ فشل تهيئة الذكاء الاصطناعي: $e'); }
-    
-    try {
       await _customizationService.init();
-    } catch (e) { print('⚠️ فشل تهيئة التخصيص: $e'); }
-    
-    try {
       await _symptomService.init();
-    } catch (e) { print('⚠️ فشل تهيئة الأعراض: $e'); }
+    } catch (e) {
+      print('⚠️ فشل تهيئة الخدمات: $e');
+    }
   }
 
   // ============================================================
   // 📦 تحميل البيانات الافتراضية فوراً
   // ============================================================
   void _loadDefaultData() {
-    if (!mounted) return;
     setState(() {
       _bannerImages = _defaultBannerImages;
       _topDoctors = _defaultTopDoctors;
@@ -446,8 +412,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   Future<void> _loadDataInBackground() async {
     try {
       await Future.delayed(const Duration(milliseconds: 500));
-      if (!mounted) return;
-      
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         final doc = await FirebaseFirestore.instance
@@ -480,7 +444,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
           .collection('saved_posts')
           .get();
       final savedIds = savedDocs.docs.map((doc) => doc.id).toSet();
-      if (!mounted) return;
       setState(() {
         for (var post in _communityPosts) {
           post['saved'] = savedIds.contains(post['id'].toString());
@@ -499,7 +462,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
           .collection('liked_posts')
           .get();
       final likedIds = likedDocs.docs.map((doc) => doc.id).toSet();
-      if (!mounted) return;
       setState(() {
         for (var post in _communityPosts) {
           post['liked'] = likedIds.contains(post['id'].toString());
@@ -514,7 +476,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   Future<void> _loadFavorites() async {
     final prefs = await SharedPreferences.getInstance();
     final favoritesJson = prefs.getStringList('favorites') ?? [];
-    if (!mounted) return;
     setState(() {
       _favorites = favoritesJson.map((e) => jsonDecode(e) as Map<String, dynamic>).toList();
     });
@@ -526,7 +487,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   Future<void> _loadNotificationCount() async {
     try {
       final count = await _notificationService.getUnreadCount();
-      if (!mounted) return;
       setState(() => _notificationCount = count);
     } catch (e) { print('⚠️ فشل تحميل عدد الإشعارات: $e'); }
   }
@@ -537,7 +497,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   Future<void> _loadUpcomingMedications() async {
     try {
       final meds = await _medicationService.getUpcomingMedications();
-      if (!mounted) return;
       setState(() => _upcomingMedications = meds);
     } catch (e) { print('⚠️ فشل تحميل تذكير الأدوية: $e'); }
   }
@@ -548,52 +507,33 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   Future<void> _loadUpcomingAppointments() async {
     try {
       final apps = await _appointmentService.getUpcomingAppointments();
-      if (!mounted) return;
       setState(() => _upcomingAppointments = apps);
     } catch (e) { print('⚠️ فشل تحميل المواعيد: $e'); }
   }
 
   // ============================================================
-  // 🤖 توصيات الذكاء الاصطناعي بأمان
+  // 🤖 توصيات الذكاء الاصطناعي
   // ============================================================
-  Future<void> _loadAIRecommendationSafe() async {
+  Future<void> _loadAIRecommendation() async {
     try {
       final rec = await _aiService.getRecommendation();
-      if (!mounted) return;
       setState(() => _aiRecommendation = rec);
-    } catch (e) {
-      print('⚠️ فشل تحميل التوصيات: $e');
-      if (!mounted) return;
-      setState(() {
-        _aiRecommendation = {
-          'title': 'توصيات صحية مخصصة',
-          'content': 'اكتشف نصائح صحية تناسب حالتك',
-        };
-      });
-    }
+    } catch (e) { print('⚠️ فشل تحميل التوصيات: $e'); }
   }
 
   // ============================================================
-  // 🌤️ الطقس بأمان
+  // 🌤️ الطقس
   // ============================================================
-  Future<void> _loadWeatherSafe() async {
+  Future<void> _loadWeather() async {
     try {
       final weather = await _weatherService.getCurrentWeather();
-      if (!mounted) return;
       setState(() => _weatherData = weather);
-    } catch (e) {
-      print('⚠️ فشل تحميل الطقس: $e');
-      if (!mounted) return;
-      setState(() {
-        _weatherData = {
-          'temp': '24',
-          'condition': 'مشمس',
-          'icon': 'sunny',
-          'healthTip': 'اشرب الماء للحفاظ على الترطيب',
-        };
-      });
-    }
+    } catch (e) { print('⚠️ فشل تحميل الطقس: $e'); }
   }
+
+  // ============================================================
+  // 📍 الخدمات القريبة
+  // ============================================================
 
   // ============================================================
   // 🎨 تفضيلات المستخدم
@@ -601,7 +541,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   Future<void> _loadUserPreferences() async {
     try {
       final sections = await _customizationService.getVisibleSections();
-      if (!mounted) return;
       setState(() => _visibleSections = sections);
     } catch (e) { print('⚠️ فشل تحميل التخصيص: $e'); }
   }
@@ -613,7 +552,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     try {
       final prefs = await SharedPreferences.getInstance();
       final searches = prefs.getStringList('recent_searches') ?? [];
-      if (!mounted) return;
       setState(() => _recentSearches = searches);
     } catch (e) { print('⚠️ فشل تحميل عمليات البحث: $e'); }
   }
@@ -626,7 +564,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       searches.insert(0, query);
       if (searches.length > 10) searches.removeLast();
       await prefs.setStringList('recent_searches', searches);
-      if (!mounted) return;
       setState(() => _recentSearches = searches);
     } catch (e) { print('⚠️ فشل حفظ البحث: $e'); }
   }
@@ -637,7 +574,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   Future<void> _loadRecentSymptoms() async {
     try {
       final symptoms = await _symptomService.getRecentSymptoms();
-      if (!mounted) return;
       setState(() => _recentSymptoms = symptoms);
     } catch (e) { print('⚠️ فشل تحميل الأعراض: $e'); }
   }
@@ -646,30 +582,20 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   // 📡 Streams للبيانات الحية
   // ============================================================
   void _setupStreams() {
-    _postsSubscription = FirebaseFirestore.instance
+    _postsStream = FirebaseFirestore.instance
         .collection('community_posts')
         .orderBy('timestamp', descending: true)
-        .snapshots()
-        .listen((snapshot) {
-          if (!mounted) return;
-          // معالجة البيانات
-        });
+        .snapshots();
     
-    _doctorsSubscription = FirebaseFirestore.instance
+    _doctorsStream = FirebaseFirestore.instance
         .collection('doctors')
         .limit(10)
-        .snapshots()
-        .listen((snapshot) {
-          if (!mounted) return;
-        });
+        .snapshots();
     
-    _hospitalsSubscription = FirebaseFirestore.instance
+    _hospitalsStream = FirebaseFirestore.instance
         .collection('hospitals')
         .limit(6)
-        .snapshots()
-        .listen((snapshot) {
-          if (!mounted) return;
-        });
+        .snapshots();
   }
 
   // ============================================================
@@ -703,22 +629,19 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   // 🔄 تحديث البيانات وإعادة المحاولة
   // ============================================================
   Future<void> _refreshData() async {
-    if (!mounted) return;
     setState(() => _isRetrying = true);
     try {
-      _loadDefaultData();
+      _loadDefaultData();  // تم إزالة await
       await _loadNotificationCount();
       await _loadUpcomingMedications();
       await _loadUpcomingAppointments();
-      await _loadAIRecommendationSafe();
-      await _loadWeatherSafe();
+      await _loadAIRecommendation();
+      await _loadWeather();
       await _loadRecentSearches();
       await _loadRecentSymptoms();
-      if (!mounted) return;
       setState(() { _hasError = false; _retryCount = 0; });
       ToastService.showSuccess('✅ تم تحديث البيانات بنجاح');
     } catch (e) {
-      if (!mounted) return;
       setState(() { 
         _hasError = true; 
         _errorMessage = 'حدث خطأ في تحميل البيانات';
@@ -726,7 +649,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       });
       ToastService.showError('❌ فشل تحديث البيانات');
     } finally {
-      if (!mounted) return;
       setState(() => _isRetrying = false);
     }
   }
@@ -797,7 +719,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             .collection('liked_posts')
             .doc(postId)
             .delete();
-        if (!mounted) return;
         setState(() {
           _communityPosts[index]['liked'] = false;
           _communityPosts[index]['likes']--;
@@ -816,7 +737,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
           'postId': postId,
           'likedAt': FieldValue.serverTimestamp(),
         });
-        if (!mounted) return;
         setState(() {
           _communityPosts[index]['liked'] = true;
           _communityPosts[index]['likes']++;
@@ -841,7 +761,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             .collection('saved_posts')
             .doc(postId)
             .delete();
-        if (!mounted) return;
         setState(() { _communityPosts[index]['saved'] = false; });
         ToastService.showSuccess('❌ تم إلغاء حفظ المنشور');
       } else {
@@ -856,7 +775,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
           'image': _communityPosts[index]['image'],
           'savedAt': FieldValue.serverTimestamp(),
         });
-        if (!mounted) return;
         setState(() { _communityPosts[index]['saved'] = true; });
         ToastService.showSuccess('✅ تم حفظ المنشور');
       }
@@ -879,7 +797,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         'reason': 'محتوى غير مناسب',
         'reportedAt': FieldValue.serverTimestamp(),
       });
-      if (!mounted) return;
       setState(() { _communityPosts[index]['reported'] = true; });
       ToastService.showSuccess('✅ تم الإبلاغ عن المنشور');
     } catch (e) { ToastService.showError('❌ فشل الإبلاغ'); }
@@ -1129,7 +1046,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
           .collection('community_posts')
           .doc(postId)
           .update({ 'comments': FieldValue.increment(1) });
-      if (!mounted) return;
       setState(() { _communityPosts[index]['comments']++; });
       ToastService.showSuccess('✅ تم إضافة التعليق');
       
@@ -1882,7 +1798,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                         child: Row(
                           children: [
                             Image.asset(
-                              'assets/images/icons/search/Search_button.png',
+                              'assets/images/icons/search/Search button.png',
                               width: 20,
                               height: 20,
                               errorBuilder: (_, __, ___) => Icon(Icons.search, color: Colors.white.withOpacity(0.7), size: 20),

@@ -1,9 +1,6 @@
-// ============================================================
-// 🗑️ حوار حذف الرسالة
-// ============================================================
-
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/constants/text_styles.dart';
 
 class DeleteMessageDialog extends StatelessWidget {
   final String messageText;
@@ -28,13 +25,15 @@ class DeleteMessageDialog extends StatelessWidget {
       backgroundColor: isDark ? const Color(0xFF1A2540) : Colors.white,
       title: Row(
         children: [
-          const Icon(Icons.delete_outline, color: Colors.red, size: 28),
+          const Icon(
+            Icons.delete_outline,
+            color: Colors.red,
+            size: 28,
+          ),
           const SizedBox(width: 8),
           Text(
             'حذف الرسالة',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+            style: TextStyles.headline6.copyWith(
               color: isDark ? Colors.white : Colors.black87,
             ),
           ),
@@ -46,7 +45,7 @@ class DeleteMessageDialog extends StatelessWidget {
         children: [
           Text(
             'هل أنت متأكد من حذف هذه الرسالة؟',
-            style: TextStyle(
+            style: TextStyles.body2.copyWith(
               color: isDark ? Colors.white70 : Colors.grey[700],
             ),
           ),
@@ -59,7 +58,7 @@ class DeleteMessageDialog extends StatelessWidget {
             ),
             child: Text(
               messageText,
-              style: TextStyle(
+              style: TextStyles.body2.copyWith(
                 color: isDark ? Colors.white : Colors.black87,
                 fontStyle: FontStyle.italic,
               ),
@@ -81,7 +80,10 @@ class DeleteMessageDialog extends StatelessWidget {
                   Expanded(
                     child: Text(
                       'سيتم حذف هذه الرسالة للجميع',
-                      style: TextStyle(fontSize: 12, color: Colors.orange),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.orange,
+                      ),
                     ),
                   ),
                 ],
@@ -101,7 +103,9 @@ class DeleteMessageDialog extends StatelessWidget {
         ),
         TextButton(
           onPressed: onDelete,
-          style: TextButton.styleFrom(foregroundColor: Colors.red),
+          style: TextButton.styleFrom(
+            foregroundColor: Colors.red,
+          ),
           child: const Text('حذف'),
         ),
       ],

@@ -1,135 +1,102 @@
-// ============================================================
-// ✏️ خدمة حالة الكتابة
-// ============================================================
-
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'dart:async';
 
 class TypingService {
   static final TypingService _instance = TypingService._internal();
   factory TypingService() => _instance;
   TypingService._internal();
 
-  // ============================================================
-  // 🔗 الخدمات الأساسية
-  // ============================================================
-
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  Timer? _typingTimer;
 
-  final Map<String, Timer> _typingTimers = {};
-  final Map<String, List<String>> _typingUsers = {};
+  void sendTypingStatus({
+    required String chatId,
+    required bool isTyping,
+  }) {
+    final user = _auth.currentUser;
+    if (user == null) return;
 
-  // ============================================================
-  // ✏️ تحديث حالة الكتابة
-  // ============================================================
+    final typingRef = _firestore
+        .collection('chats')
+        .doc(chatId)
+        .collection('typing')
+        .doc(user.uid);
 
-  Future<void> setTypingStatus(
-    String chatId,
-    String userId,
-    bool isTyping,
-  ) async {
     if (isTyping) {
-      // ✅ بدء الكتابة
-      await _firestore.collection('typing').doc('$chatId:$userId').set({
-        'chatId': chatId,
-        'userId': userId,
+      typingRef.set({
+        'userId': user.uid,
+        'userName': user.displayName ?? 'مستخدم',
         'isTyping': true,
         'timestamp': FieldValue.serverTimestamp(),
       });
-
-      // ✅ إلغاء المؤقت السابق
-      _typingTimers[userId]?.cancel();
-
-      // ✅ إعداد مؤقت لإيقاف الكتابة بعد 5 ثواني من عدم النشاط
-      _typingTimers[userId] = Timer(const Duration(seconds: 5), () {
-        setTypingStatus(chatId, userId, false);
-      });
     } else {
-      // ✅ إيقاف الكتابة
-      await _firestore.collection('typing').doc('$chatId:$userId').delete();
-      _typingTimers[userId]?.cancel();
-      _typingTimers.remove(userId);
+      typingRef.delete();
     }
   }
 
-  // ============================================================
-  // 📡 الاستماع للمستخدمين الذين يكتبون
-  // ============================================================
+  void startTyping({required String chatId}) {
+    _typingTimer?.cancel();
+    sendTypingStatus(chatId: chatId, isTyping: true);
 
-  Stream<List<String>> getTypingUsers(String chatId) {
-    final user = _auth.currentUser;
-    if (user == null) return Stream.value([]);
+    _typingTimer = Timer(const Duration(seconds: 3), () {
+      sendTypingStatus(chatId: chatId, isTyping: false);
+    });
+  }
 
+  void stopTyping({required String chatId}) {
+    _typingTimer?.cancel();
+    sendTypingStatus(chatId: chatId, isTyping: false);
+  }
+
+  Stream<List<Map<String, dynamic>>> getTypingStatus(String chatId) {
     return _firestore
+        .collection('chats')
+        .doc(chatId)
         .collection('typing')
-        .where('chatId', isEqualTo: chatId)
         .where('isTyping', isEqualTo: true)
         .snapshots()
         .map((snapshot) {
-          final users = <String>[];
-          final now = DateTime.now();
-
-          for (final doc in snapshot.docs) {
-            final data = doc.data();
-            final userId = data['userId'] ?? '';
-            final timestamp = (data['timestamp'] as Timestamp?)?.toDate();
-
-            // ✅ تجاهل المستخدم الحالي
-            if (userId == user.uid) continue;
-
-            // ✅ تجاهل إذا مر أكثر من 5 ثواني
-            if (timestamp != null) {
-              final diff = now.difference(timestamp);
-              if (diff.inSeconds > 5) {
-                // ✅ حذف الحالة القديمة
-                _firestore.collection('typing').doc(doc.id).delete();
-                continue;
-              }
-            }
-
-            users.add(userId);
-          }
-
-          _typingUsers[chatId] = users;
-          return users;
-        });
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        data['id'] = doc.id;
+        return data;
+      }).toList();
+    });
   }
 
-  // ============================================================
-  // 🔄 الحصول على أسماء المستخدمين الذين يكتبون
-  // ============================================================
-
-  Future<List<String>> getTypingUserNames(String chatId) async {
-    final userIds = _typingUsers[chatId] ?? [];
-    if (userIds.isEmpty) return [];
+  Future<void> clearTypingStatus(String chatId) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
 
     try {
-      final names = <String>[];
-      for (final userId in userIds) {
-        final doc = await _firestore.collection('users').doc(userId).get();
-        if (doc.exists) {
-          final data = doc.data()!;
-          names.add(data['name'] ?? 'مستخدم');
-        }
-      }
-      return names;
+      await _firestore
+          .collection('chats')
+          .doc(chatId)
+          .collection('typing')
+          .doc(user.uid)
+          .delete();
     } catch (e) {
-      print('❌ Error getting typing user names: $e');
-      return [];
+      print('❌ Error clearing typing status: $e');
     }
   }
 
-  // ============================================================
-  // 🧹 تنظيف الموارد
-  // ============================================================
+  Future<void> cleanOldTypingStatuses(String chatId) async {
+    try {
+      final tenSecondsAgo = DateTime.now().subtract(const Duration(seconds: 10));
+      final oldTyping = await _firestore
+          .collection('chats')
+          .doc(chatId)
+          .collection('typing')
+          .where('timestamp', isLessThan: tenSecondsAgo)
+          .get();
 
-  void dispose() {
-    for (final timer in _typingTimers.values) {
-      timer.cancel();
+      for (final doc in oldTyping.docs) {
+        await doc.reference.delete();
+      }
+    } catch (e) {
+      print('❌ Error cleaning old typing statuses: $e');
     }
-    _typingTimers.clear();
-    _typingUsers.clear();
   }
 }

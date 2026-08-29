@@ -23,7 +23,7 @@ import 'presentation/bloc/theme_bloc/theme_bloc.dart';
 import 'presentation/bloc/chat_bloc/chat_bloc.dart';
 import 'presentation/bloc/doctor_bloc/doctor_bloc.dart';
 import 'presentation/screens/splash_screen.dart';
-import 'presentation/screens/wallet/wallet_screen.dart';
+import 'presentation/screens/home/home_screen.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -32,66 +32,69 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
-  // ✅ تهيئة Firebase
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    print('✅ Firebase initialized');
+    print('✅ Firebase initialized successfully');
   } catch (e) {
-    print('❌ Firebase error: $e');
+    print('❌ Firebase initialization error: $e');
   }
 
-  // ✅ تهيئة FCM
   try {
     final fcm = FirebaseMessaging.instance;
-    await fcm.requestPermission();
+    await fcm.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     final token = await fcm.getToken();
     print('✅ FCM Token: $token');
   } catch (e) {
-    print('❌ FCM error: $e');
+    print('❌ FCM initialization error: $e');
   }
 
-  // ✅ تهيئة الكاش والإشعارات
-  try {
-    await CacheService.init();
-  } catch (e) {
-    print('❌ Cache error: $e');
-  }
+  // await CacheService.init();  // تم التعليق
 
-  try {
-    final notificationService = NotificationService();
-    await notificationService.initialize();
-  } catch (e) {
-    print('❌ Notification error: $e');
-  }
+  final notificationService = NotificationService();
+  await notificationService.initialize();
 
-  // ✅ تشغيل التطبيق
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => UserProvider()..loadUserSafely()),
-        ChangeNotifierProvider(create: (_) => FontSizeProvider()),
-        ChangeNotifierProvider(create: (_) => BotProvider()),
+        ChangeNotifierProvider(
+          create: (_) => UserProvider()..loadUserSafely(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => FontSizeProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => BotProvider(),
+        ),
         ChangeNotifierProvider(
           create: (_) {
             try {
               final user = FirebaseAuth.instance.currentUser;
               return WalletProvider(uid: user?.uid ?? '');
             } catch (e) {
+              print('❌ WalletProvider error: $e');
               return WalletProvider(uid: '');
             }
           },
         ),
-        ChangeNotifierProvider(create: (_) => CartProvider()),
-        BlocProvider(create: (_) => AuthBloc()..add(CheckAuthStatus())),
+        ChangeNotifierProvider(
+          create: (_) => CartProvider(),
+        ),
+        BlocProvider(
+          create: (_) => AuthBloc()..add(CheckAuthStatus()),
+        ),
         BlocProvider(create: (_) => ThemeBloc()),
         BlocProvider(create: (_) => ChatBloc()),
         BlocProvider(create: (_) => DoctorBloc()),
@@ -137,7 +140,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed) {
-      print('🔄 App resumed');
+      print('🔄 App resumed from background');
       if (mounted) {
         final userProvider = Provider.of<UserProvider>(context, listen: false);
         userProvider.loadUserSafely();

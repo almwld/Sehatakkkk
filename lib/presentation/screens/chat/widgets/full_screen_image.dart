@@ -1,9 +1,7 @@
-// ============================================================
-// 🖼️ عرض الصورة بحجم كامل
-// ============================================================
-
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:sehatak/core/constants/app_colors.dart';
 
 class FullScreenImage extends StatelessWidget {
   final String imageUrl;
@@ -21,6 +19,7 @@ class FullScreenImage extends StatelessWidget {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
+          // ✅ صورة بملء الشاشة (بدون photo_view)
           Center(
             child: GestureDetector(
               onTap: () => Navigator.pop(context),
@@ -55,6 +54,7 @@ class FullScreenImage extends StatelessWidget {
               ),
             ),
           ),
+          // ✅ زر العودة
           Positioned(
             top: 40,
             left: 16,
@@ -66,6 +66,25 @@ class FullScreenImage extends StatelessWidget {
               child: IconButton(
                 icon: const Icon(Icons.close_rounded, color: Colors.white, size: 28),
                 onPressed: () => Navigator.pop(context),
+              ),
+            ),
+          ),
+          // ✅ معلومات الصورة في الأسفل
+          Positioned(
+            bottom: 40,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Text(
+                  'اضغط للعودة',
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                ),
               ),
             ),
           ),
