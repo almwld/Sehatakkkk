@@ -138,7 +138,6 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
               chatId: 'chat_${widget.doctorId}_${DateTime.now().millisecondsSinceEpoch}',
               userId: userId,
               userName: _doctor['name'],
-              userImage: _doctor['image'],
               isDoctor: true, // ✅ تم إضافة isDoctor
             ),
           ),
