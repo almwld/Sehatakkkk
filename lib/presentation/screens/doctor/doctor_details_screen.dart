@@ -71,6 +71,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
   Map<String, dynamic> _getDoctorData(String doctorId) {
     final doctors = {
       '1': {
+        'id': '1',
         'name': 'د. أحمد المولد',
         'specialty': 'استشاري باطنية وأطفال',
         'experience': '20+ سنة',
@@ -84,6 +85,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
         'image': ImageKit.doctor1,
       },
       '2': {
+        'id': '2',
         'name': 'د. خالد النخلاني',
         'specialty': 'قلبية',
         'experience': '12 سنة',
@@ -97,6 +99,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
         'image': ImageKit.doctor2,
       },
       '3': {
+        'id': '3',
         'name': 'د. أسماء الهندي',
         'specialty': 'أطفال',
         'experience': '9 سنوات',
@@ -140,7 +143,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => const DoctorBookingScreen(doctorId: '1'),
+            builder: (_) => DoctorBookingScreen(doctorId: widget.doctorId),
           ),
         );
         break;
