@@ -282,3 +282,20 @@ class _StoryScreenState extends State<StoryScreen> {
     );
   }
 }
+
+// ✅ استخدام StoryModel
+import 'package:sehatak/models/story_model.dart';
+
+// ✅ دالة لإضافة حالة
+Future<void> _addStoryWithModel() async {
+  final story = StoryModel(
+    id: DateTime.now().millisecondsSinceEpoch.toString(),
+    userId: FirebaseAuth.instance.currentUser?.uid ?? '',
+    userName: FirebaseAuth.instance.currentUser?.displayName ?? 'مستخدم',
+    text: 'حالة جديدة',
+    createdAt: DateTime.now(),
+    expiresAt: DateTime.now().add(const Duration(hours: 24)),
+  );
+  // حفظ في Firestore
+  await FirebaseFirestore.instance.collection('stories').add(story.toMap());
+}
