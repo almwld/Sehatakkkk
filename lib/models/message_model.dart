@@ -1,5 +1,5 @@
 // ============================================================
-// 📦 نموذج الرسالة - النسخة النهائية
+// 📦 نموذج الرسالة
 // ============================================================
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -112,13 +112,13 @@ class MessageModel {
   bool get isAudio => type == 'audio';
   bool get isFile => type == 'file';
   bool get isLocation => type == 'location';
+  bool get isVideo => type == 'video';
   
   bool get isMe {
     final user = FirebaseAuth.instance.currentUser;
     return senderId == user?.uid;
   }
 
-  // ✅ الحصول على اسم الملف
   String get getFileName {
     if (fileName != null && fileName!.isNotEmpty) return fileName!;
     if (fileUrl != null && fileUrl!.isNotEmpty) {
@@ -128,7 +128,6 @@ class MessageModel {
     return 'ملف';
   }
 
-  // ✅ الحصول على حجم الملف منسق
   String get getFileSizeFormatted {
     if (fileSize != null && fileSize!.isNotEmpty) {
       return fileSize!;
@@ -136,13 +135,3 @@ class MessageModel {
     return '0 KB';
   }
 }
-
-  // ✅ إضافة دعم الفيديو
-  bool get isVideo => type == 'video';
-  
-  String? get videoUrl {
-    // إذا كان هناك حقل fileUrl أو imageUrl يستخدم للفيديو
-    if (fileUrl != null && fileUrl!.contains('.mp4')) return fileUrl;
-    if (imageUrl != null && imageUrl!.contains('.mp4')) return imageUrl;
-    return null;
-  }
