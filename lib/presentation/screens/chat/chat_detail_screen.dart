@@ -531,3 +531,57 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     });
   }
 }
+
+  // ✅ عرض حالة المستخدم
+  Widget _buildUserStatus() {
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.userId)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || !snapshot.data!.exists) {
+          return const SizedBox.shrink();
+        }
+
+        final data = snapshot.data!.data() as Map<String, dynamic>;
+        final isOnline = data['isOnline'] ?? false;
+        final lastSeen = data['lastSeen'] as Timestamp?;
+
+        return Row(
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: isOnline ? Colors.green : Colors.grey,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Text(
+              isOnline
+                  ? 'متصل'
+                  : 'آخر ظهور ${_formatLastSeen(lastSeen)}',
+              style: TextStyle(
+                fontSize: 11,
+                color: isOnline ? Colors.green : Colors.grey[500],
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  String _formatLastSeen(Timestamp? timestamp) {
+    if (timestamp == null) return 'غير معروف';
+    final date = timestamp.toDate();
+    final now = DateTime.now();
+    final diff = now.difference(date);
+    if (diff.inMinutes < 1) return 'الآن';
+    if (diff.inHours < 1) return 'منذ ${diff.inMinutes} د';
+    if (diff.inDays < 1) return 'منذ ${diff.inHours} س';
+    if (diff.inDays < 7) return 'منذ ${diff.inDays} ي';
+    return 'منذ ${diff.inDays ~/ 7} أسبوع';
+  }

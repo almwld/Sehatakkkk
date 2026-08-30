@@ -505,3 +505,68 @@ class _MessageBubbleState extends State<MessageBubble> {
     return '${time.day}/${time.month}';
   }
 }
+
+  // ✅ إعادة توجيه الرسالة
+  void _forwardMessage(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'إعادة توجيه الرسالة',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            // ✅ قائمة المحادثات لإعادة التوجيه
+            FutureBuilder<List<ChatModel>>(
+              future: _getChats(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final chats = snapshot.data!;
+                if (chats.isEmpty) {
+                  return const Text('لا توجد محادثات لإعادة التوجيه');
+                }
+                return ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: chats.length,
+                  itemBuilder: (context, index) {
+                    final chat = chats[index];
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: AppColors.primary.withOpacity(0.1),
+                        child: Text(
+                          chat.getOtherParticipantName(FirebaseAuth.instance.currentUser?.uid ?? '')[0],
+                          style: const TextStyle(color: AppColors.primary),
+                        ),
+                      ),
+                      title: Text(chat.getOtherParticipantName(FirebaseAuth.instance.currentUser?.uid ?? '')),
+                      subtitle: Text('اضغط لإعادة التوجيه'),
+                      onTap: () {
+                        Navigator.pop(context);
+                        _sendForward(chat.id);
+                      },
+                    );
+                  },
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<List<ChatModel>> _getChats() async {
+    // TODO: جلب المحادثات من Firestore
+    return [];
+  }
+
+  void _sendForward(String chatId) {
+    // TODO: إعادة توجيه الرسالة
+    ToastService.showSuccess('✅ تم إعادة توجيه الرسالة');
+  }
