@@ -27,7 +27,6 @@ import 'package:sehatak/presentation/screens/medication/medicines_screen.dart';
 import 'package:sehatak/presentation/screens/blood_pressure/blood_pressure_screen.dart';
 import 'package:sehatak/presentation/screens/glucose_tracker/glucose_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/weight_tracker/weight_tracker_screen.dart';
-import 'package:sehatak/presentation/screens/sleep_tracker/sleep_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -81,7 +80,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
       'value': '85',
       'unit': '%',
       'color': Colors.green,
-      'screen': const SleepTrackerScreen(),
+      'screen': const HealthDashboard(),
     },
     {
       'icon': 'assets/images/tracking/weight_tracking.png',
