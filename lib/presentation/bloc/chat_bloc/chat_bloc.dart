@@ -1,152 +1,91 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/services/chat_service.dart';
-import 'chat_event.dart';
-import 'chat_state.dart';
+import 'package:sehatak/models/chat_model.dart';
+import 'package:sehatak/models/message_model.dart';
 
-class ChatBloc extends Bloc<ChatEvent, ChatState> {
+class ChatBloc extends Cubit<ChatState> {
   final ChatService _chatService = ChatService();
-  StreamSubscription<QuerySnapshot>? _messagesSubscription;
-  StreamSubscription<QuerySnapshot>? _chatsSubscription;
+  StreamSubscription? _chatsSubscription;
+  StreamSubscription? _messagesSubscription;
+  List<ChatModel> _chats = [];
 
-  ChatBloc() : super(ChatInitialState()) {
-    on<LoadChatMessages>(_onLoadMessages);
-    on<SendChatMessage>(_onSendMessage);
-    on<LoadChatList>(_onLoadChatList);
-    on<ListenToMessages>(_onListenToMessages);
-    on<StopListening>(_onStopListening);
+  ChatBloc() : super(ChatInitial()) {
+    loadChats();
   }
 
-  // ✅ تحميل الرسائل - استخدام getMessages مباشرة
-  Future<void> _onLoadMessages(
-    LoadChatMessages event,
-    Emitter<ChatState> emit,
-  ) async {
-    emit(ChatLoadingState());
+  void loadChats() {
     try {
-      final messages = <Map<String, dynamic>>[];
-      // ✅ استخدام getMessages مع أول قيمة
-      final subscription = _chatService.getMessagesStream(event.chatId).listen(
-        (snapshot) {
-          for (final doc in snapshot) {
-            final data = doc.data() as Map<String, dynamic>;
-            messages.add({
-              'id': doc.id,
-              ...data,
-            });
-          }
-          messages.sort((a, b) {
-            final timeA = a['timestamp'] as Timestamp?;
-            final timeB = b['timestamp'] as Timestamp?;
-            if (timeA == null && timeB == null) return 0;
-            if (timeA == null) return 1;
-            if (timeB == null) return -1;
-            return timeA.toDate().compareTo(timeB.toDate());
-          });
-          emit(ChatLoadedState(messages));
+      emit(ChatLoading());
+      _chatsSubscription?.cancel();
+      _chatsSubscription = _chatService.getChats().listen(
+        (chats) {
+          _chats = chats;
+          emit(ChatLoaded(chats: chats));
         },
         onError: (error) {
-          emit(ChatErrorState('فشل تحميل الرسائل: $error'));
+          emit(ChatError(message: 'حدث خطأ في تحميل المحادثات: $error'));
         },
       );
-      // ✅ إلغاء الاشتراك بعد أول قيمة
-      await subscription.asFuture().then((_) => subscription.cancel());
     } catch (e) {
-      emit(ChatErrorState('فشل تحميل الرسائل: $e'));
+      emit(ChatError(message: 'حدث خطأ في تحميل المحادثات'));
     }
   }
 
-  // ✅ الاستماع المستمر للرسائل (Real-time)
-  Future<void> _onListenToMessages(
-    ListenToMessages event,
-    Emitter<ChatState> emit,
-  ) async {
-    emit(ChatLoadingState());
-    _messagesSubscription?.cancel();
-    _messagesSubscription = _chatService.getMessagesStream(event.chatId).listen(
-      (snapshot) {
-        final messages = <Map<String, dynamic>>[];
-        for (final doc in snapshot) {
-          final data = doc.data() as Map<String, dynamic>;
-          messages.add({
-            'id': doc.id,
-            ...data,
-          });
-        }
-        messages.sort((a, b) {
-          final timeA = a['timestamp'] as Timestamp?;
-          final timeB = b['timestamp'] as Timestamp?;
-          if (timeA == null && timeB == null) return 0;
-          if (timeA == null) return 1;
-          if (timeB == null) return -1;
-          return timeA.toDate().compareTo(timeB.toDate());
-        });
-        emit(ChatLoadedState(messages));
-      },
-      onError: (error) {
-        emit(ChatErrorState('فشل الاستماع للرسائل: $error'));
-      },
-    );
+  void refreshChats() {
+    loadChats();
   }
 
-  // ✅ تحميل قائمة المحادثات
-  Future<void> _onLoadChatList(
-    LoadChatList event,
-    Emitter<ChatState> emit,
-  ) async {
-    emit(ChatLoadingState());
-    _chatsSubscription?.cancel();
-    _chatsSubscription = _chatService.getChatsStream(event.userId).listen(
-      (snapshot) {
-        final chats = <Map<String, dynamic>>[];
-        for (final doc in snapshot) {
-          final data = doc.data() as Map<String, dynamic>;
-          chats.add({
-            'id': doc.id,
-            ...data,
-          });
-        }
-        emit(ChatListLoadedState(chats));
-      },
-      onError: (error) {
-        emit(ChatErrorState('فشل تحميل المحادثات: $error'));
-      },
-    );
-  }
-
-  // ✅ إرسال رسالة
-  Future<void> _onSendMessage(
-    SendChatMessage event,
-    Emitter<ChatState> emit,
-  ) async {
+  Future<void> deleteChat(String chatId) async {
     try {
-      await _chatService.sendMessage(
-        chatId: event.chatId,
-        text: event.text,
-        imageUrl: event.imageUrl,
-        audioUrl: event.audioUrl,
-      );
+      await _chatService.deleteChat(chatId);
+      loadChats();
     } catch (e) {
-      emit(ChatErrorState('فشل إرسال الرسالة: $e'));
+      emit(ChatError(message: 'فشل حذف المحادثة'));
     }
   }
 
-  // ✅ إيقاف الاستماع
-  Future<void> _onStopListening(
-    StopListening event,
-    Emitter<ChatState> emit,
-  ) async {
-    _messagesSubscription?.cancel();
-    _chatsSubscription?.cancel();
+  Future<void> markAsRead(String chatId) async {
+    try {
+      await _chatService.markAsRead(chatId);
+    } catch (e) {
+      print('⚠️ Error marking as read: $e');
+    }
+  }
+
+  Future<String> createChat({
+    required String doctorId,
+    required String doctorName,
+    required String patientId,
+    required String patientName,
+  }) async {
+    try {
+      final chatId = await _chatService.createTestChat();
+      return chatId;
+    } catch (e) {
+      print('❌ Error creating chat: $e');
+      rethrow;
+    }
   }
 
   @override
   Future<void> close() {
-    _messagesSubscription?.cancel();
     _chatsSubscription?.cancel();
+    _messagesSubscription?.cancel();
+    _chatService.dispose();
     return super.close();
   }
+}
+
+abstract class ChatState {}
+
+class ChatInitial extends ChatState {}
+class ChatLoading extends ChatState {}
+class ChatLoaded extends ChatState {
+  final List<ChatModel> chats;
+  ChatLoaded({required this.chats});
+}
+class ChatError extends ChatState {
+  final String message;
+  ChatError({required this.message});
 }
