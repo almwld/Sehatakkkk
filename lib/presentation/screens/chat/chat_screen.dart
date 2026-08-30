@@ -59,7 +59,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     super.initState();
     _tabController = TabController(length: 3, vsync: this, initialIndex: 0);
     WidgetsBinding.instance.addObserver(this);
-    read<ChatBloc>().add(LoadChatsEvent());
+    context.read<ChatBloc>().add(LoadChatsEvent());
   }
 
   @override
@@ -74,7 +74,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed) {
-      read<ChatBloc>().add(RefreshChatsEvent());
+      context.read<ChatBloc>().add(RefreshChatsEvent());
     }
   }
 
@@ -138,7 +138,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
         ),
         IconButton(
           icon: Icon(Icons.refresh, color: isDark ? Colors.white : Colors.black87),
-          onPressed: () => read<ChatBloc>().add(RefreshChatsEvent()),
+          onPressed: () => context.read<ChatBloc>().add(RefreshChatsEvent()),
         ),
         PopupMenuButton<String>(
           icon: Icon(Icons.more_vert, color: isDark ? Colors.white : Colors.black87),
@@ -264,7 +264,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                 }
                 return RefreshIndicator(
                   onRefresh: () async {
-                    read<ChatBloc>().add(RefreshChatsEvent());
+                    context.read<ChatBloc>().add(RefreshChatsEvent());
                   },
                   child: ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -328,7 +328,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
 
     return GestureDetector(
       onTap: () {
-        read<ChatBloc>().add(MarkAsReadEvent(chatId: chat.id));
+        context.read<ChatBloc>().add(MarkAsReadEvent(chatId: chat.id));
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -499,7 +499,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
               CircleAvatar(
                 backgroundColor: AppColors.primary.withOpacity(0.1),
                 child: Text(
-                  call['name'][0],
+                  call['name']?.isNotEmpty == true ? call['name'][0] : 'م',
                   style: const TextStyle(color: AppColors.primary),
                 ),
               ),
@@ -737,7 +737,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
               title: const Text('تثبيت المحادثة'),
               onTap: () {
                 Navigator.pop(context);
-                read<ChatBloc>().add(PinChatEvent(chatId: chat.id));
+                context.read<ChatBloc>().add(PinChatEvent(chatId: chat.id));
               },
             ),
             ListTile(
@@ -745,7 +745,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
               title: const Text('كتم الإشعارات'),
               onTap: () {
                 Navigator.pop(context);
-                read<ChatBloc>().add(MuteChatEvent(chatId: chat.id));
+                context.read<ChatBloc>().add(MuteChatEvent(chatId: chat.id));
               },
             ),
             ListTile(
@@ -753,7 +753,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
               title: const Text('أرشفة المحادثة'),
               onTap: () {
                 Navigator.pop(context);
-                read<ChatBloc>().add(ArchiveChatEvent(chatId: chat.id));
+                context.read<ChatBloc>().add(ArchiveChatEvent(chatId: chat.id));
               },
             ),
             ListTile(
@@ -784,7 +784,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              read<ChatBloc>().add(DeleteChatEvent(chatId: chat.id));
+              context.read<ChatBloc>().add(DeleteChatEvent(chatId: chat.id));
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('حذف'),
@@ -920,7 +920,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     }
 
     try {
-      final chatId = await read<ChatBloc>().createChat(
+      final chatId = await context.read<ChatBloc>().createChat(
         doctorId: doctor['id'],
         doctorName: doctor['name'],
         patientId: user.uid,
@@ -934,7 +934,6 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
             chatId: chatId,
             userId: user.uid,
             userName: doctor['name'],
-            userImage: doctor['image'],
             isDoctor: true,
           ),
         ),
@@ -1075,7 +1074,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
           ),
           const SizedBox(height: 16),
           ElevatedButton.icon(
-            onPressed: () => read<ChatBloc>().add(RefreshChatsEvent()),
+            onPressed: () => context.read<ChatBloc>().add(RefreshChatsEvent()),
             icon: const Icon(Icons.refresh),
             label: const Text('إعادة المحاولة'),
             style: ElevatedButton.styleFrom(
@@ -1101,7 +1100,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
         return;
       }
 
-      final chatId = await read<ChatBloc>().createChat(
+      final chatId = await context.read<ChatBloc>().createChat(
         doctorId: 'test_doctor',
         doctorName: 'د. أحمد (تجريبي)',
         patientId: user.uid,
@@ -1109,7 +1108,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
       );
 
       ToastService.showSuccess('✅ تم إنشاء محادثة تجريبية');
-      read<ChatBloc>().add(RefreshChatsEvent());
+      context.read<ChatBloc>().add(RefreshChatsEvent());
     } catch (e) {
       ToastService.showError('❌ فشل إنشاء المحادثة: $e');
     }
@@ -1138,7 +1137,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
             return;
           }
           
-          final chatId = await read<ChatBloc>().createChat(
+          final chatId = await context.read<ChatBloc>().createChat(
             doctorId: 'test_doctor',
             doctorName: 'د. أحمد (تجريبي)',
             patientId: user.uid,
@@ -1146,7 +1145,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
           );
           
           ToastService.showSuccess('✅ تم إنشاء محادثة تجريبية');
-          read<ChatBloc>().add(RefreshChatsEvent());
+          context.read<ChatBloc>().add(RefreshChatsEvent());
         } catch (e) {
           ToastService.showError('❌ فشل إنشاء المحادثة: $e');
         }
