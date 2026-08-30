@@ -63,7 +63,7 @@ void _createTestChat(BuildContext context) async {
     );
 
     ToastService.showSuccess('✅ تم إنشاء محادثة تجريبية');
-    context.read<ChatBloc>().add(RefreshChatsEvent());
+    context.read<ChatBloc>().refreshChats();
   } catch (e) {
     ToastService.showError('❌ فشل إنشاء المحادثة: $e');
   }

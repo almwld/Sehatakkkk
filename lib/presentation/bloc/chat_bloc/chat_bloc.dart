@@ -4,16 +4,19 @@ import 'package:sehatak/core/services/chat_service.dart';
 import 'package:sehatak/models/chat_model.dart';
 import 'package:sehatak/models/message_model.dart';
 
+// ✅ حدث التحديث
+class RefreshChatsEvent {}
+
 class ChatBloc extends Cubit<ChatState> {
   final ChatService _chatService = ChatService();
   StreamSubscription? _chatsSubscription;
-  StreamSubscription? _messagesSubscription;
   List<ChatModel> _chats = [];
 
   ChatBloc() : super(ChatInitial()) {
     loadChats();
   }
 
+  // ✅ تحميل المحادثات
   void loadChats() {
     try {
       emit(ChatLoading());
@@ -32,10 +35,12 @@ class ChatBloc extends Cubit<ChatState> {
     }
   }
 
+  // ✅ تحديث المحادثات (بدلاً من add)
   void refreshChats() {
     loadChats();
   }
 
+  // ✅ حذف محادثة
   Future<void> deleteChat(String chatId) async {
     try {
       await _chatService.deleteChat(chatId);
@@ -45,6 +50,7 @@ class ChatBloc extends Cubit<ChatState> {
     }
   }
 
+  // ✅ تحديث حالة القراءة
   Future<void> markAsRead(String chatId) async {
     try {
       await _chatService.markAsRead(chatId);
@@ -53,6 +59,7 @@ class ChatBloc extends Cubit<ChatState> {
     }
   }
 
+  // ✅ إنشاء محادثة
   Future<String> createChat({
     required String doctorId,
     required String doctorName,
@@ -71,12 +78,12 @@ class ChatBloc extends Cubit<ChatState> {
   @override
   Future<void> close() {
     _chatsSubscription?.cancel();
-    _messagesSubscription?.cancel();
     _chatService.dispose();
     return super.close();
   }
 }
 
+// ✅ حالات Chat
 abstract class ChatState {}
 
 class ChatInitial extends ChatState {}
