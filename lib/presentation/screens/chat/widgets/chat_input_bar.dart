@@ -1,47 +1,88 @@
+// ============================================================
+// 📱 شريط الإدخال - مع زر إرسال وميكروفون
+// ============================================================
+
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/services/toast_service.dart';
-import 'voice_recorder.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:sehatak/core/constants/app_strings.dart';
 
 class ChatInputBar extends StatefulWidget {
-  final Function(String) onSendMessage;
-  final Function(String) onSendImage;
+  final TextEditingController textController;
+  final FocusNode focusNode;
+  final VoidCallback onSend;
+  final VoidCallback onImagePick;
+  final VoidCallback onVoiceRecord;
+  final VoidCallback onLocationShare;
+  final VoidCallback onFilePick;
+  final bool isSending;
+  final bool isDark;
 
   const ChatInputBar({
     super.key,
-    required this.onSendMessage,
-    required this.onSendImage,
+    required this.textController,
+    required this.focusNode,
+    required this.onSend,
+    required this.onImagePick,
+    required this.onVoiceRecord,
+    required this.onLocationShare,
+    required this.onFilePick,
+    required this.isSending,
+    required this.isDark,
   });
 
   @override
   State<ChatInputBar> createState() => _ChatInputBarState();
 }
 
-class _ChatInputBarState extends State<ChatInputBar> {
-  final TextEditingController _controller = TextEditingController();
-  final ImagePicker _picker = ImagePicker();
-  bool _isRecording = false;
-  bool _showVoiceRecorder = false;
+class _ChatInputBarState extends State<ChatInputBar> with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _rotationAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.8).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+    
+    _rotationAnimation = Tween<double>(begin: 0.0, end: 0.5).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    if (_showVoiceRecorder) {
-      return VoiceRecorder(
-        onRecordingComplete: (path) {
-          setState(() => _showVoiceRecorder = false);
-          ToastService.showSuccess('✅ تم تسجيل الصوت بنجاح');
-          // TODO: إرسال الصوت
-        },
-      );
+    final isTyping = widget.textController.text.trim().isNotEmpty;
+    
+    // ✅ تشغيل الأنيميشن عند تغيير حالة الكتابة
+    if (isTyping && !_animationController.isAnimating) {
+      _animationController.forward();
+    } else if (!isTyping && _animationController.isCompleted) {
+      _animationController.reverse();
     }
 
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF202c33) : Colors.white,
+        color: widget.isDark ? AppColors.darkCard : Colors.white,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
@@ -54,97 +95,90 @@ class _ChatInputBarState extends State<ChatInputBar> {
         children: [
           // ✅ زر المرفقات
           IconButton(
-            icon: Icon(Icons.attach_file, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+            icon: Icon(Icons.attach_file, color: widget.isDark ? Colors.grey[400] : Colors.grey[600]),
             onPressed: _showAttachmentOptions,
-          ),
-          // ✅ زر الصور
-          IconButton(
-            icon: Icon(Icons.photo_library, color: isDark ? Colors.grey[400] : Colors.grey[600]),
-            onPressed: _pickImage,
           ),
           // ✅ حقل النص
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF2a3942) : Colors.grey[100],
+                color: widget.isDark ? AppColors.darkInput : Colors.grey[100],
                 borderRadius: BorderRadius.circular(24),
               ),
               child: TextField(
-                controller: _controller,
-                onSubmitted: (_) => _sendMessage(),
-                style: TextStyle(
-                  color: isDark ? Colors.white : Colors.black87,
-                ),
+                controller: widget.textController,
+                focusNode: widget.focusNode,
+                onChanged: (text) {
+                  setState(() {}); // ✅ تحديث الواجهة لتغيير الزر
+                },
+                onSubmitted: (_) => widget.onSend(),
+                style: TextStyle(color: widget.isDark ? Colors.white : Colors.black87),
                 textAlign: TextAlign.right,
                 decoration: InputDecoration(
-                  hintText: 'رسالة...',
-                  hintStyle: TextStyle(
-                    color: isDark ? Colors.white54 : Colors.grey[600],
-                  ),
+                  hintText: AppStrings.typeMessage,
+                  hintStyle: TextStyle(color: widget.isDark ? Colors.grey[500] : Colors.grey[400]),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   prefixIcon: Icon(
                     Icons.emoji_emotions_outlined,
-                    color: isDark ? Colors.white54 : Colors.grey[600],
-                  ),
-                  suffixIcon: Icon(
-                    Icons.face,
-                    color: isDark ? Colors.white54 : Colors.grey[600],
+                    color: widget.isDark ? Colors.grey[400] : Colors.grey[600],
                   ),
                 ),
               ),
             ),
           ),
-          // ✅ زر التسجيل الصوتي (ضغط مطول)
+          // ✅ زر التسجيل الصوتي أو الإرسال مع أنيميشن
           GestureDetector(
-            onLongPress: _startRecording,
-            onLongPressUp: _stopRecording,
-            child: Container(
-              padding: const EdgeInsets.all(8),
+            onTap: isTyping ? widget.onSend : widget.onVoiceRecord,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
-                color: AppColors.primary,
+                color: isTyping ? AppColors.primary : Colors.transparent,
                 shape: BoxShape.circle,
+                border: Border.all(
+                  color: isTyping ? AppColors.primary : (widget.isDark ? Colors.grey[600]! : Colors.grey[300]!),
+                  width: 1.5,
+                ),
               ),
-              child: const Icon(
-                Icons.mic,
-                color: Colors.white,
-                size: 24,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                switchInCurve: Curves.easeInOut,
+                switchOutCurve: Curves.easeInOut,
+                child: widget.isSending
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        key: ValueKey('loading'),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : isTyping
+                        ? AnimatedScale(
+                            scale: _scaleAnimation.value,
+                            child: Transform.rotate(
+                              angle: _rotationAnimation.value,
+                              child: const Icon(
+                                Icons.send,
+                                key: ValueKey('send'),
+                                color: Colors.white,
+                              ),
+                            ),
+                          )
+                        : Icon(
+                            Icons.mic,
+                            key: const ValueKey('mic'),
+                            color: widget.isDark ? Colors.grey[400] : Colors.grey[600],
+                          ),
               ),
             ),
           ),
         ],
       ),
     );
-  }
-
-  void _sendMessage() {
-    final text = _controller.text.trim();
-    if (text.isNotEmpty) {
-      widget.onSendMessage(text);
-      _controller.clear();
-    }
-  }
-
-  void _startRecording() {
-    setState(() => _showVoiceRecorder = true);
-  }
-
-  void _stopRecording() {
-    // التسجيل مستمر حتى يتم الإرسال أو الإلغاء
-  }
-
-  Future<void> _pickImage() async {
-    try {
-      final image = await _picker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 70,
-      );
-      if (image != null) {
-        widget.onSendImage(image.path);
-      }
-    } catch (e) {
-      ToastService.showError('❌ فشل اختيار الصورة: $e');
-    }
   }
 
   void _showAttachmentOptions() {
@@ -156,36 +190,58 @@ class _ChatInputBarState extends State<ChatInputBar> {
       builder: (context) => SafeArea(
         child: Wrap(
           children: [
+            // ✅ صورة من المعرض
             ListTile(
               leading: const Icon(Icons.photo_library, color: AppColors.primary),
               title: const Text('صورة من المعرض'),
               onTap: () {
                 Navigator.pop(context);
-                _pickImage();
+                widget.onImagePick();
               },
             ),
+            // ✅ التقاط صورة
             ListTile(
               leading: const Icon(Icons.camera_alt, color: AppColors.primary),
               title: const Text('التقاط صورة'),
               onTap: () {
                 Navigator.pop(context);
-                ToastService.showInfo('📷 جاري فتح الكاميرا...');
+                widget.onImagePick();
               },
             ),
+            // ✅ تسجيل فيديو
             ListTile(
-              leading: const Icon(Icons.picture_as_pdf, color: AppColors.primary),
+              leading: const Icon(Icons.videocam, color: AppColors.primary),
+              title: const Text('تسجيل فيديو'),
+              onTap: () {
+                Navigator.pop(context);
+                widget.onImagePick();
+              },
+            ),
+            // ✅ إرسال ملف
+            ListTile(
+              leading: const Icon(Icons.insert_drive_file, color: AppColors.primary),
               title: const Text('إرسال ملف'),
               onTap: () {
                 Navigator.pop(context);
-                ToastService.showInfo('📎 جاري إرسال الملف...');
+                widget.onFilePick();
               },
             ),
+            // ✅ مشاركة الموقع
+            ListTile(
+              leading: const Icon(Icons.location_on, color: AppColors.primary),
+              title: const Text('مشاركة الموقع'),
+              onTap: () {
+                Navigator.pop(context);
+                widget.onLocationShare();
+              },
+            ),
+            // ✅ تسجيل صوتي
             ListTile(
               leading: const Icon(Icons.mic, color: AppColors.primary),
               title: const Text('تسجيل صوتي'),
               onTap: () {
                 Navigator.pop(context);
-                setState(() => _showVoiceRecorder = true);
+                widget.onVoiceRecord();
               },
             ),
           ],
