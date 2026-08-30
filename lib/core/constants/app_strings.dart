@@ -254,3 +254,9 @@ class AppStrings {
   static const String invalidDate = 'تاريخ غير صالح';
   static const String invalidName = 'الاسم غير صالح';
 }
+
+  // ============================================================
+  // 💬 نصوص الدردشة - إضافية
+  // ============================================================
+  
+  static const String typeMessage = 'اكتب رسالتك...';

@@ -1,5 +1,5 @@
 // ============================================================
-// 📱 شريط الإدخال - مع زر إرسال وميكروفون
+// 📱 شريط الإدخال - نسخة مصححة
 // ============================================================
 
 import 'package:flutter/material.dart';
@@ -72,7 +72,6 @@ class _ChatInputBarState extends State<ChatInputBar> with SingleTickerProviderSt
   Widget build(BuildContext context) {
     final isTyping = widget.textController.text.trim().isNotEmpty;
     
-    // ✅ تشغيل الأنيميشن عند تغيير حالة الكتابة
     if (isTyping && !_animationController.isAnimating) {
       _animationController.forward();
     } else if (!isTyping && _animationController.isCompleted) {
@@ -109,7 +108,7 @@ class _ChatInputBarState extends State<ChatInputBar> with SingleTickerProviderSt
                 controller: widget.textController,
                 focusNode: widget.focusNode,
                 onChanged: (text) {
-                  setState(() {}); // ✅ تحديث الواجهة لتغيير الزر
+                  setState(() {});
                 },
                 onSubmitted: (_) => widget.onSend(),
                 style: TextStyle(color: widget.isDark ? Colors.white : Colors.black87),
@@ -127,7 +126,7 @@ class _ChatInputBarState extends State<ChatInputBar> with SingleTickerProviderSt
               ),
             ),
           ),
-          // ✅ زر التسجيل الصوتي أو الإرسال مع أنيميشن
+          // ✅ زر التسجيل أو الإرسال
           GestureDetector(
             onTap: isTyping ? widget.onSend : widget.onVoiceRecord,
             child: AnimatedContainer(
@@ -157,15 +156,12 @@ class _ChatInputBarState extends State<ChatInputBar> with SingleTickerProviderSt
                         ),
                       )
                     : isTyping
-                        ? AnimatedScale(
-                            scale: _scaleAnimation.value,
-                            child: Transform.rotate(
-                              angle: _rotationAnimation.value,
-                              child: const Icon(
-                                Icons.send,
-                                key: ValueKey('send'),
-                                color: Colors.white,
-                              ),
+                        ? Transform.rotate(
+                            angle: _rotationAnimation.value,
+                            child: Icon(
+                              Icons.send,
+                              key: const ValueKey('send'),
+                              color: Colors.white,
                             ),
                           )
                         : Icon(
@@ -190,7 +186,6 @@ class _ChatInputBarState extends State<ChatInputBar> with SingleTickerProviderSt
       builder: (context) => SafeArea(
         child: Wrap(
           children: [
-            // ✅ صورة من المعرض
             ListTile(
               leading: const Icon(Icons.photo_library, color: AppColors.primary),
               title: const Text('صورة من المعرض'),
@@ -199,7 +194,6 @@ class _ChatInputBarState extends State<ChatInputBar> with SingleTickerProviderSt
                 widget.onImagePick();
               },
             ),
-            // ✅ التقاط صورة
             ListTile(
               leading: const Icon(Icons.camera_alt, color: AppColors.primary),
               title: const Text('التقاط صورة'),
@@ -208,7 +202,6 @@ class _ChatInputBarState extends State<ChatInputBar> with SingleTickerProviderSt
                 widget.onImagePick();
               },
             ),
-            // ✅ تسجيل فيديو
             ListTile(
               leading: const Icon(Icons.videocam, color: AppColors.primary),
               title: const Text('تسجيل فيديو'),
@@ -217,7 +210,6 @@ class _ChatInputBarState extends State<ChatInputBar> with SingleTickerProviderSt
                 widget.onImagePick();
               },
             ),
-            // ✅ إرسال ملف
             ListTile(
               leading: const Icon(Icons.insert_drive_file, color: AppColors.primary),
               title: const Text('إرسال ملف'),
@@ -226,7 +218,6 @@ class _ChatInputBarState extends State<ChatInputBar> with SingleTickerProviderSt
                 widget.onFilePick();
               },
             ),
-            // ✅ مشاركة الموقع
             ListTile(
               leading: const Icon(Icons.location_on, color: AppColors.primary),
               title: const Text('مشاركة الموقع'),
@@ -235,7 +226,6 @@ class _ChatInputBarState extends State<ChatInputBar> with SingleTickerProviderSt
                 widget.onLocationShare();
               },
             ),
-            // ✅ تسجيل صوتي
             ListTile(
               leading: const Icon(Icons.mic, color: AppColors.primary),
               title: const Text('تسجيل صوتي'),
