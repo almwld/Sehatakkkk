@@ -7,6 +7,7 @@ environment:
   sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
+  video_player: ^2.8.0
   flutter:
     sdk: flutter
   flutter_localizations:
@@ -167,6 +168,7 @@ dependencies:
   flutter_staggered_animations: ^1.1.0
 
 dev_dependencies:
+  video_player: ^2.8.0
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.1

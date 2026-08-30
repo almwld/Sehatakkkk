@@ -136,3 +136,13 @@ class MessageModel {
     return '0 KB';
   }
 }
+
+  // ✅ إضافة دعم الفيديو
+  bool get isVideo => type == 'video';
+  
+  String? get videoUrl {
+    // إذا كان هناك حقل fileUrl أو imageUrl يستخدم للفيديو
+    if (fileUrl != null && fileUrl!.contains('.mp4')) return fileUrl;
+    if (imageUrl != null && imageUrl!.contains('.mp4')) return imageUrl;
+    return null;
+  }

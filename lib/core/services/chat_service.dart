@@ -216,3 +216,94 @@ class ChatService {
             .map((doc) => ChatModel.fromMap(doc.data(), doc.id))
             .toList());
   }
+
+  // ✅ حذف رسالة
+  Future<void> deleteMessage({
+    required String chatId,
+    required String messageId,
+    bool forEveryone = true,
+  }) async {
+    try {
+      await _firestore
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .doc(messageId)
+          .update({
+        'isDeleted': true,
+        'text': 'تم حذف هذه الرسالة',
+      });
+    } catch (e) {
+      print('❌ Error deleting message: $e');
+      rethrow;
+    }
+  }
+
+  // ✅ إضافة تفاعل
+  Future<void> addReaction({
+    required String chatId,
+    required String messageId,
+    required String emoji,
+  }) async {
+    try {
+      await _firestore
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .doc(messageId)
+          .update({
+        'reactions.$emoji': FieldValue.increment(1),
+      });
+    } catch (e) {
+      print('❌ Error adding reaction: $e');
+      rethrow;
+    }
+  }
+
+  // ✅ إزالة تفاعل
+  Future<void> removeReaction({
+    required String chatId,
+    required String messageId,
+    required String emoji,
+  }) async {
+    try {
+      await _firestore
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .doc(messageId)
+          .update({
+        'reactions.$emoji': FieldValue.increment(-1),
+      });
+    } catch (e) {
+      print('❌ Error removing reaction: $e');
+      rethrow;
+    }
+  }
+
+  // ✅ البحث في الرسائل
+  Future<List<MessageModel>> searchMessages({
+    required String chatId,
+    required String query,
+    int limit = 50,
+  }) async {
+    try {
+      final snapshot = await _firestore
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .where('text', isGreaterThanOrEqualTo: query)
+          .where('text', isLessThanOrEqualTo: '$query\uf8ff')
+          .where('isDeleted', isEqualTo: false)
+          .orderBy('timestamp', descending: true)
+          .limit(limit)
+          .get();
+
+      return snapshot.docs.map((doc) {
+        return MessageModel.fromMap(doc.data(), doc.id);
+      }).toList();
+    } catch (e) {
+      print('❌ Error searching messages: $e');
+      return [];
+    }
+  }
