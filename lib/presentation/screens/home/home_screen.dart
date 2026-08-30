@@ -133,7 +133,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
       body: IndexedStack(
         index: _currentIndex,
         children: _screens.values.toList(),
