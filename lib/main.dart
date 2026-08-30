@@ -217,3 +217,18 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
 }
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+// ✅ تهيئة وضع عدم الاتصال
+import 'package:sehatak/core/services/offline_service.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // ✅ تهيئة Firebase
+  await Firebase.initializeApp();
+  
+  // ✅ تهيئة وضع عدم الاتصال
+  await OfflineService().init();
+  
+  runApp(const SehatakApp());
+}

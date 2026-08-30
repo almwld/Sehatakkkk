@@ -303,3 +303,96 @@ class ChatService {
     // TODO: تنفيذ الاتصال الفعلي بـ Nextcloud
     return true;
   }
+
+// ✅ دعم وضع عدم الاتصال
+import 'package:sehatak/core/services/offline_service.dart';
+
+class ChatService {
+  final OfflineService _offline = OfflineService();
+  
+  // ✅ جلب المحادثات مع دعم Offline
+  Stream<List<ChatModel>> getChats() {
+    final user = _auth.currentUser;
+    if (user == null) return Stream.value([]);
+    
+    // ✅ إذا كان غير متصل، جلب من التخزين المحلي
+    if (!_offline.isOnline) {
+      return Stream.value(_offline.getChats());
+    }
+    
+    return _firestore
+        .collection('chats')
+        .where('participants', arrayContains: user.uid)
+        .orderBy('lastMessageTime', descending: true)
+        .snapshots()
+        .map((snapshot) {
+          final chats = snapshot.docs
+              .map((doc) => ChatModel.fromMap(doc.data(), doc.id))
+              .toList();
+          // ✅ حفظ في التخزين المحلي
+          _offline.saveChats(chats);
+          return chats;
+        });
+  }
+  
+  // ✅ إرسال رسالة مع دعم Offline
+  Future<void> sendMessage({
+    required String chatId,
+    required String text,
+    String? imageUrl,
+    String? audioUrl,
+    String? fileUrl,
+    String? locationUrl,
+    String? replyTo,
+    String? replyToText,
+  }) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    final message = MessageModel(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      chatId: chatId,
+      senderId: user.uid,
+      senderName: user.displayName ?? 'مستخدم',
+      text: text,
+      imageUrl: imageUrl,
+      audioUrl: audioUrl,
+      fileUrl: fileUrl,
+      locationUrl: locationUrl,
+      timestamp: DateTime.now(),
+      isRead: false,
+      isDelivered: false,
+      type: imageUrl != null ? 'image' : 
+             audioUrl != null ? 'audio' : 
+             fileUrl != null ? 'file' : 
+             locationUrl != null ? 'location' : 'text',
+      replyTo: replyTo,
+      replyToText: replyToText,
+      isDeleted: false,
+      isEncrypted: false,
+      isSelfDestruct: false,
+      selfDestructDuration: 0,
+      reactions: {},
+    );
+
+    // ✅ حفظ محلياً أولاً
+    await _offline.saveMessage(message);
+
+    // ✅ إذا كان متصلاً، أرسل للخادم
+    if (_offline.isOnline) {
+      await _firestore
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .add(message.toMap());
+
+      await _firestore.collection('chats').doc(chatId).update({
+        'lastMessage': text,
+        'lastMessageTime': FieldValue.serverTimestamp(),
+      });
+    } else {
+      // ✅ غير متصل، سيتم الإرسال لاحقاً
+      print('📱 Message saved offline (will send when online)');
+    }
+  }
+}
