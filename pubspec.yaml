@@ -178,6 +178,8 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/images/search/
+    - assets/images/ui/
     # 🎬 Animations
     - assets/animations/
 
