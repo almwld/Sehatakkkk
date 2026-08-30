@@ -8,6 +8,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
 import 'package:sehatak/models/chat_model.dart';
 import 'package:sehatak/models/message_model.dart';
+import 'package:sehatak/core/services/offline_service.dart';
 
 class ChatService {
   static final ChatService _instance = ChatService._internal();
@@ -17,6 +18,7 @@ class ChatService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
+  final OfflineService _offline = OfflineService();
 
   // ============================================================
   // 💬 إدارة المحادثات
@@ -26,15 +28,21 @@ class ChatService {
     final user = _auth.currentUser;
     if (user == null) return Stream.value([]);
     
+    if (!_offline.isOnline) {
+      return Stream.value(_offline.getChats());
+    }
+    
     return _firestore
         .collection('chats')
         .where('participants', arrayContains: user.uid)
         .orderBy('lastMessageTime', descending: true)
         .snapshots()
         .map((snapshot) {
-          return snapshot.docs
+          final chats = snapshot.docs
               .map((doc) => ChatModel.fromMap(doc.data(), doc.id))
               .toList();
+          _offline.saveChats(chats);
+          return chats;
         });
   }
 
@@ -42,6 +50,55 @@ class ChatService {
     final doc = await _firestore.collection('chats').doc(chatId).get();
     if (!doc.exists) return null;
     return ChatModel.fromMap(doc.data()!, doc.id);
+  }
+
+  // ✅ إنشاء محادثة تجريبية
+  Future<String> createTestChat() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) throw Exception('يجب تسجيل الدخول');
+
+      final chatId = _firestore.collection('chats').doc().id;
+      await _firestore.collection('chats').doc(chatId).set({
+        'id': chatId,
+        'doctorId': 'test_doctor',
+        'doctorName': 'د. أحمد (تجريبي)',
+        'doctorImage': '',
+        'patientId': user.uid,
+        'patientName': user.displayName ?? 'مريض',
+        'patientImage': '',
+        'lastMessage': 'مرحباً، هذه محادثة تجريبية',
+        'lastMessageTime': FieldValue.serverTimestamp(),
+        'createdAt': FieldValue.serverTimestamp(),
+        'participants': ['test_doctor', user.uid],
+        'unreadCount': {
+          'test_doctor': 0,
+          user.uid: 0,
+        },
+        'isOnline': false,
+        'isGroup': false,
+        'admins': [user.uid],
+      });
+
+      await _firestore
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .add({
+        'senderId': user.uid,
+        'senderName': user.displayName ?? 'مستخدم',
+        'text': 'مرحباً، هذه محادثة تجريبية',
+        'timestamp': FieldValue.serverTimestamp(),
+        'isRead': false,
+        'isDelivered': false,
+        'type': 'text',
+      });
+
+      return chatId;
+    } catch (e) {
+      print('❌ Error creating test chat: $e');
+      rethrow;
+    }
   }
 
   // ============================================================
@@ -76,35 +133,48 @@ class ChatService {
     final user = _auth.currentUser;
     if (user == null) return;
 
-    await _firestore
-        .collection('chats')
-        .doc(chatId)
-        .collection('messages')
-        .add({
-      'senderId': user.uid,
-      'senderName': user.displayName ?? 'مستخدم',
-      'text': text,
-      'imageUrl': imageUrl,
-      'audioUrl': audioUrl,
-      'fileUrl': fileUrl,
-      'locationUrl': locationUrl,
-      'timestamp': FieldValue.serverTimestamp(),
-      'isRead': false,
-      'isDelivered': false,
-      'type': imageUrl != null ? 'image' : 
+    final message = MessageModel(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      chatId: chatId,
+      senderId: user.uid,
+      senderName: user.displayName ?? 'مستخدم',
+      text: text,
+      imageUrl: imageUrl,
+      audioUrl: audioUrl,
+      fileUrl: fileUrl,
+      locationUrl: locationUrl,
+      timestamp: DateTime.now(),
+      isRead: false,
+      isDelivered: false,
+      type: imageUrl != null ? 'image' : 
              audioUrl != null ? 'audio' : 
              fileUrl != null ? 'file' : 
              locationUrl != null ? 'location' : 'text',
-      'replyTo': replyTo,
-      'replyToText': replyToText,
-      'isDeleted': false,
-      'reactions': {},
-    });
+      replyTo: replyTo,
+      replyToText: replyToText,
+      isDeleted: false,
+      isEncrypted: false,
+      isSelfDestruct: false,
+      selfDestructDuration: 0,
+      reactions: {},
+    );
 
-    await _firestore.collection('chats').doc(chatId).update({
-      'lastMessage': text,
-      'lastMessageTime': FieldValue.serverTimestamp(),
-    });
+    await _offline.saveMessage(message);
+
+    if (_offline.isOnline) {
+      await _firestore
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .add(message.toMap());
+
+      await _firestore.collection('chats').doc(chatId).update({
+        'lastMessage': text,
+        'lastMessageTime': FieldValue.serverTimestamp(),
+      });
+    } else {
+      print('📱 Message saved offline');
+    }
   }
 
   Future<void> deleteMessage({
@@ -121,6 +191,7 @@ class ChatService {
       'isDeleted': true,
       'text': 'تم حذف هذه الرسالة',
     });
+    await _offline.deleteMessage(messageId);
   }
 
   Future<void> markAsRead(String chatId) async {
@@ -151,6 +222,7 @@ class ChatService {
       await doc.reference.delete();
     }
     await _firestore.collection('chats').doc(chatId).delete();
+    await _offline.deleteChat(chatId);
   }
 
   // ============================================================
@@ -246,153 +318,7 @@ class ChatService {
     });
   }
 
-  void dispose() {}
-}
-
-  // ✅ إنشاء محادثة تجريبية
-  Future<String> createTestChat() async {
-    try {
-      final user = _auth.currentUser;
-      if (user == null) throw Exception('يجب تسجيل الدخول');
-
-      final chatId = _firestore.collection('chats').doc().id;
-      await _firestore.collection('chats').doc(chatId).set({
-        'id': chatId,
-        'doctorId': 'test_doctor',
-        'doctorName': 'د. أحمد (تجريبي)',
-        'doctorImage': '',
-        'patientId': user.uid,
-        'patientName': user.displayName ?? 'مريض',
-        'patientImage': '',
-        'lastMessage': 'مرحباً، هذه محادثة تجريبية',
-        'lastMessageTime': FieldValue.serverTimestamp(),
-        'createdAt': FieldValue.serverTimestamp(),
-        'participants': ['test_doctor', user.uid],
-        'unreadCount': {
-          'test_doctor': 0,
-          user.uid: 0,
-        },
-        'isOnline': false,
-        'isGroup': false,
-        'admins': [user.uid],
-      });
-
-      await _firestore
-          .collection('chats')
-          .doc(chatId)
-          .collection('messages')
-          .add({
-        'senderId': user.uid,
-        'senderName': user.displayName ?? 'مستخدم',
-        'text': 'مرحباً، هذه محادثة تجريبية',
-        'timestamp': FieldValue.serverTimestamp(),
-        'isRead': false,
-        'isDelivered': false,
-        'type': 'text',
-      });
-
-      return chatId;
-    } catch (e) {
-      print('❌ Error creating test chat: $e');
-      rethrow;
-    }
-  }
-
-  // ✅ الاتصال بـ Nextcloud (بسيط)
-  Future<bool> connectNextcloud() async {
-    // TODO: تنفيذ الاتصال الفعلي بـ Nextcloud
-    return true;
-  }
-
-// ✅ دعم وضع عدم الاتصال
-import 'package:sehatak/core/services/offline_service.dart';
-
-class ChatService {
-  final OfflineService _offline = OfflineService();
-  
-  // ✅ جلب المحادثات مع دعم Offline
-  Stream<List<ChatModel>> getChats() {
-    final user = _auth.currentUser;
-    if (user == null) return Stream.value([]);
-    
-    // ✅ إذا كان غير متصل، جلب من التخزين المحلي
-    if (!_offline.isOnline) {
-      return Stream.value(_offline.getChats());
-    }
-    
-    return _firestore
-        .collection('chats')
-        .where('participants', arrayContains: user.uid)
-        .orderBy('lastMessageTime', descending: true)
-        .snapshots()
-        .map((snapshot) {
-          final chats = snapshot.docs
-              .map((doc) => ChatModel.fromMap(doc.data(), doc.id))
-              .toList();
-          // ✅ حفظ في التخزين المحلي
-          _offline.saveChats(chats);
-          return chats;
-        });
-  }
-  
-  // ✅ إرسال رسالة مع دعم Offline
-  Future<void> sendMessage({
-    required String chatId,
-    required String text,
-    String? imageUrl,
-    String? audioUrl,
-    String? fileUrl,
-    String? locationUrl,
-    String? replyTo,
-    String? replyToText,
-  }) async {
-    final user = _auth.currentUser;
-    if (user == null) return;
-
-    final message = MessageModel(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      chatId: chatId,
-      senderId: user.uid,
-      senderName: user.displayName ?? 'مستخدم',
-      text: text,
-      imageUrl: imageUrl,
-      audioUrl: audioUrl,
-      fileUrl: fileUrl,
-      locationUrl: locationUrl,
-      timestamp: DateTime.now(),
-      isRead: false,
-      isDelivered: false,
-      type: imageUrl != null ? 'image' : 
-             audioUrl != null ? 'audio' : 
-             fileUrl != null ? 'file' : 
-             locationUrl != null ? 'location' : 'text',
-      replyTo: replyTo,
-      replyToText: replyToText,
-      isDeleted: false,
-      isEncrypted: false,
-      isSelfDestruct: false,
-      selfDestructDuration: 0,
-      reactions: {},
-    );
-
-    // ✅ حفظ محلياً أولاً
-    await _offline.saveMessage(message);
-
-    // ✅ إذا كان متصلاً، أرسل للخادم
-    if (_offline.isOnline) {
-      await _firestore
-          .collection('chats')
-          .doc(chatId)
-          .collection('messages')
-          .add(message.toMap());
-
-      await _firestore.collection('chats').doc(chatId).update({
-        'lastMessage': text,
-        'lastMessageTime': FieldValue.serverTimestamp(),
-      });
-    } else {
-      // ✅ غير متصل، سيتم الإرسال لاحقاً
-      print('📱 Message saved offline (will send when online)');
-    }
+  void dispose() {
+    _offline.dispose();
   }
 }
