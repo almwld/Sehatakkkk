@@ -27,58 +27,9 @@ import 'package:sehatak/presentation/screens/medication/medicines_screen.dart';
 import 'package:sehatak/presentation/screens/blood_pressure/blood_pressure_screen.dart';
 import 'package:sehatak/presentation/screens/glucose_tracker/glucose_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/weight_tracker/weight_tracker_screen.dart';
+import 'package:sehatak/presentation/screens/sleep_tracker/sleep_tracker_screen.dart';
 import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-class CircularProgressPainter extends CustomPainter {
-  final double progress;
-  final Color backgroundColor;
-  final Color progressColor;
-  final double strokeWidth;
-
-  CircularProgressPainter({
-    required this.progress,
-    required this.backgroundColor,
-    required this.progressColor,
-    this.strokeWidth = 6,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2 - strokeWidth / 2;
-
-    final backgroundPaint = Paint()
-      ..color = backgroundColor
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawCircle(center, radius, backgroundPaint);
-
-    final progressPaint = Paint()
-      ..color = progressColor
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    final startAngle = -90 * (3.14159 / 180);
-    final sweepAngle = 360 * (3.14159 / 180) * progress;
-
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      startAngle,
-      sweepAngle,
-      false,
-      progressPaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(CircularProgressPainter oldDelegate) {
-    return oldDelegate.progress != progress;
-  }
-}
 
 class PatientDashboard extends StatefulWidget {
   final ScrollController? scrollController;
@@ -114,8 +65,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
       'value': '120/80',
       'unit': 'مم زئبق',
       'color': Colors.red,
-      'maxValue': 180,
-      'currentValue': 120,
       'screen': const BloodPressureScreen(),
     },
     {
@@ -124,8 +73,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
       'value': '98',
       'unit': 'مجم/دل',
       'color': Colors.orange,
-      'maxValue': 200,
-      'currentValue': 98,
       'screen': const GlucoseTrackerScreen(),
     },
     {
@@ -134,9 +81,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
       'value': '85',
       'unit': '%',
       'color': Colors.green,
-      'maxValue': 100,
-      'currentValue': 85,
-      'screen': const HealthDashboard(),
+      'screen': const SleepTrackerScreen(),
     },
     {
       'icon': 'assets/images/tracking/weight_tracking.png',
@@ -144,8 +89,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
       'value': '72',
       'unit': 'كجم',
       'color': Colors.purple,
-      'maxValue': 120,
-      'currentValue': 72,
       'screen': const WeightTrackerScreen(),
     },
     {
@@ -154,8 +97,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
       'value': 'جيد',
       'unit': '',
       'color': Colors.teal,
-      'maxValue': 10,
-      'currentValue': 8,
       'screen': const HealthDashboard(),
     },
     {
@@ -164,8 +105,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
       'value': 'ممتاز',
       'unit': '',
       'color': Colors.indigo,
-      'maxValue': 10,
-      'currentValue': 9,
       'screen': const HealthDashboard(),
     },
   ];
@@ -502,49 +441,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  List<Color> _getSubscriptionGradient(String type) {
-    switch (type.toLowerCase()) {
-      case 'ذهبية': case 'gold': 
-        return [Colors.amber, Colors.orange];
-      case 'ماسية': case 'diamond': 
-        return [Colors.cyan, Colors.blue];
-      case 'فضية': case 'silver': 
-        return [Colors.grey, Colors.blueGrey];
-      case 'برونزية': case 'bronze': 
-        return [Colors.brown, Colors.orange];
-      case 'عائلية': case 'family': 
-        return [Colors.green, Colors.teal];
-      case 'مجانية': case 'free': case '': 
-        return [Colors.purple.shade400, Colors.green.shade400];
-      default: 
-        return [Colors.purple.shade400, Colors.green.shade400];
-    }
-  }
-
-  String _getSubscriptionStatus(String type) {
-    switch (type.toLowerCase()) {
-      case 'ذهبية': case 'gold': return 'ذهبية';
-      case 'ماسية': case 'diamond': return 'ماسية';
-      case 'فضية': case 'silver': return 'فضية';
-      case 'برونزية': case 'bronze': return 'برونزية';
-      case 'عائلية': case 'family': return 'عائلية';
-      case 'مجانية': case 'free': case '': return 'مجانية';
-      default: return 'مجانية';
-    }
-  }
-
-  String _getSubscriptionDisplayName(String type) {
-    switch (type.toLowerCase()) {
-      case 'ذهبية': case 'gold': return 'الذهبية';
-      case 'ماسية': case 'diamond': return 'الماسية';
-      case 'فضية': case 'silver': return 'الفضية';
-      case 'برونزية': case 'bronze': return 'البرونزية';
-      case 'عائلية': case 'family': return 'العائلية';
-      case 'مجانية': case 'free': case '': return 'المجانية';
-      default: return 'المجانية';
-    }
-  }
-
   String _getDashboardTitle() {
     switch (_userRole.toLowerCase()) {
       case 'طبيب': case 'doctor': return 'لوحة الطبيب';
@@ -774,10 +670,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
   }
 
   Widget _buildActiveSubscriptionCard(bool isDark) {
-    List<Color> gradientColors = _getSubscriptionGradient(_subscriptionType);
-    String subscriptionStatus = _getSubscriptionStatus(_subscriptionType);
-    String subscriptionDisplayName = _getSubscriptionDisplayName(_subscriptionType);
-
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -788,37 +680,16 @@ class _PatientDashboardState extends State<PatientDashboard> {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: gradientColors,
+          gradient: const LinearGradient(
+            colors: [AppColors.primary, Colors.purple],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: gradientColors.first.withOpacity(0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
         ),
         child: Row(
           children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Center(
-                child: _buildIcon(
-                  'assets/images/services/packages.png',
-                  size: 28,
-                  color: Colors.white,
-                ),
-              ),
-            ),
+            _buildIcon('assets/images/services/packages.png', size: 34, color: Colors.white),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -828,17 +699,13 @@ class _PatientDashboardState extends State<PatientDashboard> {
                     'الباقة النشطة',
                     style: TextStyle(color: Colors.white70, fontSize: 12),
                   ),
-                  Text(
-                    'الباقة $subscriptionDisplayName',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  const Text(
+                    'الباقة المجانية',
+                    style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   Row(
                     children: [
-                      Icon(Icons.star, color: AppColors.amber, size: 14),
+                      const Icon(Icons.star, color: AppColors.amber, size: 14),
                       const SizedBox(width: 4),
                       const Text(
                         'مميزات حصرية',
@@ -851,13 +718,9 @@ class _PatientDashboardState extends State<PatientDashboard> {
                           color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Text(
-                          subscriptionStatus,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 9,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        child: const Text(
+                          'مجانية',
+                          style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w500),
                         ),
                       ),
                     ],
@@ -886,95 +749,49 @@ class _PatientDashboardState extends State<PatientDashboard> {
       itemBuilder: (context, index) {
         final vital = _vitals[index];
         final color = vital['color'] as Color;
-        final hasProgress = vital.containsKey('maxValue') && vital.containsKey('currentValue');
-        double? percentage;
-        if (hasProgress) {
-          final maxValue = vital['maxValue'] as double;
-          final currentValue = vital['currentValue'] as double;
-          percentage = (currentValue / maxValue).clamp(0.0, 1.0);
-        }
 
         return GestureDetector(
           onTap: () {
             Navigator.push(context, MaterialPageRoute(builder: (_) => vital['screen'] as Widget));
           },
           child: Container(
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  color.withOpacity(isDark ? 0.12 : 0.06),
-                  color.withOpacity(isDark ? 0.04 : 0.02),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: color.withOpacity(isDark ? 0.15 : 0.08),
-                width: 1,
-              ),
+              color: isDark ? const Color(0xFF1A2540) : Colors.white,
+              borderRadius: BorderRadius.circular(14),
               boxShadow: [
                 BoxShadow(
-                  color: isDark 
-                      ? Colors.black.withOpacity(0.2) 
-                      : color.withOpacity(0.05),
+                  color: Colors.black.withOpacity(0.04),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
               ],
             ),
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (hasProgress && percentage != null)
-                    Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        SizedBox(
-                          width: 55,
-                          height: 55,
-                          child: CustomPaint(
-                            painter: CircularProgressPainter(
-                              progress: percentage,
-                              backgroundColor: color.withOpacity(0.12),
-                              progressColor: color,
-                              strokeWidth: 5,
-                            ),
-                          ),
-                        ),
-                        _buildIcon(
-                          vital['icon'] as String,
-                          size: 22,
-                          color: color,
-                        ),
-                      ],
-                    )
-                  else
-                    _buildIcon(vital['icon'] as String, size: 42, color: color),
-                  const SizedBox(height: 6),
-                  Text(
-                    vital['value'] as String,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildIcon(vital['icon'] as String, size: 42, color: color),
+                const SizedBox(height: 6),
+                Text(
+                  vital['value'] as String,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
                   ),
-                  Text(
-                    vital['label'] as String,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: isDark ? Colors.grey[400] : Colors.grey[600],
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  vital['label'] as String,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
                   ),
-                ],
-              ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
           ),
         );
