@@ -134,21 +134,18 @@ class MessageModel {
     }
     return '0 KB';
   }
-}
 
-  // ✅ إضافة videoUrl كـ getter من fileUrl
+  // ✅ videoUrl - من fileUrl أو imageUrl
   String? get videoUrl {
-    if (fileUrl != null && fileUrl!.isNotEmpty) {
-      final ext = fileUrl!.split('.').last.toLowerCase();
-      if (['mp4', 'mov', 'avi', 'mkv', 'webm'].contains(ext)) {
-        return fileUrl;
-      }
-    }
-    if (imageUrl != null && imageUrl!.isNotEmpty) {
-      final ext = imageUrl!.split('.').last.toLowerCase();
-      if (['mp4', 'mov', 'avi', 'mkv', 'webm'].contains(ext)) {
-        return imageUrl;
+    final urls = [fileUrl, imageUrl];
+    for (final url in urls) {
+      if (url != null && url.isNotEmpty) {
+        final ext = url.split('.').last.toLowerCase();
+        if (['mp4', 'mov', 'avi', 'mkv', 'webm'].contains(ext)) {
+          return url;
+        }
       }
     }
     return null;
   }
+}

@@ -56,9 +56,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<MessageBloc>().add(LoadMessagesEvent(chatId: widget.chatId, limit: 50));
+    context.read<MessageBloc>().loadMessages(chatId: widget.chatId, limit: 50));
     _chatService.markAsRead(widget.chatId);
-    _chatService.connectNextcloud();
   }
 
   @override
@@ -297,7 +296,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           const SizedBox(height: 16),
           ElevatedButton.icon(
             onPressed: () {
-              context.read<MessageBloc>().add(RefreshMessagesEvent(chatId: widget.chatId));
+              context.read<MessageBloc>().refreshMessages(chatId: widget.chatId));
             },
             icon: const Icon(Icons.refresh),
             label: const Text('إعادة المحاولة'),
