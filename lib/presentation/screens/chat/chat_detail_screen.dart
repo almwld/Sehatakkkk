@@ -504,3 +504,33 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     );
   }
 }
+
+// ✅ إضافة خلفية الدردشة
+Widget _buildChatBackground(Widget child) {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  
+  return Container(
+    decoration: BoxDecoration(
+      image: DecorationImage(
+        image: AssetImage(
+          isDark 
+              ? 'assets/images/sehatak_chat_wallpaper_dark_1080x2160.png'
+              : 'assets/images/sehatak_chat_wallpaper_light_1080x2160.png',
+        ),
+        fit: BoxFit.cover,
+        opacity: 0.8,
+      ),
+    ),
+    child: child,
+  );
+}
+
+// ✅ استخدام الخلفية في الـ Scaffold
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: _buildChatBackground(
+      // ... المحتوى
+    ),
+  );
+}
