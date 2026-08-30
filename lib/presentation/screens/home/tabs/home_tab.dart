@@ -1,3 +1,4 @@
+import 'package:sehatak/core/managers/global_scroll_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -184,3 +185,4 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       });
     });
   }
+}
