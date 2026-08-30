@@ -193,3 +193,26 @@ class ChatService {
 
   void dispose() {}
 }
+
+  Stream<List<MessageModel>> getMessagesStream(String chatId) {
+    return FirebaseFirestore.instance
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => MessageModel.fromMap(doc.data(), doc.id))
+            .toList());
+  }
+
+  Stream<List<ChatModel>> getChatsStream(String userId) {
+    return FirebaseFirestore.instance
+        .collection('chats')
+        .where('participants', arrayContains: userId)
+        .orderBy('lastMessageTime', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => ChatModel.fromMap(doc.data(), doc.id))
+            .toList());
+  }

@@ -59,7 +59,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     super.initState();
     _tabController = TabController(length: 3, vsync: this, initialIndex: 0);
     WidgetsBinding.instance.addObserver(this);
-    context.read<ChatBloc>().add(LoadChatsEvent());
+    read<ChatBloc>().add(LoadChatsEvent());
   }
 
   @override
@@ -74,7 +74,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed) {
-      context.read<ChatBloc>().add(RefreshChatsEvent());
+      read<ChatBloc>().add(RefreshChatsEvent());
     }
   }
 
@@ -83,7 +83,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+      backgroundColor: isDark ? Color(0xFF1A2540) : Color(0xFFF8FAFC),
       appBar: _buildAppBar(isDark),
       body: Column(
         children: [
@@ -128,7 +128,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
             ),
         ],
       ),
-      backgroundColor: isDark ? AppColors.darkBackground : Colors.white,
+      backgroundColor: isDark ? Color(0xFF1A2540) : Colors.white,
       foregroundColor: isDark ? Colors.white : Colors.black87,
       elevation: 0,
       actions: [
@@ -138,7 +138,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
         ),
         IconButton(
           icon: Icon(Icons.refresh, color: isDark ? Colors.white : Colors.black87),
-          onPressed: () => context.read<ChatBloc>().add(RefreshChatsEvent()),
+          onPressed: () => read<ChatBloc>().add(RefreshChatsEvent()),
         ),
         PopupMenuButton<String>(
           icon: Icon(Icons.more_vert, color: isDark ? Colors.white : Colors.black87),
@@ -197,7 +197,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
 
   Widget _buildTabBar(bool isDark) {
     return Container(
-      color: isDark ? AppColors.darkBackground : Colors.white,
+      color: isDark ? Color(0xFF1A2540) : Colors.white,
       child: TabBar(
         controller: _tabController,
         labelColor: AppColors.primary,
@@ -253,7 +253,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
               }
 
               if (state is ChatErrorState) {
-                return _buildErrorState(isDark, state.message, context);
+                return _buildErrorState(isDark, state.message);
               }
 
               if (state is ChatsLoadedState) {
@@ -264,7 +264,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                 }
                 return RefreshIndicator(
                   onRefresh: () async {
-                    context.read<ChatBloc>().add(RefreshChatsEvent());
+                    read<ChatBloc>().add(RefreshChatsEvent());
                   },
                   child: ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -291,7 +291,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
       padding: const EdgeInsets.all(12),
       child: Container(
         decoration: BoxDecoration(
-          color: isDark ? AppColors.darkCard : Colors.grey[100],
+          color: isDark ? Color(0xFF1A2540) : Colors.grey[100],
           borderRadius: BorderRadius.circular(14),
         ),
         child: TextField(
@@ -328,7 +328,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
 
     return GestureDetector(
       onTap: () {
-        context.read<ChatBloc>().add(MarkAsReadEvent(chatId: chat.id));
+        read<ChatBloc>().add(MarkAsReadEvent(chatId: chat.id));
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -336,7 +336,6 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
               chatId: chat.id,
               userId: userId,
               userName: name,
-              userImage: image,
               isDoctor: false,
             ),
           ),
@@ -347,7 +346,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
         margin: const EdgeInsets.only(bottom: 4),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.darkCard : Colors.white,
+          color: isDark ? Color(0xFF1A2540) : Colors.white,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
@@ -384,7 +383,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                       width: 12,
                       height: 12,
                       decoration: const BoxDecoration(
-                        color: AppColors.online,
+                        color: Colors.green,
                         shape: BoxShape.circle,
                         border: Border.fromBorderSide(BorderSide(color: Colors.white, width: 2)),
                       ),
@@ -491,7 +490,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
           margin: const EdgeInsets.only(bottom: 8),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: isDark ? AppColors.darkCard : Colors.white,
+            color: isDark ? Color(0xFF1A2540) : Colors.white,
             borderRadius: BorderRadius.circular(12),
             border: isIncoming ? Border.all(color: AppColors.primary, width: 2) : null,
           ),
@@ -609,7 +608,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: isDark ? AppColors.darkCard : Colors.white,
+            color: isDark ? Color(0xFF1A2540) : Colors.white,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppColors.primary.withOpacity(0.3)),
           ),
@@ -660,7 +659,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkCard : Colors.white,
+        color: isDark ? Color(0xFF1A2540) : Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: story['viewed'] == false
             ? Border.all(color: AppColors.primary, width: 2)
@@ -738,7 +737,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
               title: const Text('تثبيت المحادثة'),
               onTap: () {
                 Navigator.pop(context);
-                context.read<ChatBloc>().add(PinChatEvent(chatId: chat.id));
+                read<ChatBloc>().add(PinChatEvent(chatId: chat.id));
               },
             ),
             ListTile(
@@ -746,7 +745,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
               title: const Text('كتم الإشعارات'),
               onTap: () {
                 Navigator.pop(context);
-                context.read<ChatBloc>().add(MuteChatEvent(chatId: chat.id));
+                read<ChatBloc>().add(MuteChatEvent(chatId: chat.id));
               },
             ),
             ListTile(
@@ -754,7 +753,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
               title: const Text('أرشفة المحادثة'),
               onTap: () {
                 Navigator.pop(context);
-                context.read<ChatBloc>().add(ArchiveChatEvent(chatId: chat.id));
+                read<ChatBloc>().add(ArchiveChatEvent(chatId: chat.id));
               },
             ),
             ListTile(
@@ -785,7 +784,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              context.read<ChatBloc>().add(DeleteChatEvent(chatId: chat.id));
+              read<ChatBloc>().add(DeleteChatEvent(chatId: chat.id));
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('حذف'),
@@ -854,7 +853,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                         width: 12,
                         height: 12,
                         decoration: const BoxDecoration(
-                          color: AppColors.online,
+                          color: Colors.green,
                           shape: BoxShape.circle,
                           border: Border.fromBorderSide(BorderSide(color: Colors.white, width: 2)),
                         ),
@@ -921,7 +920,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     }
 
     try {
-      final chatId = await context.read<ChatBloc>().createChat(
+      final chatId = await read<ChatBloc>().createChat(
         doctorId: doctor['id'],
         doctorName: doctor['name'],
         patientId: user.uid,
@@ -1076,7 +1075,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
           ),
           const SizedBox(height: 16),
           ElevatedButton.icon(
-            onPressed: () => context.read<ChatBloc>().add(RefreshChatsEvent()),
+            onPressed: () => read<ChatBloc>().add(RefreshChatsEvent()),
             icon: const Icon(Icons.refresh),
             label: const Text('إعادة المحاولة'),
             style: ElevatedButton.styleFrom(
@@ -1102,7 +1101,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
         return;
       }
 
-      final chatId = await context.read<ChatBloc>().createChat(
+      final chatId = await read<ChatBloc>().createChat(
         doctorId: 'test_doctor',
         doctorName: 'د. أحمد (تجريبي)',
         patientId: user.uid,
@@ -1110,7 +1109,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
       );
 
       ToastService.showSuccess('✅ تم إنشاء محادثة تجريبية');
-      context.read<ChatBloc>().add(RefreshChatsEvent());
+      read<ChatBloc>().add(RefreshChatsEvent());
     } catch (e) {
       ToastService.showError('❌ فشل إنشاء المحادثة: $e');
     }
@@ -1139,7 +1138,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
             return;
           }
           
-          final chatId = await context.read<ChatBloc>().createChat(
+          final chatId = await read<ChatBloc>().createChat(
             doctorId: 'test_doctor',
             doctorName: 'د. أحمد (تجريبي)',
             patientId: user.uid,
@@ -1147,7 +1146,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
           );
           
           ToastService.showSuccess('✅ تم إنشاء محادثة تجريبية');
-          context.read<ChatBloc>().add(RefreshChatsEvent());
+          read<ChatBloc>().add(RefreshChatsEvent());
         } catch (e) {
           ToastService.showError('❌ فشل إنشاء المحادثة: $e');
         }

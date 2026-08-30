@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -27,9 +29,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     try {
       final messages = <Map<String, dynamic>>[];
       // ✅ استخدام getMessages مع أول قيمة
-      final subscription = _chatService.getMessages(event.chatId).listen(
+      final subscription = _chatService.getMessagesStream(event.chatId).listen(
         (snapshot) {
-          for (final doc in snapshot.docs) {
+          for (final doc in snapshot) {
             final data = doc.data() as Map<String, dynamic>;
             messages.add({
               'id': doc.id,
@@ -64,10 +66,10 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   ) async {
     emit(ChatLoadingState());
     _messagesSubscription?.cancel();
-    _messagesSubscription = _chatService.getMessages(event.chatId).listen(
+    _messagesSubscription = _chatService.getMessagesStream(event.chatId).listen(
       (snapshot) {
         final messages = <Map<String, dynamic>>[];
-        for (final doc in snapshot.docs) {
+        for (final doc in snapshot) {
           final data = doc.data() as Map<String, dynamic>;
           messages.add({
             'id': doc.id,
@@ -97,10 +99,10 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   ) async {
     emit(ChatLoadingState());
     _chatsSubscription?.cancel();
-    _chatsSubscription = _chatService.getChats(event.userId, event.role).listen(
+    _chatsSubscription = _chatService.getChatsStream(event.userId).listen(
       (snapshot) {
         final chats = <Map<String, dynamic>>[];
-        for (final doc in snapshot.docs) {
+        for (final doc in snapshot) {
           final data = doc.data() as Map<String, dynamic>;
           chats.add({
             'id': doc.id,
