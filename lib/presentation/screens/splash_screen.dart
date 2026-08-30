@@ -56,7 +56,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     _loadingCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 5),
+      duration: const Duration(seconds: 9),
     )..repeat();
 
     _loadingAnimation = Tween<double>(begin: 0, end: 1).animate(
@@ -73,8 +73,11 @@ class _SplashScreenState extends State<SplashScreen>
       final isLoggedInPrefs = prefs.getBool('is_logged_in') ?? false;
       final savedUid = prefs.getString('user_uid') ?? '';
 
+      // ✅ التحقق من حالة المستخدم
+      final bool isUserLoggedIn = user != null && isLoggedInPrefs && user.uid == savedUid;
+
       setState(() {
-        _isLoggedIn = user != null && isLoggedInPrefs && user.uid == savedUid;
+        _isLoggedIn = isUserLoggedIn;
         _progress = 0.5;
         _statusMessage = 'جاري التحقق من المستخدم...';
       });
@@ -92,7 +95,8 @@ class _SplashScreenState extends State<SplashScreen>
         _isLoading = false;
       });
 
-      await Future.delayed(const Duration(milliseconds: 2500));
+      // ✅ الانتظار 9 ثواني كاملة لعرض شاشة البداية
+      await Future.delayed(const Duration(seconds: 9));
 
       if (mounted) {
         _navigateToNext();
@@ -116,12 +120,14 @@ class _SplashScreenState extends State<SplashScreen>
 
     final user = FirebaseAuth.instance.currentUser;
 
+    // ✅ إذا كان المستخدم مسجلاً، انتقل مباشرة للرئيسية
     if (_isLoggedIn && user != null) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const HomeScreen()),
       );
     } else {
+      // ✅ إذا لم يكن مسجلاً، انتقل لشاشة تسجيل الدخول
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const AuthScreen()),
