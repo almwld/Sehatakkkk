@@ -15,7 +15,7 @@ class CustomBottomNavigationBar extends StatefulWidget {
   final ScrollController scrollController;
   final bool isLoggedIn;
   final VoidCallback onAuthRequired;
-  final GlobalScrollManager? scrollManager; // ✅ إضافة اختياري
+  final GlobalScrollManager? scrollManager;
 
   const CustomBottomNavigationBar({
     super.key,
@@ -69,8 +69,10 @@ class _CustomBottomNavigationBarState
     super.dispose();
   }
 
-  // ✅ دالة التمرير والاختفاء
+  // ✅ دالة التمرير والاختفاء مع التحقق من mounted
   void _onScroll() {
+    // ✅ التحقق من mounted لتجنب الأخطاء
+    if (!mounted) return;
     if (!widget.scrollController.hasClients) return;
 
     final direction = widget.scrollController.position.userScrollDirection;
