@@ -253,7 +253,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
               }
 
               if (state is ChatErrorState) {
-                return _buildErrorState(isDark, state.message);
+                return _buildErrorState(isDark, state.message, context);
               }
 
               if (state is ChatsLoadedState) {
@@ -1127,3 +1127,36 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     return '${time.day}/${time.month}/${time.year}';
   }
 }
+
+  // ✅ زر إنشاء محادثة تجريبية (مؤقت)
+  Widget _buildTestChatButton() {
+    return ElevatedButton.icon(
+      onPressed: () async {
+        try {
+          final user = FirebaseAuth.instance.currentUser;
+          if (user == null) {
+            ToastService.showError('❌ يجب تسجيل الدخول');
+            return;
+          }
+          
+          final chatId = await context.read<ChatBloc>().createChat(
+            doctorId: 'test_doctor',
+            doctorName: 'د. أحمد (تجريبي)',
+            patientId: user.uid,
+            patientName: user.displayName ?? 'مريض',
+          );
+          
+          ToastService.showSuccess('✅ تم إنشاء محادثة تجريبية');
+          context.read<ChatBloc>().add(RefreshChatsEvent());
+        } catch (e) {
+          ToastService.showError('❌ فشل إنشاء المحادثة: $e');
+        }
+      },
+      icon: const Icon(Icons.add),
+      label: const Text('إنشاء محادثة تجريبية'),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.orange,
+        foregroundColor: Colors.white,
+      ),
+    );
+  }
