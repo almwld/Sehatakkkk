@@ -135,3 +135,20 @@ class MessageModel {
     return '0 KB';
   }
 }
+
+  // ✅ إضافة videoUrl كـ getter من fileUrl
+  String? get videoUrl {
+    if (fileUrl != null && fileUrl!.isNotEmpty) {
+      final ext = fileUrl!.split('.').last.toLowerCase();
+      if (['mp4', 'mov', 'avi', 'mkv', 'webm'].contains(ext)) {
+        return fileUrl;
+      }
+    }
+    if (imageUrl != null && imageUrl!.isNotEmpty) {
+      final ext = imageUrl!.split('.').last.toLowerCase();
+      if (['mp4', 'mov', 'avi', 'mkv', 'webm'].contains(ext)) {
+        return imageUrl;
+      }
+    }
+    return null;
+  }

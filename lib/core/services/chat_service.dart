@@ -248,3 +248,58 @@ class ChatService {
 
   void dispose() {}
 }
+
+  // ✅ إنشاء محادثة تجريبية
+  Future<String> createTestChat() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) throw Exception('يجب تسجيل الدخول');
+
+      final chatId = _firestore.collection('chats').doc().id;
+      await _firestore.collection('chats').doc(chatId).set({
+        'id': chatId,
+        'doctorId': 'test_doctor',
+        'doctorName': 'د. أحمد (تجريبي)',
+        'doctorImage': '',
+        'patientId': user.uid,
+        'patientName': user.displayName ?? 'مريض',
+        'patientImage': '',
+        'lastMessage': 'مرحباً، هذه محادثة تجريبية',
+        'lastMessageTime': FieldValue.serverTimestamp(),
+        'createdAt': FieldValue.serverTimestamp(),
+        'participants': ['test_doctor', user.uid],
+        'unreadCount': {
+          'test_doctor': 0,
+          user.uid: 0,
+        },
+        'isOnline': false,
+        'isGroup': false,
+        'admins': [user.uid],
+      });
+
+      await _firestore
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .add({
+        'senderId': user.uid,
+        'senderName': user.displayName ?? 'مستخدم',
+        'text': 'مرحباً، هذه محادثة تجريبية',
+        'timestamp': FieldValue.serverTimestamp(),
+        'isRead': false,
+        'isDelivered': false,
+        'type': 'text',
+      });
+
+      return chatId;
+    } catch (e) {
+      print('❌ Error creating test chat: $e');
+      rethrow;
+    }
+  }
+
+  // ✅ الاتصال بـ Nextcloud (بسيط)
+  Future<bool> connectNextcloud() async {
+    // TODO: تنفيذ الاتصال الفعلي بـ Nextcloud
+    return true;
+  }
