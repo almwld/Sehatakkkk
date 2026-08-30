@@ -1,9 +1,3 @@
-// ============================================================
-// 📁 lib/presentation/screens/home/home_screen.dart
-// 🏠 الشاشة الرئيسية - مع شريط سفلي متحرك
-// ✅ متوافق مع الملفات الموجودة ولا يتعارض معها
-// ============================================================
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -20,7 +14,6 @@ import 'package:sehatak/presentation/screens/more/more_screen.dart';
 import 'package:sehatak/presentation/widgets/common/custom_bottom_nav_bar.dart';
 import 'package:sehatak/presentation/screens/home/tabs/home_tab.dart';
 
-// ✅ مفتاح ثابت لكل شاشة - يمنع فقدان الحالة
 class ScreenKeys {
   static const home = ValueKey('home_tab');
   static const doctors = ValueKey('doctors_tab');
@@ -45,7 +38,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final ScrollController _scrollController = ScrollController();
   final GlobalScrollManager _scrollManager = GlobalScrollManager();
 
-  // ✅ استخدام Map بدلاً من List للحفاظ على المفاتيح
   late final Map<int, Widget> _screens;
 
   @override
@@ -72,7 +64,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   void _checkLoginStatus() {
     final user = FirebaseAuth.instance.currentUser;
-    // ✅ تجنب setState إذا لم يتغير شيء
     final newStatus = user != null;
     if (_isLoggedIn != newStatus && mounted) {
       setState(() {
@@ -82,19 +73,37 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   void _initializeScreens() {
-    // ✅ استخدام ValueKey لكل شاشة يمنع فقدان الحالة
     _screens = {
       0: HomeTab(
         key: ScreenKeys.home,
         scrollController: _scrollController,
         isBottomBarVisible: ValueNotifier<bool>(_isBottomBarVisible),
+        scrollManager: _scrollManager,
       ),
-      1: const DoctorsListScreen(key: ScreenKeys.doctors),
-      2: const PharmacyScreen(key: ScreenKeys.pharmacy),
-      3: const ChatScreen(key: ScreenKeys.chat),
-      4: const LabsListScreen(key: ScreenKeys.labs),
-      5: const PatientDashboard(key: ScreenKeys.patient),
-      6: const MoreScreen(key: ScreenKeys.more),
+      1: ScrollDetector(
+        scrollManager: _scrollManager,
+        child: const DoctorsListScreen(key: ScreenKeys.doctors),
+      ),
+      2: ScrollDetector(
+        scrollManager: _scrollManager,
+        child: const PharmacyScreen(key: ScreenKeys.pharmacy),
+      ),
+      3: ScrollDetector(
+        scrollManager: _scrollManager,
+        child: const ChatScreen(key: ScreenKeys.chat),
+      ),
+      4: ScrollDetector(
+        scrollManager: _scrollManager,
+        child: const LabsListScreen(key: ScreenKeys.labs),
+      ),
+      5: ScrollDetector(
+        scrollManager: _scrollManager,
+        child: const PatientDashboard(key: ScreenKeys.patient),
+      ),
+      6: ScrollDetector(
+        scrollManager: _scrollManager,
+        child: const MoreScreen(key: ScreenKeys.more),
+      ),
     };
   }
 
@@ -127,7 +136,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       body: IndexedStack(
         index: _currentIndex,
-        // ✅ استخدام values من Map مع المفاتيح الثابتة
         children: _screens.values.toList(),
       ),
       bottomNavigationBar: CustomBottomNavigationBar(
@@ -143,7 +151,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             _checkLoginStatus();
           });
         },
-        scrollManager: _scrollManager, // ✅ تمرير المدير للشريط
+        scrollManager: _scrollManager,
       ),
     );
   }
