@@ -119,10 +119,11 @@ class CircularProgressPainter extends CustomPainter {
 // 🏠 HomeTab - الشاشة الرئيسية الكاملة
 // ============================================================
 class HomeTab extends StatefulWidget {
+  final GlobalScrollManager? scrollManager;
   final ScrollController? scrollController;
   final ValueNotifier<bool>? isBottomBarVisible;
 
-  const HomeTab({super.key, this.scrollController, this.isBottomBarVisible});
+  const HomeTab({super.key, this.scrollController, this.isBottomBarVisible, this.scrollManager});
 
   @override
   State<HomeTab> createState() => _HomeTabState();

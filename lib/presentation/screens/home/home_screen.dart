@@ -74,11 +74,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   void _initializeScreens() {
     _screens = {
-      0: HomeTab(
-        key: ScreenKeys.home,
-        scrollController: _scrollController,
-        isBottomBarVisible: ValueNotifier<bool>(_isBottomBarVisible),
+      0: ScrollDetector(
         scrollManager: _scrollManager,
+        child: HomeTab(
+          key: ScreenKeys.home,
+          scrollController: _scrollController,
+          isBottomBarVisible: ValueNotifier<bool>(_isBottomBarVisible),
+          scrollManager: _scrollManager,
+        ),
       ),
       1: ScrollDetector(
         scrollManager: _scrollManager,
