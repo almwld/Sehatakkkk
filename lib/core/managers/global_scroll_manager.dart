@@ -1,37 +1,62 @@
 // ============================================================
-// 📁 lib/core/managers/global_scroll_manager.dart
-// 📡 مدير التمرير العالمي - يتحكم في إخفاء/إظهار الشريط السفلي
+// 🌍 GlobalScrollManager - مدير التمرير العام للتطبيق
+// يتحكم في إظهار/إخفاء الشريط السفلي بناءً على حركة التمرير
+// في أي شاشة دون الحاجة لتعديلها
 // ============================================================
 
 import 'package:flutter/material.dart';
 
-class GlobalScrollManager {
-  // ✅ الحالة الحالية للشريط
-  bool _isVisible = true;
-  
-  // ✅ موضع التمرير لكل شاشة
-  final Map<String, double> _scrollPositions = {};
-  
-  // ✅ آخر موضع تم تمريره
-  double lastPosition = 0;
-  
-  // ✅ قائمة الشاشات المستثناة
-  final List<String> _excludedRoutes = [
-    '/chat',
-    '/video_call',
-    '/consultation',
-  ];
+class GlobalScrollManager extends ChangeNotifier implements ValueListenable<bool> {
+  // ✅ Singleton Pattern - نسخة واحدة للتطبيق بالكامل
+  static final GlobalScrollManager _instance = GlobalScrollManager._internal();
+  factory GlobalScrollManager() => _instance;
+  GlobalScrollManager._internal();
 
-  // ✅ التحقق مما إذا كانت الشاشة مستثناة
-  bool isExcluded(String route) {
-    return _excludedRoutes.any((r) => route.contains(r));
+  bool _isVisible = true;
+  double _lastPosition = 0;
+  
+  // ✅ حفظ موضع التمرير لكل شاشة على حدة
+  final Map<String, double> _screenPositions = {};
+  
+  // ✅ اسم الشاشة الحالية
+  String? _currentRoute;
+
+  bool get isVisible => _isVisible;
+  double get lastPosition => _lastPosition;
+  
+  set lastPosition(double value) {
+    _lastPosition = value;
+  }
+
+  @override
+  bool get value => _isVisible;
+
+  // ✅ تسجيل دخول الشاشة الجديدة
+  void registerScreen(String route) {
+    _currentRoute = route;
+    
+    // استرجاع الموضع السابق للشاشة إن وجد
+    if (_screenPositions.containsKey(route)) {
+      _lastPosition = _screenPositions[route]!;
+    } else {
+      _screenPositions[route] = 0;
+    }
+    
+    // إظهار الشريط عند تغيير الشاشة
+    _isVisible = true;
+    notifyListeners();
+  }
+
+  // ✅ حفظ موضع التمرير لكل شاشة
+  void savePosition(String route, double position) {
+    _screenPositions[route] = position;
   }
 
   // ✅ إظهار الشريط
   void show() {
     if (!_isVisible) {
       _isVisible = true;
-      _notifyListeners();
+      notifyListeners();
     }
   }
 
@@ -39,62 +64,32 @@ class GlobalScrollManager {
   void hide() {
     if (_isVisible) {
       _isVisible = false;
-      _notifyListeners();
+      notifyListeners();
     }
   }
 
-  // ✅ تبديل حالة الشريط
-  void toggle() {
-    _isVisible = !_isVisible;
-    _notifyListeners();
-  }
-
-  // ✅ الحصول على حالة الشريط
-  bool get isVisible => _isVisible;
-
-  // ✅ حفظ موضع التمرير للشاشة
-  void savePosition(String route, double position) {
-    _scrollPositions[route] = position;
-  }
-
-  // ✅ استعادة موضع التمرير للشاشة
-  double? getPosition(String route) {
-    return _scrollPositions[route];
-  }
-
-  // ✅ إعادة تعيين حالة الشريط
+  // ✅ إعادة ضبط الشريط
   void reset() {
     _isVisible = true;
-    lastPosition = 0;
-    _notifyListeners();
+    _lastPosition = 0;
+    notifyListeners();
   }
 
-  // ✅ إعادة تعيين مواضع التمرير
-  void resetPositions() {
-    _scrollPositions.clear();
+  // ✅ التحقق من الشاشات المستثناة
+  bool isExcludedRoute(String route) {
+    final excludedRoutes = [
+      '/video_call',
+      '/payment',
+      '/onboarding',
+      '/splash',
+      '/auth',
+    ];
+    return excludedRoutes.any((r) => route.contains(r));
   }
 
-  // ✅ إضافة شاشة مستثناة
-  void addExcludedRoute(String route) {
-    if (!_excludedRoutes.contains(route)) {
-      _excludedRoutes.add(route);
-    }
-  }
-
-  // ✅ إزالة شاشة مستثناة
-  void removeExcludedRoute(String route) {
-    _excludedRoutes.remove(route);
-  }
-
-  // ✅ إعلام المستمعين بتغيير الحالة
-  void _notifyListeners() {
-    // يمكن إضافة مستمعين هنا إذا لزم الأمر
-    // مثلاً: ValueNotifier أو StreamController
-  }
-
-  // ✅ التخلص من الموارد
+  @override
   void dispose() {
-    _scrollPositions.clear();
-    _excludedRoutes.clear();
+    _screenPositions.clear();
+    super.dispose();
   }
 }
