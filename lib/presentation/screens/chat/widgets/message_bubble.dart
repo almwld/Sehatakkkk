@@ -1,6 +1,5 @@
-import 'package:sehatak/models/reaction_model.dart';
 // ============================================================
-// 💬 فقاعة الرسالة - مع دعم الوسائط
+// 💬 فقاعة الرسالة
 // ============================================================
 
 import 'package:flutter/material.dart';
@@ -9,9 +8,8 @@ import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/models/message_model.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/full_screen_image.dart';
-import 'package:video_player/video_player.dart';
 
-class MessageBubble extends StatefulWidget {
+class MessageBubble extends StatelessWidget {
   final MessageModel message;
   final String chatId;
   final bool isMe;
@@ -32,42 +30,8 @@ class MessageBubble extends StatefulWidget {
   });
 
   @override
-  State<MessageBubble> createState() => _MessageBubbleState();
-}
-
-class _MessageBubbleState extends State<MessageBubble> {
-  VideoPlayerController? _videoController;
-  bool _isVideoInitialized = false;
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.message.isVideo && widget.message.videoUrl != null) {
-      _initializeVideo();
-    }
-  }
-
-  @override
-  void dispose() {
-    _videoController?.dispose();
-    super.dispose();
-  }
-
-  Future<void> _initializeVideo() async {
-    try {
-      _videoController = VideoPlayerController.network(widget.message.videoUrl!);
-      await _videoController!.initialize();
-      setState(() {
-        _isVideoInitialized = true;
-      });
-    } catch (e) {
-      print('❌ Video init error: $e');
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (widget.message.isDeleted) {
+    if (message.isDeleted) {
       return _buildDeletedMessage();
     }
 
@@ -76,15 +40,15 @@ class _MessageBubbleState extends State<MessageBubble> {
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(
-          mainAxisAlignment: widget.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+          mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            if (!widget.isMe)
+            if (!isMe)
               CircleAvatar(
                 radius: 14,
                 backgroundColor: AppColors.primary.withOpacity(0.1),
                 child: Text(
-                  widget.message.senderName.isNotEmpty ? widget.message.senderName[0] : 'م',
+                  message.senderName.isNotEmpty ? message.senderName[0] : 'م',
                   style: const TextStyle(
                     color: AppColors.primary,
                     fontSize: 10,
@@ -95,15 +59,15 @@ class _MessageBubbleState extends State<MessageBubble> {
             const SizedBox(width: 8),
             Flexible(
               child: Column(
-                crossAxisAlignment: widget.isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                 children: [
                   // ✅ رسالة الرد
-                  if (widget.message.replyTo != null)
+                  if (message.replyTo != null)
                     Container(
                       padding: const EdgeInsets.all(8),
                       margin: const EdgeInsets.only(bottom: 4),
                       decoration: BoxDecoration(
-                        color: widget.isDark ? Colors.grey[800] : Colors.grey[100],
+                        color: isDark ? Colors.grey[800] : Colors.grey[100],
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
@@ -113,10 +77,10 @@ class _MessageBubbleState extends State<MessageBubble> {
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
-                              widget.message.replyToText ?? 'رسالة سابقة',
+                              message.replyToText ?? 'رسالة سابقة',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: widget.isDark ? Colors.grey[400] : Colors.grey[600],
+                                color: isDark ? Colors.grey[400] : Colors.grey[600],
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -129,21 +93,21 @@ class _MessageBubbleState extends State<MessageBubble> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
-                      color: widget.isMe ? AppColors.primary : (widget.isDark ? AppColors.darkCard : Colors.grey[200]),
+                      color: isMe ? AppColors.primary : (isDark ? const Color(0xFF1A2540) : Colors.grey[200]),
                       borderRadius: BorderRadius.circular(12).copyWith(
-                        bottomRight: widget.isMe ? const Radius.circular(4) : const Radius.circular(12),
-                        bottomLeft: widget.isMe ? const Radius.circular(12) : const Radius.circular(4),
+                        bottomRight: isMe ? const Radius.circular(4) : const Radius.circular(12),
+                        bottomLeft: isMe ? const Radius.circular(12) : const Radius.circular(4),
                       ),
                     ),
                     child: Column(
-                      crossAxisAlignment: widget.isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                      crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                       children: [
                         // ✅ اسم المرسل
-                        if (!widget.isMe)
+                        if (!isMe)
                           Padding(
                             padding: const EdgeInsets.only(bottom: 4),
                             child: Text(
-                              widget.message.senderName,
+                              message.senderName,
                               style: TextStyle(
                                 fontSize: 10,
                                 color: AppColors.primary,
@@ -152,13 +116,13 @@ class _MessageBubbleState extends State<MessageBubble> {
                             ),
                           ),
                         // ✅ صورة
-                        if (widget.message.isImage && widget.message.imageUrl != null)
+                        if (message.isImage && message.imageUrl != null)
                           GestureDetector(
-                            onTap: () => _showFullScreenImage(context, widget.message.imageUrl!),
+                            onTap: () => _showFullScreenImage(context, message.imageUrl!),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(8),
                               child: CachedNetworkImage(
-                                imageUrl: widget.message.imageUrl!,
+                                imageUrl: message.imageUrl!,
                                 width: 200,
                                 height: 200,
                                 fit: BoxFit.cover,
@@ -177,60 +141,21 @@ class _MessageBubbleState extends State<MessageBubble> {
                               ),
                             ),
                           ),
-                        // ✅ فيديو
-                        if (widget.message.isVideo && _isVideoInitialized && _videoController != null)
-                          GestureDetector(
-                            onTap: () {
-                              if (_videoController!.value.isPlaying) {
-                                _videoController!.pause();
-                              } else {
-                                _videoController!.play();
-                              }
-                              setState(() {});
-                            },
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: AspectRatio(
-                                    aspectRatio: _videoController!.value.aspectRatio,
-                                    child: VideoPlayer(_videoController!),
-                                  ),
-                                ),
-                                Container(
-                                  width: 50,
-                                  height: 50,
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.5),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    _videoController!.value.isPlaying
-                                        ? Icons.pause
-                                        : Icons.play_arrow,
-                                    color: Colors.white,
-                                    size: 30,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
                         // ✅ صوت
-                        if (widget.message.isAudio)
+                        if (message.isAudio)
                           _buildAudioWidget(),
                         // ✅ موقع
-                        if (widget.message.isLocation)
+                        if (message.isLocation)
                           _buildLocationWidget(),
                         // ✅ ملف
-                        if (widget.message.isFile)
+                        if (message.isFile)
                           _buildFileWidget(),
                         // ✅ نص
-                        if (widget.message.isText || (widget.message.isImage && widget.message.text != '📷 صورة'))
+                        if (message.isText || (message.isImage && message.text != '📷 صورة'))
                           Text(
-                            widget.message.text,
+                            message.text,
                             style: TextStyle(
-                              color: widget.isMe ? Colors.white : (widget.isDark ? Colors.white : Colors.black87),
+                              color: isMe ? Colors.white : (isDark ? Colors.white : Colors.black87),
                               fontSize: 14,
                             ),
                           ),
@@ -240,23 +165,23 @@ class _MessageBubbleState extends State<MessageBubble> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              _formatTime(widget.message.timestamp),
+                              _formatTime(message.timestamp),
                               style: TextStyle(
                                 fontSize: 9,
-                                color: widget.isMe ? Colors.white70 : (widget.isDark ? Colors.grey[400] : Colors.grey[500]),
+                                color: isMe ? Colors.white70 : (isDark ? Colors.grey[400] : Colors.grey[500]),
                               ),
                             ),
-                            if (widget.isMe) ...[
+                            if (isMe) ...[
                               const SizedBox(width: 4),
                               Icon(
-                                widget.message.isRead ? Icons.done_all : Icons.done,
+                                message.isRead ? Icons.done_all : Icons.done,
                                 size: 12,
-                                color: widget.message.isRead ? Colors.blue : Colors.white70,
+                                color: message.isRead ? Colors.blue : Colors.white70,
                               ),
                             ],
-                            if (widget.message.reactions.isNotEmpty) ...[
+                            if (message.reactions.isNotEmpty) ...[
                               const SizedBox(width: 4),
-                              ...widget.message.reactions.entries.map((entry) {
+                              ...message.reactions.entries.map((entry) {
                                 return Padding(
                                   padding: const EdgeInsets.only(right: 2),
                                   child: Text(
@@ -288,19 +213,19 @@ class _MessageBubbleState extends State<MessageBubble> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
-        mainAxisAlignment: widget.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         children: [
           Flexible(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: widget.isDark ? Colors.grey[800] : Colors.grey[200],
+                color: isDark ? Colors.grey[800] : Colors.grey[200],
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 '🗑️ تم حذف هذه الرسالة',
                 style: TextStyle(
-                  color: widget.isDark ? Colors.grey[400] : Colors.grey[600],
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
                   fontStyle: FontStyle.italic,
                   fontSize: 12,
                 ),
@@ -322,7 +247,7 @@ class _MessageBubbleState extends State<MessageBubble> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.audiotrack, color: widget.isMe ? Colors.white : Colors.black87),
+          Icon(Icons.audiotrack, color: isMe ? Colors.white : Colors.black87),
           const SizedBox(width: 8),
           Expanded(
             child: Container(
@@ -346,7 +271,7 @@ class _MessageBubbleState extends State<MessageBubble> {
             '0:30',
             style: TextStyle(
               fontSize: 10,
-              color: widget.isMe ? Colors.white70 : Colors.grey[600],
+              color: isMe ? Colors.white70 : Colors.grey[600],
             ),
           ),
         ],
@@ -367,10 +292,10 @@ class _MessageBubbleState extends State<MessageBubble> {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              widget.message.text,
+              message.text,
               style: TextStyle(
                 fontSize: 12,
-                color: widget.isMe ? Colors.white : Colors.black87,
+                color: isMe ? Colors.white : Colors.black87,
               ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -397,19 +322,19 @@ class _MessageBubbleState extends State<MessageBubble> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.message.getFileName,
+                  message.getFileName,
                   style: TextStyle(
                     fontSize: 12,
-                    color: widget.isMe ? Colors.white : Colors.black87,
+                    color: isMe ? Colors.white : Colors.black87,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  widget.message.getFileSizeFormatted,
+                  message.getFileSizeFormatted,
                   style: TextStyle(
                     fontSize: 10,
-                    color: widget.isMe ? Colors.white70 : Colors.grey[600],
+                    color: isMe ? Colors.white70 : Colors.grey[600],
                   ),
                 ),
               ],
@@ -434,6 +359,7 @@ class _MessageBubbleState extends State<MessageBubble> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // ✅ ردود الفعل السريعة
             Padding(
               padding: const EdgeInsets.all(8),
               child: Row(
@@ -442,7 +368,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                   return GestureDetector(
                     onTap: () {
                       Navigator.pop(context);
-                      widget.onReaction(widget.message);
+                      onReaction(message);
                     },
                     child: Container(
                       padding: const EdgeInsets.all(8),
@@ -462,7 +388,7 @@ class _MessageBubbleState extends State<MessageBubble> {
               title: const Text('رد على الرسالة'),
               onTap: () {
                 Navigator.pop(context);
-                widget.onReply(widget.message);
+                onReply(message);
               },
             ),
             ListTile(
@@ -473,13 +399,13 @@ class _MessageBubbleState extends State<MessageBubble> {
                 ToastService.showInfo('📋 تم نسخ الرسالة');
               },
             ),
-            if (widget.isMe)
+            if (isMe)
               ListTile(
                 leading: const Icon(Icons.delete, color: Colors.red),
                 title: const Text('حذف للجميع', style: TextStyle(color: Colors.red)),
                 onTap: () {
                   Navigator.pop(context);
-                  widget.onDelete(widget.message);
+                  onDelete(message);
                 },
               ),
           ],
@@ -505,68 +431,3 @@ class _MessageBubbleState extends State<MessageBubble> {
     return '${time.day}/${time.month}';
   }
 }
-
-  // ✅ إعادة توجيه الرسالة
-  void _forwardMessage(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'إعادة توجيه الرسالة',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            // ✅ قائمة المحادثات لإعادة التوجيه
-            FutureBuilder<List<ChatModel>>(
-              future: _getChats(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                final chats = snapshot.data!;
-                if (chats.isEmpty) {
-                  return const Text('لا توجد محادثات لإعادة التوجيه');
-                }
-                return ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: chats.length,
-                  itemBuilder: (context, index) {
-                    final chat = chats[index];
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: AppColors.primary.withOpacity(0.1),
-                        child: Text(
-                          chat.getOtherParticipantName(FirebaseAuth.instance.currentUser?.uid ?? '')[0],
-                          style: const TextStyle(color: AppColors.primary),
-                        ),
-                      ),
-                      title: Text(chat.getOtherParticipantName(FirebaseAuth.instance.currentUser?.uid ?? '')),
-                      subtitle: Text('اضغط لإعادة التوجيه'),
-                      onTap: () {
-                        Navigator.pop(context);
-                        _sendForward(chat.id);
-                      },
-                    );
-                  },
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<List<ChatModel>> _getChats() async {
-    // TODO: جلب المحادثات من Firestore
-    return [];
-  }
-
-  void _sendForward(String chatId) {
-    // TODO: إعادة توجيه الرسالة
-    ToastService.showSuccess('✅ تم إعادة توجيه الرسالة');
-  }
