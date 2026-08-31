@@ -1,5 +1,5 @@
 // ============================================================
-// 🔧 ChatService - النسخة النهائية
+// 🔧 ChatService - مع إصلاح Index
 // ============================================================
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -21,7 +21,7 @@ class ChatService {
   final OfflineService _offline = OfflineService();
 
   // ============================================================
-  // 💬 إدارة المحادثات
+  // 💬 إدارة المحادثات (مع إصلاح Index)
   // ============================================================
 
   Stream<List<ChatModel>> getChats() {
@@ -32,6 +32,34 @@ class ChatService {
       return Stream.value(_offline.getChats());
     }
     
+    // ✅ إزالة orderBy مؤقتاً لتجنب خطأ Index
+    return _firestore
+        .collection('chats')
+        .where('participants', arrayContains: user.uid)
+        .snapshots()
+        .map((snapshot) {
+          final chats = snapshot.docs
+              .map((doc) => ChatModel.fromMap(doc.data(), doc.id))
+              .toList();
+          
+          // ✅ ترتيب المحادثات يدوياً
+          chats.sort((a, b) => b.lastMessageTime.compareTo(a.lastMessageTime));
+          
+          _offline.saveChats(chats);
+          return chats;
+        });
+  }
+
+  // ✅ استعلام مع Index (بعد إنشاء الفهرس)
+  Stream<List<ChatModel>> getChatsWithIndex() {
+    final user = _auth.currentUser;
+    if (user == null) return Stream.value([]);
+    
+    if (!_offline.isOnline) {
+      return Stream.value(_offline.getChats());
+    }
+    
+    // ✅ بعد إنشاء الفهرس، يمكن استخدام orderBy
     return _firestore
         .collection('chats')
         .where('participants', arrayContains: user.uid)
