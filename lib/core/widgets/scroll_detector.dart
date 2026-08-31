@@ -1,10 +1,10 @@
 // ============================================================
-// 📁 lib/core/widgets/scroll_detector.dart
-// 📡 كاشف التمرير - يلتقط التمرير في أي شاشة
+// 📡 ScrollDetector - كاشف التمرير الذكي
+// يلتقط حركة التمرير في أي شاشة ويتحكم في الشريط السفلي
+// دون الحاجة لتعديل أي شاشة موجودة
 // ============================================================
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:sehatak/core/managers/global_scroll_manager.dart';
 
 class ScrollDetector extends StatelessWidget {
@@ -29,9 +29,11 @@ class ScrollDetector extends StatelessWidget {
   }
 
   void _handleScroll(ScrollNotification notification, BuildContext context) {
+    // ✅ الحصول على اسم الشاشة الحالية
+    final route = ModalRoute.of(context)?.settings.name ?? 'unknown';
+    
     // ✅ استثناء بعض الشاشات
-    final route = ModalRoute.of(context)?.settings.name ?? '';
-    if (scrollManager.isExcluded(route)) {
+    if (scrollManager.isExcludedRoute(route)) {
       return;
     }
 
@@ -40,18 +42,22 @@ class ScrollDetector extends StatelessWidget {
       final delta = currentPosition - scrollManager.lastPosition;
       const threshold = 5.0;
 
+      // ⬇️ تمرير للأسفل → إخفاء الشريط
       if (delta > threshold) {
         scrollManager.hide();
-      } else if (delta < -threshold) {
+      }
+      // ⬆️ تمرير للأعلى → إظهار الشريط
+      else if (delta < -threshold) {
         scrollManager.show();
       }
 
       scrollManager.lastPosition = currentPosition;
       
-      final route = ModalRoute.of(context)?.settings.name ?? 'unknown';
+      // ✅ حفظ الموقع للشاشة الحالية
       scrollManager.savePosition(route, currentPosition);
     }
 
+    // ✅ إظهار الشريط عند الوصول للأعلى
     if (notification is ScrollEndNotification) {
       if (notification.metrics.pixels <= 0) {
         scrollManager.show();
