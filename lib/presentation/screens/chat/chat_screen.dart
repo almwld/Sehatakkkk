@@ -1484,7 +1484,6 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
 
     try {
       // ✅ إنشاء محادثة مع طبيب
-      final chatId = await _chatService.createChat(
         doctorId: doctor['id'],
         doctorName: doctor['name'],
         patientId: user.uid,

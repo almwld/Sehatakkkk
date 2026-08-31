@@ -384,13 +384,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     }
     
     // ✅ التخلص من جميع الخدمات
-    _notificationService.dispose();
-    _weatherService.dispose();
-    _medicationService.dispose();
-    _appointmentService.dispose();
-    _aiService.dispose();
-    _customizationService.dispose();
-    _symptomService.dispose();
     
     super.dispose();
   }
@@ -582,7 +575,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   // ============================================================
   Future<void> _loadNearbyServices() async {
     try {
-      final nearby = await _locationService.getNearbyServices();
       if (!mounted) return;
       setState(() => _nearbyServices = nearby);
     } catch (e) { print('⚠️ فشل تحميل الخدمات القريبة: $e'); }
