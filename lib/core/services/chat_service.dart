@@ -1,5 +1,5 @@
 // ============================================================
-// 🔧 ChatService - مع إصلاح Index
+// 🔧 ChatService - النسخة النهائية مع createChat
 // ============================================================
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -21,9 +21,67 @@ class ChatService {
   final OfflineService _offline = OfflineService();
 
   // ============================================================
-  // 💬 إدارة المحادثات (مع إصلاح Index)
+  // 💬 إدارة المحادثات
   // ============================================================
 
+  // ✅ إنشاء محادثة جديدة (حقيقية)
+  Future<String> createChat({
+    required String doctorId,
+    required String doctorName,
+    required String patientId,
+    required String patientName,
+    String? doctorImage,
+    String? patientImage,
+  }) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) throw Exception('يجب تسجيل الدخول');
+
+      // ✅ التحقق من وجود محادثة مسبقة
+      final existing = await _firestore
+          .collection('chats')
+          .where('participants', arrayContains: user.uid)
+          .get();
+
+      for (final doc in existing.docs) {
+        final data = doc.data();
+        final participants = List<String>.from(data['participants'] ?? []);
+        if (participants.contains(doctorId) && participants.contains(patientId)) {
+          return doc.id; // ✅ محادثة موجودة مسبقاً
+        }
+      }
+
+      // ✅ إنشاء محادثة جديدة
+      final chatId = _firestore.collection('chats').doc().id;
+      await _firestore.collection('chats').doc(chatId).set({
+        'id': chatId,
+        'doctorId': doctorId,
+        'doctorName': doctorName,
+        'doctorImage': doctorImage ?? '',
+        'patientId': patientId,
+        'patientName': patientName,
+        'patientImage': patientImage ?? '',
+        'lastMessage': 'ابدأ المحادثة',
+        'lastMessageTime': FieldValue.serverTimestamp(),
+        'createdAt': FieldValue.serverTimestamp(),
+        'participants': [doctorId, patientId],
+        'unreadCount': {
+          doctorId: 0,
+          patientId: 0,
+        },
+        'isOnline': false,
+        'isGroup': false,
+      });
+
+      print('✅ تم إنشاء محادثة جديدة: $chatId');
+      return chatId;
+    } catch (e) {
+      print('❌ Error creating chat: $e');
+      rethrow;
+    }
+  }
+
+  // ✅ الحصول على المحادثات
   Stream<List<ChatModel>> getChats() {
     final user = _auth.currentUser;
     if (user == null) return Stream.value([]);
@@ -32,7 +90,6 @@ class ChatService {
       return Stream.value(_offline.getChats());
     }
     
-    // ✅ إزالة orderBy مؤقتاً لتجنب خطأ Index
     return _firestore
         .collection('chats')
         .where('participants', arrayContains: user.uid)
@@ -42,33 +99,7 @@ class ChatService {
               .map((doc) => ChatModel.fromMap(doc.data(), doc.id))
               .toList();
           
-          // ✅ ترتيب المحادثات يدوياً
           chats.sort((a, b) => b.lastMessageTime.compareTo(a.lastMessageTime));
-          
-          _offline.saveChats(chats);
-          return chats;
-        });
-  }
-
-  // ✅ استعلام مع Index (بعد إنشاء الفهرس)
-  Stream<List<ChatModel>> getChatsWithIndex() {
-    final user = _auth.currentUser;
-    if (user == null) return Stream.value([]);
-    
-    if (!_offline.isOnline) {
-      return Stream.value(_offline.getChats());
-    }
-    
-    // ✅ بعد إنشاء الفهرس، يمكن استخدام orderBy
-    return _firestore
-        .collection('chats')
-        .where('participants', arrayContains: user.uid)
-        .orderBy('lastMessageTime', descending: true)
-        .snapshots()
-        .map((snapshot) {
-          final chats = snapshot.docs
-              .map((doc) => ChatModel.fromMap(doc.data(), doc.id))
-              .toList();
           _offline.saveChats(chats);
           return chats;
         });

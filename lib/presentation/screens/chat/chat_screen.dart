@@ -1473,3 +1473,40 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     return '${time.day}/${time.month}/${time.year}';
   }
 }
+
+  // ✅ بدء محادثة مع طبيب (حقيقي)
+  Future<void> _startChatWithDoctor(Map<String, dynamic> doctor) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ToastService.showError('❌ يجب تسجيل الدخول');
+      return;
+    }
+
+    try {
+      // ✅ إنشاء محادثة مع طبيب
+      final chatId = await _chatService.createChat(
+        doctorId: doctor['id'],
+        doctorName: doctor['name'],
+        patientId: user.uid,
+        patientName: user.displayName ?? 'مريض',
+        doctorImage: doctor['image'],
+      );
+
+      // ✅ الانتقال إلى شاشة الدردشة
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ChatDetailScreen(
+            chatId: chatId,
+            userId: user.uid,
+            userName: doctor['name'],
+            isDoctor: false,
+          ),
+        ),
+      );
+      
+      ToastService.showSuccess('✅ تم بدء المحادثة مع ${doctor['name']}');
+    } catch (e) {
+      ToastService.showError('❌ فشل بدء المحادثة: $e');
+    }
+  }
