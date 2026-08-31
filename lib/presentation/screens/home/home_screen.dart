@@ -14,16 +14,6 @@ import 'package:sehatak/presentation/screens/more/more_screen.dart';
 import 'package:sehatak/presentation/widgets/common/custom_bottom_nav_bar.dart';
 import 'package:sehatak/presentation/screens/home/tabs/home_tab.dart';
 
-class ScreenKeys {
-  static const home = ValueKey('home_tab');
-  static const doctors = ValueKey('doctors_tab');
-  static const pharmacy = ValueKey('pharmacy_tab');
-  static const chat = ValueKey('chat_tab');
-  static const labs = ValueKey('labs_tab');
-  static const patient = ValueKey('patient_tab');
-  static const more = ValueKey('more_tab');
-}
-
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -38,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final ScrollController _scrollController = ScrollController();
   final GlobalScrollManager _scrollManager = GlobalScrollManager();
 
-  late final Map<int, Widget> _screens;
+  late final List<Widget> _screens;
 
   @override
   void initState() {
@@ -73,41 +63,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   void _initializeScreens() {
-    _screens = {
-      0: ScrollDetector(
-        scrollManager: _scrollManager,
-        child: HomeTab(
-          key: ScreenKeys.home,
-          scrollController: _scrollController,
-          isBottomBarVisible: ValueNotifier<bool>(_isBottomBarVisible),
-          scrollManager: _scrollManager,
-        ),
+    _screens = [
+      HomeTab(
+        scrollController: _scrollController,
+        isBottomBarVisible: ValueNotifier<bool>(_isBottomBarVisible),
+        scrollManager: _scrollManager, // ✅ الآن HomeTab يقبل scrollManager
       ),
-      1: ScrollDetector(
-        scrollManager: _scrollManager,
-        child: const DoctorsListScreen(key: ScreenKeys.doctors),
-      ),
-      2: ScrollDetector(
-        scrollManager: _scrollManager,
-        child: const PharmacyScreen(key: ScreenKeys.pharmacy),
-      ),
-      3: ScrollDetector(
-        scrollManager: _scrollManager,
-        child: const ChatScreen(key: ScreenKeys.chat),
-      ),
-      4: ScrollDetector(
-        scrollManager: _scrollManager,
-        child: const LabsListScreen(key: ScreenKeys.labs),
-      ),
-      5: ScrollDetector(
-        scrollManager: _scrollManager,
-        child: const PatientDashboard(key: ScreenKeys.patient),
-      ),
-      6: ScrollDetector(
-        scrollManager: _scrollManager,
-        child: const MoreScreen(key: ScreenKeys.more),
-      ),
-    };
+      const DoctorsListScreen(),
+      const PharmacyScreen(),
+      const ChatScreen(),
+      const LabsListScreen(),
+      const PatientDashboard(),
+      const MoreScreen(),
+    ];
   }
 
   void _onTabTap(int index) {
@@ -136,10 +104,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       body: IndexedStack(
         index: _currentIndex,
-        children: _screens.values.toList(),
+        children: _screens,
       ),
       bottomNavigationBar: CustomBottomNavigationBar(
         currentIndex: _currentIndex,
