@@ -72,7 +72,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final user = FirebaseAuth.instance.currentUser;
     // ✅ تجنب setState إذا لم يتغير شيء
     final newStatus = user != null;
-    if (_isLoggedIn != newStatus && mounted) {
+    if (_isLoggedIn != newStatus) {
       setState(() {
         _isLoggedIn = newStatus;
       });
@@ -108,7 +108,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       return;
     }
 
-    if (_currentIndex != index && mounted) {
+    if (_currentIndex != index) {
       setState(() {
         _currentIndex = index;
       });
@@ -120,7 +120,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final scrollManager = GlobalScrollManager();
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
@@ -132,7 +131,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       bottomNavigationBar: CustomBottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: _onTabTap,
-        scrollManager: scrollManager,
+        scrollManager: GlobalScrollManager(),
         isLoggedIn: _isLoggedIn,
         onAuthRequired: () {
           Navigator.push(

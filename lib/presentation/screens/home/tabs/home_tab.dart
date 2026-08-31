@@ -382,13 +382,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     }
     
     // ✅ التخلص من جميع الخدمات
-    _notificationService.dispose();
-    _weatherService.dispose();
-    _medicationService.dispose();
-    _appointmentService.dispose();
-    _aiService.dispose();
-    _customizationService.dispose();
-    _symptomService.dispose();
     
     super.dispose();
   }
@@ -1093,16 +1086,10 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
           .collection('community_posts')
           .doc(postId)
           .collection('comments
-#!/bin/bash
-# ============================================================
 # 📄 إكمال كتابة home_tab.dart - الجزء المفقود
-# ============================================================
 
-cd ~/downloads/Sehatakkkk || cd ~/sehatak || cd ~/sehatak-platform
 
-echo "📄 إكمال كتابة home_tab.dart - الجزء المفقود..."
 
-cat >> lib/presentation/screens/home/tabs/home_tab.dart << 'EOF'
           .add({
         'userId': user.uid,
         'userName': user.displayName ?? 'مستخدم',
