@@ -1,6 +1,5 @@
 // ============================================================
 // 📱 CustomBottomNavigationBar - شريط التنقل السفلي المخصص
-// يدعم GlobalScrollManager للتحكم في الحركة من أي شاشة
 // ============================================================
 
 import 'package:flutter/material.dart';
@@ -24,35 +23,14 @@ class CustomBottomNavigationBar extends StatelessWidget {
     required this.onAuthRequired,
   });
 
-  // ✅ قائمة عناصر التنقل
   final List<NavItem> _navItems = const [
     NavItem(index: 0, icon: Icons.home_rounded, label: 'الرئيسية'),
     NavItem(index: 1, icon: Icons.person_search_rounded, label: 'الأطباء'),
     NavItem(index: 2, icon: Icons.local_pharmacy_rounded, label: 'الصيدلية'),
-    NavItem(
-      index: 3,
-      icon: Icons.chat_rounded,
-      label: 'الدردشة',
-      isSpecial: true,
-      isProtected: true,
-    ),
-    NavItem(
-      index: 4,
-      icon: Icons.science_rounded,
-      label: 'مختبرات',
-      isProtected: true,
-    ),
-    NavItem(
-      index: 5,
-      icon: Icons.folder_rounded,
-      label: 'صحتي',
-      isProtected: true,
-    ),
-    NavItem(
-      index: 6,
-      icon: Icons.grid_view_rounded,
-      label: 'المزيد',
-    ),
+    NavItem(index: 3, icon: Icons.chat_rounded, label: 'الدردشة', isSpecial: true, isProtected: true),
+    NavItem(index: 4, icon: Icons.science_rounded, label: 'مختبرات', isProtected: true),
+    NavItem(index: 5, icon: Icons.folder_rounded, label: 'صحتي', isProtected: true),
+    NavItem(index: 6, icon: Icons.grid_view_rounded, label: 'المزيد'),
   ];
 
   @override
@@ -64,20 +42,16 @@ class CustomBottomNavigationBar extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.end,
       children: _navItems.map((item) {
         if (item.isSpecial) {
-          return _buildSpecialChatButton(item);
+          return _buildSpecialChatButton(item, isDark);
         }
-        return _buildNavItem(item);
+        return _buildNavItem(item, isDark);
       }).toList(),
     );
   }
 
-  // ✅ زر عادي
-  Widget _buildNavItem(NavItem item) {
+  Widget _buildNavItem(NavItem item, bool isDark) {
     final isSelected = currentIndex == item.index;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final color = isSelected
-        ? AppColors.primary
-        : (isDark ? Colors.grey.shade500 : Colors.grey.shade400);
+    final color = isSelected ? AppColors.primary : (isDark ? Colors.grey.shade500 : Colors.grey.shade400);
 
     return GestureDetector(
       onTap: () => _handleTap(item),
@@ -89,30 +63,16 @@ class CustomBottomNavigationBar extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              item.icon,
-              color: color,
-              size: 22,
-            ),
+            Icon(item.icon, color: color, size: 22),
             const SizedBox(height: 2),
-            Text(
-              item.label,
-              style: TextStyle(
-                fontSize: 9,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                color: color,
-              ),
-            ),
+            Text(item.label, style: TextStyle(fontSize: 9, fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal, color: color)),
             if (isSelected)
               AnimatedContainer(
                 duration: const Duration(milliseconds: 250),
                 width: 32,
                 height: 3,
                 margin: const EdgeInsets.only(top: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(2),
-                ),
+                decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(2)),
               )
             else
               const SizedBox(height: 7),
@@ -122,13 +82,9 @@ class CustomBottomNavigationBar extends StatelessWidget {
     );
   }
 
-  // ✅ زر الدردشة المميز
-  Widget _buildSpecialChatButton(NavItem item) {
+  Widget _buildSpecialChatButton(NavItem item, bool isDark) {
     final isSelected = currentIndex == item.index;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final color = isSelected
-        ? AppColors.primary
-        : (isDark ? Colors.grey.shade500 : Colors.grey.shade400);
+    final color = isSelected ? AppColors.primary : (isDark ? Colors.grey.shade500 : Colors.grey.shade400);
 
     return GestureDetector(
       onTap: () => _handleTap(item),
@@ -148,34 +104,15 @@ class CustomBottomNavigationBar extends StatelessWidget {
                 width: 54,
                 height: 54,
                 decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppColors.primary, AppColors.primaryDark],
-                  ),
+                  gradient: LinearGradient(colors: [AppColors.primary, AppColors.primaryDark]),
                   shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary,
-                      blurRadius: 14,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
+                  boxShadow: [BoxShadow(color: AppColors.primary, blurRadius: 14, offset: Offset(0, 4))],
                 ),
-                child: Icon(
-                  item.icon,
-                  color: Colors.white,
-                  size: 28,
-                ),
+                child: Icon(item.icon, color: Colors.white, size: 28),
               ),
             ),
             const SizedBox(height: 2),
-            Text(
-              item.label,
-              style: TextStyle(
-                fontSize: 9,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                color: color,
-              ),
-            ),
+            Text(item.label, style: TextStyle(fontSize: 9, fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal, color: color)),
             const SizedBox(height: 7),
           ],
         ),
@@ -183,19 +120,16 @@ class CustomBottomNavigationBar extends StatelessWidget {
     );
   }
 
-  // ✅ دالة التعامل مع الضغط
   void _handleTap(NavItem item) {
     if (item.isProtected && !isLoggedIn) {
       onAuthRequired();
       return;
     }
-
     HapticFeedback.lightImpact();
     onTap(item.index);
   }
 }
 
-// ✅ نموذج عنصر التنقل
 class NavItem {
   final int index;
   final IconData icon;

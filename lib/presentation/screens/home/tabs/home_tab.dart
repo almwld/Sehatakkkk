@@ -899,7 +899,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               stream: FirebaseFirestore.instance
                   .collection('community_posts')
                   .doc(post['id'].toString())
-                  .collection('comments')
                   .orderBy('timestamp', descending: true)
                   .snapshots(),
               builder: (context, snapshot) {
@@ -1085,8 +1084,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       await FirebaseFirestore.instance
           .collection('community_posts')
           .doc(postId)
-          .collection('comments
-# 📄 إكمال كتابة home_tab.dart - الجزء المفقود
 
 
 
