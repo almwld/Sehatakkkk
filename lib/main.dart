@@ -14,11 +14,11 @@ import 'core/providers/bot_provider.dart';
 import 'core/providers/wallet_provider.dart';
 import 'core/providers/cart_provider.dart';
 import 'core/themes/theme_manager.dart';
-import 'core/services/cache_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/call_service.dart';
-import 'core/services/offline_service.dart';
 import 'core/routes/payment_routes.dart';
+import 'core/managers/global_scroll_manager.dart';
+import 'core/navigation/global_navigator_observer.dart';
 import 'presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'presentation/bloc/theme_bloc/theme_bloc.dart';
 import 'presentation/bloc/chat_bloc/chat_bloc.dart';
@@ -27,6 +27,7 @@ import 'presentation/screens/splash_screen.dart';
 import 'presentation/screens/home/home_screen.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+final GlobalScrollManager scrollManager = GlobalScrollManager();
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -35,14 +36,12 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // ✅ اتجاه الشاشة
+
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  
-  // ✅ تهيئة Firebase
+
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -51,8 +50,7 @@ void main() async {
   } catch (e) {
     print('❌ Firebase initialization error: $e');
   }
-  
-  // ✅ تهيئة FCM
+
   try {
     final fcm = FirebaseMessaging.instance;
     await fcm.requestPermission(
@@ -66,25 +64,10 @@ void main() async {
   } catch (e) {
     print('❌ FCM initialization error: $e');
   }
-  
-  // ✅ تهيئة وضع عدم الاتصال
-  try {
-    await OfflineService().init();
-    print('✅ Offline service initialized');
-  } catch (e) {
-    print('❌ Offline service error: $e');
-  }
-  
-  // ✅ تهيئة الإشعارات
-  try {
-    final notificationService = NotificationService();
-    await notificationService.initialize();
-    print('✅ Notification service initialized');
-  } catch (e) {
-    print('❌ Notification service error: $e');
-  }
-  
-  // ✅ تشغيل التطبيق
+
+  final notificationService = NotificationService();
+  await notificationService.initialize();
+
   runApp(
     MultiProvider(
       providers: [
@@ -114,15 +97,9 @@ void main() async {
         BlocProvider(
           create: (_) => AuthBloc()..add(CheckAuthStatus()),
         ),
-        BlocProvider(
-          create: (_) => ThemeBloc(),
-        ),
-        BlocProvider(
-          create: (_) => ChatBloc(),
-        ),
-        BlocProvider(
-          create: (_) => DoctorBloc(),
-        ),
+        BlocProvider(create: (_) => ThemeBloc()),
+        BlocProvider(create: (_) => ChatBloc()),
+        BlocProvider(create: (_) => DoctorBloc()),
       ],
       child: const SehatakApp(),
     ),
@@ -144,10 +121,15 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    
-    // ✅ الاستماع للإشعارات
+
     FirebaseMessaging.onMessage.listen(_handleMessage);
     FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpened);
+
+    FirebaseMessaging.onMessage.listen((message) {
+      if (message.data['type'] == 'incoming_call') {
+        _callService.handleIncomingCall(context, message);
+      }
+    });
   }
 
   @override
@@ -225,9 +207,12 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
                   ),
                 );
               },
+              navigatorKey: navigatorKey,
+              navigatorObservers: [
+                GlobalNavigatorObserver(scrollManager: scrollManager),
+              ],
               home: const SplashScreen(),
               onGenerateRoute: PaymentRoutes.onGenerateRoute,
-              navigatorKey: navigatorKey,
             );
           },
         );

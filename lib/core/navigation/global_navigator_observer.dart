@@ -40,6 +40,6 @@ class GlobalNavigatorObserver extends NavigatorObserver {
   void _handleRouteChange(Route<dynamic> route) {
     final routeName = route.settings.name ?? 'unknown';
     scrollManager.registerScreen(routeName);
-    scrollManager.show(); // ✅ إظهار الشريط عند تغيير الصفحة
+    scrollManager.show();
   }
 }
