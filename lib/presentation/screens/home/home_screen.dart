@@ -1,6 +1,9 @@
 // ============================================================
 // 🏠 HomeScreen - الشاشة الرئيسية المعاد بناؤها
+// تم إصلاح مشكلة الشاشة الداكنة بعد تسجيل الدخول
+// باستخدام ValueKey ثابت لكل شاشة
 // ============================================================
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -14,8 +17,9 @@ import 'package:sehatak/presentation/screens/patient/patient_dashboard.dart';
 import 'package:sehatak/presentation/screens/more/more_screen.dart';
 import 'package:sehatak/presentation/widgets/common/custom_bottom_nav_bar.dart';
 import 'package:sehatak/presentation/screens/home/tabs/home_tab.dart';
+import 'package:sehatak/core/managers/global_scroll_manager.dart';
 
-// ✅ مفتاح ثابت لكل شاشة - يمنع فقدان الحالة
+// ✅ مفاتيح ثابتة لكل شاشة - يمنع فقدان الحالة
 class ScreenKeys {
   static const home = ValueKey('home_tab');
   static const doctors = ValueKey('doctors_tab');
@@ -116,6 +120,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final scrollManager = GlobalScrollManager();
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
@@ -127,7 +132,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       bottomNavigationBar: CustomBottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: _onTabTap,
-        scrollController: _scrollController,
+        scrollManager: scrollManager,
         isLoggedIn: _isLoggedIn,
         onAuthRequired: () {
           Navigator.push(
