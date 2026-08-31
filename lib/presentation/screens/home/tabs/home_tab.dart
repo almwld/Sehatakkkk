@@ -621,7 +621,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   void _setupStreams() {
     _postsSubscription = FirebaseFirestore.instance
         .collection('community_posts')
-        .orderBy('timestamp', descending: true)
         .snapshots()
         .listen((snapshot) {
           if (!mounted) return;
@@ -844,7 +843,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     try {
       await FirebaseFirestore.instance
           .collection('reports')
-          .add({
         'postId': postId,
         'reportedBy': user.uid,
         'reason': 'محتوى غير مناسب',
@@ -899,7 +897,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               stream: FirebaseFirestore.instance
                   .collection('community_posts')
                   .doc(post['id'].toString())
-                  .orderBy('timestamp', descending: true)
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
@@ -1087,7 +1084,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
 
 
 
-          .add({
         'userId': user.uid,
         'userName': user.displayName ?? 'مستخدم',
         'userAvatar': user.photoURL ?? '',
