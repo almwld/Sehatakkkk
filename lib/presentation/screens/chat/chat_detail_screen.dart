@@ -1,16 +1,12 @@
 // ============================================================
-// 📱 شاشة تفاصيل المحادثة - النسخة النهائية
+// 📱 شاشة تفاصيل المحادثة - النسخة المبسطة
 // ============================================================
 
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/bloc/message/message_bloc.dart';
-import 'package:sehatak/bloc/message/message_event.dart';
-import 'package:sehatak/bloc/message/message_state.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/constants/app_strings.dart';
 import 'package:sehatak/core/services/chat_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/models/message_model.dart';
@@ -20,21 +16,20 @@ import 'package:sehatak/presentation/screens/chat/widgets/voice_recorder.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/reply_banner.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/chat_shimmer.dart';
 import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class ChatDetailScreen extends StatefulWidget {
   final String chatId;
   final String userId;
   final String userName;
   final bool isDoctor;
-  final String? userImage;
 
   const ChatDetailScreen({
     super.key,
     required this.chatId,
     required this.userId,
     required this.userName,
-    required this.isDoctor,
-    this.userImage,
+    this.isDoctor = false,
   });
 
   @override
@@ -56,7 +51,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<MessageBloc>().loadMessages(chatId: widget.chatId, limit: 50));
+    context.read<MessageBloc>().loadMessages(widget.chatId);
     _chatService.markAsRead(widget.chatId);
   }
 
@@ -68,26 +63,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     super.dispose();
   }
 
-  // ✅ دالة إضافة خلفية الدردشة
-  Widget _buildChatBackground(Widget child) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
-    return Container(
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage(
-            isDark 
-                ? 'assets/images/sehatak_chat_wallpaper_dark_1080x2160.png'
-                : 'assets/images/sehatak_chat_wallpaper_light_1080x2160.png',
-          ),
-          fit: BoxFit.cover,
-          opacity: 0.8,
-        ),
-      ),
-      child: child,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -95,90 +70,88 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
       appBar: _buildAppBar(isDark),
-      body: _buildChatBackground(
-        Column(
-          children: [
-            if (_replyTo != null)
-              ReplyBanner(
-                message: _replyToText ?? '',
-                senderName: widget.userName,
-                onCancel: () => setState(() {
-                  _replyTo = null;
-                  _replyToText = null;
-                }),
-              ),
-            Expanded(
-              child: BlocBuilder<MessageBloc, MessageState>(
-                builder: (context, state) {
-                  if (state is MessageLoadingState || state is MessageRefreshingState) {
-                    return ChatShimmer(isDark: isDark);
-                  }
-
-                  if (state is MessageErrorState) {
-                    return _buildErrorState(isDark, state.message);
-                  }
-
-                  if (state is MessagesLoadedState) {
-                    final messages = state.messages;
-                    if (messages.isEmpty) {
-                      return _buildEmptyState(isDark);
-                    }
-                    return ListView.builder(
-                      controller: _scrollController,
-                      reverse: true,
-                      padding: const EdgeInsets.all(12),
-                      itemCount: messages.length,
-                      itemBuilder: (context, index) {
-                        final message = messages[index];
-                        return MessageBubble(
-                          message: message,
-                          chatId: widget.chatId,
-                          isMe: message.isMe,
-                          isDark: isDark,
-                          onReply: (msg) {
-                            setState(() {
-                              _replyTo = msg.id;
-                              _replyToText = msg.text;
-                            });
-                            _focusNode.requestFocus();
-                          },
-                          onReaction: (msg) {
-                            _showReactionPicker(msg);
-                          },
-                          onDelete: (msg) {
-                            _showDeleteConfirmation(msg);
-                          },
-                        );
-                      },
-                    );
-                  }
-
-                  return const SizedBox.shrink();
-                },
-              ),
+      body: Column(
+        children: [
+          if (_replyTo != null)
+            ReplyBanner(
+              message: _replyToText ?? '',
+              senderName: widget.userName,
+              onCancel: () => setState(() {
+                _replyTo = null;
+                _replyToText = null;
+              }),
             ),
-            if (_showVoiceRecorder)
-              VoiceRecorder(
-                onRecordingComplete: (path) {
-                  setState(() => _showVoiceRecorder = false);
-                  _sendVoiceMessage(path);
-                },
-                onCancel: () => setState(() => _showVoiceRecorder = false),
-              )
-            else
-              ChatInputBar(
-                textController: _textController,
-                focusNode: _focusNode,
-                onSend: _sendMessage,
-                onImagePick: _sendImage,
-                onVoiceRecord: () => setState(() => _showVoiceRecorder = true),
-                onLocationShare: _shareLocation,
-                onFilePick: _sendFile,
-                isSending: _isSending,
-                isDark: isDark,
-              ),
-          ],
-        ),
+          Expanded(
+            child: BlocBuilder<MessageBloc, MessageState>(
+              builder: (context, state) {
+                if (state is MessageLoading) {
+                  return ChatShimmer(isDark: isDark);
+                }
+
+                if (state is MessageError) {
+                  return _buildErrorState(isDark, state.message);
+                }
+
+                if (state is MessagesLoaded) {
+                  final messages = state.messages;
+                  if (messages.isEmpty) {
+                    return _buildEmptyState(isDark);
+                  }
+                  return ListView.builder(
+                    controller: _scrollController,
+                    reverse: true,
+                    padding: const EdgeInsets.all(12),
+                    itemCount: messages.length,
+                    itemBuilder: (context, index) {
+                      final message = messages[index];
+                      return MessageBubble(
+                        message: message,
+                        chatId: widget.chatId,
+                        isMe: message.isMe,
+                        isDark: isDark,
+                        onReply: (msg) {
+                          setState(() {
+                            _replyTo = msg.id;
+                            _replyToText = msg.text;
+                          });
+                          _focusNode.requestFocus();
+                        },
+                        onReaction: (msg) {
+                          _showReactionPicker(msg);
+                        },
+                        onDelete: (msg) {
+                          _showDeleteConfirmation(msg);
+                        },
+                      );
+                    },
+                  );
+                }
+
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+          if (_showVoiceRecorder)
+            VoiceRecorder(
+              onRecordingComplete: (path) {
+                setState(() => _showVoiceRecorder = false);
+                _sendVoiceMessage(path);
+              },
+              onCancel: () => setState(() => _showVoiceRecorder = false),
+            )
+          else
+            ChatInputBar(
+              textController: _textController,
+              focusNode: _focusNode,
+              onSend: _sendMessage,
+              onImagePick: _sendImage,
+              onVoiceRecord: () => setState(() => _showVoiceRecorder = true),
+              onLocationShare: _shareLocation,
+              onFilePick: _sendFile,
+              isSending: _isSending,
+              isDark: isDark,
+            ),
+        ],
       ),
     );
   }
@@ -190,35 +163,21 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           CircleAvatar(
             radius: 18,
             backgroundColor: AppColors.primary.withOpacity(0.1),
-            backgroundImage: widget.userImage != null && widget.userImage!.isNotEmpty
-                ? NetworkImage(widget.userImage!)
-                : null,
-            child: widget.userImage == null || widget.userImage!.isEmpty
-                ? Text(
-                    widget.userName.isNotEmpty ? widget.userName[0] : 'م',
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  )
-                : null,
+            child: Text(
+              widget.userName.isNotEmpty ? widget.userName[0] : 'م',
+              style: const TextStyle(
+                color: AppColors.primary,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.userName,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const Text(
-                  'متصل',
-                  style: TextStyle(fontSize: 11, color: AppColors.online),
-                ),
-              ],
+            child: Text(
+              widget.userName,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -234,12 +193,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         IconButton(
           icon: const Icon(Icons.videocam),
           onPressed: _startVideoCall,
-        ),
-        IconButton(
-          icon: const Icon(Icons.more_vert),
-          onPressed: () {
-            // TODO: إظهار خيارات إضافية
-          },
         ),
       ],
     );
@@ -257,7 +210,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            AppStrings.noMessages,
+            'لا توجد رسائل',
             style: TextStyle(
               color: isDark ? Colors.white : Colors.black87,
               fontSize: 16,
@@ -265,7 +218,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            AppStrings.startChat,
+            'ابدأ المحادثة الآن',
             style: TextStyle(
               color: isDark ? Colors.grey[400] : Colors.grey[600],
               fontSize: 13,
@@ -296,7 +249,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           const SizedBox(height: 16),
           ElevatedButton.icon(
             onPressed: () {
-              context.read<MessageBloc>().refreshMessages(chatId: widget.chatId));
+              context.read<MessageBloc>().loadMessages(widget.chatId);
             },
             icon: const Icon(Icons.refresh),
             label: const Text('إعادة المحاولة'),
@@ -312,13 +265,11 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
     setState(() => _isSending = true);
 
-    context.read<MessageBloc>().add(
-      SendMessageEvent(
-        chatId: widget.chatId,
-        text: text,
-        replyTo: _replyTo,
-        replyToText: _replyToText,
-      ),
+    await _chatService.sendMessage(
+      chatId: widget.chatId,
+      text: text,
+      replyTo: _replyTo,
+      replyToText: _replyToText,
     );
 
     _textController.clear();
@@ -346,12 +297,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         image: File(image.path),
       );
 
-      context.read<MessageBloc>().add(
-        SendMessageEvent(
-          chatId: widget.chatId,
-          text: '📷 صورة',
-          imageUrl: imageUrl,
-        ),
+      await _chatService.sendMessage(
+        chatId: widget.chatId,
+        text: '📷 صورة',
+        imageUrl: imageUrl,
       );
 
       ToastService.showSuccess('✅ تم إرسال الصورة');
@@ -372,12 +321,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         audio: File(path),
       );
 
-      context.read<MessageBloc>().add(
-        SendMessageEvent(
-          chatId: widget.chatId,
-          text: '🎤 رسالة صوتية',
-          audioUrl: audioUrl,
-        ),
+      await _chatService.sendMessage(
+        chatId: widget.chatId,
+        text: '🎤 رسالة صوتية',
+        audioUrl: audioUrl,
       );
 
       ToastService.showSuccess('✅ تم إرسال الصوت');
@@ -406,12 +353,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         fileName: fileName,
       );
 
-      context.read<MessageBloc>().add(
-        SendMessageEvent(
-          chatId: widget.chatId,
-          text: '📎 $fileName',
-          fileUrl: fileUrl,
-        ),
+      await _chatService.sendMessage(
+        chatId: widget.chatId,
+        text: '📎 $fileName',
+        fileUrl: fileUrl,
       );
 
       ToastService.showSuccess('✅ تم إرسال الملف');
@@ -451,12 +396,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 return GestureDetector(
                   onTap: () {
                     Navigator.pop(context);
-                    context.read<MessageBloc>().add(
-                      AddReactionEvent(
-                        chatId: widget.chatId,
-                        messageId: message.id,
-                        emoji: emoji,
-                      ),
+                    _chatService.addReaction(
+                      chatId: widget.chatId,
+                      messageId: message.id,
+                      emoji: emoji,
                     );
                   },
                   child: Container(
@@ -494,12 +437,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              context.read<MessageBloc>().add(
-                DeleteMessageEvent(
-                  chatId: widget.chatId,
-                  messageId: message.id,
-                  forEveryone: true,
-                ),
+              _chatService.deleteMessage(
+                chatId: widget.chatId,
+                messageId: message.id,
               );
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -530,57 +470,3 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     });
   }
 }
-
-  // ✅ عرض حالة المستخدم
-  Widget _buildUserStatus() {
-    return StreamBuilder<DocumentSnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('users')
-          .doc(widget.userId)
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData || !snapshot.data!.exists) {
-          return const SizedBox.shrink();
-        }
-
-        final data = snapshot.data!.data() as Map<String, dynamic>;
-        final isOnline = data['isOnline'] ?? false;
-        final lastSeen = data['lastSeen'] as Timestamp?;
-
-        return Row(
-          children: [
-            Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                color: isOnline ? Colors.green : Colors.grey,
-                shape: BoxShape.circle,
-              ),
-            ),
-            const SizedBox(width: 4),
-            Text(
-              isOnline
-                  ? 'متصل'
-                  : 'آخر ظهور ${_formatLastSeen(lastSeen)}',
-              style: TextStyle(
-                fontSize: 11,
-                color: isOnline ? Colors.green : Colors.grey[500],
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  String _formatLastSeen(Timestamp? timestamp) {
-    if (timestamp == null) return 'غير معروف';
-    final date = timestamp.toDate();
-    final now = DateTime.now();
-    final diff = now.difference(date);
-    if (diff.inMinutes < 1) return 'الآن';
-    if (diff.inHours < 1) return 'منذ ${diff.inMinutes} د';
-    if (diff.inDays < 1) return 'منذ ${diff.inHours} س';
-    if (diff.inDays < 7) return 'منذ ${diff.inDays} ي';
-    return 'منذ ${diff.inDays ~/ 7} أسبوع';
-  }
