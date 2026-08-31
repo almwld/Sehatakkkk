@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -206,7 +207,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   final WeatherService _weatherService = WeatherService();
 
   // 📍 الموقع والخدمات القريبة
-  LocationService _locationService = LocationService();
   List<Map<String, dynamic>> _nearbyServices = [];
   double _distanceToNearby = 0;
 
@@ -325,10 +325,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   ];
 
   // ✅ تخزين الاشتراكات للتخلص منها لاحقاً
-  StreamSubscription<RemoteMessage>? _fcmSubscription;
-  StreamSubscription<QuerySnapshot>? _postsSubscription;
-  StreamSubscription<QuerySnapshot>? _doctorsSubscription;
-  StreamSubscription<QuerySnapshot>? _hospitalsSubscription;
 
   // ============================================================
   // 🎯 رسالة ترحيب ديناميكية
