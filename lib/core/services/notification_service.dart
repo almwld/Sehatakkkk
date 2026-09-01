@@ -263,3 +263,45 @@ class NotificationService {
     }
   }
 }
+
+  // ✅ جلب الإشعارات غير المقروءة
+  Stream<List<Map<String, dynamic>>> getUnreadNotifications(String userId) {
+    return FirebaseFirestore.instance
+        .collection('notifications')
+        .where('userId', isEqualTo: userId)
+        .where('isRead', isEqualTo: false)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs.map((doc) {
+            final data = doc.data();
+            data['id'] = doc.id;
+            return data;
+          }).toList();
+        });
+  }
+
+  // ✅ تحديث حالة الإشعار كمقروء
+  Future<void> markNotificationAsRead(String notificationId) async {
+    await FirebaseFirestore.instance
+        .collection('notifications')
+        .doc(notificationId)
+        .update({
+      'isRead': true,
+    });
+  }
+
+  // ✅ تحديث جميع الإشعارات كمقروءة
+  Future<void> markAllNotificationsAsRead(String userId) async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('notifications')
+        .where('userId', isEqualTo: userId)
+        .where('isRead', isEqualTo: false)
+        .get();
+
+    final batch = FirebaseFirestore.instance.batch();
+    for (final doc in snapshot.docs) {
+      batch.update(doc.reference, {'isRead': true});
+    }
+    await batch.commit();
+  }

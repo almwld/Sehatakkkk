@@ -202,7 +202,7 @@ class ChatService {
       });
     }
 
-    print('✅ تم إرسال الرسالة بنجاح');
+    _sendNotification(receiverId: receiverId, senderName: user.displayName ?? "مستخدم", message: text, chatId: chatId);
   }
 
   // ============================================================
@@ -263,3 +263,39 @@ class ChatService {
 
   void dispose() {}
 }
+
+  // ✅ إرسال إشعار للمستلم عند استلام رسالة جديدة
+  Future<void> _sendNotification({
+    required String receiverId,
+    required String senderName,
+    required String message,
+    required String chatId,
+  }) async {
+    try {
+      // ✅ حفظ الإشعار في Firestore
+      await _firestore.collection('notifications').add({
+        'userId': receiverId,
+        'title': '📩 رسالة جديدة من $senderName',
+        'body': message.length > 50 ? '${message.substring(0, 50)}...' : message,
+        'type': 'new_message',
+        'chatId': chatId,
+        'senderName': senderName,
+        'isRead': false,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      // ✅ إرسال إشعار FCM (إذا كان المستخدم متصلاً)
+      final userDoc = await _firestore.collection('users').doc(receiverId).get();
+      if (userDoc.exists) {
+        final fcmToken = userDoc.data()?['fcmToken'];
+        if (fcmToken != null) {
+          // TODO: إرسال إشعار عبر FCM
+          print('📱 Sending FCM notification to: $fcmToken');
+        }
+      }
+      
+      print('✅ Notification sent to: $receiverId');
+    } catch (e) {
+      print('⚠️ Notification error: $e');
+    }
+  }

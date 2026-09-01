@@ -104,6 +104,22 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
       foregroundColor: isDark ? Colors.white : Colors.black87,
       elevation: 0,
       actions: [
+        Stack(
+          children: [
+            IconButton(
+              icon: Icon(Icons.notifications, color: isDark ? Colors.white : Colors.black87),
+              onPressed: () {
+                Navigator.pushNamed(context, /notifications);
+              },
+            ),
+            Positioned(
+              right: 0,
+              top: 0,
+              child: _buildNotificationBadge(),
+            ),
+          ],
+        ),
+        
         IconButton(
           icon: Icon(Icons.search, color: isDark ? Colors.white : Colors.black87),
           onPressed: _showSearchDialog,
@@ -695,3 +711,36 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     );
   }
 }
+
+  // ✅ عرض عدد الإشعارات غير المقروءة في AppBar
+  Widget _buildNotificationBadge() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('notifications')
+          .where('userId', isEqualTo: FirebaseAuth.instance.currentUser?.uid ?? '')
+          .where('isRead', isEqualTo: false)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return const SizedBox.shrink();
+        final count = snapshot.data!.docs.length;
+        if (count == 0) return const SizedBox.shrink();
+        return Container(
+          padding: const EdgeInsets.all(4),
+          decoration: const BoxDecoration(
+            color: Colors.red,
+            shape: BoxShape.circle,
+          ),
+          constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+          child: Text(
+            '$count',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        );
+      },
+    );
+  }
