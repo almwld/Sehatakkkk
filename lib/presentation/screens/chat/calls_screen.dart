@@ -11,6 +11,12 @@ class CallsScreen extends StatefulWidget {
 }
 
 class _CallsScreenState extends State<CallsScreen> {
+  // بيانات تجريبية للواجهة فقط.
+  //
+  // ملاحظة أمنية:
+  // لا يتم إنشاء chatId أو doctorId وهميين هنا.
+  // المكالمة الحقيقية يجب أن تكون مرتبطة بمحادثة حقيقية
+  // تم إنشاؤها من خلال ChatService / Backend.
   final List<Map<String, dynamic>> _calls = [
     {
       'name': 'د. أحمد المؤيد',
@@ -19,165 +25,142 @@ class _CallsScreenState extends State<CallsScreen> {
       'type': 'incoming',
       'image': null,
       'duration': '5:23',
+      'chatId': null,
+      'doctorId': null,
+      'isVideo': false,
     },
     {
-      'name': 'د. خالد النخلاني',
-      'subtitle': 'مكالمة فائتة',
-      'time': 'أمس، 2:15 م',
-      'type': 'missed',
-      'image': null,
-      'duration': '',
-    },
-    {
-      'name': 'د. أسماء الهندي',
+      'name': 'د. محمد القاسمي',
       'subtitle': 'مكالمة صادرة',
-      'time': 'أمس، 11:45 ص',
+      'time': 'أمس، 08:45 م',
       'type': 'outgoing',
       'image': null,
-      'duration': '12:30',
+      'duration': '12:41',
+      'chatId': null,
+      'doctorId': null,
+      'isVideo': false,
     },
     {
-      'name': 'د. محمد العلاي',
-      'subtitle': 'مكالمة فيديو واردة',
-      'time': 'الجمعة، 8:00 م',
-      'type': 'incoming',
-      'image': null,
-      'duration': '8:15',
-    },
-    {
-      'name': 'د. فاطمة صديقي',
-      'subtitle': 'مكالمة فائتة (فيديو)',
-      'time': 'الجمعة، 7:30 م',
+      'name': 'د. سارة عبدالله',
+      'subtitle': 'مكالمة فائتة',
+      'time': 'أمس، 03:20 م',
       'type': 'missed',
       'image': null,
-      'duration': '',
+      'duration': null,
+      'chatId': null,
+      'doctorId': null,
+      'isVideo': false,
     },
     {
-      'name': 'د. سارة العمري',
+      'name': 'د. خالد العريقي',
       'subtitle': 'مكالمة واردة',
-      'time': 'الخميس، 4:20 م',
+      'time': '30 أغسطس، 11:15 ص',
       'type': 'incoming',
       'image': null,
-      'duration': '3:45',
+      'duration': '8:17',
+      'chatId': null,
+      'doctorId': null,
+      'isVideo': true,
     },
   ];
 
-  String _getInitials(String name) {
-    if (name.isEmpty) return 'م';
-    final parts = name.split(' ');
-    if (parts.length >= 2) {
-      return parts[0][0] + parts[1][0];
-    }
-    return name[0];
-  }
-
-  Color _getAvatarColor(String name) {
-    final colors = [
-      Colors.teal,
-      Colors.blue,
-      Colors.purple,
-      Colors.orange,
-      Colors.red,
-      Colors.green,
-      Colors.indigo,
-      Colors.pink,
-    ];
-    final index = name.hashCode.abs() % colors.length;
-    return colors[index];
-  }
-
-  IconData _getCallIcon(String type) {
-    switch (type) {
-      case 'incoming':
-        return Icons.call_received;
-      case 'missed':
-        return Icons.phone_missed;
-      case 'outgoing':
-        return Icons.call_made;
-      default:
-        return Icons.phone;
-    }
-  }
-
-  Color _getCallColor(String type) {
-    switch (type) {
-      case 'missed':
-        return Colors.red;
-      case 'incoming':
-        return Colors.green;
-      case 'outgoing':
-        return AppColors.primary;
-      default:
-        return Colors.grey;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0b141a) : const Color(0xFFF8FAFC),
+      backgroundColor: const Color(0xFF0B141A),
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: const Color(0xFF111B21),
+        foregroundColor: Colors.white,
+        title: const Text(
+          'المكالمات',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
+      ),
       body: Column(
         children: [
-          // ✅ أزرار المكالمات السريعة
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildQuickAction(
-                  icon: Icons.favorite,
-                  label: 'المفضلة',
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                  },
-                ),
-                _buildQuickAction(
-                  icon: Icons.person_add,
-                  label: 'جهات اتصال',
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                  },
-                ),
-                _buildQuickAction(
-                  icon: Icons.history,
-                  label: 'السجل',
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                  },
-                ),
-                _buildQuickAction(
-                  icon: Icons.phone,
-                  label: 'اتصال',
-                  color: AppColors.primary,
-                  onTap: () {
-                    HapticFeedback.mediumImpact();
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const CallScreen(
-                          chatId: 'new_call',
-                          doctorName: 'طبيب',
-                          doctorId: 'new',
-                          isVideo: false,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ],
+          _buildHeader(),
+          Expanded(
+            child: _calls.isEmpty
+                ? _buildEmptyState()
+                : ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(
+                      16,
+                      16,
+                      16,
+                      24,
+                    ),
+                    itemCount: _calls.length,
+                    separatorBuilder: (_, __) =>
+                        const SizedBox(height: 10),
+                    itemBuilder: (context, index) {
+                      return _buildCallTile(_calls[index]);
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(
+        16,
+        20,
+        16,
+        16,
+      ),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(0xFF111B21),
+            Color(0xFF0B141A),
+          ],
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildQuickAction(
+              icon: Icons.phone_outlined,
+              label: 'اتصال',
+              color: AppColors.primary,
+              onTap: () {
+                HapticFeedback.mediumImpact();
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'لإجراء مكالمة، افتح محادثة الطبيب أولاً.',
+                    ),
+                  ),
+                );
+              },
             ),
           ),
-          const Divider(height: 1),
-          // ✅ قائمة المكالمات
+          const SizedBox(width: 12),
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              itemCount: _calls.length,
-              itemBuilder: (context, index) {
-                final call = _calls[index];
-                return _buildCallTile(call, isDark);
+            child: _buildQuickAction(
+              icon: Icons.videocam_outlined,
+              label: 'فيديو',
+              color: AppColors.info,
+              onTap: () {
+                HapticFeedback.mediumImpact();
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'لإجراء مكالمة فيديو، افتح محادثة الطبيب أولاً.',
+                    ),
+                  ),
+                );
               },
             ),
           ),
@@ -189,154 +172,360 @@ class _CallsScreenState extends State<CallsScreen> {
   Widget _buildQuickAction({
     required IconData icon,
     required String label,
-    Color? color,
+    required Color color,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: (color ?? Colors.white).withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              icon,
-              color: color ?? Colors.white,
-              size: 24,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          height: 58,
+          decoration: BoxDecoration(
+            color: const Color(0xFF1F2C34),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: color.withValues(alpha: 0.25),
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              color: Colors.grey[400],
-            ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                color: color,
+                size: 25,
+              ),
+              const SizedBox(width: 10),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildCallTile(Map<String, dynamic> call, bool isDark) {
-    final name = call['name'] as String;
-    final subtitle = call['subtitle'] as String;
-    final time = call['time'] as String;
-    final type = call['type'] as String;
-    final duration = call['duration'] as String;
-    final icon = _getCallIcon(type);
-    final color = _getCallColor(type);
+  Widget _buildCallTile(Map<String, dynamic> call) {
+    final name = call['name']?.toString() ?? 'طبيب';
+    final subtitle = call['subtitle']?.toString() ?? '';
+    final time = call['time']?.toString() ?? '';
+    final type = call['type']?.toString() ?? '';
+    final duration = call['duration']?.toString();
+    final image = call['image']?.toString();
+    final isVideo = call['isVideo'] == true;
 
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.selectionClick();
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => CallScreen(
-              chatId: 'call_${DateTime.now().millisecondsSinceEpoch}',
-              doctorName: name,
-              doctorId: 'doctor_${name.hashCode}',
-              isVideo: type == 'incoming' && subtitle.contains('فيديو'),
+    final isMissed = type == 'missed';
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.lightImpact();
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => _buildCallScreenForRecord(call),
+            ),
+          );
+        },
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: const Color(0xFF111B21),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.05),
             ),
           ),
-        );
-      },
-      onLongPress: () {
-        HapticFeedback.heavyImpact();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('تم الضغط المطول على مكالمة $name'),
-            backgroundColor: AppColors.primary,
-          ),
-        );
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
-              width: 0.5,
-            ),
-          ),
-        ),
-        child: Row(
-          children: [
-            // ✅ صورة المستخدم
-            CircleAvatar(
-              radius: 24,
-              backgroundColor: _getAvatarColor(name),
-              child: Text(
-                _getInitials(name),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+          child: Row(
+            children: [
+              _buildAvatar(
+                name: name,
+                image: image,
               ),
-            ),
-            const SizedBox(width: 12),
-            // ✅ معلومات المكالمة
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                      color: isDark ? Colors.white : Colors.black87,
+              const SizedBox(width: 13),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      Icon(
-                        icon,
-                        color: color,
-                        size: 14,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        subtitle,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Icon(
+                          _getCallTypeIcon(type),
+                          size: 16,
+                          color: isMissed
+                              ? AppColors.error
+                              : AppColors.primary,
                         ),
-                      ),
-                      if (duration.isNotEmpty) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[800],
-                            borderRadius: BorderRadius.circular(4),
-                          ),
+                        const SizedBox(width: 5),
+                        Expanded(
                           child: Text(
-                            duration,
+                            subtitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              fontSize: 10,
-                              color: Colors.grey[400],
+                              color: isMissed
+                                  ? AppColors.error
+                                  : Colors.white70,
+                              fontSize: 13,
                             ),
                           ),
                         ),
+                        if (isVideo) ...[
+                          const SizedBox(width: 5),
+                          const Icon(
+                            Icons.videocam_outlined,
+                            size: 16,
+                            color: Colors.white54,
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      time,
+                      style: const TextStyle(
+                        color: Colors.white38,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  if (duration != null && duration.isNotEmpty)
+                    Text(
+                      duration,
+                      style: const TextStyle(
+                        color: Colors.white54,
+                        fontSize: 12,
+                      ),
+                    ),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      isVideo
+                          ? Icons.videocam_outlined
+                          : Icons.phone_outlined,
+                      color: AppColors.primary,
+                      size: 19,
+                    ),
                   ),
                 ],
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAvatar({
+    required String name,
+    String? image,
+  }) {
+    if (image != null && image.isNotEmpty) {
+      return ClipOval(
+        child: Image.network(
+          image,
+          width: 56,
+          height: 56,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) {
+            return _buildDefaultAvatar(name);
+          },
+        ),
+      );
+    }
+
+    return _buildDefaultAvatar(name);
+  }
+
+  Widget _buildDefaultAvatar(String name) {
+    final firstLetter = name.trim().isNotEmpty
+        ? name.trim().substring(0, 1)
+        : 'ط';
+
+    return Container(
+      width: 56,
+      height: 56,
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.15),
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.25),
+        ),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        firstLetter,
+        style: const TextStyle(
+          color: AppColors.primary,
+          fontSize: 21,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  IconData _getCallTypeIcon(String type) {
+    switch (type) {
+      case 'incoming':
+        return Icons.call_received_rounded;
+      case 'outgoing':
+        return Icons.call_made_rounded;
+      case 'missed':
+        return Icons.call_missed_rounded;
+      default:
+        return Icons.phone_rounded;
+    }
+  }
+
+  Widget _buildCallScreenForRecord(
+    Map<String, dynamic> call,
+  ) {
+    final chatId = call['chatId']?.toString();
+
+    if (chatId == null || chatId.isEmpty) {
+      return Scaffold(
+        backgroundColor: const Color(0xFF0B141A),
+        appBar: AppBar(
+          title: const Text('المكالمة'),
+          backgroundColor: const Color(0xFF111B21),
+          foregroundColor: Colors.white,
+          elevation: 0,
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.phone_disabled_outlined,
+                    color: AppColors.primary,
+                    size: 40,
+                  ),
+                ),
+                const SizedBox(height: 22),
+                const Text(
+                  'هذه المكالمة التجريبية غير مرتبطة بمحادثة حقيقية',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'افتح المحادثة المرتبطة بالطبيب لبدء مكالمة آمنة.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white60,
+                    fontSize: 14,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  icon: const Icon(Icons.arrow_back),
+                  label: const Text('العودة'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 13,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            // ✅ الوقت
+          ),
+        ),
+      );
+    }
+
+    return CallScreen(
+      chatId: chatId,
+      doctorName: call['name']?.toString() ?? 'طبيب',
+      doctorId: call['doctorId']?.toString() ?? '',
+      isVideo: call['isVideo'] == true,
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.phone_disabled_outlined,
+              color: Colors.white38,
+              size: 64,
+            ),
+            SizedBox(height: 18),
             Text(
-              time,
+              'لا توجد مكالمات',
               style: TextStyle(
-                fontSize: 11,
-                color: isDark ? Colors.grey[500] : Colors.grey[400],
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'ستظهر مكالماتك هنا عند إجراء مكالمة مع طبيب.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white54,
+                fontSize: 14,
               ),
             ),
           ],
