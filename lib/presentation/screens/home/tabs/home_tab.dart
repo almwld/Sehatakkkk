@@ -576,7 +576,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   Future<void> _loadNearbyServices() async {
     try {
       if (!mounted) return;
-      setState(() => _nearbyServices = nearby);
+      setState(() { _nearbyServices = nearbyResult; });
     } catch (e) { print('⚠️ فشل تحميل الخدمات القريبة: $e'); }
   }
 
