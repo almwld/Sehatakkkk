@@ -6,8 +6,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
-import 'package:sehatak/models/chat_model.dart';
-import 'package:sehatak/models/message_model.dart';
+import 'package:sehatak/core/models/chat_model.dart';
+import 'package:sehatak/core/models/message_model.dart';
 
 class ChatService {
   static final ChatService _instance = ChatService._internal();

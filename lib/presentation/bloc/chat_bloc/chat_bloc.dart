@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sehatak/core/services/chat_service.dart';
-import 'package:sehatak/models/chat_model.dart';
-import 'package:sehatak/models/message_model.dart';
+import 'package:sehatak/core/models/chat_model.dart';
+import 'package:sehatak/core/models/message_model.dart';
 
 // ✅ حدث التحديث
 class RefreshChatsEvent {}

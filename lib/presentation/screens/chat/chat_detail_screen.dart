@@ -8,7 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/chat_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
-import 'package:sehatak/models/message_model.dart';
+import 'package:sehatak/core/models/message_model.dart';
 
 class ChatDetailScreen extends StatefulWidget {
   final String chatId;

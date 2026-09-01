@@ -9,7 +9,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/chat_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
-import 'package:sehatak/models/chat_model.dart';
+import 'package:sehatak/core/models/chat_model.dart';
 import 'package:sehatak/presentation/screens/chat/chat_detail_screen.dart';
 import 'package:sehatak/presentation/screens/chat/create_group_screen.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/chat_shimmer.dart';

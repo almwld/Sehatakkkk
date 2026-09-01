@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/services/nextcloud_service.dart';
-import 'chat_room_screen.dart';
+import 'package:sehatak/core/services/chat_service.dart';
+import 'chat_detail_screen.dart';
 
 class NewChatScreen extends StatefulWidget {
   const NewChatScreen({super.key});
@@ -14,7 +14,6 @@ class NewChatScreen extends StatefulWidget {
 
 class _NewChatScreenState extends State<NewChatScreen> {
   final TextEditingController _searchController = TextEditingController();
-  final NextcloudService _nextcloud = NextcloudService();
   
   List<Map<String, dynamic>> _users = [];
   List<Map<String, dynamic>> _filteredUsers = [];
@@ -93,55 +92,32 @@ class _NewChatScreenState extends State<NewChatScreen> {
     if (currentUser == null) return;
 
     try {
-      final chatId = FirebaseFirestore.instance.collection('chat_rooms').doc().id;
-      
-      await FirebaseFirestore.instance.collection('chat_rooms').doc(chatId).set({
-        'id': chatId,
-        'type': 'private',
-        'participants': [currentUser.uid, user['id']],
-        'participantsData': {
-          currentUser.uid: {
-            'name': currentUser.displayName ?? 'مستخدم',
-            'image': currentUser.photoURL ?? '',
-          },
-          user['id']: {
-            'name': user['name'],
-            'image': user['image'] ?? '',
-          },
-        },
-        'lastMessage': 'ابدأ المحادثة',
-        'lastMessageTime': FieldValue.serverTimestamp(),
-        'createdAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
-        'unreadCount': {
-          currentUser.uid: 0,
-          user['id']: 0,
-        },
-      });
+      final chatService = ChatService();
 
-      // ✅ إنشاء غرفة في Nextcloud إن أمكن
-      final isAvailable = await _nextcloud.checkServerStatus();
-      if (isAvailable) {
-        try {
-          await _nextcloud.getChatUrl(chatId, user['id']);
-        } catch (e) {
-          print('⚠️ Nextcloud error (non-critical): $e');
-        }
-      }
+      final chatId = await chatService.createChat(
+        doctorId: user['id'] as String,
+        doctorName: user['name'] as String,
+        patientId: currentUser.uid,
+        patientName: currentUser.displayName ?? 'مريض',
+        doctorImage: user['image'] as String?,
+      );
 
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ChatRoomScreen(
-              roomId: chatId,
-              roomName: user['name'],
-              isGroup: false,
-            ),
+      if (!mounted) return;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ChatDetailScreen(
+            chatId: chatId,
+            userId: user['id'] as String,
+            userName: user['name'] as String,
+            isDoctor: false,
           ),
-        );
-      }
+        ),
+      );
     } catch (e) {
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('❌ فشل بدء المحادثة: $e'),

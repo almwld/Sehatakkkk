@@ -4,8 +4,8 @@
 
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:sehatak/models/chat_model.dart';
-import 'package:sehatak/models/message_model.dart';
+import 'package:sehatak/core/models/chat_model.dart';
+import 'package:sehatak/core/models/message_model.dart';
 
 class OfflineService {
   static final OfflineService _instance = OfflineService._internal();

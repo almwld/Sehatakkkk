@@ -21,7 +21,7 @@ import 'core/managers/global_scroll_manager.dart';
 import 'core/navigation/global_navigator_observer.dart';
 import 'presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'presentation/bloc/theme_bloc/theme_bloc.dart';
-import 'presentation/bloc/chat_bloc/chat_bloc.dart';
+import 'package:sehatak/presentation/bloc/chat_bloc/chat_bloc.dart'';
 import 'presentation/bloc/doctor_bloc/doctor_bloc.dart';
 import 'presentation/screens/splash_screen.dart';
 import 'presentation/screens/home/home_screen.dart';

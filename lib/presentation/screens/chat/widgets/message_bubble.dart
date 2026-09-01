@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/toast_service.dart';
-import 'package:sehatak/models/message_model.dart';
+import 'package:sehatak/core/models/message_model.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/full_screen_image.dart';
 
 class MessageBubble extends StatelessWidget {
