@@ -202,7 +202,22 @@ class ChatService {
       });
     }
 
-    _sendNotification(receiverId: receiverId, senderName: user.displayName ?? "مستخدم", message: text, chatId: chatId);
+    final participants =
+        List<String>.from(chatDoc.data()?['participants'] ?? []);
+
+    final receiverId = participants.firstWhere(
+      (id) => id != user.uid,
+      orElse: () => '',
+    );
+
+    if (receiverId.isNotEmpty) {
+      await _sendNotification(
+        receiverId: receiverId,
+        senderName: user.displayName ?? 'مستخدم',
+        message: text,
+        chatId: chatId,
+      );
+    }
   }
 
   // ============================================================

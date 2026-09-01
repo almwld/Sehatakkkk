@@ -105,6 +105,46 @@ class ChatModel extends Equatable {
     );
   }
 
+  factory ChatModel.fromMap(Map<String, dynamic> data, String documentId) {
+    return ChatModel(
+      id: documentId,
+      doctorId: data['doctorId'] ?? '',
+      doctorName: data['doctorName'] ?? '',
+      doctorImage: data['doctorImage'],
+      patientId: data['patientId'] ?? '',
+      patientName: data['patientName'] ?? '',
+      patientImage: data['patientImage'],
+      lastMessage: data['lastMessage'] ?? 'ابدأ المحادثة',
+      lastMessageTime: (data['lastMessageTime'] as Timestamp?)?.toDate(),
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      participants: List<String>.from(data['participants'] ?? []),
+      unreadCount: Map<String, int>.from(data['unreadCount'] ?? {}),
+      isOnline: data['isOnline'] ?? false,
+      lastSeen: (data['lastSeen'] as Timestamp?)?.toDate(),
+      isGroup: data['isGroup'] ?? false,
+      groupName: data['groupName'],
+      groupImage: data['groupImage'],
+      isPinned: data['pinned'] ?? false,
+      isMuted: data['muted'] ?? false,
+      mutedUntil: (data['mutedUntil'] as Timestamp?)?.toDate(),
+      labels: List<String>.from(data['labels'] ?? []),
+      isArchived: data['isArchived'] ?? false,
+      callHistory: data['callHistory'] != null
+          ? (data['callHistory'] as List)
+              .map((c) => CallHistoryModel.fromMap(
+                    Map<String, dynamic>.from(c),
+                  ))
+              .toList()
+          : null,
+      lastCall: data['lastCall'] != null
+          ? CallHistoryModel.fromMap(
+              Map<String, dynamic>.from(data['lastCall']),
+            )
+          : null,
+    );
+  }
+
   Map<String, dynamic> toFirestore() {
     return {
       'doctorId': doctorId,

@@ -12,6 +12,12 @@ class NextcloudService {
         'NEXTCLOUD_URL, NEXTCLOUD_USERNAME and NEXTCLOUD_PASSWORD are required'
       );
     }
+
+    console.log('☁️ Nextcloud configured:', {
+      baseUrl: this.baseUrl,
+      username: this.username,
+      rootPath: this.rootPath,
+    });
   }
 
   getAuthHeader() {
@@ -29,42 +35,79 @@ class NextcloudService {
       .replace(/[^a-zA-Z0-9_\-.]/g, '_');
   }
 
-  buildPath(chatId, messageId, fileName) {
+  buildPath(chatId, messageId, fileName = '') {
     const safeChatId = this.sanitize(chatId);
     const safeMessageId = this.sanitize(messageId);
-    const safeFileName = this.sanitize(fileName);
 
-    return `${this.rootPath}/${safeChatId}/${safeMessageId}/${safeFileName}`;
+    let path =
+      `${this.rootPath}/${safeChatId}/${safeMessageId}`;
+
+    if (fileName) {
+      path += `/${this.sanitize(fileName)}`;
+    }
+
+    return path;
+  }
+
+  getDavUrl(remotePath = '') {
+    const encodedUsername = encodeURIComponent(this.username);
+
+    const cleanPath = String(remotePath)
+      .replace(/^\/+/, '')
+      .split('/')
+      .map(encodeURIComponent)
+      .join('/');
+
+    return (
+      `${this.baseUrl}/remote.php/dav/files/` +
+      `${encodedUsername}/${cleanPath}`
+    );
   }
 
   async createDirectory(path) {
-    const parts = path.split('/');
+    const parts = path
+      .split('/')
+      .filter(Boolean);
 
     let currentPath = '';
 
     for (const part of parts) {
-      if (!part) continue;
-
       currentPath += `/${part}`;
 
-      const url =
-        `${this.baseUrl}/remote.php/dav/files/` +
-        `${encodeURIComponent(this.username)}${currentPath}`;
+      const remotePath = currentPath.replace(/^\/+/, '');
+      const url = this.getDavUrl(remotePath);
+
+      console.log('📁 MKCOL:', url);
 
       try {
-        await axios({
+        const response = await axios({
           method: 'MKCOL',
           url,
           headers: this.getAuthHeader(),
-          validateStatus: status =>
-            status === 201 ||
-            status === 405 ||
-            status === 409,
+          validateStatus: () => true,
         });
+
+        console.log('📁 MKCOL response:', {
+          status: response.status,
+          path: remotePath,
+        });
+
+        if (![201, 405].includes(response.status)) {
+          const error = new Error(
+            `Nextcloud MKCOL failed: HTTP ${response.status}`
+          );
+
+          error.response = response;
+          throw error;
+        }
       } catch (error) {
-        throw new Error(
-          `Failed to create Nextcloud directory: ${currentPath}`
-        );
+        console.error('❌ MKCOL ERROR');
+
+        console.error('message:', error.message);
+        console.error('status:', error.response?.status);
+        console.error('data:', error.response?.data);
+
+        throw error;
       }
     }
   }
@@ -76,11 +119,16 @@ class NextcloudService {
     buffer,
     mimeType = 'application/octet-stream',
   }) {
+    if (!Buffer.isBuffer(buffer)) {
+      throw new Error('uploadBuffer requires a Buffer');
+    }
+
     const directory = this.buildPath(
       chatId,
-      messageId,
-      ''
-    ).replace(/\/$/, '');
+      messageId
+    );
+
+    console.log('☁️ Upload directory:', directory);
 
     await this.createDirectory(directory);
 
@@ -89,39 +137,73 @@ class NextcloudService {
     const remotePath =
       `${directory}/${safeFileName}`;
 
-    const url =
-      `${this.baseUrl}/remote.php/dav/files/` +
-      `${encodeURIComponent(this.username)}/${remotePath}`;
+    const url = this.getDavUrl(remotePath);
 
-    const response = await axios.put(url, buffer, {
-      headers: {
-        ...this.getAuthHeader(),
-        'Content-Type': mimeType,
-        'Content-Length': buffer.length,
-      },
-      maxContentLength: Infinity,
-      maxBodyLength: Infinity,
-    });
-
-    if (![201, 204].includes(response.status)) {
-      throw new Error(
-        `Nextcloud upload failed: HTTP ${response.status}`
-      );
-    }
-
-    return {
-      provider: 'nextcloud',
+    console.log('⬆️ Nextcloud PUT:', {
+      url,
       remotePath,
       fileName: safeFileName,
       mimeType,
-      url,
-    };
+      size: buffer.length,
+    });
+
+    try {
+      const response = await axios.put(
+        url,
+        buffer,
+        {
+          headers: {
+            ...this.getAuthHeader(),
+            'Content-Type': mimeType,
+            'Content-Length': buffer.length,
+          },
+          maxContentLength: Infinity,
+          maxBodyLength: Infinity,
+          validateStatus: () => true,
+        }
+      );
+
+      console.log('⬆️ PUT response:', {
+        status: response.status,
+        statusText: response.statusText,
+      });
+
+      if (![201, 204].includes(response.status)) {
+        const error = new Error(
+          `Nextcloud upload failed: HTTP ${response.status}`
+        );
+
+        error.response = response;
+        throw error;
+      }
+
+      console.log('✅ Nextcloud upload successful');
+
+      return {
+        provider: 'nextcloud',
+        remotePath,
+        fileName: safeFileName,
+        mimeType,
+        url,
+      };
+    } catch (error) {
+      console.error('');
+      console.error('========== NEXTCLOUD PUT ERROR ==========');
+      console.error('message:', error.message);
+      console.error('status:', error.response?.status);
+      console.error('statusText:', error.response?.statusText);
+      console.error('data:', error.response?.data);
+      console.error('url:', error.config?.url);
+      console.error('method:', error.config?.method);
+      console.error('=========================================');
+      console.error('');
+
+      throw error;
+    }
   }
 
   async deleteFile(remotePath) {
-    const url =
-      `${this.baseUrl}/remote.php/dav/files/` +
-      `${encodeURIComponent(this.username)}/${remotePath}`;
+    const url = this.getDavUrl(remotePath);
 
     const response = await axios.delete(url, {
       headers: this.getAuthHeader(),

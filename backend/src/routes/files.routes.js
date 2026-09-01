@@ -1,16 +1,14 @@
 const express = require('express');
 const multer = require('multer');
 const crypto = require('crypto');
-
 const nextcloud = require('../services/nextcloud.service');
 
 const router = express.Router();
 
 const upload = multer({
   storage: multer.memoryStorage(),
-
   limits: {
-    fileSize: 100 * 1024 * 1024, // 100 MB
+    fileSize: 100 * 1024 * 1024,
   },
 });
 
@@ -37,6 +35,13 @@ router.post(
 
       const messageId = crypto.randomUUID();
 
+      console.log('========== NEXTCLOUD UPLOAD ==========');
+      console.log('chatId:', chatId);
+      console.log('messageId:', messageId);
+      console.log('fileName:', req.file.originalname);
+      console.log('mimeType:', req.file.mimetype);
+      console.log('size:', req.file.size);
+
       const result = await nextcloud.uploadBuffer({
         chatId,
         messageId,
@@ -45,9 +50,12 @@ router.post(
         mimeType: req.file.mimetype,
       });
 
+      console.log('Nextcloud upload SUCCESS');
+      console.log('remotePath:', result.remotePath);
+      console.log('======================================');
+
       return res.status(201).json({
         success: true,
-
         file: {
           messageId,
           provider: result.provider,
@@ -57,12 +65,26 @@ router.post(
           size: req.file.size,
         },
       });
+
     } catch (error) {
-      console.error('Nextcloud upload error:', error);
+
+      console.error('');
+      console.error('========== NEXTCLOUD UPLOAD ERROR ==========');
+      console.error('message:', error.message);
+      console.error('status:', error.response?.status);
+      console.error('statusText:', error.response?.statusText);
+      console.error('data:', error.response?.data);
+      console.error('url:', error.config?.url);
+      console.error('method:', error.config?.method);
+      console.error('============================================');
+      console.error('');
 
       return res.status(500).json({
         success: false,
         message: 'فشل رفع الملف',
+        error: process.env.NODE_ENV === 'development'
+          ? error.message
+          : undefined,
       });
     }
   }

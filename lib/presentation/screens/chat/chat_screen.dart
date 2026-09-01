@@ -109,7 +109,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
             IconButton(
               icon: Icon(Icons.notifications, color: isDark ? Colors.white : Colors.black87),
               onPressed: () {
-                Navigator.pushNamed(context, /notifications);
+                Navigator.pushNamed(context, '/notifications');
               },
             ),
             Positioned(
