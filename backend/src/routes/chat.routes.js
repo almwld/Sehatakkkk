@@ -480,6 +480,59 @@ router.post('/:chatId/messages', async (req, res) => {
 |--------------------------------------------------------------------------
 */
 
+
+router.delete('/:chatId', async (req, res) => {
+  try {
+    const { chatId } = req.params;
+
+    if (!chatId) {
+      return res.status(400).json({
+        success: false,
+        message: 'chatId مطلوب',
+      });
+    }
+
+    const db = getFirestore();
+    const chatRef = db.collection('chats').doc(chatId);
+
+    const chatSnapshot = await chatRef.get();
+
+    if (!chatSnapshot.exists) {
+      return res.status(404).json({
+        success: false,
+        message: 'المحادثة غير موجودة',
+      });
+    }
+
+    const messagesSnapshot = await chatRef
+      .collection('messages')
+      .get();
+
+    const batch = db.batch();
+
+    messagesSnapshot.docs.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+
+    batch.delete(chatRef);
+
+    await batch.commit();
+
+    return res.json({
+      success: true,
+      chatId,
+      deletedMessages: messagesSnapshot.size,
+    });
+  } catch (error) {
+    console.error('Delete chat error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'فشل حذف المحادثة',
+    });
+  }
+});
+
 router.patch('/:chatId/read', async (req, res) => {
   try {
     const db = getFirestore();
