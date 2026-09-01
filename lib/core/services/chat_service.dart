@@ -164,16 +164,30 @@ class ChatService {
     String? doctorImage,
     String? patientImage,
   }) async {
+    final user = _auth.currentUser;
+
+    if (user == null) {
+      throw Exception('المستخدم غير مسجل الدخول');
+    }
+
+    if (doctorId.trim().isEmpty) {
+      throw Exception('معرف الطبيب غير صالح');
+    }
+
+    if (doctorId.trim() == user.uid) {
+      throw Exception('لا يمكن إنشاء محادثة مع المستخدم نفسه');
+    }
+
     final response = await _request(
       'POST',
       '/api/chats',
       body: {
-        'doctorId': doctorId,
-        'doctorName': doctorName,
-        'patientId': patientId,
-        'patientName': patientName,
+        'doctorId': doctorId.trim(),
+        'doctorName': doctorName.trim(),
+        'patientId': user.uid,
+        'patientName': patientName.trim(),
         'doctorImage': doctorImage ?? '',
-        'patientImage': patientImage ?? '',
+        'patientImage': patientImage ?? user.photoURL ?? '',
       },
     );
 
@@ -215,7 +229,7 @@ class ChatService {
 
         final response = await _request(
           'GET',
-          '/api/chats?userId=${Uri.encodeComponent(userId)}',
+          '/api/chats',
         );
 
         if (response.statusCode < 200 || response.statusCode >= 300) {
@@ -450,8 +464,6 @@ class ChatService {
   }
 
   Future<void> markAsRead(String chatId) async {
-    final userId = _auth.currentUser?.uid ?? '';
-
     final response = await _request(
       'PATCH',
       '/api/chats/${Uri.encodeComponent(chatId)}/read',

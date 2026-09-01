@@ -9,6 +9,8 @@ import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/chat_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/core/models/message_model.dart';
+import 'package:sehatak/presentation/screens/call/call_screen.dart';
+import 'dart:async';
 
 class ChatDetailScreen extends StatefulWidget {
   final String chatId;
@@ -32,6 +34,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final ChatService _chatService = ChatService();
+StreamSubscription<List<MessageModel>>? _messagesSubscription;
   
   List<MessageModel> _messages = [];
   bool _isLoading = true;
@@ -48,6 +51,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
   @override
   void dispose() {
+    _messagesSubscription?.cancel();
+    _chatService.dispose();
     _textController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -61,7 +66,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
     try {
       // ✅ استخدام ChatService مباشرة (بدون MessageBloc)
-      _chatService.getMessages(widget.chatId).listen(
+      _messagesSubscription = _chatService.getMessages(widget.chatId).listen(
         (messages) {
           print('📩 Received ${messages.length} messages');
           setState(() {

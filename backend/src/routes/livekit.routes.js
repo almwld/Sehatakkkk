@@ -1,29 +1,46 @@
 const express = require('express');
 const { AccessToken } = require('livekit-server-sdk');
+const { requireAuth } = require('../middleware/auth.middleware');
+const { getFirestore } = require('../services/firebase.service');
 
 const router = express.Router();
 
-router.post('/token', async (req, res) => {
+/**
+ * POST /api/livekit/token
+ *
+ * إنشاء LiveKit token للمستخدم الموثق فقط.
+ *
+ * قواعد الأمان:
+ * 1. Firebase ID Token مطلوب.
+ * 2. participantIdentity يؤخذ من req.user.uid فقط.
+ * 3. roomName يجب أن يكون Chat ID موجوداً في Firestore.
+ * 4. المستخدم يجب أن يكون أحد participants في المحادثة.
+ */
+router.post('/token', requireAuth, async (req, res) => {
   try {
-    const {
-      roomName,
-      participantIdentity,
-      participantName,
-    } = req.body;
+    const { roomName, participantName } = req.body;
 
-    if (!roomName) {
-      return res.status(400).json({
+    const currentUserId = String(req.user.uid || '');
+
+    if (!currentUserId) {
+      return res.status(401).json({
         success: false,
-        message: 'roomName مطلوب',
+        message: 'المصادقة مطلوبة',
       });
     }
 
-    if (!participantIdentity) {
+    if (
+      typeof roomName !== 'string' ||
+      roomName.trim().length === 0 ||
+      roomName.trim().length > 200
+    ) {
       return res.status(400).json({
         success: false,
-        message: 'participantIdentity مطلوب',
+        message: 'roomName غير صالح',
       });
     }
+
+    const safeRoomName = roomName.trim();
 
     if (
       !process.env.LIVEKIT_API_KEY ||
@@ -36,19 +53,62 @@ router.post('/token', async (req, res) => {
       });
     }
 
+    /**
+     * التحقق من أن roomName هو Chat ID حقيقي
+     * وأن المستخدم مشارك في المحادثة.
+     */
+    const db = getFirestore();
+
+    const chatSnapshot = await db
+      .collection('chats')
+      .doc(safeRoomName)
+      .get();
+
+    if (!chatSnapshot.exists) {
+      return res.status(404).json({
+        success: false,
+        message: 'المحادثة المرتبطة بالمكالمة غير موجودة',
+      });
+    }
+
+    const chatData = chatSnapshot.data() || {};
+
+    const participants = Array.isArray(chatData.participants)
+      ? chatData.participants.map(String)
+      : [];
+
+    if (!participants.includes(currentUserId)) {
+      return res.status(403).json({
+        success: false,
+        message: 'ليس لديك صلاحية الانضمام إلى هذه المكالمة',
+      });
+    }
+
+    /**
+     * الهوية الحقيقية دائماً من Firebase.
+     * لا نستخدم participantIdentity من body.
+     */
+    const participantIdentity = currentUserId;
+
+    const safeParticipantName =
+      typeof participantName === 'string' &&
+      participantName.trim().length > 0
+        ? participantName.trim().slice(0, 100)
+        : String(req.user.name || currentUserId);
+
     const token = new AccessToken(
       process.env.LIVEKIT_API_KEY,
       process.env.LIVEKIT_API_SECRET,
       {
-        identity: String(participantIdentity),
-        name: String(participantName || participantIdentity),
+        identity: participantIdentity,
+        name: safeParticipantName,
         ttl: '1h',
       },
     );
 
     token.addGrant({
       roomJoin: true,
-      room: String(roomName),
+      room: safeRoomName,
       canPublish: true,
       canSubscribe: true,
       canPublishData: true,
@@ -61,9 +121,9 @@ router.post('/token', async (req, res) => {
       data: {
         token: accessToken,
         url: process.env.LIVEKIT_URL,
-        roomName: String(roomName),
-        participantIdentity: String(participantIdentity),
-        participantName: String(participantName || participantIdentity),
+        roomName: safeRoomName,
+        participantIdentity,
+        participantName: safeParticipantName,
       },
     });
   } catch (error) {
@@ -78,6 +138,11 @@ router.post('/token', async (req, res) => {
   }
 });
 
+/**
+ * GET /api/livekit/health
+ *
+ * فحص عام بدون كشف الأسرار.
+ */
 router.get('/health', (req, res) => {
   res.json({
     success: true,

@@ -3,67 +3,68 @@ const { getFirestore } = require('../services/firebase.service');
 
 const router = express.Router();
 
-/*
-|--------------------------------------------------------------------------
-| Helpers
-|--------------------------------------------------------------------------
-*/
+/**
+ * هوية المستخدم الموثقة تأتي حصراً من Firebase ID Token.
+ * لا نثق بـ userId القادم من body أو query.
+ */
+function getAuthenticatedUserId(req) {
+  return req.user?.uid ? String(req.user.uid) : null;
+}
 
-function getUserId(req) {
+/**
+ * التأكد من أن المستخدم مشارك في المحادثة.
+ */
+function isParticipant(chatData, userId) {
   return (
-    req.user?.uid ||
-    req.body?.userId ||
-    req.query?.userId ||
-    null
+    !!userId &&
+    Array.isArray(chatData?.participants) &&
+    chatData.participants.map(String).includes(String(userId))
   );
 }
 
 function normalizeMessageData(data = {}) {
   return {
     ...data,
-
-    // ضمان وجود حقول متوافقة مع MessageModel
     text: data.text ?? '',
     type: data.type ?? 'text',
-
     senderId: data.senderId ?? '',
     receiverId: data.receiverId ?? '',
-
     timestamp: data.timestamp ?? null,
-
     isRead: data.isRead ?? false,
-
-    // حقول الملفات - ستُستخدم لاحقًا مع Nextcloud
     fileUrl: data.fileUrl ?? null,
     fileName: data.fileName ?? null,
     fileType: data.fileType ?? null,
     fileSize: data.fileSize ?? null,
-
     imageUrl: data.imageUrl ?? null,
     audioUrl: data.audioUrl ?? null,
-
     replyToMessageId: data.replyToMessageId ?? null,
-
     metadata: data.metadata ?? null,
   };
 }
 
-/*
-|--------------------------------------------------------------------------
-| POST /api/chats
-| إنشاء محادثة جديدة أو إعادة المحادثة الموجودة
-|--------------------------------------------------------------------------
-*/
-
+/**
+ * إنشاء محادثة فردية.
+ *
+ * patientId القادم من العميل لم يعد موثوقاً.
+ * المريض هو المستخدم الموثق فقط.
+ */
 router.post('/', async (req, res) => {
   try {
     const db = getFirestore();
+
+    const currentUserId = getAuthenticatedUserId(req);
+
+    if (!currentUserId) {
+      return res.status(401).json({
+        success: false,
+        message: 'المصادقة مطلوبة',
+      });
+    }
 
     const {
       doctorId,
       doctorName = '',
       doctorImage = '',
-      patientId,
       patientName = '',
       patientImage = '',
       participants,
@@ -72,17 +73,6 @@ router.post('/', async (req, res) => {
       groupImage = '',
     } = req.body;
 
-    const currentUserId = getUserId(req);
-
-    const finalPatientId = patientId || currentUserId;
-
-    if (!finalPatientId) {
-      return res.status(400).json({
-        success: false,
-        message: 'patientId مطلوب',
-      });
-    }
-
     if (!doctorId && !isGroup) {
       return res.status(400).json({
         success: false,
@@ -90,25 +80,46 @@ router.post('/', async (req, res) => {
       });
     }
 
-    let finalParticipants = participants;
+    let finalParticipants;
 
-    if (!Array.isArray(finalParticipants) || finalParticipants.length === 0) {
-      finalParticipants = isGroup
-        ? [finalPatientId]
-        : [finalPatientId, doctorId];
+    if (isGroup) {
+      if (!Array.isArray(participants) || participants.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'participants مطلوبة للمجموعة',
+        });
+      }
+
+      finalParticipants = [
+        ...new Set(
+          participants
+            .filter(Boolean)
+            .map(String),
+        ),
+      ];
+
+      if (!finalParticipants.includes(currentUserId)) {
+        finalParticipants.push(currentUserId);
+      }
+
+      if (finalParticipants.length < 2) {
+        return res.status(400).json({
+          success: false,
+          message: 'يجب أن تحتوي المجموعة على مشاركين اثنين على الأقل',
+        });
+      }
+    } else {
+      finalParticipants = [
+        currentUserId,
+        String(doctorId),
+      ];
+
+      finalParticipants = [...new Set(finalParticipants)];
     }
 
-    finalParticipants = [...new Set(
-      finalParticipants.filter(Boolean).map(String)
-    )];
-
-    /*
-     * البحث عن محادثة موجودة بين المشاركين.
-     * لا نعتمد على ترتيب العناصر داخل array.
-     */
     const chatsSnapshot = await db
       .collection('chats')
-      .where('participants', 'array-contains', finalParticipants[0])
+      .where('participants', 'array-contains', currentUserId)
       .get();
 
     for (const doc of chatsSnapshot.docs) {
@@ -122,7 +133,7 @@ router.post('/', async (req, res) => {
       const sameParticipants =
         existingParticipants.length === finalParticipants.length &&
         finalParticipants.every((id) =>
-          existingParticipants.includes(id)
+          existingParticipants.includes(String(id)),
         );
 
       if (sameParticipants) {
@@ -140,11 +151,11 @@ router.post('/', async (req, res) => {
     const now = new Date();
 
     const chatData = {
-      doctorId: doctorId || '',
+      doctorId: isGroup ? '' : String(doctorId),
       doctorName,
       doctorImage,
 
-      patientId: finalPatientId,
+      patientId: currentUserId,
       patientName,
       patientImage,
 
@@ -156,11 +167,10 @@ router.post('/', async (req, res) => {
       participants: finalParticipants,
 
       unreadCount: 0,
-
       isOnline: false,
       lastSeen: null,
 
-      isGroup,
+      isGroup: Boolean(isGroup),
       groupName,
       groupImage,
 
@@ -169,14 +179,15 @@ router.post('/', async (req, res) => {
       mutedUntil: null,
 
       labels: [],
-
       isArchived: false,
 
       callHistory: [],
       lastCall: null,
     };
 
-    const chatRef = await db.collection('chats').add(chatData);
+    const chatRef = await db
+      .collection('chats')
+      .add(chatData);
 
     return res.status(201).json({
       success: true,
@@ -196,23 +207,18 @@ router.post('/', async (req, res) => {
   }
 });
 
-/*
-|--------------------------------------------------------------------------
-| GET /api/chats
-| جلب محادثات المستخدم
-|--------------------------------------------------------------------------
-*/
-
+/**
+ * جلب محادثات المستخدم الحالي فقط.
+ */
 router.get('/', async (req, res) => {
   try {
     const db = getFirestore();
-
-    const userId = getUserId(req);
+    const userId = getAuthenticatedUserId(req);
 
     if (!userId) {
-      return res.status(400).json({
+      return res.status(401).json({
         success: false,
-        message: 'userId مطلوب',
+        message: 'المصادقة مطلوبة',
       });
     }
 
@@ -248,20 +254,28 @@ router.get('/', async (req, res) => {
   }
 });
 
-/*
-|--------------------------------------------------------------------------
-| GET /api/chats/:chatId
-| جلب محادثة واحدة
-|--------------------------------------------------------------------------
-*/
-
+/**
+ * جلب محادثة محددة.
+ *
+ * لا يمكن الوصول إليها إلا إذا كان المستخدم مشاركاً فيها.
+ */
 router.get('/:chatId', async (req, res) => {
   try {
     const db = getFirestore();
-
     const { chatId } = req.params;
+    const userId = getAuthenticatedUserId(req);
 
-    const chatRef = db.collection('chats').doc(chatId);
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'المصادقة مطلوبة',
+      });
+    }
+
+    const chatRef = db
+      .collection('chats')
+      .doc(chatId);
+
     const snapshot = await chatRef.get();
 
     if (!snapshot.exists) {
@@ -271,11 +285,20 @@ router.get('/:chatId', async (req, res) => {
       });
     }
 
+    const data = snapshot.data();
+
+    if (!isParticipant(data, userId)) {
+      return res.status(403).json({
+        success: false,
+        message: 'ليس لديك صلاحية الوصول إلى هذه المحادثة',
+      });
+    }
+
     return res.json({
       success: true,
       chat: {
         id: snapshot.id,
-        ...snapshot.data(),
+        ...data,
       },
     });
   } catch (error) {
@@ -288,30 +311,52 @@ router.get('/:chatId', async (req, res) => {
   }
 });
 
-/*
-|--------------------------------------------------------------------------
-| GET /api/chats/:chatId/messages
-| جلب رسائل المحادثة
-|--------------------------------------------------------------------------
-*/
-
+/**
+ * جلب رسائل محادثة.
+ */
 router.get('/:chatId/messages', async (req, res) => {
   try {
     const db = getFirestore();
-
     const { chatId } = req.params;
+    const userId = getAuthenticatedUserId(req);
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'المصادقة مطلوبة',
+      });
+    }
+
+    const chatRef = db
+      .collection('chats')
+      .doc(chatId);
+
+    const chatSnapshot = await chatRef.get();
+
+    if (!chatSnapshot.exists) {
+      return res.status(404).json({
+        success: false,
+        message: 'المحادثة غير موجودة',
+      });
+    }
+
+    if (!isParticipant(chatSnapshot.data(), userId)) {
+      return res.status(403).json({
+        success: false,
+        message: 'ليس لديك صلاحية الوصول إلى رسائل هذه المحادثة',
+      });
+    }
 
     const limitValue = Math.min(
-      Math.max(parseInt(req.query.limit || '50', 10), 1),
-      100
+      Math.max(
+        parseInt(req.query.limit || '50', 10),
+        1,
+      ),
+      100,
     );
 
-    const messagesRef = db
-      .collection('chats')
-      .doc(chatId)
-      .collection('messages');
-
-    const snapshot = await messagesRef
+    const snapshot = await chatRef
+      .collection('messages')
       .orderBy('timestamp', 'asc')
       .limit(limitValue)
       .get();
@@ -337,51 +382,44 @@ router.get('/:chatId/messages', async (req, res) => {
   }
 });
 
-/*
-|--------------------------------------------------------------------------
-| POST /api/chats/:chatId/messages
-| إرسال رسالة
-|--------------------------------------------------------------------------
-*/
-
+/**
+ * إرسال رسالة.
+ *
+ * senderId القادم من العميل يتم تجاهله.
+ * المرسل الحقيقي هو Firebase authenticated user.
+ */
 router.post('/:chatId/messages', async (req, res) => {
   try {
     const db = getFirestore();
-
     const { chatId } = req.params;
 
+    const currentUserId = getAuthenticatedUserId(req);
+
+    if (!currentUserId) {
+      return res.status(401).json({
+        success: false,
+        message: 'المصادقة مطلوبة',
+      });
+    }
+
     const {
-      senderId,
       receiverId,
       text = '',
       type = 'text',
-
       fileUrl = null,
       fileName = null,
       fileType = null,
       fileSize = null,
-
       imageUrl = null,
       audioUrl = null,
-
       replyToMessageId = null,
       metadata = null,
     } = req.body;
 
-    const currentUserId = getUserId(req);
-    const finalSenderId = senderId || currentUserId;
+    const chatRef = db
+      .collection('chats')
+      .doc(chatId);
 
-    if (!finalSenderId) {
-      return res.status(400).json({
-        success: false,
-        message: 'senderId مطلوب',
-      });
-    }
-
-    /*
-     * التأكد من وجود المحادثة
-     */
-    const chatRef = db.collection('chats').doc(chatId);
     const chatSnapshot = await chatRef.get();
 
     if (!chatSnapshot.exists) {
@@ -393,30 +431,43 @@ router.post('/:chatId/messages', async (req, res) => {
 
     const chatData = chatSnapshot.data();
 
-    /*
-     * إذا لم يرسل العميل receiverId،
-     * نحاول استخراجه من participants.
-     */
-    let finalReceiverId = receiverId || '';
+    if (!isParticipant(chatData, currentUserId)) {
+      return res.status(403).json({
+        success: false,
+        message: 'ليس لديك صلاحية إرسال رسائل في هذه المحادثة',
+      });
+    }
 
-    if (!finalReceiverId && Array.isArray(chatData.participants)) {
+    let finalReceiverId = '';
+
+    if (
+      receiverId &&
+      Array.isArray(chatData.participants) &&
+      chatData.participants
+        .map(String)
+        .includes(String(receiverId)) &&
+      String(receiverId) !== String(currentUserId)
+    ) {
+      finalReceiverId = String(receiverId);
+    } else if (Array.isArray(chatData.participants)) {
       finalReceiverId =
-        chatData.participants.find(
-          (id) => String(id) !== String(finalSenderId)
-        ) || '';
+        chatData.participants
+          .map(String)
+          .find(
+            (id) => id !== String(currentUserId),
+          ) || '';
     }
 
     const now = new Date();
 
     const messageData = normalizeMessageData({
-      senderId: finalSenderId,
+      senderId: currentUserId,
       receiverId: finalReceiverId,
 
       text,
       type,
 
       timestamp: now,
-
       isRead: false,
 
       fileUrl,
@@ -428,22 +479,13 @@ router.post('/:chatId/messages', async (req, res) => {
       audioUrl,
 
       replyToMessageId,
-
       metadata,
     });
 
-    /*
-     * إنشاء الرسالة داخل:
-     *
-     * chats/{chatId}/messages/{messageId}
-     */
     const messageRef = await chatRef
       .collection('messages')
       .add(messageData);
 
-    /*
-     * تحديث آخر رسالة في المحادثة
-     */
     const currentUnreadCount =
       typeof chatData.unreadCount === 'number'
         ? chatData.unreadCount
@@ -473,27 +515,27 @@ router.post('/:chatId/messages', async (req, res) => {
   }
 });
 
-/*
-|--------------------------------------------------------------------------
-| PATCH /api/chats/:chatId/read
-| تحديد الرسائل كمقروءة
-|--------------------------------------------------------------------------
-*/
-
-
+/**
+ * حذف محادثة.
+ *
+ * يسمح فقط لأحد المشاركين.
+ */
 router.delete('/:chatId', async (req, res) => {
   try {
+    const db = getFirestore();
     const { chatId } = req.params;
+    const userId = getAuthenticatedUserId(req);
 
-    if (!chatId) {
-      return res.status(400).json({
+    if (!userId) {
+      return res.status(401).json({
         success: false,
-        message: 'chatId مطلوب',
+        message: 'المصادقة مطلوبة',
       });
     }
 
-    const db = getFirestore();
-    const chatRef = db.collection('chats').doc(chatId);
+    const chatRef = db
+      .collection('chats')
+      .doc(chatId);
 
     const chatSnapshot = await chatRef.get();
 
@@ -501,6 +543,13 @@ router.delete('/:chatId', async (req, res) => {
       return res.status(404).json({
         success: false,
         message: 'المحادثة غير موجودة',
+      });
+    }
+
+    if (!isParticipant(chatSnapshot.data(), userId)) {
+      return res.status(403).json({
+        success: false,
+        message: 'ليس لديك صلاحية حذف هذه المحادثة',
       });
     }
 
@@ -533,24 +582,43 @@ router.delete('/:chatId', async (req, res) => {
   }
 });
 
+/**
+ * تعليم رسائل المستخدم كمقروءة.
+ */
 router.patch('/:chatId/read', async (req, res) => {
   try {
     const db = getFirestore();
-
     const { chatId } = req.params;
-
-    const userId = getUserId(req);
+    const userId = getAuthenticatedUserId(req);
 
     if (!userId) {
-      return res.status(400).json({
+      return res.status(401).json({
         success: false,
-        message: 'userId مطلوب',
+        message: 'المصادقة مطلوبة',
       });
     }
 
-    const messagesRef = db
+    const chatRef = db
       .collection('chats')
-      .doc(chatId)
+      .doc(chatId);
+
+    const chatSnapshot = await chatRef.get();
+
+    if (!chatSnapshot.exists) {
+      return res.status(404).json({
+        success: false,
+        message: 'المحادثة غير موجودة',
+      });
+    }
+
+    if (!isParticipant(chatSnapshot.data(), userId)) {
+      return res.status(403).json({
+        success: false,
+        message: 'ليس لديك صلاحية الوصول إلى هذه المحادثة',
+      });
+    }
+
+    const messagesRef = chatRef
       .collection('messages');
 
     const snapshot = await messagesRef
@@ -571,10 +639,7 @@ router.patch('/:chatId/read', async (req, res) => {
       await batch.commit();
     }
 
-    /*
-     * ChatModel الحالي يستخدم unreadCount كرقم.
-     */
-    await db.collection('chats').doc(chatId).update({
+    await chatRef.update({
       unreadCount: 0,
       updatedAt: new Date(),
     });
