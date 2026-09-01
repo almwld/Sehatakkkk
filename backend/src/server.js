@@ -8,6 +8,7 @@ const cors = require('cors');
 const firebaseRoutes = require('./routes/firebase.routes');
 const filesRoutes = require('./routes/files.routes');
 const chatRoutes = require('./routes/chat.routes');
+const livekitRoutes = require('./routes/livekit.routes');
 
 const app = express();
 
@@ -68,6 +69,7 @@ app.use('/api/files', filesRoutes);
 
 // Chat / Firestore
 app.use('/api/chats', chatRoutes);
+app.use('/api/livekit', livekitRoutes);
 
 /*
 |--------------------------------------------------------------------------

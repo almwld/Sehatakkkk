@@ -1,15 +1,21 @@
+import 'dart:convert';
+
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
 import 'package:livekit_client/livekit_client.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
+
 import '../config/livekit_config.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 
 class LiveKitService {
   static final LiveKitService _instance = LiveKitService._internal();
+
   factory LiveKitService() => _instance;
+
   LiveKitService._internal();
 
   Room? _room;
+
   bool _isCameraEnabled = false;
   bool _isMicrophoneEnabled = false;
   bool _isSpeakerOn = false;
@@ -17,46 +23,147 @@ class LiveKitService {
 
   Room? get room => _room;
   bool get isConnected => _isConnected;
+  bool get isSpeakerOn => _isSpeakerOn;
+  bool get isCameraEnabled => _isCameraEnabled;
+  bool get isMicrophoneEnabled => _isMicrophoneEnabled;
 
-  // ✅ إنشاء توكن JWT
-  String _generateToken({
-    required String roomName,
-    required String participantName,
-  }) {
+  /// جلب Firebase ID Token لإرساله إلى Backend.
+  Future<String?> _getFirebaseIdToken() async {
     try {
-      final jwt = JWT({
-        'iss': LiveKitConfig.apiKey,
-        'sub': participantName,
-        'name': participantName,
-        'video': {
-          'room': roomName,
-          'roomJoin': true,
-          'canPublish': true,
-          'canSubscribe': true,
-        },
-        'exp': DateTime.now().add(const Duration(minutes: 10)).millisecondsSinceEpoch ~/ 1000,
-        'nbf': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      });
-      return jwt.sign(SecretKey(LiveKitConfig.apiSecret));
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user == null) {
+        return null;
+      }
+
+      return await user.getIdToken();
     } catch (e) {
-      print('❌ Token generation error: $e');
-      ToastService.showError('❌ فشل إنشاء رمز المكالمة');
-      rethrow;
+      print('⚠️ Firebase ID Token error: $e');
+      return null;
     }
   }
 
-  // ✅ الاتصال بالغرفة
+  /// طلب LiveKit Access Token من Backend.
+  ///
+  /// مهم:
+  /// لا يتم إنشاء JWT داخل تطبيق Flutter.
+  /// الـAPI Secret يبقى داخل Backend فقط.
+  Future<Map<String, dynamic>> _requestLiveKitToken({
+    required String roomName,
+    required String participantIdentity,
+    required String participantName,
+  }) async {
+    final uri = Uri.parse(
+      '${LiveKitConfig.apiBaseUrl}/api/livekit/token',
+    );
+
+    final firebaseToken = await _getFirebaseIdToken();
+
+    final headers = <String, String>{
+      'Content-Type': 'application/json',
+    };
+
+    if (firebaseToken != null && firebaseToken.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $firebaseToken';
+    }
+
+    final response = await http
+        .post(
+          uri,
+          headers: headers,
+          body: jsonEncode({
+            'roomName': roomName,
+            'participantIdentity': participantIdentity,
+            'participantName': participantName,
+          }),
+        )
+        .timeout(const Duration(seconds: 20));
+
+    print('📞 LiveKit token response: ${response.statusCode}');
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      print('❌ LiveKit token request failed: ${response.body}');
+
+      throw Exception(
+        'فشل الحصول على توكن LiveKit (${response.statusCode})',
+      );
+    }
+
+    final decoded = jsonDecode(response.body);
+
+    if (decoded is! Map<String, dynamic>) {
+      throw Exception('استجابة LiveKit غير صالحة');
+    }
+
+    if (decoded['success'] != true) {
+      throw Exception(
+        decoded['message']?.toString() ?? 'فشل إنشاء توكن LiveKit',
+      );
+    }
+
+    final data = decoded['data'];
+
+    if (data is! Map<String, dynamic>) {
+      throw Exception('بيانات توكن LiveKit غير صالحة');
+    }
+
+    final token = data['token']?.toString();
+    final url = data['url']?.toString();
+
+    if (token == null || token.isEmpty) {
+      throw Exception('توكن LiveKit فارغ');
+    }
+
+    if (url == null || url.isEmpty) {
+      throw Exception('رابط LiveKit فارغ');
+    }
+
+    return {
+      'token': token,
+      'url': url,
+      'roomName': data['roomName']?.toString() ?? roomName,
+      'participantIdentity':
+          data['participantIdentity']?.toString() ?? participantIdentity,
+      'participantName':
+          data['participantName']?.toString() ?? participantName,
+    };
+  }
+
+  /// الاتصال بغرفة LiveKit.
   Future<Room> connectRoom({
     required String roomName,
     String? participantName,
   }) async {
     try {
-      _room = Room();
+      final user = FirebaseAuth.instance.currentUser;
 
-      final token = _generateToken(
+      if (user == null) {
+        throw Exception('يجب تسجيل الدخول قبل إجراء المكالمة');
+      }
+
+      final identity = user.uid;
+      final name = participantName?.trim().isNotEmpty == true
+          ? participantName!.trim()
+          : (user.displayName?.trim().isNotEmpty == true
+              ? user.displayName!.trim()
+              : 'مستخدم');
+
+      print('📞 Requesting LiveKit token...');
+      print('🏠 Room: $roomName');
+      print('👤 Participant: $identity');
+
+      final tokenData = await _requestLiveKitToken(
         roomName: roomName,
-        participantName: participantName ?? 'مستخدم',
+        participantIdentity: identity,
+        participantName: name,
       );
+
+      final token = tokenData['token'] as String;
+      final serverUrl = tokenData['url'] as String;
+
+      await _room?.disconnect();
+
+      _room = Room();
 
       final options = RoomOptions(
         adaptiveStream: true,
@@ -64,62 +171,84 @@ class LiveKitService {
         defaultVideoPublishOptions: const VideoPublishOptions(
           simulcast: false,
         ),
-        defaultAudioPublishOptions: const AudioPublishOptions(
-          
-        ),
+        defaultAudioPublishOptions: const AudioPublishOptions(),
       );
 
+      print('🔌 Connecting to LiveKit...');
+
       await _room!.connect(
-        LiveKitConfig.serverUrl,
+        serverUrl,
         token,
         roomOptions: options,
       );
 
       _isConnected = true;
-      print('✅ Connected to room: $roomName');
-      
-      // ✅ تمكين الميكروفون تلقائياً
-      await _room!.localParticipant?.setMicrophoneEnabled(true);
-      _isMicrophoneEnabled = true;
+
+      print('✅ Connected to LiveKit room: $roomName');
+
+      await enableMicrophone();
 
       return _room!;
     } catch (e) {
-      print('❌ Connection failed: $e');
+      print('❌ LiveKit connection failed: $e');
+
       _isConnected = false;
-      ToastService.showError('❌ فشل الاتصال: $e');
+
+      ToastService.showError(
+        '❌ فشل الاتصال بالمكالمة',
+      );
+
       rethrow;
     }
   }
 
-  // ✅ تمكين الكاميرا
+  /// تشغيل الكاميرا.
   Future<void> enableCamera() async {
     try {
-      if (_room?.localParticipant != null) {
-        await _room!.localParticipant!.setCameraEnabled(true);
-        _isCameraEnabled = true;
-        print('✅ Camera enabled');
+      final participant = _room?.localParticipant;
+
+      if (participant == null) {
+        throw Exception('لا يوجد اتصال LiveKit');
       }
+
+      await participant.setCameraEnabled(true);
+
+      _isCameraEnabled = true;
+
+      print('✅ Camera enabled');
     } catch (e) {
       print('❌ Camera error: $e');
-      ToastService.showError('❌ فشل تشغيل الكاميرا: $e');
+
+      ToastService.showError(
+        '❌ فشل تشغيل الكاميرا',
+      );
     }
   }
 
-  // ✅ تمكين الميكروفون
+  /// تشغيل الميكروفون.
   Future<void> enableMicrophone() async {
     try {
-      if (_room?.localParticipant != null) {
-        await _room!.localParticipant!.setMicrophoneEnabled(true);
-        _isMicrophoneEnabled = true;
-        print('✅ Microphone enabled');
+      final participant = _room?.localParticipant;
+
+      if (participant == null) {
+        throw Exception('لا يوجد اتصال LiveKit');
       }
+
+      await participant.setMicrophoneEnabled(true);
+
+      _isMicrophoneEnabled = true;
+
+      print('✅ Microphone enabled');
     } catch (e) {
       print('❌ Microphone error: $e');
-      ToastService.showError('❌ فشل تشغيل الميكروفون: $e');
+
+      ToastService.showError(
+        '❌ فشل تشغيل الميكروفون',
+      );
     }
   }
 
-  // ✅ بدء المكالمة
+  /// بدء مكالمة صوتية أو فيديو.
   Future<void> startCall({
     required String roomName,
     required String callerName,
@@ -127,108 +256,157 @@ class LiveKitService {
   }) async {
     try {
       print('📞 Starting call...');
-      
-      // ✅ الاتصال بالغرفة
-      await connectRoom(roomName: roomName, participantName: callerName);
-      
-      // ✅ تمكين الميكروفون
+      print('🏠 Room: $roomName');
+      print('👤 Caller: $callerName');
+      print('🎥 Video: $isVideo');
+
+      await connectRoom(
+        roomName: roomName,
+        participantName: callerName,
+      );
+
       await enableMicrophone();
-      
-      // ✅ تمكين الكاميرا إذا كانت مكالمة فيديو
+
       if (isVideo) {
         await enableCamera();
       }
-      
+
       print('✅ Call started successfully');
-      ToastService.showSuccess('📞 بدأت المكالمة بنجاح');
+
+      ToastService.showSuccess(
+        '📞 بدأت المكالمة بنجاح',
+      );
     } catch (e) {
       print('❌ Call start failed: $e');
-      ToastService.showError('❌ فشل بدء المكالمة: $e');
+
+      ToastService.showError(
+        '❌ فشل بدء المكالمة',
+      );
+
       rethrow;
     }
   }
 
-  // ✅ تبديل الكاميرا
+  /// تبديل الكاميرا.
   Future<bool> toggleCamera() async {
     try {
-      if (_isCameraEnabled) {
-        await _room?.localParticipant?.setCameraEnabled(false);
-        _isCameraEnabled = false;
-        ToastService.showInfo('📷 تم إيقاف الكاميرا');
-        return false;
-      } else {
-        await _room?.localParticipant?.setCameraEnabled(true);
-        _isCameraEnabled = true;
-        ToastService.showInfo('📷 تم تشغيل الكاميرا');
-        return true;
+      final participant = _room?.localParticipant;
+
+      if (participant == null) {
+        return _isCameraEnabled;
       }
+
+      final newState = !_isCameraEnabled;
+
+      await participant.setCameraEnabled(newState);
+
+      _isCameraEnabled = newState;
+
+      ToastService.showInfo(
+        newState
+            ? '📷 تم تشغيل الكاميرا'
+            : '📷 تم إيقاف الكاميرا',
+      );
+
+      return newState;
     } catch (e) {
       print('❌ Camera toggle error: $e');
-      ToastService.showError('❌ فشل تبديل الكاميرا');
+
+      ToastService.showError(
+        '❌ فشل تبديل الكاميرا',
+      );
+
       return _isCameraEnabled;
     }
   }
 
-  // ✅ تبديل الميكروفون
+  /// تبديل الميكروفون.
   Future<bool> toggleMicrophone() async {
     try {
-      if (_isMicrophoneEnabled) {
-        await _room?.localParticipant?.setMicrophoneEnabled(false);
-        _isMicrophoneEnabled = false;
-        ToastService.showInfo('🎤 تم كتم الصوت');
-        return false;
-      } else {
-        await _room?.localParticipant?.setMicrophoneEnabled(true);
-        _isMicrophoneEnabled = true;
-        ToastService.showInfo('🎤 تم إلغاء كتم الصوت');
-        return true;
+      final participant = _room?.localParticipant;
+
+      if (participant == null) {
+        return _isMicrophoneEnabled;
       }
+
+      final newState = !_isMicrophoneEnabled;
+
+      await participant.setMicrophoneEnabled(newState);
+
+      _isMicrophoneEnabled = newState;
+
+      ToastService.showInfo(
+        newState
+            ? '🎤 تم إلغاء كتم الصوت'
+            : '🎤 تم كتم الصوت',
+      );
+
+      return newState;
     } catch (e) {
       print('❌ Microphone toggle error: $e');
-      ToastService.showError('❌ فشل تبديل الميكروفون');
+
+      ToastService.showError(
+        '❌ فشل تبديل الميكروفون',
+      );
+
       return _isMicrophoneEnabled;
     }
   }
 
-  // ✅ تفعيل مكبر الصوت
+  /// تفعيل/إلغاء مكبر الصوت.
   void setSpeakerphone(bool on) {
     try {
       _isSpeakerOn = on;
+
       print('🔊 Speakerphone: $on');
-      ToastService.showInfo(on ? '🔊 تم تفعيل مكبر الصوت' : '🔇 تم إلغاء مكبر الصوت');
+
+      ToastService.showInfo(
+        on
+            ? '🔊 تم تفعيل مكبر الصوت'
+            : '🔇 تم إلغاء مكبر الصوت',
+      );
     } catch (e) {
       print('❌ Speaker error: $e');
-      ToastService.showError('❌ فشل تفعيل مكبر الصوت');
+
+      ToastService.showError(
+        '❌ فشل تفعيل مكبر الصوت',
+      );
     }
   }
 
-  bool get isSpeakerOn => _isSpeakerOn;
-
-  // ✅ الحصول على حالة الكاميرا
-  bool get isCameraEnabled => _isCameraEnabled;
-
-  // ✅ الحصول على حالة الميكروفون
-  bool get isMicrophoneEnabled => _isMicrophoneEnabled;
-
-  // ✅ إنهاء المكالمة
+  /// إنهاء المكالمة.
   Future<void> endCall() async {
     try {
       await _room?.disconnect();
+
+      _room = null;
+
+      _isConnected = false;
+      _isCameraEnabled = false;
+      _isMicrophoneEnabled = false;
+      _isSpeakerOn = false;
+
+      print('✅ Call ended');
+    } catch (e) {
+      print('❌ End call error: $e');
+
       _room = null;
       _isConnected = false;
       _isCameraEnabled = false;
       _isMicrophoneEnabled = false;
       _isSpeakerOn = false;
-      print('✅ Call ended');
-    } catch (e) {
-      print('❌ End call error: $e');
     }
   }
 
-  // ✅ تنظيف الموارد
+  /// تنظيف الموارد.
   void dispose() {
     _room?.disconnect();
+
     _room = null;
+
     _isConnected = false;
+    _isCameraEnabled = false;
+    _isMicrophoneEnabled = false;
+    _isSpeakerOn = false;
   }
 }
