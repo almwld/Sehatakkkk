@@ -67,7 +67,12 @@ class ChatBloc extends Cubit<ChatState> {
     required String patientName,
   }) async {
     try {
-      final chatId = await _chatService.createTestChat();
+      final chatId = await _chatService.createChat(
+        doctorId: doctorId,
+        doctorName: doctorName,
+        patientId: patientId,
+        patientName: patientName,
+      );
       return chatId;
     } catch (e) {
       print('❌ Error creating chat: $e');

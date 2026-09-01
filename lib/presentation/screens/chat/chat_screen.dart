@@ -710,27 +710,35 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
       ),
     );
   }
-}
 
-  // ✅ عرض عدد الإشعارات غير المقروءة في AppBar
+  // ✅ عرض عدد الإشعارات غير المقروءة
   Widget _buildNotificationBadge() {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('notifications')
-          .where('userId', isEqualTo: FirebaseAuth.instance.currentUser?.uid ?? '')
+          .where(
+            'userId',
+            isEqualTo: FirebaseAuth.instance.currentUser?.uid ?? '',
+          )
           .where('isRead', isEqualTo: false)
           .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return const SizedBox.shrink();
+
         final count = snapshot.data!.docs.length;
+
         if (count == 0) return const SizedBox.shrink();
+
         return Container(
           padding: const EdgeInsets.all(4),
           decoration: const BoxDecoration(
             color: Colors.red,
             shape: BoxShape.circle,
           ),
-          constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+          constraints: const BoxConstraints(
+            minWidth: 20,
+            minHeight: 20,
+          ),
           child: Text(
             '$count',
             style: const TextStyle(
@@ -744,3 +752,5 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
       },
     );
   }
+
+}
