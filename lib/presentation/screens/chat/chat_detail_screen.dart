@@ -1,22 +1,14 @@
 // ============================================================
-// 📱 شاشة تفاصيل المحادثة - النسخة المبسطة
+// 📱 شاشة تفاصيل المحادثة - النسخة النهائية
 // ============================================================
 
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:sehatak/bloc/message/message_bloc.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/chat_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/models/message_model.dart';
-import 'package:sehatak/presentation/screens/chat/widgets/message_bubble.dart';
-import 'package:sehatak/presentation/screens/chat/widgets/chat_input_bar.dart';
-import 'package:sehatak/presentation/screens/chat/widgets/voice_recorder.dart';
-import 'package:sehatak/presentation/screens/chat/widgets/reply_banner.dart';
-import 'package:sehatak/presentation/screens/chat/widgets/chat_shimmer.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 
 class ChatDetailScreen extends StatefulWidget {
   final String chatId;
@@ -39,19 +31,18 @@ class ChatDetailScreen extends StatefulWidget {
 class _ChatDetailScreenState extends State<ChatDetailScreen> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final FocusNode _focusNode = FocusNode();
-  final ImagePicker _picker = ImagePicker();
   final ChatService _chatService = ChatService();
-
+  
+  List<MessageModel> _messages = [];
+  bool _isLoading = true;
   bool _isSending = false;
-  bool _showVoiceRecorder = false;
-  String? _replyTo;
-  String? _replyToText;
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    context.read<MessageBloc>().loadMessages(widget.chatId);
+    print('📱 ChatDetailScreen opened with chatId: ${widget.chatId}');
+    _loadMessages();
     _chatService.markAsRead(widget.chatId);
   }
 
@@ -59,8 +50,74 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   void dispose() {
     _textController.dispose();
     _scrollController.dispose();
-    _focusNode.dispose();
     super.dispose();
+  }
+
+  void _loadMessages() {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      // ✅ استخدام ChatService مباشرة (بدون MessageBloc)
+      _chatService.getMessages(widget.chatId).listen(
+        (messages) {
+          print('📩 Received ${messages.length} messages');
+          setState(() {
+            _messages = messages;
+            _isLoading = false;
+          });
+          _scrollToBottom();
+        },
+        onError: (error) {
+          print('❌ Error loading messages: $error');
+          setState(() {
+            _isLoading = false;
+            _errorMessage = 'حدث خطأ في تحميل الرسائل: $error';
+          });
+        },
+      );
+    } catch (e) {
+      print('❌ Exception loading messages: $e');
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'حدث خطأ: $e';
+      });
+    }
+  }
+
+  void _sendMessage() async {
+    final text = _textController.text.trim();
+    if (text.isEmpty) return;
+
+    setState(() => _isSending = true);
+
+    try {
+      await _chatService.sendMessage(
+        chatId: widget.chatId,
+        text: text,
+      );
+      _textController.clear();
+      _scrollToBottom();
+      ToastService.showSuccess('✅ تم إرسال الرسالة');
+    } catch (e) {
+      ToastService.showError('❌ فشل إرسال الرسالة: $e');
+    } finally {
+      setState(() => _isSending = false);
+    }
+  }
+
+  void _scrollToBottom() {
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          0,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 
   @override
@@ -69,132 +126,162 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
-      appBar: _buildAppBar(isDark),
+      appBar: AppBar(
+        title: Text(widget.userName),
+        backgroundColor: isDark ? AppColors.darkBackground : Colors.white,
+        foregroundColor: isDark ? Colors.white : Colors.black87,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.call),
+            onPressed: () => ToastService.showInfo('📞 جاري الاتصال...'),
+          ),
+          IconButton(
+            icon: const Icon(Icons.videocam),
+            onPressed: () => ToastService.showInfo('📹 جاري مكالمة فيديو...'),
+          ),
+        ],
+      ),
       body: Column(
         children: [
-          if (_replyTo != null)
-            ReplyBanner(
-              message: _replyToText ?? '',
-              senderName: widget.userName,
-              onCancel: () => setState(() {
-                _replyTo = null;
-                _replyToText = null;
-              }),
-            ),
           Expanded(
-            child: BlocBuilder<MessageBloc, MessageState>(
-              builder: (context, state) {
-                if (state is MessageLoading) {
-                  return ChatShimmer(isDark: isDark);
-                }
-
-                if (state is MessageError) {
-                  return _buildErrorState(isDark, state.message);
-                }
-
-                if (state is MessagesLoaded) {
-                  final messages = state.messages;
-                  if (messages.isEmpty) {
-                    return _buildEmptyState(isDark);
-                  }
-                  return ListView.builder(
-                    controller: _scrollController,
-                    reverse: true,
-                    padding: const EdgeInsets.all(12),
-                    itemCount: messages.length,
-                    itemBuilder: (context, index) {
-                      final message = messages[index];
-                      return MessageBubble(
-                        message: message,
-                        chatId: widget.chatId,
-                        isMe: message.isMe,
-                        isDark: isDark,
-                        onReply: (msg) {
-                          setState(() {
-                            _replyTo = msg.id;
-                            _replyToText = msg.text;
-                          });
-                          _focusNode.requestFocus();
-                        },
-                        onReaction: (msg) {
-                          _showReactionPicker(msg);
-                        },
-                        onDelete: (msg) {
-                          _showDeleteConfirmation(msg);
-                        },
-                      );
-                    },
-                  );
-                }
-
-                return const SizedBox.shrink();
-              },
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                : _errorMessage != null
+                    ? _buildErrorState(isDark)
+                    : _messages.isEmpty
+                        ? _buildEmptyState(isDark)
+                        : ListView.builder(
+                            controller: _scrollController,
+                            reverse: true,
+                            padding: const EdgeInsets.all(12),
+                            itemCount: _messages.length,
+                            itemBuilder: (context, index) {
+                              final message = _messages[index];
+                              final user = FirebaseAuth.instance.currentUser;
+                              final isMe = message.senderId == user?.uid;
+                              
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 8),
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: isMe ? AppColors.primary : (isDark ? const Color(0xFF1A2540) : Colors.grey[200]),
+                                  borderRadius: BorderRadius.circular(12).copyWith(
+                                    bottomRight: isMe ? const Radius.circular(4) : const Radius.circular(12),
+                                    bottomLeft: isMe ? const Radius.circular(12) : const Radius.circular(4),
+                                  ),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                                  children: [
+                                    if (!isMe)
+                                      Text(
+                                        message.senderName,
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: AppColors.primary,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    Text(
+                                      message.text,
+                                      style: TextStyle(
+                                        color: isMe ? Colors.white : (isDark ? Colors.white : Colors.black87),
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          _formatTime(message.timestamp),
+                                          style: TextStyle(
+                                            fontSize: 9,
+                                            color: isMe ? Colors.white70 : (isDark ? Colors.grey[400] : Colors.grey[500]),
+                                          ),
+                                        ),
+                                        if (isMe) ...[
+                                          const SizedBox(width: 4),
+                                          Icon(
+                                            message.isRead ? Icons.done_all : Icons.done,
+                                            size: 12,
+                                            color: message.isRead ? Colors.blue : Colors.white70,
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1A2540) : Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 4,
+                  offset: const Offset(0, -2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF0B1121) : Colors.grey[100],
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: TextField(
+                      controller: _textController,
+                      onChanged: (text) => setState(() {}),
+                      onSubmitted: (_) => _sendMessage(),
+                      style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                      textAlign: TextAlign.right,
+                      decoration: InputDecoration(
+                        hintText: 'اكتب رسالتك...',
+                        hintStyle: TextStyle(color: isDark ? Colors.grey[500] : Colors.grey[400]),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      ),
+                    ),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: _sendMessage,
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: _textController.text.trim().isNotEmpty ? AppColors.primary : Colors.transparent,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: _textController.text.trim().isNotEmpty ? AppColors.primary : (isDark ? Colors.grey[600]! : Colors.grey[300]!),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: _isSending
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          )
+                        : Icon(
+                            _textController.text.trim().isNotEmpty ? Icons.send : Icons.mic,
+                            color: _textController.text.trim().isNotEmpty ? Colors.white : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                          ),
+                  ),
+                ),
+              ],
             ),
           ),
-          if (_showVoiceRecorder)
-            VoiceRecorder(
-              onRecordingComplete: (path) {
-                setState(() => _showVoiceRecorder = false);
-                _sendVoiceMessage(path);
-              },
-              onCancel: () => setState(() => _showVoiceRecorder = false),
-            )
-          else
-            ChatInputBar(
-              textController: _textController,
-              focusNode: _focusNode,
-              onSend: _sendMessage,
-              onImagePick: _sendImage,
-              onVoiceRecord: () => setState(() => _showVoiceRecorder = true),
-              onLocationShare: _shareLocation,
-              onFilePick: _sendFile,
-              isSending: _isSending,
-              isDark: isDark,
-            ),
         ],
       ),
-    );
-  }
-
-  AppBar _buildAppBar(bool isDark) {
-    return AppBar(
-      title: Row(
-        children: [
-          CircleAvatar(
-            radius: 18,
-            backgroundColor: AppColors.primary.withOpacity(0.1),
-            child: Text(
-              widget.userName.isNotEmpty ? widget.userName[0] : 'م',
-              style: const TextStyle(
-                color: AppColors.primary,
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              widget.userName,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-      backgroundColor: isDark ? AppColors.darkBackground : Colors.white,
-      foregroundColor: isDark ? Colors.white : Colors.black87,
-      elevation: 0,
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.call),
-          onPressed: _startAudioCall,
-        ),
-        IconButton(
-          icon: const Icon(Icons.videocam),
-          onPressed: _startVideoCall,
-        ),
-      ],
     );
   }
 
@@ -224,12 +311,25 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               fontSize: 13,
             ),
           ),
+          const SizedBox(height: 16),
+          ElevatedButton.icon(
+            onPressed: () {
+              _sendMessage();
+            },
+            icon: const Icon(Icons.send),
+            label: const Text('إرسال رسالة تجريبية'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildErrorState(bool isDark, String message) {
+  Widget _buildErrorState(bool isDark) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -238,235 +338,41 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           const SizedBox(height: 16),
           Text(
             'حدث خطأ',
-            style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
-            message,
-            style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),
+            _errorMessage ?? 'يرجى المحاولة مرة أخرى',
+            style: TextStyle(
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
+              fontSize: 14,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
           ElevatedButton.icon(
-            onPressed: () {
-              context.read<MessageBloc>().loadMessages(widget.chatId);
-            },
+            onPressed: _loadMessages,
             icon: const Icon(Icons.refresh),
             label: const Text('إعادة المحاولة'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+            ),
           ),
         ],
       ),
     );
   }
 
-  void _sendMessage() async {
-    final text = _textController.text.trim();
-    if (text.isEmpty) return;
-
-    setState(() => _isSending = true);
-
-    await _chatService.sendMessage(
-      chatId: widget.chatId,
-      text: text,
-      replyTo: _replyTo,
-      replyToText: _replyToText,
-    );
-
-    _textController.clear();
-    setState(() {
-      _replyTo = null;
-      _replyToText = null;
-    });
-    _scrollToBottom();
-    setState(() => _isSending = false);
-  }
-
-  void _sendImage() async {
-    try {
-      final XFile? image = await _picker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 70,
-      );
-
-      if (image == null) return;
-
-      setState(() => _isSending = true);
-
-      final imageUrl = await _chatService.uploadImage(
-        chatId: widget.chatId,
-        image: File(image.path),
-      );
-
-      await _chatService.sendMessage(
-        chatId: widget.chatId,
-        text: '📷 صورة',
-        imageUrl: imageUrl,
-      );
-
-      ToastService.showSuccess('✅ تم إرسال الصورة');
-      _scrollToBottom();
-    } catch (e) {
-      ToastService.showError('❌ فشل إرسال الصورة: $e');
-    } finally {
-      setState(() => _isSending = false);
+  String _formatTime(DateTime time) {
+    final now = DateTime.now();
+    if (time.day == now.day && time.month == now.month && time.year == now.year) {
+      return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
     }
-  }
-
-  void _sendVoiceMessage(String path) async {
-    try {
-      setState(() => _isSending = true);
-
-      final audioUrl = await _chatService.uploadAudio(
-        chatId: widget.chatId,
-        audio: File(path),
-      );
-
-      await _chatService.sendMessage(
-        chatId: widget.chatId,
-        text: '🎤 رسالة صوتية',
-        audioUrl: audioUrl,
-      );
-
-      ToastService.showSuccess('✅ تم إرسال الصوت');
-      _scrollToBottom();
-    } catch (e) {
-      ToastService.showError('❌ فشل إرسال الصوت: $e');
-    } finally {
-      setState(() => _isSending = false);
-    }
-  }
-
-  void _sendFile() async {
-    try {
-      final XFile? file = await _picker.pickImage(
-        source: ImageSource.gallery,
-      );
-
-      if (file == null) return;
-
-      setState(() => _isSending = true);
-
-      final fileName = file.path.split('/').last;
-      final fileUrl = await _chatService.uploadFile(
-        chatId: widget.chatId,
-        file: File(file.path),
-        fileName: fileName,
-      );
-
-      await _chatService.sendMessage(
-        chatId: widget.chatId,
-        text: '📎 $fileName',
-        fileUrl: fileUrl,
-      );
-
-      ToastService.showSuccess('✅ تم إرسال الملف');
-      _scrollToBottom();
-    } catch (e) {
-      ToastService.showError('❌ فشل إرسال الملف: $e');
-    } finally {
-      setState(() => _isSending = false);
-    }
-  }
-
-  void _shareLocation() async {
-    ToastService.showInfo('📍 جاري مشاركة الموقع...');
-  }
-
-  void _showReactionPicker(MessageModel message) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'اختر رد فعل',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              alignment: WrapAlignment.center,
-              children: ['👍', '❤️', '😂', '😮', '😢', '🙏', '🔥', '🎉'].map((emoji) {
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.pop(context);
-                    _chatService.addReaction(
-                      chatId: widget.chatId,
-                      messageId: message.id,
-                      emoji: emoji,
-                    );
-                  },
-                  child: Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Center(
-                      child: Text(emoji, style: const TextStyle(fontSize: 24)),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 12),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showDeleteConfirmation(MessageModel message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('حذف الرسالة'),
-        content: const Text('هل أنت متأكد من حذف هذه الرسالة للجميع؟'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _chatService.deleteMessage(
-                chatId: widget.chatId,
-                messageId: message.id,
-              );
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('حذف'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _startAudioCall() {
-    ToastService.showInfo('📞 جاري الاتصال الصوتي...');
-  }
-
-  void _startVideoCall() {
-    ToastService.showInfo('📹 جاري مكالمة الفيديو...');
-  }
-
-  void _scrollToBottom() {
-    Future.delayed(const Duration(milliseconds: 300), () {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          0,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
-    });
+    return '${time.day}/${time.month}';
   }
 }
