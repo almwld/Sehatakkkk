@@ -1182,7 +1182,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                         _buildAppointmentsSummary(),
                       if (_weatherData != null)
                         _buildWeatherWidget(),
-                      if (_nearbyServices.isNotEmpty)
                       if (_aiRecommendation != null)
                         _buildAIRecommendation(),
                       if (_recentSymptoms.isNotEmpty)
