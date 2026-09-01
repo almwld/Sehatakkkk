@@ -49,3 +49,4 @@ logs/
 
 logs.zip
 run-logs.zip
+.env
