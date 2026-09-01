@@ -29,7 +29,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
   int _totalUnread = 0;
   bool _isCreatingChats = false;
   bool _isLoading = true;
-  
+
   final ChatService _chatService = ChatService();
 
   // ✅ تبويبات الدردشة
@@ -62,7 +62,6 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
 
   void _loadChats() {
     setState(() => _isLoading = true);
-    // تحميل المحادثات
     Future.delayed(const Duration(seconds: 1), () {
       setState(() => _isLoading = false);
     });
@@ -256,9 +255,13 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
       itemCount: calls.length,
       itemBuilder: (context, index) {
         final call = calls[index];
-        final isMissed = call['status'] == 'missed';
-        final isIncoming = call['status'] == 'incoming';
-        final isVideo = call['type'] == 'video';
+        final name = call['name'] as String? ?? 'مستخدم';
+        final type = call['type'] as String? ?? 'audio';
+        final status = call['status'] as String? ?? 'answered';
+        final time = call['time'] as String? ?? '';
+        final isMissed = status == 'missed';
+        final isIncoming = status == 'incoming';
+        final isVideo = type == 'video';
 
         return Container(
           margin: const EdgeInsets.only(bottom: 8),
@@ -273,7 +276,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
               CircleAvatar(
                 backgroundColor: AppColors.primary.withOpacity(0.1),
                 child: Text(
-                  call['name']?[0] ?? 'م',
+                  name.isNotEmpty ? name[0] : 'م',
                   style: const TextStyle(color: AppColors.primary),
                 ),
               ),
@@ -283,7 +286,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      call['name'] ?? 'مستخدم',
+                      name,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: isDark ? Colors.white : Colors.black87,
@@ -306,7 +309,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                         ),
                         const Spacer(),
                         Text(
-                          call['time'] ?? '',
+                          time,
                           style: TextStyle(
                             fontSize: 11,
                             color: isDark ? Colors.grey[500] : Colors.grey[400],
@@ -350,7 +353,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
   // ============================================================
 
   Widget _buildStoriesTab(bool isDark) {
-    final stories = [
+    final List<Map<String, dynamic>> stories = [
       {'name': 'د. أحمد المؤيد', 'time': 'منذ 5 دقائق', 'viewed': false},
       {'name': 'د. خالد النخلاني', 'time': 'منذ ساعة', 'viewed': true},
       {'name': 'د. أسماء الهندي', 'time': 'منذ 3 ساعات', 'viewed': false},
@@ -415,13 +418,17 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
             itemCount: stories.length,
             itemBuilder: (context, index) {
               final story = stories[index];
+              final name = story['name'] as String? ?? 'مستخدم';
+              final time = story['time'] as String? ?? '';
+              final viewed = story['viewed'] as bool? ?? false;
+
               return Container(
                 margin: const EdgeInsets.only(bottom: 8),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: isDark ? AppColors.darkCard : Colors.white,
                   borderRadius: BorderRadius.circular(12),
-                  border: story['viewed'] == false
+                  border: viewed == false
                       ? Border.all(color: AppColors.primary, width: 2)
                       : null,
                 ),
@@ -430,7 +437,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                     CircleAvatar(
                       backgroundColor: AppColors.primary.withOpacity(0.1),
                       child: Text(
-                        story['name']?[0] ?? 'م',
+                        name.isNotEmpty ? name[0] : 'م',
                         style: const TextStyle(color: AppColors.primary),
                       ),
                     ),
@@ -440,14 +447,14 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            story['name'] ?? 'مستخدم',
+                            name,
                             style: TextStyle(
-                              fontWeight: story['viewed'] == false ? FontWeight.bold : FontWeight.normal,
+                              fontWeight: viewed == false ? FontWeight.bold : FontWeight.normal,
                               color: isDark ? Colors.white : Colors.black87,
                             ),
                           ),
                           Text(
-                            story['time'] ?? '',
+                            time,
                             style: TextStyle(
                               fontSize: 12,
                               color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -458,8 +465,8 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                     ),
                     IconButton(
                       icon: Icon(
-                        story['viewed'] == false ? Icons.circle : Icons.check_circle,
-                        color: story['viewed'] == false ? AppColors.primary : Colors.grey,
+                        viewed == false ? Icons.circle : Icons.check_circle,
+                        color: viewed == false ? AppColors.primary : Colors.grey,
                       ),
                       onPressed: () => ToastService.showSuccess('✅ تم مشاهدة الحالة'),
                     ),
@@ -492,18 +499,18 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
       for (final doctor in _doctors) {
         try {
           final chatId = await _chatService.createChat(
-            doctorId: doctor['id'],
-            doctorName: doctor['name'],
+            doctorId: doctor['id'] as String,
+            doctorName: doctor['name'] as String,
             patientId: user.uid,
             patientName: user.displayName ?? 'مريض',
-            doctorImage: doctor['image'],
+            doctorImage: doctor['image'] as String?,
           );
           count++;
         } catch (e) {
           print('❌ Error creating chat with ${doctor['name']}: $e');
         }
       }
-      
+
       ToastService.showSuccess('✅ تم إنشاء $count محادثة');
     } catch (e) {
       ToastService.showError('❌ فشل إنشاء المحادثات: $e');
@@ -535,12 +542,12 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
               leading: CircleAvatar(
                 backgroundColor: AppColors.primary.withOpacity(0.1),
                 child: Text(
-                  doctor['name']?[0] ?? 'ط',
+                  (doctor['name'] as String).isNotEmpty ? (doctor['name'] as String)[0] : 'ط',
                   style: const TextStyle(color: AppColors.primary),
                 ),
               ),
-              title: Text(doctor['name'] ?? 'طبيب'),
-              subtitle: Text(doctor['specialty'] ?? 'طبيب'),
+              title: Text(doctor['name'] as String? ?? 'طبيب'),
+              subtitle: Text(doctor['specialty'] as String? ?? 'طبيب'),
               trailing: const Icon(Icons.chat, color: AppColors.primary),
               onTap: () {
                 Navigator.pop(context);
@@ -562,11 +569,11 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
 
     try {
       _chatService.createChat(
-        doctorId: doctor['id'],
-        doctorName: doctor['name'],
+        doctorId: doctor['id'] as String,
+        doctorName: doctor['name'] as String,
         patientId: user.uid,
         patientName: user.displayName ?? 'مريض',
-        doctorImage: doctor['image'],
+        doctorImage: doctor['image'] as String?,
       ).then((chatId) {
         Navigator.push(
           context,
@@ -574,7 +581,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
             builder: (_) => ChatDetailScreen(
               chatId: chatId,
               userId: user.uid,
-              userName: doctor['name'],
+              userName: doctor['name'] as String,
               isDoctor: true,
             ),
           ),
