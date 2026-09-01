@@ -1,25 +1,337 @@
-// ============================================================
-// 🔧 ChatService - إصلاح إنشاء المحادثة
-// ============================================================
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'dart:io';
+import 'package:http/http.dart' as http;
+
 import 'package:sehatak/core/models/chat_model.dart';
 import 'package:sehatak/core/models/message_model.dart';
 
+/// ============================================================
+/// 💬 ChatService
+/// ============================================================
+///
+/// Flutter
+///   ↓
+/// HTTP API
+///   ↓
+/// Node.js Backend
+///   ↓
+/// Firestore
+///
+/// الملفات:
+/// Flutter → Backend → Nextcloud
+///
+/// ملاحظة:
+/// يمكن تغيير العنوان أثناء التشغيل:
+///
+/// flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000
+///
+/// Android Emulator:
+/// 10.0.2.2:3000
+///
+/// Android + Backend على نفس الجهاز:
+/// 127.0.0.1:3000
+/// ============================================================
+
 class ChatService {
   static final ChatService _instance = ChatService._internal();
+
   factory ChatService() => _instance;
+
   ChatService._internal();
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseStorage _storage = FirebaseStorage.instance;
+
+  /// يمكن تغييره بدون تعديل الكود:
+  ///
+  /// flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000
+  static const String _baseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://127.0.0.1:3000',
+  );
+
+  final Map<String, Timer> _chatTimers = {};
 
   // ============================================================
-  // 💬 إنشاء محادثة - النسخة الصحيحة
+  // 🔐 Headers
+  // ============================================================
+
+  Future<Map<String, String>> _headers() async {
+    final headers = <String, String>{
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+
+    final user = _auth.currentUser;
+
+    if (user != null) {
+      try {
+        final token = await user.getIdToken();
+
+        if (token != null && token.isNotEmpty) {
+          headers['Authorization'] = 'Bearer $token';
+        }
+      } catch (e) {
+        print('⚠️ تعذر الحصول على Firebase ID Token: $e');
+      }
+    }
+
+    return headers;
+  }
+
+  // ============================================================
+  // 🌐 HTTP helper
+  // ============================================================
+
+  Future<dynamic> _request(
+    String method,
+    String path, {
+    Map<String, dynamic>? body,
+    Map<String, String>? query,
+  }) async {
+    try {
+      final uri = Uri.parse('$_baseUrl$path').replace(
+        queryParameters: query,
+      );
+
+      final headers = await _headers();
+
+      late http.Response response;
+
+      switch (method.toUpperCase()) {
+        case 'GET':
+          response = await http.get(
+            uri,
+            headers: headers,
+          );
+          break;
+
+        case 'POST':
+          response = await http.post(
+            uri,
+            headers: headers,
+            body: jsonEncode(body ?? {}),
+          );
+          break;
+
+        case 'PATCH':
+          response = await http.patch(
+            uri,
+            headers: headers,
+            body: jsonEncode(body ?? {}),
+          );
+          break;
+
+        default:
+          throw Exception('HTTP method غير مدعوم: $method');
+      }
+
+      dynamic decoded;
+
+      if (response.body.isNotEmpty) {
+        try {
+          decoded = jsonDecode(response.body);
+        } catch (_) {
+          decoded = response.body;
+        }
+      }
+
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        final message =
+            decoded is Map && decoded['message'] != null
+                ? decoded['message'].toString()
+                : 'HTTP ${response.statusCode}';
+
+        throw Exception(message);
+      }
+
+      return decoded;
+    } on SocketException catch (e) {
+      print('❌ تعذر الاتصال بالـ Backend: $e');
+      throw Exception(
+        'تعذر الاتصال بخادم صحتك. تأكد من تشغيل Backend.',
+      );
+    } on TimeoutException {
+      throw Exception('انتهت مهلة الاتصال بالخادم');
+    } catch (e) {
+      print('❌ API Error [$method $path]: $e');
+      rethrow;
+    }
+  }
+
+  // ============================================================
+  // 🕒 تحويل Timestamp القادم من Firestore/API
+  // ============================================================
+
+  dynamic _normalizeTimestamp(dynamic value) {
+    if (value == null) {
+      return Timestamp.now();
+    }
+
+    if (value is Timestamp) {
+      return value;
+    }
+
+    if (value is DateTime) {
+      return Timestamp.fromDate(value);
+    }
+
+    if (value is String) {
+      try {
+        return Timestamp.fromDate(
+          DateTime.parse(value),
+        );
+      } catch (_) {
+        return Timestamp.now();
+      }
+    }
+
+    if (value is Map) {
+      final seconds = value['_seconds'];
+      final nanoseconds = value['_nanoseconds'];
+
+      if (seconds is num) {
+        return Timestamp(
+          seconds.toInt(),
+          nanoseconds is num ? nanoseconds.toInt() : 0,
+        );
+      }
+    }
+
+    return Timestamp.now();
+  }
+
+  // ============================================================
+  // 🧹 تجهيز بيانات ChatModel
+  // ============================================================
+
+  Map<String, dynamic> _normalizeChatMap(
+    Map<String, dynamic> data,
+  ) {
+    final map = Map<String, dynamic>.from(data);
+
+    map['createdAt'] = _normalizeTimestamp(
+      map['createdAt'],
+    );
+
+    map['updatedAt'] = _normalizeTimestamp(
+      map['updatedAt'],
+    );
+
+    map['lastMessageTime'] = _normalizeTimestamp(
+      map['lastMessageTime'],
+    );
+
+    if (map['lastSeen'] != null) {
+      map['lastSeen'] = _normalizeTimestamp(
+        map['lastSeen'],
+      );
+    }
+
+    /// ChatModel الحالي يستخدم int وليس Map
+    if (map['unreadCount'] is! int) {
+      map['unreadCount'] = 0;
+    }
+
+    map['participants'] =
+        List<String>.from(
+          map['participants'] ?? const [],
+        );
+
+    map['labels'] =
+        List<String>.from(
+          map['labels'] ?? const [],
+        );
+
+    map['callHistory'] =
+        List<dynamic>.from(
+          map['callHistory'] ?? const [],
+        );
+
+    return map;
+  }
+
+  // ============================================================
+  // 🧹 تجهيز بيانات MessageModel
+  // ============================================================
+
+  Map<String, dynamic> _normalizeMessageMap(
+    Map<String, dynamic> data,
+    String id,
+    String chatId,
+  ) {
+    final map = Map<String, dynamic>.from(data);
+
+    map['chatId'] = map['chatId'] ?? chatId;
+
+    map['timestamp'] = _normalizeTimestamp(
+      map['timestamp'],
+    );
+
+    map['senderName'] =
+        map['senderName'] ?? 'مستخدم';
+
+    map['text'] =
+        map['text'] ?? '';
+
+    map['isRead'] =
+        map['isRead'] ?? false;
+
+    map['isDelivered'] =
+        map['isDelivered'] ?? false;
+
+    map['type'] =
+        map['type'] ?? 'text';
+
+    map['isDeleted'] =
+        map['isDeleted'] ?? false;
+
+    map['isEncrypted'] =
+        map['isEncrypted'] ?? false;
+
+    map['isSelfDestruct'] =
+        map['isSelfDestruct'] ?? false;
+
+    map['selfDestructDuration'] =
+        map['selfDestructDuration'] ?? 0;
+
+    map['reactions'] =
+        Map<String, int>.from(
+          map['reactions'] ?? const {},
+        );
+
+    map['fileUrl'] =
+        map['fileUrl'];
+
+    map['imageUrl'] =
+        map['imageUrl'];
+
+    map['audioUrl'] =
+        map['audioUrl'];
+
+    map['locationUrl'] =
+        map['locationUrl'];
+
+    map['replyTo'] =
+        map['replyTo'];
+
+    map['replyToText'] =
+        map['replyToText'];
+
+    map['fileName'] =
+        map['fileName'];
+
+    map['fileSize'] =
+        map['fileSize'];
+
+    return map;
+  }
+
+  // ============================================================
+  // 💬 إنشاء محادثة
   // ============================================================
 
   Future<String> createChat({
@@ -30,56 +342,50 @@ class ChatService {
     String? doctorImage,
     String? patientImage,
   }) async {
+    final user = _auth.currentUser;
+
+    if (user == null) {
+      throw Exception('يجب تسجيل الدخول');
+    }
+
     try {
-      final user = _auth.currentUser;
-      if (user == null) throw Exception('يجب تسجيل الدخول');
+      print('💬 إنشاء محادثة عبر API');
+      print('👨‍⚕️ الطبيب: $doctorName ($doctorId)');
+      print('👤 المريض: $patientName ($patientId)');
 
-      // ✅ التحقق من وجود محادثة مسبقة
-      final existing = await _firestore
-          .collection('chats')
-          .where('participants', arrayContains: user.uid)
-          .get();
+      final response = await _request(
+        'POST',
+        '/api/chats',
+        body: {
+          'doctorId': doctorId,
+          'doctorName': doctorName,
+          'doctorImage': doctorImage ?? '',
+          'patientId': patientId,
+          'patientName': patientName,
+          'patientImage': patientImage ?? '',
+        },
+      );
 
-      for (final doc in existing.docs) {
-        final data = doc.data();
-        final participants = List<String>.from(data['participants'] ?? []);
-        if (participants.contains(doctorId) && participants.contains(patientId)) {
-          print('✅ محادثة موجودة مسبقاً: ${doc.id}');
-          return doc.id;
-        }
+      if (response is! Map ||
+          response['success'] != true) {
+        throw Exception(
+          response is Map
+              ? response['message'] ?? 'فشل إنشاء المحادثة'
+              : 'فشل إنشاء المحادثة',
+        );
       }
 
-      // ✅ إنشاء محادثة جديدة
-      final chatId = _firestore.collection('chats').doc().id;
-      
-      // ✅ التأكد من أن المشاركين صحيحين
-      final participants = [doctorId, patientId];
-      final unreadCount = {
-        doctorId: 0,
-        patientId: 0,
-      };
+      final chat = response['chat'];
 
-      await _firestore.collection('chats').doc(chatId).set({
-        'id': chatId,
-        'doctorId': doctorId,
-        'doctorName': doctorName,
-        'doctorImage': doctorImage ?? '',
-        'patientId': patientId,
-        'patientName': patientName,
-        'patientImage': patientImage ?? '',
-        'lastMessage': 'ابدأ المحادثة',
-        'lastMessageTime': FieldValue.serverTimestamp(),
-        'createdAt': FieldValue.serverTimestamp(),
-        'participants': participants,
-        'unreadCount': unreadCount,
-        'isOnline': false,
-        'isGroup': false,
-      });
+      if (chat is! Map || chat['id'] == null) {
+        throw Exception('Backend لم يعُد chatId صحيحًا');
+      }
 
-      print('✅ تم إنشاء محادثة جديدة: $chatId');
-      print('   👥 المشاركون: $participants');
-      print('   👨‍⚕️ الطبيب: $doctorName ($doctorId)');
-      print('   👤 المريض: $patientName ($patientId)');
+      final chatId = chat['id'].toString();
+
+      print(
+        '✅ تم إنشاء/استرجاع المحادثة: $chatId',
+      );
 
       return chatId;
     } catch (e) {
@@ -94,43 +400,205 @@ class ChatService {
 
   Stream<List<ChatModel>> getChats() {
     final user = _auth.currentUser;
-    if (user == null) return Stream.value([]);
-    
-    return _firestore
-        .collection('chats')
-        .where('participants', arrayContains: user.uid)
-        .snapshots()
-        .map((snapshot) {
-          final chats = snapshot.docs
-              .map((doc) => ChatModel.fromMap(doc.data(), doc.id))
-              .toList();
-          
-          chats.sort((a, b) => b.lastMessageTime.compareTo(a.lastMessageTime));
-          return chats;
-        });
+
+    if (user == null) {
+      return Stream.value([]);
+    }
+
+    final controller =
+        StreamController<List<ChatModel>>();
+
+    Future<void> loadChats() async {
+      try {
+        final response = await _request(
+          'GET',
+          '/api/chats',
+          query: {
+            'userId': user.uid,
+          },
+        );
+
+        if (response is! Map ||
+            response['success'] != true) {
+          throw Exception('فشل جلب المحادثات');
+        }
+
+        final rawChats =
+            response['chats'];
+
+        final chats = <ChatModel>[];
+
+        if (rawChats is List) {
+          for (final item in rawChats) {
+            if (item is Map) {
+              try {
+                final map =
+                    _normalizeChatMap(
+                  Map<String, dynamic>.from(item),
+                );
+
+                final id =
+                    map['id']?.toString() ?? '';
+
+                if (id.isEmpty) {
+                  continue;
+                }
+
+                chats.add(
+                  ChatModel.fromMap(
+                    map,
+                    id,
+                  ),
+                );
+              } catch (e) {
+                print(
+                  '⚠️ تعذر تحويل ChatModel: $e',
+                );
+              }
+            }
+          }
+        }
+
+        chats.sort(
+          (a, b) => b.lastMessageTime.compareTo(
+            a.lastMessageTime,
+          ),
+        );
+
+        if (!controller.isClosed) {
+          controller.add(chats);
+        }
+      } catch (e) {
+        print('❌ getChats error: $e');
+
+        if (!controller.isClosed) {
+          controller.addError(e);
+        }
+      }
+    }
+
+    loadChats();
+
+    /// محاكاة realtime عبر polling
+    /// إلى أن يتم إضافة WebSocket/SSE لاحقًا.
+    final timer = Timer.periodic(
+      const Duration(seconds: 3),
+      (_) => loadChats(),
+    );
+
+    controller.onCancel = () {
+      timer.cancel();
+    };
+
+    return controller.stream;
   }
 
   // ============================================================
   // 💬 جلب الرسائل
   // ============================================================
 
-  Stream<List<MessageModel>> getMessages(String chatId, {int limit = 50}) {
-    return _firestore
-        .collection('chats')
-        .doc(chatId)
-        .collection('messages')
-        .orderBy('timestamp', descending: true)
-        .limit(limit)
-        .snapshots()
-        .map((snapshot) {
-          return snapshot.docs
-              .map((doc) => MessageModel.fromMap(doc.data(), doc.id))
-              .toList();
-        });
+  Stream<List<MessageModel>> getMessages(
+    String chatId, {
+    int limit = 50,
+  }) {
+    final controller =
+        StreamController<List<MessageModel>>();
+
+    Future<void> loadMessages() async {
+      try {
+        final response = await _request(
+          'GET',
+          '/api/chats/$chatId/messages',
+          query: {
+            'limit': limit.toString(),
+          },
+        );
+
+        if (response is! Map ||
+            response['success'] != true) {
+          throw Exception('فشل جلب الرسائل');
+        }
+
+        final rawMessages =
+            response['messages'];
+
+        final messages =
+            <MessageModel>[];
+
+        if (rawMessages is List) {
+          for (final item in rawMessages) {
+            if (item is! Map) continue;
+
+            try {
+              final map =
+                  Map<String, dynamic>.from(item);
+
+              final id =
+                  map['id']?.toString() ?? '';
+
+              if (id.isEmpty) {
+                continue;
+              }
+
+              final normalized =
+                  _normalizeMessageMap(
+                map,
+                id,
+                chatId,
+              );
+
+              messages.add(
+                MessageModel.fromMap(
+                  normalized,
+                  id,
+                ),
+              );
+            } catch (e) {
+              print(
+                '⚠️ تعذر تحويل MessageModel: $e',
+              );
+            }
+          }
+        }
+
+        /// Backend يعيدها تنازليًا.
+        /// نعيدها تصاعديًا حتى تظهر الرسائل
+        /// في واجهة المحادثة بالترتيب الطبيعي.
+        messages.sort(
+          (a, b) =>
+              a.timestamp.compareTo(
+            b.timestamp,
+          ),
+        );
+
+        if (!controller.isClosed) {
+          controller.add(messages);
+        }
+      } catch (e) {
+        print('❌ getMessages error: $e');
+
+        if (!controller.isClosed) {
+          controller.addError(e);
+        }
+      }
+    }
+
+    loadMessages();
+
+    final timer = Timer.periodic(
+      const Duration(seconds: 2),
+      (_) => loadMessages(),
+    );
+
+    controller.onCancel = () {
+      timer.cancel();
+    };
+
+    return controller.stream;
   }
 
   // ============================================================
-  // 💬 إرسال رسالة
+  // 📤 إرسال رسالة
   // ============================================================
 
   Future<void> sendMessage({
@@ -143,174 +611,318 @@ class ChatService {
     String? replyToText,
   }) async {
     final user = _auth.currentUser;
-    if (user == null) return;
 
-    print('📤 إرسال رسالة:');
-    print('   📱 chatId: $chatId');
-    print('   👤 sender: ${user.uid} (${user.displayName})');
-    print('   💬 text: $text');
-
-    final message = MessageModel(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      chatId: chatId,
-      senderId: user.uid,
-      senderName: user.displayName ?? 'مستخدم',
-      text: text,
-      imageUrl: imageUrl,
-      audioUrl: audioUrl,
-      fileUrl: fileUrl,
-      timestamp: DateTime.now(),
-      isRead: false,
-      isDelivered: false,
-      type: imageUrl != null ? 'image' : 
-             audioUrl != null ? 'audio' : 
-             fileUrl != null ? 'file' : 'text',
-      replyTo: replyTo,
-      replyToText: replyToText,
-      isDeleted: false,
-      reactions: {},
-    );
-
-    // ✅ إضافة الرسالة إلى Firestore
-    await _firestore
-        .collection('chats')
-        .doc(chatId)
-        .collection('messages')
-        .add(message.toMap());
-
-    // ✅ تحديث آخر رسالة في المحادثة
-    await _firestore.collection('chats').doc(chatId).update({
-      'lastMessage': text,
-      'lastMessageTime': FieldValue.serverTimestamp(),
-    });
-
-    // ✅ زيادة عدد الرسائل غير المقروءة للطرف الآخر
-    final chatDoc = await _firestore.collection('chats').doc(chatId).get();
-    if (chatDoc.exists) {
-      final data = chatDoc.data()!;
-      final unreadCount = Map<String, int>.from(data['unreadCount'] ?? {});
-      
-      // ✅ زيادة لجميع المشاركين ما عدا المرسل
-      for (final participant in data['participants'] ?? []) {
-        if (participant != user.uid) {
-          unreadCount[participant] = (unreadCount[participant] ?? 0) + 1;
-        }
-      }
-      
-      await _firestore.collection('chats').doc(chatId).update({
-        'unreadCount': unreadCount,
-      });
+    if (user == null) {
+      throw Exception('يجب تسجيل الدخول');
     }
 
-    final participants =
-        List<String>.from(chatDoc.data()?['participants'] ?? []);
+    String type = 'text';
 
-    final receiverId = participants.firstWhere(
-      (id) => id != user.uid,
-      orElse: () => '',
-    );
+    if (imageUrl != null &&
+        imageUrl.isNotEmpty) {
+      type = 'image';
+    } else if (audioUrl != null &&
+        audioUrl.isNotEmpty) {
+      type = 'audio';
+    } else if (fileUrl != null &&
+        fileUrl.isNotEmpty) {
+      type = 'file';
+    }
 
-    if (receiverId.isNotEmpty) {
-      await _sendNotification(
-        receiverId: receiverId,
-        senderName: user.displayName ?? 'مستخدم',
-        message: text,
-        chatId: chatId,
+    try {
+      print('📤 إرسال رسالة عبر API');
+      print('📱 chatId: $chatId');
+      print(
+        '👤 sender: ${user.uid}',
       );
+      print('💬 text: $text');
+      print('📦 type: $type');
+
+      final response = await _request(
+        'POST',
+        '/api/chats/$chatId/messages',
+        body: {
+          'senderId': user.uid,
+          'senderName':
+              user.displayName ?? 'مستخدم',
+
+          'text': text,
+
+          'type': type,
+
+          'imageUrl': imageUrl,
+          'audioUrl': audioUrl,
+          'fileUrl': fileUrl,
+
+          'replyTo': replyTo,
+          'replyToText': replyToText,
+
+          'isRead': false,
+          'isDelivered': true,
+
+          'isDeleted': false,
+          'isEncrypted': false,
+
+          'isSelfDestruct': false,
+          'selfDestructDuration': 0,
+
+          'reactions': <String, int>{},
+
+          'fileName': null,
+          'fileSize': null,
+        },
+      );
+
+      if (response is! Map ||
+          response['success'] != true) {
+        throw Exception(
+          response is Map
+              ? response['message'] ??
+                  'فشل إرسال الرسالة'
+              : 'فشل إرسال الرسالة',
+        );
+      }
+
+      print('✅ تم إرسال الرسالة بنجاح');
+    } catch (e) {
+      print('❌ sendMessage error: $e');
+      rethrow;
     }
   }
 
   // ============================================================
-  // 📎 إدارة الملفات
+  // 📎 رفع صورة إلى Nextcloud عبر Backend
   // ============================================================
 
   Future<String> uploadImage({
     required String chatId,
     required File image,
   }) async {
-    final ref = _storage
-        .ref()
-        .child('chats/$chatId/images/${DateTime.now().millisecondsSinceEpoch}.jpg');
-    await ref.putFile(image);
-    return await ref.getDownloadURL();
+    return _uploadFile(
+      chatId: chatId,
+      file: image,
+      fileName:
+          'image_${DateTime.now().millisecondsSinceEpoch}.jpg',
+    );
   }
+
+  // ============================================================
+  // 🎤 رفع صوت إلى Nextcloud
+  // ============================================================
 
   Future<String> uploadAudio({
     required String chatId,
     required File audio,
   }) async {
-    final ref = _storage
-        .ref()
-        .child('chats/$chatId/audio/${DateTime.now().millisecondsSinceEpoch}.m4a');
-    await ref.putFile(audio);
-    return await ref.getDownloadURL();
+    return _uploadFile(
+      chatId: chatId,
+      file: audio,
+      fileName:
+          'audio_${DateTime.now().millisecondsSinceEpoch}.m4a',
+    );
   }
+
+  // ============================================================
+  // 📁 رفع ملف إلى Nextcloud
+  // ============================================================
 
   Future<String> uploadFile({
     required String chatId,
     required File file,
     required String fileName,
   }) async {
-    final ref = _storage
-        .ref()
-        .child('chats/$chatId/files/${DateTime.now().millisecondsSinceEpoch}_$fileName');
-    await ref.putFile(file);
-    return await ref.getDownloadURL();
+    return _uploadFile(
+      chatId: chatId,
+      file: file,
+      fileName: fileName,
+    );
   }
 
-  // ✅ تحديث حالة القراءة
-  Future<void> markAsRead(String chatId) async {
-    final user = _auth.currentUser;
-    if (user == null) return;
+  // ============================================================
+  // ☁️ رفع الملف فعليًا
+  // ============================================================
 
-    final messages = await _firestore
-        .collection('chats')
-        .doc(chatId)
-        .collection('messages')
-        .where('senderId', isNotEqualTo: user.uid)
-        .where('isRead', isEqualTo: false)
-        .get();
-
-    for (final doc in messages.docs) {
-      await doc.reference.update({'isRead': true});
-    }
-  }
-
-  void dispose() {}
-}
-
-  // ✅ إرسال إشعار للمستلم عند استلام رسالة جديدة
-  Future<void> _sendNotification({
-    required String receiverId,
-    required String senderName,
-    required String message,
+  Future<String> _uploadFile({
     required String chatId,
+    required File file,
+    required String fileName,
   }) async {
     try {
-      // ✅ حفظ الإشعار في Firestore
-      await _firestore.collection('notifications').add({
-        'userId': receiverId,
-        'title': '📩 رسالة جديدة من $senderName',
-        'body': message.length > 50 ? '${message.substring(0, 50)}...' : message,
-        'type': 'new_message',
-        'chatId': chatId,
-        'senderName': senderName,
-        'isRead': false,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-
-      // ✅ إرسال إشعار FCM (إذا كان المستخدم متصلاً)
-      final userDoc = await _firestore.collection('users').doc(receiverId).get();
-      if (userDoc.exists) {
-        final fcmToken = userDoc.data()?['fcmToken'];
-        if (fcmToken != null) {
-          // TODO: إرسال إشعار عبر FCM
-          print('📱 Sending FCM notification to: $fcmToken');
-        }
+      if (!await file.exists()) {
+        throw Exception('الملف غير موجود');
       }
-      
-      print('✅ Notification sent to: $receiverId');
+
+      final uri = Uri.parse(
+        '$_baseUrl/api/files/upload',
+      );
+
+      print('☁️ رفع ملف إلى Nextcloud');
+      print('📱 chatId: $chatId');
+      print('📁 file: $fileName');
+
+      final request =
+          http.MultipartRequest(
+        'POST',
+        uri,
+      );
+
+      final user = _auth.currentUser;
+
+      if (user != null) {
+        try {
+          final token =
+              await user.getIdToken();
+
+          if (token != null &&
+              token.isNotEmpty) {
+            request.headers['Authorization'] =
+                'Bearer $token';
+          }
+        } catch (_) {}
+      }
+
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'file',
+          file.path,
+          filename: fileName,
+        ),
+      );
+
+      request.fields['chatId'] =
+          chatId;
+
+      final streamed =
+          await request.send();
+
+      final response =
+          await http.Response.fromStream(
+        streamed,
+      );
+
+      dynamic data;
+
+      try {
+        data = jsonDecode(
+          response.body,
+        );
+      } catch (_) {
+        data = null;
+      }
+
+      if (response.statusCode < 200 ||
+          response.statusCode >= 300) {
+        final message =
+            data is Map &&
+                    data['message'] != null
+                ? data['message'].toString()
+                : 'فشل رفع الملف';
+
+        throw Exception(message);
+      }
+
+      if (data is! Map ||
+          data['success'] != true) {
+        throw Exception(
+          data is Map
+              ? data['message'] ??
+                  'فشل رفع الملف'
+              : 'فشل رفع الملف',
+        );
+      }
+
+      final fileData =
+          data['file'];
+
+      if (fileData is! Map) {
+        throw Exception(
+          'Backend لم يعُد بيانات الملف',
+        );
+      }
+
+      /// Backend الحالي يعيد remotePath
+      /// من Nextcloud.
+      final remotePath =
+          fileData['remotePath']
+              ?.toString();
+
+      if (remotePath == null ||
+          remotePath.isEmpty) {
+        throw Exception(
+          'لم يتم الحصول على مسار الملف',
+        );
+      }
+
+      print(
+        '✅ تم رفع الملف: $remotePath',
+      );
+
+      return remotePath;
+    } on SocketException catch (e) {
+      print('❌ Upload connection error: $e');
+      throw Exception(
+        'تعذر الاتصال بخادم الملفات',
+      );
     } catch (e) {
-      print('⚠️ Notification error: $e');
+      print('❌ uploadFile error: $e');
+      rethrow;
     }
   }
+
+  // ============================================================
+  // ✅ تحديث حالة القراءة
+  // ============================================================
+
+  Future<void> markAsRead(
+    String chatId,
+  ) async {
+    final user = _auth.currentUser;
+
+    if (user == null) {
+      return;
+    }
+
+    try {
+      print(
+        '👁️ تحديث حالة القراءة: $chatId',
+      );
+
+      final response = await _request(
+        'PATCH',
+        '/api/chats/$chatId/read',
+        body: {
+          'userId': user.uid,
+        },
+      );
+
+      if (response is! Map ||
+          response['success'] != true) {
+        throw Exception(
+          response is Map
+              ? response['message'] ??
+                  'فشل تحديث القراءة'
+              : 'فشل تحديث القراءة',
+        );
+      }
+
+      print(
+        '✅ تم تحديث الرسائل كمقروءة',
+      );
+    } catch (e) {
+      print('❌ markAsRead error: $e');
+      rethrow;
+    }
+  }
+
+  // ============================================================
+  // 🧹 تنظيف
+  // ============================================================
+
+  void dispose() {
+    for (final timer in _chatTimers.values) {
+      timer.cancel();
+    }
+
+    _chatTimers.clear();
+  }
+}

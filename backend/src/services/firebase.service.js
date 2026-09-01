@@ -1,9 +1,34 @@
-const admin = require('firebase-admin');
+const {
+  initializeApp,
+  cert,
+  getApps,
+} = require('firebase-admin/app');
+
+const {
+  getFirestore: getAdminFirestore,
+} = require('firebase-admin/firestore');
+
+const {
+  getAuth: getAdminAuth,
+} = require('firebase-admin/auth');
+
+const {
+  getStorage: getAdminStorage,
+} = require('firebase-admin/storage');
 
 let initialized = false;
 
+/*
+|--------------------------------------------------------------------------
+| Initialize Firebase Admin
+|--------------------------------------------------------------------------
+*/
+
 function initializeFirebase() {
-  if (initialized) return;
+  if (initialized || getApps().length > 0) {
+    initialized = true;
+    return;
+  }
 
   const projectId = process.env.FIREBASE_PROJECT_ID;
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
@@ -15,30 +40,68 @@ function initializeFirebase() {
     );
   }
 
-  admin.initializeApp({
-    credential: admin.credential.cert({
+  try {
+    initializeApp({
+      credential: cert({
+        projectId,
+        clientEmail,
+        privateKey: privateKey.replace(/\\n/g, '\n'),
+      }),
       projectId,
-      clientEmail,
-      privateKey: privateKey.replace(/\\n/g, '\n'),
-    }),
-  });
+      storageBucket: process.env.FIREBASE_STORAGE_BUCKET || undefined,
+    });
 
-  initialized = true;
+    initialized = true;
+
+    console.log('Firebase Admin SDK initialized successfully');
+  } catch (error) {
+    console.error('Firebase initialization error:', error);
+    throw error;
+  }
 }
+
+/*
+|--------------------------------------------------------------------------
+| Firestore
+|--------------------------------------------------------------------------
+*/
 
 function getFirestore() {
   initializeFirebase();
-  return admin.firestore();
+  return getAdminFirestore();
 }
+
+/*
+|--------------------------------------------------------------------------
+| Firebase Auth
+|--------------------------------------------------------------------------
+*/
 
 function getAuth() {
   initializeFirebase();
-  return admin.auth();
+  return getAdminAuth();
 }
 
+/*
+|--------------------------------------------------------------------------
+| Firebase Storage
+|--------------------------------------------------------------------------
+*/
+
+function getStorage() {
+  initializeFirebase();
+  return getAdminStorage();
+}
+
+/*
+|--------------------------------------------------------------------------
+| Export
+|--------------------------------------------------------------------------
+*/
+
 module.exports = {
-  admin,
   initializeFirebase,
   getFirestore,
   getAuth,
+  getStorage,
 };
