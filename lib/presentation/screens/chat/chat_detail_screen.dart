@@ -68,6 +68,8 @@ StreamSubscription<List<MessageModel>>? _messagesSubscription;
       // ✅ استخدام ChatService مباشرة (بدون MessageBloc)
       _messagesSubscription = _chatService.getMessages(widget.chatId).listen(
         (messages) {
+          if (!mounted) return;
+
           print('📩 Received ${messages.length} messages');
           setState(() {
             _messages = messages;
@@ -76,6 +78,8 @@ StreamSubscription<List<MessageModel>>? _messagesSubscription;
           _scrollToBottom();
         },
         onError: (error) {
+          if (!mounted) return;
+
           print('❌ Error loading messages: $error');
           setState(() {
             _isLoading = false;
@@ -96,6 +100,8 @@ StreamSubscription<List<MessageModel>>? _messagesSubscription;
     final text = _textController.text.trim();
     if (text.isEmpty) return;
 
+    if (!mounted) return;
+
     setState(() => _isSending = true);
 
     try {
@@ -109,12 +115,16 @@ StreamSubscription<List<MessageModel>>? _messagesSubscription;
     } catch (e) {
       ToastService.showError('❌ فشل إرسال الرسالة: $e');
     } finally {
-      setState(() => _isSending = false);
+      if (mounted) {
+        setState(() => _isSending = false);
+      }
     }
   }
 
   void _scrollToBottom() {
     Future.delayed(const Duration(milliseconds: 300), () {
+      if (!mounted) return;
+
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
           0,
@@ -138,12 +148,38 @@ StreamSubscription<List<MessageModel>>? _messagesSubscription;
         elevation: 0,
         actions: [
           IconButton(
+            tooltip: 'مكالمة صوتية',
             icon: const Icon(Icons.call),
-            onPressed: () => ToastService.showInfo('📞 جاري الاتصال...'),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => CallScreen(
+                    chatId: widget.chatId,
+                    doctorName: widget.userName,
+                    doctorId: widget.userId,
+                    isVideo: false,
+                  ),
+                ),
+              );
+            },
           ),
           IconButton(
+            tooltip: 'مكالمة فيديو',
             icon: const Icon(Icons.videocam),
-            onPressed: () => ToastService.showInfo('📹 جاري مكالمة فيديو...'),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => CallScreen(
+                    chatId: widget.chatId,
+                    doctorName: widget.userName,
+                    doctorId: widget.userId,
+                    isVideo: true,
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),

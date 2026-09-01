@@ -7,12 +7,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/chat_model.dart';
+import '../config/livekit_config.dart';
 import '../models/message_model.dart';
 
 class ChatService {
   static const String _baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://127.0.0.1:3000',
+    defaultValue: LiveKitConfig.apiBaseUrl,
   );
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -360,14 +361,10 @@ class ChatService {
       type = 'file';
     }
 
-    final user = _auth.currentUser;
-
     final response = await _request(
       'POST',
       '/api/chats/${Uri.encodeComponent(chatId)}/messages',
       body: {
-        'senderId': user?.uid ?? '',
-        'receiverId': '',
         'text': text,
         'type': type,
         'imageUrl': imageUrl,
@@ -467,9 +464,6 @@ class ChatService {
     final response = await _request(
       'PATCH',
       '/api/chats/${Uri.encodeComponent(chatId)}/read',
-      body: {
-        'userId': userId,
-      },
     );
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
