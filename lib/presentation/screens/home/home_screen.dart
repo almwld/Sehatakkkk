@@ -82,11 +82,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void _initializeScreens() {
     // ✅ استخدام ValueKey لكل شاشة يمنع فقدان الحالة
     _screens = {
-      0: HomeTab(
-        key: ScreenKeys.home,
-        scrollController: _scrollController,
-        isBottomBarVisible: ValueNotifier<bool>(_isBottomBarVisible),
-      ),
+      0: const HomeTab(),
       1: const DoctorsListScreen(key: ScreenKeys.doctors),
       2: const PharmacyScreen(key: ScreenKeys.pharmacy),
       3: const ChatScreen(key: ScreenKeys.chat),
