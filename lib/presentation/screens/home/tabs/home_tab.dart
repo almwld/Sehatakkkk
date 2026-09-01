@@ -207,8 +207,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   final WeatherService _weatherService = WeatherService();
 
   // 📍 الموقع والخدمات القريبة
-  List<Map<String, dynamic>> _nearbyServices = [];
-  double _distanceToNearby = 0;
 
   // 🎨 تخصيص الأقسام
   List<String> _visibleSections = [];
@@ -351,7 +349,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     _loadUpcomingAppointments();
     _loadAIRecommendation();
     _loadWeather();
-    _loadNearbyServices();
     _loadRecentSearches();
     _loadRecentSymptoms();
     _loadDataInBackground();
@@ -573,12 +570,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   // ============================================================
   // 📍 الخدمات القريبة
   // ============================================================
-  Future<void> _loadNearbyServices() async {
-    try {
-      if (!mounted) return;
-      setState(() { _nearbyServices = nearbyResult; });
-    } catch (e) { print('⚠️ فشل تحميل الخدمات القريبة: $e'); }
-  }
 
   // ============================================================
   // 🎨 تفضيلات المستخدم
@@ -695,7 +686,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       await _loadUpcomingAppointments();
       await _loadAIRecommendation();
       await _loadWeather();
-      await _loadNearbyServices();
       await _loadRecentSearches();
       await _loadRecentSymptoms();
       if (!mounted) return;
@@ -1193,7 +1183,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                       if (_weatherData != null)
                         _buildWeatherWidget(),
                       if (_nearbyServices.isNotEmpty)
-                        _buildNearbyServices(),
                       if (_aiRecommendation != null)
                         _buildAIRecommendation(),
                       if (_recentSymptoms.isNotEmpty)
@@ -1647,50 +1636,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   // ============================================================
   // 📍 الخدمات القريبة
   // ============================================================
-  Widget _buildNearbyServices() {
-    return GestureDetector(
-      onTap: () => _goTo(context, const NearbyScreen()),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.green.withOpacity(0.1), Colors.green.withOpacity(0.05)],
-          ),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.green.withOpacity(0.2)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.location_on, color: Colors.green, size: 20),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    '📍 بالقرب منك',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    '${_nearbyServices.length} خدمات قريبة',
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.green),
-          ],
-        ),
-      ),
-    );
-  }
 
   // ============================================================
   // 🤖 توصيات الذكاء الاصطناعي
