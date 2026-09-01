@@ -1,5 +1,5 @@
 // ============================================================
-// 🔧 ChatService - النسخة النهائية مع createChat
+// 🔧 ChatService - إصلاح إنشاء المحادثة
 // ============================================================
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -8,7 +8,6 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
 import 'package:sehatak/models/chat_model.dart';
 import 'package:sehatak/models/message_model.dart';
-import 'package:sehatak/core/services/offline_service.dart';
 
 class ChatService {
   static final ChatService _instance = ChatService._internal();
@@ -18,13 +17,11 @@ class ChatService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
-  final OfflineService _offline = OfflineService();
 
   // ============================================================
-  // 💬 إدارة المحادثات
+  // 💬 إنشاء محادثة - النسخة الصحيحة
   // ============================================================
 
-  // ✅ إنشاء محادثة جديدة (حقيقية)
   Future<String> createChat({
     required String doctorId,
     required String doctorName,
@@ -47,12 +44,21 @@ class ChatService {
         final data = doc.data();
         final participants = List<String>.from(data['participants'] ?? []);
         if (participants.contains(doctorId) && participants.contains(patientId)) {
-          return doc.id; // ✅ محادثة موجودة مسبقاً
+          print('✅ محادثة موجودة مسبقاً: ${doc.id}');
+          return doc.id;
         }
       }
 
       // ✅ إنشاء محادثة جديدة
       final chatId = _firestore.collection('chats').doc().id;
+      
+      // ✅ التأكد من أن المشاركين صحيحين
+      final participants = [doctorId, patientId];
+      final unreadCount = {
+        doctorId: 0,
+        patientId: 0,
+      };
+
       await _firestore.collection('chats').doc(chatId).set({
         'id': chatId,
         'doctorId': doctorId,
@@ -64,16 +70,17 @@ class ChatService {
         'lastMessage': 'ابدأ المحادثة',
         'lastMessageTime': FieldValue.serverTimestamp(),
         'createdAt': FieldValue.serverTimestamp(),
-        'participants': [doctorId, patientId],
-        'unreadCount': {
-          doctorId: 0,
-          patientId: 0,
-        },
+        'participants': participants,
+        'unreadCount': unreadCount,
         'isOnline': false,
         'isGroup': false,
       });
 
       print('✅ تم إنشاء محادثة جديدة: $chatId');
+      print('   👥 المشاركون: $participants');
+      print('   👨‍⚕️ الطبيب: $doctorName ($doctorId)');
+      print('   👤 المريض: $patientName ($patientId)');
+
       return chatId;
     } catch (e) {
       print('❌ Error creating chat: $e');
@@ -81,14 +88,13 @@ class ChatService {
     }
   }
 
-  // ✅ الحصول على المحادثات
+  // ============================================================
+  // 💬 جلب المحادثات
+  // ============================================================
+
   Stream<List<ChatModel>> getChats() {
     final user = _auth.currentUser;
     if (user == null) return Stream.value([]);
-    
-    if (!_offline.isOnline) {
-      return Stream.value(_offline.getChats());
-    }
     
     return _firestore
         .collection('chats')
@@ -100,68 +106,12 @@ class ChatService {
               .toList();
           
           chats.sort((a, b) => b.lastMessageTime.compareTo(a.lastMessageTime));
-          _offline.saveChats(chats);
           return chats;
         });
   }
 
-  Future<ChatModel?> getChatOnce(String chatId) async {
-    final doc = await _firestore.collection('chats').doc(chatId).get();
-    if (!doc.exists) return null;
-    return ChatModel.fromMap(doc.data()!, doc.id);
-  }
-
-  // ✅ إنشاء محادثة تجريبية
-  Future<String> createTestChat() async {
-    try {
-      final user = _auth.currentUser;
-      if (user == null) throw Exception('يجب تسجيل الدخول');
-
-      final chatId = _firestore.collection('chats').doc().id;
-      await _firestore.collection('chats').doc(chatId).set({
-        'id': chatId,
-        'doctorId': 'test_doctor',
-        'doctorName': 'د. أحمد (تجريبي)',
-        'doctorImage': '',
-        'patientId': user.uid,
-        'patientName': user.displayName ?? 'مريض',
-        'patientImage': '',
-        'lastMessage': 'مرحباً، هذه محادثة تجريبية',
-        'lastMessageTime': FieldValue.serverTimestamp(),
-        'createdAt': FieldValue.serverTimestamp(),
-        'participants': ['test_doctor', user.uid],
-        'unreadCount': {
-          'test_doctor': 0,
-          user.uid: 0,
-        },
-        'isOnline': false,
-        'isGroup': false,
-        'admins': [user.uid],
-      });
-
-      await _firestore
-          .collection('chats')
-          .doc(chatId)
-          .collection('messages')
-          .add({
-        'senderId': user.uid,
-        'senderName': user.displayName ?? 'مستخدم',
-        'text': 'مرحباً، هذه محادثة تجريبية',
-        'timestamp': FieldValue.serverTimestamp(),
-        'isRead': false,
-        'isDelivered': false,
-        'type': 'text',
-      });
-
-      return chatId;
-    } catch (e) {
-      print('❌ Error creating test chat: $e');
-      rethrow;
-    }
-  }
-
   // ============================================================
-  // 💬 إدارة الرسائل
+  // 💬 جلب الرسائل
   // ============================================================
 
   Stream<List<MessageModel>> getMessages(String chatId, {int limit = 50}) {
@@ -179,18 +129,26 @@ class ChatService {
         });
   }
 
+  // ============================================================
+  // 💬 إرسال رسالة
+  // ============================================================
+
   Future<void> sendMessage({
     required String chatId,
     required String text,
     String? imageUrl,
     String? audioUrl,
     String? fileUrl,
-    String? locationUrl,
     String? replyTo,
     String? replyToText,
   }) async {
     final user = _auth.currentUser;
     if (user == null) return;
+
+    print('📤 إرسال رسالة:');
+    print('   📱 chatId: $chatId');
+    print('   👤 sender: ${user.uid} (${user.displayName})');
+    print('   💬 text: $text');
 
     final message = MessageModel(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -201,87 +159,50 @@ class ChatService {
       imageUrl: imageUrl,
       audioUrl: audioUrl,
       fileUrl: fileUrl,
-      locationUrl: locationUrl,
       timestamp: DateTime.now(),
       isRead: false,
       isDelivered: false,
       type: imageUrl != null ? 'image' : 
              audioUrl != null ? 'audio' : 
-             fileUrl != null ? 'file' : 
-             locationUrl != null ? 'location' : 'text',
+             fileUrl != null ? 'file' : 'text',
       replyTo: replyTo,
       replyToText: replyToText,
       isDeleted: false,
-      isEncrypted: false,
-      isSelfDestruct: false,
-      selfDestructDuration: 0,
       reactions: {},
     );
 
-    await _offline.saveMessage(message);
-
-    if (_offline.isOnline) {
-      await _firestore
-          .collection('chats')
-          .doc(chatId)
-          .collection('messages')
-          .add(message.toMap());
-
-      await _firestore.collection('chats').doc(chatId).update({
-        'lastMessage': text,
-        'lastMessageTime': FieldValue.serverTimestamp(),
-      });
-    } else {
-      print('📱 Message saved offline');
-    }
-  }
-
-  Future<void> deleteMessage({
-    required String chatId,
-    required String messageId,
-    bool forEveryone = true,
-  }) async {
+    // ✅ إضافة الرسالة إلى Firestore
     await _firestore
         .collection('chats')
         .doc(chatId)
         .collection('messages')
-        .doc(messageId)
-        .update({
-      'isDeleted': true,
-      'text': 'تم حذف هذه الرسالة',
+        .add(message.toMap());
+
+    // ✅ تحديث آخر رسالة في المحادثة
+    await _firestore.collection('chats').doc(chatId).update({
+      'lastMessage': text,
+      'lastMessageTime': FieldValue.serverTimestamp(),
     });
-    await _offline.deleteMessage(messageId);
-  }
 
-  Future<void> markAsRead(String chatId) async {
-    final user = _auth.currentUser;
-    if (user == null) return;
-
-    final messages = await _firestore
-        .collection('chats')
-        .doc(chatId)
-        .collection('messages')
-        .where('senderId', isNotEqualTo: user.uid)
-        .where('isRead', isEqualTo: false)
-        .get();
-
-    for (final doc in messages.docs) {
-      await doc.reference.update({'isRead': true});
+    // ✅ زيادة عدد الرسائل غير المقروءة للطرف الآخر
+    final chatDoc = await _firestore.collection('chats').doc(chatId).get();
+    if (chatDoc.exists) {
+      final data = chatDoc.data()!;
+      final unreadCount = Map<String, int>.from(data['unreadCount'] ?? {});
+      
+      // ✅ زيادة لجميع المشاركين ما عدا المرسل
+      for (final participant in data['participants'] ?? []) {
+        if (participant != user.uid) {
+          unreadCount[participant] = (unreadCount[participant] ?? 0) + 1;
+        }
+      }
+      
+      await _firestore.collection('chats').doc(chatId).update({
+        'unreadCount': unreadCount,
+      });
     }
-  }
 
-  Future<void> deleteChat(String chatId) async {
-    final messages = await _firestore
-        .collection('chats')
-        .doc(chatId)
-        .collection('messages')
-        .get();
-
-    for (final doc in messages.docs) {
-      await doc.reference.delete();
-    }
-    await _firestore.collection('chats').doc(chatId).delete();
-    await _offline.deleteChat(chatId);
+    print('✅ تم إرسال الرسالة بنجاح');
   }
 
   // ============================================================
@@ -322,62 +243,23 @@ class ChatService {
     return await ref.getDownloadURL();
   }
 
-  Future<List<MessageModel>> searchMessages({
-    required String chatId,
-    required String query,
-    int limit = 50,
-  }) async {
-    final snapshot = await _firestore
+  // ✅ تحديث حالة القراءة
+  Future<void> markAsRead(String chatId) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    final messages = await _firestore
         .collection('chats')
         .doc(chatId)
         .collection('messages')
-        .where('text', isGreaterThanOrEqualTo: query)
-        .where('text', isLessThanOrEqualTo: '$query\uf8ff')
-        .where('isDeleted', isEqualTo: false)
-        .orderBy('timestamp', descending: true)
-        .limit(limit)
+        .where('senderId', isNotEqualTo: user.uid)
+        .where('isRead', isEqualTo: false)
         .get();
 
-    return snapshot.docs
-        .map((doc) => MessageModel.fromMap(doc.data(), doc.id))
-        .toList();
+    for (final doc in messages.docs) {
+      await doc.reference.update({'isRead': true});
+    }
   }
 
-  // ============================================================
-  // ❤️ التفاعلات
-  // ============================================================
-
-  Future<void> addReaction({
-    required String chatId,
-    required String messageId,
-    required String emoji,
-  }) async {
-    await _firestore
-        .collection('chats')
-        .doc(chatId)
-        .collection('messages')
-        .doc(messageId)
-        .update({
-      'reactions.$emoji': FieldValue.increment(1),
-    });
-  }
-
-  Future<void> removeReaction({
-    required String chatId,
-    required String messageId,
-    required String emoji,
-  }) async {
-    await _firestore
-        .collection('chats')
-        .doc(chatId)
-        .collection('messages')
-        .doc(messageId)
-        .update({
-      'reactions.$emoji': FieldValue.increment(-1),
-    });
-  }
-
-  void dispose() {
-    _offline.dispose();
-  }
+  void dispose() {}
 }
