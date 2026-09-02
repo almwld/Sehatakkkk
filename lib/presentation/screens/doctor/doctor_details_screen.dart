@@ -9,6 +9,7 @@ import 'package:sehatak/core/services/call_service.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 import 'package:sehatak/presentation/screens/chat/chat_detail_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_booking_screen.dart';
+import 'package:sehatak/presentation/screens/call/call_screen.dart';
 
 class DoctorDetailsScreen extends StatefulWidget {
   final String doctorId;
@@ -32,30 +33,10 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
   final CallService _callService = CallService();
 
   final List<Map<String, dynamic>> _contactIcons = [
-    {
-      'icon': 'assets/images/chat/phone_call.png',
-      'label': 'اتصال',
-      'color': Colors.green,
-      'action': 'call',
-    },
-    {
-      'icon': 'assets/images/chat/video_call.png',
-      'label': 'مكالمة فيديو',
-      'color': Colors.blue,
-      'action': 'video',
-    },
-    {
-      'icon': 'assets/images/chat/chat_bubble.png',
-      'label': 'مراسلة',
-      'color': AppColors.primary,
-      'action': 'chat',
-    },
-    {
-      'icon': 'assets/images/chat/calendar_booking.png',
-      'label': 'حجز موعد',
-      'color': Colors.orange,
-      'action': 'book',
-    },
+    {'icon': 'assets/images/chat/phone_call.png', 'label': 'اتصال', 'color': Colors.green, 'action': 'call'},
+    {'icon': 'assets/images/chat/video_call.png', 'label': 'فيديو', 'color': Colors.blue, 'action': 'video'},
+    {'icon': 'assets/images/chat/chat_bubble.png', 'label': 'مراسلة', 'color': AppColors.primary, 'action': 'chat'},
+    {'icon': 'assets/images/chat/calendar_booking.png', 'label': 'حجز', 'color': Colors.orange, 'action': 'book'},
   ];
 
   @override
@@ -103,18 +84,53 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
     }
   }
 
-  // ✅ دالة المراسلة
+  // ✅ 1. مراسلة → ChatDetailScreen
   Future<void> _openChat() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       ToastService.showError('❌ يجب تسجيل الدخول أولاً');
       return;
     }
-
-    if (_doctor == null) return;
-    if (_isCreatingChat) return;
+    if (_doctor == null || _isCreatingChat) return;
 
     setState(() => _isCreatingChat = true);
+    try {
+      final chatId = await _chatService.createChat(
+        doctorId: _doctor!['id'],
+        doctorName: _doctor!['name'],
+        patientId: user.uid,
+        patientName: user.displayName ?? 'مريض',
+        doctorImage: _doctor!['image'],
+        patientImage: user.photoURL,
+      );
+      if (chatId.isEmpty) throw Exception('لم يتم الحصول على معرف المحادثة');
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ChatDetailScreen(
+            chatId: chatId,
+            userId: _doctor!['id'],
+            userName: _doctor!['name'],
+            isDoctor: true,
+          ),
+        ),
+      );
+    } catch (e) {
+      ToastService.showError('❌ فشل إنشاء المحادثة: $e');
+    } finally {
+      if (mounted) setState(() => _isCreatingChat = false);
+    }
+  }
+
+  // ✅ 2. اتصال → CallScreen (صوتي)
+  Future<void> _makeCall() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ToastService.showError('❌ يجب تسجيل الدخول أولاً');
+      return;
+    }
+    if (_doctor == null) return;
 
     try {
       final chatId = await _chatService.createChat(
@@ -125,78 +141,81 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
         doctorImage: _doctor!['image'],
         patientImage: user.photoURL,
       );
-
+      if (chatId.isEmpty) throw Exception('لم يتم الحصول على معرف المحادثة');
       if (!mounted) return;
-
-      if (chatId.isEmpty) {
-        throw Exception('لم يتم الحصول على معرف المحادثة');
-      }
-
-      // ✅ الانتقال إلى شاشة الدردشة
       Navigator.push(
+        context,
         MaterialPageRoute(
-          builder: (_) => ChatDetailScreen(
+          builder: (_) => CallScreen(
             chatId: chatId,
-            userId: _doctor!['id'],
-            userName: _doctor!['name'],
-            isDoctor: true,
+            doctorName: _doctor!['name'],
+            doctorId: _doctor!['id'],
+            isVideo: false,
           ),
         ),
       );
-    } catch (error) {
-      print('❌ Open chat error: $error');
-      ToastService.showError('❌ تعذر إنشاء المحادثة');
-    } finally {
-      if (mounted) setState(() => _isCreatingChat = false);
+    } catch (e) {
+      ToastService.showError('❌ فشل بدء المكالمة: $e');
     }
   }
 
-  // ✅ دالة الاتصال
-  void _makeCall() {
-    ToastService.showInfo('📞 جاري الاتصال بالطبيب...');
-    // TODO: تنفيذ الاتصال الصوتي
+  // ✅ 3. فيديو → CallScreen (فيديو)
+  Future<void> _makeVideoCall() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ToastService.showError('❌ يجب تسجيل الدخول أولاً');
+      return;
+    }
+    if (_doctor == null) return;
+
+    try {
+      final chatId = await _chatService.createChat(
+        doctorId: _doctor!['id'],
+        doctorName: _doctor!['name'],
+        patientId: user.uid,
+        patientName: user.displayName ?? 'مريض',
+        doctorImage: _doctor!['image'],
+        patientImage: user.photoURL,
+      );
+      if (chatId.isEmpty) throw Exception('لم يتم الحصول على معرف المحادثة');
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CallScreen(
+            chatId: chatId,
+            doctorName: _doctor!['name'],
+            doctorId: _doctor!['id'],
+            isVideo: true,
+          ),
+        ),
+      );
+    } catch (e) {
+      ToastService.showError('❌ فشل بدء مكالمة الفيديو: $e');
+    }
   }
 
-  // ✅ دالة مكالمة فيديو
-  void _makeVideoCall() {
-    ToastService.showInfo('📹 جاري بدء مكالمة فيديو...');
-    // TODO: تنفيذ مكالمة الفيديو
-  }
-
-  // ✅ دالة حجز موعد
+  // ✅ 4. حجز → DoctorBookingScreen
   void _bookAppointment() {
     if (_doctor == null) return;
     Navigator.push(
+      context,
       MaterialPageRoute(
-        builder: (_) => DoctorBookingScreen(
-          doctorId: _doctor!['id'],
-        ),
+        builder: (_) => DoctorBookingScreen(doctorId: _doctor!['id']),
       ),
     );
   }
 
   void _handleAction(int index) {
     if (_isCreatingChat) return;
-
     setState(() => _selectedIndex = index);
-
     final action = _contactIcons[index]['action'] as String;
-
     switch (action) {
-      case 'call':
-        _makeCall();
-        break;
-      case 'video':
-        _makeVideoCall();
-        break;
-      case 'chat':
-        _openChat();
-        break;
-      case 'book':
-        _bookAppointment();
-        break;
+      case 'call': _makeCall(); break;
+      case 'video': _makeVideoCall(); break;
+      case 'chat': _openChat(); break;
+      case 'book': _bookAppointment(); break;
     }
-
     Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted) setState(() => _selectedIndex = -1);
     });
@@ -205,7 +224,6 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
     if (_isLoading || _doctor == null) {
       return Scaffold(
         backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
@@ -251,36 +269,18 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  Text(
-                    _doctor!['name'] ?? 'طبيب',
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
+                  Text(_doctor!['name'] ?? 'طبيب', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
-                  Text(
-                    _doctor!['specialty'] ?? 'طبيب عام',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: isDark ? Colors.grey[400] : Colors.grey[600],
-                    ),
-                  ),
+                  Text(_doctor!['specialty'] ?? 'طبيب عام', style: TextStyle(fontSize: 16, color: isDark ? Colors.grey[400] : Colors.grey[600])),
                   const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Icon(Icons.star, color: Colors.amber, size: 18),
                       const SizedBox(width: 4),
-                      Text(
-                        (_doctor!['rating'] ?? 0).toStringAsFixed(1),
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                      ),
+                      Text((_doctor!['rating'] ?? 0).toStringAsFixed(1), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                       const SizedBox(width: 4),
-                      Text(
-                        '(${_doctor!['reviews'] ?? 0} تقييم)',
-                        style: TextStyle(
-                          color: isDark ? Colors.grey[400] : Colors.grey[600],
-                          fontSize: 14,
-                        ),
-                      ),
+                      Text('(${_doctor!['reviews'] ?? 0} تقييم)', style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600], fontSize: 14)),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -291,7 +291,6 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                       final item = entry.value;
                       final isSelected = _selectedIndex == index;
                       final color = item['color'] as Color;
-
                       return GestureDetector(
                         onTap: () => _handleAction(index),
                         child: AnimatedContainer(
@@ -313,13 +312,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                                 size: 24,
                               ),
                               const SizedBox(height: 4),
-                              Text(
-                                item['label'] as String,
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: isDark ? Colors.white70 : Colors.black87,
-                                ),
-                              ),
+                              Text(item['label'], style: TextStyle(fontSize: 10, color: isDark ? Colors.white70 : Colors.black87)),
                             ],
                           ),
                         ),
@@ -332,14 +325,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
             ),
             const Text('نبذة عن الطبيب', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Text(
-              _doctor!['about'] ?? 'لا توجد معلومات',
-              style: TextStyle(
-                fontSize: 14,
-                color: isDark ? Colors.grey[400] : Colors.grey[600],
-                height: 1.6,
-              ),
-            ),
+            Text(_doctor!['about'] ?? 'لا توجد معلومات', style: TextStyle(fontSize: 14, color: isDark ? Colors.grey[400] : Colors.grey[600], height: 1.6)),
             const SizedBox(height: 16),
             _buildInfoRow('🏥 المستشفى', _doctor!['hospital'] ?? 'غير محدد', isDark),
             _buildInfoRow('💰 سعر الكشف', '${(_doctor!['fee'] ?? 0).toStringAsFixed(0)} ر.س', isDark),
@@ -358,39 +344,10 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 100,
-            child: Text(
-              label,
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                color: isDark ? Colors.grey[400] : Colors.grey[600],
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: TextStyle(
-                color: isDark ? Colors.white : Colors.black87,
-              ),
-            ),
-          ),
+          SizedBox(width: 100, child: Text(label, style: TextStyle(fontWeight: FontWeight.w600, color: isDark ? Colors.grey[400] : Colors.grey[600]))),
+          Expanded(child: Text(value, style: TextStyle(color: isDark ? Colors.white : Colors.black87))),
         ],
       ),
     );
   }
-}
-
-// ✅ دالة فتح غرفة الدردشة
-void _openChatRoom(String chatId, String userId, String userName) {
-  Navigator.push(
-    MaterialPageRoute(
-        chatId: chatId,
-        userId: userId,
-        userName: userName,
-        isDoctor: true,
-      ),
-    ),
-  );
 }
