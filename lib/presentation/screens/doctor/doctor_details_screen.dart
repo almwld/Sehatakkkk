@@ -95,15 +95,13 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
 
     setState(() => _isCreatingChat = true);
     try {
-      final chatId = await _chatService.createChat(
+      final chat = await _chatService.createChat(
         doctorId: _doctor!['id'],
-        doctorName: _doctor!['name'],
-        patientId: user.uid,
-        patientName: user.displayName ?? 'مريض',
-        doctorImage: _doctor!['image'],
-        patientImage: user.photoURL,
       );
-      if (chatId.isEmpty) throw Exception('لم يتم الحصول على معرف المحادثة');
+      final chatId = chat.id;
+      if (chatId.isEmpty) {
+        throw Exception('لم يتم الحصول على معرف المحادثة');
+      }
       if (!mounted) return;
       Navigator.push(
         context,
@@ -133,15 +131,13 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
     if (_doctor == null) return;
 
     try {
-      final chatId = await _chatService.createChat(
+      final chat = await _chatService.createChat(
         doctorId: _doctor!['id'],
-        doctorName: _doctor!['name'],
-        patientId: user.uid,
-        patientName: user.displayName ?? 'مريض',
-        doctorImage: _doctor!['image'],
-        patientImage: user.photoURL,
       );
-      if (chatId.isEmpty) throw Exception('لم يتم الحصول على معرف المحادثة');
+      final chatId = chat.id;
+      if (chatId.isEmpty) {
+        throw Exception('لم يتم الحصول على معرف المحادثة');
+      }
       if (!mounted) return;
       Navigator.push(
         context,
@@ -169,15 +165,13 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
     if (_doctor == null) return;
 
     try {
-      final chatId = await _chatService.createChat(
+      final chat = await _chatService.createChat(
         doctorId: _doctor!['id'],
-        doctorName: _doctor!['name'],
-        patientId: user.uid,
-        patientName: user.displayName ?? 'مريض',
-        doctorImage: _doctor!['image'],
-        patientImage: user.photoURL,
       );
-      if (chatId.isEmpty) throw Exception('لم يتم الحصول على معرف المحادثة');
+      final chatId = chat.id;
+      if (chatId.isEmpty) {
+        throw Exception('لم يتم الحصول على معرف المحادثة');
+      }
       if (!mounted) return;
       Navigator.push(
         context,
