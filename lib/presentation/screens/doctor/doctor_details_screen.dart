@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/core/services/chat_service.dart';
+import 'package:sehatak/core/services/firestore_service.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 import 'package:sehatak/presentation/screens/chat/chat_detail_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_booking_screen.dart';
@@ -63,69 +64,60 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
     _loadDoctorData();
   }
 
-  void _loadDoctorData() {
-    setState(() => _isLoading = true);
+  Future<void> _loadDoctorData() async {
+    if (mounted) {
+      setState(() => _isLoading = true);
+    }
 
-    Future.delayed(const Duration(milliseconds: 300), () {
+    try {
+      final data = await FirestoreService().getDoctor(widget.doctorId);
+
       if (!mounted) return;
 
+      if (data == null) {
+        ToastService.showError('لم يتم العثور على بيانات الطبيب');
+        Navigator.pop(context);
+        return;
+      }
+
+      final rawExperience = data['experience'];
+
+      final normalizedDoctor = {
+        ...data,
+        'id': data['id']?.toString() ?? widget.doctorId,
+        'name': data['name']?.toString() ?? 'طبيب',
+        'specialty': data['specialty']?.toString() ?? 'طبيب عام',
+        'experience': rawExperience?.toString() ?? 'غير محدد',
+        'rating': data['rating'] ?? 0,
+        'reviews': data['reviews'] ?? 0,
+        'fee': data['fee'] ?? 0,
+        'available': data['available'] ?? false,
+        'online': data['online'] ?? false,
+        'about': data['about']?.toString() ?? 'لا توجد نبذة متاحة',
+        'hospital': data['hospital']?.toString() ?? 'غير محدد',
+        'availability': data['availability'] is List
+            ? List<dynamic>.from(data['availability'])
+            : <dynamic>[],
+        'image': data['photoUrl']?.toString() ??
+            data['image']?.toString() ??
+            '',
+      };
+
       setState(() {
-        _doctor = _getDoctorData(widget.doctorId);
+        _doctor = normalizedDoctor;
         _isLoading = false;
       });
-    });
-  }
+    } catch (error) {
+      debugPrint('Load doctor error: $error');
 
-  Map<String, dynamic> _getDoctorData(String doctorId) {
-    final doctors = {
-      '1': {
-        'id': '1',
-        'name': 'د. أحمد المولد',
-        'specialty': 'استشاري باطنية وأطفال',
-        'experience': '20+ سنة',
-        'rating': 4.9,
-        'reviews': 328,
-        'fee': '500',
-        'available': true,
-        'about':
-            'استشاري باطنية وأطفال مع خبرة واسعة في تشخيص وعلاج الأمراض المزمنة والحادة.',
-        'hospital': 'مستشفى الثورة العام',
-        'availability': ['السبت - الأربعاء: 9 ص - 5 م'],
-        'image': ImageKit.doctor1,
-      },
-      '2': {
-        'id': '2',
-        'name': 'د. خالد النخلاني',
-        'specialty': 'قلبية',
-        'experience': '12 سنة',
-        'rating': 4.8,
-        'reviews': 256,
-        'fee': '450',
-        'available': true,
-        'about':
-            'أخصائي قلوب ذو خبرة عالية في تشخيص وعلاج أمراض القلب والشرايين.',
-        'hospital': 'مستشفى الكويت',
-        'availability': ['الأحد - الخميس: 10 ص - 4 م'],
-        'image': ImageKit.doctor2,
-      },
-      '3': {
-        'id': '3',
-        'name': 'د. أسماء الهندي',
-        'specialty': 'أطفال',
-        'experience': '9 سنوات',
-        'rating': 4.7,
-        'reviews': 189,
-        'fee': '420',
-        'available': true,
-        'about':
-            'أخصائية أطفال متابعة التطور الصحي للأطفال من الولادة حتى المراهقة.',
-        'hospital': 'مستشفى السبعين',
-        'availability': ['السبت - الأربعاء: 8 ص - 2 م'],
-        'image': ImageKit.doctor3,
-      },
-    };
+      if (!mounted) return;
 
-    return doctors[doctorId] ?? doctors['1']!;
+      setState(() => _isLoading = false);
+
+      ToastService.showError(
+        'تعذر تحميل بيانات الطبيب',
+      );
+    }
   }
 
   Future<void> _handleAction(int index) async {
@@ -183,25 +175,51 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
 
     if (_isCreatingChat) return;
 
+    // لا يمكن بدء محادثة مع طبيب غير متاح.
+    final isAvailable = _doctor['available'] == true;
+
+    if (!isAvailable) {
+      ToastService.showError(
+        'الطبيب غير متاح للمحادثة حاليًا',
+      );
+      return;
+    }
+
+    final doctorId =
+        _doctor['id']?.toString() ?? widget.doctorId;
+
+    if (doctorId.trim().isEmpty) {
+      ToastService.showError(
+        'معرف الطبيب غير صالح',
+      );
+      return;
+    }
+
+    final doctorName =
+        _doctor['name']?.toString() ?? 'الطبيب';
+
+    final doctorImage =
+        _doctor['image']?.toString() ?? '';
+
+    final patientName =
+        user.displayName?.trim().isNotEmpty == true
+            ? user.displayName!.trim()
+            : 'المريض';
+
     setState(() => _isCreatingChat = true);
 
     try {
-      final patientId = user.uid;
-      final patientName =
-          user.displayName?.trim().isNotEmpty == true
-              ? user.displayName!.trim()
-              : 'المريض';
-
-      final doctorId = _doctor['id']?.toString() ?? widget.doctorId;
-      final doctorName = _doctor['name']?.toString() ?? 'الطبيب';
-      final doctorImage = _doctor['image']?.toString();
-
       final chatService = ChatService();
 
+      /*
+       * patientId يتم تمريره للتوافق مع الواجهة الحالية
+       * لكن ChatService والـ Backend يستخدمان Firebase UID
+       * الحقيقي للمستخدم المسجل.
+       */
       final chatId = await chatService.createChat(
         doctorId: doctorId,
         doctorName: doctorName,
-        patientId: patientId,
+        patientId: user.uid,
         patientName: patientName,
         doctorImage: doctorImage,
         patientImage: user.photoURL,
@@ -209,8 +227,10 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
 
       if (!mounted) return;
 
-      if (chatId.isEmpty) {
-        throw Exception('لم يتم الحصول على معرف المحادثة');
+      if (chatId.trim().isEmpty) {
+        throw Exception(
+          'لم يتم الحصول على معرف المحادثة',
+        );
       }
 
       Navigator.push(
@@ -225,16 +245,20 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
         ),
       );
     } catch (error) {
-      debugPrint('Open doctor chat error: $error');
+      debugPrint(
+        'Open doctor chat error: $error',
+      );
 
       if (!mounted) return;
 
       ToastService.showError(
-        'تعذر إنشاء المحادثة، حاول مرة أخرى',
+        'تعذر فتح المحادثة، حاول مرة أخرى',
       );
     } finally {
       if (mounted) {
-        setState(() => _isCreatingChat = false);
+        setState(
+          () => _isCreatingChat = false,
+        );
       }
     }
   }

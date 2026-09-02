@@ -4,6 +4,7 @@ import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
+import 'package:sehatak/core/services/firestore_service.dart';
 
 class DoctorsListScreen extends StatefulWidget {
   final ScrollController? scrollController;
@@ -24,103 +25,66 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
     'أنف وأذن وحنجرة', 'جلدية', 'عيون', 'نفسية', 'جراحة', 'مسالك بولية'
   ];
 
-  final List<Map<String, dynamic>> _allDoctors = [
-    {
-      'id': '1',
-      'name': 'د. أحمد المولد',
-      'specialty': 'باطنية',
-      'experience': '20+ سنة',
-      'rating': 4.9,
-      'reviews': 328,
-      'price': 500,
-      'available': true,
-      'image': ImageKit.doctor1,
-      'hospital': 'مستشفى الثورة العام',
-      'online': true,
-      'gender': 'male',
-      'badge': 'استشاري'
-    },
-    {
-      'id': '2',
-      'name': 'د. خالد النخلاني',
-      'specialty': 'قلبية',
-      'experience': '15 سنة',
-      'rating': 4.8,
-      'reviews': 256,
-      'price': 600,
-      'available': true,
-      'image': ImageKit.doctor2,
-      'hospital': 'مركز قلب العاصمة',
-      'online': false,
-      'gender': 'male',
-      'badge': 'أستاذ'
-    },
-    {
-      'id': '3',
-      'name': 'د. أسماء الهندي',
-      'specialty': 'أطفال',
-      'experience': '12 سنة',
-      'rating': 4.9,
-      'reviews': 189,
-      'price': 450,
-      'available': true,
-      'image': ImageKit.doctor3,
-      'hospital': 'مستشفى السبعين',
-      'online': true,
-      'gender': 'female',
-      'badge': 'استشارية'
-    },
-    {
-      'id': '4',
-      'name': 'د. محمد العلاي',
-      'specialty': 'أنف وأذن وحنجرة',
-      'experience': '8 سنوات',
-      'rating': 4.7,
-      'reviews': 89,
-      'price': 400,
-      'available': false,
-      'image': ImageKit.doctor4,
-      'hospital': 'مستشفى الأنف والأذن',
-      'online': false,
-      'gender': 'male',
-      'badge': 'أخصائي'
-    },
-    {
-      'id': '5',
-      'name': 'د. فاطمة صديقي',
-      'specialty': 'نساء وولادة',
-      'experience': '18 سنة',
-      'rating': 4.8,
-      'reviews': 210,
-      'price': 550,
-      'available': true,
-      'image': ImageKit.doctor5,
-      'hospital': 'مستشفى الولادة',
-      'online': true,
-      'gender': 'female',
-      'badge': 'استشارية'
-    },
-  ];
+  List<Map<String, dynamic>> _allDoctors = [];
 
-  List<Map<String, dynamic>> get _filteredDoctors {
-    var list = _allDoctors;
+  List<Map<String, dynamic>> _filterDoctors(
+    List<Map<String, dynamic>> doctors,
+  ) {
+    var list = doctors;
+
     if (_searchQuery.isNotEmpty) {
-      list = list.where((d) =>
-          d['name'].toString().contains(_searchQuery) ||
-          d['specialty'].toString().contains(_searchQuery) ||
-          d['hospital'].toString().contains(_searchQuery)
-      ).toList();
+      list = list.where((d) {
+        final name = d['name']?.toString() ?? '';
+        final specialty = d['specialty']?.toString() ?? '';
+        final hospital = d['hospital']?.toString() ?? '';
+
+        return name.contains(_searchQuery) ||
+            specialty.contains(_searchQuery) ||
+            hospital.contains(_searchQuery);
+      }).toList();
     }
+
     if (_selectedSpecialty != 'الكل') {
-      list = list.where((d) => d['specialty'] == _selectedSpecialty).toList();
+      list = list.where((d) {
+        return d['specialty']?.toString() == _selectedSpecialty;
+      }).toList();
     }
+
     return list;
   }
+
+  Map<String, dynamic> _doctorForUi(Map<String, dynamic> doctor) {
+    final rawExperience = doctor['experience'];
+
+    String experience;
+    if (rawExperience == null) {
+      experience = 'غير محدد';
+    } else {
+      experience = rawExperience.toString();
+    }
+
+    return {
+      ...doctor,
+      'id': doctor['id']?.toString() ?? '',
+      'name': doctor['name']?.toString() ?? 'طبيب',
+      'specialty': doctor['specialty']?.toString() ?? 'طبيب عام',
+      'experience': experience,
+      'rating': doctor['rating'] ?? 0,
+      'reviews': doctor['reviews'] ?? 0,
+      'price': doctor['fee'] ?? 0,
+      'available': doctor['available'] ?? false,
+      'image': doctor['photoUrl'] ?? doctor['image'] ?? '',
+      'hospital': doctor['hospital']?.toString() ?? '',
+      'online': doctor['online'] ?? false,
+    };
+  }
+
+
+
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final filtered = _filteredDoctors;
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
@@ -217,16 +181,49 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
           ),
           // القائمة
           Expanded(
-            child: filtered.isEmpty
-                ? _buildEmptyState(isDark)
-                : ListView.builder(
-                    padding: const EdgeInsets.all(12),
-                    itemCount: filtered.length,
-                    itemBuilder: (context, index) {
-                      final doctor = filtered[index];
-                      return _buildDoctorCard(doctor, isDark);
-                    },
-                  ),
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: FirestoreService().getDoctors(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      color: AppColors.primary,
+                    ),
+                  );
+                }
+
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      'تعذر تحميل الأطباء',
+                      style: TextStyle(
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                  );
+                }
+
+                final doctors = snapshot.data
+                        ?.map(_doctorForUi)
+                        .toList() ??
+                    [];
+
+                final filtered = _filterDoctors(doctors);
+
+                if (filtered.isEmpty) {
+                  return _buildEmptyState(isDark);
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final doctor = filtered[index];
+                    return _buildDoctorCard(doctor, isDark);
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),

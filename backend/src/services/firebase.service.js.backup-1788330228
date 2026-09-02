@@ -22,6 +22,12 @@ const {
 
 let initialized = false;
 
+/*
+|--------------------------------------------------------------------------
+| Initialize Firebase Admin
+|--------------------------------------------------------------------------
+*/
+
 function initializeFirebase() {
   if (initialized || getApps().length > 0) {
     initialized = true;
@@ -46,37 +52,56 @@ function initializeFirebase() {
         privateKey: privateKey.replace(/\\n/g, '\n'),
       }),
       projectId,
-      storageBucket:
-          process.env.FIREBASE_STORAGE_BUCKET || undefined,
+      storageBucket: process.env.FIREBASE_STORAGE_BUCKET || undefined,
     });
 
     initialized = true;
-    console.log('✅ Firebase Admin SDK initialized successfully');
+
+    console.log('Firebase Admin SDK initialized successfully');
   } catch (error) {
-    console.error('❌ Firebase initialization error:', error);
+    console.error('Firebase initialization error:', error);
     throw error;
   }
 }
+
+/*
+|--------------------------------------------------------------------------
+| Firestore
+|--------------------------------------------------------------------------
+*/
 
 function getFirestore() {
   initializeFirebase();
   return getAdminFirestore();
 }
 
+/*
+|--------------------------------------------------------------------------
+| Firebase Auth
+|--------------------------------------------------------------------------
+*/
+
 function getAuth() {
   initializeFirebase();
   return getAdminAuth();
 }
+
+/*
+|--------------------------------------------------------------------------
+| Firebase Storage
+|--------------------------------------------------------------------------
+*/
 
 function getStorage() {
   initializeFirebase();
   return getAdminStorage();
 }
 
-function getMessaging() {
-  initializeFirebase();
-  return getAdminMessaging();
-}
+/*
+|--------------------------------------------------------------------------
+| Export
+|--------------------------------------------------------------------------
+*/
 
 module.exports = {
   initializeFirebase,

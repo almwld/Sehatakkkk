@@ -22,8 +22,8 @@ class FirestoreService {
       return snapshot.docs.map((doc) {
         final data = doc.data() as Map<String, dynamic>;
         return {
-          'id': doc.id,
           ...data,
+          'id': doc.id,
         };
       }).toList();
     });
@@ -34,8 +34,8 @@ class FirestoreService {
     if (doc.exists) {
       final data = doc.data() as Map<String, dynamic>;
       return {
-        'id': doc.id,
         ...data,
+        'id': doc.id,
       };
     }
     return null;

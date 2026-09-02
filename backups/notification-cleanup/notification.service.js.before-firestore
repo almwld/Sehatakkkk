@@ -1,0 +1,196 @@
+const { getMessaging, getFirestore } = require('./firebase.service');
+
+/**
+ * إرسال إشعار FCM إلى جهاز مستخدم واحد.
+ *
+ * token يتم قراءته من users/{userId}.fcmToken
+ * ولا يتم الوثوق بأي token قادم من Flutter.
+ */
+async function sendToUser({
+  userId,
+  notification,
+  data = {},
+  android = {},
+}) {
+  if (!userId) {
+    return {
+      success: false,
+      skipped: true,
+      reason: 'missing_user_id',
+    };
+  }
+
+  const db = getFirestore();
+
+  const userSnapshot = await db
+    .collection('users')
+    .doc(String(userId))
+    .get();
+
+  if (!userSnapshot.exists) {
+    return {
+      success: false,
+      skipped: true,
+      reason: 'user_not_found',
+    };
+  }
+
+  const userData = userSnapshot.data() || {};
+  const token = userData.fcmToken;
+
+  if (!token || typeof token !== 'string' || !token.trim()) {
+    return {
+      success: false,
+      skipped: true,
+      reason: 'fcm_token_missing',
+    };
+  }
+
+  const message = {
+    token: token.trim(),
+
+    notification: {
+      title: String(notification?.title || 'صحتك'),
+      body: String(notification?.body || ''),
+    },
+
+    data: Object.fromEntries(
+      Object.entries(data || {}).map(([key, value]) => [
+        String(key),
+        value == null ? '' : String(value),
+      ]),
+    ),
+
+    android: {
+      priority: 'high',
+      notification: {
+        channelId: android.channelId || 'sehatak_channel',
+        sound: android.sound || 'notification',
+      },
+    },
+  };
+
+  try {
+    const messageId = await getMessaging().send(message);
+
+    return {
+      success: true,
+      messageId,
+    };
+  } catch (error) {
+    console.error(
+      'FCM send error:',
+      error?.code || error?.message || error,
+    );
+
+    /*
+     * إذا كان token غير صالح، نحذفه حتى لا نستمر
+     * بإرسال إشعارات إلى جهاز لم يعد مسجلاً.
+     */
+    const invalidTokenCodes = new Set([
+      'messaging/registration-token-not-registered',
+      'messaging/invalid-registration-token',
+    ]);
+
+    if (invalidTokenCodes.has(error?.code)) {
+      try {
+        await db.collection('users').doc(String(userId)).update({
+          fcmToken: null,
+          lastTokenUpdate: null,
+        });
+      } catch (cleanupError) {
+        console.error(
+          'Failed to remove invalid FCM token:',
+          cleanupError?.message || cleanupError,
+        );
+      }
+    }
+
+    return {
+      success: false,
+      skipped: false,
+      reason: error?.code || 'fcm_send_failed',
+    };
+  }
+}
+
+/**
+ * إشعار رسالة جديدة.
+ */
+async function sendNewMessageNotification({
+  receiverId,
+  chatId,
+  senderId,
+  senderName,
+  text,
+  type = 'text',
+}) {
+  const preview =
+    type === 'image'
+      ? '📷 أرسل صورة'
+      : type === 'audio'
+        ? '🎤 أرسل رسالة صوتية'
+        : type === 'file'
+          ? '📎 أرسل ملفًا'
+          : String(text || 'رسالة جديدة');
+
+  return sendToUser({
+    userId: receiverId,
+
+    notification: {
+      title: senderName || 'رسالة جديدة',
+      body: preview,
+    },
+
+    data: {
+      type: 'new_message',
+      chatId,
+      senderId,
+      senderName: senderName || '',
+    },
+
+    android: {
+      channelId: 'sehatak_channel',
+      sound: 'notification',
+    },
+  });
+}
+
+/**
+ * إشعار مكالمة واردة.
+ */
+async function sendIncomingCallNotification({
+  receiverId,
+  chatId,
+  callerId,
+  callerName,
+  isVideo = false,
+}) {
+  return sendToUser({
+    userId: receiverId,
+
+    notification: {
+      title: isVideo ? '📹 مكالمة فيديو واردة' : '📞 مكالمة صوتية واردة',
+      body: `${callerName || 'مستخدم'} يتصل بك`,
+    },
+
+    data: {
+      type: 'incoming_call',
+      chatId,
+      callerId,
+      callerName: callerName || '',
+      isVideo: isVideo ? 'true' : 'false',
+    },
+
+    android: {
+      channelId: 'call_channel',
+      sound: 'call_ringtone',
+    },
+  });
+}
+
+module.exports = {
+  sendToUser,
+  sendNewMessageNotification,
+  sendIncomingCallNotification,
+};

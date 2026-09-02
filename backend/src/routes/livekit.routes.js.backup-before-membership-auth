@@ -1,0 +1,102 @@
+const express = require('express');
+const { AccessToken } = require('livekit-server-sdk');
+const { requireAuth } = require('../middleware/auth.middleware');
+
+const router = express.Router();
+
+/**
+ * POST /api/livekit/token
+ *
+ * Protected endpoint.
+ * The participant identity is ALWAYS taken from Firebase Auth,
+ * never trusted from the request body.
+ */
+router.post('/token', requireAuth, async (req, res) => {
+  try {
+    const { roomName, participantName } = req.body;
+
+    if (!roomName) {
+      return res.status(400).json({
+        success: false,
+        message: 'roomName مطلوب',
+      });
+    }
+
+    if (
+      !process.env.LIVEKIT_API_KEY ||
+      !process.env.LIVEKIT_API_SECRET ||
+      !process.env.LIVEKIT_URL
+    ) {
+      return res.status(500).json({
+        success: false,
+        message: 'إعدادات LiveKit غير مكتملة',
+      });
+    }
+
+    // Never trust participantIdentity from the client.
+    const participantIdentity = req.user.uid;
+
+    const safeParticipantName =
+      String(participantName || req.user.name || participantIdentity);
+
+    const token = new AccessToken(
+      process.env.LIVEKIT_API_KEY,
+      process.env.LIVEKIT_API_SECRET,
+      {
+        identity: String(participantIdentity),
+        name: safeParticipantName,
+        ttl: '1h',
+      },
+    );
+
+    token.addGrant({
+      roomJoin: true,
+      room: String(roomName),
+      canPublish: true,
+      canSubscribe: true,
+      canPublishData: true,
+    });
+
+    const accessToken = await token.toJwt();
+
+    return res.json({
+      success: true,
+      data: {
+        token: accessToken,
+        url: process.env.LIVEKIT_URL,
+        roomName: String(roomName),
+        participantIdentity: String(participantIdentity),
+        participantName: safeParticipantName,
+      },
+    });
+  } catch (error) {
+    console.error('========== LIVEKIT TOKEN ERROR ==========');
+    console.error(error);
+    console.error('==========================================');
+
+    return res.status(500).json({
+      success: false,
+      message: 'فشل إنشاء توكن LiveKit',
+    });
+  }
+});
+
+/**
+ * GET /api/livekit/health
+ *
+ * Public health check.
+ * Does not expose secrets.
+ */
+router.get('/health', (req, res) => {
+  res.json({
+    success: true,
+    livekit: Boolean(process.env.LIVEKIT_URL),
+    credentials: Boolean(
+      process.env.LIVEKIT_API_KEY &&
+      process.env.LIVEKIT_API_SECRET
+    ),
+    url: process.env.LIVEKIT_URL || null,
+  });
+});
+
+module.exports = router;
