@@ -16,6 +16,10 @@ const {
   getStorage: getAdminStorage,
 } = require('firebase-admin/storage');
 
+const {
+  getMessaging: getAdminMessaging,
+} = require('firebase-admin/messaging');
+
 let initialized = false;
 
 /*
@@ -104,4 +108,5 @@ module.exports = {
   getFirestore,
   getAuth,
   getStorage,
+  getMessaging,
 };

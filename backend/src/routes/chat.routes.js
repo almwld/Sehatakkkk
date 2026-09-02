@@ -1,5 +1,8 @@
 const express = require('express');
 const { getFirestore } = require('../services/firebase.service');
+const {
+  sendNewMessageNotification,
+} = require('../services/notification.service');
 
 const router = express.Router();
 
@@ -388,6 +391,125 @@ router.get('/:chatId/messages', async (req, res) => {
  * senderId القادم من العميل يتم تجاهله.
  * المرسل الحقيقي هو Firebase authenticated user.
  */
+
+// بدء مكالمة وإرسال إشعار FCM عبر Backend
+router.post('/:chatId/call', async (req, res) => {
+  try {
+    const db = getFirestore();
+    const { chatId } = req.params;
+    const currentUserId = getAuthenticatedUserId(req);
+
+    if (!currentUserId) {
+      return res.status(401).json({
+        success: false,
+        message: 'المصادقة مطلوبة',
+      });
+    }
+
+    const {
+      receiverId,
+      callerName = 'مستخدم',
+      isVideo = false,
+    } = req.body || {};
+
+    const chatRef = db.collection('chats').doc(chatId);
+    const chatSnapshot = await chatRef.get();
+
+    if (!chatSnapshot.exists) {
+      return res.status(404).json({
+        success: false,
+        message: 'المحادثة غير موجودة',
+      });
+    }
+
+    const chatData = chatSnapshot.data() || {};
+
+    if (!isParticipant(chatData, currentUserId)) {
+      return res.status(403).json({
+        success: false,
+        message: 'غير مصرح لك باستخدام هذه المحادثة',
+      });
+    }
+
+    let finalReceiverId = '';
+
+    if (
+      receiverId &&
+      Array.isArray(chatData.participants) &&
+      chatData.participants.map(String).includes(String(receiverId)) &&
+      String(receiverId) !== String(currentUserId)
+    ) {
+      finalReceiverId = String(receiverId);
+    } else if (Array.isArray(chatData.participants)) {
+      finalReceiverId =
+        chatData.participants
+          .map(String)
+          .find((id) => id !== String(currentUserId)) || '';
+    }
+
+    if (!finalReceiverId) {
+      return res.status(400).json({
+        success: false,
+        message: 'المستلم غير صالح',
+      });
+    }
+
+    const finalCallerName =
+      currentUserId === String(chatData.patientId)
+        ? (chatData.patientName || callerName || 'مستخدم')
+        : currentUserId === String(chatData.doctorId)
+          ? (chatData.doctorName || callerName || 'مستخدم')
+          : (req.user?.name || req.user?.displayName || callerName || 'مستخدم');
+
+      const now = new Date();
+
+      // نحافظ على calls/{chatId} للتوافق مع CallService في Flutter.
+      // callId يستخدم نفس chatId كمعرف ثابت للمكالمة الحالية.
+      const callId = chatId;
+
+      const callData = {
+        callerId: currentUserId,
+        callerName: finalCallerName,
+        receiverId: finalReceiverId,
+        isVideo: Boolean(isVideo),
+        chatId,
+        callId,
+        status: 'calling',
+        startedAt: now,
+        participants: [currentUserId, finalReceiverId],
+      };
+
+      await db.collection('calls').doc(chatId).set(callData);
+
+      const { sendIncomingCallNotification } =
+        require('../services/notification.service');
+
+      const notificationResult = await sendIncomingCallNotification({
+        receiverId: finalReceiverId,
+        chatId,
+        callId,
+        callerId: currentUserId,
+        callerName: finalCallerName,
+        isVideo: Boolean(isVideo),
+      });
+
+      return res.status(201).json({
+        success: true,
+        call: {
+          id: callId,
+          ...callData,
+        },
+        notification: notificationResult,
+      });
+  } catch (error) {
+    console.error('Start call error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'فشل بدء المكالمة',
+    });
+  }
+});
+
 router.post('/:chatId/messages', async (req, res) => {
   try {
     const db = getFirestore();
@@ -497,6 +619,30 @@ router.post('/:chatId/messages', async (req, res) => {
       updatedAt: now,
       unreadCount: currentUnreadCount + 1,
     });
+
+    /*
+     * إرسال إشعار FCM بعد نجاح حفظ الرسالة.
+     *
+     * فشل FCM لا يعني فشل إرسال الرسالة نفسها؛
+     * الرسالة محفوظة بالفعل في Firestore.
+     */
+    if (finalReceiverId) {
+      const senderName =
+        currentUserId === String(chatData?.patientId)
+          ? (chatData?.patientName || req.user?.name || req.user?.displayName || 'مستخدم')
+          : currentUserId === String(chatData?.doctorId)
+            ? (chatData?.doctorName || req.user?.name || req.user?.displayName || 'مستخدم')
+            : (req.user?.name || req.user?.displayName || 'مستخدم');
+
+      await sendNewMessageNotification({
+        receiverId: finalReceiverId,
+        chatId,
+        senderId: currentUserId,
+        senderName,
+        text,
+        type,
+      });
+    }
 
     return res.status(201).json({
       success: true,
