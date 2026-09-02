@@ -6,10 +6,10 @@ import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/core/services/chat_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/core/services/call_service.dart';
-import 'package:sehatak/presentation/widgets/common/app_image.dart';
 import 'package:sehatak/presentation/screens/chat/chat_detail_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_booking_screen.dart';
 import 'package:sehatak/presentation/screens/call/call_screen.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class DoctorDetailsScreen extends StatefulWidget {
   final String doctorId;
@@ -33,10 +33,10 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
   final CallService _callService = CallService();
 
   final List<Map<String, dynamic>> _contactIcons = [
-    {'icon': 'assets/images/chat/phone_call.png', 'label': 'اتصال', 'color': Colors.green, 'action': 'call'},
-    {'icon': 'assets/images/chat/video_call.png', 'label': 'فيديو', 'color': Colors.blue, 'action': 'video'},
-    {'icon': 'assets/images/chat/chat_bubble.png', 'label': 'مراسلة', 'color': AppColors.primary, 'action': 'chat'},
-    {'icon': 'assets/images/chat/calendar_booking.png', 'label': 'حجز', 'color': Colors.orange, 'action': 'book'},
+    {'icon': Icons.phone, 'label': 'اتصال', 'color': Colors.green, 'action': 'call'},
+    {'icon': Icons.videocam, 'label': 'فيديو', 'color': Colors.blue, 'action': 'video'},
+    {'icon': Icons.chat_bubble_outline, 'label': 'مراسلة', 'color': AppColors.primary, 'action': 'chat'},
+    {'icon': Icons.calendar_today, 'label': 'حجز', 'color': Colors.orange, 'action': 'book'},
   ];
 
   @override
@@ -95,13 +95,13 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
 
     setState(() => _isCreatingChat = true);
     try {
-      final chat = await _chatService.createChat(
+      // ✅ إنشاء محادثة جديدة
+      final chatId = await _chatService.createChat(
         doctorId: _doctor!['id'],
+        doctorName: _doctor!['name'],
+        patientName: user.displayName ?? 'مريض',
       );
-      final chatId = chat.id;
-      if (chatId.isEmpty) {
-        throw Exception('لم يتم الحصول على معرف المحادثة');
-      }
+
       if (!mounted) return;
       Navigator.push(
         context,
@@ -131,13 +131,12 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
     if (_doctor == null) return;
 
     try {
-      final chat = await _chatService.createChat(
+      final chatId = await _chatService.createChat(
         doctorId: _doctor!['id'],
+        doctorName: _doctor!['name'],
+        patientName: user.displayName ?? 'مريض',
       );
-      final chatId = chat.id;
-      if (chatId.isEmpty) {
-        throw Exception('لم يتم الحصول على معرف المحادثة');
-      }
+
       if (!mounted) return;
       Navigator.push(
         context,
@@ -165,13 +164,12 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
     if (_doctor == null) return;
 
     try {
-      final chat = await _chatService.createChat(
+      final chatId = await _chatService.createChat(
         doctorId: _doctor!['id'],
+        doctorName: _doctor!['name'],
+        patientName: user.displayName ?? 'مريض',
       );
-      final chatId = chat.id;
-      if (chatId.isEmpty) {
-        throw Exception('لم يتم الحصول على معرف المحادثة');
-      }
+
       if (!mounted) return;
       Navigator.push(
         context,
@@ -254,12 +252,29 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
             Center(
               child: Column(
                 children: [
+                  // ✅ صورة الطبيب - استخدام CachedNetworkImage
                   ClipRRect(
                     borderRadius: BorderRadius.circular(80),
-                    child: AppImage(
+                    child: CachedNetworkImage(
                       imageUrl: _doctor!['image'] ?? ImageKit.doctor1,
                       width: 120,
                       height: 120,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(
+                        width: 120,
+                        height: 120,
+                        color: Colors.grey[200],
+                        child: const Center(child: CircularProgressIndicator()),
+                      ),
+                      errorWidget: (context, url, error) => Container(
+                        width: 120,
+                        height: 120,
+                        color: Colors.grey[300],
+                        child: Text(
+                          _doctor!['name'][0],
+                          style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -278,6 +293,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
+                  // ✅ أزرار التفاعل
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: _contactIcons.asMap().entries.map((entry) {
@@ -298,13 +314,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                           ),
                           child: Column(
                             children: [
-                              Icon(
-                                item['action'] == 'chat' ? Icons.chat_bubble_outline :
-                                item['action'] == 'call' ? Icons.phone :
-                                item['action'] == 'video' ? Icons.videocam : Icons.calendar_today,
-                                color: color,
-                                size: 24,
-                              ),
+                              Icon(item['icon'] as IconData, color: color, size: 24),
                               const SizedBox(height: 4),
                               Text(item['label'], style: TextStyle(fontSize: 10, color: isDark ? Colors.white70 : Colors.black87)),
                             ],

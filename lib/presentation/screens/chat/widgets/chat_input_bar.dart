@@ -1,15 +1,26 @@
+// ============================================================
+// 📱 ChatInputBar - شريط الإدخال
+// ============================================================
+
 import 'package:flutter/material.dart';
+import '../../../core/constants/app_colors.dart';
 
 class ChatInputBar extends StatefulWidget {
-  final ValueChanged<String> onSend;
-  final VoidCallback? onAttachment;
-  final VoidCallback? onVoice;
+  final TextEditingController textController;
+  final Function(String) onSend;
+  final VoidCallback onImagePick;
+  final VoidCallback onVoiceRecord;
+  final String? replyToId;
+  final VoidCallback? onCancelReply;
 
   const ChatInputBar({
     super.key,
+    required this.textController,
     required this.onSend,
-    this.onAttachment,
-    this.onVoice,
+    required this.onImagePick,
+    required this.onVoiceRecord,
+    this.replyToId,
+    this.onCancelReply,
   });
 
   @override
@@ -17,114 +28,91 @@ class ChatInputBar extends StatefulWidget {
 }
 
 class _ChatInputBarState extends State<ChatInputBar> {
-  final _controller = TextEditingController();
-  final _focusNode = FocusNode();
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    _focusNode.dispose();
-    super.dispose();
-  }
-
-  void _send() {
-    final text = _controller.text.trim();
-
-    if (text.isEmpty) return;
-
-    widget.onSend(text);
-    _controller.clear();
-    _focusNode.requestFocus();
-  }
+  bool _isTyping = false;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-
-    return SafeArea(
-      top: false,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(
-          8,
-          8,
-          8,
-          8,
-        ),
-        decoration: BoxDecoration(
-          color: theme.scaffoldBackgroundColor,
-          border: Border(
-            top: BorderSide(
-              color: colors.outlineVariant,
-            ),
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 4,
+            offset: const Offset(0, -2),
           ),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            IconButton(
-              tooltip: 'مرفقات',
-              onPressed: widget.onAttachment,
-              icon: const Icon(
-                Icons.attach_file_rounded,
+        ],
+      ),
+      child: Column(
+        children: [
+          if (widget.replyToId != null) _buildReplyBanner(),
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.attach_file),
+                onPressed: () {},
               ),
-            ),
-            Expanded(
-              child: TextField(
-                controller: _controller,
-                focusNode: _focusNode,
-                minLines: 1,
-                maxLines: 5,
-                textInputAction:
-                    TextInputAction.newline,
-                decoration: InputDecoration(
-                  hintText: 'اكتب رسالتك...',
-                  filled: true,
-                  fillColor:
-                      colors.surfaceContainerHighest,
-                  border: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(24),
-                    borderSide: BorderSide.none,
+              IconButton(
+                icon: const Icon(Icons.photo_library),
+                onPressed: widget.onImagePick,
+              ),
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(24),
                   ),
-                  contentPadding:
-                      const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 11,
+                  child: TextField(
+                    controller: widget.textController,
+                    onChanged: (text) => setState(() => _isTyping = text.isNotEmpty),
+                    onSubmitted: (text) => widget.onSend(text),
+                    textAlign: TextAlign.right,
+                    decoration: InputDecoration(
+                      hintText: 'اكتب رسالتك...',
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    ),
                   ),
                 ),
-                onSubmitted: (_) => _send(),
               ),
-            ),
-            const SizedBox(width: 4),
-            ValueListenableBuilder<TextEditingValue>(
-              valueListenable: _controller,
-              builder: (_, value, __) {
-                final hasText =
-                    value.text.trim().isNotEmpty;
+              GestureDetector(
+                onTap: () => widget.onSend(widget.textController.text),
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: _isTyping ? AppColors.primary : Colors.transparent,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: _isTyping ? AppColors.primary : Colors.grey),
+                  ),
+                  child: Icon(
+                    _isTyping ? Icons.send : Icons.mic,
+                    color: _isTyping ? Colors.white : Colors.grey,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
-                return IconButton(
-                  tooltip: hasText
-                      ? 'إرسال'
-                      : 'رسالة صوتية',
-                  onPressed: hasText
-                      ? _send
-                      : widget.onVoice,
-                  style: IconButton.styleFrom(
-                    backgroundColor: colors.primary,
-                    foregroundColor:
-                        colors.onPrimary,
-                  ),
-                  icon: Icon(
-                    hasText
-                        ? Icons.send_rounded
-                        : Icons.mic_rounded,
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
+  Widget _buildReplyBanner() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      color: AppColors.primary.withOpacity(0.1),
+      child: Row(
+        children: [
+          const Icon(Icons.reply, color: AppColors.primary, size: 16),
+          const SizedBox(width: 8),
+          const Expanded(child: Text('الرد على رسالة')),
+          IconButton(
+            icon: const Icon(Icons.close, size: 16),
+            onPressed: widget.onCancelReply,
+          ),
+        ],
       ),
     );
   }

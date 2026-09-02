@@ -1,344 +1,281 @@
+// ============================================================
+// 📱 ChatScreen - شاشة قائمة المحادثات
+// ============================================================
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../bloc/chat/chat_bloc.dart';
 import '../../../bloc/chat/chat_event.dart';
 import '../../../bloc/chat/chat_state.dart';
 import '../../../core/models/chat_model.dart';
-import 'chat_detail_screen.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_strings.dart';
+import '../../../core/services/auth_service.dart';
 import 'widgets/chat_shimmer.dart';
+import 'chat_detail_screen.dart';
 
-class ChatScreen extends StatelessWidget {
+class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => ChatBloc()..add(const LoadChats()),
-      child: const _ChatScreenView(),
-    );
-  }
+  State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenView extends StatelessWidget {
-  const _ChatScreenView();
+class _ChatScreenState extends State<ChatScreen> {
+  final AuthService _authService = AuthService();
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<ChatBloc>().add(LoadChats());
+    context.read<ChatBloc>().add(StreamChats());
+  }
+
+  @override
+  void dispose() {
+    context.read<ChatBloc>().add(StopStreamingChats());
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('المحادثات'),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
         actions: [
           IconButton(
-            tooltip: 'بحث',
+            icon: const Icon(Icons.search),
             onPressed: () {},
-            icon: const Icon(Icons.search_rounded),
           ),
           IconButton(
-            tooltip: 'المزيد',
+            icon: const Icon(Icons.more_vert),
             onPressed: () {},
-            icon: const Icon(Icons.more_vert_rounded),
           ),
         ],
       ),
       body: BlocBuilder<ChatBloc, ChatState>(
         builder: (context, state) {
-          if (state.status == ChatStatus.loading &&
-              state.chats.isEmpty) {
+          if (state is ChatLoading) {
             return const ChatShimmer();
           }
 
-          if (state.status == ChatStatus.failure &&
-              state.chats.isEmpty) {
-            return _ErrorView(
-              message:
-                  state.errorMessage ?? 'تعذر تحميل المحادثات',
-              onRetry: () {
-                context
-                    .read<ChatBloc>()
-                    .add(const LoadChats());
+          if (state is ChatError) {
+            return _buildErrorState(state.message);
+          }
+
+          if (state is ChatLoaded) {
+            if (state.chats.isEmpty) {
+              return _buildEmptyState();
+            }
+            return ListView.builder(
+              itemCount: state.chats.length,
+              itemBuilder: (context, index) {
+                final chat = state.chats[index];
+                return _buildChatTile(chat);
               },
             );
           }
 
-          if (state.chats.isEmpty) {
-            return const _EmptyChats();
-          }
-
-          return RefreshIndicator(
-            onRefresh: () async {
-              context
-                  .read<ChatBloc>()
-                  .add(const RefreshChats());
-
-              await Future<void>.delayed(
-                const Duration(milliseconds: 400),
-              );
-            },
-            child: ListView.separated(
-              physics:
-                  const AlwaysScrollableScrollPhysics(),
-              itemCount: state.chats.length,
-              separatorBuilder: (_, __) =>
-                  const Divider(height: 1),
-              itemBuilder: (_, index) {
-                final chat = state.chats[index];
-
-                return _ChatTile(
-                  chat: chat,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => BlocProvider.value(
-                          value: context.read<ChatBloc>(),
-                          child: ChatDetailScreen(
-                            chatId: chat.id,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          );
+          return const Center(child: Text('بدء الدردشة'));
         },
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {},
+        backgroundColor: AppColors.primary,
+        child: const Icon(Icons.chat, color: Colors.white),
+      ),
     );
   }
-}
 
-class _ChatTile extends StatelessWidget {
-  final ChatModel chat;
-  final VoidCallback onTap;
-
-  const _ChatTile({
-    required this.chat,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-
-    final title = chat.isGroup
-        ? chat.doctorName.isNotEmpty
-            ? chat.doctorName
-            : 'مجموعة'
-        : chat.doctorName.isNotEmpty
-            ? chat.doctorName
-            : chat.patientName;
-
-    final image =
-        chat.doctorImage.isNotEmpty
-            ? chat.doctorImage
-            : chat.patientImage;
+  Widget _buildChatTile(ChatModel chat) {
+    final currentUserId = _authService.currentUserId;
+    final displayName = chat.getDisplayName(currentUserId ?? '');
+    final displayPhoto = chat.getDisplayPhoto(currentUserId ?? '');
+    final unreadCount = chat.getTotalUnreadCount();
+    final lastMessage = chat.lastMessage ?? 'بدء المحادثة';
+    final lastMessageTime = chat.lastMessageTime?.toDate();
 
     return ListTile(
-      onTap: onTap,
-      contentPadding:
-          const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 6,
-      ),
-      leading: Stack(
-        children: [
-          CircleAvatar(
-            radius: 28,
-            backgroundColor:
-                colors.primaryContainer,
-            backgroundImage:
-                image.isNotEmpty
-                    ? NetworkImage(image)
-                    : null,
-            child: image.isEmpty
-                ? Icon(
-                    chat.isGroup
-                        ? Icons.groups_rounded
-                        : Icons.person_rounded,
-                    color: colors.primary,
-                  )
-                : null,
-          ),
-          if (chat.isOnline)
-            Positioned(
-              right: 0,
-              bottom: 1,
-              child: Container(
-                width: 13,
-                height: 13,
-                decoration: BoxDecoration(
-                  color: Colors.green,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color:
-                        theme.scaffoldBackgroundColor,
-                    width: 2,
-                  ),
+      leading: CircleAvatar(
+        radius: 28,
+        backgroundImage: displayPhoto.isNotEmpty
+            ? CachedNetworkImageProvider(displayPhoto)
+            : null,
+        backgroundColor: AppColors.primary.withOpacity(0.2),
+        child: displayPhoto.isEmpty
+            ? Text(
+                displayName.isNotEmpty ? displayName[0] : '?',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
                 ),
+              )
+            : null,
+      ),
+      title: Row(
+        children: [
+          Expanded(
+            child: Text(
+              displayName,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          if (lastMessageTime != null)
+            Text(
+              _formatTime(lastMessageTime),
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[600],
               ),
             ),
         ],
       ),
-      title: Text(
-        title,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: theme.textTheme.titleMedium?.copyWith(
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-      subtitle: Padding(
-        padding: const EdgeInsets.only(top: 4),
-        child: Text(
-          chat.lastMessage.isEmpty
-              ? 'لا توجد رسائل بعد'
-              : chat.lastMessage,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ),
-      trailing: Column(
-        mainAxisAlignment:
-            MainAxisAlignment.center,
-        crossAxisAlignment:
-            CrossAxisAlignment.end,
+      subtitle: Row(
         children: [
-          if (chat.lastMessageTime != null)
-            Text(
-              _formatDate(chat.lastMessageTime!),
-              style: theme.textTheme.labelSmall,
+          Expanded(
+            child: Text(
+              lastMessage,
+              style: TextStyle(
+                fontSize: 14,
+                color: unreadCount > 0 ? Colors.black : Colors.grey[600],
+                fontWeight: unreadCount > 0 ? FontWeight.w600 : FontWeight.normal,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
-          if (chat.unreadCount > 0) ...[
-            const SizedBox(height: 5),
+          ),
+          if (unreadCount > 0)
             Container(
-              constraints: const BoxConstraints(
-                minWidth: 22,
-              ),
-              padding:
-                  const EdgeInsets.symmetric(
-                horizontal: 6,
-                vertical: 3,
-              ),
-              decoration: BoxDecoration(
-                color: colors.primary,
-                borderRadius:
-                    BorderRadius.circular(12),
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(
+                color: AppColors.primary,
+                shape: BoxShape.circle,
               ),
               child: Text(
-                chat.unreadCount > 99
-                    ? '99+'
-                    : '${chat.unreadCount}',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: colors.onPrimary,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
+                unreadCount.toString(),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
-          ],
+        ],
+      ),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ChatDetailScreen(chatId: chat.id),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.chat_bubble_outline, size: 80, color: Colors.grey[400]),
+          const SizedBox(height: 16),
+          const Text(
+            'لا توجد محادثات',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'ابدأ محادثة جديدة مع طبيب',
+            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () {},
+            icon: const Icon(Icons.medical_services),
+            label: const Text('بحث عن طبيب'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  String _formatDate(DateTime date) {
+  Widget _buildErrorState(String message) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.error_outline, size: 64, color: Colors.red),
+          const SizedBox(height: 16),
+          Text(message, style: const TextStyle(fontSize: 16), textAlign: TextAlign.center),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () => context.read<ChatBloc>().add(LoadChats()),
+            child: const Text('إعادة المحاولة'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatTime(DateTime time) {
     final now = DateTime.now();
-    final local = date.toLocal();
-
-    if (now.year == local.year &&
-        now.month == local.month &&
-        now.day == local.day) {
-      return '${local.hour.toString().padLeft(2, '0')}:'
-          '${local.minute.toString().padLeft(2, '0')}';
-    }
-
-    return '${local.day}/${local.month}';
+    final diff = now.difference(time);
+    if (diff.inDays > 7) return '${time.day}/${time.month}/${time.year}';
+    if (diff.inDays > 0) return 'منذ ${diff.inDays} يوم';
+    if (diff.inHours > 0) return 'منذ ${diff.inHours} ساعة';
+    if (diff.inMinutes > 0) return 'منذ ${diff.inMinutes} دقيقة';
+    return 'الآن';
   }
 }
 
-class _EmptyChats extends StatelessWidget {
-  const _EmptyChats();
+// ✅ إضافة imports
+import 'search_screen.dart';
+import 'chat_settings_screen.dart';
+import '../../screens/doctor/doctors_list_screen.dart';
 
-  @override
-  Widget build(BuildContext context) {
-    final colors =
-        Theme.of(context).colorScheme;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment:
-              MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.chat_bubble_outline_rounded,
-              size: 72,
-              color: colors.primary,
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'لا توجد محادثات',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge
-                  ?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'ستظهر محادثاتك هنا عند بدء محادثة حقيقية.',
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
+// ✅ تعديل AppBar - ربط زر البحث
+IconButton(
+  icon: const Icon(Icons.search),
+  onPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const SearchScreen()),
     );
-  }
-}
+  },
+),
 
-class _ErrorView extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorView({
-    required this.message,
-    required this.onRetry,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment:
-              MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.error_outline_rounded,
-              size: 60,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(
-                Icons.refresh_rounded,
-              ),
-              label: const Text('إعادة المحاولة'),
-            ),
-          ],
-        ),
-      ),
+// ✅ تعديل AppBar - ربط زر القائمة
+IconButton(
+  icon: const Icon(Icons.more_vert),
+  onPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ChatSettingsScreen()),
     );
-  }
-}
+  },
+),
+
+// ✅ تعديل FAB - ربط زر المحادثة الجديدة
+floatingActionButton: FloatingActionButton(
+  onPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const DoctorsListScreen()),
+    );
+  },
+  backgroundColor: AppColors.primary,
+  child: const Icon(Icons.chat, color: Colors.white),
+),

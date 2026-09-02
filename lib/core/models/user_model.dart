@@ -1,228 +1,197 @@
-import 'package:flutter/material.dart';
+// ============================================================
+// 📊 UserModel - نموذج المستخدم
+// ============================================================
+
+import 'package:equatable/equatable.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:sehatak/core/constants/roles.dart';
 
-enum VerificationStatus {
-  pending,     // قيد المراجعة
-  approved,    // تم الموافقة
-  rejected,    // مرفوض
-  notSubmitted, // لم يتم التقديم
-}
-
-class UserModel {
-  final String uid;
-  final String name;
-  final String email;
+class UserModel extends Equatable {
+  final String id;
+  final String? email;
   final String? phone;
+  final String name;
   final String? photoUrl;
-  final UserRole role;
-  final VerificationStatus verificationStatus;
-  final bool isActive;
-  final bool isAvailable;
-  final double rating;
-  final int reviewCount;
-  final DateTime createdAt;
-  final DateTime? updatedAt;
-  final DateTime? verifiedAt;
-  final String? licenseNumber;
-  final String? specialty;
-  final String? experience;
   final String? bio;
-  final List<String>? documents;
-  final Map<String, dynamic>? additionalData;
+  final bool isDoctor;
+  final bool isPatient;
+  final String? specialty;
+  final String? hospital;
+  final String? location;
+  final double? rating;
+  final int? reviewsCount;
+  final double? consultationFee;
+  final bool isAvailable;
+  final bool isOnline;
+  final Timestamp? lastSeen;
+  final DateTime? createdAt;
+  final Map<String, dynamic>? preferences;
+  final List<String>? languages;
+  final String? fcmToken;
+  final bool isVerified;
+  final List<String>? blockedUsers;
+  final List<String>? savedDoctors;
 
-  UserModel({
-    required this.uid,
-    required this.name,
-    required this.email,
+  const UserModel({
+    required this.id,
+    this.email,
     this.phone,
+    required this.name,
     this.photoUrl,
-    this.role = UserRole.user,
-    this.verificationStatus = VerificationStatus.notSubmitted,
-    this.isActive = true,
-    this.isAvailable = true,
-    this.rating = 0.0,
-    this.reviewCount = 0,
-    required this.createdAt,
-    this.updatedAt,
-    this.verifiedAt,
-    this.licenseNumber,
-    this.specialty,
-    this.experience,
     this.bio,
-    this.documents,
-    this.additionalData,
+    this.isDoctor = false,
+    this.isPatient = true,
+    this.specialty,
+    this.hospital,
+    this.location,
+    this.rating,
+    this.reviewsCount,
+    this.consultationFee,
+    this.isAvailable = false,
+    this.isOnline = false,
+    this.lastSeen,
+    this.createdAt,
+    this.preferences,
+    this.languages,
+    this.fcmToken,
+    this.isVerified = false,
+    this.blockedUsers,
+    this.savedDoctors,
   });
 
-  bool get isProvider {
-    return role == UserRole.doctor ||
-        role == UserRole.pharmacist ||
-        role == UserRole.lab ||
-        role == UserRole.veterinarian;
-  }
-
-  bool get isAdmin {
-    return role == UserRole.admin || role == UserRole.superAdmin;
-  }
-
-  bool get isVerified {
-    return verificationStatus == VerificationStatus.approved;
-  }
-
-  bool get isPendingVerification {
-    return verificationStatus == VerificationStatus.pending;
-  }
-
-  String get verificationStatusText {
-    switch (verificationStatus) {
-      case VerificationStatus.pending:
-        return '⏳ قيد المراجعة';
-      case VerificationStatus.approved:
-        return '✅ موثق';
-      case VerificationStatus.rejected:
-        return '❌ مرفوض';
-      case VerificationStatus.notSubmitted:
-        return '📤 لم يتم التقديم';
-    }
-  }
-
-  Color get verificationStatusColor {
-    switch (verificationStatus) {
-      case VerificationStatus.pending:
-        return Colors.orange;
-      case VerificationStatus.approved:
-        return Colors.green;
-      case VerificationStatus.rejected:
-        return Colors.red;
-      case VerificationStatus.notSubmitted:
-        return Colors.grey;
-    }
-  }
-
-  IconData get verificationStatusIcon {
-    switch (verificationStatus) {
-      case VerificationStatus.pending:
-        return Icons.hourglass_empty;
-      case VerificationStatus.approved:
-        return Icons.verified;
-      case VerificationStatus.rejected:
-        return Icons.cancel;
-      case VerificationStatus.notSubmitted:
-        return Icons.upload_file;
-    }
+  factory UserModel.fromFirestore(String id, Map<String, dynamic> data) {
+    return UserModel(
+      id: id,
+      email: data['email'],
+      phone: data['phone'],
+      name: data['name'] ?? '',
+      photoUrl: data['photoUrl'],
+      bio: data['bio'],
+      isDoctor: data['isDoctor'] ?? false,
+      isPatient: data['isPatient'] ?? true,
+      specialty: data['specialty'],
+      hospital: data['hospital'],
+      location: data['location'],
+      rating: (data['rating'] as num?)?.toDouble(),
+      reviewsCount: data['reviewsCount'],
+      consultationFee: (data['consultationFee'] as num?)?.toDouble(),
+      isAvailable: data['isAvailable'] ?? false,
+      isOnline: data['isOnline'] ?? false,
+      lastSeen: data['lastSeen'],
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
+      preferences: Map<String, dynamic>.from(data['preferences'] ?? {}),
+      languages: List<String>.from(data['languages'] ?? []),
+      fcmToken: data['fcmToken'],
+      isVerified: data['isVerified'] ?? false,
+      blockedUsers: List<String>.from(data['blockedUsers'] ?? []),
+      savedDoctors: List<String>.from(data['savedDoctors'] ?? []),
+    );
   }
 
   Map<String, dynamic> toFirestore() {
     return {
-      'uid': uid,
-      'name': name,
       'email': email,
       'phone': phone,
+      'name': name,
       'photoUrl': photoUrl,
-      'role': role.toString().split('.').last,
-      'verificationStatus': verificationStatus.toString().split('.').last,
-      'isActive': isActive,
-      'isAvailable': isAvailable,
-      'rating': rating,
-      'reviewCount': reviewCount,
-      'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt?.toIso8601String(),
-      'verifiedAt': verifiedAt?.toIso8601String(),
-      'licenseNumber': licenseNumber,
-      'specialty': specialty,
-      'experience': experience,
       'bio': bio,
-      'documents': documents,
-      'additionalData': additionalData,
+      'isDoctor': isDoctor,
+      'isPatient': isPatient,
+      'specialty': specialty,
+      'hospital': hospital,
+      'location': location,
+      'rating': rating,
+      'reviewsCount': reviewsCount,
+      'consultationFee': consultationFee,
+      'isAvailable': isAvailable,
+      'isOnline': isOnline,
+      'lastSeen': lastSeen ?? FieldValue.serverTimestamp(),
+      'createdAt': FieldValue.serverTimestamp(),
+      'preferences': preferences,
+      'languages': languages,
+      'fcmToken': fcmToken,
+      'isVerified': isVerified,
+      'blockedUsers': blockedUsers,
+      'savedDoctors': savedDoctors,
     };
   }
 
-  factory UserModel.fromFirestore(Map<String, dynamic> data, String uid) {
-    return UserModel(
-      uid: uid,
-      name: data['name'] ?? '',
-      email: data['email'] ?? '',
-      phone: data['phone'],
-      photoUrl: data['photoUrl'],
-      role: _parseRole(data['role'] ?? 'user'),
-      verificationStatus: _parseVerificationStatus(data['verificationStatus'] ?? 'notSubmitted'),
-      isActive: data['isActive'] ?? true,
-      isAvailable: data['isAvailable'] ?? true,
-      rating: data['rating']?.toDouble() ?? 0.0,
-      reviewCount: data['reviewCount'] ?? 0,
-      createdAt: DateTime.parse(data['createdAt'] ?? DateTime.now().toIso8601String()),
-      updatedAt: data['updatedAt'] != null ? DateTime.parse(data['updatedAt']) : null,
-      verifiedAt: data['verifiedAt'] != null ? DateTime.parse(data['verifiedAt']) : null,
-      licenseNumber: data['licenseNumber'],
-      specialty: data['specialty'],
-      experience: data['experience'],
-      bio: data['bio'],
-      documents: List<String>.from(data['documents'] ?? []),
-      additionalData: data['additionalData'],
-    );
-  }
-
-  static UserRole _parseRole(String value) {
-    switch (value) {
-      case 'doctor': return UserRole.doctor;
-      case 'pharmacist': return UserRole.pharmacist;
-      case 'lab': return UserRole.lab;
-      case 'veterinarian': return UserRole.veterinarian;
-      case 'admin': return UserRole.admin;
-      case 'superAdmin': return UserRole.superAdmin;
-      default: return UserRole.user;
-    }
-  }
-
-  static VerificationStatus _parseVerificationStatus(String value) {
-    switch (value) {
-      case 'pending': return VerificationStatus.pending;
-      case 'approved': return VerificationStatus.approved;
-      case 'rejected': return VerificationStatus.rejected;
-      default: return VerificationStatus.notSubmitted;
-    }
-  }
-
   UserModel copyWith({
-    String? name,
+    String? id,
+    String? email,
     String? phone,
+    String? name,
     String? photoUrl,
-    UserRole? role,
-    VerificationStatus? verificationStatus,
-    bool? isActive,
-    bool? isAvailable,
-    double? rating,
-    int? reviewCount,
-    DateTime? updatedAt,
-    DateTime? verifiedAt,
-    String? licenseNumber,
-    String? specialty,
-    String? experience,
     String? bio,
-    List<String>? documents,
-    Map<String, dynamic>? additionalData,
+    bool? isDoctor,
+    bool? isPatient,
+    String? specialty,
+    String? hospital,
+    String? location,
+    double? rating,
+    int? reviewsCount,
+    double? consultationFee,
+    bool? isAvailable,
+    bool? isOnline,
+    Timestamp? lastSeen,
+    DateTime? createdAt,
+    Map<String, dynamic>? preferences,
+    List<String>? languages,
+    String? fcmToken,
+    bool? isVerified,
+    List<String>? blockedUsers,
+    List<String>? savedDoctors,
   }) {
     return UserModel(
-      uid: uid,
-      name: name ?? this.name,
-      email: email,
+      id: id ?? this.id,
+      email: email ?? this.email,
       phone: phone ?? this.phone,
+      name: name ?? this.name,
       photoUrl: photoUrl ?? this.photoUrl,
-      role: role ?? this.role,
-      verificationStatus: verificationStatus ?? this.verificationStatus,
-      isActive: isActive ?? this.isActive,
-      isAvailable: isAvailable ?? this.isAvailable,
-      rating: rating ?? this.rating,
-      reviewCount: reviewCount ?? this.reviewCount,
-      createdAt: createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
-      verifiedAt: verifiedAt ?? this.verifiedAt,
-      licenseNumber: licenseNumber ?? this.licenseNumber,
-      specialty: specialty ?? this.specialty,
-      experience: experience ?? this.experience,
       bio: bio ?? this.bio,
-      documents: documents ?? this.documents,
-      additionalData: additionalData ?? this.additionalData,
+      isDoctor: isDoctor ?? this.isDoctor,
+      isPatient: isPatient ?? this.isPatient,
+      specialty: specialty ?? this.specialty,
+      hospital: hospital ?? this.hospital,
+      location: location ?? this.location,
+      rating: rating ?? this.rating,
+      reviewsCount: reviewsCount ?? this.reviewsCount,
+      consultationFee: consultationFee ?? this.consultationFee,
+      isAvailable: isAvailable ?? this.isAvailable,
+      isOnline: isOnline ?? this.isOnline,
+      lastSeen: lastSeen ?? this.lastSeen,
+      createdAt: createdAt ?? this.createdAt,
+      preferences: preferences ?? this.preferences,
+      languages: languages ?? this.languages,
+      fcmToken: fcmToken ?? this.fcmToken,
+      isVerified: isVerified ?? this.isVerified,
+      blockedUsers: blockedUsers ?? this.blockedUsers,
+      savedDoctors: savedDoctors ?? this.savedDoctors,
     );
   }
+
+  @override
+  List<Object?> get props => [
+    id, email, phone, name, photoUrl, bio, isDoctor, isPatient,
+    specialty, hospital, location, rating, reviewsCount, consultationFee,
+    isAvailable, isOnline, lastSeen, createdAt, preferences, languages,
+    fcmToken, isVerified, blockedUsers, savedDoctors,
+  ];
+
+  // ✅ المساعدات
+  bool get isOnlineNow {
+    if (!isOnline) return false;
+    if (lastSeen == null) return false;
+    final now = DateTime.now();
+    final diff = now.difference(lastSeen!.toDate());
+    return diff.inMinutes < 5;
+  }
+  String getDisplayName() => name;
+  String getInitials() {
+    final parts = name.split(' ');
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+    return name.substring(0, 1).toUpperCase();
+  }
+  bool isBlocked(String userId) => blockedUsers?.contains(userId) ?? false;
 }

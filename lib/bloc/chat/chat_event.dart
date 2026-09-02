@@ -1,69 +1,88 @@
-import '../../core/models/message_model.dart';
+// ============================================================
+// 💬 ChatEvent - أحداث المحادثات
+// ============================================================
 
-abstract class ChatEvent {
+import 'package:equatable/equatable.dart';
+
+abstract class ChatEvent extends Equatable {
   const ChatEvent();
+  @override
+  List<Object?> get props => [];
 }
 
-class LoadChats extends ChatEvent {
-  const LoadChats();
-}
+// ✅ تحميل المحادثات
+class LoadChats extends ChatEvent {}
 
-class RefreshChats extends ChatEvent {
-  const RefreshChats();
-}
-
+// ✅ إنشاء محادثة
 class CreateChat extends ChatEvent {
   final String doctorId;
-
+  final String doctorName;
+  final String patientName;
+  final String? doctorImage;
+  final String? patientImage;
   const CreateChat({
     required this.doctorId,
+    required this.doctorName,
+    required this.patientName,
+    this.doctorImage,
+    this.patientImage,
   });
+  @override
+  List<Object?> get props => [doctorId, doctorName, patientName, doctorImage, patientImage];
 }
 
-class OpenChat extends ChatEvent {
+// ✅ تحميل محادثة محددة
+class LoadChat extends ChatEvent {
   final String chatId;
-
-  const OpenChat(this.chatId);
+  const LoadChat({required this.chatId});
+  @override
+  List<Object?> get props => [chatId];
 }
 
-class LoadMessages extends ChatEvent {
-  final String chatId;
-
-  const LoadMessages(this.chatId);
-}
-
-class SendChatMessage extends ChatEvent {
-  final String chatId;
-  final String text;
-  final String type;
-
-  const SendChatMessage({
-    required this.chatId,
-    required this.text,
-    this.type = 'text',
-  });
-}
-
-class MarkChatAsRead extends ChatEvent {
-  final String chatId;
-
-  const MarkChatAsRead(this.chatId);
-}
-
+// ✅ حذف محادثة
 class DeleteChat extends ChatEvent {
   final String chatId;
-
-  const DeleteChat(this.chatId);
+  const DeleteChat({required this.chatId});
+  @override
+  List<Object?> get props => [chatId];
 }
 
-class MessagesUpdated extends ChatEvent {
-  final List<MessageModel> messages;
+// ✅ البث الفوري للمحادثات
+class StreamChats extends ChatEvent {}
 
-  const MessagesUpdated(this.messages);
+// ✅ إيقاف البث الفوري
+class StopStreamingChats extends ChatEvent {}
+
+// ✅ تحديث حالة التثبيت
+class TogglePinChat extends ChatEvent {
+  final String chatId;
+  final bool isPinned;
+  const TogglePinChat({required this.chatId, required this.isPinned});
+  @override
+  List<Object?> get props => [chatId, isPinned];
 }
 
-class ChatsUpdated extends ChatEvent {
-  final List<dynamic> chats;
+// ✅ تحديث حالة الكتم
+class ToggleMuteChat extends ChatEvent {
+  final String chatId;
+  final bool isMuted;
+  const ToggleMuteChat({required this.chatId, required this.isMuted});
+  @override
+  List<Object?> get props => [chatId, isMuted];
+}
 
-  const ChatsUpdated(this.chats);
+// ✅ أرشفة محادثة
+class ArchiveChat extends ChatEvent {
+  final String chatId;
+  const ArchiveChat({required this.chatId});
+  @override
+  List<Object?> get props => [chatId];
+}
+
+// ✅ إلغاء أرشفة محادثة
+class UnarchiveChat extends ChatEvent {
+  final String chatId;
+  const UnarchiveChat({required this.chatId});
+  @override
+  List<Object?> get props => [chatId];
 }

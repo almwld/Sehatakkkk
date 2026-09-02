@@ -1,74 +1,78 @@
-import '../../core/models/chat_model.dart';
-import '../../core/models/message_model.dart';
+// ============================================================
+// 💬 ChatState - حالة المحادثات
+// ============================================================
 
-enum ChatStatus {
-  initial,
-  loading,
-  loaded,
-  sending,
-  refreshing,
-  failure,
+import 'package:equatable/equatable.dart';
+import '../../core/models/chat_model.dart';
+
+abstract class ChatState extends Equatable {
+  const ChatState();
+  @override
+  List<Object?> get props => [];
 }
 
-class ChatState {
-  final ChatStatus status;
+class ChatInitial extends ChatState {}
 
+class ChatLoading extends ChatState {}
+
+class ChatLoaded extends ChatState {
   final List<ChatModel> chats;
-  final List<MessageModel> messages;
-
-  final ChatModel? activeChat;
-  final String? activeChatId;
-
-  final String? errorMessage;
-  final String? actionError;
-
-  final bool isSending;
-  final bool isLoadingMessages;
-  final bool isCreatingChat;
-
-  const ChatState({
-    this.status = ChatStatus.initial,
-    this.chats = const [],
-    this.messages = const [],
-    this.activeChat,
-    this.activeChatId,
-    this.errorMessage,
-    this.actionError,
-    this.isSending = false,
-    this.isLoadingMessages = false,
-    this.isCreatingChat = false,
+  final bool isStreaming;
+  const ChatLoaded({
+    required this.chats,
+    this.isStreaming = false,
   });
+  @override
+  List<Object?> get props => [chats, isStreaming];
+}
 
-  ChatState copyWith({
-    ChatStatus? status,
-    List<ChatModel>? chats,
-    List<MessageModel>? messages,
-    ChatModel? activeChat,
-    String? activeChatId,
-    String? errorMessage,
-    String? actionError,
-    bool clearError = false,
-    bool clearActionError = false,
-    bool? isSending,
-    bool? isLoadingMessages,
-    bool? isCreatingChat,
-  }) {
-    return ChatState(
-      status: status ?? this.status,
-      chats: chats ?? this.chats,
-      messages: messages ?? this.messages,
-      activeChat: activeChat ?? this.activeChat,
-      activeChatId: activeChatId ?? this.activeChatId,
-      errorMessage:
-          clearError ? null : errorMessage ?? this.errorMessage,
-      actionError: clearActionError
-          ? null
-          : actionError ?? this.actionError,
-      isSending: isSending ?? this.isSending,
-      isLoadingMessages:
-          isLoadingMessages ?? this.isLoadingMessages,
-      isCreatingChat:
-          isCreatingChat ?? this.isCreatingChat,
-    );
-  }
+class ChatDetailLoaded extends ChatState {
+  final ChatModel chat;
+  const ChatDetailLoaded({required this.chat});
+  @override
+  List<Object?> get props => [chat];
+}
+
+class ChatCreated extends ChatState {
+  final ChatModel chat;
+  const ChatCreated({required this.chat});
+  @override
+  List<Object?> get props => [chat];
+}
+
+class ChatDeleted extends ChatState {
+  final String chatId;
+  const ChatDeleted({required this.chatId});
+  @override
+  List<Object?> get props => [chatId];
+}
+
+class ChatPinned extends ChatState {
+  final String chatId;
+  final bool isPinned;
+  const ChatPinned({required this.chatId, required this.isPinned});
+  @override
+  List<Object?> get props => [chatId, isPinned];
+}
+
+class ChatMuted extends ChatState {
+  final String chatId;
+  final bool isMuted;
+  const ChatMuted({required this.chatId, required this.isMuted});
+  @override
+  List<Object?> get props => [chatId, isMuted];
+}
+
+class ChatArchived extends ChatState {
+  final String chatId;
+  const ChatArchived({required this.chatId});
+  @override
+  List<Object?> get props => [chatId];
+}
+
+class ChatError extends ChatState {
+  final String message;
+  const ChatError({required this.message});
+  @override
+  List<Object?> get props => [message];
 }
