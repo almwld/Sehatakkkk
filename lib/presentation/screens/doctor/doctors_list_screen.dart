@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
-import 'package:sehatak/presentation/widgets/common/app_image.dart';
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
-import 'package:sehatak/core/services/firestore_service.dart';
+import 'package:sehatak/presentation/widgets/common/app_image.dart';
 
 class DoctorsListScreen extends StatefulWidget {
   final ScrollController? scrollController;
@@ -18,73 +18,100 @@ class DoctorsListScreen extends StatefulWidget {
 class _DoctorsListScreenState extends State<DoctorsListScreen> {
   String _searchQuery = '';
   String _selectedSpecialty = 'الكل';
-  bool _isLoading = false;
+  bool _isLoading = true;
+  List<Map<String, dynamic>> _allDoctors = [];
 
   final List<String> _specialties = [
     'الكل', 'باطنية', 'قلبية', 'أطفال', 'نساء وولادة', 'عظام',
     'أنف وأذن وحنجرة', 'جلدية', 'عيون', 'نفسية', 'جراحة', 'مسالك بولية'
   ];
 
-  List<Map<String, dynamic>> _allDoctors = [];
+  @override
+  void initState() {
+    super.initState();
+    _fetchDoctorsFromFirestore();
+  }
 
-  List<Map<String, dynamic>> _filterDoctors(
-    List<Map<String, dynamic>> doctors,
-  ) {
-    var list = doctors;
+  // ✅ جلب الأطباء من Firestore
+  Future<void> _fetchDoctorsFromFirestore() async {
+    setState(() => _isLoading = true);
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('doctors')
+          .get();
 
+      if (snapshot.docs.isEmpty) {
+        print('⚠️ لا يوجد أطباء في Firestore');
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      _allDoctors = snapshot.docs.map((doc) {
+        final data = doc.data();
+        return {
+          'id': doc.id,
+          'name': data['name'] ?? 'دكتور',
+          'specialty': data['specialty'] ?? 'طبيب عام',
+          'experience': data['experience']?.toString() ?? 'غير محدد',
+          'rating': data['rating']?.toDouble() ?? 0.0,
+          'reviews': data['reviews'] ?? 0,
+          'fee': data['consultationFee']?.toDouble() ?? data['fee'] ?? 0,
+          'available': data['isAvailable'] ?? data['available'] ?? true,
+          'image': data['image'] ?? data['photoUrl'] ?? ImageKit.doctor1,
+          'hospital': data['clinicAddress'] ?? data['hospital'] ?? 'مستشفى',
+          'online': data['isOnline'] ?? data['online'] ?? false,
+          'gender': data['gender'] ?? 'male',
+          'badge': data['badge'] ?? 'طبيب',
+          'about': data['about'] ?? data['bio'] ?? '',
+          'availability': data['workingHours'] ?? data['availability'] ?? '',
+        };
+      }).toList();
+
+      setState(() => _isLoading = false);
+      print('✅ تم جلب ${_allDoctors.length} طبيب من Firestore');
+    } catch (e) {
+      print('❌ Error fetching doctors: $e');
+      setState(() => _isLoading = false);
+      ToastService.showError('❌ فشل في جلب بيانات الأطباء');
+    }
+  }
+
+  List<Map<String, dynamic>> get _filteredDoctors {
+    var list = _allDoctors;
     if (_searchQuery.isNotEmpty) {
-      list = list.where((d) {
-        final name = d['name']?.toString() ?? '';
-        final specialty = d['specialty']?.toString() ?? '';
-        final hospital = d['hospital']?.toString() ?? '';
-
-        return name.contains(_searchQuery) ||
-            specialty.contains(_searchQuery) ||
-            hospital.contains(_searchQuery);
-      }).toList();
+      final query = _searchQuery.toLowerCase();
+      list = list.where((d) =>
+          (d['name']?.toString().toLowerCase().contains(query) ?? false) ||
+          (d['specialty']?.toString().toLowerCase().contains(query) ?? false) ||
+          (d['hospital']?.toString().toLowerCase().contains(query) ?? false)
+      ).toList();
     }
-
     if (_selectedSpecialty != 'الكل') {
-      list = list.where((d) {
-        return d['specialty']?.toString() == _selectedSpecialty;
-      }).toList();
+      list = list.where((d) => d['specialty'] == _selectedSpecialty).toList();
     }
-
     return list;
   }
-
-  Map<String, dynamic> _doctorForUi(Map<String, dynamic> doctor) {
-    final rawExperience = doctor['experience'];
-
-    String experience;
-    if (rawExperience == null) {
-      experience = 'غير محدد';
-    } else {
-      experience = rawExperience.toString();
-    }
-
-    return {
-      ...doctor,
-      'id': doctor['id']?.toString() ?? '',
-      'name': doctor['name']?.toString() ?? 'طبيب',
-      'specialty': doctor['specialty']?.toString() ?? 'طبيب عام',
-      'experience': experience,
-      'rating': doctor['rating'] ?? 0,
-      'reviews': doctor['reviews'] ?? 0,
-      'price': doctor['fee'] ?? 0,
-      'available': doctor['available'] ?? false,
-      'image': doctor['photoUrl'] ?? doctor['image'] ?? '',
-      'hospital': doctor['hospital']?.toString() ?? '',
-      'online': doctor['online'] ?? false,
-    };
-  }
-
-
-
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final filtered = _filteredDoctors;
+
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+        body: const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(color: AppColors.primary),
+              SizedBox(height: 16),
+              Text('جاري تحميل الأطباء...'),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
@@ -98,139 +125,114 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
             icon: const Icon(Icons.filter_list_rounded),
             onPressed: () => _showFilterDialog(context),
           ),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _fetchDoctorsFromFirestore,
+          ),
         ],
       ),
       body: Column(
         children: [
-          // شريط البحث
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1A2540) : Colors.white,
-                borderRadius: BorderRadius.circular(25),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: TextField(
-                      onChanged: (v) => setState(() => _searchQuery = v),
-                      style: TextStyle(color: isDark ? Colors.white : Colors.black87),
-                      decoration: InputDecoration(
-                        hintText: 'ابحث عن طبيب...',
-                        hintStyle: TextStyle(color: isDark ? Colors.grey[500] : Colors.grey[400]),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
-                  ),
-                  if (_searchQuery.isNotEmpty)
-                    IconButton(
-                      icon: Icon(Icons.close, size: 18, color: isDark ? Colors.grey[400] : Colors.grey),
-                      onPressed: () => setState(() => _searchQuery = ''),
-                    ),
-                ],
-              ),
-            ),
-          ),
-          // التصنيفات
-          SizedBox(
-            height: 40,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              itemCount: _specialties.length,
-              itemBuilder: (context, index) {
-                final specialty = _specialties[index];
-                final isSelected = _selectedSpecialty == specialty;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 6),
-                  child: FilterChip(
-                    label: Text(specialty, style: const TextStyle(fontSize: 11)),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      setState(() {
-                        _selectedSpecialty = selected ? specialty : 'الكل';
-                      });
-                    },
-                    backgroundColor: isDark ? const Color(0xFF1A2540) : Colors.white,
-                    selectedColor: AppColors.primary,
-                    labelStyle: TextStyle(
-                      color: isSelected ? Colors.white : (isDark ? Colors.white : AppColors.primary),
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      side: BorderSide(
-                        color: isSelected ? AppColors.primary : (isDark ? Colors.grey[700]! : Colors.grey.shade300),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          // القائمة
+          _buildSearchBar(isDark),
+          _buildSpecialties(isDark),
           Expanded(
-            child: StreamBuilder<List<Map<String, dynamic>>>(
-              stream: FirestoreService().getDoctors(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(
-                      color: AppColors.primary,
-                    ),
-                  );
-                }
-
-                if (snapshot.hasError) {
-                  return Center(
-                    child: Text(
-                      'تعذر تحميل الأطباء',
-                      style: TextStyle(
-                        color: isDark ? Colors.white : Colors.black87,
-                      ),
-                    ),
-                  );
-                }
-
-                final doctors = snapshot.data
-                        ?.map(_doctorForUi)
-                        .toList() ??
-                    [];
-
-                final filtered = _filterDoctors(doctors);
-
-                if (filtered.isEmpty) {
-                  return _buildEmptyState(isDark);
-                }
-
-                return ListView.builder(
-                  padding: const EdgeInsets.all(12),
-                  itemCount: filtered.length,
-                  itemBuilder: (context, index) {
-                    final doctor = filtered[index];
-                    return _buildDoctorCard(doctor, isDark);
-                  },
-                );
-              },
-            ),
+            child: filtered.isEmpty
+                ? _buildEmptyState(isDark)
+                : ListView.builder(
+                    padding: const EdgeInsets.all(12),
+                    itemCount: filtered.length,
+                    itemBuilder: (context, index) {
+                      final doctor = filtered[index];
+                      return _buildDoctorCard(doctor, isDark);
+                    },
+                  ),
           ),
         ],
       ),
     );
   }
 
-  // ✅ دالة بناء بطاقة الطبيب
+  Widget _buildSearchBar(bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1A2540) : Colors.white,
+          borderRadius: BorderRadius.circular(25),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey),
+            const SizedBox(width: 10),
+            Expanded(
+              child: TextField(
+                onChanged: (v) => setState(() => _searchQuery = v),
+                style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                decoration: InputDecoration(
+                  hintText: 'ابحث عن طبيب...',
+                  hintStyle: TextStyle(color: isDark ? Colors.grey[500] : Colors.grey[400]),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
+            if (_searchQuery.isNotEmpty)
+              IconButton(
+                icon: Icon(Icons.close, size: 18, color: isDark ? Colors.grey[400] : Colors.grey),
+                onPressed: () => setState(() => _searchQuery = ''),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSpecialties(bool isDark) {
+    return SizedBox(
+      height: 40,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        itemCount: _specialties.length,
+        itemBuilder: (context, index) {
+          final specialty = _specialties[index];
+          final isSelected = _selectedSpecialty == specialty;
+          return Padding(
+            padding: const EdgeInsets.only(right: 6),
+            child: FilterChip(
+              label: Text(specialty, style: const TextStyle(fontSize: 11)),
+              selected: isSelected,
+              onSelected: (selected) {
+                setState(() {
+                  _selectedSpecialty = selected ? specialty : 'الكل';
+                });
+              },
+              backgroundColor: isDark ? const Color(0xFF1A2540) : Colors.white,
+              selectedColor: AppColors.primary,
+              labelStyle: TextStyle(
+                color: isSelected ? Colors.white : (isDark ? Colors.white : AppColors.primary),
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: BorderSide(
+                  color: isSelected ? AppColors.primary : (isDark ? Colors.grey[700]! : Colors.grey.shade300),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   Widget _buildDoctorCard(Map<String, dynamic> doctor, bool isDark) {
     return GestureDetector(
       onTap: () {
@@ -260,7 +262,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: AppImage(
-                imageUrl: doctor['image'],
+                imageUrl: doctor['image'] ?? ImageKit.doctor1,
                 width: 70,
                 height: 70,
               ),
@@ -274,7 +276,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                     children: [
                       Expanded(
                         child: Text(
-                          doctor['name'],
+                          doctor['name'] ?? 'طبيب',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 15,
@@ -289,7 +291,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                           const Icon(Icons.star, color: Colors.amber, size: 14),
                           const SizedBox(width: 2),
                           Text(
-                            doctor['rating'].toString(),
+                            (doctor['rating'] ?? 0).toStringAsFixed(1),
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 13,
@@ -310,7 +312,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          doctor['specialty'],
+                          doctor['specialty'] ?? 'طبيب عام',
                           style: TextStyle(
                             fontSize: 10,
                             color: AppColors.primary,
@@ -326,7 +328,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          doctor['experience'],
+                          doctor['experience'] ?? 'غير محدد',
                           style: TextStyle(
                             fontSize: 9,
                             color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -337,7 +339,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    doctor['hospital'],
+                    doctor['hospital'] ?? 'مستشفى',
                     style: TextStyle(
                       fontSize: 11,
                       color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -351,7 +353,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: doctor['available'] ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                          color: (doctor['available'] ?? false) ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Row(
@@ -360,36 +362,29 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                               width: 6,
                               height: 6,
                               decoration: BoxDecoration(
-                                color: doctor['available'] ? Colors.green : Colors.red,
+                                color: (doctor['available'] ?? false) ? Colors.green : Colors.red,
                                 shape: BoxShape.circle,
                               ),
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              doctor['available'] ? 'متاح' : 'غير متاح',
+                              (doctor['available'] ?? false) ? 'متاح' : 'غير متاح',
                               style: TextStyle(
-                                color: doctor['available'] ? Colors.green : Colors.red,
-                                fontSize: 9,
-                                fontWeight: FontWeight.w600,
+                                fontSize: 10,
+                                color: (doctor['available'] ?? false) ? Colors.green : Colors.red,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ],
                         ),
                       ),
                       const Spacer(),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          '${doctor['price']} ر.ي',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                            color: AppColors.primary,
-                          ),
+                      Text(
+                        '${(doctor['fee'] ?? 0).toStringAsFixed(0)} ر.س',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: AppColors.primary,
                         ),
                       ),
                     ],
@@ -397,102 +392,82 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                 ],
               ),
             ),
-            Icon(Icons.arrow_forward_ios, size: 14, color: isDark ? Colors.grey[600] : Colors.grey[400]),
           ],
         ),
       ),
     );
   }
 
-  // ✅ دالة عرض حالة فارغة
+  void _showFilterDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('تصفية الأطباء'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('اختر التخصص'),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              children: _specialties.map((specialty) {
+                return FilterChip(
+                  label: Text(specialty),
+                  selected: _selectedSpecialty == specialty,
+                  onSelected: (selected) {
+                    setState(() {
+                      _selectedSpecialty = selected ? specialty : 'الكل';
+                    });
+                    Navigator.pop(context);
+                  },
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildEmptyState(bool isDark) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.medical_services_outlined, size: 64, color: isDark ? Colors.grey[600] : Colors.grey[300]),
+          Icon(
+            Icons.medical_services_outlined,
+            size: 80,
+            color: isDark ? Colors.grey[600] : Colors.grey[300],
+          ),
           const SizedBox(height: 16),
           Text(
             'لا يوجد أطباء',
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
               color: isDark ? Colors.white : Colors.black87,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'جرب تغيير البحث أو التصفية',
+            'تأكد من وجود أطباء في قاعدة البيانات',
             style: TextStyle(
-              fontSize: 13,
               color: isDark ? Colors.grey[400] : Colors.grey[600],
+              fontSize: 14,
             ),
           ),
           const SizedBox(height: 16),
           ElevatedButton.icon(
-            onPressed: () {
-              setState(() {
-                _searchQuery = '';
-                _selectedSpecialty = 'الكل';
-              });
-            },
+            onPressed: _fetchDoctorsFromFirestore,
             icon: const Icon(Icons.refresh),
-            label: const Text('إعادة تعيين'),
+            label: const Text('إعادة تحميل'),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
             ),
           ),
         ],
       ),
-    );
-  }
-
-  // ✅ دالة عرض حوار التصفية
-  void _showFilterDialog(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'ترتيب حسب',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
-              ...['التقييم', 'السعر (منخفض)', 'السعر (مرتفع)'].map((option) {
-                return RadioListTile<String>(
-                  title: Text(option),
-                  value: option,
-                  groupValue: 'التقييم',
-                  onChanged: (value) {
-                    Navigator.pop(context);
-                  },
-                  activeColor: AppColors.primary,
-                );
-              }).toList(),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('إغلاق'),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 }

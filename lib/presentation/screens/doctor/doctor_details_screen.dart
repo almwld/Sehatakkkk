@@ -1,10 +1,11 @@
-import 'package:sehatak/core/services/toast_service.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/core/services/chat_service.dart';
-import 'package:sehatak/core/services/firestore_service.dart';
+import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/core/services/call_service.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 import 'package:sehatak/presentation/screens/chat/chat_detail_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_booking_screen.dart';
@@ -21,15 +22,14 @@ class DoctorDetailsScreen extends StatefulWidget {
   State<DoctorDetailsScreen> createState() => _DoctorDetailsScreenState();
 }
 
-class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
-    with SingleTickerProviderStateMixin {
+class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
   bool _isFavorite = false;
   bool _isLoading = true;
   bool _isCreatingChat = false;
-
-  late Map<String, dynamic> _doctor;
-
+  Map<String, dynamic>? _doctor;
   int _selectedIndex = -1;
+  final ChatService _chatService = ChatService();
+  final CallService _callService = CallService();
 
   final List<Map<String, dynamic>> _contactIcons = [
     {
@@ -65,62 +65,119 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
   }
 
   Future<void> _loadDoctorData() async {
-    if (mounted) {
-      setState(() => _isLoading = true);
-    }
-
+    setState(() => _isLoading = true);
     try {
-      final data = await FirestoreService().getDoctor(widget.doctorId);
+      final doc = await FirebaseFirestore.instance
+          .collection('doctors')
+          .doc(widget.doctorId)
+          .get();
 
-      if (!mounted) return;
-
-      if (data == null) {
-        ToastService.showError('لم يتم العثور على بيانات الطبيب');
+      if (doc.exists) {
+        final data = doc.data()!;
+        setState(() {
+          _doctor = {
+            'id': doc.id,
+            'name': data['name'] ?? 'طبيب',
+            'specialty': data['specialty'] ?? 'طبيب عام',
+            'experience': data['experience']?.toString() ?? 'غير محدد',
+            'rating': data['rating']?.toDouble() ?? 0.0,
+            'reviews': data['reviews'] ?? 0,
+            'fee': data['consultationFee']?.toDouble() ?? data['fee'] ?? 0,
+            'available': data['isAvailable'] ?? data['available'] ?? true,
+            'image': data['image'] ?? data['photoUrl'] ?? ImageKit.doctor1,
+            'hospital': data['clinicAddress'] ?? data['hospital'] ?? 'مستشفى',
+            'online': data['isOnline'] ?? data['online'] ?? false,
+            'about': data['about'] ?? data['bio'] ?? 'لا توجد نبذة',
+            'availability': data['workingHours'] ?? data['availability'] ?? 'غير محدد',
+          };
+          _isLoading = false;
+        });
+      } else {
+        ToastService.showError('❌ الطبيب غير موجود');
         Navigator.pop(context);
-        return;
       }
-
-      final rawExperience = data['experience'];
-
-      final normalizedDoctor = {
-        ...data,
-        'id': data['id']?.toString() ?? widget.doctorId,
-        'name': data['name']?.toString() ?? 'طبيب',
-        'specialty': data['specialty']?.toString() ?? 'طبيب عام',
-        'experience': rawExperience?.toString() ?? 'غير محدد',
-        'rating': data['rating'] ?? 0,
-        'reviews': data['reviews'] ?? 0,
-        'fee': data['fee'] ?? 0,
-        'available': data['available'] ?? false,
-        'online': data['online'] ?? false,
-        'about': data['about']?.toString() ?? 'لا توجد نبذة متاحة',
-        'hospital': data['hospital']?.toString() ?? 'غير محدد',
-        'availability': data['availability'] is List
-            ? List<dynamic>.from(data['availability'])
-            : <dynamic>[],
-        'image': data['photoUrl']?.toString() ??
-            data['image']?.toString() ??
-            '',
-      };
-
-      setState(() {
-        _doctor = normalizedDoctor;
-        _isLoading = false;
-      });
-    } catch (error) {
-      debugPrint('Load doctor error: $error');
-
-      if (!mounted) return;
-
+    } catch (e) {
+      print('❌ Error loading doctor: $e');
       setState(() => _isLoading = false);
-
-      ToastService.showError(
-        'تعذر تحميل بيانات الطبيب',
-      );
+      ToastService.showError('❌ فشل في جلب بيانات الطبيب');
     }
   }
 
-  Future<void> _handleAction(int index) async {
+  // ✅ دالة المراسلة
+  Future<void> _openChat() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ToastService.showError('❌ يجب تسجيل الدخول أولاً');
+      return;
+    }
+
+    if (_doctor == null) return;
+    if (_isCreatingChat) return;
+
+    setState(() => _isCreatingChat = true);
+
+    try {
+      final chatId = await _chatService.createChat(
+        doctorId: _doctor!['id'],
+        doctorName: _doctor!['name'],
+        patientId: user.uid,
+        patientName: user.displayName ?? 'مريض',
+        doctorImage: _doctor!['image'],
+        patientImage: user.photoURL,
+      );
+
+      if (!mounted) return;
+
+      if (chatId.isEmpty) {
+        throw Exception('لم يتم الحصول على معرف المحادثة');
+      }
+
+      // ✅ الانتقال إلى شاشة الدردشة
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ChatDetailScreen(
+            chatId: chatId,
+            userId: _doctor!['id'],
+            userName: _doctor!['name'],
+            isDoctor: true,
+          ),
+        ),
+      );
+    } catch (error) {
+      print('❌ Open chat error: $error');
+      ToastService.showError('❌ تعذر إنشاء المحادثة');
+    } finally {
+      if (mounted) setState(() => _isCreatingChat = false);
+    }
+  }
+
+  // ✅ دالة الاتصال
+  void _makeCall() {
+    ToastService.showInfo('📞 جاري الاتصال بالطبيب...');
+    // TODO: تنفيذ الاتصال الصوتي
+  }
+
+  // ✅ دالة مكالمة فيديو
+  void _makeVideoCall() {
+    ToastService.showInfo('📹 جاري بدء مكالمة فيديو...');
+    // TODO: تنفيذ مكالمة الفيديو
+  }
+
+  // ✅ دالة حجز موعد
+  void _bookAppointment() {
+    if (_doctor == null) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => DoctorBookingScreen(
+          doctorId: _doctor!['id'],
+        ),
+      ),
+    );
+  }
+
+  void _handleAction(int index) {
     if (_isCreatingChat) return;
 
     setState(() => _selectedIndex = index);
@@ -129,647 +186,199 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
 
     switch (action) {
       case 'call':
-        ToastService.showSuccess('📞 جاري الاتصال بالطبيب...');
+        _makeCall();
         break;
-
       case 'video':
-        ToastService.showSuccess('📹 جاري بدء مكالمة فيديو...');
+        _makeVideoCall();
         break;
-
       case 'chat':
-        await _openDoctorChat();
+        _openChat();
         break;
-
       case 'book':
-        if (!mounted) return;
-
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => DoctorBookingScreen(
-              doctorId: widget.doctorId,
-            ),
-          ),
-        );
+        _bookAppointment();
         break;
     }
-
-    if (!mounted) return;
 
     Future.delayed(const Duration(milliseconds: 300), () {
-      if (mounted) {
-        setState(() => _selectedIndex = -1);
-      }
+      if (mounted) setState(() => _selectedIndex = -1);
     });
-  }
-
-  Future<void> _openDoctorChat() async {
-    final user = FirebaseAuth.instance.currentUser;
-
-    if (user == null) {
-      ToastService.showError(
-        'يرجى تسجيل الدخول أولاً لبدء المحادثة',
-      );
-      return;
-    }
-
-    if (_isCreatingChat) return;
-
-    // لا يمكن بدء محادثة مع طبيب غير متاح.
-    final isAvailable = _doctor['available'] == true;
-
-    if (!isAvailable) {
-      ToastService.showError(
-        'الطبيب غير متاح للمحادثة حاليًا',
-      );
-      return;
-    }
-
-    final doctorId =
-        _doctor['id']?.toString() ?? widget.doctorId;
-
-    if (doctorId.trim().isEmpty) {
-      ToastService.showError(
-        'معرف الطبيب غير صالح',
-      );
-      return;
-    }
-
-    final doctorName =
-        _doctor['name']?.toString() ?? 'الطبيب';
-
-    final doctorImage =
-        _doctor['image']?.toString() ?? '';
-
-    final patientName =
-        user.displayName?.trim().isNotEmpty == true
-            ? user.displayName!.trim()
-            : 'المريض';
-
-    setState(() => _isCreatingChat = true);
-
-    try {
-      final chatService = ChatService();
-
-      /*
-       * patientId يتم تمريره للتوافق مع الواجهة الحالية
-       * لكن ChatService والـ Backend يستخدمان Firebase UID
-       * الحقيقي للمستخدم المسجل.
-       */
-      final chatId = await chatService.createChat(
-        doctorId: doctorId,
-        doctorName: doctorName,
-        patientId: user.uid,
-        patientName: patientName,
-        doctorImage: doctorImage,
-        patientImage: user.photoURL,
-      );
-
-      if (!mounted) return;
-
-      if (chatId.trim().isEmpty) {
-        throw Exception(
-          'لم يتم الحصول على معرف المحادثة',
-        );
-      }
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => ChatDetailScreen(
-            chatId: chatId,
-            userId: doctorId,
-            userName: doctorName,
-            isDoctor: false,
-          ),
-        ),
-      );
-    } catch (error) {
-      debugPrint(
-        'Open doctor chat error: $error',
-      );
-
-      if (!mounted) return;
-
-      ToastService.showError(
-        'تعذر فتح المحادثة، حاول مرة أخرى',
-      );
-    } finally {
-      if (mounted) {
-        setState(
-          () => _isCreatingChat = false,
-        );
-      }
-    }
-  }
-
-  Widget _buildContactIcon(
-    Map<String, dynamic> item,
-    int index,
-    bool isDark,
-  ) {
-    final isSelected = _selectedIndex == index;
-    final color = item['color'] as Color;
-
-    final isChatAction = item['action'] == 'chat';
-
-    return GestureDetector(
-      onTap: () => _handleAction(index),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeInOut,
-        transform: isSelected
-            ? Matrix4.diagonal3Values(0.9, 0.9, 1.0)
-            : Matrix4.identity(),
-        child: Column(
-          children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? color.withOpacity(0.3)
-                    : color.withOpacity(0.16),
-                borderRadius: BorderRadius.circular(18),
-                border: isSelected
-                    ? Border.all(
-                        color: color,
-                        width: 2,
-                      )
-                    : null,
-                boxShadow: isSelected
-                    ? [
-                        BoxShadow(
-                          color: color.withOpacity(0.3),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ]
-                    : null,
-              ),
-              child: Center(
-                child: _isCreatingChat && isChatAction
-                    ? SizedBox(
-                        width: 28,
-                        height: 28,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          color: color,
-                        ),
-                      )
-                    : Image.asset(
-                        item['icon'] as String,
-                        width: 40,
-                        height: 40,
-                        color: isSelected ? color : null,
-                        errorBuilder: (
-                          context,
-                          error,
-                          stackTrace,
-                        ) {
-                          return Icon(
-                            Icons.circle,
-                            color: color,
-                            size: 40,
-                          );
-                        },
-                      ),
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              item['label'] as String,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight:
-                    isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected
-                    ? color
-                    : (isDark
-                        ? Colors.white70
-                        : Colors.grey[800]),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDark =
-        Theme.of(context).brightness == Brightness.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    if (_isLoading) {
+    if (_isLoading || _doctor == null) {
       return Scaffold(
-        backgroundColor: isDark
-            ? const Color(0xFF0B1121)
-            : const Color(0xFFF8FAFC),
-        body: const Center(
-          child: CircularProgressIndicator(
-            color: AppColors.primary,
-          ),
-        ),
+        backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+        body: const Center(child: CircularProgressIndicator(color: AppColors.primary)),
       );
     }
 
     return Scaffold(
-      backgroundColor: isDark
-          ? const Color(0xFF0B1121)
-          : const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        backgroundColor:
-            isDark ? const Color(0xFF0B1121) : Colors.white,
+        backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios_new,
-            color: isDark ? Colors.white : Colors.black87,
-          ),
+          icon: Icon(Icons.arrow_back_ios_new, color: isDark ? Colors.white : Colors.black87),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
           IconButton(
-            icon: Icon(
-              _isFavorite
-                  ? Icons.favorite
-                  : Icons.favorite_border,
-              color: _isFavorite
-                  ? Colors.red
-                  : (isDark
-                      ? Colors.white
-                      : Colors.black87),
-            ),
-            onPressed: () {
-              setState(() => _isFavorite = !_isFavorite);
-            },
+            icon: Icon(_isFavorite ? Icons.favorite : Icons.favorite_border,
+                color: _isFavorite ? Colors.red : (isDark ? Colors.white : Colors.black87)),
+            onPressed: () => setState(() => _isFavorite = !_isFavorite),
           ),
           IconButton(
-            icon: Icon(
-              Icons.share,
-              color:
-                  isDark ? Colors.white : Colors.black87,
-            ),
-            onPressed: () {
-              ToastService.showSuccess('🔗 تم نسخ الرابط');
-            },
+            icon: Icon(Icons.share, color: isDark ? Colors.white : Colors.black87),
+            onPressed: () => ToastService.showInfo('🔗 تم نسخ الرابط'),
           ),
         ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
-              child: Stack(
-                children: [
-                  Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: AppColors.primary,
-                        width: 3,
-                      ),
-                    ),
-                    child: ClipOval(
-                      child: AppImage(
-                        imageUrl: _doctor['image'],
-                        fit: BoxFit.cover,
-                        errorWidget: const Icon(
-                          Icons.person,
-                          size: 60,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration:
-                          const BoxDecoration(
-                        color: Colors.green,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.check,
-                        color: Colors.white,
-                        size: 16,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            Center(
               child: Column(
                 children: [
-                  Text(
-                    _doctor['name'],
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: isDark
-                          ? Colors.white
-                          : Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _doctor['specialty'],
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: isDark
-                          ? Colors.grey[400]
-                          : Colors.grey[600],
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment:
-                        MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.star,
-                        color: Colors.amber,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        _doctor['rating'].toString(),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight:
-                              FontWeight.w600,
-                          color: isDark
-                              ? Colors.white
-                              : Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '(${_doctor['reviews']} تقييم)',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isDark
-                              ? Colors.grey[500]
-                              : Colors.grey[400],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _doctor['available']
-                          ? Colors.green.withOpacity(0.1)
-                          : Colors.red.withOpacity(0.1),
-                      borderRadius:
-                          BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      _doctor['available']
-                          ? 'متاح الآن'
-                          : 'غير متاح',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: _doctor['available']
-                            ? Colors.green
-                            : Colors.red,
-                        fontWeight:
-                            FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(
-                vertical: 12,
-              ),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? const Color(0xFF1A2540)
-                    : Colors.white,
-                borderRadius:
-                    BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color:
-                        Colors.black.withOpacity(0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment:
-                    MainAxisAlignment.spaceEvenly,
-                children: List.generate(
-                  _contactIcons.length,
-                  (index) => _buildContactIcon(
-                    _contactIcons[index],
-                    index,
-                    isDark,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding:
-                  const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? const Color(0xFF1A2540)
-                    : Colors.white,
-                borderRadius:
-                    BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color:
-                        Colors.black.withOpacity(0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'نبذة عن الطبيب',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: isDark
-                          ? Colors.white
-                          : Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _doctor['about'],
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: isDark
-                          ? Colors.grey[400]
-                          : Colors.grey[600],
-                      height: 1.6,
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(80),
+                    child: AppImage(
+                      imageUrl: _doctor!['image'] ?? ImageKit.doctor1,
+                      width: 120,
+                      height: 120,
                     ),
                   ),
                   const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.work,
-                        color: AppColors.primary,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'الخبرة: ${_doctor['experience']}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: isDark
-                              ? Colors.grey[300]
-                              : Colors.grey[700],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.local_hospital,
-                        color: AppColors.primary,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'المستشفى: ${_doctor['hospital']}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: isDark
-                              ? Colors.grey[300]
-                              : Colors.grey[700],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.attach_money,
-                        color: AppColors.primary,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'رسوم الكشف: ${_doctor['fee']} ر.ي',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight:
-                              FontWeight.w600,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding:
-                  const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? const Color(0xFF1A2540)
-                    : Colors.white,
-                borderRadius:
-                    BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color:
-                        Colors.black.withOpacity(0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
-                children: [
                   Text(
-                    'أوقات العمل',
+                    _doctor!['name'] ?? 'طبيب',
+                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _doctor!['specialty'] ?? 'طبيب عام',
                     style: TextStyle(
                       fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: isDark
-                          ? Colors.white
-                          : Colors.black87,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
                     ),
                   ),
                   const SizedBox(height: 8),
-                  ...(_doctor['availability']
-                          as List<dynamic>)
-                      .map((time) {
-                    return Padding(
-                      padding:
-                          const EdgeInsets.symmetric(
-                        vertical: 4,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.star, color: Colors.amber, size: 18),
+                      const SizedBox(width: 4),
+                      Text(
+                        (_doctor!['rating'] ?? 0).toStringAsFixed(1),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                       ),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.access_time,
-                            color:
-                                AppColors.primary,
-                            size: 18,
+                      const SizedBox(width: 4),
+                      Text(
+                        '(${_doctor!['reviews'] ?? 0} تقييم)',
+                        style: TextStyle(
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: _contactIcons.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final item = entry.value;
+                      final isSelected = _selectedIndex == index;
+                      final color = item['color'] as Color;
+
+                      return GestureDetector(
+                        onTap: () => _handleAction(index),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          curve: Curves.easeInOut,
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: isSelected ? color.withOpacity(0.3) : color.withOpacity(0.16),
+                            borderRadius: BorderRadius.circular(18),
+                            border: isSelected ? Border.all(color: color, width: 2) : null,
                           ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              time as String,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: isDark
-                                    ? Colors.grey[300]
-                                    : Colors.grey[700],
+                          child: Column(
+                            children: [
+                              Icon(
+                                item['action'] == 'chat' ? Icons.chat_bubble_outline :
+                                item['action'] == 'call' ? Icons.phone :
+                                item['action'] == 'video' ? Icons.videocam : Icons.calendar_today,
+                                color: color,
+                                size: 24,
                               ),
-                            ),
+                              const SizedBox(height: 4),
+                              Text(
+                                item['label'] as String,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: isDark ? Colors.white70 : Colors.black87,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
+            const Text('نبذة عن الطبيب', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text(
+              _doctor!['about'] ?? 'لا توجد معلومات',
+              style: TextStyle(
+                fontSize: 14,
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
+                height: 1.6,
+              ),
+            ),
             const SizedBox(height: 16),
+            _buildInfoRow('🏥 المستشفى', _doctor!['hospital'] ?? 'غير محدد', isDark),
+            _buildInfoRow('💰 سعر الكشف', '${(_doctor!['fee'] ?? 0).toStringAsFixed(0)} ر.س', isDark),
+            _buildInfoRow('📋 الحالة', (_doctor!['available'] ?? false) ? 'متاح' : 'غير متاح', isDark),
+            _buildInfoRow('🎓 الخبرة', _doctor!['experience'] ?? 'غير محدد', isDark),
+            _buildInfoRow('🕐 أوقات العمل', _doctor!['availability'] ?? 'غير محدد', isDark),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
