@@ -383,3 +383,18 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
     );
   }
 }
+
+// ✅ دالة فتح غرفة الدردشة
+void _openChatRoom(String chatId, String userId, String userName) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => ChatRoomScreen(
+        chatId: chatId,
+        userId: userId,
+        userName: userName,
+        isDoctor: true,
+      ),
+    ),
+  );
+}
