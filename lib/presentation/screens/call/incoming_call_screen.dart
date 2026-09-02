@@ -6,7 +6,6 @@ import 'package:sehatak/core/services/sound_manager.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/screens/call/call_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:audioplayers/audioplayers.dart';
 
 class IncomingCallScreen extends StatefulWidget {
   final String callerName;
@@ -35,9 +34,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
   late AnimationController _rotateController;
-  bool _isMuted = false;
   bool _isVibrating = false;
-  final AudioPlayer _audioPlayer = AudioPlayer();
 
   @override
   void initState() {
@@ -89,14 +86,12 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
     _rotateController.dispose();
     SoundManager().stopAll();
     _isVibrating = false;
-    _audioPlayer.dispose();
     super.dispose();
   }
 
   void _acceptCall() async {
     SoundManager().stopAll();
     _isVibrating = false;
-    await _audioPlayer.stop();
 
     // ✅ إشعار بقبول المكالمة
     widget.onCallAnswered(true);
@@ -118,24 +113,12 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
   void _rejectCall() async {
     SoundManager().stopAll();
     _isVibrating = false;
-    await _audioPlayer.stop();
     SoundManager().playCallEnd();
 
     // ✅ إشعار برفض المكالمة
     widget.onCallAnswered(false);
 
     Navigator.pop(context);
-  }
-
-  void _toggleMute() async {
-    setState(() => _isMuted = !_isMuted);
-    if (_isMuted) {
-      SoundManager().stopAll();
-      ToastService.showInfo('🔇 تم كتم الصوت');
-    } else {
-      SoundManager().playCallRingtone();
-      ToastService.showInfo('🔊 تم إلغاء الكتم');
-    }
   }
 
   void _switchToVideo() {
@@ -322,13 +305,6 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    // ✅ زر كتم الصوت
-                    _buildCallButton(
-                      icon: _isMuted ? Icons.mic_off : Icons.mic,
-                      label: _isMuted ? 'إلغاء الكتم' : 'كتم',
-                      color: _isMuted ? Colors.orange : Colors.white,
-                      onTap: _toggleMute,
-                    ),
 
                     // ✅ زر رفض
                     _buildCallButton(

@@ -56,6 +56,7 @@ class NotificationService {
       onDidReceiveNotificationResponse: _onNotificationTap,
     );
 
+    await _createNotificationChannels();
     await _requestPermission();
 
     // هذا هو مستمع FCM الوحيد داخل التطبيق.
@@ -83,6 +84,36 @@ class NotificationService {
     _isInitialized = true;
 
     print('✅ NotificationService initialized');
+  }
+
+  Future<void> _createNotificationChannels() async {
+    final androidPlugin =
+        _localNotifications.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+
+    if (androidPlugin == null) return;
+
+    const normalChannel = AndroidNotificationChannel(
+      'sehatak_channel',
+      'إشعارات صحتك',
+      description: 'إشعارات منصة صحتك الطبية',
+      importance: Importance.high,
+      playSound: true,
+      sound: RawResourceAndroidNotificationSound('notification'),
+    );
+
+    const callChannel = AndroidNotificationChannel(
+      'call_channel',
+      'مكالمات صحتك',
+      description: 'إشعارات المكالمات الواردة',
+      importance: Importance.max,
+      playSound: true,
+      sound: RawResourceAndroidNotificationSound('call_ringtone'),
+      enableVibration: true,
+    );
+
+    await androidPlugin.createNotificationChannel(normalChannel);
+    await androidPlugin.createNotificationChannel(callChannel);
   }
 
   Future<void> _requestPermission() async {
@@ -283,14 +314,26 @@ class NotificationService {
     print('📩 FCM foreground: $type');
 
     if (type == 'incoming_call') {
-      await showIncomingCallNotification(
-        callerName:
-            data['callerName']?.toString() ?? 'مستخدم',
-        chatId: data['chatId']?.toString() ?? '',
-        callerId: data['callerId']?.toString() ?? '',
-        isVideo:
-            data['isVideo']?.toString().toLowerCase() == 'true',
-      );
+      final navigator = _navigatorKey?.currentState;
+
+      if (navigator != null) {
+        await CallService().handleIncomingCallData(
+          navigator.context,
+          data,
+        );
+      } else {
+        // في حال لم يصبح Navigator جاهزًا بعد، نستخدم الإشعار
+        // كمسار احتياطي بدل فقدان المكالمة الواردة.
+        await showIncomingCallNotification(
+          callerName:
+              data['callerName']?.toString() ?? 'مستخدم',
+          chatId: data['chatId']?.toString() ?? '',
+          callerId: data['callerId']?.toString() ?? '',
+          isVideo:
+              data['isVideo']?.toString().toLowerCase() == 'true',
+        );
+      }
+
       return;
     }
 
@@ -386,7 +429,7 @@ class NotificationService {
         final isVideo =
             data['isVideo']?.toString().toLowerCase() == 'true';
 
-        CallService().handleIncomingCallData(
+        await CallService().handleIncomingCallData(
           navigator.context,
           {
             'callerName': callerName,

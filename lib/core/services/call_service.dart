@@ -21,6 +21,10 @@ class CallService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
 
+  // يمنع فتح شاشة المكالمة أكثر من مرة عند وصول FCM
+  // مع ضغط المستخدم على الإشعار في نفس الوقت.
+  bool _isIncomingCallScreenOpen = false;
+
   static const String _baseUrl = String.fromEnvironment(
     'API_BASE_URL',
     defaultValue: LiveKitConfig.apiBaseUrl,
@@ -114,33 +118,36 @@ class CallService {
   }
 
   // معالجة المكالمة الواردة من FCM
-  void handleIncomingCall(
+  Future<void> handleIncomingCall(
     BuildContext context,
     RemoteMessage message,
-  ) {
-    handleIncomingCallData(context, message.data);
+  ) async {
+    await handleIncomingCallData(context, message.data);
   }
 
   // معالجة بيانات المكالمة الواردة
-  void handleIncomingCallData(
+  Future<void> handleIncomingCallData(
     BuildContext context,
     Map<String, dynamic> data,
-  ) {
+  ) async {
     final callerName =
-        data['callerName']?.toString() ?? 'مستخدم';
+        data['callerName']?.toString().trim().isNotEmpty == true
+            ? data['callerName'].toString().trim()
+            : 'مستخدم';
 
     final isVideo =
         data['isVideo']?.toString().toLowerCase() == 'true';
 
     final chatId =
-        data['chatId']?.toString() ?? '';
+        data['chatId']?.toString().trim() ?? '';
 
     final callerId =
-        data['callerId']?.toString() ?? '';
+        data['callerId']?.toString().trim() ?? '';
 
     final currentUser = _auth.currentUser;
 
-    if (currentUser?.uid == callerId) {
+    // لا تعرض المكالمة للمتصل نفسه.
+    if (currentUser == null || currentUser.uid == callerId) {
       return;
     }
 
@@ -149,21 +156,35 @@ class CallService {
       return;
     }
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => IncomingCallScreen(
-          callerName: callerName,
-          callerId: callerId,
-          isVideo: isVideo,
-          chatId: chatId,
-          onCallAnswered: (accepted) {
-            _logCallResponse(chatId, accepted);
-          },
+    // منع فتح شاشتين للمكالمة نفسها بسبب FCM + notification tap.
+    if (_isIncomingCallScreenOpen) {
+      print('⚠️ Incoming call screen already open');
+      return;
+    }
+
+    _isIncomingCallScreenOpen = true;
+
+    try {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => IncomingCallScreen(
+            callerName: callerName,
+            callerId: callerId,
+            isVideo: isVideo,
+            chatId: chatId,
+            onCallAnswered: (accepted) async {
+              await _logCallResponse(chatId, accepted);
+            },
+          ),
+          fullscreenDialog: true,
         ),
-        fullscreenDialog: true,
-      ),
-    );
+      );
+    } catch (e) {
+      print('❌ Incoming call navigation error: $e');
+    } finally {
+      _isIncomingCallScreenOpen = false;
+    }
   }
 
   // تسجيل الرد على المكالمة
