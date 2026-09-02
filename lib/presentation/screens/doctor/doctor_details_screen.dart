@@ -196,7 +196,9 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen>
       final doctorName = _doctor['name']?.toString() ?? 'الطبيب';
       final doctorImage = _doctor['image']?.toString();
 
-      final chatId = await ChatService.createChat(
+      final chatService = ChatService();
+
+      final chatId = await chatService.createChat(
         doctorId: doctorId,
         doctorName: doctorName,
         patientId: patientId,
