@@ -1,6 +1,7 @@
 import 'package:sehatak/core/services/toast_service.dart';
 import "package:flutter/material.dart";
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -215,16 +216,18 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
   Future<void> _loadSavedCredentials() async {
     final prefs = await SharedPreferences.getInstance();
     final email = prefs.getString('remember_email');
-    final password = prefs.getString('remember_password');
     final remember = prefs.getBool('remember_me') ?? false;
+
+    // 🔐 لا نحفظ كلمة المرور محليًا.
+    // نحذف أي كلمة مرور قديمة محفوظة من إصدار سابق.
+    await prefs.remove('remember_password');
+
+    if (!mounted) return;
 
     setState(() {
       _rememberMe = remember;
       if (remember && email != null) {
         _emailController.text = email;
-        if (password != null) {
-          _passwordController.text = password;
-        }
       }
     });
   }
@@ -296,6 +299,112 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     );
   }
 
+  Future<void> _loginWithGoogle() async {
+    if (_isLoading) return;
+
+    _showLoading();
+
+    try {
+      final GoogleSignInAccount? googleUser =
+          await GoogleSignIn().signIn();
+
+      if (googleUser == null) {
+        _hideLoading();
+        return;
+      }
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final userCredential =
+          await FirebaseAuth.instance.signInWithCredential(credential);
+
+      final user = userCredential.user;
+
+      if (user == null) {
+        throw Exception('تعذر الحصول على بيانات حساب Google');
+      }
+
+      final userRef =
+          FirebaseFirestore.instance.collection('users').doc(user.uid);
+
+      final userDoc = await userRef.get();
+
+      if (!userDoc.exists) {
+        await userRef.set({
+          'uid': user.uid,
+          'name': user.displayName ?? googleUser.displayName ?? 'مستخدم',
+          'email': user.email ?? googleUser.email,
+          'phone': user.phoneNumber ?? '',
+          'role': 'user',
+          'specialty': null,
+          'licenseNumber': '',
+          'experience': '',
+          'isVerified': false,
+          'verificationStatus': 'notSubmitted',
+          'rating': 0.0,
+          'reviewCount': 0,
+          'isAvailable': true,
+          'photoUrl': user.photoURL ?? googleUser.photoUrl ?? '',
+          'provider': 'google',
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      } else {
+        await userRef.set({
+          'name': user.displayName ?? googleUser.displayName ?? 'مستخدم',
+          'email': user.email ?? googleUser.email,
+          'photoUrl': user.photoURL ?? googleUser.photoUrl ?? '',
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      }
+
+      _hideLoading();
+      await _showSuccessAnimation();
+
+      if (!mounted) return;
+
+      final role = userDoc.exists
+          ? (userDoc.data()?['role']?.toString() ?? 'user')
+          : 'user';
+
+      if (role == 'admin' || role == 'superAdmin') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const PlatformDashboard(),
+          ),
+        );
+      } else {
+        _navigateToHome();
+      }
+    } on FirebaseAuthException catch (e) {
+      _hideLoading();
+
+      String message = 'حدث خطأ أثناء تسجيل الدخول عبر Google';
+
+      if (e.code == 'account-exists-with-different-credential') {
+        message =
+            'هذا البريد مرتبط بطريقة تسجيل دخول أخرى. استخدم طريقة التسجيل الأصلية.';
+      } else if (e.code == 'invalid-credential') {
+        message = 'بيانات اعتماد Google غير صالحة';
+      } else if (e.code == 'network-request-failed') {
+        message = 'تحقق من اتصال الإنترنت وحاول مرة أخرى';
+      }
+
+      _showMessage(message, true);
+    } catch (e) {
+      _hideLoading();
+      print('❌ Google Sign-In error: $e');
+      _showMessage('تعذر تسجيل الدخول عبر Google', true);
+    }
+  }
+
   Future<void> _login() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       _showMessage('يرجى إدخال البريد الإلكتروني وكلمة المرور', true);
@@ -314,7 +423,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       if (_rememberMe) {
         await prefs.setBool('is_logged_in', true);
         await prefs.setString('remember_email', _emailController.text.trim());
-        await prefs.setString('remember_password', _passwordController.text.trim());
+        // 🔐 لا يتم حفظ كلمة المرور محليًا.
       } else {
         await prefs.setBool('is_logged_in', false);
       }
@@ -859,23 +968,28 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     double iconSize = 24,
     double padding = 6,
   }) {
-    return Container(
-      width: containerSize,
-      height: containerSize,
+    final isGoogle = social['id'] == 'google';
+
+    return GestureDetector(
+      onTap: isGoogle ? _loginWithGoogle : null,
+      child: Container(
+        width: containerSize,
+        height: containerSize,
       padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1A2540) : Colors.white,
         shape: BoxShape.circle,
         border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[300]!),
       ),
-      child: Image.asset(
-        social['icon'],
-        width: iconSize,
-        height: iconSize,
-        errorBuilder: (_, __, ___) => Icon(
-          Icons.link,
-          size: iconSize - 4,
-          color: social['color'],
+        child: Image.asset(
+          social['icon'],
+          width: iconSize,
+          height: iconSize,
+          errorBuilder: (_, __, ___) => Icon(
+            Icons.link,
+            size: iconSize - 4,
+            color: social['color'],
+          ),
         ),
       ),
     );
