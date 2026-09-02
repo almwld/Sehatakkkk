@@ -134,7 +134,6 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
 
       // ✅ الانتقال إلى شاشة الدردشة
       Navigator.push(
-        context,
         MaterialPageRoute(
           builder: (_) => ChatDetailScreen(
             chatId: chatId,
@@ -168,7 +167,6 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
   void _bookAppointment() {
     if (_doctor == null) return;
     Navigator.push(
-      context,
       MaterialPageRoute(
         builder: (_) => DoctorBookingScreen(
           doctorId: _doctor!['id'],
@@ -387,9 +385,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
 // ✅ دالة فتح غرفة الدردشة
 void _openChatRoom(String chatId, String userId, String userName) {
   Navigator.push(
-    context,
     MaterialPageRoute(
-      builder: (_) => ChatRoomScreen(
         chatId: chatId,
         userId: userId,
         userName: userName,
