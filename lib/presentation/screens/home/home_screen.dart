@@ -18,6 +18,7 @@ import 'package:sehatak/presentation/screens/more/more_screen.dart';
 import 'package:sehatak/presentation/widgets/common/custom_bottom_nav_bar.dart';
 import 'package:sehatak/presentation/screens/home/tabs/home_tab.dart';
 import 'package:sehatak/core/managers/global_scroll_manager.dart';
+import 'package:sehatak/core/widgets/scroll_detector.dart';
 
 // ✅ مفاتيح ثابتة لكل شاشة - يمنع فقدان الحالة
 class ScreenKeys {
@@ -40,8 +41,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int _currentIndex = 0;
   final ScrollController _scrollController = ScrollController();
+  late final GlobalScrollManager _scrollManager;
   bool _isLoggedIn = false;
-  bool _isBottomBarVisible = true;
 
   // ✅ استخدام Map بدلاً من List للحفاظ على المفاتيح
   late final Map<int, Widget> _screens;
@@ -50,6 +51,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _scrollManager = GlobalScrollManager();
     _checkLoginStatus();
     _initializeScreens();
   }
@@ -57,6 +59,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void dispose() {
     _scrollController.dispose();
+    _scrollManager.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -82,7 +85,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void _initializeScreens() {
     // ✅ استخدام ValueKey لكل شاشة يمنع فقدان الحالة
     _screens = {
-      0: const HomeTab(),
+      0: HomeTab(
+        key: ScreenKeys.home,
+        scrollController: _scrollController,
+      ),
       1: const DoctorsListScreen(key: ScreenKeys.doctors),
       2: const PharmacyScreen(key: ScreenKeys.pharmacy),
       3: const ChatScreen(key: ScreenKeys.chat),
@@ -119,23 +125,43 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      body: IndexedStack(
-        index: _currentIndex,
-        // ✅ استخدام values من Map مع المفاتيح الثابتة
-        children: _screens.values.toList(),
+      body: ScrollDetector(
+        scrollManager: _scrollManager,
+        child: IndexedStack(
+          index: _currentIndex,
+          // ✅ استخدام values من Map مع المفاتيح الثابتة
+          children: _screens.values.toList(),
+        ),
       ),
-      bottomNavigationBar: CustomBottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: _onTabTap,
-        scrollManager: GlobalScrollManager(),
-        isLoggedIn: _isLoggedIn,
-        onAuthRequired: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const AuthScreen()),
-          ).then((_) {
-            _checkLoginStatus();
-          });
+      bottomNavigationBar: AnimatedBuilder(
+        animation: _scrollManager,
+        builder: (context, child) {
+          final isVisible = _scrollManager.isVisible;
+
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 280),
+            curve: Curves.easeOutCubic,
+            height: isVisible ? 68 : 0,
+            clipBehavior: Clip.hardEdge,
+            decoration: const BoxDecoration(),
+            child: SafeArea(
+              top: false,
+              child: CustomBottomNavigationBar(
+                currentIndex: _currentIndex,
+                onTap: _onTabTap,
+                scrollManager: _scrollManager,
+                isLoggedIn: _isLoggedIn,
+                onAuthRequired: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AuthScreen()),
+                  ).then((_) {
+                    _checkLoginStatus();
+                  });
+                },
+              ),
+            ),
+          );
         },
       ),
     );

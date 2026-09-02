@@ -1,7 +1,6 @@
 // ============================================================
 // 📡 ScrollDetector - كاشف التمرير الذكي
-// يلتقط حركة التمرير في أي شاشة ويتحكم في الشريط السفلي
-// دون الحاجة لتعديل أي شاشة موجودة
+// يتحكم في ظهور الشريط السفلي حسب اتجاه التمرير
 // ============================================================
 
 import 'package:flutter/material.dart';
@@ -28,40 +27,48 @@ class ScrollDetector extends StatelessWidget {
     );
   }
 
-  void _handleScroll(ScrollNotification notification, BuildContext context) {
-    // ✅ الحصول على اسم الشاشة الحالية
-    final route = ModalRoute.of(context)?.settings.name ?? 'unknown';
-    
-    // ✅ استثناء بعض الشاشات
+  void _handleScroll(
+    ScrollNotification notification,
+    BuildContext context,
+  ) {
+    final route = ModalRoute.of(context)?.settings.name ?? 'home';
+
     if (scrollManager.isExcludedRoute(route)) {
+      return;
+    }
+
+    if (notification is ScrollStartNotification) {
+      scrollManager.registerScreen(route);
       return;
     }
 
     if (notification is ScrollUpdateNotification) {
       final currentPosition = notification.metrics.pixels;
       final delta = currentPosition - scrollManager.lastPosition;
+
       const threshold = 5.0;
 
-      // ⬇️ تمرير للأسفل → إخفاء الشريط
       if (delta > threshold) {
+        // ⬇️ التمرير للأسفل → إخفاء الشريط
         scrollManager.hide();
-      }
-      // ⬆️ تمرير للأعلى → إظهار الشريط
-      else if (delta < -threshold) {
+      } else if (delta < -threshold) {
+        // ⬆️ التمرير للأعلى → إظهار الشريط
         scrollManager.show();
       }
 
       scrollManager.lastPosition = currentPosition;
-      
-      // ✅ حفظ الموقع للشاشة الحالية
       scrollManager.savePosition(route, currentPosition);
     }
 
-    // ✅ إظهار الشريط عند الوصول للأعلى
     if (notification is ScrollEndNotification) {
       if (notification.metrics.pixels <= 0) {
         scrollManager.show();
       }
+
+      scrollManager.savePosition(
+        route,
+        notification.metrics.pixels,
+      );
     }
   }
 }
