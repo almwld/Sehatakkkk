@@ -1,195 +1,98 @@
-import 'package:sehatak/core/models/call_model.dart';
-// ============================================================
-// 📞 CallService - خدمة المكالمات الكاملة
-// ============================================================
-
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/call_model.dart';
+import '../constants/api_config.dart';
+import 'auth_service.dart';
+import 'notification_service.dart';
+import 'livekit_service.dart';
 
 class CallService {
   static final CallService _instance = CallService._internal();
   factory CallService() => _instance;
   CallService._internal();
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final AuthService _authService = AuthService();
+  final NotificationService _notificationService = NotificationService();
+  final LiveKitService _liveKitService = LiveKitService();
 
-  bool _isInCall = false;
+  bool _isIncomingCallScreenOpen = false;
   String? _currentCallId;
-  Timer? _callTimer;
-  int _callDuration = 0;
 
-  final StreamController<CallModel> _callController =
-      StreamController<CallModel>.broadcast();
-  Stream<CallModel> get callStream => _callController.stream;
-
-  bool get isInCall => _isInCall;
-  int get callDuration => _callDuration;
-
-  // ============================================================
-  // 📞 بدء مكالمة
-  // ============================================================
-
-  Future<CallModel> startCall({
-    required String receiverId,
-    required String receiverName,
-    required String chatId,
-    required bool isVideo,
-  }) async {
+  // ✅ الحصول على Firebase ID Token
+  Future<String> _getIdToken() async {
     final user = _auth.currentUser;
-    if (user == null) throw Exception('يجب تسجيل الدخول');
-
-    final callId = _firestore.collection('calls').doc().id;
-    final now = DateTime.now();
-
-    final call = CallModel(
-      id: callId,
-      chatId: chatId,
-      callerId: user.uid,
-      callerName: user.displayName ?? 'مستخدم',
-      receiverId: receiverId,
-      receiverName: receiverName,
-      callType: isVideo ? CallType.video : CallType.audio,
-      status: CallStatus.calling,
-      startedAt: now,
-      participants: [user.uid, receiverId],
-      isVideoCall: isVideo,
-    );
-
-    await _firestore.collection('calls').doc(callId).set(call.toFirestore());
-
-    _currentCallId = callId;
-    _isInCall = true;
-    _callController.add(call);
-
-    return call;
+    if (user == null) throw Exception('User not authenticated');
+    return await user.getIdToken();
   }
 
-  // ============================================================
-  // ✅ قبول مكالمة
-  // ============================================================
-
-  Future<void> acceptCall(String callId) async {
+  // ✅ بدء مكالمة
+  Future<void> startCall({
+    required String receiverId,
+    required String callerName,
+    required bool isVideo,
+    required String chatId,
+    required BuildContext context,
+  }) async {
     try {
-      await _firestore.collection('calls').doc(callId).update({
-        'status': 'connected',
-        'connectedAt': FieldValue.serverTimestamp(),
-        'isAnswered': true,
-      });
-      _startTimer();
+      final userId = _authService.currentUserId;
+      if (userId == null) throw Exception('User not authenticated');
+
+      final userDoc = await _firestore.collection('users').doc(userId).get();
+      final userData = userDoc.data();
+
+      final callData = {
+        'callerId': userId,
+        'callerName': callerName,
+        'callerPhotoUrl': userData?['photoUrl'],
+        'receiverId': receiverId,
+        'receiverName': userData?['name'] ?? 'مستخدم',
+        'chatId': chatId,
+        'callType': isVideo ? 'video' : 'audio',
+        'status': 'calling',
+        'isAnswered': false,
+        'startedAt': FieldValue.serverTimestamp(),
+        'participants': [userId, receiverId],
+        'liveKitRoomName': chatId,
+        'isVideoCall': isVideo,
+      };
+
+      final callRef = await _firestore.collection('calls').add(callData);
+      final callId = callRef.id;
+      _currentCallId = callId;
+      await callRef.update({'id': callId});
+
     } catch (e) {
-      print('❌ Error accepting call: $e');
+      throw Exception('Error starting call: $e');
     }
   }
 
-  // ============================================================
-  // ❌ رفض مكالمة
-  // ============================================================
-
-  Future<void> rejectCall(String callId) async {
-    try {
-      await _firestore.collection('calls').doc(callId).update({
-        'status': 'rejected',
-        'endedAt': FieldValue.serverTimestamp(),
-      });
-      _endCallInternal();
-    } catch (e) {
-      print('❌ Error rejecting call: $e');
-    }
-  }
-
-  // ============================================================
-  // ⏹️ إنهاء مكالمة
-  // ============================================================
-
-  Future<void> endCall(String callId) async {
-    try {
-      final duration = _callDuration;
-      await _firestore.collection('calls').doc(callId).update({
-        'status': 'ended',
-        'endedAt': FieldValue.serverTimestamp(),
-        'durationSeconds': duration,
-      });
-      _endCallInternal();
-    } catch (e) {
-      print('❌ Error ending call: $e');
-    }
-  }
-
-  // ============================================================
-  // 📋 جلب سجل المكالمات
-  // ============================================================
-
-  Stream<List<CallModel>> getCallHistory() {
-    final userId = _auth.currentUser?.uid;
-    if (userId == null) return Stream.value([]);
-
-    return _firestore
-        .collection('calls')
-        .where('participants', arrayContains: userId)
-        .orderBy('startedAt', descending: true)
-        .snapshots()
-        .map((snapshot) {
-          return snapshot.docs.map((doc) {
-            return CallModel.fromFirestore(doc.id, doc.data());
-          }).toList();
-        });
-  }
-
-  // ============================================================
-  // 📡 الاستماع لمكالمة محددة
-  // ============================================================
-
-  Stream<CallModel> streamCall(String callId) {
-    return _firestore
-        .collection('calls')
-        .doc(callId)
-        .snapshots()
-        .map((doc) {
-          if (!doc.exists) {
-            throw Exception('Call not found');
-          }
-          return CallModel.fromFirestore(doc.id, doc.data()!);
-        });
-  }
-
-  // ============================================================
-  // 🛠️ دوال مساعدة
-  // ============================================================
-
-  void _startTimer() {
-    _callTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      _callDuration++;
-    });
-  }
-
-  void _endCallInternal() {
-    _callTimer?.cancel();
-    _callTimer = null;
-    _callDuration = 0;
-    _isInCall = false;
-    _currentCallId = null;
-  }
-
-  void dispose() {
-    _callTimer?.cancel();
-    _callController.close();
-  }
-}
-
-// ============================================================
-// 📊 نماذج المكالمات
-// ============================================================
-
-
-  // ✅ إضافة method handleIncomingCall
+  // ✅ معالجة مكالمة واردة
   void handleIncomingCall(BuildContext context, RemoteMessage message) {
     print('📞 Incoming call from: ${message.data['callerName']}');
     print('📞 Call data: ${message.data}');
-    
-    // ✅ عرض شاشة المكالمة الواردة
-    // يمكن إضافة منطق فتح الشاشة هنا
   }
+
+  // ✅ إنهاء المكالمة
+  Future<void> endCall(String callId) async {
+    try {
+      final callDoc = await _firestore.collection('calls').doc(callId).get();
+      if (!callDoc.exists) return;
+
+      await _firestore.collection('calls').doc(callId).update({
+        'status': 'ended',
+        'endedAt': FieldValue.serverTimestamp(),
+      });
+      _currentCallId = null;
+    } catch (e) {
+      print('Error ending call: $e');
+    }
+  }
+
+  String? get currentCallId => _currentCallId;
+  bool get isInCall => _currentCallId != null;
+}

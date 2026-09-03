@@ -211,3 +211,40 @@ class ChatService {
 
   void dispose() {}
 }
+
+  // ✅ إنشاء محادثة مع patientId
+  Future<String> createChat({
+    required String doctorId,
+    required String doctorName,
+    required String patientName,
+    required String patientId,
+    String? doctorImage,
+    String? patientImage,
+  }) async {
+    try {
+      final headers = await _getHeaders();
+      final body = jsonEncode({
+        'doctorId': doctorId,
+        'doctorName': doctorName,
+        'patientName': patientName,
+        'patientId': patientId,
+        'doctorImage': doctorImage,
+        'patientImage': patientImage,
+      });
+
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}/api/chats'),
+        headers: headers,
+        body: body,
+      );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['chatId'] ?? data['id'] ?? '';
+      }
+      throw Exception('فشل إنشاء المحادثة');
+    } catch (e) {
+      print('❌ Error creating chat: $e');
+      rethrow;
+    }
+  }

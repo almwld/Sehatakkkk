@@ -1,34 +1,57 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:sehatak/core/services/firestore_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:equatable/equatable.dart';
+import '../../core/models/doctor_model.dart';
 
-// ========== EVENTS ==========
-abstract class DoctorEvent {}
+// Events
+abstract class DoctorEvent extends Equatable {
+  const DoctorEvent();
+  @override
+  List<Object?> get props => [];
+}
+
 class LoadDoctors extends DoctorEvent {}
 class LoadDoctorDetails extends DoctorEvent {
   final String doctorId;
-  LoadDoctorDetails(this.doctorId);
+  const LoadDoctorDetails({required this.doctorId});
+  @override
+  List<Object?> get props => [doctorId];
 }
 
-// ========== STATES ==========
-abstract class DoctorState {}
+// States
+abstract class DoctorState extends Equatable {
+  const DoctorState();
+  @override
+  List<Object?> get props => [];
+}
+
 class DoctorInitial extends DoctorState {}
 class DoctorLoading extends DoctorState {}
-class DoctorLoadedState extends DoctorState {
-  final List<Map<String, dynamic>> doctors;
-  DoctorLoadedState(this.doctors);
-}
-class DoctorDetailsLoadedState extends DoctorState {
-  final Map<String, dynamic> doctor;
-  DoctorDetailsLoadedState(this.doctor);
-}
-class DoctorErrorState extends DoctorState {
-  final String message;
-  DoctorErrorState(this.message);
+
+class DoctorLoaded extends DoctorState {
+  final List<DoctorModel> doctors;
+  const DoctorLoaded({required this.doctors});
+  @override
+  List<Object?> get props => [doctors];
 }
 
-// ========== BLOC ==========
+class DoctorDetailsLoaded extends DoctorState {
+  final DoctorModel doctor;
+  const DoctorDetailsLoaded({required this.doctor});
+  @override
+  List<Object?> get props => [doctor];
+}
+
+class DoctorError extends DoctorState {
+  final String message;
+  const DoctorError({required this.message});
+  @override
+  List<Object?> get props => [message];
+}
+
+// BLoC
 class DoctorBloc extends Bloc<DoctorEvent, DoctorState> {
-  final FirestoreService _firestore = FirestoreService();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   DoctorBloc() : super(DoctorInitial()) {
     on<LoadDoctors>(_onLoadDoctors);
@@ -38,24 +61,31 @@ class DoctorBloc extends Bloc<DoctorEvent, DoctorState> {
   Future<void> _onLoadDoctors(LoadDoctors event, Emitter<DoctorState> emit) async {
     emit(DoctorLoading());
     try {
-      final doctors = await _firestore.getDoctors().first;
-      emit(DoctorLoadedState(doctors));
+      final snapshot = await _firestore.collection('doctors').get();
+      final doctors = snapshot.docs.map((doc) {
+        return DoctorModel.fromFirestore(doc.id, doc.data());
+      }).toList();
+      emit(DoctorLoaded(doctors: doctors));
     } catch (e) {
-      emit(DoctorErrorState('فشل تحميل الأطباء: $e'));
+      emit(DoctorError(message: e.toString()));
     }
   }
 
-  Future<void> _onLoadDoctorDetails(LoadDoctorDetails event, Emitter<DoctorState> emit) async {
+  Future<void> _onLoadDoctorDetails(
+    LoadDoctorDetails event,
+    Emitter<DoctorState> emit,
+  ) async {
     emit(DoctorLoading());
     try {
-      final doctor = await _firestore.getDoctor(event.doctorId);
-      if (doctor != null) {
-        emit(DoctorDetailsLoadedState(doctor));
-      } else {
-        emit(DoctorErrorState('الطبيب غير موجود'));
+      final doc = await _firestore.collection('doctors').doc(event.doctorId).get();
+      if (!doc.exists) {
+        emit(DoctorError(message: 'الطبيب غير موجود'));
+        return;
       }
+      final doctor = DoctorModel.fromFirestore(doc.id, doc.data());
+      emit(DoctorDetailsLoaded(doctor: doctor));
     } catch (e) {
-      emit(DoctorErrorState('فشل تحميل تفاصيل الطبيب: $e'));
+      emit(DoctorError(message: e.toString()));
     }
   }
 }

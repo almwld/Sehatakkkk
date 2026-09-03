@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
+  // ✅ الألوان الأساسية
   static const Color primary = Color(0xFF0A8F83);
   static const Color primaryLight = Color(0xFF4DB6AC);
   static const Color primaryDark = Color(0xFF00695C);
@@ -9,10 +10,20 @@ class AppColors {
   static const Color success = Color(0xFF4CAF50);
   static const Color warning = Color(0xFFFFC107);
   static const Color error = Color(0xFFE53935);
+  static const Color info = Color(0xFF2196F3);
+  static const Color purple = Color(0xFF9C27B0);
+  static const Color amber = Color(0xFFFFC107);
 
-  static const Color lightBackground = Color(0xFFF5F7FA);
-  static const Color darkBackground = Color(0xFF1A1A2E);
+  // ✅ ألوان الخلفية
+  static const Color backgroundLight = Color(0xFFF5F7FA);
+  static const Color backgroundDark = Color(0xFF1A1A2E);
+  static const Color surfaceContainerLow = Color(0xFFF0F2F5);
 
+  // ✅ ألوان البطاقات
+  static const Color cardLight = Color(0xFFFFFFFF);
+  static const Color cardDark = Color(0xFF2D2D44);
+
+  // ✅ ألوان عامة
   static const Color white = Color(0xFFFFFFFF);
   static const Color black = Color(0xFF000000);
   static const Color grey = Color(0xFF9E9E9E);

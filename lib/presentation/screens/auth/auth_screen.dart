@@ -527,7 +527,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       await _showSuccessAnimation();
 
       if (mounted) {
-        final userModel = UserModel.fromFirestore(userData, user.uid);
+        final userModel = UserModel.fromFirestore(user.uid, userData as Map<String, dynamic>);
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
