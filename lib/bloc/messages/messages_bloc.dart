@@ -1,76 +1,163 @@
 import 'dart:async';
-// ============================================================
-// ✉️ MessagesBloc - إدارة الرسائل مع Repository
-// ============================================================
-
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'messages_event.dart';
-import 'messages_state.dart';
+import 'package:equatable/equatable.dart';
+import '../../core/entities/message_entity.dart';
 import '../../domain/usecases/send_message_usecase.dart';
 import '../../data/repositories/chat_repository.dart';
 
+// ============================================================
+// 📋 الأحداث (Events)
+// ============================================================
+abstract class MessagesEvent extends Equatable {
+  const MessagesEvent();
+  @override
+  List<Object?> get props => [];
+}
+
+class LoadMessages extends MessagesEvent {
+  final String chatId;
+  const LoadMessages({required this.chatId});
+  @override
+  List<Object?> get props => [chatId];
+}
+
+class SendMessage extends MessagesEvent {
+  final String chatId;
+  final String text;
+  final String? imageUrl;
+  final String? audioUrl;
+  final String? fileUrl;
+  final String? locationUrl;
+  final String? replyToId;
+  final Map<String, dynamic>? attachments;
+
+  const SendMessage({
+    required this.chatId,
+    required this.text,
+    this.imageUrl,
+    this.audioUrl,
+    this.fileUrl,
+    this.locationUrl,
+    this.replyToId,
+    this.attachments,
+  });
+  @override
+  List<Object?> get props => [
+    chatId, text, imageUrl, audioUrl, fileUrl, locationUrl,
+    replyToId, attachments,
+  ];
+}
+
+class DeleteMessage extends MessagesEvent {
+  final String chatId;
+  final String messageId;
+  const DeleteMessage({required this.chatId, required this.messageId});
+  @override
+  List<Object?> get props => [chatId, messageId];
+}
+
+class AddReaction extends MessagesEvent {
+  final String chatId;
+  final String messageId;
+  final String reaction;
+  const AddReaction({
+    required this.chatId,
+    required this.messageId,
+    required this.reaction,
+  });
+  @override
+  List<Object?> get props => [chatId, messageId, reaction];
+}
+
+class RemoveReaction extends MessagesEvent {
+  final String chatId;
+  final String messageId;
+  const RemoveReaction({required this.chatId, required this.messageId});
+  @override
+  List<Object?> get props => [chatId, messageId];
+}
+
+class MarkMessagesRead extends MessagesEvent {
+  final String chatId;
+  const MarkMessagesRead({required this.chatId});
+  @override
+  List<Object?> get props => [chatId];
+}
+
+class ClearMessages extends MessagesEvent {}
+
+// ============================================================
+// 📊 الحالات (States)
+// ============================================================
+abstract class MessagesState extends Equatable {
+  const MessagesState();
+  @override
+  List<Object?> get props => [];
+}
+
+class MessagesInitial extends MessagesState {}
+class MessagesLoading extends MessagesState {}
+
+class MessagesLoaded extends MessagesState {
+  final List<MessageEntity> messages;
+  const MessagesLoaded({required this.messages});
+  @override
+  List<Object?> get props => [messages];
+}
+
+class MessagesError extends MessagesState {
+  final String message;
+  const MessagesError({required this.message});
+  @override
+  List<Object?> get props => [message];
+}
+
+class MessageSending extends MessagesState {}
+class MessageSent extends MessagesState {
+  final MessageEntity message;
+  const MessageSent({required this.message});
+  @override
+  List<Object?> get props => [message];
+}
+
+// ============================================================
+// 🧠 BLoC
+// ============================================================
 class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
   final ChatRepository _repository = ChatRepository();
   final SendMessageUseCase _sendMessageUseCase = SendMessageUseCase();
-  
-  StreamSubscription? _messagesSubscription;
-  String? _currentChatId;
+  StreamSubscription<List<MessageEntity>>? _messagesSubscription;
 
   MessagesBloc() : super(MessagesInitial()) {
     on<LoadMessages>(_onLoadMessages);
-    on<LoadMoreMessages>(_onLoadMoreMessages);
     on<SendMessage>(_onSendMessage);
     on<DeleteMessage>(_onDeleteMessage);
     on<AddReaction>(_onAddReaction);
     on<RemoveReaction>(_onRemoveReaction);
     on<MarkMessagesRead>(_onMarkMessagesRead);
-    on<StreamMessages>(_onStreamMessages);
-    on<StopStreamingMessages>(_onStopStreamingMessages);
+    on<ClearMessages>(_onClearMessages);
   }
 
-  // ============================================================
-  // 📥 تحميل الرسائل
-  // ============================================================
-
-  Future<void> _onLoadMessages(LoadMessages event, Emitter<MessagesState> emit) async {
-    _currentChatId = event.chatId;
+  Future<void> _onLoadMessages(
+    LoadMessages event,
+    Emitter<MessagesState> emit,
+  ) async {
     emit(MessagesLoading());
-    
     try {
       _messagesSubscription?.cancel();
       _messagesSubscription = _repository.getMessages(event.chatId).listen(
-        (messages) {
-          emit(MessagesLoaded(
-            messages: messages,
-            hasMore: messages.length >= 50,
-          ));
-        },
-        onError: (error) {
-          emit(MessagesError(message: error.toString()));
-        },
+        (messages) => emit(MessagesLoaded(messages: messages)),
+        onError: (error) => emit(MessagesError(message: error.toString())),
       );
     } catch (e) {
       emit(MessagesError(message: e.toString()));
     }
   }
 
-  // ============================================================
-  // 📥 تحميل المزيد من الرسائل
-  // ============================================================
-
-  Future<void> _onLoadMoreMessages(LoadMoreMessages event, Emitter<MessagesState> emit) async {
-    if (state is! MessagesLoaded) return;
-    final currentState = state as MessagesLoaded;
-    if (!currentState.hasMore) return;
-
-    // TODO: تنفيذ pagination
-  }
-
-  // ============================================================
-  // 📤 إرسال رسالة
-  // ============================================================
-
-  Future<void> _onSendMessage(SendMessage event, Emitter<MessagesState> emit) async {
+  Future<void> _onSendMessage(
+    SendMessage event,
+    Emitter<MessagesState> emit,
+  ) async {
     emit(MessageSending());
     try {
       final message = await _sendMessageUseCase.execute(
@@ -80,63 +167,56 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
         audioUrl: event.audioUrl,
         fileUrl: event.fileUrl,
         locationUrl: event.locationUrl,
-        replyTo: event.replyTo,
+        replyToId: event.replyToId,
+        attachments: event.attachments,
       );
       emit(MessageSent(message: message));
-      // إعادة تحميل الرسائل لتحديث القائمة
-      add(LoadMessages(chatId: event.chatId));
     } catch (e) {
       emit(MessagesError(message: e.toString()));
     }
   }
 
-  // ============================================================
-  // 🗑️ حذف رسالة
-  // ============================================================
-
-  Future<void> _onDeleteMessage(DeleteMessage event, Emitter<MessagesState> emit) async {
+  Future<void> _onDeleteMessage(
+    DeleteMessage event,
+    Emitter<MessagesState> emit,
+  ) async {
     try {
-      // TODO: تنفيذ حذف الرسالة
-      emit(MessageDeleted(messageId: event.messageId));
-      add(LoadMessages(chatId: event.chatId));
+      await _repository.deleteMessage(event.chatId, event.messageId);
     } catch (e) {
       emit(MessagesError(message: e.toString()));
     }
   }
 
-  // ============================================================
-  // ❤️ إضافة تفاعل
-  // ============================================================
-
-  Future<void> _onAddReaction(AddReaction event, Emitter<MessagesState> emit) async {
+  Future<void> _onAddReaction(
+    AddReaction event,
+    Emitter<MessagesState> emit,
+  ) async {
     try {
-      // TODO: تنفيذ إضافة تفاعل
-      emit(ReactionAdded(messageId: event.messageId, emoji: event.emoji));
-      add(LoadMessages(chatId: event.chatId));
+      await _repository.addReaction(
+        event.chatId,
+        event.messageId,
+        event.reaction,
+      );
     } catch (e) {
       emit(MessagesError(message: e.toString()));
     }
   }
 
-  // ============================================================
-  // ❤️ إزالة تفاعل
-  // ============================================================
-
-  Future<void> _onRemoveReaction(RemoveReaction event, Emitter<MessagesState> emit) async {
+  Future<void> _onRemoveReaction(
+    RemoveReaction event,
+    Emitter<MessagesState> emit,
+  ) async {
     try {
-      // TODO: تنفيذ إزالة تفاعل
-      emit(ReactionRemoved(messageId: event.messageId));
-      add(LoadMessages(chatId: event.chatId));
+      await _repository.removeReaction(event.chatId, event.messageId);
     } catch (e) {
       emit(MessagesError(message: e.toString()));
     }
   }
 
-  // ============================================================
-  // ✅ تحديث حالة القراءة
-  // ============================================================
-
-  Future<void> _onMarkMessagesRead(MarkMessagesRead event, Emitter<MessagesState> emit) async {
+  Future<void> _onMarkMessagesRead(
+    MarkMessagesRead event,
+    Emitter<MessagesState> emit,
+  ) async {
     try {
       await _repository.markAsRead(event.chatId);
     } catch (e) {
@@ -144,56 +224,9 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
     }
   }
 
-  // ============================================================
-  // 📡 البث الفوري للرسائل
-  // ============================================================
-
-  Future<void> _onStreamMessages(StreamMessages event, Emitter<MessagesState> emit) async {
-    _currentChatId = event.chatId;
-    await _messagesSubscription?.cancel();
-    
-    _messagesSubscription = _repository.getMessages(event.chatId).listen(
-      (messages) {
-        if (state is MessagesLoaded) {
-          final currentState = state as MessagesLoaded;
-          emit(MessagesLoaded(
-            messages: messages,
-            hasMore: currentState.hasMore,
-            isStreaming: true,
-          ));
-        } else {
-          emit(MessagesLoaded(
-            messages: messages,
-            isStreaming: true,
-          ));
-        }
-        // تحديث حالة القراءة تلقائياً
-        add(MarkMessagesRead(chatId: event.chatId));
-      },
-      onError: (error) {
-        emit(MessagesError(message: error.toString()));
-      },
-    );
-  }
-
-  // ============================================================
-  // ⏹️ إيقاف البث الفوري
-  // ============================================================
-
-  Future<void> _onStopStreamingMessages(
-    StopStreamingMessages event,
-    Emitter<MessagesState> emit,
-  ) async {
-    await _messagesSubscription?.cancel();
-    _messagesSubscription = null;
-    if (state is MessagesLoaded) {
-      final currentState = state as MessagesLoaded;
-      emit(MessagesLoaded(
-        messages: currentState.messages,
-        hasMore: currentState.hasMore,
-        isStreaming: false,
-      ));
-    }
+  void _onClearMessages(ClearMessages event, Emitter<MessagesState> emit) {
+    _messagesSubscription?.cancel();
+    emit(MessagesInitial());
   }
 
   @override

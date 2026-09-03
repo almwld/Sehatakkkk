@@ -1,9 +1,5 @@
-// ============================================================
-// 📝 ChatInputBar - شريط الإدخال المتكامل
-// ============================================================
-
 import 'package:flutter/material.dart';
-import 'package:sehatak/core/constants/app_colors.dart';
+import '../../../../core/constants/app_colors.dart';
 
 class ChatInputBar extends StatefulWidget {
   final TextEditingController textController;
@@ -33,81 +29,101 @@ class _ChatInputBarState extends State<ChatInputBar> {
   bool _isTyping = false;
 
   @override
+  void initState() {
+    super.initState();
+    widget.textController.addListener(_onTextChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.textController.removeListener(_onTextChanged);
+    super.dispose();
+  }
+
+  void _onTextChanged() {
+    final isTyping = widget.textController.text.isNotEmpty;
+    if (_isTyping != isTyping) {
+      setState(() => _isTyping = isTyping);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkCard : Colors.white,
+        color: isDark ? const Color(0xFF1A2540) : Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 4,
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
             offset: const Offset(0, -2),
           ),
         ],
       ),
       child: Row(
         children: [
-          // ✅ زر المرفقات
+          // زر إضافة مرفقات
           IconButton(
-            icon: Icon(Icons.attach_file, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+            icon: Icon(
+              Icons.attach_file,
+              color: isDark ? Colors.white : Colors.grey[600],
+            ),
             onPressed: _showAttachmentOptions,
           ),
-          // ✅ زر الصور
-          IconButton(
-            icon: Icon(Icons.photo_library, color: isDark ? Colors.grey[400] : Colors.grey[600]),
-            onPressed: widget.onImagePick,
-          ),
-          // ✅ حقل النص
+          // حقل النص
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF0B1121) : Colors.grey[100],
+                color: isDark ? Colors.grey[800] : Colors.grey[100],
                 borderRadius: BorderRadius.circular(24),
               ),
               child: TextField(
                 controller: widget.textController,
-                onChanged: (text) => setState(() => _isTyping = text.isNotEmpty),
-                onSubmitted: widget.onSend,
-                style: TextStyle(color: isDark ? Colors.white : Colors.black87),
-                textAlign: TextAlign.right,
                 decoration: InputDecoration(
                   hintText: 'اكتب رسالتك...',
-                  hintStyle: TextStyle(color: isDark ? Colors.grey[500] : Colors.grey[400]),
+                  hintStyle: TextStyle(
+                    color: isDark ? Colors.grey[500] : Colors.grey[500],
+                  ),
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                 ),
+                style: TextStyle(
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+                maxLines: null,
+                textDirection: TextDirection.rtl,
+                onSubmitted: (text) {
+                  if (text.trim().isNotEmpty) {
+                    widget.onSend(text.trim());
+                  }
+                },
               ),
             ),
           ),
-          // ✅ زر الإرسال / الميكروفون
-          GestureDetector(
-            onTap: _isTyping ? () => widget.onSend(widget.textController.text) : widget.onVoiceRecord,
-            child: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: _isTyping ? AppColors.primary : Colors.transparent,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: _isTyping ? AppColors.primary : (isDark ? Colors.grey[600]! : Colors.grey[300]!),
-                  width: 1.5,
-                ),
-              ),
-              child: widget.isSending
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                    )
-                  : Icon(
-                      _isTyping ? Icons.send : Icons.mic,
-                      color: _isTyping ? Colors.white : (isDark ? Colors.grey[400] : Colors.grey[600]),
-                    ),
+          // زر الإرسال
+          if (_isTyping)
+            IconButton(
+              icon: const Icon(Icons.send, color: AppColors.primary),
+              onPressed: widget.isSending
+                  ? null
+                  : () {
+                      final text = widget.textController.text.trim();
+                      if (text.isNotEmpty) {
+                        widget.onSend(text);
+                      }
+                    },
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.mic, color: AppColors.primary),
+              onPressed: widget.onVoiceRecord,
             ),
-          ),
         ],
       ),
     );
@@ -117,53 +133,92 @@ class _ChatInputBarState extends State<ChatInputBar> {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (context) => SafeArea(
-        child: Wrap(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo_library, color: AppColors.primary),
-              title: const Text('صورة من المعرض'),
-              onTap: () {
-                Navigator.pop(context);
-                widget.onImagePick();
-              },
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildAttachmentOption(
+                    icon: Icons.image,
+                    label: 'صورة',
+                    onTap: widget.onImagePick,
+                  ),
+                  _buildAttachmentOption(
+                    icon: Icons.mic,
+                    label: 'تسجيل',
+                    onTap: widget.onVoiceRecord,
+                  ),
+                  _buildAttachmentOption(
+                    icon: Icons.attach_file,
+                    label: 'ملف',
+                    onTap: widget.onFilePick,
+                  ),
+                  _buildAttachmentOption(
+                    icon: Icons.location_on,
+                    label: 'موقع',
+                    onTap: widget.onLocationShare,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAttachmentOption({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return InkWell(
+      onTap: () {
+        Navigator.pop(context);
+        onTap();
+      },
+      child: Column(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              shape: BoxShape.circle,
             ),
-            ListTile(
-              leading: const Icon(Icons.camera_alt, color: AppColors.primary),
-              title: const Text('التقاط صورة'),
-              onTap: () {
-                Navigator.pop(context);
-                widget.onImagePick();
-              },
+            child: Icon(
+              icon,
+              color: AppColors.primary,
+              size: 28,
             ),
-            ListTile(
-              leading: const Icon(Icons.insert_drive_file, color: AppColors.primary),
-              title: const Text('إرسال ملف'),
-              onTap: () {
-                Navigator.pop(context);
-                widget.onFilePick();
-              },
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: isDark ? Colors.white : Colors.black87,
             ),
-            ListTile(
-              leading: const Icon(Icons.location_on, color: AppColors.primary),
-              title: const Text('مشاركة الموقع'),
-              onTap: () {
-                Navigator.pop(context);
-                widget.onLocationShare();
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.mic, color: AppColors.primary),
-              title: const Text('تسجيل صوتي'),
-              onTap: () {
-                Navigator.pop(context);
-                widget.onVoiceRecord();
-              },
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

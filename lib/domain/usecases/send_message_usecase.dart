@@ -1,7 +1,3 @@
-// ============================================================
-// 🎯 SendMessageUseCase - إرسال رسالة
-// ============================================================
-
 import '../../core/entities/message_entity.dart';
 import '../../data/repositories/chat_repository.dart';
 
@@ -15,7 +11,8 @@ class SendMessageUseCase {
     String? audioUrl,
     String? fileUrl,
     String? locationUrl,
-    String? replyTo,
+    String? replyToId,
+    Map<String, dynamic>? attachments,
   }) {
     return _repository.sendMessage(
       chatId: chatId,
@@ -24,7 +21,8 @@ class SendMessageUseCase {
       audioUrl: audioUrl,
       fileUrl: fileUrl,
       locationUrl: locationUrl,
-      replyTo: replyTo,
+      replyToId: replyToId,
+      attachments: attachments,
     );
   }
 }

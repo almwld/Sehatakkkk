@@ -1,83 +1,29 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // ============================================================
-  // 🎨 الألوان الأساسية
-  // ============================================================
-  
-  static const Color primary = Color(0xFF0D9488);
-  static const Color primaryDark = Color(0xFF0F766E);
-  static const Color primaryLight = Color(0xFF14B8A6);
-  static const Color secondary = Color(0xFF1E293B);
-  static const Color backgroundLight = Color(0xFFF8FAFC);
-  static const Color backgroundDark = Color(0xFF0B1121);
-  static const Color cardLight = Color(0xFFFFFFFF);
-  static const Color cardDark = Color(0xFF1E293B);
-  static const Color success = Color(0xFF22C55E);
-  static const Color error = Color(0xFFEF4444);
-  static const Color warning = Color(0xFFF59E0B);
-  static const Color info = Color(0xFF3B82F6);
-  static const Color grey = Color(0xFF64748B);
-  static const Color purple = Color(0xFF8B5CF6);
-  static const Color amber = Color(0xFFF59E0B);
-  static const Color darkGrey = Color(0xFF334155);
-  static const Color surfaceContainerLow = Color(0xFFF1F5F9);
-  
-  // ✅ ألوان إضافية للدردشة
-  static const Color teal = Color(0xFF14B8A6);
-  static const Color orange = Color(0xFFF97316);
-  static const Color indigo = Color(0xFF4F46E5);
-  
-  // ✅ ألوان الخلفية للدردشة (المطلوبة)
-  static const Color darkBackground = Color(0xFF0B1121);
-  static const Color lightBackground = Color(0xFFF8FAFC);
-  
-  // ✅ ألوان الحالة (المطلوبة)
-  static const Color online = Color(0xFF34A853);
-  static const Color offline = Color(0xFF9CA3AF);
-  static const Color busy = Color(0xFFEA4335);
-  static const Color away = Color(0xFFFBBC04);
-  
-  // ✅ ألوان البطاقات للدردشة (المطلوبة)
-  static const Color darkCard = Color(0xFF1A2540);
-  static const Color darkInput = Color(0xFF2A3942);
+  static const Color primary = Color(0xFF0A8F83);
+  static const Color primaryLight = Color(0xFF4DB6AC);
+  static const Color primaryDark = Color(0xFF00695C);
+  static const Color secondary = Color(0xFF263238);
+  static const Color accent = Color(0xFFFF6B6B);
+  static const Color success = Color(0xFF4CAF50);
+  static const Color warning = Color(0xFFFFC107);
+  static const Color error = Color(0xFFE53935);
 
-  // ============================================================
-  // 🎨 التدرجات (Gradients)
-  // ============================================================
-  
+  static const Color lightBackground = Color(0xFFF5F7FA);
+  static const Color darkBackground = Color(0xFF1A1A2E);
+
+  static const Color white = Color(0xFFFFFFFF);
+  static const Color black = Color(0xFF000000);
+  static const Color grey = Color(0xFF9E9E9E);
+  static const Color lightGrey = Color(0xFFE0E0E0);
+  static const Color darkGrey = Color(0xFF616161);
+
+  static const Color shadow = Color(0x1A000000);
+  static const Color shadowLight = Color(0x0D000000);
+
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFF0D9488), Color(0xFF0F766E)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
-  
-  static const LinearGradient gradientGreen = LinearGradient(
-    colors: [Color(0xFF22C55E), Color(0xFF16A34A)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
-  
-  static const LinearGradient gradientRed = LinearGradient(
-    colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
-  
-  static const LinearGradient tealGradient = LinearGradient(
-    colors: [Color(0xFF14B8A6), Color(0xFF0D9488)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
-  
-  static const LinearGradient orangeGradient = LinearGradient(
-    colors: [Color(0xFFF97316), Color(0xFFEA580C)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
-  
-  static const LinearGradient indigoGradient = LinearGradient(
-    colors: [Color(0xFF4F46E5), Color(0xFF4338CA)],
+    colors: [primary, primaryLight],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );

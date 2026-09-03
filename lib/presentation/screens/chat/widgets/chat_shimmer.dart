@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
+import '../../../../core/constants/app_colors.dart';
 
 class ChatShimmer extends StatelessWidget {
   const ChatShimmer({super.key});
@@ -10,26 +11,45 @@ class ChatShimmer extends StatelessWidget {
       baseColor: Colors.grey[300]!,
       highlightColor: Colors.grey[100]!,
       child: ListView.builder(
-        itemCount: 6,
-        itemBuilder: (context, index) => Padding(
-          padding: const EdgeInsets.all(8),
-          child: Row(
-            children: [
-              Container(width: 50, height: 50, color: Colors.white),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(height: 14, width: double.infinity, color: Colors.white),
-                    const SizedBox(height: 8),
-                    Container(height: 12, width: 150, color: Colors.white),
-                  ],
+        padding: const EdgeInsets.all(12),
+        itemCount: 8,
+        itemBuilder: (context, index) {
+          return Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                const CircleAvatar(
+                  radius: 26,
+                  backgroundColor: Colors.white,
                 ),
-              ),
-            ],
-          ),
-        ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: double.infinity,
+                        height: 16,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        width: 150,
+                        height: 12,
+                        color: Colors.white,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
