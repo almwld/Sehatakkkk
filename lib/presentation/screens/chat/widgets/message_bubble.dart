@@ -16,7 +16,7 @@ class MessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (message.isDeletedMessage) {
-      return _buildDeletedMessage();
+      return _buildDeletedMessage(context);
     }
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -65,7 +65,7 @@ class MessageBubble extends StatelessWidget {
                     ),
                   // محتوى الرسالة
                   if (message.isImage && message.attachments?['imageUrl'] != null)
-                    _buildImageContent(message.attachments!['imageUrl']),
+                    _buildImageContent(context, message.attachments!['imageUrl']),
                   if (message.text != null && message.text!.isNotEmpty)
                     Text(
                       message.text!,
@@ -113,7 +113,7 @@ class MessageBubble extends StatelessWidget {
   // ============================================================
   // 🖼️ محتوى الصورة
   // ============================================================
-  Widget _buildImageContent(String imageUrl) {
+  Widget _buildImageContent(BuildContext context, String imageUrl) {
     return GestureDetector(
       onTap: () {
         // عرض الصورة في شاشة كاملة
@@ -151,7 +151,7 @@ class MessageBubble extends StatelessWidget {
   // ============================================================
   // 🗑️ رسالة محذوفة
   // ============================================================
-  Widget _buildDeletedMessage() {
+  Widget _buildDeletedMessage(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Padding(

@@ -67,29 +67,29 @@ class MessageEntity extends Equatable {
   factory MessageEntity.fromFirestore(String id, Map<String, dynamic> data) {
     return MessageEntity(
       id: id,
-      chatId: data['chatId'] ?? '',
-      senderId: data['senderId'] ?? '',
-      senderName: data['senderName'] ?? '',
-      senderPhotoUrl: data['senderPhotoUrl'],
-      text: data['text'],
-      type: _parseMessageType(data['type']),
+      chatId: data['chatId'] as String? ?? '',
+      senderId: data['senderId'] as String? ?? '',
+      senderName: data['senderName'] as String? ?? '',
+      senderPhotoUrl: data['senderPhotoUrl'] as String?,
+      text: data['text'] as String?,
+      type: _parseMessageType(data['type'] as String?),
       timestamp: (data['timestamp'] as Timestamp?)?.toDate(),
-      isRead: data['isRead'] ?? false,
-      isDelivered: data['isDelivered'] ?? false,
-      isDeleted: data['isDeleted'] ?? false,
-      isEdited: data['isEdited'] ?? false,
-      replyToId: data['replyToId'],
+      isRead: data['isRead'] as bool? ?? false,
+      isDelivered: data['isDelivered'] as bool? ?? false,
+      isDeleted: data['isDeleted'] as bool? ?? false,
+      isEdited: data['isEdited'] as bool? ?? false,
+      replyToId: data['replyToId'] as String?,
       reactions: Map<String, String>.from(data['reactions'] ?? {}),
       attachments: data['attachments'] as Map<String, dynamic>?,
-      locationAddress: data['locationAddress'],
+      locationAddress: data['locationAddress'] as String?,
       locationLat: (data['locationLat'] as num?)?.toDouble(),
       locationLng: (data['locationLng'] as num?)?.toDouble(),
-      audioDuration: data['audioDuration'],
-      fileSize: data['fileSize'],
-      fileName: data['fileName'],
-      fileMimeType: data['fileMimeType'],
-      thumbnailUrl: data['thumbnailUrl'],
-      isPinned: data['isPinned'] ?? false,
+      audioDuration: data['audioDuration'] as int?,
+      fileSize: data['fileSize'] as String?,
+      fileName: data['fileName'] as String?,
+      fileMimeType: data['fileMimeType'] as String?,
+      thumbnailUrl: data['thumbnailUrl'] as String?,
+      isPinned: data['isPinned'] as bool? ?? false,
     );
   }
 
@@ -144,7 +144,6 @@ class MessageEntity extends Equatable {
   bool get isDeletedMessage => type == MessageType.deleted;
   bool get hasReactions => reactions?.isNotEmpty ?? false;
   bool get hasAttachments => attachments?.isNotEmpty ?? false;
-  bool get isSentByMe => false; // سيتم تحديدها في الـ UI
 
   @override
   List<Object?> get props => [

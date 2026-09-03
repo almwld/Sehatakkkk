@@ -69,29 +69,29 @@ class ChatEntity extends Equatable {
 
   factory ChatEntity.fromFirestore(String id, Map<String, dynamic> data) {
     final participantDetails = <String, UserParticipant>{};
-    final details = data['participantDetails'] as Map? ?? {};
+    final details = data['participantDetails'] as Map<String, dynamic>? ?? {};
     details.forEach((key, value) {
-      participantDetails[key] = UserParticipant.fromJson(
-        value as Map<String, dynamic>
-      );
+      if (value is Map<String, dynamic>) {
+        participantDetails[key] = UserParticipant.fromJson(value);
+      }
     });
 
     return ChatEntity(
       id: id,
       participants: List<String>.from(data['participants'] ?? []),
       participantDetails: participantDetails,
-      lastMessage: data['lastMessage'],
+      lastMessage: data['lastMessage'] as String?,
       lastMessageTime: (data['lastMessageTime'] as Timestamp?)?.toDate(),
-      lastMessageSenderId: data['lastMessageSenderId'],
+      lastMessageSenderId: data['lastMessageSenderId'] as String?,
       unreadCount: Map<String, int>.from(data['unreadCount'] ?? {}),
-      isGroup: data['isGroup'] ?? false,
-      groupName: data['groupName'],
-      groupPhoto: data['groupPhoto'],
-      isArchived: data['isArchived'] ?? false,
-      isPinned: data['isPinned'] ?? false,
+      isGroup: data['isGroup'] as bool? ?? false,
+      groupName: data['groupName'] as String?,
+      groupPhoto: data['groupPhoto'] as String?,
+      isArchived: data['isArchived'] as bool? ?? false,
+      isPinned: data['isPinned'] as bool? ?? false,
       createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
       updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
-      isMuted: data['isMuted'] ?? false,
+      isMuted: data['isMuted'] as bool? ?? false,
     );
   }
 

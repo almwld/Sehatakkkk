@@ -29,7 +29,8 @@ class ChatRepository {
         .snapshots()
         .map((snapshot) {
           return snapshot.docs.map((doc) {
-            return ChatEntity.fromFirestore(doc.id, doc.data());
+            final data = doc.data() as Map<String, dynamic>;
+            return ChatEntity.fromFirestore(doc.id, data);
           }).toList();
         })
         .handleError((error) {
@@ -46,7 +47,8 @@ class ChatRepository {
     if (!doc.exists) {
       throw Exception('المحادثة غير موجودة');
     }
-    return ChatEntity.fromFirestore(doc.id, doc.data());
+    final data = doc.data() as Map<String, dynamic>;
+    return ChatEntity.fromFirestore(doc.id, data);
   }
 
   // ============================================================
@@ -104,7 +106,8 @@ class ChatRepository {
         .snapshots()
         .map((snapshot) {
           return snapshot.docs.map((doc) {
-            return MessageEntity.fromFirestore(doc.id, doc.data());
+            final data = doc.data() as Map<String, dynamic>;
+            return MessageEntity.fromFirestore(doc.id, data);
           }).toList();
         })
         .handleError((error) {
