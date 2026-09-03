@@ -27,7 +27,8 @@ class CallService {
   Future<String> _getIdToken() async {
     final user = _auth.currentUser;
     if (user == null) throw Exception('User not authenticated');
-    return await user.getIdToken();
+    final token = await user.getIdToken();
+    return token ?? "";
   }
 
   // ✅ بدء مكالمة

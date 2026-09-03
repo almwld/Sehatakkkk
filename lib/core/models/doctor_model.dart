@@ -1,7 +1,3 @@
-// ============================================================
-// 📊 DoctorModel - نموذج الطبيب
-// ============================================================
-
 import 'package:equatable/equatable.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -93,116 +89,10 @@ class DoctorModel extends Equatable {
     );
   }
 
-  Map<String, dynamic> toFirestore() {
-    return {
-      'name': name,
-      'specialty': specialty,
-      'subspecialty': subspecialty,
-      'photoUrl': photoUrl,
-      'rating': rating,
-      'reviewsCount': reviewsCount,
-      'consultationFee': consultationFee,
-      'isAvailable': isAvailable,
-      'isOnline': isOnline,
-      'experienceYears': experienceYears,
-      'hospital': hospital,
-      'clinicAddress': clinicAddress,
-      'about': about,
-      'languages': languages,
-      'services': services,
-      'workingHours': workingHours,
-      'education': education,
-      'certifications': certifications,
-      'reviews': reviews,
-      'isVerified': isVerified,
-      'patientsCount': patientsCount,
-      'specialties': specialties,
-      'ratingBreakdown': ratingBreakdown,
-      'isFeatured': isFeatured,
-      'createdAt': createdAt ?? FieldValue.serverTimestamp(),
-    };
-  }
-
-  DoctorModel copyWith({
-    String? id,
-    String? name,
-    String? specialty,
-    String? subspecialty,
-    String? photoUrl,
-    double? rating,
-    int? reviewsCount,
-    double? consultationFee,
-    bool? isAvailable,
-    bool? isOnline,
-    int? experienceYears,
-    String? hospital,
-    String? clinicAddress,
-    String? about,
-    List<String>? languages,
-    List<String>? services,
-    Map<String, dynamic>? workingHours,
-    List<Map<String, dynamic>>? education,
-    List<Map<String, dynamic>>? certifications,
-    List<Map<String, dynamic>>? reviews,
-    bool? isVerified,
-    int? patientsCount,
-    List<String>? specialties,
-    Map<String, double>? ratingBreakdown,
-    bool? isFeatured,
-    Timestamp? createdAt,
-  }) {
-    return DoctorModel(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      specialty: specialty ?? this.specialty,
-      subspecialty: subspecialty ?? this.subspecialty,
-      photoUrl: photoUrl ?? this.photoUrl,
-      rating: rating ?? this.rating,
-      reviewsCount: reviewsCount ?? this.reviewsCount,
-      consultationFee: consultationFee ?? this.consultationFee,
-      isAvailable: isAvailable ?? this.isAvailable,
-      isOnline: isOnline ?? this.isOnline,
-      experienceYears: experienceYears ?? this.experienceYears,
-      hospital: hospital ?? this.hospital,
-      clinicAddress: clinicAddress ?? this.clinicAddress,
-      about: about ?? this.about,
-      languages: languages ?? this.languages,
-      services: services ?? this.services,
-      workingHours: workingHours ?? this.workingHours,
-      education: education ?? this.education,
-      certifications: certifications ?? this.certifications,
-      reviews: reviews ?? this.reviews,
-      isVerified: isVerified ?? this.isVerified,
-      patientsCount: patientsCount ?? this.patientsCount,
-      specialties: specialties ?? this.specialties,
-      ratingBreakdown: ratingBreakdown ?? this.ratingBreakdown,
-      isFeatured: isFeatured ?? this.isFeatured,
-      createdAt: createdAt ?? this.createdAt,
-    );
-  }
-
   @override
   List<Object?> get props => [
-    id, name, specialty, subspecialty, photoUrl, rating, reviewsCount,
+    id, name, specialty, photoUrl, rating, reviewsCount,
     consultationFee, isAvailable, isOnline, experienceYears, hospital,
-    clinicAddress, about, languages, services, workingHours, education,
-    certifications, reviews, isVerified, patientsCount, specialties,
-    ratingBreakdown, isFeatured, createdAt,
+    about, isVerified, isFeatured
   ];
-
-  // ✅ المساعدات
-  double get averageRating => rating ?? 0.0;
-  int get totalReviews => reviewsCount ?? 0;
-  bool get hasConsultationFee => consultationFee != null && consultationFee! > 0;
-  String get formattedConsultationFee {
-    if (!hasConsultationFee) return 'مجاني';
-    return '\$${consultationFee!.toStringAsFixed(0)}';
-  }
-  bool get isAvailableNow => isAvailable && isOnline;
-  String getSpecialtyDisplay() {
-    if (subspecialty != null && subspecialty!.isNotEmpty) {
-      return '$specialty - $subspecialty';
-    }
-    return specialty;
-  }
 }

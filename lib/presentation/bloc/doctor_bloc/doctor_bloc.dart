@@ -63,11 +63,11 @@ class DoctorBloc extends Bloc<DoctorEvent, DoctorState> {
     try {
       final snapshot = await _firestore.collection('doctors').get();
       final doctors = snapshot.docs.map((doc) {
-        return DoctorModel.fromFirestore(doc.id, doc.data());
+        return DoctorModel.fromFirestore(doc.id, doc.data() as Map<String, dynamic>);
       }).toList();
       emit(DoctorLoaded(doctors: doctors));
     } catch (e) {
-      emit(DoctorError(message: e.toString()));
+      emit(DoctorError(message: 'حدث خطأ: ${e.toString()}'));
     }
   }
 
@@ -82,10 +82,13 @@ class DoctorBloc extends Bloc<DoctorEvent, DoctorState> {
         emit(DoctorError(message: 'الطبيب غير موجود'));
         return;
       }
-      final doctor = DoctorModel.fromFirestore(doc.id, doc.data());
+      final doctor = DoctorModel.fromFirestore(
+        doc.id, 
+        doc.data() as Map<String, dynamic>
+      );
       emit(DoctorDetailsLoaded(doctor: doctor));
     } catch (e) {
-      emit(DoctorError(message: e.toString()));
+      emit(DoctorError(message: 'حدث خطأ: ${e.toString()}'));
     }
   }
 }

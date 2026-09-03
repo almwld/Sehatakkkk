@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // ✅ الألوان الأساسية
   static const Color primary = Color(0xFF0A8F83);
   static const Color primaryLight = Color(0xFF4DB6AC);
   static const Color primaryDark = Color(0xFF00695C);
@@ -13,30 +12,16 @@ class AppColors {
   static const Color info = Color(0xFF2196F3);
   static const Color purple = Color(0xFF9C27B0);
   static const Color amber = Color(0xFFFFC107);
-
-  // ✅ ألوان الخلفية
-  static const Color lightBackground = Color(0xFFF5F7FA);
-  static const Color darkBackground = Color(0xFF1A1A2E);
+  
+  static const Color backgroundLight = Color(0xFFF5F7FA);
+  static const Color backgroundDark = Color(0xFF1A1A2E);
   static const Color surfaceContainerLow = Color(0xFFF0F2F5);
-  static const Color surfaceContainerHigh = Color(0xFFE8ECF0);
-
-  // ✅ ألوان البطاقات
   static const Color cardLight = Color(0xFFFFFFFF);
   static const Color cardDark = Color(0xFF2D2D44);
-
-  // ✅ ألوان عامة
+  
   static const Color white = Color(0xFFFFFFFF);
   static const Color black = Color(0xFF000000);
   static const Color grey = Color(0xFF9E9E9E);
   static const Color lightGrey = Color(0xFFE0E0E0);
   static const Color darkGrey = Color(0xFF616161);
-
-  static const Color shadow = Color(0x1A000000);
-  static const Color shadowLight = Color(0x0D000000);
-
-  static const LinearGradient primaryGradient = LinearGradient(
-    colors: [primary, primaryLight],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
 }

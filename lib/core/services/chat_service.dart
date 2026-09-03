@@ -1,114 +1,74 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/chat_model.dart';
 import '../models/message_model.dart';
-import '../constants/api_config.dart';
-import 'auth_service.dart';
 
 class ChatService {
-  static final ChatService _instance = ChatService._internal();
-  factory ChatService() => _instance;
-  ChatService._internal();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  final AuthService _authService = AuthService();
+  String? get currentUserId => _auth.currentUser?.uid;
 
-  // ✅ الحصول على Token
-  Future<String> _getToken() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) throw Exception('يجب تسجيل الدخول');
-    return await user.getIdToken() ?? '';
+  // ✅ جلب المحادثات من Firestore مباشرة
+  Stream<List<ChatModel>> streamChats() {
+    final userId = currentUserId;
+    if (userId == null) return Stream.value([]);
+
+    return _firestore
+        .collection('chats')
+        .where('participants', arrayContains: userId)
+        .orderBy('updatedAt', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => ChatModel.fromFirestore(doc.id, doc.data()))
+            .toList());
   }
 
-  // ✅ Headers للمصادقة
-  Future<Map<String, String>> _getHeaders() async {
-    final token = await _getToken();
-    return {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
-    };
-  }
-
-  // ✅ جلب المحادثات
-  Future<List<ChatModel>> getChats() async {
-    try {
-      final headers = await _getHeaders();
-      final response = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}/api/chats'),
-        headers: headers,
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final chats = data['chats'] as List? ?? [];
-        return chats.map((chat) => ChatModel.fromJson(chat)).toList();
-      }
-      return [];
-    } catch (e) {
-      print('❌ Error getting chats: $e');
-      return [];
-    }
-  }
-
-  // ✅ إنشاء محادثة
+  // ✅ إنشاء محادثة في Firestore مباشرة
   Future<String> createChat({
     required String doctorId,
     required String doctorName,
     required String patientName,
-    required String patientId,
     String? doctorImage,
     String? patientImage,
   }) async {
-    try {
-      final headers = await _getHeaders();
-      final body = jsonEncode({
-        'doctorId': doctorId,
-        'doctorName': doctorName,
-        'patientName': patientName,
-        'patientId': patientId,
-        'doctorImage': doctorImage,
-        'patientImage': patientImage,
-      });
+    final userId = currentUserId;
+    if (userId == null) throw Exception('يجب تسجيل الدخول');
 
-      final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/api/chats'),
-        headers: headers,
-        body: body,
-      );
+    final chatRef = await _firestore.collection('chats').add({
+      'participants': [userId, doctorId],
+      'participantDetails': {
+        userId: {'name': patientName, 'photoUrl': patientImage},
+        doctorId: {'name': doctorName, 'photoUrl': doctorImage},
+      },
+      'lastMessage': '',
+      'lastMessageTime': null,
+      'lastMessageSenderId': null,
+      'unreadCount': {userId: 0, doctorId: 0},
+      'isGroup': false,
+      'isArchived': false,
+      'isPinned': false,
+      'createdAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
 
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return data['chatId'] ?? data['id'] ?? '';
-      }
-      throw Exception('فشل إنشاء المحادثة');
-    } catch (e) {
-      print('❌ Error creating chat: $e');
-      rethrow;
-    }
+    return chatRef.id;
   }
 
-  // ✅ جلب رسائل المحادثة
-  Future<List<MessageModel>> getMessages(String chatId) async {
-    try {
-      final headers = await _getHeaders();
-      final response = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}/api/chats/$chatId/messages'),
-        headers: headers,
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final messages = data['messages'] as List? ?? [];
-        return messages.map((msg) => MessageModel.fromJson(msg)).toList();
-      }
-      return [];
-    } catch (e) {
-      print('❌ Error getting messages: $e');
-      return [];
-    }
+  // ✅ جلب رسائل المحادثة من Firestore مباشرة
+  Stream<List<MessageModel>> streamMessages(String chatId) {
+    return _firestore
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => MessageModel.fromFirestore(doc.id, doc.data()))
+            .toList());
   }
 
-  // ✅ إرسال رسالة
+  // ✅ إرسال رسالة إلى Firestore مباشرة
   Future<void> sendMessage({
     required String chatId,
     required String text,
@@ -116,57 +76,66 @@ class ChatService {
     String? audioUrl,
     String? fileUrl,
     String? locationUrl,
-    String? replyTo,
   }) async {
-    try {
-      final headers = await _getHeaders();
-      final body = jsonEncode({
-        'text': text,
-        'imageUrl': imageUrl,
-        'audioUrl': audioUrl,
-        'fileUrl': fileUrl,
-        'locationUrl': locationUrl,
-        'replyTo': replyTo,
-      });
+    final userId = currentUserId;
+    if (userId == null) throw Exception('يجب تسجيل الدخول');
+    
+    final user = _auth.currentUser;
 
-      final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/api/chats/$chatId/messages'),
-        headers: headers,
-        body: body,
-      );
+    await _firestore
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .add({
+          'chatId': chatId,
+          'senderId': userId,
+          'senderName': user?.displayName ?? 'مستخدم',
+          'senderPhotoUrl': user?.photoURL,
+          'text': text,
+          'type': imageUrl != null ? 'image' : 
+                  audioUrl != null ? 'audio' :
+                  fileUrl != null ? 'file' :
+                  locationUrl != null ? 'location' : 'text',
+          'imageUrl': imageUrl,
+          'audioUrl': audioUrl,
+          'fileUrl': fileUrl,
+          'locationUrl': locationUrl,
+          'timestamp': FieldValue.serverTimestamp(),
+          'isRead': false,
+          'isDelivered': false,
+          'isDeleted': false,
+        });
 
-      if (response.statusCode != 201 && response.statusCode != 200) {
-        throw Exception('فشل إرسال الرسالة');
-      }
-    } catch (e) {
-      print('❌ Error sending message: $e');
-      rethrow;
-    }
+    // تحديث المحادثة
+    await _firestore.collection('chats').doc(chatId).update({
+      'lastMessage': text,
+      'lastMessageTime': FieldValue.serverTimestamp(),
+      'lastMessageSenderId': userId,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
   }
 
   // ✅ تحديث حالة القراءة
   Future<void> markAsRead(String chatId) async {
-    try {
-      final headers = await _getHeaders();
-      await http.patch(
-        Uri.parse('${ApiConfig.baseUrl}/api/chats/$chatId/read'),
-        headers: headers,
-      );
-    } catch (e) {
-      print('⚠️ Error marking as read: $e');
-    }
-  }
+    final userId = currentUserId;
+    if (userId == null) return;
 
-  // ✅ حذف محادثة
-  Future<void> deleteChat(String chatId) async {
-    try {
-      final headers = await _getHeaders();
-      await http.delete(
-        Uri.parse('${ApiConfig.baseUrl}/api/chats/$chatId'),
-        headers: headers,
-      );
-    } catch (e) {
-      print('❌ Error deleting chat: $e');
+    await _firestore.collection('chats').doc(chatId).update({
+      'unreadCount.${userId}': 0,
+    });
+
+    final messages = await _firestore
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .where('senderId', isNotEqualTo: userId)
+        .where('isRead', isEqualTo: false)
+        .get();
+
+    final batch = _firestore.batch();
+    for (final doc in messages.docs) {
+      batch.update(doc.reference, {'isRead': true});
     }
+    await batch.commit();
   }
 }
