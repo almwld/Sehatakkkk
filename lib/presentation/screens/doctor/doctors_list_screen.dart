@@ -1,4 +1,3 @@
-import '../../../core/models/doctor_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -6,6 +5,7 @@ import '../../../core/models/doctor_model.dart';
 import '../../../core/services/chat_service.dart';
 import '../../../presentation/bloc/doctor_bloc/doctor_bloc.dart';
 import '../chat/chat_detail_screen.dart';
+import 'doctor_details_screen.dart';
 
 class DoctorsListScreen extends StatefulWidget {
   const DoctorsListScreen({super.key});
@@ -102,7 +102,6 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
         doctorId: doctor.id,
         doctorName: doctor.name,
         patientName: user.displayName ?? 'مريض',
-        patientId: user.uid,
       );
 
       if (chatId.isNotEmpty) {

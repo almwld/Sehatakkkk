@@ -125,7 +125,6 @@ class DoctorDetailsScreen extends StatelessWidget {
         doctorId: doctor.id,
         doctorName: doctor.name,
         patientName: user.displayName ?? 'مريض',
-        patientId: user.uid,
       );
 
       if (chatId.isNotEmpty) {
