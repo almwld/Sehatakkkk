@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 // ============================================================
 // 👨‍⚕️ DoctorsListScreen - شاشة الأطباء
 // ============================================================
@@ -226,7 +227,6 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
         ],
       ),
       // ✅ زر بدء المحادثة
-      child: Row(
         children: [
           Expanded(
             child: ElevatedButton.icon(

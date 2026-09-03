@@ -1,3 +1,4 @@
+import 'package:sehatak/core/models/call_model.dart';
 // ============================================================
 // 📞 CallService - خدمة المكالمات الكاملة
 // ============================================================
@@ -183,5 +184,3 @@ class CallService {
 // 📊 نماذج المكالمات
 // ============================================================
 
-enum CallType { audio, video }
-enum CallStatus { calling, ringing, connected, ended, missed, rejected }

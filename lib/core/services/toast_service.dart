@@ -18,26 +18,29 @@ class ToastService {
   }
 
   static void _showToast(String message, Color color) {
-    // استخدام ScaffoldMessenger لعرض SnackBar
-    final context = navigatorKey.currentContext;
-    if (context != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: color,
-          duration: const Duration(seconds: 2),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
-    } else {
-      // طباعة في الكونسول إذا لم يكن هناك Context
-      print('📢 $message');
+    final context = _navigatorKey?.currentContext;
+    if (context == null) {
+      print('⚠️ Toast: $message');
+      return;
     }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: color,
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        margin: const EdgeInsets.all(12),
+      ),
+    );
+  }
+
+  static GlobalKey<NavigatorState>? _navigatorKey;
+
+  static void setNavigatorKey(GlobalKey<NavigatorState> key) {
+    _navigatorKey = key;
   }
 }
-
-// ✅ GlobalKey للـ Navigator
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();

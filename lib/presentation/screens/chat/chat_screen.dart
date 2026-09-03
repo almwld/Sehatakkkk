@@ -105,7 +105,7 @@ class _ChatScreenState extends State<ChatScreen> {
   // 🏗️ بناء عنصر المحادثة
   // ============================================================
 
-  Widget _buildChatTile(ChatEntity chat, bool isDark) {
+  Widget _buildChatTile(ChatModel chat, bool isDark) {
     final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
     final name = chat.getDisplayName(userId);
     final photo = chat.getDisplayPhoto(userId);
@@ -262,7 +262,7 @@ class _ChatScreenState extends State<ChatScreen> {
   // 🛠️ دوال مساعدة
   // ============================================================
 
-  List<ChatEntity> _filterChats(List<ChatEntity> chats) {
+  List<ChatModel> _filterChats(List<ChatModel> chats) {
     if (_searchQuery.isEmpty) return chats;
     final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
     return chats.where((chat) {
@@ -326,7 +326,7 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  void _showChatOptions(ChatEntity chat) {
+  void _showChatOptions(ChatModel chat) {
     showModalBottomSheet(
       context: context,
       builder: (context) => SafeArea(

@@ -8,7 +8,7 @@ import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/entities/message_entity.dart';
 
 class MessageBubble extends StatefulWidget {
-  final MessageEntity message;
+  final MessageModel message;
   final bool isMe;
   final VoidCallback? onReply;
   final VoidCallback? onDelete;

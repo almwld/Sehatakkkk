@@ -139,7 +139,7 @@ class AuthService {
         );
         await _firestoreService.setUser(user.uid, userModel.toFirestore());
       } else {
-        userModel = UserModel.fromFirestore(user.uid, userDoc.data()!);
+        userModel = UserModel.fromFirestore(user.uid, userDoc.data()! as Map<String, dynamic>);
       }
 
       _userController.add(userModel);
@@ -226,7 +226,7 @@ class AuthService {
     if (!doc.exists) {
       throw Exception('User not found in Firestore');
     }
-    return UserModel.fromFirestore(userId, doc.data()!);
+    return UserModel.fromFirestore(userId, doc.data()! as Map<String, dynamic>);
   }
 
   // ============================================================
