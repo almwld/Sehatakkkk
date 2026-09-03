@@ -19,24 +19,36 @@ class LoadMessages extends MessagesEvent {
   List<Object?> get props => [chatId, limit];
 }
 
+// ✅ تحميل المزيد من الرسائل
+class LoadMoreMessages extends MessagesEvent {
+  final String chatId;
+  const LoadMoreMessages({required this.chatId});
+  @override
+  List<Object?> get props => [chatId];
+}
+
 // ✅ إرسال رسالة
 class SendMessage extends MessagesEvent {
   final String chatId;
   final String text;
-  final String type;
-  final String? replyToId;
-  final Map<String, dynamic>? attachments;
-  final Map<String, dynamic>? location;
+  final String? imageUrl;
+  final String? audioUrl;
+  final String? fileUrl;
+  final String? locationUrl;
+  final String? replyTo;
   const SendMessage({
     required this.chatId,
     required this.text,
-    this.type = 'text',
-    this.replyToId,
-    this.attachments,
-    this.location,
+    this.imageUrl,
+    this.audioUrl,
+    this.fileUrl,
+    this.locationUrl,
+    this.replyTo,
   });
   @override
-  List<Object?> get props => [chatId, text, type, replyToId, attachments, location];
+  List<Object?> get props => [
+    chatId, text, imageUrl, audioUrl, fileUrl, locationUrl, replyTo
+  ];
 }
 
 // ✅ حذف رسالة
@@ -52,14 +64,14 @@ class DeleteMessage extends MessagesEvent {
 class AddReaction extends MessagesEvent {
   final String chatId;
   final String messageId;
-  final String reaction;
+  final String emoji;
   const AddReaction({
     required this.chatId,
     required this.messageId,
-    required this.reaction,
+    required this.emoji,
   });
   @override
-  List<Object?> get props => [chatId, messageId, reaction];
+  List<Object?> get props => [chatId, messageId, emoji];
 }
 
 // ✅ إزالة تفاعل

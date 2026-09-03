@@ -1,5 +1,5 @@
 // ============================================================
-// ✉️ MessagesBloc - بلوك الرسائل
+// ✉️ MessagesBloc - بلوك الرسائل الكامل
 // ============================================================
 
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,9 +11,12 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
   final ChatService _chatService = ChatService();
   Stream<List<MessageModel>>? _messageStream;
   StreamSubscription<List<MessageModel>>? _subscription;
+  int _currentPage = 0;
+  bool _hasMore = true;
 
   MessagesBloc() : super(MessagesInitial()) {
     on<LoadMessages>(_onLoadMessages);
+    on<LoadMoreMessages>(_onLoadMoreMessages);
     on<SendMessage>(_onSendMessage);
     on<DeleteMessage>(_onDeleteMessage);
     on<AddReaction>(_onAddReaction);
@@ -29,15 +32,30 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
 
   Future<void> _onLoadMessages(LoadMessages event, Emitter<MessagesState> emit) async {
     emit(MessagesLoading());
+    _currentPage = 0;
+    _hasMore = true;
+
     try {
-      final messages = await _chatService.getMessages(event.chatId, limit: event.limit);
+      final messages = await _chatService.getMessages(event.chatId);
+      _hasMore = messages.length >= event.limit;
       emit(MessagesLoaded(
         messages: messages,
-        hasMore: messages.length >= event.limit,
+        hasMore: _hasMore,
       ));
     } catch (e) {
       emit(MessagesError(message: e.toString()));
     }
+  }
+
+  // ============================================================
+  // 📥 تحميل المزيد من الرسائل
+  // ============================================================
+
+  Future<void> _onLoadMoreMessages(LoadMoreMessages event, Emitter<MessagesState> emit) async {
+    if (!_hasMore || state is MessagesLoading) return;
+
+    _currentPage++;
+    // TODO: تنفيذ تحميل المزيد
   }
 
   // ============================================================
@@ -50,10 +68,11 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
       final message = await _chatService.sendMessage(
         chatId: event.chatId,
         text: event.text,
-        type: event.type,
-        replyToId: event.replyToId,
-        attachments: event.attachments,
-        location: event.location,
+        imageUrl: event.imageUrl,
+        audioUrl: event.audioUrl,
+        fileUrl: event.fileUrl,
+        locationUrl: event.locationUrl,
+        replyTo: event.replyTo,
       );
       emit(MessageSent(message: message));
       add(LoadMessages(chatId: event.chatId));
@@ -82,8 +101,8 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
 
   Future<void> _onAddReaction(AddReaction event, Emitter<MessagesState> emit) async {
     try {
-      await _chatService.addReaction(event.chatId, event.messageId, event.reaction);
-      emit(ReactionAdded(messageId: event.messageId, reaction: event.reaction));
+      await _chatService.addReaction(event.chatId, event.messageId, event.emoji);
+      emit(ReactionAdded(messageId: event.messageId, emoji: event.emoji));
       add(LoadMessages(chatId: event.chatId));
     } catch (e) {
       emit(MessagesError(message: e.toString()));

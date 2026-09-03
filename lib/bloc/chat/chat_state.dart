@@ -49,23 +49,42 @@ class ChatDeleted extends ChatState {
 
 class ChatPinned extends ChatState {
   final String chatId;
-  final bool isPinned;
-  const ChatPinned({required this.chatId, required this.isPinned});
+  const ChatPinned({required this.chatId});
   @override
-  List<Object?> get props => [chatId, isPinned];
+  List<Object?> get props => [chatId];
+}
+
+class ChatUnpinned extends ChatState {
+  final String chatId;
+  const ChatUnpinned({required this.chatId});
+  @override
+  List<Object?> get props => [chatId];
 }
 
 class ChatMuted extends ChatState {
   final String chatId;
-  final bool isMuted;
-  const ChatMuted({required this.chatId, required this.isMuted});
+  const ChatMuted({required this.chatId});
   @override
-  List<Object?> get props => [chatId, isMuted];
+  List<Object?> get props => [chatId];
+}
+
+class ChatUnmuted extends ChatState {
+  final String chatId;
+  const ChatUnmuted({required this.chatId});
+  @override
+  List<Object?> get props => [chatId];
 }
 
 class ChatArchived extends ChatState {
   final String chatId;
   const ChatArchived({required this.chatId});
+  @override
+  List<Object?> get props => [chatId];
+}
+
+class ChatUnarchived extends ChatState {
+  final String chatId;
+  const ChatUnarchived({required this.chatId});
   @override
   List<Object?> get props => [chatId];
 }

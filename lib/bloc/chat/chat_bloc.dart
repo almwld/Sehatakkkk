@@ -1,5 +1,5 @@
 // ============================================================
-// 💬 ChatBloc - بلوك المحادثات
+// 💬 ChatBloc - بلوك المحادثات الكامل
 // ============================================================
 
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -14,15 +14,18 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
   ChatBloc() : super(ChatInitial()) {
     on<LoadChats>(_onLoadChats);
+    on<RefreshChats>(_onRefreshChats);
     on<CreateChat>(_onCreateChat);
     on<LoadChat>(_onLoadChat);
     on<DeleteChat>(_onDeleteChat);
-    on<StreamChats>(_onStreamChats);
-    on<StopStreamingChats>(_onStopStreamingChats);
-    on<TogglePinChat>(_onTogglePinChat);
-    on<ToggleMuteChat>(_onToggleMuteChat);
+    on<PinChat>(_onPinChat);
+    on<UnpinChat>(_onUnpinChat);
+    on<MuteChat>(_onMuteChat);
+    on<UnmuteChat>(_onUnmuteChat);
     on<ArchiveChat>(_onArchiveChat);
     on<UnarchiveChat>(_onUnarchiveChat);
+    on<StreamChats>(_onStreamChats);
+    on<StopStreamingChats>(_onStopStreamingChats);
   }
 
   // ============================================================
@@ -30,6 +33,20 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   // ============================================================
 
   Future<void> _onLoadChats(LoadChats event, Emitter<ChatState> emit) async {
+    emit(ChatLoading());
+    try {
+      final chats = await _chatService.getChats();
+      emit(ChatLoaded(chats: chats));
+    } catch (e) {
+      emit(ChatError(message: e.toString()));
+    }
+  }
+
+  // ============================================================
+  // 🔄 تحديث المحادثات
+  // ============================================================
+
+  Future<void> _onRefreshChats(RefreshChats event, Emitter<ChatState> emit) async {
     emit(ChatLoading());
     try {
       final chats = await _chatService.getChats();
@@ -49,10 +66,13 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         doctorId: event.doctorId,
         doctorName: event.doctorName,
         patientName: event.patientName,
-        doctorImage: event.doctorImage,
-        patientImage: event.patientImage,
+        patientId: FirebaseAuth.instance.currentUser?.uid ?? '',
       );
-      emit(ChatCreated(chat: chat));
+      // جلب المحادثة الكاملة
+      final fullChat = await _chatService.getChat(chat);
+      if (fullChat != null) {
+        emit(ChatCreated(chat: fullChat));
+      }
       add(LoadChats());
     } catch (e) {
       emit(ChatError(message: e.toString()));
@@ -66,7 +86,11 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   Future<void> _onLoadChat(LoadChat event, Emitter<ChatState> emit) async {
     try {
       final chat = await _chatService.getChat(event.chatId);
-      emit(ChatDetailLoaded(chat: chat));
+      if (chat != null) {
+        emit(ChatDetailLoaded(chat: chat));
+      } else {
+        emit(ChatError(message: 'المحادثة غير موجودة'));
+      }
     } catch (e) {
       emit(ChatError(message: e.toString()));
     }
@@ -81,6 +105,84 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       await _chatService.deleteChat(event.chatId);
       emit(ChatDeleted(chatId: event.chatId));
       add(LoadChats());
+    } catch (e) {
+      emit(ChatError(message: e.toString()));
+    }
+  }
+
+  // ============================================================
+  // 📌 تثبيت محادثة
+  // ============================================================
+
+  Future<void> _onPinChat(PinChat event, Emitter<ChatState> emit) async {
+    try {
+      // TODO: تنفيذ تثبيت
+      emit(ChatPinned(chatId: event.chatId));
+    } catch (e) {
+      emit(ChatError(message: e.toString()));
+    }
+  }
+
+  // ============================================================
+  // 📌 إلغاء تثبيت محادثة
+  // ============================================================
+
+  Future<void> _onUnpinChat(UnpinChat event, Emitter<ChatState> emit) async {
+    try {
+      // TODO: تنفيذ إلغاء تثبيت
+      emit(ChatUnpinned(chatId: event.chatId));
+    } catch (e) {
+      emit(ChatError(message: e.toString()));
+    }
+  }
+
+  // ============================================================
+  // 🔇 كتم محادثة
+  // ============================================================
+
+  Future<void> _onMuteChat(MuteChat event, Emitter<ChatState> emit) async {
+    try {
+      // TODO: تنفيذ كتم
+      emit(ChatMuted(chatId: event.chatId));
+    } catch (e) {
+      emit(ChatError(message: e.toString()));
+    }
+  }
+
+  // ============================================================
+  // 🔇 إلغاء كتم محادثة
+  // ============================================================
+
+  Future<void> _onUnmuteChat(UnmuteChat event, Emitter<ChatState> emit) async {
+    try {
+      // TODO: تنفيذ إلغاء كتم
+      emit(ChatUnmuted(chatId: event.chatId));
+    } catch (e) {
+      emit(ChatError(message: e.toString()));
+    }
+  }
+
+  // ============================================================
+  // 📦 أرشفة محادثة
+  // ============================================================
+
+  Future<void> _onArchiveChat(ArchiveChat event, Emitter<ChatState> emit) async {
+    try {
+      // TODO: تنفيذ أرشفة
+      emit(ChatArchived(chatId: event.chatId));
+    } catch (e) {
+      emit(ChatError(message: e.toString()));
+    }
+  }
+
+  // ============================================================
+  // 📦 إلغاء أرشفة محادثة
+  // ============================================================
+
+  Future<void> _onUnarchiveChat(UnarchiveChat event, Emitter<ChatState> emit) async {
+    try {
+      // TODO: تنفيذ إلغاء أرشفة
+      emit(ChatUnarchived(chatId: event.chatId));
     } catch (e) {
       emit(ChatError(message: e.toString()));
     }
@@ -131,61 +233,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         chats: currentState.chats,
         isStreaming: false,
       ));
-    }
-  }
-
-  // ============================================================
-  // 📌 تحديث حالة التثبيت
-  // ============================================================
-
-  Future<void> _onTogglePinChat(TogglePinChat event, Emitter<ChatState> emit) async {
-    try {
-      // TODO: تنفيذ تحديث حالة التثبيت
-      emit(ChatPinned(chatId: event.chatId, isPinned: event.isPinned));
-      add(LoadChats());
-    } catch (e) {
-      emit(ChatError(message: e.toString()));
-    }
-  }
-
-  // ============================================================
-  // 🔇 تحديث حالة الكتم
-  // ============================================================
-
-  Future<void> _onToggleMuteChat(ToggleMuteChat event, Emitter<ChatState> emit) async {
-    try {
-      // TODO: تنفيذ تحديث حالة الكتم
-      emit(ChatMuted(chatId: event.chatId, isMuted: event.isMuted));
-      add(LoadChats());
-    } catch (e) {
-      emit(ChatError(message: e.toString()));
-    }
-  }
-
-  // ============================================================
-  // 📦 أرشفة محادثة
-  // ============================================================
-
-  Future<void> _onArchiveChat(ArchiveChat event, Emitter<ChatState> emit) async {
-    try {
-      // TODO: تنفيذ أرشفة المحادثة
-      emit(ChatArchived(chatId: event.chatId));
-      add(LoadChats());
-    } catch (e) {
-      emit(ChatError(message: e.toString()));
-    }
-  }
-
-  // ============================================================
-  // 📦 إلغاء أرشفة محادثة
-  // ============================================================
-
-  Future<void> _onUnarchiveChat(UnarchiveChat event, Emitter<ChatState> emit) async {
-    try {
-      // TODO: تنفيذ إلغاء أرشفة المحادثة
-      add(LoadChats());
-    } catch (e) {
-      emit(ChatError(message: e.toString()));
     }
   }
 

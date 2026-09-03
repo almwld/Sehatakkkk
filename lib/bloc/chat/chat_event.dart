@@ -13,6 +13,9 @@ abstract class ChatEvent extends Equatable {
 // ✅ تحميل المحادثات
 class LoadChats extends ChatEvent {}
 
+// ✅ تحديث المحادثات
+class RefreshChats extends ChatEvent {}
+
 // ✅ إنشاء محادثة
 class CreateChat extends ChatEvent {
   final String doctorId;
@@ -47,28 +50,36 @@ class DeleteChat extends ChatEvent {
   List<Object?> get props => [chatId];
 }
 
-// ✅ البث الفوري للمحادثات
-class StreamChats extends ChatEvent {}
-
-// ✅ إيقاف البث الفوري
-class StopStreamingChats extends ChatEvent {}
-
-// ✅ تحديث حالة التثبيت
-class TogglePinChat extends ChatEvent {
+// ✅ تثبيت محادثة
+class PinChat extends ChatEvent {
   final String chatId;
-  final bool isPinned;
-  const TogglePinChat({required this.chatId, required this.isPinned});
+  const PinChat({required this.chatId});
   @override
-  List<Object?> get props => [chatId, isPinned];
+  List<Object?> get props => [chatId];
 }
 
-// ✅ تحديث حالة الكتم
-class ToggleMuteChat extends ChatEvent {
+// ✅ إلغاء تثبيت محادثة
+class UnpinChat extends ChatEvent {
   final String chatId;
-  final bool isMuted;
-  const ToggleMuteChat({required this.chatId, required this.isMuted});
+  const UnpinChat({required this.chatId});
   @override
-  List<Object?> get props => [chatId, isMuted];
+  List<Object?> get props => [chatId];
+}
+
+// ✅ كتم محادثة
+class MuteChat extends ChatEvent {
+  final String chatId;
+  const MuteChat({required this.chatId});
+  @override
+  List<Object?> get props => [chatId];
+}
+
+// ✅ إلغاء كتم محادثة
+class UnmuteChat extends ChatEvent {
+  final String chatId;
+  const UnmuteChat({required this.chatId});
+  @override
+  List<Object?> get props => [chatId];
 }
 
 // ✅ أرشفة محادثة
@@ -86,3 +97,9 @@ class UnarchiveChat extends ChatEvent {
   @override
   List<Object?> get props => [chatId];
 }
+
+// ✅ البث الفوري للمحادثات
+class StreamChats extends ChatEvent {}
+
+// ✅ إيقاف البث الفوري
+class StopStreamingChats extends ChatEvent {}

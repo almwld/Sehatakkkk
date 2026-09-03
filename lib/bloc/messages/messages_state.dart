@@ -53,10 +53,10 @@ class MessageDeleted extends MessagesState {
 
 class ReactionAdded extends MessagesState {
   final String messageId;
-  final String reaction;
-  const ReactionAdded({required this.messageId, required this.reaction});
+  final String emoji;
+  const ReactionAdded({required this.messageId, required this.emoji});
   @override
-  List<Object?> get props => [messageId, reaction];
+  List<Object?> get props => [messageId, emoji];
 }
 
 class ReactionRemoved extends MessagesState {

@@ -1,129 +1,91 @@
 // ============================================================
-// 📞 CallService - نظام المكالمات مع LiveKit
+// 📞 CallService - خدمة المكالمات الكاملة
 // ============================================================
 
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/call_model.dart';
-import '../constants/api_config.dart';
-import 'auth_service.dart';
-import 'livekit_service.dart';
 
 class CallService {
   static final CallService _instance = CallService._internal();
   factory CallService() => _instance;
   CallService._internal();
 
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final AuthService _authService = AuthService();
-  final LiveKitService _liveKitService = LiveKitService();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  bool _isIncomingCallScreenOpen = false;
+  bool _isInCall = false;
   String? _currentCallId;
+  Timer? _callTimer;
+  int _callDuration = 0;
 
-  // ============================================================
-  // 🔑 الحصول على Firebase ID Token
-  // ============================================================
+  final StreamController<CallModel> _callController =
+      StreamController<CallModel>.broadcast();
+  Stream<CallModel> get callStream => _callController.stream;
 
-  Future<String> _getIdToken() async {
-    final user = _auth.currentUser;
-    if (user == null) {
-      throw Exception('User not authenticated');
-    }
-    return await user.getIdToken();
-  }
+  bool get isInCall => _isInCall;
+  int get callDuration => _callDuration;
 
   // ============================================================
   // 📞 بدء مكالمة
   // ============================================================
 
-  Future<void> startCall({
+  Future<CallModel> startCall({
     required String receiverId,
-    required String callerName,
-    required bool isVideo,
+    required String receiverName,
     required String chatId,
-    required BuildContext context,
+    required bool isVideo,
   }) async {
-    try {
-      // ✅ التحقق من الصلاحيات
-      final permissions = await _checkPermissions(isVideo);
-      if (!permissions) {
-        throw Exception('Permission denied for call');
-      }
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('يجب تسجيل الدخول');
 
-      final userId = _authService.currentUserId;
-      if (userId == null) throw Exception('User not authenticated');
+    final callId = _firestore.collection('calls').doc().id;
+    final now = DateTime.now();
 
-      // ✅ الحصول على معلومات المستخدم
-      final userDoc = await _firestore.collection('users').doc(userId).get();
-      final userData = userDoc.data();
+    final call = CallModel(
+      id: callId,
+      chatId: chatId,
+      callerId: user.uid,
+      callerName: user.displayName ?? 'مستخدم',
+      receiverId: receiverId,
+      receiverName: receiverName,
+      callType: isVideo ? CallType.video : CallType.audio,
+      status: CallStatus.calling,
+      startedAt: now,
+      participants: [user.uid, receiverId],
+      isVideoCall: isVideo,
+    );
 
-      // ✅ إنشاء المكالمة
-      final callData = {
-        'callerId': userId,
-        'callerName': callerName,
-        'callerPhotoUrl': userData?['photoUrl'],
-        'receiverId': receiverId,
-        'receiverName': userData?['name'] ?? 'مستخدم',
-        'chatId': chatId,
-        'callType': isVideo ? 'video' : 'audio',
-        'status': 'calling',
-        'isAnswered': false,
-        'startedAt': FieldValue.serverTimestamp(),
-        'participants': [userId, receiverId],
-        'liveKitRoomName': chatId,
-        'isVideoCall': isVideo,
-      };
+    await _firestore.collection('calls').doc(callId).set(call.toFirestore());
 
-      // ✅ حفظ في Firestore
-      final callRef = await _firestore.collection('calls').add(callData);
-      final callId = callRef.id;
-      _currentCallId = callId;
+    _currentCallId = callId;
+    _isInCall = true;
+    _callController.add(call);
 
-      // ✅ تحديث معرف المكالمة
-      await callRef.update({'id': callId});
-
-      // ✅ فتح شاشة المكالمة
-      _navigateToCallScreen(context, callId, chatId, isVideo, true);
-
-    } catch (e) {
-      throw Exception('Error starting call: $e');
-    }
+    return call;
   }
 
   // ============================================================
-  // 📥 قبول المكالمة
+  // ✅ قبول مكالمة
   // ============================================================
 
-  Future<void> acceptCall({
-    required String callId,
-    required String chatId,
-    required bool isVideo,
-    required BuildContext context,
-  }) async {
+  Future<void> acceptCall(String callId) async {
     try {
-      // ✅ تحديث حالة المكالمة
       await _firestore.collection('calls').doc(callId).update({
         'status': 'connected',
-        'isAnswered': true,
         'connectedAt': FieldValue.serverTimestamp(),
+        'isAnswered': true,
       });
-
-      // ✅ فتح شاشة المكالمة
-      _navigateToCallScreen(context, callId, chatId, isVideo, false);
-
+      _startTimer();
     } catch (e) {
-      throw Exception('Error accepting call: $e');
+      print('❌ Error accepting call: $e');
     }
   }
 
   // ============================================================
-  // ❌ رفض المكالمة
+  // ❌ رفض مكالمة
   // ============================================================
 
   Future<void> rejectCall(String callId) async {
@@ -131,76 +93,38 @@ class CallService {
       await _firestore.collection('calls').doc(callId).update({
         'status': 'rejected',
         'endedAt': FieldValue.serverTimestamp(),
-        'isAnswered': false,
       });
-      _currentCallId = null;
+      _endCallInternal();
     } catch (e) {
-      print('⚠️ Error rejecting call: $e');
+      print('❌ Error rejecting call: $e');
     }
   }
 
   // ============================================================
-  // ⏹️ إنهاء المكالمة
+  // ⏹️ إنهاء مكالمة
   // ============================================================
 
   Future<void> endCall(String callId) async {
     try {
-      final callDoc = await _firestore.collection('calls').doc(callId).get();
-      if (!callDoc.exists) return;
-
-      final callData = callDoc.data()!;
-      final startedAt = callData['startedAt'] as Timestamp?;
-      int duration = 0;
-
-      if (startedAt != null) {
-        final now = DateTime.now();
-        duration = now.difference(startedAt.toDate()).inSeconds;
-      }
-
+      final duration = _callDuration;
       await _firestore.collection('calls').doc(callId).update({
         'status': 'ended',
         'endedAt': FieldValue.serverTimestamp(),
         'durationSeconds': duration,
       });
-
-      _currentCallId = null;
+      _endCallInternal();
     } catch (e) {
-      print('⚠️ Error ending call: $e');
+      print('❌ Error ending call: $e');
     }
   }
 
   // ============================================================
-  // 📋 الحصول على سجل المكالمات
+  // 📋 جلب سجل المكالمات
   // ============================================================
 
-  Future<List<CallModel>> getCallHistory() async {
-    try {
-      final userId = _authService.currentUserId;
-      if (userId == null) return [];
-
-      final snapshot = await _firestore
-          .collection('calls')
-          .where('participants', arrayContains: userId)
-          .orderBy('startedAt', descending: true)
-          .get();
-
-      return snapshot.docs.map((doc) {
-        return CallModel.fromFirestore(doc.id, doc.data());
-      }).toList();
-    } catch (e) {
-      throw Exception('Error getting call history: $e');
-    }
-  }
-
-  // ============================================================
-  // 📡 الاستماع الفوري للمكالمات
-  // ============================================================
-
-  Stream<List<CallModel>> streamCalls() {
-    final userId = _authService.currentUserId;
-    if (userId == null) {
-      return Stream.value([]);
-    }
+  Stream<List<CallModel>> getCallHistory() {
+    final userId = _auth.currentUser?.uid;
+    if (userId == null) return Stream.value([]);
 
     return _firestore
         .collection('calls')
@@ -232,53 +156,32 @@ class CallService {
   }
 
   // ============================================================
-  // 🚀 فتح شاشة المكالمة
+  // 🛠️ دوال مساعدة
   // ============================================================
 
-  void _navigateToCallScreen(
-    BuildContext context,
-    String callId,
-    String chatId,
-    bool isVideo,
-    bool isOutgoing,
-  ) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CallScreen(
-          callId: callId,
-          chatId: chatId,
-          isVideo: isVideo,
-          isOutgoing: isOutgoing,
-        ),
-      ),
-    );
+  void _startTimer() {
+    _callTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      _callDuration++;
+    });
   }
 
-  // ============================================================
-  // 🔍 التحقق من الصلاحيات
-  // ============================================================
-
-  Future<bool> _checkPermissions(bool isVideo) async {
-    final micStatus = await Permission.microphone.request();
-    if (micStatus != PermissionStatus.granted) {
-      return false;
-    }
-
-    if (isVideo) {
-      final cameraStatus = await Permission.camera.request();
-      if (cameraStatus != PermissionStatus.granted) {
-        return false;
-      }
-    }
-
-    return true;
+  void _endCallInternal() {
+    _callTimer?.cancel();
+    _callTimer = null;
+    _callDuration = 0;
+    _isInCall = false;
+    _currentCallId = null;
   }
 
-  // ============================================================
-  // 🧹 تنظيف
-  // ============================================================
-
-  String? get currentCallId => _currentCallId;
-  bool get isInCall => _currentCallId != null;
+  void dispose() {
+    _callTimer?.cancel();
+    _callController.close();
+  }
 }
+
+// ============================================================
+// 📊 نماذج المكالمات
+// ============================================================
+
+enum CallType { audio, video }
+enum CallStatus { calling, ringing, connected, ended, missed, rejected }
