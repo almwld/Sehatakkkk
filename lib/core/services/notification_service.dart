@@ -75,3 +75,13 @@ class NotificationService {
     _isInitialized = false;
   }
 }
+
+  // ✅ إضافة method showNotification
+  void showNotification({
+    required String title,
+    required String body,
+    String? payload,
+  }) {
+    print('📩 Notification: $title - $body');
+    // يمكن إضافة منطق إظهار الإشعار المحلي هنا
+  }

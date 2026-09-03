@@ -21,95 +21,50 @@ import 'core/services/preload_service.dart';
 import 'core/routes/payment_routes.dart';
 import 'presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'presentation/bloc/theme_bloc/theme_bloc.dart';
-import 'presentation/bloc/chat_bloc/chat_bloc.dart';
+import 'bloc/chat/chat_bloc.dart';
 import 'presentation/bloc/doctor_bloc/doctor_bloc.dart';
 import 'presentation/screens/splash_screen.dart';
-import 'presentation/screens/wallet/wallet_screen.dart';
 
 // ✅ معالج الخلفية للإشعارات
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print('📩 Handling background message: ${message.messageId}');
-  print('📩 Data: ${message.data}');
 }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ✅ تحديد اتجاه الشاشة
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
   // ✅ تهيئة Firebase
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    print('✅ Firebase initialized successfully');
-  } catch (e) {
-    print('❌ Firebase initialization error: $e');
-  }
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   // ✅ تهيئة FCM
-  try {
-    final fcm = FirebaseMessaging.instance;
-    await fcm.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
-
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-    final token = await fcm.getToken();
-    print('✅ FCM Token: $token');
-  } catch (e) {
-    print('❌ FCM initialization error: $e');
-  }
+  final fcm = FirebaseMessaging.instance;
+  await fcm.requestPermission(
+    alert: true,
+    badge: true,
+    sound: true,
+  );
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   // ✅ تهيئة الكاش
   await CacheService.init();
 
-  // ✅ تهيئة الإشعارات
-  final notificationService = NotificationService();
-  await notificationService.initialize();
-
-  // ✅ تحميل البيانات الأساسية مسبقاً
-  await PreloadService().preloadEssentialData();
-
   runApp(
     MultiProvider(
       providers: [
-        // ✅ UserProvider - باستخدام loadUserSafely
-        ChangeNotifierProvider(
-          create: (_) => UserProvider()..loadUserSafely(),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => FontSizeProvider(),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => BotProvider(),
-        ),
-        // ✅ WalletProvider - مع تحقق آمن
-        ChangeNotifierProvider(
-          create: (_) {
-            try {
-              final user = FirebaseAuth.instance.currentUser;
-              return WalletProvider(uid: user?.uid ?? '');
-            } catch (e) {
-              print('❌ WalletProvider error: $e');
-              return WalletProvider(uid: '');
-            }
-          },
-        ),
-        ChangeNotifierProvider(
-          create: (_) => CartProvider(),
-        ),
-        BlocProvider(
-          create: (_) => AuthBloc()..add(CheckAuthStatus()),
-        ),
+        ChangeNotifierProvider(create: (_) => UserProvider()..loadUserSafely()),
+        ChangeNotifierProvider(create: (_) => FontSizeProvider()),
+        ChangeNotifierProvider(create: (_) => BotProvider()),
+        ChangeNotifierProvider(create: (_) => WalletProvider(uid: '')),
+        ChangeNotifierProvider(create: (_) => CartProvider()),
+        BlocProvider(create: (_) => AuthBloc()..add(CheckAuthStatus())),
         BlocProvider(create: (_) => ThemeBloc()),
         BlocProvider(create: (_) => ChatBloc()),
         BlocProvider(create: (_) => DoctorBloc()),
@@ -128,18 +83,12 @@ class SehatakApp extends StatefulWidget {
 
 class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
   final CallService _callService = CallService();
-  final NotificationService _notificationService = NotificationService();
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    // ✅ الاستماع للإشعارات
-    FirebaseMessaging.onMessage.listen(_handleMessage);
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpened);
-
-    // ✅ الاستماع لإشعارات المكالمات
     FirebaseMessaging.onMessage.listen((message) {
       if (message.data['type'] == 'incoming_call') {
         _callService.handleIncomingCall(context, message);
@@ -151,45 +100,6 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
-  }
-
-  // ✅ معالجة العودة من الخلفية
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.resumed) {
-      print('🔄 App resumed from background');
-      if (mounted) {
-        // ✅ إعادة تحميل بيانات المستخدم
-        final userProvider = Provider.of<UserProvider>(context, listen: false);
-        userProvider.loadUserSafely();
-
-        // ✅ تحديث حالة المستخدم في Firestore
-        final user = FirebaseAuth.instance.currentUser;
-        if (user != null) {
-          FirebaseFirestore.instance.collection('users').doc(user.uid).update({
-            'isOnline': true,
-            'lastSeen': FieldValue.serverTimestamp(),
-          });
-        }
-      }
-    }
-  }
-
-  void _handleMessage(RemoteMessage message) {
-    print('📩 New message: ${message.notification?.title}');
-    _notificationService.showNotification(
-      title: message.notification?.title ?? 'إشعار جديد',
-      body: message.notification?.body ?? '',
-      payload: message.data['chatId'] ?? '',
-    );
-  }
-
-  void _handleMessageOpened(RemoteMessage message) {
-    print('📱 Message opened: ${message.data}');
-    if (message.data['type'] == 'incoming_call') {
-      _callService.handleIncomingCall(context, message);
-    }
   }
 
   @override
@@ -227,7 +137,6 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
               },
               home: const SplashScreen(),
               onGenerateRoute: PaymentRoutes.onGenerateRoute,
-              navigatorKey: navigatorKey,
             );
           },
         );
@@ -235,5 +144,3 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
     );
   }
 }
-
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();

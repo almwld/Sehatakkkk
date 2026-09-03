@@ -184,3 +184,12 @@ class CallService {
 // 📊 نماذج المكالمات
 // ============================================================
 
+
+  // ✅ إضافة method handleIncomingCall
+  void handleIncomingCall(BuildContext context, RemoteMessage message) {
+    print('📞 Incoming call from: ${message.data['callerName']}');
+    print('📞 Call data: ${message.data}');
+    
+    // ✅ عرض شاشة المكالمة الواردة
+    // يمكن إضافة منطق فتح الشاشة هنا
+  }

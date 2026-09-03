@@ -1,83 +1,41 @@
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 
 class CacheService {
-  static final CacheService _instance = CacheService._internal();
-  factory CacheService() => _instance;
-  CacheService._internal();
+  static late SharedPreferences _prefs;
 
-  late SharedPreferences _prefs;
-  bool _initialized = false;
-
-  Future<void> init() async {
-    if (!_initialized) {
-      _prefs = await SharedPreferences.getInstance();
-      _initialized = true;
-      print('✅ CacheService initialized');
-    }
+  static Future<void> init() async {
+    _prefs = await SharedPreferences.getInstance();
   }
 
-  Future<void> saveString(String key, String value) async {
+  static Future<void> setString(String key, String value) async {
     await _prefs.setString(key, value);
   }
 
-  Future<String?> getString(String key) async {
+  static String? getString(String key) {
     return _prefs.getString(key);
   }
 
-  Future<void> saveBool(String key, bool value) async {
+  static Future<void> setBool(String key, bool value) async {
     await _prefs.setBool(key, value);
   }
 
-  Future<bool?> getBool(String key) async {
+  static bool? getBool(String key) {
     return _prefs.getBool(key);
   }
 
-  Future<void> saveInt(String key, int value) async {
+  static Future<void> setInt(String key, int value) async {
     await _prefs.setInt(key, value);
   }
 
-  Future<int?> getInt(String key) async {
+  static int? getInt(String key) {
     return _prefs.getInt(key);
   }
 
-  Future<void> saveJson(String key, Map<String, dynamic> value) async {
-    await _prefs.setString(key, jsonEncode(value));
-  }
-
-  Future<Map<String, dynamic>?> getJson(String key) async {
-    final data = _prefs.getString(key);
-    if (data == null) return null;
-    try {
-      return jsonDecode(data) as Map<String, dynamic>;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  Future<void> saveList(String key, List<dynamic> value) async {
-    await _prefs.setString(key, jsonEncode(value));
-  }
-
-  Future<List<dynamic>?> getList(String key) async {
-    final data = _prefs.getString(key);
-    if (data == null) return null;
-    try {
-      return jsonDecode(data) as List<dynamic>;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  Future<void> clearAll() async {
-    await _prefs.clear();
-  }
-
-  Future<void> remove(String key) async {
+  static Future<void> remove(String key) async {
     await _prefs.remove(key);
   }
 
-  bool hasCachedData(String key) {
-    return _prefs.containsKey(key);
+  static Future<void> clear() async {
+    await _prefs.clear();
   }
 }
