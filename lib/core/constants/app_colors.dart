@@ -15,9 +15,10 @@ class AppColors {
   static const Color amber = Color(0xFFFFC107);
 
   // ✅ ألوان الخلفية
-  static const Color backgroundLight = Color(0xFFF5F7FA);
-  static const Color backgroundDark = Color(0xFF1A1A2E);
+  static const Color lightBackground = Color(0xFFF5F7FA);
+  static const Color darkBackground = Color(0xFF1A1A2E);
   static const Color surfaceContainerLow = Color(0xFFF0F2F5);
+  static const Color surfaceContainerHigh = Color(0xFFE8ECF0);
 
   // ✅ ألوان البطاقات
   static const Color cardLight = Color(0xFFFFFFFF);

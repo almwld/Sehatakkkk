@@ -203,7 +203,7 @@ class AppSearchDelegate extends SearchDelegate<String?> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => DoctorDetailsScreen(doctorId: id),
+            builder: (_) => DoctorDetailsScreen(doctor: id),
           ),
         );
         break;

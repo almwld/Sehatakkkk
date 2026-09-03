@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/models/doctor_model.dart';
 import '../../../core/services/chat_service.dart';
-import '../../../bloc/chat/chat_bloc.dart';
+import '../../../presentation/bloc/doctor_bloc/doctor_bloc.dart';
 import '../chat/chat_detail_screen.dart';
 
 class DoctorsListScreen extends StatefulWidget {
@@ -15,6 +15,12 @@ class DoctorsListScreen extends StatefulWidget {
 
 class _DoctorsListScreenState extends State<DoctorsListScreen> {
   final ChatService _chatService = ChatService();
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<DoctorBloc>().add(LoadDoctors());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,6 +75,14 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
           icon: const Icon(Icons.chat, color: Colors.teal),
           onPressed: () => _startChat(doctor),
         ),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => DoctorDetailsScreen(doctor: doctor),
+            ),
+          );
+        },
       ),
     );
   }

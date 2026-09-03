@@ -4,62 +4,84 @@ import '../../../core/models/doctor_model.dart';
 import '../../../core/services/chat_service.dart';
 import '../chat/chat_detail_screen.dart';
 
-class DoctorDetailsScreen extends StatefulWidget {
+class DoctorDetailsScreen extends StatelessWidget {
   final DoctorModel doctor;
-  const DoctorDetailsScreen({super.key, required this.doctor});
-
-  @override
-  State<DoctorDetailsScreen> createState() => _DoctorDetailsScreenState();
-}
-
-class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
-  final ChatService _chatService = ChatService();
+  
+  const DoctorDetailsScreen({
+    super.key,
+    required this.doctor,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final doctor = widget.doctor;
-
     return Scaffold(
       appBar: AppBar(
         title: Text(doctor.name),
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CircleAvatar(
-              radius: 50,
-              backgroundColor: Colors.teal.shade100,
-              child: Text(
-                doctor.name.isNotEmpty ? doctor.name[0] : 'ط',
-                style: const TextStyle(fontSize: 30, color: Colors.teal),
+            Center(
+              child: CircleAvatar(
+                radius: 60,
+                backgroundColor: Colors.teal.shade100,
+                child: Text(
+                  doctor.name.isNotEmpty ? doctor.name[0] : 'ط',
+                  style: const TextStyle(fontSize: 40, color: Colors.teal),
+                ),
               ),
             ),
             const SizedBox(height: 16),
-            Text(
-              doctor.name,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            Center(
+              child: Text(
+                doctor.name,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
             const SizedBox(height: 8),
-            Text(
-              doctor.specialty,
-              style: const TextStyle(fontSize: 16, color: Colors.grey),
+            Center(
+              child: Text(
+                doctor.specialty,
+                style: const TextStyle(fontSize: 16, color: Colors.grey),
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             if (doctor.hospital != null)
-              Text('🏥 ${doctor.hospital}'),
+              _buildInfoRow('🏥', doctor.hospital!),
             if (doctor.experienceYears != null)
-              Text('📅 ${doctor.experienceYears} سنوات خبرة'),
+              _buildInfoRow('📅', '${doctor.experienceYears} سنوات خبرة'),
             if (doctor.rating != null)
-              Text('⭐ ${doctor.rating} (${doctor.reviewsCount ?? 0} تقييم)'),
+              _buildInfoRow('⭐', '${doctor.rating} (${doctor.reviewsCount ?? 0} تقييم)'),
+            if (doctor.about != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'نبذة',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(doctor.about!),
+                  ],
+                ),
+              ),
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: _startChat,
+                onPressed: () => _startChat(context),
                 icon: const Icon(Icons.chat),
                 label: const Text('بدء محادثة'),
                 style: ElevatedButton.styleFrom(
@@ -75,7 +97,20 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
     );
   }
 
-  void _startChat() async {
+  Widget _buildInfoRow(String icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Text(icon),
+          const SizedBox(width: 8),
+          Text(text),
+        ],
+      ),
+    );
+  }
+
+  void _startChat(BuildContext context) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
@@ -85,9 +120,10 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
         return;
       }
 
-      final chatId = await _chatService.createChat(
-        doctorId: widget.doctor.id,
-        doctorName: widget.doctor.name,
+      final chatService = ChatService();
+      final chatId = await chatService.createChat(
+        doctorId: doctor.id,
+        doctorName: doctor.name,
         patientName: user.displayName ?? 'مريض',
         patientId: user.uid,
       );
