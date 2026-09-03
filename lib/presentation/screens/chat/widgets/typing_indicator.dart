@@ -1,14 +1,17 @@
 // ============================================================
-// 🎨 TypingIndicator - مؤشر الكتابة
+// ✏️ TypingIndicator - مؤشر الكتابة
 // ============================================================
 
 import 'package:flutter/material.dart';
-import '../../../core/constants/app_colors.dart';
+import 'package:sehatak/core/constants/app_colors.dart';
 
 class TypingIndicator extends StatefulWidget {
-  final String? userName;
+  final String name;
 
-  const TypingIndicator({super.key, this.userName});
+  const TypingIndicator({
+    super.key,
+    required this.name,
+  });
 
   @override
   State<TypingIndicator> createState() => _TypingIndicatorState();
@@ -59,21 +62,34 @@ class _TypingIndicatorState extends State<TypingIndicator>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
-          if (widget.userName != null) ...[
-            Text(
-              '${widget.userName} يكتب...',
+          CircleAvatar(
+            radius: 10,
+            backgroundColor: AppColors.primary.withOpacity(0.1),
+            child: Text(
+              widget.name.isNotEmpty ? widget.name[0] : 'م',
               style: const TextStyle(
-                fontSize: 12,
-                color: Colors.grey,
-                fontStyle: FontStyle.italic,
+                color: AppColors.primary,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(width: 8),
-          ],
+          ),
+          const SizedBox(width: 8),
+          Text(
+            '${widget.name} يكتب...',
+            style: TextStyle(
+              fontSize: 12,
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+          const SizedBox(width: 8),
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [

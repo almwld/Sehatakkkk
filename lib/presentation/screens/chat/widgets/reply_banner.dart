@@ -1,9 +1,9 @@
 // ============================================================
-// 🎨 ReplyBanner - شريط الرد
+// ↩️ ReplyBanner - شريط الرد
 // ============================================================
 
 import 'package:flutter/material.dart';
-import '../../../core/constants/app_colors.dart';
+import 'package:sehatak/core/constants/app_colors.dart';
 
 class ReplyBanner extends StatelessWidget {
   final String message;
@@ -19,6 +19,8 @@ class ReplyBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -48,9 +50,9 @@ class ReplyBanner extends StatelessWidget {
                 ),
                 Text(
                   message,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: Colors.black87,
+                    color: isDark ? Colors.white : Colors.black87,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

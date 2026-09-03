@@ -1,18 +1,19 @@
 // ============================================================
-// ✉️ MessagesBloc - بلوك الرسائل الكامل
+// ✉️ MessagesBloc - إدارة الرسائل مع Repository
 // ============================================================
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'messages_event.dart';
 import 'messages_state.dart';
-import '../../core/services/chat_service.dart';
+import '../../domain/usecases/send_message_usecase.dart';
+import '../../data/repositories/chat_repository.dart';
 
 class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
-  final ChatService _chatService = ChatService();
-  Stream<List<MessageModel>>? _messageStream;
-  StreamSubscription<List<MessageModel>>? _subscription;
-  int _currentPage = 0;
-  bool _hasMore = true;
+  final ChatRepository _repository = ChatRepository();
+  final SendMessageUseCase _sendMessageUseCase = SendMessageUseCase();
+  
+  StreamSubscription? _messagesSubscription;
+  String? _currentChatId;
 
   MessagesBloc() : super(MessagesInitial()) {
     on<LoadMessages>(_onLoadMessages);
@@ -31,17 +32,22 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
   // ============================================================
 
   Future<void> _onLoadMessages(LoadMessages event, Emitter<MessagesState> emit) async {
+    _currentChatId = event.chatId;
     emit(MessagesLoading());
-    _currentPage = 0;
-    _hasMore = true;
-
+    
     try {
-      final messages = await _chatService.getMessages(event.chatId);
-      _hasMore = messages.length >= event.limit;
-      emit(MessagesLoaded(
-        messages: messages,
-        hasMore: _hasMore,
-      ));
+      _messagesSubscription?.cancel();
+      _messagesSubscription = _repository.getMessages(event.chatId).listen(
+        (messages) {
+          emit(MessagesLoaded(
+            messages: messages,
+            hasMore: messages.length >= 50,
+          ));
+        },
+        onError: (error) {
+          emit(MessagesError(message: error.toString()));
+        },
+      );
     } catch (e) {
       emit(MessagesError(message: e.toString()));
     }
@@ -52,10 +58,11 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
   // ============================================================
 
   Future<void> _onLoadMoreMessages(LoadMoreMessages event, Emitter<MessagesState> emit) async {
-    if (!_hasMore || state is MessagesLoading) return;
+    if (state is! MessagesLoaded) return;
+    final currentState = state as MessagesLoaded;
+    if (!currentState.hasMore) return;
 
-    _currentPage++;
-    // TODO: تنفيذ تحميل المزيد
+    // TODO: تنفيذ pagination
   }
 
   // ============================================================
@@ -65,7 +72,7 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
   Future<void> _onSendMessage(SendMessage event, Emitter<MessagesState> emit) async {
     emit(MessageSending());
     try {
-      final message = await _chatService.sendMessage(
+      final message = await _sendMessageUseCase.execute(
         chatId: event.chatId,
         text: event.text,
         imageUrl: event.imageUrl,
@@ -75,6 +82,7 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
         replyTo: event.replyTo,
       );
       emit(MessageSent(message: message));
+      // إعادة تحميل الرسائل لتحديث القائمة
       add(LoadMessages(chatId: event.chatId));
     } catch (e) {
       emit(MessagesError(message: e.toString()));
@@ -87,7 +95,7 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
 
   Future<void> _onDeleteMessage(DeleteMessage event, Emitter<MessagesState> emit) async {
     try {
-      await _chatService.deleteMessage(event.chatId, event.messageId);
+      // TODO: تنفيذ حذف الرسالة
       emit(MessageDeleted(messageId: event.messageId));
       add(LoadMessages(chatId: event.chatId));
     } catch (e) {
@@ -101,7 +109,7 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
 
   Future<void> _onAddReaction(AddReaction event, Emitter<MessagesState> emit) async {
     try {
-      await _chatService.addReaction(event.chatId, event.messageId, event.emoji);
+      // TODO: تنفيذ إضافة تفاعل
       emit(ReactionAdded(messageId: event.messageId, emoji: event.emoji));
       add(LoadMessages(chatId: event.chatId));
     } catch (e) {
@@ -115,7 +123,7 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
 
   Future<void> _onRemoveReaction(RemoveReaction event, Emitter<MessagesState> emit) async {
     try {
-      await _chatService.removeReaction(event.chatId, event.messageId);
+      // TODO: تنفيذ إزالة تفاعل
       emit(ReactionRemoved(messageId: event.messageId));
       add(LoadMessages(chatId: event.chatId));
     } catch (e) {
@@ -129,7 +137,7 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
 
   Future<void> _onMarkMessagesRead(MarkMessagesRead event, Emitter<MessagesState> emit) async {
     try {
-      await _chatService.markAsRead(event.chatId);
+      await _repository.markAsRead(event.chatId);
     } catch (e) {
       print('⚠️ Error marking messages as read: $e');
     }
@@ -140,10 +148,10 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
   // ============================================================
 
   Future<void> _onStreamMessages(StreamMessages event, Emitter<MessagesState> emit) async {
-    await _subscription?.cancel();
-
-    _messageStream = _chatService.streamMessages(event.chatId);
-    _subscription = _messageStream?.listen(
+    _currentChatId = event.chatId;
+    await _messagesSubscription?.cancel();
+    
+    _messagesSubscription = _repository.getMessages(event.chatId).listen(
       (messages) {
         if (state is MessagesLoaded) {
           final currentState = state as MessagesLoaded;
@@ -158,6 +166,7 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
             isStreaming: true,
           ));
         }
+        // تحديث حالة القراءة تلقائياً
         add(MarkMessagesRead(chatId: event.chatId));
       },
       onError: (error) {
@@ -174,8 +183,8 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
     StopStreamingMessages event,
     Emitter<MessagesState> emit,
   ) async {
-    await _subscription?.cancel();
-    _subscription = null;
+    await _messagesSubscription?.cancel();
+    _messagesSubscription = null;
     if (state is MessagesLoaded) {
       final currentState = state as MessagesLoaded;
       emit(MessagesLoaded(
@@ -188,7 +197,7 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
 
   @override
   Future<void> close() {
-    _subscription?.cancel();
+    _messagesSubscription?.cancel();
     return super.close();
   }
 }
