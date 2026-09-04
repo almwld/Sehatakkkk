@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/call_model.dart';
 import '../../../core/services/call_service.dart';
-import 'call_screen.dart';
+import '../call/call_screen.dart';
 
 class IncomingCallScreen extends StatefulWidget {
   final String callId;

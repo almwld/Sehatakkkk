@@ -1,3 +1,4 @@
+import 'package:sehatak/core/models/doctor_model.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +20,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen>
   late TabController _tabController;
   final SearchService _searchService = SearchService();
   final TextEditingController _searchController = TextEditingController();
-  
+
   bool _isLoading = false;
   Map<String, List<dynamic>> _results = {};
   List<String> _suggestions = [];
@@ -37,12 +38,12 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    
+
     if (widget.initialQuery != null) {
       _searchController.text = widget.initialQuery!;
       _performSearch();
     }
-    
+
     _loadSearchHistory();
   }
 
@@ -67,7 +68,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen>
       }
 
       final results = await _searchService.searchAll(query);
-      
+
       setState(() {
         _results = results;
         _isLoading = false;
@@ -490,7 +491,13 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen>
             context,
             MaterialPageRoute(
               builder: (_) => DoctorDetailsScreen(
-                doctorId: item['id'] ?? '1',
+                doctor: DoctorModel(
+                  id: item['id']?.toString() ?? '1',
+                  name: item['name']?.toString() ?? 'طبيب',
+                  specialty: item['specialty']?.toString() ??
+                      item['category']?.toString() ??
+                      'طبيب عام',
+                ),
               ),
             ),
           );

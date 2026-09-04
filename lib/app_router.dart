@@ -1,3 +1,4 @@
+import 'package:sehatak/core/models/doctor_model.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
@@ -59,7 +60,13 @@ class AppRouter {
         path: doctorDetails,
         builder: (context, state) {
           final id = state.pathParameters['id'] ?? '';
-          return DoctorDetailsScreen(doctorId: id);
+          return DoctorDetailsScreen(
+              doctor: DoctorModel(
+                id: id,
+                name: 'طبيب',
+                specialty: 'طبيب عام',
+              ),
+            );
         },
       ),
       GoRoute(

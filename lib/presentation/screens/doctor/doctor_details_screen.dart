@@ -1,16 +1,12 @@
 import '../../../core/models/doctor_model.dart';
-import '../../../core/models/doctor_model.dart';
-import '../../../core/models/doctor_model.dart';
-import '../../../core/models/doctor_model.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../../core/models/doctor_model.dart';
 import '../../../core/services/chat_service.dart';
 import '../chat/chat_detail_screen.dart';
 
 class DoctorDetailsScreen extends StatelessWidget {
   final DoctorModel doctor;
-  
+
   const DoctorDetailsScreen({
     super.key,
     required this.doctor,

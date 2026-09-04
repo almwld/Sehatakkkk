@@ -1,3 +1,4 @@
+import 'package:sehatak/core/models/doctor_model.dart';
 import '../../../bloc/doctor_bloc/doctor_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -333,13 +334,13 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   Future<void> _fetchDataFromFirebase() async {
     try {
       print('🔄 جلب البيانات من Firebase...');
-      
+
       // ✅ 1. جلب الأطباء الجدد
       final doctorsSnapshot = await FirebaseFirestore.instance
           .collection('doctors')
           .limit(10)
           .get();
-      
+
       if (doctorsSnapshot.docs.isNotEmpty && mounted) {
         final List<Map<String, dynamic>> firebaseDoctors = [];
         for (var doc in doctorsSnapshot.docs) {
@@ -353,19 +354,19 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             'image': data['image'] ?? ImageKit.doctor1,
           });
         }
-        
+
         setState(() {
           _topDoctors = [..._defaultTopDoctors, ...firebaseDoctors];
         });
         print('✅ تم جلب ${firebaseDoctors.length} طبيب جديد');
       }
-      
+
       // ✅ 2. جلب المنتجات الجديدة
       final productsSnapshot = await FirebaseFirestore.instance
           .collection('products')
           .limit(10)
           .get();
-      
+
       if (productsSnapshot.docs.isNotEmpty && mounted) {
         final List<Map<String, dynamic>> firebaseProducts = [];
         for (var doc in productsSnapshot.docs) {
@@ -379,19 +380,19 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             'rating': data['rating'] ?? 4.0,
           });
         }
-        
+
         setState(() {
           _products = [..._defaultProducts, ...firebaseProducts];
         });
         print('✅ تم جلب ${firebaseProducts.length} منتج جديد');
       }
-      
+
       // ✅ 3. جلب المستشفيات الجديدة
       final hospitalsSnapshot = await FirebaseFirestore.instance
           .collection('hospitals')
           .limit(6)
           .get();
-      
+
       if (hospitalsSnapshot.docs.isNotEmpty && mounted) {
         final List<Map<String, dynamic>> firebaseHospitals = [];
         for (var doc in hospitalsSnapshot.docs) {
@@ -405,19 +406,19 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             'open': data['open'] ?? true,
           });
         }
-        
+
         setState(() {
           _featuredHospitals = [..._defaultFeaturedHospitals, ...firebaseHospitals];
         });
         print('✅ تم جلب ${firebaseHospitals.length} مستشفى جديد');
       }
-      
+
       // ✅ 4. جلب المختبرات الجديدة
       final labsSnapshot = await FirebaseFirestore.instance
           .collection('labs')
           .limit(6)
           .get();
-      
+
       if (labsSnapshot.docs.isNotEmpty && mounted) {
         final List<Map<String, dynamic>> firebaseLabs = [];
         for (var doc in labsSnapshot.docs) {
@@ -431,19 +432,19 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             'open': data['open'] ?? true,
           });
         }
-        
+
         setState(() {
           _featuredLabs = [..._defaultFeaturedLabs, ...firebaseLabs];
         });
         print('✅ تم جلب ${firebaseLabs.length} مختبر جديد');
       }
-      
+
       // ✅ 5. جلب الصيدليات الجديدة
       final pharmaciesSnapshot = await FirebaseFirestore.instance
           .collection('pharmacies')
           .limit(6)
           .get();
-      
+
       if (pharmaciesSnapshot.docs.isNotEmpty && mounted) {
         final List<Map<String, dynamic>> firebasePharmacies = [];
         for (var doc in pharmaciesSnapshot.docs) {
@@ -457,20 +458,20 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             'open': data['open'] ?? true,
           });
         }
-        
+
         setState(() {
           _featuredPharmacies = [..._defaultFeaturedPharmacies, ...firebasePharmacies];
         });
         print('✅ تم جلب ${firebasePharmacies.length} صيدلية جديدة');
       }
-      
+
       // ✅ 6. جلب المنشورات الجديدة
       final postsSnapshot = await FirebaseFirestore.instance
           .collection('community_posts')
           .orderBy('timestamp', descending: true)
           .limit(10)
           .get();
-      
+
       if (postsSnapshot.docs.isNotEmpty && mounted) {
         final List<Map<String, dynamic>> firebasePosts = [];
         for (var doc in postsSnapshot.docs) {
@@ -492,15 +493,15 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             'reported': false,
           });
         }
-        
+
         setState(() {
           _communityPosts = [..._defaultCommunityPosts, ...firebasePosts];
         });
         print('✅ تم جلب ${firebasePosts.length} منشور جديد');
       }
-      
+
       print('✅ تم تحديث جميع البيانات من Firebase');
-      
+
     } catch (e) {
       print('⚠️ Error fetching data from Firebase: $e');
     }
@@ -690,6 +691,22 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   // ============================================================
   // 🏗️ بناء الواجهة الرئيسية
   // ============================================================
+  DoctorModel _doctorModelFromMap(Map<String, dynamic> data) {
+    return DoctorModel(
+      id: data['id']?.toString() ?? '',
+      name: data['name']?.toString() ?? '',
+      specialty: data['specialty']?.toString() ?? '',
+      photoUrl: data['image']?.toString() ?? data['photoUrl']?.toString(),
+      rating: (data['rating'] as num?)?.toDouble(),
+      reviewsCount: (data['reviews'] as num?)?.toInt() ??
+          (data['reviewsCount'] as num?)?.toInt(),
+      isAvailable: data['isAvailable'] as bool? ?? false,
+      isOnline: data['isOnline'] as bool? ?? false,
+      isVerified: data['isVerified'] as bool? ?? false,
+      isFeatured: data['isFeatured'] as bool? ?? false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -1076,7 +1093,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       itemBuilder: (context, index) {
         final doctor = _topDoctors[index];
         return GestureDetector(
-          onTap: () => _goTo(context, DoctorDetailsScreen(doctor: doctor)),
+          onTap: () => _goTo(context, DoctorDetailsScreen(doctor: _doctorModelFromMap(doctor))),
           child: Container(
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1A2540) : Colors.white,
@@ -1126,7 +1143,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () => _goTo(context, DoctorDetailsScreen(doctor: doctor)),
+                          onPressed: () => _goTo(context, DoctorDetailsScreen(doctor: _doctorModelFromMap(doctor))),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,

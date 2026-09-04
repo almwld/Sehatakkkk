@@ -155,8 +155,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   subtitle: 'تفعيل الوضع المظلم للتطبيق',
                   value: isDark,
                   onChanged: (value) {
-                    context.read<ThemeBloc>().add(
-                      value ? SetDarkTheme() : SetLightTheme(),
+                    context.read<ThemeBloc>().setThemeMode(
+                      value ? ThemeMode.dark : ThemeMode.light,
                     );
                     setState(() {
                       _isDarkMode = value;

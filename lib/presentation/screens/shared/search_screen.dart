@@ -1,3 +1,4 @@
+import 'package:sehatak/core/models/doctor_model.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -412,7 +413,11 @@ class _SearchScreenState extends State<SearchScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (_) => DoctorDetailsScreen(
-                    doctorId: result['id'],
+                    doctor: DoctorModel(
+                      id: result['id']?.toString() ?? '',
+                      name: result['name']?.toString() ?? 'طبيب',
+                      specialty: result['specialty']?.toString() ?? 'طبيب عام',
+                    ),
                   ),
                 ),
               );

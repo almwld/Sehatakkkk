@@ -1,3 +1,4 @@
+import 'package:sehatak/core/models/doctor_model.dart';
 import '../../bloc/doctor_bloc/doctor_bloc.dart';
 import 'package:flutter/material.dart';
 import '../doctor/doctor_details_screen.dart';
