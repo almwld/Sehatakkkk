@@ -1,3 +1,4 @@
+import '../../core/models/doctor_model.dart';
 import 'package:flutter/material.dart';
 import '../../core/models/doctor_model.dart';
 import '../doctor/doctor_details_screen.dart';

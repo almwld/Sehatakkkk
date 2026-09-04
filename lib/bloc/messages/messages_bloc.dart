@@ -99,7 +99,7 @@ class MessagesInitial extends MessagesState {}
 class MessagesLoading extends MessagesState {}
 
 class MessagesLoaded extends MessagesState {
-  final List<MessageEntity> messages;
+  final List<MessageModel> messages;
   const MessagesLoaded({required this.messages});
   @override
   List<Object?> get props => [messages];
@@ -114,7 +114,7 @@ class MessagesError extends MessagesState {
 
 class MessageSending extends MessagesState {}
 class MessageSent extends MessagesState {
-  final MessageEntity message;
+  final MessageModel message;
   const MessageSent({required this.message});
   @override
   List<Object?> get props => [message];
@@ -126,7 +126,7 @@ class MessageSent extends MessagesState {
 class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
   final ChatRepository _repository = ChatRepository();
   final SendMessageUseCase _sendMessageUseCase = SendMessageUseCase();
-  StreamSubscription<List<MessageEntity>>? _messagesSubscription;
+  StreamSubscription<List<MessageModel>>? _messagesSubscription;
 
   MessagesBloc() : super(MessagesInitial()) {
     on<LoadMessages>(_onLoadMessages);

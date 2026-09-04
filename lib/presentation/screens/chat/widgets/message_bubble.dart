@@ -4,7 +4,7 @@ import '../../../../core/entities/message_entity.dart';
 import '../../../../core/constants/app_colors.dart';
 
 class MessageBubble extends StatelessWidget {
-  final MessageEntity message;
+  final MessageModel message;
   final bool isMe;
 
   const MessageBubble({
