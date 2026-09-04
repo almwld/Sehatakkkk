@@ -1,7 +1,5 @@
 // ============================================================
-// 🏠 HomeScreen - الشاشة الرئيسية المعاد بناؤها
-// تم إصلاح مشكلة الشاشة الداكنة بعد تسجيل الدخول
-// باستخدام ValueKey ثابت لكل شاشة
+// 🏠 HomeScreen - الشاشة الرئيسية
 // ============================================================
 
 import 'package:flutter/material.dart';
@@ -15,12 +13,11 @@ import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
 import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
 import 'package:sehatak/presentation/screens/patient/patient_dashboard.dart';
 import 'package:sehatak/presentation/screens/more/more_screen.dart';
-import 'package:sehatak/presentation/widgets/common/custom_bottom_nav_bar.dart';
+import 'package:sehatak/presentation/widgets/common/custom_bottom_navigation_bar.dart';
 import 'package:sehatak/presentation/screens/home/tabs/home_tab.dart';
 import 'package:sehatak/core/managers/global_scroll_manager.dart';
-import 'package:sehatak/core/widgets/scroll_detector.dart';
 
-// ✅ مفاتيح ثابتة لكل شاشة - يمنع فقدان الحالة
+// ✅ مفاتيح ثابتة لكل شاشة
 class ScreenKeys {
   static const home = ValueKey('home_tab');
   static const doctors = ValueKey('doctors_tab');
@@ -44,7 +41,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   late final GlobalScrollManager _scrollManager;
   bool _isLoggedIn = false;
 
-  // ✅ استخدام Map بدلاً من List للحفاظ على المفاتيح
   late final Map<int, Widget> _screens;
 
   @override
@@ -73,7 +69,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   void _checkLoginStatus() {
     final user = FirebaseAuth.instance.currentUser;
-    // ✅ تجنب setState إذا لم يتغير شيء
     final newStatus = user != null;
     if (_isLoggedIn != newStatus) {
       setState(() {
@@ -83,7 +78,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   void _initializeScreens() {
-    // ✅ استخدام ValueKey لكل شاشة يمنع فقدان الحالة
     _screens = {
       0: HomeTab(
         key: ScreenKeys.home,
@@ -125,31 +119,31 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      body: ScrollDetector(
-        scrollManager: _scrollManager,
-        child: IndexedStack(
-          index: _currentIndex,
-          // ✅ استخدام values من Map مع المفاتيح الثابتة
-          children: _screens.values.toList(),
-        ),
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _screens.values.toList(),
       ),
       bottomNavigationBar: AnimatedBuilder(
         animation: _scrollManager,
-        builder: (context, child) {
+        builder: (context, _) {
           final isVisible = _scrollManager.isVisible;
+          final bottomPadding = MediaQuery.of(context).viewPadding.bottom;
+          final navHeight = 60.0 + bottomPadding;
 
           return AnimatedContainer(
             duration: const Duration(milliseconds: 280),
             curve: Curves.easeOutCubic,
-            height: isVisible ? 68 : 0,
+            height: isVisible ? navHeight : 0,
             clipBehavior: Clip.hardEdge,
             decoration: const BoxDecoration(),
             child: SafeArea(
               top: false,
+              bottom: true,
               child: CustomBottomNavigationBar(
                 currentIndex: _currentIndex,
                 onTap: _onTabTap,
                 scrollManager: _scrollManager,
+                scrollController: _scrollController,
                 isLoggedIn: _isLoggedIn,
                 onAuthRequired: () {
                   Navigator.push(

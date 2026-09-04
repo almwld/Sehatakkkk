@@ -12,7 +12,7 @@ class GlobalScrollManager extends ChangeNotifier {
 
   bool get isVisible => _isVisible;
   double get lastPosition => _lastPosition;
-  
+
   set lastPosition(double value) {
     _lastPosition = value;
   }
