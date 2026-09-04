@@ -77,11 +77,16 @@ class NotificationService {
 }
 
   // ✅ إضافة method showNotification
-  void showNotification({
-    required String title,
-    required String body,
-    String? payload,
-  }) {
+    print('📩 Notification: $title - $body');
+    // يمكن إضافة منطق إظهار الإشعار المحلي هنا
+  }
+
+  // ✅ إضافة method initialize
+  Future<void> initialize() async {
+    print('✅ NotificationService initialized');
+  }
+
+  // ✅ إضافة method showNotification
     print('📩 Notification: $title - $body');
     // يمكن إضافة منطق إظهار الإشعار المحلي هنا
   }
@@ -98,5 +103,4 @@ class NotificationService {
     String? payload,
   }) {
     print('📩 Notification: $title - $body');
-    // يمكن إضافة منطق إظهار الإشعار المحلي هنا
   }

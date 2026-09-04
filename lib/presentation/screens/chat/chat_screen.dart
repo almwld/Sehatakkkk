@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../../../core/models/chat_model.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../bloc/chat/chat_bloc.dart';
 import 'widgets/chat_shimmer.dart';
