@@ -12,6 +12,8 @@ abstract class DoctorEvent extends Equatable {
 
 class LoadDoctors extends DoctorEvent {}
 
+class RefreshDoctors extends DoctorEvent {}
+
 // States
 abstract class DoctorState extends Equatable {
   const DoctorState();
@@ -42,20 +44,52 @@ class DoctorBloc extends Bloc<DoctorEvent, DoctorState> {
 
   DoctorBloc() : super(DoctorInitial()) {
     on<LoadDoctors>(_onLoadDoctors);
+    on<RefreshDoctors>(_onRefreshDoctors);
   }
 
-  Future<void> _onLoadDoctors(LoadDoctors event, Emitter<DoctorState> emit) async {
-    emit(DoctorLoading());
-    print('🩺 DoctorBloc: Loading doctors...');
+  Future<void> _onLoadDoctors(
+    LoadDoctors event,
+    Emitter<DoctorState> emit,
+  ) async {
+    bool hasCache = false;
 
+    // 1. حاول استخدام Firestore Offline Cache أولًا.
     try {
-      final snapshot = await _firestore.collection('doctors').get();
+      final cacheSnapshot = await _firestore
+          .collection('doctors')
+          .get(
+            const GetOptions(source: Source.cache),
+          );
 
-      print('🩺 DoctorBloc: Firestore docs = ${snapshot.docs.length}');
+      if (cacheSnapshot.docs.isNotEmpty) {
+        final doctors = cacheSnapshot.docs.map((doc) {
+          return DoctorModel.fromFirestore(
+            doc.id,
+            doc.data(),
+          );
+        }).toList();
 
-      for (final doc in snapshot.docs) {
-        print('🩺 DoctorBloc: doc=${doc.id} data=${doc.data()}');
+        if (doctors.isNotEmpty) {
+          hasCache = true;
+          emit(DoctorLoaded(doctors: doctors));
+        }
       }
+    } catch (_) {
+      // لا توجد Cache، سنحاول الخادم.
+    }
+
+    // 2. إذا لم توجد Cache، أظهر Loading.
+    if (!hasCache) {
+      emit(DoctorLoading());
+    }
+
+    // 3. احصل على أحدث البيانات من الخادم.
+    try {
+      final snapshot = await _firestore
+          .collection('doctors')
+          .get(
+            const GetOptions(source: Source.server),
+          );
 
       final doctors = snapshot.docs.map((doc) {
         return DoctorModel.fromFirestore(
@@ -64,16 +98,54 @@ class DoctorBloc extends Bloc<DoctorEvent, DoctorState> {
         );
       }).toList();
 
-      print('🩺 DoctorBloc: parsed doctors = ${doctors.length}');
-
       emit(DoctorLoaded(doctors: doctors));
     } catch (e, stackTrace) {
       print('❌ DoctorBloc ERROR: $e');
       print(stackTrace);
 
-      emit(DoctorError(
-        message: 'حدث خطأ: ${e.toString()}',
-      ));
+      // إذا كانت Cache موجودة، احتفظ بها بدل تحويل الشاشة إلى Error.
+      if (!hasCache) {
+        emit(
+          DoctorError(
+            message: 'حدث خطأ: ${e.toString()}',
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _onRefreshDoctors(
+    RefreshDoctors event,
+    Emitter<DoctorState> emit,
+  ) async {
+    final previousState = state;
+
+    try {
+      final snapshot = await _firestore
+          .collection('doctors')
+          .get(
+            const GetOptions(source: Source.server),
+          );
+
+      final doctors = snapshot.docs.map((doc) {
+        return DoctorModel.fromFirestore(
+          doc.id,
+          doc.data(),
+        );
+      }).toList();
+
+      emit(DoctorLoaded(doctors: doctors));
+    } catch (e) {
+      // لا نفقد البيانات الحالية إذا فشل التحديث.
+      if (previousState is DoctorLoaded) {
+        emit(previousState);
+      } else {
+        emit(
+          DoctorError(
+            message: 'تعذر تحديث قائمة الأطباء: $e',
+          ),
+        );
+      }
     }
   }
 }

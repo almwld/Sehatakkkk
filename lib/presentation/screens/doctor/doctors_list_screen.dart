@@ -1,4 +1,4 @@
-import '../../../bloc/doctor_bloc/doctor_bloc.dart';
+import '../../bloc/doctor_bloc/doctor_bloc.dart';
 import '../../../core/models/doctor_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
