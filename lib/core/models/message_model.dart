@@ -1,11 +1,19 @@
-// ============================================================
-// 📦 MessageModel - نموذج الرسالة الموحد
-// ============================================================
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 
-enum MessageType { text, image, audio, video, file, location, reply, deleted }
+enum MessageType {
+  text,
+  image,
+  audio,
+  video,
+  file,
+  location,
+  contact,
+  system,
+  reaction,
+  reply,
+  deleted,
+}
 
 class MessageModel extends Equatable {
   final String id;
@@ -21,15 +29,32 @@ class MessageModel extends Equatable {
   final bool isEdited;
   final bool isDeleted;
   final String? replyToId;
+  final MessageModel? replyTo;
   final Map<String, String>? reactions;
   final Map<String, dynamic>? attachments;
   final Map<String, dynamic>? metadata;
+
+  // ✅ الحقول المباشرة للوسائط (تستخدمها UI مباشرة)
+  final String? imageUrl;
+  final String? audioUrl;
+  final String? fileUrl;
+  final String? locationUrl;
+
+  // ✅ حقول إضافية للوسائط
   final String? locationAddress;
   final double? locationLat;
   final double? locationLng;
-  final int? audioDuration;
+  final String? audioDuration;
   final String? fileSize;
   final String? fileName;
+  final String? fileMimeType;
+  final String? thumbnailUrl;
+
+  // ✅ حقول القراءة والتسليم (قسم 21 من الـ prompt)
+  final Timestamp? readAt;
+  final Timestamp? deliveredAt;
+
+  final bool isPinned;
 
   const MessageModel({
     required this.id,
@@ -45,17 +70,28 @@ class MessageModel extends Equatable {
     this.isEdited = false,
     this.isDeleted = false,
     this.replyToId,
-    this.reactions,
+    this.replyTo,
+    this.reactions = const {},
     this.attachments,
     this.metadata,
+    this.imageUrl,
+    this.audioUrl,
+    this.fileUrl,
+    this.locationUrl,
     this.locationAddress,
     this.locationLat,
     this.locationLng,
     this.audioDuration,
     this.fileSize,
     this.fileName,
+    this.fileMimeType,
+    this.thumbnailUrl,
+    this.readAt,
+    this.deliveredAt,
+    this.isPinned = false,
   });
 
+  // ✅ من Firestore
   factory MessageModel.fromFirestore(String id, Map<String, dynamic> data) {
     return MessageModel(
       id: id,
@@ -64,7 +100,7 @@ class MessageModel extends Equatable {
       senderName: data['senderName'] ?? '',
       senderPhotoUrl: data['senderPhotoUrl'],
       text: data['text'],
-      type: _parseType(data['type']),
+      type: _parseMessageType(data['type']),
       timestamp: data['timestamp'],
       isRead: data['isRead'] ?? false,
       isDelivered: data['isDelivered'] ?? false,
@@ -72,17 +108,27 @@ class MessageModel extends Equatable {
       isDeleted: data['isDeleted'] ?? false,
       replyToId: data['replyToId'],
       reactions: Map<String, String>.from(data['reactions'] ?? {}),
-      attachments: data['attachments'],
+      attachments: data['attachments'] as Map<String, dynamic>?,
       metadata: data['metadata'],
+      imageUrl: data['imageUrl'],
+      audioUrl: data['audioUrl'],
+      fileUrl: data['fileUrl'],
+      locationUrl: data['locationUrl'],
       locationAddress: data['locationAddress'],
-      locationLat: data['locationLat']?.toDouble(),
-      locationLng: data['locationLng']?.toDouble(),
+      locationLat: (data['locationLat'] as num?)?.toDouble(),
+      locationLng: (data['locationLng'] as num?)?.toDouble(),
       audioDuration: data['audioDuration'],
       fileSize: data['fileSize'],
       fileName: data['fileName'],
+      fileMimeType: data['fileMimeType'],
+      thumbnailUrl: data['thumbnailUrl'],
+      readAt: data['readAt'],
+      deliveredAt: data['deliveredAt'],
+      isPinned: data['isPinned'] ?? false,
     );
   }
 
+  // ✅ إلى Firestore
   Map<String, dynamic> toFirestore() {
     return {
       'chatId': chatId,
@@ -100,28 +146,68 @@ class MessageModel extends Equatable {
       'reactions': reactions,
       'attachments': attachments,
       'metadata': metadata,
+      'imageUrl': imageUrl,
+      'audioUrl': audioUrl,
+      'fileUrl': fileUrl,
+      'locationUrl': locationUrl,
       'locationAddress': locationAddress,
       'locationLat': locationLat,
       'locationLng': locationLng,
       'audioDuration': audioDuration,
       'fileSize': fileSize,
       'fileName': fileName,
+      'fileMimeType': fileMimeType,
+      'thumbnailUrl': thumbnailUrl,
+      'readAt': readAt,
+      'deliveredAt': deliveredAt,
+      'isPinned': isPinned,
     };
   }
 
-  static MessageType _parseType(String? type) {
+  static MessageType _parseMessageType(String? type) {
     switch (type) {
       case 'image': return MessageType.image;
       case 'audio': return MessageType.audio;
       case 'video': return MessageType.video;
       case 'file': return MessageType.file;
       case 'location': return MessageType.location;
+      case 'contact': return MessageType.contact;
+      case 'system': return MessageType.system;
+      case 'reaction': return MessageType.reaction;
       case 'reply': return MessageType.reply;
       case 'deleted': return MessageType.deleted;
       default: return MessageType.text;
     }
   }
 
+  // ✅ دوال مساعدة
+  bool get isSentByCurrentUser => false; // ستُحدد في الـ UI
+  bool get hasReactions => reactions?.isNotEmpty ?? false;
+  bool get isAudio => type == MessageType.audio;
+  bool get isImage => type == MessageType.image;
+  bool get isVideo => type == MessageType.video;
+  bool get isFile => type == MessageType.file;
+  bool get isLocation => type == MessageType.location;
+  bool get isText => type == MessageType.text;
+  bool get isReply => type == MessageType.reply;
+  bool get isSystem => type == MessageType.system;
+  bool get isDeletedMessage => type == MessageType.deleted;
+  bool get hasAttachments => attachments?.isNotEmpty ?? false;
+
+  String getStatusString() {
+    if (isDeleted) return 'تم الحذف';
+    if (isRead) return 'مقروء';
+    if (isDelivered) return 'تم التسليم';
+    return 'مرسل';
+  }
+
   @override
-  List<Object?> get props => [id, chatId, senderId, text, type, timestamp];
+  List<Object?> get props => [
+    id, chatId, senderId, senderName, senderPhotoUrl, text, type,
+    timestamp, isRead, isDelivered, isEdited, isDeleted, replyToId,
+    replyTo, reactions, attachments, metadata, imageUrl, audioUrl,
+    fileUrl, locationUrl, locationAddress, locationLat, locationLng,
+    audioDuration, fileSize, fileName, fileMimeType, thumbnailUrl,
+    readAt, deliveredAt, isPinned,
+  ];
 }
