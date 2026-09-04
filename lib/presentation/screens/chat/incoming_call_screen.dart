@@ -48,19 +48,13 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
   }
 
   void _startTimers() {
-    // ✅ Countdown Timer
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
-        setState(() {
-          _remainingSeconds--;
-        });
-        if (_remainingSeconds <= 0) {
-          timer.cancel();
-        }
+        setState(() => _remainingSeconds--);
+        if (_remainingSeconds <= 0) timer.cancel();
       }
     });
 
-    // ✅ Timeout Timer (30 ثانية)
     _timeoutTimer = Timer(const Duration(seconds: 30), () {
       if (!_isAnswered && mounted) {
         widget.onTimeout();
@@ -72,8 +66,6 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
   void _listenToCallStatus() {
     _callSubscription = _callService.streamCall(widget.callId).listen((call) {
       if (call == null) return;
-      
-      // ✅ إذا تغيرت حالة المكالمة إلى cancelled/missed/rejected/ended
       if (call.status == CallStatus.cancelled ||
           call.status == CallStatus.missed ||
           call.status == CallStatus.rejected ||
@@ -109,31 +101,16 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
             CircleAvatar(
               radius: 60,
               backgroundColor: AppColors.primaryLight,
-              child: Icon(
-                Icons.person,
-                size: 60,
-                color: AppColors.primary,
-              ),
+              child: Icon(Icons.person, size: 60, color: AppColors.primary),
             ),
             const SizedBox(height: 20),
-            Text(
-              widget.callerName,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            Text(widget.callerName, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Text(
-              widget.isVideo ? '📹 مكالمة فيديو واردة' : '📞 مكالمة صوتية واردة',
-              style: const TextStyle(color: Colors.white70, fontSize: 16),
-            ),
+            Text(widget.isVideo ? '📹 مكالمة فيديو واردة' : '📞 مكالمة صوتية واردة',
+                style: const TextStyle(color: Colors.white70, fontSize: 16)),
             const SizedBox(height: 8),
-            Text(
-              'يرن... (${_remainingSeconds}s)',
-              style: const TextStyle(color: Colors.white54, fontSize: 14),
-            ),
+            Text('يرن... (${_remainingSeconds}s)',
+                style: const TextStyle(color: Colors.white54, fontSize: 14)),
             const Spacer(),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 30),
@@ -159,7 +136,6 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
                       setState(() => _isAnswered = true);
                       widget.onAccept();
                       _cancelTimers();
-
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
@@ -182,12 +158,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
     );
   }
 
-  Widget _buildActionButton({
-    required IconData icon,
-    required Color color,
-    required String label,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildActionButton({required IconData icon, required Color color, required String label, required VoidCallback onTap}) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -196,25 +167,12 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
           child: Container(
             width: 64,
             height: 64,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: color.withOpacity(0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle, boxShadow: [BoxShadow(color: color.withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 4))]),
             child: Icon(icon, color: Colors.white, size: 30),
           ),
         ),
         const SizedBox(height: 8),
-        Text(
-          label,
-          style: const TextStyle(color: Colors.white, fontSize: 14),
-        ),
+        Text(label, style: const TextStyle(color: Colors.white, fontSize: 14)),
       ],
     );
   }

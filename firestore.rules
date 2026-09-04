@@ -81,13 +81,11 @@ service cloud.firestore {
 
       allow update: if isChatParticipant(chatId) &&
         (
-          // ✅ المرسل: يمكنه تعديل رسالته فقط
           (resource.data.senderId == request.auth.uid &&
             request.resource.data
               .diff(resource.data)
               .affectedKeys()
               .hasOnly(['text', 'isEdited', 'isDeleted', 'reactions'])) ||
-          // ✅ أي مشارك: يمكنه تحديث حالة القراءة فقط
           (request.resource.data
               .diff(resource.data)
               .affectedKeys()

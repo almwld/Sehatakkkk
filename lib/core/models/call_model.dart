@@ -22,7 +22,7 @@ class CallModel extends Equatable {
   final bool isAnswered;
   final Map<String, dynamic>? metadata;
   final List<String>? participants;
-  final String? roomName;
+  final String? liveKitRoomName;  // ✅ موحد: liveKitRoomName
   final bool isVideoCall;
 
   const CallModel({
@@ -43,7 +43,7 @@ class CallModel extends Equatable {
     this.isAnswered = false,
     this.metadata,
     this.participants,
-    this.roomName,
+    this.liveKitRoomName,
     this.isVideoCall = false,
   });
 
@@ -66,7 +66,7 @@ class CallModel extends Equatable {
       isAnswered: data['isAnswered'] ?? false,
       metadata: Map<String, dynamic>.from(data['metadata'] ?? {}),
       participants: List<String>.from(data['participants'] ?? []),
-      roomName: data['roomName'],
+      liveKitRoomName: data['liveKitRoomName'] ?? data['roomName'], // ✅ دعم كلا الحقلين
       isVideoCall: data['isVideoCall'] ?? false,
     );
   }
@@ -89,7 +89,7 @@ class CallModel extends Equatable {
       'isAnswered': isAnswered,
       'metadata': metadata,
       'participants': participants,
-      'roomName': roomName,
+      'liveKitRoomName': liveKitRoomName,  // ✅ موحد
       'isVideoCall': isVideoCall,
     };
   }
@@ -121,12 +121,14 @@ class CallModel extends Equatable {
   bool get isMissed => status == CallStatus.missed;
   bool get isRejected => status == CallStatus.rejected;
   bool get isCancelled => status == CallStatus.cancelled;
+  bool get isIncoming => status == CallStatus.calling && !isAnswered;
+  bool get isOutgoing => status == CallStatus.calling && isAnswered;
 
   @override
   List<Object?> get props => [
     id, chatId, callerId, callerName, receiverId, receiverName,
     callType, status, startedAt, connectedAt, endedAt,
     durationSeconds, isAnswered, metadata, participants,
-    roomName, isVideoCall,
+    liveKitRoomName, isVideoCall,
   ];
 }

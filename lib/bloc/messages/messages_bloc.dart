@@ -6,7 +6,7 @@ import '../../core/models/message_model.dart';
 import '../../core/services/chat_service.dart';
 
 // ============================================================
-// 📋 الأحداث (Events)
+// 📋 الأحداث
 // ============================================================
 abstract class MessagesEvent extends Equatable {
   const MessagesEvent();
@@ -61,7 +61,7 @@ class MarkMessagesRead extends MessagesEvent {
 class ResetMessages extends MessagesEvent {}
 
 // ============================================================
-// 📊 الحالات (States)
+// 📊 الحالات
 // ============================================================
 abstract class MessagesState extends Equatable {
   const MessagesState();
@@ -116,9 +116,6 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
     on<ResetMessages>(_onResetMessages);
   }
 
-  // ============================================================
-  // 📥 تحميل الرسائل
-  // ============================================================
   Future<void> _onLoadMessages(LoadMessages event, Emitter<MessagesState> emit) async {
     emit(MessagesLoading());
     _currentChatId = event.chatId;
@@ -147,9 +144,6 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
     }
   }
 
-  // ============================================================
-  // 📥 تحميل المزيد من الرسائل (Pagination)
-  // ============================================================
   Future<void> _onLoadMoreMessages(LoadMoreMessages event, Emitter<MessagesState> emit) async {
     if (state is! MessagesLoaded) return;
     final currentState = state as MessagesLoaded;
@@ -186,9 +180,6 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
     }
   }
 
-  // ============================================================
-  // ✉️ إرسال رسالة
-  // ============================================================
   Future<void> _onSendMessage(SendMessage event, Emitter<MessagesState> emit) async {
     emit(MessageSending());
     try {
@@ -211,9 +202,6 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
     }
   }
 
-  // ============================================================
-  // ✅ تحديث حالة القراءة
-  // ============================================================
   Future<void> _onMarkMessagesRead(MarkMessagesRead event, Emitter<MessagesState> emit) async {
     try {
       await _chatService.markAsRead(event.chatId);
@@ -222,9 +210,6 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
     }
   }
 
-  // ============================================================
-  // 🔄 إعادة تعيين
-  // ============================================================
   void _onResetMessages(ResetMessages event, Emitter<MessagesState> emit) {
     _subscription?.cancel();
     _lastDocument = null;

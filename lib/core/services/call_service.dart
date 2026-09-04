@@ -26,6 +26,7 @@ class CallService {
     final userId = _getUserIdOrThrow();
     final user = _auth.currentUser!;
 
+    // ✅ Idempotency: معرف ثابت
     final callId = idempotencyKey ?? _firestore.collection('calls').doc().id;
     final callRef = _firestore.collection('calls').doc(callId);
 
@@ -34,7 +35,8 @@ class CallService {
       return CallModel.fromFirestore(callId, existing.data()!);
     }
 
-    final roomName = 'call_${chatId}_${DateTime.now().millisecondsSinceEpoch}';
+    // ✅ liveKitRoomName = chatId (القاعدة الأساسية)
+    final roomName = chatId;
 
     final callData = {
       'id': callId,
@@ -50,7 +52,8 @@ class CallService {
       'startedAt': FieldValue.serverTimestamp(),
       'isAnswered': false,
       'participants': [userId, receiverId],
-      'roomName': roomName,
+      'liveKitRoomName': roomName,
+      'isVideoCall': type == CallType.video,
     };
 
     await callRef.set(callData);
@@ -58,14 +61,15 @@ class CallService {
   }
 
   // ============================================================
-  // ✅ قبول المكالمة (مع State Machine)
+  // ✅ قبول المكالمة (State Machine)
   // ============================================================
   Future<void> acceptCall(String callId) async {
     await _firestore.runTransaction((transaction) async {
       final doc = await transaction.get(_firestore.collection('calls').doc(callId));
       if (!doc.exists) return;
 
-      final status = doc.data()?['status'] as String?;
+      final data = doc.data()!;
+      final status = data['status'] as String;
       
       // ✅ فقط CALLING أو RINGING يمكن قبولها
       if (status != CallStatus.calling.name && status != CallStatus.ringing.name) {
@@ -81,14 +85,15 @@ class CallService {
   }
 
   // ============================================================
-  // ❌ رفض المكالمة
+  // ❌ رفض المكالمة (State Machine)
   // ============================================================
   Future<void> rejectCall(String callId) async {
     await _firestore.runTransaction((transaction) async {
       final doc = await transaction.get(_firestore.collection('calls').doc(callId));
       if (!doc.exists) return;
 
-      final status = doc.data()?['status'] as String?;
+      final data = doc.data()!;
+      final status = data['status'] as String;
       
       if (status != CallStatus.calling.name && status != CallStatus.ringing.name) {
         throw Exception('لا يمكن رفض المكالمة في حالتها الحالية');
@@ -109,7 +114,8 @@ class CallService {
       final doc = await transaction.get(_firestore.collection('calls').doc(callId));
       if (!doc.exists) return;
 
-      final status = doc.data()?['status'] as String?;
+      final data = doc.data()!;
+      final status = data['status'] as String;
       
       if (status != CallStatus.calling.name && status != CallStatus.ringing.name) {
         throw Exception('لا يمكن إلغاء المكالمة في حالتها الحالية');
@@ -123,14 +129,15 @@ class CallService {
   }
 
   // ============================================================
-  // 🔚 إنهاء المكالمة
+  // 🔚 إنهاء المكالمة (State Machine)
   // ============================================================
   Future<void> endCall(String callId, {int? durationSeconds}) async {
     await _firestore.runTransaction((transaction) async {
       final doc = await transaction.get(_firestore.collection('calls').doc(callId));
       if (!doc.exists) return;
 
-      final status = doc.data()?['status'] as String?;
+      final data = doc.data()!;
+      final status = data['status'] as String;
       
       if (status != CallStatus.connected.name) {
         throw Exception('لا يمكن إنهاء المكالمة في حالتها الحالية');
@@ -152,10 +159,11 @@ class CallService {
       final doc = await transaction.get(_firestore.collection('calls').doc(callId));
       if (!doc.exists) return;
 
-      final status = doc.data()?['status'] as String?;
+      final data = doc.data()!;
+      final status = data['status'] as String;
       
       if (status != CallStatus.calling.name && status != CallStatus.ringing.name) {
-        return; // لا تفويت إذا لم تكن في حالة الرنين
+        return;
       }
 
       transaction.update(_firestore.collection('calls').doc(callId), {
@@ -177,34 +185,20 @@ class CallService {
   }
 
   // ============================================================
-  // 📞 معالجة مكالمة واردة (من FCM)
+  // 📋 الاستماع لسجل المكالمات
   // ============================================================
-  void handleIncomingCall(BuildContext context, Map<String, dynamic> data) {
-    final callId = data['callId'];
-    final chatId = data['chatId'];
-    final callerId = data['callerId'];
-    final callerName = data['callerName'] ?? 'متصل';
-    final isVideo = data['isVideo'] == 'true';
+  Stream<List<CallModel>> streamCallHistory() {
+    final userId = currentUserId;
+    if (userId == null) return Stream.value([]);
 
-    if (callId == null || chatId == null) return;
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        fullscreenDialog: true,
-        builder: (context) => IncomingCallScreen(
-          callId: callId,
-          chatId: chatId,
-          callerId: callerId,
-          callerName: callerName,
-          isVideo: isVideo,
-          onAccept: () => acceptCall(callId),
-          onReject: () => rejectCall(callId),
-          onTimeout: () => missCall(callId),
-          onCancel: () => cancelCall(callId),
-        ),
-      ),
-    );
+    return _firestore
+        .collection('calls')
+        .where('participants', arrayContains: userId)
+        .orderBy('startedAt', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => CallModel.fromFirestore(doc.id, doc.data()))
+            .toList());
   }
 
   // ============================================================

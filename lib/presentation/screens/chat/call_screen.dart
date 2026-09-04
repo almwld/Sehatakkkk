@@ -36,35 +36,28 @@ class _CallScreenState extends State<CallScreen> {
   @override
   void initState() {
     super.initState();
-    _startDurationTimer();
     _connectToLiveKit();
   }
 
   void _startDurationTimer() {
     _durationTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (mounted) {
-        setState(() {
-          _seconds++;
-        });
-      }
+      if (mounted) setState(() => _seconds++);
     });
   }
 
   Future<void> _connectToLiveKit() async {
     try {
       await _liveKitService.connectRoom(
-        roomName: 'call_${widget.chatId}',
+        roomName: widget.chatId,
         participantName: FirebaseAuth.instance.currentUser?.displayName ?? 'مستخدم',
       );
       if (mounted) {
         setState(() => _isConnected = true);
+        _startDurationTimer();
       }
     } catch (e) {
-      print('❌ LiveKit connection error: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('فشل الاتصال: $e')),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('فشل الاتصال: $e')));
         Navigator.pop(context);
       }
     }
@@ -97,15 +90,9 @@ class _CallScreenState extends State<CallScreen> {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
-                  ),
+                  IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white), onPressed: () => Navigator.pop(context)),
                   const Spacer(),
-                  Text(
-                    _formatDuration(_seconds),
-                    style: const TextStyle(color: Colors.white, fontSize: 16),
-                  ),
+                  Text(_formatDuration(_seconds), style: const TextStyle(color: Colors.white, fontSize: 16)),
                 ],
               ),
             ),
@@ -113,32 +100,11 @@ class _CallScreenState extends State<CallScreen> {
             Center(
               child: Column(
                 children: [
-                  const CircleAvatar(
-                    radius: 60,
-                    backgroundColor: AppColors.primaryLight,
-                    child: Icon(
-                      Icons.person,
-                      size: 60,
-                      color: AppColors.primary,
-                    ),
-                  ),
+                  const CircleAvatar(radius: 60, backgroundColor: AppColors.primaryLight, child: Icon(Icons.person, size: 60, color: AppColors.primary)),
                   const SizedBox(height: 16),
-                  Text(
-                    'المستخدم',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  Text('المستخدم', style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
-                  Text(
-                    _isConnected ? 'متصل' : 'جاري الاتصال...',
-                    style: TextStyle(
-                      color: _isConnected ? Colors.green : Colors.white70,
-                      fontSize: 14,
-                    ),
-                  ),
+                  Text(_isConnected ? 'متصل' : 'جاري الاتصال...', style: TextStyle(color: _isConnected ? Colors.green : Colors.white70, fontSize: 14)),
                 ],
               ),
             ),
@@ -148,41 +114,10 @@ class _CallScreenState extends State<CallScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildControlButton(
-                    icon: _isMuted ? Icons.mic_off : Icons.mic,
-                    label: _isMuted ? 'إلغاء الكتم' : 'كتم',
-                    onTap: () {
-                      setState(() => _isMuted = !_isMuted);
-                      _liveKitService.toggleMicrophone();
-                    },
-                  ),
-                  _buildControlButton(
-                    icon: _isSpeakerOn ? Icons.volume_up : Icons.volume_down,
-                    label: _isSpeakerOn ? 'سماعة' : 'مكبر صوت',
-                    onTap: () {
-                      setState(() => _isSpeakerOn = !_isSpeakerOn);
-                      _liveKitService.setSpeakerphone(_isSpeakerOn);
-                    },
-                  ),
-                  if (widget.isVideo)
-                    _buildControlButton(
-                      icon: _isCameraOff ? Icons.videocam_off : Icons.videocam,
-                      label: _isCameraOff ? 'تشغيل' : 'إيقاف',
-                      onTap: () {
-                        setState(() => _isCameraOff = !_isCameraOff);
-                        _liveKitService.toggleCamera();
-                      },
-                    ),
-                  _buildControlButton(
-                    icon: Icons.call_end,
-                    label: 'إنهاء',
-                    color: AppColors.error,
-                    onTap: () {
-                      _callService.endCall(widget.callId, durationSeconds: _seconds);
-                      _liveKitService.endCall();
-                      Navigator.pop(context);
-                    },
-                  ),
+                  _buildControlButton(icon: _isMuted ? Icons.mic_off : Icons.mic, label: _isMuted ? 'إلغاء الكتم' : 'كتم', onTap: () { setState(() => _isMuted = !_isMuted); _liveKitService.toggleMicrophone(); }),
+                  _buildControlButton(icon: _isSpeakerOn ? Icons.volume_up : Icons.volume_down, label: _isSpeakerOn ? 'سماعة' : 'مكبر صوت', onTap: () { setState(() => _isSpeakerOn = !_isSpeakerOn); _liveKitService.setSpeakerphone(_isSpeakerOn); }),
+                  if (widget.isVideo) _buildControlButton(icon: _isCameraOff ? Icons.videocam_off : Icons.videocam, label: _isCameraOff ? 'تشغيل' : 'إيقاف', onTap: () { setState(() => _isCameraOff = !_isCameraOff); _liveKitService.toggleCamera(); }),
+                  _buildControlButton(icon: Icons.call_end, label: 'إنهاء', color: AppColors.error, onTap: () { _callService.endCall(widget.callId, durationSeconds: _seconds); _liveKitService.endCall(); Navigator.pop(context); }),
                 ],
               ),
             ),
@@ -192,32 +127,16 @@ class _CallScreenState extends State<CallScreen> {
     );
   }
 
-  Widget _buildControlButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-    Color? color,
-  }) {
+  Widget _buildControlButton({required IconData icon, required String label, required VoidCallback onTap, Color? color}) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         GestureDetector(
           onTap: onTap,
-          child: Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: color ?? Colors.white24,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: Colors.white, size: 24),
-          ),
+          child: Container(width: 48, height: 48, decoration: BoxDecoration(color: color ?? Colors.white24, shape: BoxShape.circle), child: Icon(icon, color: Colors.white, size: 24)),
         ),
         const SizedBox(height: 6),
-        Text(
-          label,
-          style: const TextStyle(color: Colors.white70, fontSize: 11),
-        ),
+        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 11)),
       ],
     );
   }
