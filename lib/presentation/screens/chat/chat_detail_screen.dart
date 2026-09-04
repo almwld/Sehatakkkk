@@ -1,35 +1,46 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../../core/models/message_model.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../core/services/chat_service.dart';
+
 import '../../../bloc/messages/messages_bloc.dart';
-import 'widgets/message_bubble.dart';
+import '../../../core/constants/app_colors.dart';
 import 'widgets/chat_input_bar.dart';
+import 'widgets/message_bubble.dart';
 
 class ChatDetailScreen extends StatefulWidget {
   final String chatId;
-  const ChatDetailScreen({super.key, required this.chatId});
+
+  const ChatDetailScreen({
+    super.key,
+    required this.chatId,
+  });
 
   @override
-  State<ChatDetailScreen> createState() => _ChatDetailScreenState();
+  State<ChatDetailScreen> createState() =>
+      _ChatDetailScreenState();
 }
 
-class _ChatDetailScreenState extends State<ChatDetailScreen> {
-  final TextEditingController _textController = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
-  final ChatService _chatService = ChatService();
+class _ChatDetailScreenState
+    extends State<ChatDetailScreen> {
+  final TextEditingController _textController =
+      TextEditingController();
+
+  final ScrollController _scrollController =
+      ScrollController();
+
   bool _isLoadingMore = false;
-  DocumentSnapshot? _lastDocument;
 
   @override
   void initState() {
     super.initState();
-    context.read<MessagesBloc>().add(LoadMessages(chatId: widget.chatId, limit: 30));
-    
-    // ✅ استماع للتمرير لتحميل المزيد
+
+    context.read<MessagesBloc>().add(
+          LoadMessages(
+            chatId: widget.chatId,
+            limit: 30,
+          ),
+        );
+
     _scrollController.addListener(_onScroll);
   }
 
@@ -37,108 +48,216 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   void dispose() {
     _textController.dispose();
     _scrollController.dispose();
+
     super.dispose();
   }
 
+  // ============================================================
+  // 📜 مراقبة التمرير
+  // ============================================================
   void _onScroll() {
-    if (_scrollController.position.pixels >= 
-        _scrollController.position.maxScrollExtent * 0.8) {
+    if (!_scrollController.hasClients) {
+      return;
+    }
+
+    final position = _scrollController.position;
+
+    if (position.maxScrollExtent <= 0) {
+      return;
+    }
+
+    if (position.pixels >=
+        position.maxScrollExtent * 0.8) {
       _loadMoreMessages();
     }
   }
 
+  // ============================================================
+  // 📥 تحميل المزيد
+  // ============================================================
   Future<void> _loadMoreMessages() async {
-    if (_isLoadingMore) return;
-    if (context.read<MessagesBloc>().state is! MessagesLoaded) return;
+    if (_isLoadingMore) {
+      return;
+    }
 
-    final state = context.read<MessagesBloc>().state as MessagesLoaded;
-    if (!state.hasMore) return;
-    if (state.messages.isEmpty) return;
+    final messagesBloc =
+        context.read<MessagesBloc>();
+
+    final state = messagesBloc.state;
+
+    if (state is! MessagesLoaded) {
+      return;
+    }
+
+    if (!state.hasMore) {
+      return;
+    }
+
+    if (state.isLoadingMore) {
+      return;
+    }
 
     _isLoadingMore = true;
-    final lastMessage = state.messages.last;
-    
-    // ✅ الحصول على DocumentSnapshot للرسالة الأخيرة
-    final doc = await _chatService
-        .collection('chats')
-        .doc(widget.chatId)
-        .collection('messages')
-        .doc(lastMessage.id)
-        .get();
-    
-    if (doc.exists) {
-      context.read<MessagesBloc>().add(
-        LoadMoreMessages(
-          chatId: widget.chatId,
-          limit: 30,
-          startAfter: doc,
-        ),
-      );
+
+    messagesBloc.add(
+      LoadMoreMessages(
+        chatId: widget.chatId,
+        limit: 30,
+      ),
+    );
+
+    await Future<void>.delayed(
+      const Duration(milliseconds: 300),
+    );
+
+    if (mounted) {
+      _isLoadingMore = false;
     }
-    _isLoadingMore = false;
   }
 
+  // ============================================================
+  // 🖥️ واجهة الشاشة
+  // ============================================================
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark =
+        Theme.of(context).brightness ==
+            Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
+      backgroundColor: isDark
+          ? AppColors.backgroundDark
+          : AppColors.backgroundLight,
       appBar: AppBar(
         title: const Text('الدردشة'),
-        backgroundColor: isDark ? AppColors.backgroundDark : Colors.white,
-        foregroundColor: isDark ? Colors.white : Colors.black87,
+        backgroundColor: isDark
+            ? AppColors.backgroundDark
+            : Colors.white,
+        foregroundColor: isDark
+            ? Colors.white
+            : Colors.black87,
         elevation: 0,
       ),
       body: Column(
         children: [
           Expanded(
-            child: BlocBuilder<MessagesBloc, MessagesState>(
+            child: BlocBuilder<
+                MessagesBloc,
+                MessagesState>(
               builder: (context, state) {
+                // ------------------------------------------------
+                // Loading
+                // ------------------------------------------------
                 if (state is MessagesLoading) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(
+                    child:
+                        CircularProgressIndicator(),
+                  );
                 }
+
+                // ------------------------------------------------
+                // Error
+                // ------------------------------------------------
                 if (state is MessagesError) {
-                  return Center(child: Text(state.message));
+                  return Center(
+                    child: Padding(
+                      padding:
+                          const EdgeInsets.all(20),
+                      child: Text(
+                        state.message,
+                        textAlign:
+                            TextAlign.center,
+                      ),
+                    ),
+                  );
                 }
+
+                // ------------------------------------------------
+                // Messages
+                // ------------------------------------------------
                 if (state is MessagesLoaded) {
                   if (state.messages.isEmpty) {
-                    return const Center(child: Text('لا توجد رسائل'));
+                    return const Center(
+                      child: Text(
+                        'لا توجد رسائل',
+                      ),
+                    );
                   }
+
+                  final currentUserId =
+                      FirebaseAuth
+                          .instance
+                          .currentUser
+                          ?.uid;
+
                   return ListView.builder(
-                    controller: _scrollController,
+                    controller:
+                        _scrollController,
                     reverse: true,
-                    padding: const EdgeInsets.all(12),
-                    itemCount: state.messages.length + (state.isLoadingMore ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (index == state.messages.length) {
+                    padding:
+                        const EdgeInsets.all(12),
+                    itemCount:
+                        state.messages.length +
+                            (state.isLoadingMore
+                                ? 1
+                                : 0),
+                    itemBuilder:
+                        (context, index) {
+                      // ------------------------------------------
+                      // Pagination Loader
+                      // ------------------------------------------
+                      if (index ==
+                          state.messages.length) {
                         return const Padding(
-                          padding: EdgeInsets.all(8),
-                          child: Center(child: CircularProgressIndicator()),
+                          padding:
+                              EdgeInsets.all(8),
+                          child: Center(
+                            child:
+                                CircularProgressIndicator(),
+                          ),
                         );
                       }
-                      final message = state.messages[index];
-                      final isMe = message.senderId == FirebaseAuth.instance.currentUser?.uid;
-                      return MessageBubble(message: message, isMe: isMe);
+
+                      final message =
+                          state.messages[index];
+
+                      final isMe =
+                          message.senderId ==
+                              currentUserId;
+
+                      return MessageBubble(
+                        message: message,
+                        isMe: isMe,
+                      );
                     },
                   );
                 }
+
                 return const SizedBox.shrink();
               },
             ),
           ),
+
+          // ======================================================
+          // ✉️ Chat Input
+          // ======================================================
           ChatInputBar(
             textController: _textController,
             onSend: (text) {
-              if (text.trim().isNotEmpty) {
-                context.read<MessagesBloc>().add(
-                  SendMessage(
-                    chatId: widget.chatId,
-                    text: text.trim(),
-                  ),
-                );
-                _textController.clear();
+              final value = text.trim();
+
+              if (value.isEmpty) {
+                return;
               }
+
+              context.read<MessagesBloc>().add(
+                    SendMessage(
+                      chatId: widget.chatId,
+                      text: value,
+                    ),
+                  );
+
+              _textController.clear();
             },
             onImagePick: () {},
             onVoiceRecord: () {},
