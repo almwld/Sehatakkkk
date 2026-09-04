@@ -114,3 +114,26 @@ class ChatModel extends Equatable {
   @override
   List<Object?> get props => [id, participants, lastMessage, lastMessageTime];
 }
+
+  // ✅ دوال مساعدة
+  String getDisplayName(String userId) {
+    if (isGroup) return groupName ?? 'مجموعة';
+    final otherId = participants.firstWhere(
+      (p) => p != userId,
+      orElse: () => '',
+    );
+    return participantDetails[otherId]?['name'] ?? 'مستخدم';
+  }
+
+  String getDisplayPhoto(String userId) {
+    if (isGroup) return groupPhoto ?? '';
+    final otherId = participants.firstWhere(
+      (p) => p != userId,
+      orElse: () => '',
+    );
+    return participantDetails[otherId]?['photoUrl'] ?? '';
+  }
+
+  int getTotalUnreadCount() {
+    return unreadCount.values.fold(0, (sum, count) => sum + count);
+  }

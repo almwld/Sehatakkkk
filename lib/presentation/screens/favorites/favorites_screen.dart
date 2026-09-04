@@ -1,6 +1,5 @@
-import '../../core/models/doctor_model.dart';
+import '../../presentation/bloc/doctor_bloc/doctor_bloc.dart';
 import 'package:flutter/material.dart';
-import '../../core/models/doctor_model.dart';
 import '../doctor/doctor_details_screen.dart';
 
 class FavoritesScreen extends StatefulWidget {
@@ -48,7 +47,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (_) => DoctorDetailsScreen(
-                      doctor: DoctorModel(
+                      doctor: SimpleDoctor(
                         id: item['id'] ?? '',
                         name: item['name'] ?? '',
                         specialty: item['specialty'] ?? '',
