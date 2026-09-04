@@ -1,9 +1,5 @@
-// ============================================================
-// 📊 CallModel - نموذج المكالمة
-// ============================================================
-
-import 'package:equatable/equatable.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:equatable/equatable.dart';
 
 enum CallType { audio, video }
 enum CallStatus { calling, ringing, connected, ended, missed, rejected, busy }
@@ -117,71 +113,20 @@ class CallModel extends Equatable {
     }
   }
 
-  CallModel copyWith({
-    String? id,
-    String? chatId,
-    String? callerId,
-    String? callerName,
-    String? callerPhotoUrl,
-    String? receiverId,
-    String? receiverName,
-    String? receiverPhotoUrl,
-    CallType? callType,
-    CallStatus? status,
-    Timestamp? startedAt,
-    Timestamp? connectedAt,
-    Timestamp? endedAt,
-    int? durationSeconds,
-    bool? isAnswered,
-    Map<String, dynamic>? metadata,
-    List<String>? participants,
-    String? liveKitRoomName,
-    bool? isVideoCall,
-  }) {
-    return CallModel(
-      id: id ?? this.id,
-      chatId: chatId ?? this.chatId,
-      callerId: callerId ?? this.callerId,
-      callerName: callerName ?? this.callerName,
-      callerPhotoUrl: callerPhotoUrl ?? this.callerPhotoUrl,
-      receiverId: receiverId ?? this.receiverId,
-      receiverName: receiverName ?? this.receiverName,
-      receiverPhotoUrl: receiverPhotoUrl ?? this.receiverPhotoUrl,
-      callType: callType ?? this.callType,
-      status: status ?? this.status,
-      startedAt: startedAt ?? this.startedAt,
-      connectedAt: connectedAt ?? this.connectedAt,
-      endedAt: endedAt ?? this.endedAt,
-      durationSeconds: durationSeconds ?? this.durationSeconds,
-      isAnswered: isAnswered ?? this.isAnswered,
-      metadata: metadata ?? this.metadata,
-      participants: participants ?? this.participants,
-      liveKitRoomName: liveKitRoomName ?? this.liveKitRoomName,
-      isVideoCall: isVideoCall ?? this.isVideoCall,
-    );
-  }
-
-  @override
-  List<Object?> get props => [
-    id, chatId, callerId, callerName, callerPhotoUrl, receiverId,
-    receiverName, receiverPhotoUrl, callType, status, startedAt,
-    connectedAt, endedAt, durationSeconds, isAnswered, metadata,
-    participants, liveKitRoomName, isVideoCall,
-  ];
-
-  // ✅ المساعدات
   bool get isAudioCall => callType == CallType.audio;
   bool get isVideoCallType => callType == CallType.video;
   bool get isActive => status == CallStatus.calling || status == CallStatus.ringing || status == CallStatus.connected;
   bool get isEnded => status == CallStatus.ended;
   bool get isMissed => status == CallStatus.missed;
   bool get isRejected => status == CallStatus.rejected;
-  bool get isIncomingCall => status == CallStatus.calling && !isAnswered;
-  bool get isOutgoingCall => status == CallStatus.calling && isAnswered;
-  String getDurationFormatted() {
-    if (durationSeconds == null) return '00:00';
-    final minutes = durationSeconds! ~/ 60;
-    final seconds = durationSeconds! % 60;
-    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-  }
+  bool get isIncoming => status == CallStatus.calling && !isAnswered;
+  bool get isOutgoing => status == CallStatus.calling && isAnswered;
+
+  @override
+  List<Object?> get props => [
+    id, chatId, callerId, callerName, receiverId, receiverName,
+    callType, status, startedAt, connectedAt, endedAt,
+    durationSeconds, isAnswered, metadata, participants,
+    liveKitRoomName, isVideoCall,
+  ];
 }

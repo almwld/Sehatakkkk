@@ -1,99 +1,172 @@
-import 'dart:async';
-import 'package:flutter/material.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import '../models/call_model.dart';
-import '../constants/api_config.dart';
-import 'auth_service.dart';
 import 'notification_service.dart';
-import 'livekit_service.dart';
+
+enum CallType { audio, video }
+enum CallStatus { calling, ringing, connected, ended, missed, rejected, busy }
 
 class CallService {
-  static final CallService _instance = CallService._internal();
-  factory CallService() => _instance;
-  CallService._internal();
-
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final AuthService _authService = AuthService();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   final NotificationService _notificationService = NotificationService();
-  final LiveKitService _liveKitService = LiveKitService();
 
-  bool _isIncomingCallScreenOpen = false;
-  String? _currentCallId;
+  String? get currentUserId => _auth.currentUser?.uid;
 
-  // ✅ الحصول على Firebase ID Token
-  Future<String> _getIdToken() async {
-    final user = _auth.currentUser;
-    if (user == null) throw Exception('User not authenticated');
-    final token = await user.getIdToken();
-    return token ?? "";
-  }
-
-  // ✅ بدء مكالمة
-  Future<void> startCall({
+  // ============================================================
+  // 📞 بدء مكالمة
+  // ============================================================
+  Future<CallModel?> initiateCall({
     required String receiverId,
-    required String callerName,
-    required bool isVideo,
+    required String receiverName,
+    String? receiverPhotoUrl,
+    required CallType type,
     required String chatId,
-    required BuildContext context,
   }) async {
-    try {
-      final userId = _authService.currentUserId;
-      if (userId == null) throw Exception('User not authenticated');
+    final userId = currentUserId;
+    final user = _auth.currentUser;
+    if (userId == null) throw Exception('يجب تسجيل الدخول');
 
-      final userDoc = await _firestore.collection('users').doc(userId).get();
-      final userData = userDoc.data();
+    final callId = _firestore.collection('calls').doc().id;
+    final now = FieldValue.serverTimestamp();
 
-      final callData = {
-        'callerId': userId,
-        'callerName': callerName,
-        'callerPhotoUrl': userData?['photoUrl'],
-        'receiverId': receiverId,
-        'receiverName': userData?['name'] ?? 'مستخدم',
+    final callData = {
+      'id': callId,
+      'chatId': chatId,
+      'callerId': userId,
+      'callerName': user?.displayName ?? 'مستخدم',
+      'callerPhotoUrl': user?.photoURL,
+      'receiverId': receiverId,
+      'receiverName': receiverName,
+      'receiverPhotoUrl': receiverPhotoUrl,
+      'type': type.name,
+      'status': CallStatus.calling.name,
+      'startedAt': now,
+      'isAnswered': false,
+      'participants': [userId, receiverId],
+      'roomName': 'call_${chatId}_${DateTime.now().millisecondsSinceEpoch}',
+    };
+
+    await _firestore.collection('calls').doc(callId).set(callData);
+
+    // ✅ إرسال إشعار للمستقبل
+    await _notificationService.sendNotification(
+      userId: receiverId,
+      title: type == CallType.video ? '📹 مكالمة فيديو' : '📞 مكالمة صوتية',
+      body: '${user?.displayName ?? "مستخدم"} يتصل بك',
+      data: {
+        'type': 'incoming_call',
+        'callId': callId,
         'chatId': chatId,
-        'callType': isVideo ? 'video' : 'audio',
-        'status': 'calling',
-        'isAnswered': false,
-        'startedAt': FieldValue.serverTimestamp(),
-        'participants': [userId, receiverId],
-        'liveKitRoomName': chatId,
-        'isVideoCall': isVideo,
-      };
+        'callerId': userId,
+        'callerName': user?.displayName ?? 'مستخدم',
+        'isVideo': type == CallType.video ? 'true' : 'false',
+      },
+    );
 
-      final callRef = await _firestore.collection('calls').add(callData);
-      final callId = callRef.id;
-      _currentCallId = callId;
-      await callRef.update({'id': callId});
-
-    } catch (e) {
-      throw Exception('Error starting call: $e');
-    }
+    final doc = await _firestore.collection('calls').doc(callId).get();
+    return CallModel.fromFirestore(callId, doc.data()!);
   }
 
-  // ✅ معالجة مكالمة واردة
-  void handleIncomingCall(BuildContext context, RemoteMessage message) {
-    print('📞 Incoming call from: ${message.data['callerName']}');
-    print('📞 Call data: ${message.data}');
+  // ============================================================
+  // ✅ قبول المكالمة
+  // ============================================================
+  Future<void> acceptCall(String callId) async {
+    await _firestore.collection('calls').doc(callId).update({
+      'status': CallStatus.connected.name,
+      'isAnswered': true,
+      'connectedAt': FieldValue.serverTimestamp(),
+    });
   }
 
-  // ✅ إنهاء المكالمة
-  Future<void> endCall(String callId) async {
-    try {
-      final callDoc = await _firestore.collection('calls').doc(callId).get();
-      if (!callDoc.exists) return;
-
-      await _firestore.collection('calls').doc(callId).update({
-        'status': 'ended',
-        'endedAt': FieldValue.serverTimestamp(),
-      });
-      _currentCallId = null;
-    } catch (e) {
-      print('Error ending call: $e');
-    }
+  // ============================================================
+  // ❌ رفض المكالمة
+  // ============================================================
+  Future<void> declineCall(String callId) async {
+    await _firestore.collection('calls').doc(callId).update({
+      'status': CallStatus.rejected.name,
+      'endedAt': FieldValue.serverTimestamp(),
+    });
   }
 
-  String? get currentCallId => _currentCallId;
-  bool get isInCall => _currentCallId != null;
+  // ============================================================
+  // 🔚 إنهاء المكالمة
+  // ============================================================
+  Future<void> endCall(String callId, {int? durationSeconds}) async {
+    await _firestore.collection('calls').doc(callId).update({
+      'status': CallStatus.ended.name,
+      'endedAt': FieldValue.serverTimestamp(),
+      'durationSeconds': durationSeconds,
+    });
+  }
+
+  // ============================================================
+  // ⏰ تفويت المكالمة (مهلة)
+  // ============================================================
+  Future<void> missCall(String callId) async {
+    await _firestore.collection('calls').doc(callId).update({
+      'status': CallStatus.missed.name,
+      'endedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  // ============================================================
+  // 📋 الاستماع لمكالمة محددة
+  // ============================================================
+  Stream<CallModel?> streamCall(String callId) {
+    return _firestore
+        .collection('calls')
+        .doc(callId)
+        .snapshots()
+        .map((doc) => doc.exists ? CallModel.fromFirestore(doc.id, doc.data()!) : null);
+  }
+
+  // ============================================================
+  // 📋 الاستماع لسجل المكالمات
+  // ============================================================
+  Stream<List<CallModel>> streamCallHistory() {
+    final userId = currentUserId;
+    if (userId == null) return Stream.value([]);
+
+    return _firestore
+        .collection('calls')
+        .where('participants', arrayContains: userId)
+        .orderBy('startedAt', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => CallModel.fromFirestore(doc.id, doc.data()))
+            .toList());
+  }
+
+  // ============================================================
+  // 📞 معالجة مكالمة واردة (من FCM)
+  // ============================================================
+  void handleIncomingCall(BuildContext context, Map<String, dynamic> data) {
+    final callId = data['callId'];
+    final chatId = data['chatId'];
+    final callerId = data['callerId'];
+    final callerName = data['callerName'] ?? 'متصل';
+    final isVideo = data['isVideo'] == 'true';
+
+    if (callId == null || chatId == null) return;
+
+    // ✅ فتح شاشة المكالمة الواردة
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (context) => IncomingCallScreen(
+          callId: callId,
+          chatId: chatId,
+          callerId: callerId,
+          callerName: callerName,
+          isVideo: isVideo,
+          onAccept: () => acceptCall(callId),
+          onReject: () => declineCall(callId),
+          onTimeout: () => missCall(callId),
+        ),
+      ),
+    );
+  }
 }
