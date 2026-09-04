@@ -73,8 +73,7 @@ void main() async {
   await CacheService.init();
 
   // ✅ تهيئة الإشعارات
-  final notificationService = NotificationService();
-  await notificationService.initialize();
+  
 
   // ✅ تحميل البيانات الأساسية مسبقاً
   await PreloadService().preloadEssentialData();
@@ -178,11 +177,6 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
 
   void _handleMessage(RemoteMessage message) {
     print('📩 New message: ${message.notification?.title}');
-    _notificationService.showNotification(
-      title: message.notification?.title ?? 'إشعار جديد',
-      body: message.notification?.body ?? '',
-      payload: message.data['chatId'] ?? '',
-    );
   }
 
   void _handleMessageOpened(RemoteMessage message) {

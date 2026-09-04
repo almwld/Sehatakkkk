@@ -1,7 +1,3 @@
-// ============================================================
-// 🔔 NotificationService - خدمة الإشعارات
-// ============================================================
-
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -17,6 +13,7 @@ class NotificationService {
 
   bool _isInitialized = false;
 
+  // ✅ تهيئة الخدمة
   Future<void> init() async {
     if (_isInitialized) return;
 
@@ -25,22 +22,26 @@ class NotificationService {
     const settings = InitializationSettings(android: android, iOS: ios);
     await _localNotifications.initialize(settings);
 
-    await _fcm.requestPermission();
+    await _fcm.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
 
     FirebaseMessaging.onMessage.listen(_handleMessage);
     FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpened);
 
     _isInitialized = true;
-    print('✅ Notification service initialized');
+    debugPrint('✅ Notification service initialized');
   }
 
   void _handleMessage(RemoteMessage message) {
-    print('📩 New message: ${message.notification?.title}');
+    debugPrint('📩 New message: ${message.notification?.title}');
     _showLocalNotification(message);
   }
 
   void _handleMessageOpened(RemoteMessage message) {
-    print('📱 Message opened: ${message.data}');
+    debugPrint('📱 Message opened: ${message.data}');
   }
 
   void _showLocalNotification(RemoteMessage message) {
@@ -75,32 +76,3 @@ class NotificationService {
     _isInitialized = false;
   }
 }
-
-  // ✅ إضافة method showNotification
-    print('📩 Notification: $title - $body');
-    // يمكن إضافة منطق إظهار الإشعار المحلي هنا
-  }
-
-  // ✅ إضافة method initialize
-  Future<void> initialize() async {
-    print('✅ NotificationService initialized');
-  }
-
-  // ✅ إضافة method showNotification
-    print('📩 Notification: $title - $body');
-    // يمكن إضافة منطق إظهار الإشعار المحلي هنا
-  }
-
-  // ✅ إضافة method initialize
-  Future<void> initialize() async {
-    print('✅ NotificationService initialized');
-  }
-
-  // ✅ إضافة method showNotification
-  void showNotification({
-    required String title,
-    required String body,
-    String? payload,
-  }) {
-    print('📩 Notification: $title - $body');
-  }

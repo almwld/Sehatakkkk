@@ -1,6 +1,6 @@
-import '../../../../core/models/message_model.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../../../core/models/message_model.dart';
 import '../../../../core/constants/app_colors.dart';
 
 class MessageBubble extends StatelessWidget {
@@ -15,7 +15,7 @@ class MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (message.isDeletedMessage) {
+    if (message.isDeleted) {
       return _buildDeletedMessage(context);
     }
 
@@ -50,7 +50,6 @@ class MessageBubble extends StatelessWidget {
                 crossAxisAlignment:
                     isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                 children: [
-                  // اسم المرسل
                   if (!isMe)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 4),
@@ -63,9 +62,8 @@ class MessageBubble extends StatelessWidget {
                         ),
                       ),
                     ),
-                  // محتوى الرسالة
-                  if (message.isImage && message.attachments?['imageUrl'] != null)
-                    _buildImageContent(context, message.attachments!['imageUrl']),
+                  if (message.imageUrl != null)
+                    _buildImageContent(message.imageUrl!),
                   if (message.text != null && message.text!.isNotEmpty)
                     Text(
                       message.text!,
@@ -75,7 +73,6 @@ class MessageBubble extends StatelessWidget {
                       ),
                     ),
                   const SizedBox(height: 4),
-                  // الوقت والحالة
                   Row(
                     mainAxisAlignment:
                         isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
@@ -110,14 +107,9 @@ class MessageBubble extends StatelessWidget {
     );
   }
 
-  // ============================================================
-  // 🖼️ محتوى الصورة
-  // ============================================================
-  Widget _buildImageContent(BuildContext context, String imageUrl) {
+  Widget _buildImageContent(String imageUrl) {
     return GestureDetector(
-      onTap: () {
-        // عرض الصورة في شاشة كاملة
-      },
+      onTap: () {},
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
         child: CachedNetworkImage(
@@ -129,28 +121,19 @@ class MessageBubble extends StatelessWidget {
             width: 200,
             height: 200,
             color: Colors.grey[300],
-            child: const Center(
-              child: CircularProgressIndicator(),
-            ),
+            child: const Center(child: CircularProgressIndicator()),
           ),
           errorWidget: (context, url, error) => Container(
             width: 200,
             height: 200,
             color: Colors.grey[300],
-            child: const Icon(
-              Icons.broken_image,
-              size: 40,
-              color: Colors.grey,
-            ),
+            child: const Icon(Icons.broken_image, size: 40, color: Colors.grey),
           ),
         ),
       ),
     );
   }
 
-  // ============================================================
-  // 🗑️ رسالة محذوفة
-  // ============================================================
   Widget _buildDeletedMessage(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -161,10 +144,7 @@ class MessageBubble extends StatelessWidget {
         children: [
           Flexible(
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 8,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
                 color: isDark ? Colors.grey[800] : Colors.grey[200],
                 borderRadius: BorderRadius.circular(12),
@@ -184,11 +164,9 @@ class MessageBubble extends StatelessWidget {
     );
   }
 
-  // ============================================================
-  // ⏰ تنسيق الوقت
-  // ============================================================
-  String _formatTime(DateTime? time) {
-    if (time == null) return '';
+  String _formatTime(Timestamp? timestamp) {
+    if (timestamp == null) return '';
+    final time = timestamp.toDate();
     final now = DateTime.now();
     if (time.day == now.day &&
         time.month == now.month &&
