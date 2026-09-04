@@ -46,14 +46,34 @@ class DoctorBloc extends Bloc<DoctorEvent, DoctorState> {
 
   Future<void> _onLoadDoctors(LoadDoctors event, Emitter<DoctorState> emit) async {
     emit(DoctorLoading());
+    print('🩺 DoctorBloc: Loading doctors...');
+
     try {
       final snapshot = await _firestore.collection('doctors').get();
+
+      print('🩺 DoctorBloc: Firestore docs = ${snapshot.docs.length}');
+
+      for (final doc in snapshot.docs) {
+        print('🩺 DoctorBloc: doc=${doc.id} data=${doc.data()}');
+      }
+
       final doctors = snapshot.docs.map((doc) {
-        return DoctorModel.fromFirestore(doc.id, doc.data() as Map<String, dynamic>);
+        return DoctorModel.fromFirestore(
+          doc.id,
+          doc.data(),
+        );
       }).toList();
+
+      print('🩺 DoctorBloc: parsed doctors = ${doctors.length}');
+
       emit(DoctorLoaded(doctors: doctors));
-    } catch (e) {
-      emit(DoctorError(message: 'حدث خطأ: ${e.toString()}'));
+    } catch (e, stackTrace) {
+      print('❌ DoctorBloc ERROR: $e');
+      print(stackTrace);
+
+      emit(DoctorError(
+        message: 'حدث خطأ: ${e.toString()}',
+      ));
     }
   }
 }
