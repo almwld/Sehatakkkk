@@ -1,19 +1,11 @@
+// ============================================================
+// 📦 MessageModel - نموذج الرسالة الموحد
+// ============================================================
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 
-enum MessageType {
-  text,
-  image,
-  audio,
-  video,
-  file,
-  location,
-  contact,
-  system,
-  reaction,
-  reply,
-  deleted,
-}
+enum MessageType { text, image, audio, video, file, location, reply, deleted }
 
 class MessageModel extends Equatable {
   final String id;
@@ -31,19 +23,13 @@ class MessageModel extends Equatable {
   final String? replyToId;
   final Map<String, String>? reactions;
   final Map<String, dynamic>? attachments;
-  final String? imageUrl;
-  final String? audioUrl;
-  final String? fileUrl;
-  final String? locationUrl;
+  final Map<String, dynamic>? metadata;
   final String? locationAddress;
   final double? locationLat;
   final double? locationLng;
   final int? audioDuration;
   final String? fileSize;
   final String? fileName;
-  final String? fileMimeType;
-  final String? thumbnailUrl;
-  final bool isPinned;
 
   const MessageModel({
     required this.id,
@@ -61,19 +47,13 @@ class MessageModel extends Equatable {
     this.replyToId,
     this.reactions,
     this.attachments,
-    this.imageUrl,
-    this.audioUrl,
-    this.fileUrl,
-    this.locationUrl,
+    this.metadata,
     this.locationAddress,
     this.locationLat,
     this.locationLng,
     this.audioDuration,
     this.fileSize,
     this.fileName,
-    this.fileMimeType,
-    this.thumbnailUrl,
-    this.isPinned = false,
   });
 
   factory MessageModel.fromFirestore(String id, Map<String, dynamic> data) {
@@ -84,7 +64,7 @@ class MessageModel extends Equatable {
       senderName: data['senderName'] ?? '',
       senderPhotoUrl: data['senderPhotoUrl'],
       text: data['text'],
-      type: _parseMessageType(data['type']),
+      type: _parseType(data['type']),
       timestamp: data['timestamp'],
       isRead: data['isRead'] ?? false,
       isDelivered: data['isDelivered'] ?? false,
@@ -92,33 +72,50 @@ class MessageModel extends Equatable {
       isDeleted: data['isDeleted'] ?? false,
       replyToId: data['replyToId'],
       reactions: Map<String, String>.from(data['reactions'] ?? {}),
-      attachments: data['attachments'] as Map<String, dynamic>?,
-      imageUrl: data['imageUrl'],
-      audioUrl: data['audioUrl'],
-      fileUrl: data['fileUrl'],
-      locationUrl: data['locationUrl'],
+      attachments: data['attachments'],
+      metadata: data['metadata'],
       locationAddress: data['locationAddress'],
-      locationLat: (data['locationLat'] as num?)?.toDouble(),
-      locationLng: (data['locationLng'] as num?)?.toDouble(),
+      locationLat: data['locationLat']?.toDouble(),
+      locationLng: data['locationLng']?.toDouble(),
       audioDuration: data['audioDuration'],
       fileSize: data['fileSize'],
       fileName: data['fileName'],
-      fileMimeType: data['fileMimeType'],
-      thumbnailUrl: data['thumbnailUrl'],
-      isPinned: data['isPinned'] ?? false,
     );
   }
 
-  static MessageType _parseMessageType(String? type) {
+  Map<String, dynamic> toFirestore() {
+    return {
+      'chatId': chatId,
+      'senderId': senderId,
+      'senderName': senderName,
+      'senderPhotoUrl': senderPhotoUrl,
+      'text': text,
+      'type': type.toString().split('.').last,
+      'timestamp': timestamp ?? FieldValue.serverTimestamp(),
+      'isRead': isRead,
+      'isDelivered': isDelivered,
+      'isEdited': isEdited,
+      'isDeleted': isDeleted,
+      'replyToId': replyToId,
+      'reactions': reactions,
+      'attachments': attachments,
+      'metadata': metadata,
+      'locationAddress': locationAddress,
+      'locationLat': locationLat,
+      'locationLng': locationLng,
+      'audioDuration': audioDuration,
+      'fileSize': fileSize,
+      'fileName': fileName,
+    };
+  }
+
+  static MessageType _parseType(String? type) {
     switch (type) {
       case 'image': return MessageType.image;
       case 'audio': return MessageType.audio;
       case 'video': return MessageType.video;
       case 'file': return MessageType.file;
       case 'location': return MessageType.location;
-      case 'contact': return MessageType.contact;
-      case 'system': return MessageType.system;
-      case 'reaction': return MessageType.reaction;
       case 'reply': return MessageType.reply;
       case 'deleted': return MessageType.deleted;
       default: return MessageType.text;
