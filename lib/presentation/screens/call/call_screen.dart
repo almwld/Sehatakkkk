@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:sehatak/core/services/livekit_service.dart';
+import 'package:sehatak/core/services/call_service.dart';
 import 'package:sehatak/core/services/sound_manager.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
@@ -15,12 +18,21 @@ class CallScreen extends StatefulWidget {
   final String doctorId;
   final bool isVideo;
 
+  /// Firestore call document ID.
+  /// Optional for backward compatibility with existing callers.
+  final String? callId;
+
+  /// True when this screen belongs to the caller.
+  final bool isOutgoing;
+
   const CallScreen({
     super.key,
     required this.chatId,
     required this.doctorName,
     required this.doctorId,
     this.isVideo = true,
+    this.callId,
+    this.isOutgoing = false,
   });
 
   @override
@@ -29,8 +41,12 @@ class CallScreen extends StatefulWidget {
 
 class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
   final LiveKitService _liveKit = LiveKitService();
+  final CallService _callService = CallService();
   final Connectivity _connectivity = Connectivity();
   final AudioPlayer _audioPlayer = AudioPlayer();
+
+  Timer? _callTimer;
+  bool _callLifecycleEnded = false;
 
   bool _isMuted = false;
   bool _isCameraOn = true;
@@ -109,10 +125,14 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    _callTimer?.cancel();
+    _callTimer = null;
+
     _audioPlayer.stop();
     _audioPlayer.dispose();
     SoundManager().stopAll();
     _liveKit.endCall();
+
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -162,11 +182,13 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
       await _audioPlayer.stop();
 
       // ✅ بدء المكالمة
-      await _liveKit.startCall(
+      await _liveKit.connectRoom(
         roomName: widget.chatId,
-        callerName: widget.doctorName,
-        isVideo: widget.isVideo && _hasCameraPermission,
+        participantName: FirebaseAuth.instance.currentUser?.displayName ?? 'مستخدم',
       );
+      if (widget.isVideo && _hasCameraPermission) {
+        await _liveKit.enableCamera();
+      }
 
       final room = _liveKit.room;
       if (room != null) {
@@ -235,13 +257,15 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
   }
 
   void _startTimer() {
-    Future.delayed(const Duration(seconds: 1), () {
-      if (mounted) {
-        setState(() => _callDuration++);
-        if (_callDuration < 60) {
-          Future.delayed(const Duration(seconds: 1), _startTimer);
-        }
+    _callTimer?.cancel();
+
+    _callTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) {
+        _callTimer?.cancel();
+        return;
       }
+
+      setState(() => _callDuration++);
     });
   }
 
@@ -274,11 +298,43 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
     }
   }
 
-  void _endCall() {
+  Future<void> _endCall() async {
+    if (_callLifecycleEnded) {
+      if (mounted) {
+        Navigator.pop(context);
+      }
+      return;
+    }
+
+    _callLifecycleEnded = true;
+    _callTimer?.cancel();
+    _callTimer = null;
+
     SoundManager().stopAll();
     SoundManager().playCallEnd();
-    _liveKit.endCall();
-    Navigator.pop(context);
+
+    try {
+      final callId = widget.callId;
+
+      if (callId != null && callId.trim().isNotEmpty) {
+        if (_callDuration > 0) {
+          await _callService.endCall(
+            callId,
+            durationSeconds: _callDuration,
+          );
+        } else if (widget.isOutgoing) {
+          await _callService.cancelCall(callId);
+        }
+      }
+    } catch (e) {
+      debugPrint('⚠️ Call lifecycle update failed: $e');
+    } finally {
+      await _liveKit.endCall();
+
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    }
   }
 
   @override
