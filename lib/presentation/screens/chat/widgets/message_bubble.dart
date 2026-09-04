@@ -1,5 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/models/message_model.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -30,26 +30,16 @@ class MessageBubble extends StatelessWidget {
         children: [
           Flexible(
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 8,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: isMe
-                    ? AppColors.primary
-                    : (isDark ? Colors.grey[800] : Colors.grey[200]),
+                color: isMe ? AppColors.primary : (isDark ? Colors.grey[800] : Colors.grey[200]),
                 borderRadius: BorderRadius.circular(12).copyWith(
-                  bottomRight: isMe
-                      ? const Radius.circular(4)
-                      : const Radius.circular(12),
-                  bottomLeft: isMe
-                      ? const Radius.circular(12)
-                      : const Radius.circular(4),
+                  bottomRight: isMe ? const Radius.circular(4) : const Radius.circular(12),
+                  bottomLeft: isMe ? const Radius.circular(12) : const Radius.circular(4),
                 ),
               ),
               child: Column(
-                crossAxisAlignment:
-                    isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                 children: [
                   if (!isMe)
                     Padding(
@@ -75,16 +65,13 @@ class MessageBubble extends StatelessWidget {
                     ),
                   const SizedBox(height: 4),
                   Row(
-                    mainAxisAlignment:
-                        isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+                    mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
                     children: [
                       Text(
                         _formatTime(message.timestamp),
                         style: TextStyle(
                           fontSize: 10,
-                          color: isMe
-                              ? Colors.white70
-                              : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                          color: isMe ? Colors.white70 : (isDark ? Colors.grey[400] : Colors.grey[600]),
                         ),
                       ),
                       if (isMe) ...[
@@ -92,9 +79,7 @@ class MessageBubble extends StatelessWidget {
                         Icon(
                           message.isRead ? Icons.done_all : Icons.done,
                           size: 14,
-                          color: message.isRead
-                              ? (isDark ? Colors.green[300] : Colors.green)
-                              : (isDark ? Colors.grey[500] : Colors.grey),
+                          color: message.isRead ? (isDark ? Colors.green[300] : Colors.green) : (isDark ? Colors.grey[500] : Colors.grey),
                         ),
                       ],
                     ],
@@ -169,9 +154,7 @@ class MessageBubble extends StatelessWidget {
     if (timestamp == null) return '';
     final time = timestamp.toDate();
     final now = DateTime.now();
-    if (time.day == now.day &&
-        time.month == now.month &&
-        time.year == now.year) {
+    if (time.day == now.day && time.month == now.month && time.year == now.year) {
       return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
     }
     return '${time.day}/${time.month}';
