@@ -10,9 +10,9 @@ class ChatService {
   String? get currentUserId => _auth.currentUser?.uid;
 
   // ============================================================
-  // 📋 جلب المحادثات (Stream)
+  // 📋 جلب المحادثات (Stream) مع Pagination
   // ============================================================
-  Stream<List<ChatModel>> streamChats() {
+  Stream<List<ChatModel>> streamChats({int limit = 50}) {
     final userId = currentUserId;
     if (userId == null) return Stream.value([]);
 
@@ -20,6 +20,7 @@ class ChatService {
         .collection('chats')
         .where('participants', arrayContains: userId)
         .orderBy('updatedAt', descending: true)
+        .limit(limit)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => ChatModel.fromFirestore(doc.id, doc.data()))
@@ -27,7 +28,33 @@ class ChatService {
   }
 
   // ============================================================
-  // 📝 إنشاء محادثة فردية
+  // 📋 جلب المزيد من المحادثات (Pagination)
+  // ============================================================
+  Future<List<ChatModel>> getMoreChats({
+    required int limit,
+    DocumentSnapshot? startAfter,
+  }) async {
+    final userId = currentUserId;
+    if (userId == null) return [];
+
+    Query query = _firestore
+        .collection('chats')
+        .where('participants', arrayContains: userId)
+        .orderBy('updatedAt', descending: true)
+        .limit(limit);
+
+    if (startAfter != null) {
+      query = query.startAfterDocument(startAfter);
+    }
+
+    final snapshot = await query.get();
+    return snapshot.docs
+        .map((doc) => ChatModel.fromFirestore(doc.id, doc.data()))
+        .toList();
+  }
+
+  // ============================================================
+  // 📝 إنشاء محادثة (Idempotent)
   // ============================================================
   Future<String> createChat({
     required String doctorId,
@@ -35,11 +62,25 @@ class ChatService {
     required String patientName,
     String? doctorImage,
     String? patientImage,
+    String? idempotencyKey,
   }) async {
     final userId = currentUserId;
     if (userId == null) throw Exception('يجب تسجيل الدخول');
 
-    // التحقق من وجود محادثة مسبقة
+    // ✅ Idempotency: التحقق من المفتاح
+    if (idempotencyKey != null) {
+      final existing = await _firestore
+          .collection('chats')
+          .where('idempotencyKey', isEqualTo: idempotencyKey)
+          .limit(1)
+          .get();
+      
+      if (existing.docs.isNotEmpty) {
+        return existing.docs.first.id;
+      }
+    }
+
+    // ✅ التحقق من وجود محادثة مسبقة
     final existing = await _firestore
         .collection('chats')
         .where('participants', arrayContains: userId)
@@ -52,8 +93,9 @@ class ChatService {
       }
     }
 
-    // إنشاء محادثة جديدة
-    final chatRef = await _firestore.collection('chats').add({
+    // ✅ إنشاء محادثة جديدة
+    final chatRef = _firestore.collection('chats').doc();
+    final chatData = {
       'participants': [userId, doctorId],
       'participantDetails': {
         userId: {'name': patientName, 'photoUrl': patientImage},
@@ -68,48 +110,17 @@ class ChatService {
       'isPinned': false,
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
-    });
+      if (idempotencyKey != null) 'idempotencyKey': idempotencyKey,
+    };
 
+    await chatRef.set(chatData);
     return chatRef.id;
   }
 
   // ============================================================
-  // 📝 إنشاء محادثة جماعية
+  // ✉️ إرسال رسالة (Idempotent + Atomic)
   // ============================================================
-  Future<String> createGroupChat({
-    required String groupName,
-    required List<String> participantIds,
-    String? groupImage,
-  }) async {
-    final userId = currentUserId;
-    if (userId == null) throw Exception('يجب تسجيل الدخول');
-
-    final allParticipants = [userId, ...participantIds.where((id) => id != userId)];
-    final unreadCount = {for (var id in allParticipants) id: 0};
-
-    final chatRef = await _firestore.collection('chats').add({
-      'participants': allParticipants,
-      'participantDetails': {},
-      'lastMessage': '',
-      'lastMessageTime': null,
-      'lastMessageSenderId': null,
-      'unreadCount': unreadCount,
-      'isGroup': true,
-      'isArchived': false,
-      'isPinned': false,
-      'groupName': groupName,
-      'groupImage': groupImage,
-      'createdAt': FieldValue.serverTimestamp(),
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
-
-    return chatRef.id;
-  }
-
-  // ============================================================
-  // ✉️ إرسال رسالة
-  // ============================================================
-  Future<void> sendMessage({
+  Future<String> sendMessage({
     required String chatId,
     required String text,
     String? imageUrl,
@@ -118,11 +129,33 @@ class ChatService {
     String? locationUrl,
     String? replyToId,
     String? replyToText,
+    String? idempotencyKey,
   }) async {
     final userId = currentUserId;
     if (userId == null) throw Exception('يجب تسجيل الدخول');
     
     final user = _auth.currentUser;
+
+    // ✅ Idempotency: التحقق من المفتاح
+    if (idempotencyKey != null) {
+      final existing = await _firestore
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .where('idempotencyKey', isEqualTo: idempotencyKey)
+          .limit(1)
+          .get();
+      
+      if (existing.docs.isNotEmpty) {
+        return existing.docs.first.id;
+      }
+    }
+
+    final messageRef = _firestore
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .doc();
 
     final messageData = {
       'chatId': chatId,
@@ -145,37 +178,38 @@ class ChatService {
       'replyToId': replyToId,
       'replyToText': replyToText,
       'reactions': {},
+      if (idempotencyKey != null) 'idempotencyKey': idempotencyKey,
     };
 
-    await _firestore
-        .collection('chats')
-        .doc(chatId)
-        .collection('messages')
-        .add(messageData);
+    // ✅ Atomic batch: رسالة + تحديث المحادثة
+    final batch = _firestore.batch();
+    batch.set(messageRef, messageData);
 
-    // تحديث المحادثة
-    await _firestore.collection('chats').doc(chatId).update({
+    batch.update(_firestore.collection('chats').doc(chatId), {
       'lastMessage': text.isNotEmpty ? text : 'مرفق',
       'lastMessageTime': FieldValue.serverTimestamp(),
       'lastMessageSenderId': userId,
       'updatedAt': FieldValue.serverTimestamp(),
     });
 
-    // زيادة عدد الرسائل غير المقروءة للمشاركين الآخرين
+    // ✅ تحديث unreadCount للمشاركين الآخرين
     final chatDoc = await _firestore.collection('chats').doc(chatId).get();
     final participants = List<String>.from(chatDoc.data()?['participants'] ?? []);
     
     for (final participantId in participants) {
       if (participantId != userId) {
-        await _firestore.collection('chats').doc(chatId).update({
+        batch.update(_firestore.collection('chats').doc(chatId), {
           'unreadCount.$participantId': FieldValue.increment(1),
         });
       }
     }
+
+    await batch.commit();
+    return messageRef.id;
   }
 
   // ============================================================
-  // ✅ تحديث حالة القراءة - ✅ FIXED
+  // ✅ تحديث حالة القراءة (Atomic Batch + Index)
   // ============================================================
   Future<void> markAsRead(String chatId) async {
     final userId = currentUserId;
@@ -186,18 +220,21 @@ class ChatService {
       'unreadCount.$userId': 0,
     });
 
-    // 2. تحديث isRead للرسائل التي أرسلها الآخرون (وليس المستخدم نفسه)
+    // 2. تحديث isRead للرسائل التي أرسلها الآخرون
+    // ✅ يستخدم فهرس مركب: senderId + isRead
     final messages = await _firestore
         .collection('chats')
         .doc(chatId)
         .collection('messages')
         .where('senderId', isNotEqualTo: userId)
         .where('isRead', isEqualTo: false)
+        .orderBy('timestamp', descending: true)
+        .limit(100) // ✅ Pagination: حد أقصى 100 رسالة في المرة الواحدة
         .get();
 
     if (messages.docs.isEmpty) return;
 
-    // 3. استخدام batch للتحديث الدفعي
+    // 3. Atomic batch للتحديث الدفعي
     final batch = _firestore.batch();
     final now = FieldValue.serverTimestamp();
     
@@ -212,7 +249,7 @@ class ChatService {
   }
 
   // ============================================================
-  // ✅ تحديث حالة التسليم
+  // ✅ تحديث حالة التسليم (Atomic Batch)
   // ============================================================
   Future<void> markAsDelivered(String chatId) async {
     final userId = currentUserId;
@@ -224,6 +261,8 @@ class ChatService {
         .collection('messages')
         .where('senderId', isNotEqualTo: userId)
         .where('isDelivered', isEqualTo: false)
+        .orderBy('timestamp', descending: true)
+        .limit(100)
         .get();
 
     if (messages.docs.isEmpty) return;
@@ -242,18 +281,44 @@ class ChatService {
   }
 
   // ============================================================
-  // 📥 جلب رسائل المحادثة (Stream)
+  // 📥 جلب رسائل المحادثة (Pagination)
   // ============================================================
-  Stream<List<MessageModel>> streamMessages(String chatId) {
+  Stream<List<MessageModel>> streamMessages(String chatId, {int limit = 50}) {
     return _firestore
         .collection('chats')
         .doc(chatId)
         .collection('messages')
         .orderBy('timestamp', descending: true)
+        .limit(limit)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => MessageModel.fromFirestore(doc.id, doc.data()))
             .toList());
+  }
+
+  // ============================================================
+  // 📥 جلب المزيد من الرسائل (Pagination)
+  // ============================================================
+  Future<List<MessageModel>> getMoreMessages({
+    required String chatId,
+    required int limit,
+    DocumentSnapshot? startAfter,
+  }) async {
+    Query query = _firestore
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .orderBy('timestamp', descending: true)
+        .limit(limit);
+
+    if (startAfter != null) {
+      query = query.startAfterDocument(startAfter);
+    }
+
+    final snapshot = await query.get();
+    return snapshot.docs
+        .map((doc) => MessageModel.fromFirestore(doc.id, doc.data()))
+        .toList();
   }
 
   // ============================================================

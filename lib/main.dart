@@ -111,6 +111,7 @@ void main() async {
         ),
         BlocProvider(create: (_) => ThemeBloc()),
         BlocProvider(create: (_) => ChatBloc()),
+        BlocProvider(create: (_) => MessagesBloc()),
         BlocProvider(create: (_) => DoctorBloc()),
       ],
       child: const SehatakApp(),
