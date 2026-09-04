@@ -1,4 +1,4 @@
-import '../../presentation/bloc/doctor_bloc/doctor_bloc.dart';
+import '../../bloc/doctor_bloc/doctor_bloc.dart';
 import 'package:flutter/material.dart';
 import '../doctor/doctor_details_screen.dart';
 
@@ -47,7 +47,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (_) => DoctorDetailsScreen(
-                      doctor: SimpleDoctor(
+                      doctor: DoctorModel(
                         id: item['id'] ?? '',
                         name: item['name'] ?? '',
                         specialty: item['specialty'] ?? '',

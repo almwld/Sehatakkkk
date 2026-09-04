@@ -1,4 +1,4 @@
-import '../../../presentation/bloc/doctor_bloc/doctor_bloc.dart';
+import '../../../bloc/doctor_bloc/doctor_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -1076,7 +1076,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       itemBuilder: (context, index) {
         final doctor = _topDoctors[index];
         return GestureDetector(
-          onTap: () => _goTo(context, DoctorDetailsScreen(doctor: SimpleDoctor(id: doctor['id'], name: doctor['name'] ?? "", specialty: doctor['specialty'] ?? ""))),
+          onTap: () => _goTo(context, DoctorDetailsScreen(doctor: DoctorModel(id: doctor['id'], name: doctor['name'] ?? "", specialty: doctor['specialty'] ?? ""))),
           child: Container(
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1A2540) : Colors.white,
@@ -1126,7 +1126,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () => _goTo(context, DoctorDetailsScreen(doctor: SimpleDoctor(id: doctor['id'], name: doctor['name'] ?? "", specialty: doctor['specialty'] ?? ""))),
+                          onPressed: () => _goTo(context, DoctorDetailsScreen(doctor: DoctorModel(id: doctor['id'], name: doctor['name'] ?? "", specialty: doctor['specialty'] ?? ""))),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
