@@ -204,24 +204,47 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   // ✅ 11. بدء مكالمة صوتية
   Future<void> _startAudioCall() async {
     final user = FirebaseAuth.instance.currentUser;
+
     if (user == null) {
       ToastService.showError('❌ يجب تسجيل الدخول');
       return;
     }
 
+    if (widget.chatId.trim().isEmpty || widget.otherUserId.trim().isEmpty) {
+      ToastService.showError('❌ بيانات المحادثة غير صالحة');
+      return;
+    }
+
+    if (widget.otherUserId == user.uid) {
+      ToastService.showError('❌ لا يمكنك الاتصال بنفسك');
+      return;
+    }
+
     try {
-      Navigator.push(
+      final call = await _callService.initiateCall(
+        chatId: widget.chatId,
+        receiverId: widget.otherUserId,
+        receiverName: widget.otherUserName,
+        type: CallType.audio,
+      );
+
+      if (!mounted) return;
+
+      await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => CallScreen(
+            callId: call.id,
             chatId: widget.chatId,
             doctorName: widget.otherUserName,
             doctorId: widget.otherUserId,
             isVideo: false,
+            isOutgoing: true,
           ),
         ),
       );
     } catch (e) {
+      if (!mounted) return;
       ToastService.showError('❌ فشل بدء المكالمة: $e');
     }
   }
@@ -229,24 +252,47 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   // ✅ 12. بدء مكالمة فيديو
   Future<void> _startVideoCall() async {
     final user = FirebaseAuth.instance.currentUser;
+
     if (user == null) {
       ToastService.showError('❌ يجب تسجيل الدخول');
       return;
     }
 
+    if (widget.chatId.trim().isEmpty || widget.otherUserId.trim().isEmpty) {
+      ToastService.showError('❌ بيانات المحادثة غير صالحة');
+      return;
+    }
+
+    if (widget.otherUserId == user.uid) {
+      ToastService.showError('❌ لا يمكنك الاتصال بنفسك');
+      return;
+    }
+
     try {
-      Navigator.push(
+      final call = await _callService.initiateCall(
+        chatId: widget.chatId,
+        receiverId: widget.otherUserId,
+        receiverName: widget.otherUserName,
+        type: CallType.video,
+      );
+
+      if (!mounted) return;
+
+      await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => CallScreen(
+            callId: call.id,
             chatId: widget.chatId,
             doctorName: widget.otherUserName,
             doctorId: widget.otherUserId,
             isVideo: true,
+            isOutgoing: true,
           ),
         ),
       );
     } catch (e) {
+      if (!mounted) return;
       ToastService.showError('❌ فشل بدء مكالمة الفيديو: $e');
     }
   }

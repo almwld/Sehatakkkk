@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,6 +18,7 @@ import 'core/themes/theme_manager.dart';
 import 'core/services/cache_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/call_service.dart';
+import 'core/models/call_model.dart';
 import 'core/services/preload_service.dart';
 import 'core/routes/payment_routes.dart';
 import 'presentation/bloc/auth_bloc/auth_bloc.dart';
@@ -24,6 +26,7 @@ import 'presentation/bloc/theme_bloc/theme_bloc.dart';
 import 'bloc/chat/chat_bloc.dart';
 import 'presentation/bloc/doctor_bloc/doctor_bloc.dart';
 import 'presentation/screens/splash_screen.dart';
+import 'presentation/screens/chat/incoming_call_screen.dart';
 import 'presentation/screens/wallet/wallet_screen.dart';
 
 // ✅ معالج الخلفية للإشعارات
@@ -127,28 +130,97 @@ class SehatakApp extends StatefulWidget {
 }
 
 class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
-  final CallService _callService = CallService();
-  final NotificationService _notificationService = NotificationService();
+  final NotificationService _notificationService =
+      NotificationService();
+
+  StreamSubscription<List<CallModel>>?
+      _incomingCallsSubscription;
+
+  String? _visibleIncomingCallId;
 
   @override
   void initState() {
     super.initState();
+
     WidgetsBinding.instance.addObserver(this);
 
-    // ✅ الاستماع للإشعارات
-    FirebaseMessaging.onMessage.listen(_handleMessage);
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpened);
+    _initializeNotifications();
+    _listenForIncomingCalls();
 
-    // ✅ الاستماع لإشعارات المكالمات
-    FirebaseMessaging.onMessage.listen((message) {
-      if (message.data['type'] == 'incoming_call') {
-        _callService.handleIncomingCall(context, message);
-      }
-    });
+    FirebaseMessaging.onMessageOpenedApp.listen(
+      _handleMessageOpened,
+    );
+  }
+
+  Future<void> _initializeNotifications() async {
+    try {
+      await _notificationService.init();
+    } catch (e) {
+      debugPrint(
+        '⚠️ Notification service init failed: $e',
+      );
+    }
+  }
+
+  void _listenForIncomingCalls() {
+    _incomingCallsSubscription =
+        CallService().streamIncomingCalls().listen(
+      (calls) {
+        if (!mounted || calls.isEmpty) return;
+
+        final call = calls.first;
+
+        if (_visibleIncomingCallId != null) {
+          return;
+        }
+
+        _showIncomingCall(call);
+      },
+      onError: (error) {
+        debugPrint(
+          '⚠️ Incoming calls stream error: $error',
+        );
+      },
+    );
+  }
+
+  Future<void> _showIncomingCall(
+    CallModel call,
+  ) async {
+    if (!mounted) return;
+
+    final navigator = navigatorKey.currentState;
+
+    if (navigator == null) return;
+
+    if (_visibleIncomingCallId == call.id) {
+      return;
+    }
+
+    _visibleIncomingCallId = call.id;
+
+    await navigator.push(
+      MaterialPageRoute(
+        builder: (_) => IncomingCallScreen(
+          callId: call.id,
+          chatId: call.chatId,
+          callerId: call.callerId,
+          callerName: call.callerName,
+          isVideo: call.isVideoCall,
+        ),
+      ),
+    );
+
+    _visibleIncomingCallId = null;
   }
 
   @override
   void dispose() {
+    _incomingCallsSubscription?.cancel();
+    _incomingCallsSubscription = null;
+
+    _notificationService.dispose();
+
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -176,14 +248,37 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
     }
   }
 
-  void _handleMessage(RemoteMessage message) {
-    print('📩 New message: ${message.notification?.title}');
-  }
+  Future<void> _handleMessageOpened(
+    RemoteMessage message,
+  ) async {
+    debugPrint(
+      '📱 FCM opened: ${message.data}',
+    );
 
-  void _handleMessageOpened(RemoteMessage message) {
-    print('📱 Message opened: ${message.data}');
-    if (message.data['type'] == 'incoming_call') {
-      _callService.handleIncomingCall(context, message);
+    if (message.data['type'] != 'incoming_call') {
+      return;
+    }
+
+    final callId =
+        message.data['callId']?.toString();
+
+    if (callId == null || callId.trim().isEmpty) {
+      return;
+    }
+
+    try {
+      final call =
+          await CallService()
+              .streamCall(callId)
+              .first;
+
+      if (call != null && mounted) {
+        await _showIncomingCall(call);
+      }
+    } catch (e) {
+      debugPrint(
+        '⚠️ Failed to open incoming call: $e',
+      );
     }
   }
 

@@ -1,172 +1,338 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
-import '../models/call_model.dart';
-import 'notification_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-enum CallType { audio, video }
-enum CallStatus { calling, ringing, connected, ended, missed, rejected, busy }
+import '../models/call_model.dart';
 
 class CallService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final NotificationService _notificationService = NotificationService();
 
   String? get currentUserId => _auth.currentUser?.uid;
 
-  // ============================================================
-  // 📞 بدء مكالمة
-  // ============================================================
+  CollectionReference<Map<String, dynamic>> get _calls =>
+      _firestore.collection('calls');
+
   Future<CallModel?> initiateCall({
     required String receiverId,
     required String receiverName,
     String? receiverPhotoUrl,
     required CallType type,
     required String chatId,
+    String? idempotencyKey,
   }) async {
-    final userId = currentUserId;
     final user = _auth.currentUser;
-    if (userId == null) throw Exception('يجب تسجيل الدخول');
 
-    final callId = _firestore.collection('calls').doc().id;
-    final now = FieldValue.serverTimestamp();
+    if (user == null) {
+      throw Exception('يجب تسجيل الدخول قبل إجراء المكالمة');
+    }
 
-    final callData = {
+    final callerId = user.uid;
+    final normalizedReceiverId = receiverId.trim();
+    final normalizedChatId = chatId.trim();
+
+    if (normalizedReceiverId.isEmpty) {
+      throw Exception('معرف المستلم غير صالح');
+    }
+
+    if (normalizedChatId.isEmpty) {
+      throw Exception('معرف المحادثة غير صالح');
+    }
+
+    if (normalizedReceiverId == callerId) {
+      throw Exception('لا يمكن الاتصال بنفس المستخدم');
+    }
+
+    final callId = idempotencyKey?.trim().isNotEmpty == true
+        ? idempotencyKey!.trim()
+        : _calls.doc().id;
+
+    final callRef = _calls.doc(callId);
+
+    final existing = await callRef.get();
+
+    if (existing.exists && existing.data() != null) {
+      final existingCall = CallModel.fromFirestore(
+        existing.id,
+        existing.data()!,
+      );
+
+      if (existingCall.callerId != callerId) {
+        throw Exception('معرف المكالمة مستخدم مسبقًا');
+      }
+
+      return existingCall;
+    }
+
+    final roomName = normalizedChatId;
+
+    final data = <String, dynamic>{
       'id': callId,
-      'chatId': chatId,
-      'callerId': userId,
-      'callerName': user?.displayName ?? 'مستخدم',
-      'callerPhotoUrl': user?.photoURL,
-      'receiverId': receiverId,
-      'receiverName': receiverName,
+      'chatId': normalizedChatId,
+      'callerId': callerId,
+      'callerName': user.displayName?.trim().isNotEmpty == true
+          ? user.displayName!.trim()
+          : 'مستخدم',
+      'callerPhotoUrl': user.photoURL,
+      'receiverId': normalizedReceiverId,
+      'receiverName': receiverName.trim().isNotEmpty
+          ? receiverName.trim()
+          : 'مستخدم',
       'receiverPhotoUrl': receiverPhotoUrl,
-      'type': type.name,
+      'callType': type.name,
       'status': CallStatus.calling.name,
-      'startedAt': now,
+      'startedAt': FieldValue.serverTimestamp(),
       'isAnswered': false,
-      'participants': [userId, receiverId],
-      'roomName': 'call_${chatId}_${DateTime.now().millisecondsSinceEpoch}',
+      'participants': [callerId, normalizedReceiverId],
+      'liveKitRoomName': roomName,
+      'isVideoCall': type == CallType.video,
     };
 
-    await _firestore.collection('calls').doc(callId).set(callData);
+    await callRef.set(data);
 
-    // ✅ إرسال إشعار للمستقبل
-    await _notificationService.sendNotification(
-      userId: receiverId,
-      title: type == CallType.video ? '📹 مكالمة فيديو' : '📞 مكالمة صوتية',
-      body: '${user?.displayName ?? "مستخدم"} يتصل بك',
-      data: {
-        'type': 'incoming_call',
-        'callId': callId,
-        'chatId': chatId,
-        'callerId': userId,
-        'callerName': user?.displayName ?? 'مستخدم',
-        'isVideo': type == CallType.video ? 'true' : 'false',
-      },
+    final snapshot = await callRef.get();
+
+    if (!snapshot.exists || snapshot.data() == null) {
+      throw Exception('تعذر إنشاء المكالمة');
+    }
+
+    return CallModel.fromFirestore(
+      snapshot.id,
+      snapshot.data()!,
     );
-
-    final doc = await _firestore.collection('calls').doc(callId).get();
-    return CallModel.fromFirestore(callId, doc.data()!);
   }
 
-  // ============================================================
-  // ✅ قبول المكالمة
-  // ============================================================
   Future<void> acceptCall(String callId) async {
-    await _firestore.collection('calls').doc(callId).update({
-      'status': CallStatus.connected.name,
-      'isAnswered': true,
-      'connectedAt': FieldValue.serverTimestamp(),
+    final uid = _getUserIdOrThrow();
+    final ref = _calls.doc(callId);
+
+    await _firestore.runTransaction((transaction) async {
+      final doc = await transaction.get(ref);
+
+      if (!doc.exists || doc.data() == null) {
+        throw Exception('المكالمة غير موجودة');
+      }
+
+      final data = doc.data()!;
+      final receiverId = data['receiverId']?.toString();
+
+      if (receiverId != uid) {
+        throw Exception('غير مصرح بقبول هذه المكالمة');
+      }
+
+      final status = data['status']?.toString();
+
+      if (status != CallStatus.calling.name &&
+          status != CallStatus.ringing.name) {
+        throw Exception('لا يمكن قبول المكالمة في حالتها الحالية');
+      }
+
+      transaction.update(ref, {
+        'status': CallStatus.connected.name,
+        'isAnswered': true,
+        'connectedAt': FieldValue.serverTimestamp(),
+      });
     });
   }
 
-  // ============================================================
-  // ❌ رفض المكالمة
-  // ============================================================
-  Future<void> declineCall(String callId) async {
-    await _firestore.collection('calls').doc(callId).update({
-      'status': CallStatus.rejected.name,
-      'endedAt': FieldValue.serverTimestamp(),
+  Future<void> rejectCall(String callId) async {
+    final uid = _getUserIdOrThrow();
+    final ref = _calls.doc(callId);
+
+    await _firestore.runTransaction((transaction) async {
+      final doc = await transaction.get(ref);
+
+      if (!doc.exists || doc.data() == null) {
+        throw Exception('المكالمة غير موجودة');
+      }
+
+      final data = doc.data()!;
+      final receiverId = data['receiverId']?.toString();
+
+      if (receiverId != uid) {
+        throw Exception('غير مصرح برفض هذه المكالمة');
+      }
+
+      final status = data['status']?.toString();
+
+      if (status != CallStatus.calling.name &&
+          status != CallStatus.ringing.name) {
+        throw Exception('لا يمكن رفض المكالمة في حالتها الحالية');
+      }
+
+      transaction.update(ref, {
+        'status': CallStatus.rejected.name,
+        'endedAt': FieldValue.serverTimestamp(),
+      });
     });
   }
 
-  // ============================================================
-  // 🔚 إنهاء المكالمة
-  // ============================================================
-  Future<void> endCall(String callId, {int? durationSeconds}) async {
-    await _firestore.collection('calls').doc(callId).update({
-      'status': CallStatus.ended.name,
-      'endedAt': FieldValue.serverTimestamp(),
-      'durationSeconds': durationSeconds,
+  Future<void> cancelCall(String callId) async {
+    final uid = _getUserIdOrThrow();
+    final ref = _calls.doc(callId);
+
+    await _firestore.runTransaction((transaction) async {
+      final doc = await transaction.get(ref);
+
+      if (!doc.exists || doc.data() == null) {
+        throw Exception('المكالمة غير موجودة');
+      }
+
+      final data = doc.data()!;
+      final callerId = data['callerId']?.toString();
+
+      if (callerId != uid) {
+        throw Exception('غير مصرح بإلغاء هذه المكالمة');
+      }
+
+      final status = data['status']?.toString();
+
+      if (status != CallStatus.calling.name &&
+          status != CallStatus.ringing.name) {
+        throw Exception('لا يمكن إلغاء المكالمة في حالتها الحالية');
+      }
+
+      transaction.update(ref, {
+        'status': CallStatus.cancelled.name,
+        'endedAt': FieldValue.serverTimestamp(),
+      });
     });
   }
 
-  // ============================================================
-  // ⏰ تفويت المكالمة (مهلة)
-  // ============================================================
+  Future<void> endCall(
+    String callId, {
+    int? durationSeconds,
+  }) async {
+    final uid = _getUserIdOrThrow();
+    final ref = _calls.doc(callId);
+
+    await _firestore.runTransaction((transaction) async {
+      final doc = await transaction.get(ref);
+
+      if (!doc.exists || doc.data() == null) {
+        throw Exception('المكالمة غير موجودة');
+      }
+
+      final data = doc.data()!;
+      final participants = List<String>.from(
+        data['participants'] ?? const <String>[],
+      );
+
+      if (!participants.contains(uid)) {
+        throw Exception('غير مصرح بإنهاء هذه المكالمة');
+      }
+
+      final status = data['status']?.toString();
+
+      if (status != CallStatus.connected.name) {
+        throw Exception('لا يمكن إنهاء المكالمة في حالتها الحالية');
+      }
+
+      transaction.update(ref, {
+        'status': CallStatus.ended.name,
+        'endedAt': FieldValue.serverTimestamp(),
+        'durationSeconds': durationSeconds,
+      });
+    });
+  }
+
   Future<void> missCall(String callId) async {
-    await _firestore.collection('calls').doc(callId).update({
-      'status': CallStatus.missed.name,
-      'endedAt': FieldValue.serverTimestamp(),
+    final uid = _getUserIdOrThrow();
+    final ref = _calls.doc(callId);
+
+    await _firestore.runTransaction((transaction) async {
+      final doc = await transaction.get(ref);
+
+      if (!doc.exists || doc.data() == null) {
+        return;
+      }
+
+      final data = doc.data()!;
+
+      if (data['receiverId']?.toString() != uid) {
+        throw Exception('غير مصرح بتفويت هذه المكالمة');
+      }
+
+      final status = data['status']?.toString();
+
+      if (status != CallStatus.calling.name &&
+          status != CallStatus.ringing.name) {
+        return;
+      }
+
+      transaction.update(ref, {
+        'status': CallStatus.missed.name,
+        'endedAt': FieldValue.serverTimestamp(),
+      });
     });
   }
 
-  // ============================================================
-  // 📋 الاستماع لمكالمة محددة
-  // ============================================================
   Stream<CallModel?> streamCall(String callId) {
-    return _firestore
-        .collection('calls')
-        .doc(callId)
-        .snapshots()
-        .map((doc) => doc.exists ? CallModel.fromFirestore(doc.id, doc.data()!) : null);
+    return _calls.doc(callId).snapshots().map(
+          (doc) => doc.exists && doc.data() != null
+              ? CallModel.fromFirestore(doc.id, doc.data()!)
+              : null,
+        );
   }
 
-  // ============================================================
-  // 📋 الاستماع لسجل المكالمات
-  // ============================================================
-  Stream<List<CallModel>> streamCallHistory() {
-    final userId = currentUserId;
-    if (userId == null) return Stream.value([]);
+  Stream<List<CallModel>> streamIncomingCalls() {
+    final uid = currentUserId;
 
-    return _firestore
-        .collection('calls')
-        .where('participants', arrayContains: userId)
+    if (uid == null) {
+      return Stream.value(const <CallModel>[]);
+    }
+
+    return _calls
+        .where('receiverId', isEqualTo: uid)
+        .where(
+          'status',
+          whereIn: [
+            CallStatus.calling.name,
+            CallStatus.ringing.name,
+          ],
+        )
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => CallModel.fromFirestore(
+                  doc.id,
+                  doc.data(),
+                ),
+              )
+              .toList(),
+        );
+  }
+
+  Stream<List<CallModel>> streamCallHistory() {
+    final uid = currentUserId;
+
+    if (uid == null) {
+      return Stream.value(const <CallModel>[]);
+    }
+
+    return _calls
+        .where('participants', arrayContains: uid)
         .orderBy('startedAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => CallModel.fromFirestore(doc.id, doc.data()))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => CallModel.fromFirestore(
+                  doc.id,
+                  doc.data(),
+                ),
+              )
+              .toList(),
+        );
   }
 
-  // ============================================================
-  // 📞 معالجة مكالمة واردة (من FCM)
-  // ============================================================
-  void handleIncomingCall(BuildContext context, Map<String, dynamic> data) {
-    final callId = data['callId'];
-    final chatId = data['chatId'];
-    final callerId = data['callerId'];
-    final callerName = data['callerName'] ?? 'متصل';
-    final isVideo = data['isVideo'] == 'true';
+  String _getUserIdOrThrow() {
+    final uid = currentUserId;
 
-    if (callId == null || chatId == null) return;
+    if (uid == null) {
+      throw Exception('يجب تسجيل الدخول');
+    }
 
-    // ✅ فتح شاشة المكالمة الواردة
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        fullscreenDialog: true,
-        builder: (context) => IncomingCallScreen(
-          callId: callId,
-          chatId: chatId,
-          callerId: callerId,
-          callerName: callerName,
-          isVideo: isVideo,
-          onAccept: () => acceptCall(callId),
-          onReject: () => declineCall(callId),
-          onTimeout: () => missCall(callId),
-        ),
-      ),
-    );
+    return uid;
   }
 }

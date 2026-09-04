@@ -404,3 +404,171 @@ class ChatService {
     });
   }
 }
+
+  // ============================================================
+  // 📥 الحصول على DocumentSnapshot لرسالة (لـ Pagination)
+  // ============================================================
+  Future<DocumentSnapshot> getMessageCursor({
+    required String chatId,
+    required String messageId,
+  }) async {
+    return await _firestore
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .doc(messageId)
+        .get();
+  }
+
+  // ============================================================
+  // 📥 جلب المزيد من الرسائل مع Cursor (لـ UI)
+  // ============================================================
+  Future<MessagePage> getMoreMessagesWithCursor({
+    required String chatId,
+    required int limit,
+    DocumentSnapshot? startAfter,
+  }) async {
+    Query query = _firestore
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .orderBy('timestamp', descending: true)
+        .limit(limit);
+
+    if (startAfter != null) {
+      query = query.startAfterDocument(startAfter);
+    }
+
+    final snapshot = await query.get();
+    final messages = snapshot.docs
+        .map((doc) => MessageModel.fromFirestore(doc.id, doc.data()))
+        .toList();
+
+    return MessagePage(
+      messages: messages,
+      lastDocument: snapshot.docs.isNotEmpty ? snapshot.docs.last : null,
+      hasMore: messages.length >= limit,
+    );
+  }
+
+// ============================================================
+// 📄 MessagePage - لـ Pagination
+// ============================================================
+class MessagePage {
+  final List<MessageModel> messages;
+  final DocumentSnapshot? lastDocument;
+  final bool hasMore;
+
+  const MessagePage({
+    required this.messages,
+    this.lastDocument,
+    this.hasMore = false,
+  });
+}
+
+// ============================================================
+// 📥 جلب المزيد من الرسائل مع Cursor
+// ============================================================
+Future<MessagePage> getMoreMessagesWithCursor({
+  required String chatId,
+  required int limit,
+  DocumentSnapshot? startAfter,
+}) async {
+  Query query = _firestore
+      .collection('chats')
+      .doc(chatId)
+      .collection('messages')
+      .orderBy('timestamp', descending: true)
+      .limit(limit);
+
+  if (startAfter != null) {
+    query = query.startAfterDocument(startAfter);
+  }
+
+  final snapshot = await query.get();
+  final messages = snapshot.docs
+      .map((doc) => MessageModel.fromFirestore(doc.id, doc.data()))
+      .toList();
+
+  return MessagePage(
+    messages: messages,
+    lastDocument: snapshot.docs.isNotEmpty ? snapshot.docs.last : null,
+    hasMore: messages.length >= limit,
+  );
+}
+
+// ============================================================
+// 📥 الحصول على DocumentSnapshot لرسالة
+// ============================================================
+Future<DocumentSnapshot> getMessageCursor({
+  required String chatId,
+  required String messageId,
+}) async {
+  return await _firestore
+      .collection('chats')
+      .doc(chatId)
+      .collection('messages')
+      .doc(messageId)
+      .get();
+}
+
+// ============================================================
+// 📄 MessagePage - لـ Pagination
+// ============================================================
+class MessagePage {
+  final List<MessageModel> messages;
+  final DocumentSnapshot? lastDocument;
+  final bool hasMore;
+
+  const MessagePage({
+    required this.messages,
+    this.lastDocument,
+    this.hasMore = false,
+  });
+}
+
+// ============================================================
+// 📥 جلب المزيد من الرسائل مع Cursor
+// ============================================================
+Future<MessagePage> getMoreMessagesWithCursor({
+  required String chatId,
+  required int limit,
+  DocumentSnapshot? startAfter,
+}) async {
+  Query query = _firestore
+      .collection('chats')
+      .doc(chatId)
+      .collection('messages')
+      .orderBy('timestamp', descending: true)
+      .limit(limit);
+
+  if (startAfter != null) {
+    query = query.startAfterDocument(startAfter);
+  }
+
+  final snapshot = await query.get();
+  final messages = snapshot.docs
+      .map((doc) => MessageModel.fromFirestore(doc.id, doc.data()))
+      .toList();
+
+  return MessagePage(
+    messages: messages,
+    lastDocument: snapshot.docs.isNotEmpty ? snapshot.docs.last : null,
+    hasMore: messages.length >= limit,
+  );
+}
+
+// ============================================================
+// 📥 الحصول على DocumentSnapshot لرسالة
+// ============================================================
+Future<DocumentSnapshot> getMessageCursor({
+  required String chatId,
+  required String messageId,
+}) async {
+  return await _firestore
+      .collection('chats')
+      .doc(chatId)
+      .collection('messages')
+      .doc(messageId)
+      .get();
+}

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/services/chat_service.dart';
+import 'package:sehatak/core/services/call_service.dart';
 import 'package:sehatak/presentation/screens/chat/chat_detail_screen.dart';
 import 'package:sehatak/presentation/screens/call/call_screen.dart';
 
@@ -91,13 +92,24 @@ class ChatNavigation {
     }
   }
 
-  static void openCall(
+  static Future<void> openCall(
     BuildContext context, {
     required String chatId,
     required String doctorName,
     required String doctorId,
     required bool isVideo,
-  }) {
+  }) async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('❌ يجب تسجيل الدخول أولاً'),
+        ),
+      );
+      return;
+    }
+
     if (chatId.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -107,16 +119,48 @@ class ChatNavigation {
       return;
     }
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => CallScreen(
-          chatId: chatId,
-          doctorName: doctorName,
-          doctorId: doctorId,
-          isVideo: isVideo,
+    if (doctorId.trim().isEmpty || doctorId == user.uid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('❌ معرف الطرف الآخر غير صالح'),
         ),
-      ),
-    );
+      );
+      return;
+    }
+
+    try {
+      final callService = CallService();
+
+      final call = await callService.initiateCall(
+        chatId: chatId,
+        receiverId: doctorId,
+        receiverName: doctorName,
+        type: isVideo ? CallType.video : CallType.audio,
+      );
+
+      if (!context.mounted) return;
+
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CallScreen(
+            callId: call.id,
+            chatId: chatId,
+            doctorName: doctorName,
+            doctorId: doctorId,
+            isVideo: isVideo,
+            isOutgoing: true,
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ فشل بدء المكالمة: $e'),
+        ),
+      );
+    }
   }
 }
