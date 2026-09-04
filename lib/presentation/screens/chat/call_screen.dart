@@ -1,6 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/call_service.dart';
 import '../../../core/services/livekit_service.dart';
@@ -26,51 +26,64 @@ class CallScreen extends StatefulWidget {
 class _CallScreenState extends State<CallScreen> {
   final CallService _callService = CallService();
   final LiveKitService _liveKitService = LiveKitService();
+  Timer? _durationTimer;
+  int _seconds = 0;
   bool _isMuted = false;
   bool _isSpeakerOn = false;
   bool _isCameraOff = false;
-  String _duration = '00:00';
+  bool _isConnected = false;
 
   @override
   void initState() {
     super.initState();
-    _startTimer();
+    _startDurationTimer();
     _connectToLiveKit();
   }
 
-  void _startTimer() {
-    // ✅ بدء Timer لحساب مدة المكالمة
-    int seconds = 0;
-    Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        seconds++;
-        final mins = (seconds / 60).floor();
-        final secs = seconds % 60;
-        _duration = '${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
-      });
+  void _startDurationTimer() {
+    _durationTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() {
+          _seconds++;
+        });
+      }
     });
   }
 
-  void _connectToLiveKit() async {
+  Future<void> _connectToLiveKit() async {
     try {
-      final token = await _liveKitService.getToken(
+      await _liveKitService.connectRoom(
         roomName: 'call_${widget.chatId}',
-        participantIdentity: FirebaseAuth.instance.currentUser?.uid ?? '',
         participantName: FirebaseAuth.instance.currentUser?.displayName ?? 'مستخدم',
       );
-      if (token != null) {
-        await _liveKitService.connect(token);
+      if (mounted) {
+        setState(() => _isConnected = true);
       }
     } catch (e) {
       print('❌ LiveKit connection error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('فشل الاتصال: $e')),
+        );
+        Navigator.pop(context);
+      }
     }
   }
 
   @override
   void dispose() {
-    _callService.endCall(widget.callId);
-    _liveKitService.disconnect();
+    _durationTimer?.cancel();
+    if (_isConnected) {
+      _callService.endCall(widget.callId, durationSeconds: _seconds);
+      _liveKitService.endCall();
+    }
     super.dispose();
+  }
+
+  String _formatDuration(int seconds) {
+    final mins = (seconds / 60).floor();
+    final secs = seconds % 60;
+    return '${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -80,7 +93,6 @@ class _CallScreenState extends State<CallScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // ✅ شريط الحالة
             Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
@@ -91,14 +103,13 @@ class _CallScreenState extends State<CallScreen> {
                   ),
                   const Spacer(),
                   Text(
-                    _duration,
+                    _formatDuration(_seconds),
                     style: const TextStyle(color: Colors.white, fontSize: 16),
                   ),
                 ],
               ),
             ),
             const Spacer(),
-            // ✅ صورة المتصل (في حال عدم وجود فيديو)
             Center(
               child: Column(
                 children: [
@@ -120,17 +131,23 @@ class _CallScreenState extends State<CallScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _isConnected ? 'متصل' : 'جاري الاتصال...',
+                    style: TextStyle(
+                      color: _isConnected ? Colors.green : Colors.white70,
+                      fontSize: 14,
+                    ),
+                  ),
                 ],
               ),
             ),
             const Spacer(),
-            // ✅ أزرار التحكم
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  // 🎤 كتم الميكروفون
                   _buildControlButton(
                     icon: _isMuted ? Icons.mic_off : Icons.mic,
                     label: _isMuted ? 'إلغاء الكتم' : 'كتم',
@@ -139,15 +156,14 @@ class _CallScreenState extends State<CallScreen> {
                       _liveKitService.toggleMicrophone();
                     },
                   ),
-                  // 🔊 مكبر الصوت
                   _buildControlButton(
                     icon: _isSpeakerOn ? Icons.volume_up : Icons.volume_down,
                     label: _isSpeakerOn ? 'سماعة' : 'مكبر صوت',
                     onTap: () {
                       setState(() => _isSpeakerOn = !_isSpeakerOn);
+                      _liveKitService.setSpeakerphone(_isSpeakerOn);
                     },
                   ),
-                  // 📹 كاميرا (فيديو فقط)
                   if (widget.isVideo)
                     _buildControlButton(
                       icon: _isCameraOff ? Icons.videocam_off : Icons.videocam,
@@ -157,13 +173,13 @@ class _CallScreenState extends State<CallScreen> {
                         _liveKitService.toggleCamera();
                       },
                     ),
-                  // ❌ إنهاء المكالمة
                   _buildControlButton(
                     icon: Icons.call_end,
                     label: 'إنهاء',
                     color: AppColors.error,
                     onTap: () {
-                      _callService.endCall(widget.callId);
+                      _callService.endCall(widget.callId, durationSeconds: _seconds);
+                      _liveKitService.endCall();
                       Navigator.pop(context);
                     },
                   ),

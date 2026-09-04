@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 
 enum CallType { audio, video }
-enum CallStatus { calling, ringing, connected, ended, missed, rejected, busy }
+enum CallStatus { calling, ringing, connected, ended, missed, rejected, busy, cancelled }
 
 class CallModel extends Equatable {
   final String id;
@@ -22,7 +22,7 @@ class CallModel extends Equatable {
   final bool isAnswered;
   final Map<String, dynamic>? metadata;
   final List<String>? participants;
-  final String? liveKitRoomName;
+  final String? roomName;
   final bool isVideoCall;
 
   const CallModel({
@@ -43,7 +43,7 @@ class CallModel extends Equatable {
     this.isAnswered = false,
     this.metadata,
     this.participants,
-    this.liveKitRoomName,
+    this.roomName,
     this.isVideoCall = false,
   });
 
@@ -66,7 +66,7 @@ class CallModel extends Equatable {
       isAnswered: data['isAnswered'] ?? false,
       metadata: Map<String, dynamic>.from(data['metadata'] ?? {}),
       participants: List<String>.from(data['participants'] ?? []),
-      liveKitRoomName: data['liveKitRoomName'],
+      roomName: data['roomName'],
       isVideoCall: data['isVideoCall'] ?? false,
     );
   }
@@ -80,8 +80,8 @@ class CallModel extends Equatable {
       'receiverId': receiverId,
       'receiverName': receiverName,
       'receiverPhotoUrl': receiverPhotoUrl,
-      'callType': callType.toString().split('.').last,
-      'status': status.toString().split('.').last,
+      'callType': callType.name,
+      'status': status.name,
       'startedAt': startedAt ?? FieldValue.serverTimestamp(),
       'connectedAt': connectedAt,
       'endedAt': endedAt,
@@ -89,7 +89,7 @@ class CallModel extends Equatable {
       'isAnswered': isAnswered,
       'metadata': metadata,
       'participants': participants,
-      'liveKitRoomName': liveKitRoomName ?? chatId,
+      'roomName': roomName,
       'isVideoCall': isVideoCall,
     };
   }
@@ -109,6 +109,7 @@ class CallModel extends Equatable {
       case 'missed': return CallStatus.missed;
       case 'rejected': return CallStatus.rejected;
       case 'busy': return CallStatus.busy;
+      case 'cancelled': return CallStatus.cancelled;
       default: return CallStatus.calling;
     }
   }
@@ -119,14 +120,13 @@ class CallModel extends Equatable {
   bool get isEnded => status == CallStatus.ended;
   bool get isMissed => status == CallStatus.missed;
   bool get isRejected => status == CallStatus.rejected;
-  bool get isIncoming => status == CallStatus.calling && !isAnswered;
-  bool get isOutgoing => status == CallStatus.calling && isAnswered;
+  bool get isCancelled => status == CallStatus.cancelled;
 
   @override
   List<Object?> get props => [
     id, chatId, callerId, callerName, receiverId, receiverName,
     callType, status, startedAt, connectedAt, endedAt,
     durationSeconds, isAnswered, metadata, participants,
-    liveKitRoomName, isVideoCall,
+    roomName, isVideoCall,
   ];
 }

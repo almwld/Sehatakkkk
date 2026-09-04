@@ -211,3 +211,18 @@ class MessageModel extends Equatable {
     readAt, deliveredAt, isPinned,
   ];
 }
+
+// ============================================================
+// 📄 MessagePage - لـ Pagination
+// ============================================================
+class MessagePage {
+  final List<MessageModel> messages;
+  final DocumentSnapshot? lastDocument;
+  final bool hasMore;
+
+  const MessagePage({
+    required this.messages,
+    this.lastDocument,
+    this.hasMore = false,
+  });
+}

@@ -59,7 +59,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     final lastMessage = state.messages.last;
     
     // ✅ الحصول على DocumentSnapshot للرسالة الأخيرة
-    final doc = await _chatService._firestore
+    final doc = await _chatService
         .collection('chats')
         .doc(widget.chatId)
         .collection('messages')

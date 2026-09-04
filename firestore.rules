@@ -42,60 +42,85 @@ service cloud.firestore {
     }
 
     // ============================================================
-    // 💬 المحادثات
+    // 💬 المحادثات - ZERO-TRUST
     // ============================================================
     match /chats/{chatId} {
       allow read: if isChatParticipant(chatId);
-      allow write: if isChatParticipant(chatId);
-      allow create: if isAuthenticated();
-      allow delete: if isChatParticipant(chatId);
-
-      // منع تعديل participants مباشرة (للأمان)
+      
+      allow create: if isAuthenticated() &&
+        request.auth.uid in request.resource.data.participants &&
+        request.resource.data.participants.size() == 2;
+      
       allow update: if isChatParticipant(chatId) &&
-        !('participants' in request.resource.data) &&
-        !('participantDetails' in request.resource.data);
+        request.resource.data
+          .diff(resource.data)
+          .affectedKeys()
+          .hasOnly([
+            'lastMessage',
+            'lastMessageTime',
+            'lastMessageSenderId',
+            'updatedAt',
+            'unreadCount',
+            'isArchived',
+            'isPinned',
+            'isMuted'
+          ]);
+      
+      allow delete: if isChatParticipant(chatId);
     }
 
     // ============================================================
-    // ✉️ الرسائل
+    // ✉️ الرسائل - ZERO-TRUST
     // ============================================================
     match /chats/{chatId}/messages/{messageId} {
-      // قراءة: فقط المشاركون في المحادثة
       allow read: if isChatParticipant(chatId);
 
-      // إنشاء: فقط المشاركون في المحادثة، والمرسل هو المستخدم المصادق
       allow create: if isChatParticipant(chatId) &&
-        request.resource.data.senderId == request.auth.uid;
+        request.resource.data.senderId == request.auth.uid &&
+        request.resource.data.chatId == chatId;
 
-      // تحديث:
-      // 1. المرسل يمكنه تعديل محتوى رسالته (isEdited, text)
-      // 2. أي مشارك يمكنه تحديث isRead (لـ markAsRead)
-      // 3. المرسل يمكنه حذف رسالته (isDeleted)
       allow update: if isChatParticipant(chatId) &&
         (
-          // ✅ المرسل: يمكنه تعديل رسالته
+          // ✅ المرسل: يمكنه تعديل رسالته فقط
           (resource.data.senderId == request.auth.uid &&
-            request.resource.data.diff(resource.data).affectedKeys
-              .hasAny(['text', 'isEdited', 'isDeleted', 'reactions', 'attachments'])) ||
-          // ✅ أي مشارك: يمكنه تحديث حالة القراءة
-          (request.resource.data.diff(resource.data).affectedKeys
-            .hasAny(['isRead', 'readAt', 'isDelivered', 'deliveredAt']))
+            request.resource.data
+              .diff(resource.data)
+              .affectedKeys()
+              .hasOnly(['text', 'isEdited', 'isDeleted', 'reactions'])) ||
+          // ✅ أي مشارك: يمكنه تحديث حالة القراءة فقط
+          (request.resource.data
+              .diff(resource.data)
+              .affectedKeys()
+              .hasOnly(['isRead', 'readAt', 'isDelivered', 'deliveredAt']))
         );
 
-      // حذف نهائي: فقط المرسل، أو المشرف
       allow delete: if isChatParticipant(chatId) &&
         (resource.data.senderId == request.auth.uid ||
          request.auth.token.isAdmin == true);
     }
 
     // ============================================================
-    // 📞 المكالمات
+    // 📞 المكالمات - ZERO-TRUST
     // ============================================================
     match /calls/{callId} {
       allow read: if isCallParticipant(callId);
-      allow write: if isCallParticipant(callId);
-      allow create: if isAuthenticated();
-      allow update: if isCallParticipant(callId);
+      
+      allow create: if isAuthenticated() &&
+        request.resource.data.callerId == request.auth.uid &&
+        request.auth.uid in request.resource.data.participants;
+      
+      allow update: if isCallParticipant(callId) &&
+        request.resource.data
+          .diff(resource.data)
+          .affectedKeys()
+          .hasOnly([
+            'status',
+            'isAnswered',
+            'connectedAt',
+            'endedAt',
+            'durationSeconds'
+          ]);
+      
       allow delete: if isAuthenticated() &&
         (resource.data.callerId == request.auth.uid ||
          request.auth.token.isAdmin == true);
@@ -112,74 +137,6 @@ service cloud.firestore {
       allow create: if isAuthenticated();
       allow update: if isAuthenticated() &&
         resource.data.userId == request.auth.uid;
-    }
-
-    // ============================================================
-    // 📅 المواعيد
-    // ============================================================
-    match /appointments/{appointmentId} {
-      allow read: if isAuthenticated() &&
-        (resource.data.patientId == request.auth.uid ||
-         resource.data.doctorId == request.auth.uid);
-      allow write: if isAuthenticated() &&
-        (resource.data.patientId == request.auth.uid ||
-         resource.data.doctorId == request.auth.uid);
-    }
-
-    // ============================================================
-    // 📰 المقالات (قراءة عامة)
-    // ============================================================
-    match /articles/{articleId} {
-      allow read: if true;
-      allow write: if isAuthenticated() && request.auth.token.isAdmin == true;
-    }
-
-    // ============================================================
-    // 💊 الأدوية (قراءة عامة)
-    // ============================================================
-    match /medicines/{medicineId} {
-      allow read: if true;
-      allow write: if isAuthenticated() && request.auth.token.isAdmin == true;
-    }
-
-    // ============================================================
-    // 🏥 المستشفيات (قراءة عامة)
-    // ============================================================
-    match /hospitals/{hospitalId} {
-      allow read: if true;
-      allow write: if isAuthenticated() && request.auth.token.isAdmin == true;
-    }
-
-    // ============================================================
-    // 🧪 المختبرات (قراءة عامة)
-    // ============================================================
-    match /labs/{labId} {
-      allow read: if true;
-      allow write: if isAuthenticated() && request.auth.token.isAdmin == true;
-    }
-
-    // ============================================================
-    // 💊 الصيدليات (قراءة عامة)
-    // ============================================================
-    match /pharmacies/{pharmacyId} {
-      allow read: if true;
-      allow write: if isAuthenticated() && request.auth.token.isAdmin == true;
-    }
-
-    // ============================================================
-    // 📦 الطلبات
-    // ============================================================
-    match /orders/{orderId} {
-      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      allow write: if isAuthenticated() && resource.data.userId == request.auth.uid;
-    }
-
-    // ============================================================
-    // 💰 المحفظة
-    // ============================================================
-    match /wallets/{walletId} {
-      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      allow write: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
   }
 }

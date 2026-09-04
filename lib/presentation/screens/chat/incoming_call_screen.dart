@@ -1,6 +1,5 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/call_service.dart';
 import 'call_screen.dart';
@@ -14,6 +13,7 @@ class IncomingCallScreen extends StatefulWidget {
   final VoidCallback onAccept;
   final VoidCallback onReject;
   final VoidCallback onTimeout;
+  final VoidCallback onCancel;
 
   const IncomingCallScreen({
     super.key,
@@ -25,6 +25,7 @@ class IncomingCallScreen extends StatefulWidget {
     required this.onAccept,
     required this.onReject,
     required this.onTimeout,
+    required this.onCancel,
   });
 
   @override
@@ -33,19 +34,68 @@ class IncomingCallScreen extends StatefulWidget {
 
 class _IncomingCallScreenState extends State<IncomingCallScreen> {
   final CallService _callService = CallService();
+  Timer? _countdownTimer;
+  Timer? _timeoutTimer;
+  int _remainingSeconds = 30;
   bool _isAnswered = false;
+  StreamSubscription<CallModel?>? _callSubscription;
 
   @override
   void initState() {
     super.initState();
+    _startTimers();
+    _listenToCallStatus();
+  }
 
-    // ✅ بدء Timer للمكالمة الفائتة (30 ثانية)
-    Future.delayed(const Duration(seconds: 30), () {
+  void _startTimers() {
+    // ✅ Countdown Timer
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() {
+          _remainingSeconds--;
+        });
+        if (_remainingSeconds <= 0) {
+          timer.cancel();
+        }
+      }
+    });
+
+    // ✅ Timeout Timer (30 ثانية)
+    _timeoutTimer = Timer(const Duration(seconds: 30), () {
       if (!_isAnswered && mounted) {
         widget.onTimeout();
         Navigator.pop(context);
       }
     });
+  }
+
+  void _listenToCallStatus() {
+    _callSubscription = _callService.streamCall(widget.callId).listen((call) {
+      if (call == null) return;
+      
+      // ✅ إذا تغيرت حالة المكالمة إلى cancelled/missed/rejected/ended
+      if (call.status == CallStatus.cancelled ||
+          call.status == CallStatus.missed ||
+          call.status == CallStatus.rejected ||
+          call.status == CallStatus.ended) {
+        if (mounted && !_isAnswered) {
+          _cancelTimers();
+          Navigator.pop(context);
+        }
+      }
+    });
+  }
+
+  void _cancelTimers() {
+    _countdownTimer?.cancel();
+    _timeoutTimer?.cancel();
+    _callSubscription?.cancel();
+  }
+
+  @override
+  void dispose() {
+    _cancelTimers();
+    super.dispose();
   }
 
   @override
@@ -56,7 +106,6 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
         child: Column(
           children: [
             const Spacer(),
-            // ✅ صورة المتصل
             CircleAvatar(
               radius: 60,
               backgroundColor: AppColors.primaryLight,
@@ -67,7 +116,6 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            // ✅ اسم المتصل
             Text(
               widget.callerName,
               style: const TextStyle(
@@ -77,31 +125,21 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            // ✅ نوع المكالمة
             Text(
               widget.isVideo ? '📹 مكالمة فيديو واردة' : '📞 مكالمة صوتية واردة',
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 16,
-              ),
+              style: const TextStyle(color: Colors.white70, fontSize: 16),
             ),
             const SizedBox(height: 8),
-            // ✅ حالة الرنين
-            const Text(
-              'يرن...',
-              style: TextStyle(
-                color: Colors.white54,
-                fontSize: 14,
-              ),
+            Text(
+              'يرن... (${_remainingSeconds}s)',
+              style: const TextStyle(color: Colors.white54, fontSize: 14),
             ),
             const Spacer(),
-            // ✅ أزرار الرد والرفض
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 30),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  // ❌ رفض
                   _buildActionButton(
                     icon: Icons.call_end,
                     color: AppColors.error,
@@ -109,10 +147,10 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
                     onTap: () {
                       setState(() => _isAnswered = true);
                       widget.onReject();
+                      _cancelTimers();
                       Navigator.pop(context);
                     },
                   ),
-                  // ✅ قبول
                   _buildActionButton(
                     icon: widget.isVideo ? Icons.videocam : Icons.call,
                     color: AppColors.success,
@@ -120,8 +158,8 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
                     onTap: () {
                       setState(() => _isAnswered = true);
                       widget.onAccept();
+                      _cancelTimers();
 
-                      // ✅ فتح شاشة المكالمة
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
