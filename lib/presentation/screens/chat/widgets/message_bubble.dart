@@ -1,13 +1,17 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+// ============================================================
+// 📁 lib/presentation/screens/chat/widgets/message_bubble.dart
+// 💬 فقاعة الرسائل - تدعم النص، الصور، الصوت، الفيديو
+// ============================================================
+
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/models/message_model.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:video_player/video_player.dart';
+import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/services/toast_service.dart';
 
 class MessageBubble extends StatefulWidget {
-  final MessageModel message;
+  final Map<String, dynamic> message;
   final bool isMe;
   final VoidCallback? onReply;
   final VoidCallback? onDelete;
@@ -28,19 +32,18 @@ class MessageBubble extends StatefulWidget {
 
 class _MessageBubbleState extends State<MessageBubble> {
   AudioPlayer? _audioPlayer;
-  VideoPlayerController? _videoController;
   bool _isPlaying = false;
+  VideoPlayerController? _videoController;
 
   @override
   void initState() {
     super.initState();
-    if (widget.message.isAudio && widget.message.audioUrl != null) {
+    if (widget.message['type'] == 'audio' && widget.message['audioUrl'] != null) {
       _audioPlayer = AudioPlayer();
     }
-    if (widget.message.isVideo && widget.message.fileUrl != null) {
-      _videoController = VideoPlayerController.networkUrl(
-        Uri.parse(widget.message.fileUrl!),
-      )..initialize().then((_) => setState(() {}));
+    if (widget.message['type'] == 'video' && widget.message['videoUrl'] != null) {
+      // _videoController = VideoPlayerController.networkUrl(Uri.parse(widget.message['videoUrl']));
+      // _videoController?.initialize();
     }
   }
 
@@ -54,582 +57,346 @@ class _MessageBubbleState extends State<MessageBubble> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    if (widget.message.isDeletedMessage) {
-      return _buildDeletedMessage(isDark);
-    }
+    final type = widget.message['type'] ?? 'text';
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: widget.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Flexible(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: widget.isMe ? AppColors.primary : (isDark ? const Color(0xFF2D3A54) : Colors.grey[200]),
-                borderRadius: BorderRadius.circular(12).copyWith(
-                  bottomRight: widget.isMe ? const Radius.circular(4) : const Radius.circular(12),
-                  bottomLeft: widget.isMe ? const Radius.circular(12) : const Radius.circular(4),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: widget.isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                children: [
-                  // ✅ اسم المرسل
-                  if (!widget.isMe && widget.message.senderName.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: Text(
-                        widget.message.senderName,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.grey[400] : Colors.grey[600],
-                        ),
-                      ),
-                    ),
-                  
-                  // ✅ صورة
-                  if (widget.message.isImage && widget.message.imageUrl != null)
-                    _buildImageContent(widget.message.imageUrl!),
-                  
-                  // ✅ صوت
-                  if (widget.message.isAudio && widget.message.audioUrl != null)
-                    _buildAudioContent(widget.message.audioUrl!, isDark),
-                  
-                  // ✅ فيديو
-                  if (widget.message.isVideo && widget.message.fileUrl != null)
-                    _buildVideoContent(widget.message.fileUrl!),
-                  
-                  // ✅ ملف
-                  if (widget.message.isFile && widget.message.fileUrl != null)
-                    _buildFileContent(widget.message.fileName ?? 'ملف', isDark),
-                  
-                  // ✅ موقع
-                  if (widget.message.isLocation)
-                    _buildLocationContent(widget.message.locationAddress ?? 'موقع', isDark),
-                  
-                  // ✅ نص
-                  if (widget.message.text != null && widget.message.text!.isNotEmpty)
-                    Text(
-                      widget.message.text!,
-                      style: TextStyle(
-                        color: widget.isMe ? Colors.white : (isDark ? Colors.white : Colors.black87),
-                        fontSize: 14,
-                      ),
-                    ),
-                  
-                  const SizedBox(height: 4),
-                  
-                  // ✅ الوقت والحالة
-                  Row(
-                    mainAxisAlignment: widget.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-                    children: [
-                      Text(
-                        _formatTime(widget.message.timestamp),
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: widget.isMe ? Colors.white70 : (isDark ? Colors.grey[400] : Colors.grey[600]),
-                        ),
-                      ),
-                      if (widget.isMe) ...[
-                        const SizedBox(width: 4),
-                        Icon(
-                          widget.message.isRead ? Icons.done_all : Icons.done,
-                          size: 14,
-                          color: widget.message.isRead
-                              ? (isDark ? Colors.green[300] : Colors.green)
-                              : (isDark ? Colors.grey[500] : Colors.grey),
-                        ),
-                      ],
-                    ],
-                  ),
-                  
-                  // ✅ تفاعلات
-                  if (widget.message.hasReactions)
-                    _buildReactions(),
-                ],
-              ),
+          // ✅ عرض المحتوى حسب النوع
+          Container(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.75,
             ),
+            child: _buildContent(type, isDark),
           ),
         ],
       ),
     );
   }
 
-  // ============================================================
-  // 🖼️ محتوى الصورة
-  // ============================================================
-  Widget _buildImageContent(String imageUrl) {
-    return GestureDetector(
-      onTap: () {
-        // عرض الصورة في شاشة كاملة
-      },
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: CachedNetworkImage(
-          imageUrl: imageUrl,
-          width: 200,
-          height: 200,
-          fit: BoxFit.cover,
-          placeholder: (context, url) => Container(
-            width: 200,
-            height: 200,
-            color: Colors.grey[300],
-            child: const Center(child: CircularProgressIndicator()),
-          ),
-          errorWidget: (context, url, error) => Container(
-            width: 200,
-            height: 200,
-            color: Colors.grey[300],
-            child: const Icon(Icons.broken_image, size: 40),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ============================================================
-  // 🎤 محتوى الصوت
-  // ============================================================
-  Widget _buildAudioContent(String audioUrl, bool isDark) {
-    return Container(
-      width: 200,
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () async {
-              if (_isPlaying) {
-                await _audioPlayer?.pause();
-              } else {
-                await _audioPlayer?.play(UrlSource(audioUrl));
-              }
-              setState(() => _isPlaying = !_isPlaying);
-            },
-            child: Icon(
-              _isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled,
-              color: widget.isMe ? Colors.white : AppColors.primary,
-              size: 32,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Container(
-              height: 4,
-              decoration: BoxDecoration(
-                color: isDark ? Colors.grey[700] : Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
-              ),
-              child: Container(
-                width: 50,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: widget.isMe ? Colors.white : AppColors.primary,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            widget.message.audioDuration ?? '00:00',
-            style: TextStyle(
-              fontSize: 12,
-              color: widget.isMe ? Colors.white70 : (isDark ? Colors.grey[400] : Colors.grey[600]),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ============================================================
-  // 🎥 محتوى الفيديو
-  // ============================================================
-  Widget _buildVideoContent(String videoUrl) {
-    if (_videoController == null || !_videoController!.value.isInitialized) {
-      return Container(
-        width: 200,
-        height: 150,
-        color: Colors.black,
-        child: const Center(child: CircularProgressIndicator()),
-      );
+  Widget _buildContent(String type, bool isDark) {
+    switch (type) {
+      case 'image':
+        return _buildImageMessage(widget.message['imageUrl'] ?? '', isDark);
+      case 'audio':
+        return _buildAudioMessage(widget.message, widget.isMe, isDark);
+      case 'video':
+        return _buildVideoMessage(widget.message['videoUrl'] ?? '', isDark);
+      case 'location':
+        return _buildLocationMessage(widget.message, isDark);
+      default:
+        return _buildTextMessage(widget.message, widget.isMe, isDark);
     }
+  }
 
-    return GestureDetector(
-      onTap: () {
-        _videoController!.value.isPlaying
-            ? _videoController!.pause()
-            : _videoController!.play();
-        setState(() {});
-      },
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          AspectRatio(
-            aspectRatio: _videoController!.value.aspectRatio,
-            child: VideoPlayer(_videoController!),
-          ),
-          if (!_videoController!.value.isPlaying)
-            Container(
-              width: 50,
-              height: 50,
-              decoration: const BoxDecoration(
-                color: Colors.black54,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.play_arrow,
-                color: Colors.white,
-                size: 30,
-              ),
-            ),
-        ],
+  // ============================================================
+  // 📝 الرسائل النصية
+  // ============================================================
+  Widget _buildTextMessage(Map<String, dynamic> message, bool isMe, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: isMe ? AppColors.primary : (isDark ? const Color(0xFF1A2540) : Colors.grey[100]),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        message['text'] ?? '',
+        style: TextStyle(
+          color: isMe ? Colors.white : (isDark ? Colors.white : Colors.black87),
+          fontSize: 14,
+        ),
       ),
     );
   }
 
   // ============================================================
-  // 📎 محتوى الملف
+  // 🖼️ عرض الصور (من NextCloud)
   // ============================================================
-  Widget _buildFileContent(String fileName, bool isDark) {
+  Widget _buildImageMessage(String imageUrl, bool isDark) {
     return GestureDetector(
-      onTap: () {
-        // تحميل الملف
-      },
+      onTap: () => _showFullScreenImage(imageUrl),
       child: Container(
-        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isDark ? Colors.grey[800] : Colors.grey[100],
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              Icons.insert_drive_file,
-              color: widget.isMe ? Colors.white : AppColors.primary,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                fileName,
-                style: TextStyle(
-                  color: widget.isMe ? Colors.white : (isDark ? Colors.white : Colors.black87),
-                  fontSize: 13,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            const Icon(Icons.download, size: 16),
           ],
         ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: CachedNetworkImage(
+            imageUrl: imageUrl,
+            width: 200,
+            height: 200,
+            fit: BoxFit.cover,
+            placeholder: (context, url) => Container(
+              width: 200,
+              height: 200,
+              color: isDark ? Colors.grey[800] : Colors.grey[200],
+              child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+            ),
+            errorWidget: (context, url, error) => Container(
+              width: 200,
+              height: 200,
+              color: isDark ? Colors.grey[800] : Colors.grey[200],
+              child: const Icon(Icons.broken_image, color: Colors.grey, size: 40),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showFullScreenImage(String imageUrl) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.9),
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: GestureDetector(
+          onTap: () => Navigator.pop(context),
+          child: Center(
+            child: CachedNetworkImage(
+              imageUrl: imageUrl,
+              fit: BoxFit.contain,
+              placeholder: (context, url) => const CircularProgressIndicator(),
+              errorWidget: (context, url, error) => const Icon(
+                Icons.broken_image,
+                color: Colors.white,
+                size: 60,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
 
   // ============================================================
-  // 📍 محتوى الموقع
+  // 🎵 عرض التسجيل الصوتي (من NextCloud)
   // ============================================================
-  Widget _buildLocationContent(String address, bool isDark) {
-    return GestureDetector(
-      onTap: () {
-        // فتح الموقع على الخريطة
-      },
-      child: Container(
-        width: 200,
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: isDark ? Colors.grey[800] : Colors.grey[100],
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+  Widget _buildAudioMessage(Map<String, dynamic> message, bool isMe, bool isDark) {
+    final duration = message['duration'] ?? 0;
+    final audioUrl = message['audioUrl'] ?? '';
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: isMe ? AppColors.primary : (isDark ? const Color(0xFF1A2540) : Colors.grey[100]),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 🔘 زر التشغيل
+          GestureDetector(
+            onTap: () => _toggleAudio(audioUrl),
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: isMe ? Colors.white.withOpacity(0.2) : AppColors.primary.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                _isPlaying ? Icons.pause : Icons.play_arrow,
+                color: isMe ? Colors.white : AppColors.primary,
+                size: 20,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          
+          // 📊 شريط التقدم
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  Icons.location_on,
-                  color: AppColors.primary,
-                  size: 18,
+                Container(
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: isMe ? Colors.white.withOpacity(0.3) : Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 30,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: isMe ? Colors.white : AppColors.primary,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(height: 4),
                 Text(
-                  '📍 موقع',
+                  _formatDuration(duration),
                   style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black87,
+                    fontSize: 10,
+                    color: isMe ? Colors.white.withOpacity(0.8) : Colors.grey[600],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 4),
-            Text(
-              address,
-              style: TextStyle(
-                fontSize: 12,
-                color: isDark ? Colors.grey[400] : Colors.grey[600],
+          ),
+          
+          const SizedBox(width: 8),
+          
+          // 🎵 أيقونة الصوت
+          Icon(
+            Icons.audiotrack,
+            color: isMe ? Colors.white.withOpacity(0.6) : Colors.grey[600],
+            size: 16,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _toggleAudio(String audioUrl) async {
+    if (_isPlaying) {
+      await _audioPlayer?.pause();
+      setState(() => _isPlaying = false);
+    } else {
+      try {
+        await _audioPlayer?.play(UrlSource(audioUrl));
+        setState(() => _isPlaying = true);
+        _audioPlayer?.onPlayerComplete.listen((_) {
+          setState(() => _isPlaying = false);
+        });
+      } catch (e) {
+        ToastService.showError('❌ فشل تشغيل الصوت');
+      }
+    }
+  }
+
+  String _formatDuration(int seconds) {
+    final minutes = seconds ~/ 60;
+    final remainingSeconds = seconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
+  }
+
+  // ============================================================
+  // 🎥 عرض الفيديو (من NextCloud)
+  // ============================================================
+  Widget _buildVideoMessage(String videoUrl, bool isDark) {
+    return GestureDetector(
+      onTap: () => _playVideo(videoUrl),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // ✅ صورة مصغرة للفيديو
+              CachedNetworkImage(
+                imageUrl: videoUrl,
+                width: 200,
+                height: 150,
+                fit: BoxFit.cover,
+                placeholder: (context, url) => Container(
+                  width: 200,
+                  height: 150,
+                  color: isDark ? Colors.grey[800] : Colors.grey[200],
+                  child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                ),
+                errorWidget: (context, url, error) => Container(
+                  width: 200,
+                  height: 150,
+                  color: isDark ? Colors.grey[800] : Colors.grey[200],
+                  child: const Icon(Icons.videocam_off, color: Colors.grey, size: 40),
+                ),
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+              
+              // ✅ زر تشغيل الفيديو
+              Container(
+                width: 50,
+                height: 50,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10)],
+                ),
+                child: const Icon(
+                  Icons.play_arrow,
+                  color: AppColors.primary,
+                  size: 30,
+                ),
+              ),
+              
+              // ✅ مدة الفيديو
+              Positioned(
+                bottom: 8,
+                right: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.7),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Text(
+                    '00:00',
+                    style: TextStyle(color: Colors.white, fontSize: 10),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _playVideo(String videoUrl) {
+    ToastService.showInfo('🎬 جاري تشغيل الفيديو...');
+    // TODO: فتح شاشة تشغيل الفيديو
+  }
+
+  // ============================================================
+  // 📍 عرض الموقع
+  // ============================================================
+  Widget _buildLocationMessage(Map<String, dynamic> message, bool isDark) {
+    return GestureDetector(
+      onTap: () => ToastService.showInfo('📍 عرض الموقع على الخريطة'),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isMe ? AppColors.primary : (isDark ? const Color(0xFF1A2540) : Colors.grey[100]),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.location_on, color: Colors.red, size: 16),
+            const SizedBox(width: 8),
+            Text(
+              message['text'] ?? '📍 موقع',
+              style: TextStyle(
+                color: isMe ? Colors.white : (isDark ? Colors.white : Colors.black87),
+                fontSize: 13,
+              ),
             ),
           ],
         ),
       ),
     );
   }
-
-  // ============================================================
-  // ❤️ التفاعلات
-  // ============================================================
-  Widget _buildReactions() {
-    final reactions = widget.message.reactions?.values.toList() ?? [];
-    if (reactions.isEmpty) return const SizedBox.shrink();
-
-    return Container(
-      margin: const EdgeInsets.only(top: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Wrap(
-        spacing: 2,
-        children: reactions.map((emoji) {
-          return Text(emoji, style: const TextStyle(fontSize: 14));
-        }).toList(),
-      ),
-    );
-  }
-
-  // ============================================================
-  // 🗑️ رسالة محذوفة
-  // ============================================================
-  Widget _buildDeletedMessage(bool isDark) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: widget.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-        children: [
-          Flexible(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: isDark ? Colors.grey[800] : Colors.grey[200],
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Text(
-                '🗑️ تم حذف هذه الرسالة',
-                style: TextStyle(
-                  fontStyle: FontStyle.italic,
-                  color: Colors.grey,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ============================================================
-  // ⏰ تنسيق الوقت
-  // ============================================================
-  String _formatTime(Timestamp? timestamp) {
-    if (timestamp == null) return '';
-    final date = timestamp.toDate();
-    final now = DateTime.now();
-    if (date.day == now.day && date.month == now.month && date.year == now.year) {
-      return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
-    }
-    return '${date.day}/${date.month}';
-  }
-}
-
-// ============================================================
-// 🖼️ عرض الصور
-// ============================================================
-Widget _buildImageMessage(String imageUrl, bool isDark) {
-  return GestureDetector(
-    onTap: () => _showFullScreenImage(imageUrl),
-    child: Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: CachedNetworkImage(
-          imageUrl: imageUrl,
-          width: 200,
-          height: 200,
-          fit: BoxFit.cover,
-          placeholder: (context, url) => Container(
-            width: 200,
-            height: 200,
-            color: isDark ? Colors.grey[800] : Colors.grey[200],
-            child: const Center(
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-              ),
-            ),
-          ),
-          errorWidget: (context, url, error) => Container(
-            width: 200,
-            height: 200,
-            color: isDark ? Colors.grey[800] : Colors.grey[200],
-            child: const Icon(
-              Icons.broken_image,
-              color: Colors.grey,
-              size: 40,
-            ),
-          ),
-        ),
-      ),
-    ),
-  );
-}
-
-// ============================================================
-// 🔍 تكبير الصورة
-// ============================================================
-void _showFullScreenImage(String imageUrl) {
-  showDialog(
-    context: context,
-    barrierColor: Colors.black.withOpacity(0.9),
-    builder: (context) => Dialog(
-      backgroundColor: Colors.transparent,
-      child: GestureDetector(
-        onTap: () => Navigator.pop(context),
-        child: Center(
-          child: CachedNetworkImage(
-            imageUrl: imageUrl,
-            fit: BoxFit.contain,
-            placeholder: (context, url) => const CircularProgressIndicator(),
-            errorWidget: (context, url, error) => const Icon(
-              Icons.broken_image,
-              color: Colors.white,
-              size: 60,
-            ),
-          ),
-        ),
-      ),
-    ),
-  );
-}
-
-// ============================================================
-// 🎥 عرض الفيديو
-// ============================================================
-Widget _buildVideoMessage(String videoUrl, bool isDark) {
-  return Container(
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(12),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.1),
-          blurRadius: 8,
-          offset: const Offset(0, 2),
-        ),
-      ],
-    ),
-    child: ClipRRect(
-      borderRadius: BorderRadius.circular(12),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // ✅ صورة مصغرة للفيديو
-          CachedNetworkImage(
-            imageUrl: videoUrl,
-            width: 200,
-            height: 150,
-            fit: BoxFit.cover,
-            placeholder: (context, url) => Container(
-              width: 200,
-              height: 150,
-              color: isDark ? Colors.grey[800] : Colors.grey[200],
-              child: const Center(
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                ),
-              ),
-            ),
-            errorWidget: (context, url, error) => Container(
-              width: 200,
-              height: 150,
-              color: isDark ? Colors.grey[800] : Colors.grey[200],
-              child: const Icon(
-                Icons.videocam_off,
-                color: Colors.grey,
-                size: 40,
-              ),
-            ),
-          ),
-          
-          // ✅ زر تشغيل الفيديو
-          GestureDetector(
-            onTap: () => _playVideo(videoUrl),
-            child: Container(
-              width: 50,
-              height: 50,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 10,
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.play_arrow,
-                color: AppColors.primary,
-                size: 30,
-              ),
-            ),
-          ),
-          
-          // ✅ مدة الفيديو
-          Positioned(
-            bottom: 8,
-            right: 8,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.7),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: const Text(
-                '00:00',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 10,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-// ============================================================
-// 🎬 تشغيل الفيديو
-// ============================================================
-void _playVideo(String videoUrl) {
-  // TODO: فتح شاشة تشغيل الفيديو
-  ToastService.showInfo('🎬 جاري تشغيل الفيديو...');
 }
