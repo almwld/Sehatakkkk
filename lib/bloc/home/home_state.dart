@@ -25,13 +25,13 @@ class HomeState extends Equatable {
   final double steps;
   final double sleep;
   final double heartRate;
-  final List<DoctorModel> doctors;
-  final List<HospitalModel> hospitals;
-  final List<PharmacyModel> pharmacies;
-  final List<LabModel> labs;
-  final List<ArticleModel> articles;
-  final List<TipModel> tips;
-  final List<CommunityPostModel> communityPosts;
+  final List<Map<String, dynamic>> doctors;
+  final List<Map<String, dynamic>> hospitals;
+  final List<Map<String, dynamic>> pharmacies;
+  final List<Map<String, dynamic>> labs;
+  final List<Map<String, dynamic>> articles;
+  final List<Map<String, dynamic>> tips;
+  final List<Map<String, dynamic>> communityPosts;
   final int notificationCount;
   final double appBarOpacity;
   final bool showScrollTopButton;
@@ -70,13 +70,13 @@ class HomeState extends Equatable {
     double? steps,
     double? sleep,
     double? heartRate,
-    List<DoctorModel>? doctors,
-    List<HospitalModel>? hospitals,
-    List<PharmacyModel>? pharmacies,
-    List<LabModel>? labs,
-    List<ArticleModel>? articles,
-    List<TipModel>? tips,
-    List<CommunityPostModel>? communityPosts,
+    List<Map<String, dynamic>>? doctors,
+    List<Map<String, dynamic>>? hospitals,
+    List<Map<String, dynamic>>? pharmacies,
+    List<Map<String, dynamic>>? labs,
+    List<Map<String, dynamic>>? articles,
+    List<Map<String, dynamic>>? tips,
+    List<Map<String, dynamic>>? communityPosts,
     int? notificationCount,
     double? appBarOpacity,
     bool? showScrollTopButton,

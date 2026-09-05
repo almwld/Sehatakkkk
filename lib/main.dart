@@ -128,8 +128,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
 
     FirebaseMessaging.onMessage.listen((message) {
       if (message.data['type'] == 'incoming_call') {
-        _callService.handleCall(context, message);
-      }
+              }
     });
   }
 
@@ -166,8 +165,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
   void _handleMessageOpened(RemoteMessage message) {
     print('📱 Message opened: ${message.data}');
     if (message.data['type'] == 'incoming_call') {
-      _callService.handleCall(context, message);
-    }
+          }
   }
 
   @override

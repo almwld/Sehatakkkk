@@ -74,7 +74,7 @@ class NextcloudService {
         data: formData,
         options: Options(
           headers: _getJsonHeaders(),
-          onSendProgress: onProgress,
+          
         ),
       );
 

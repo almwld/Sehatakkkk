@@ -26,7 +26,7 @@ class _ExercisePlanScreenState extends State<ExercisePlanScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
-        title: const Text('خطة التمارين', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: 'خطة التمارين'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         actions: [

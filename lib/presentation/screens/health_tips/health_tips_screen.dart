@@ -24,7 +24,7 @@ class _HealthTipsScreenState extends State<HealthTipsScreen> {
   Widget build(BuildContext context) {
     final currentTips = _tips[_selectedCategory] ?? [];
     return Scaffold(
-      appBar: CustomAppBar(title: const Text('نصائح صحية', style: TextStyle(fontWeight: FontWeight.bold))),
+      appBar: CustomAppBar(title: 'نصائح صحية')),
       body: Column(children: [
         SizedBox(
           height: 90,

@@ -56,13 +56,13 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
       final userData = results[0] as ({bool isLoggedIn, String userName});
       final healthStats = results[1] as ({double calories, double steps, double sleep, double heartRate});
-      final doctors = results[2] as List<DoctorModel>;
-      final hospitals = results[3] as List<HospitalModel>;
-      final pharmacies = results[4] as List<PharmacyModel>;
-      final labs = results[5] as List<LabModel>;
-      final articles = results[6] as List<ArticleModel>;
-      final tips = results[7] as List<TipModel>;
-      final communityPosts = results[8] as List<CommunityPostModel>;
+      final doctors = results[2] as List<Map<String, dynamic>>;
+      final hospitals = results[3] as List<Map<String, dynamic>>;
+      final pharmacies = results[4] as List<Map<String, dynamic>>;
+      final labs = results[5] as List<Map<String, dynamic>>;
+      final articles = results[6] as List<Map<String, dynamic>>;
+      final tips = results[7] as List<Map<String, dynamic>>;
+      final communityPosts = results[8] as List<Map<String, dynamic>>;
       final notificationCount = results[9] as int;
 
       emit(state.copyWith(

@@ -271,7 +271,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                 setState(() {
                   _searchQuery = value;
                 });
-                context.read<ChatBloc>().add(SearchChats(query: value));
+                context.read<ChatBloc>().add(SearchChatsEvent(query: value));
               },
             ),
           ),
@@ -783,15 +783,15 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
               onSelected: (value) {
                 switch (value) {
                   case 'archive':
-                    context.read<ChatBloc>().add(ArchiveChat(chatId: chat.id));
+                    context.read<ChatBloc>().add(ArchiveChatEvent(chatId: chat.id));
                     ToastService.showInfo('📦 تم أرشفة المحادثة');
                     break;
                   case 'pin':
-                    context.read<ChatBloc>().add(PinChat(chatId: chat.id));
+                    context.read<ChatBloc>().add(PinChatEvent(chatId: chat.id));
                     ToastService.showInfo('📌 تم تثبيت المحادثة');
                     break;
                   case 'mute':
-                    context.read<ChatBloc>().add(MuteChat(chatId: chat.id));
+                    context.read<ChatBloc>().add(MuteChatEvent(chatId: chat.id));
                     ToastService.showInfo('🔇 تم كتم الإشعارات');
                     break;
                   case 'delete':

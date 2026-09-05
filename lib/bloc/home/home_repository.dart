@@ -61,23 +61,23 @@ class HomeRepository {
     }
   }
 
-  Future<List<DoctorModel>> getDoctors({int limit = 10}) async {
+  Future<List<Map<String, dynamic>>> getDoctors({int limit = 10}) async {
     try {
       final snapshot = await _firestore.collection('doctors').limit(limit).get();
       if (snapshot.docs.isEmpty) return _defaultDoctors();
-      return snapshot.docs.map((doc) => DoctorModel.fromFirestore(doc)).toList();
+      return snapshot.docs.map((doc) => lambda doc: doc.data()(doc)).toList();
     } catch (e) {
       return _defaultDoctors();
     }
   }
 
-  List<DoctorModel> _defaultDoctors() {
+  List<Map<String, dynamic>> _defaultDoctors() {
     return [
-      DoctorModel(id: 'd1', name: 'د. أحمد المولد', specialty: 'باطنية', photoUrl: ImageKit.doctor1, rating: 4.9, reviewsCount: 328, isAvailable: true),
-      DoctorModel(id: 'd2', name: 'د. خالد النخلاني', specialty: 'قلبية', photoUrl: ImageKit.doctor2, rating: 4.8, reviewsCount: 256, isAvailable: true),
-      DoctorModel(id: 'd3', name: 'د. أسماء الهندي', specialty: 'أطفال', photoUrl: ImageKit.doctor3, rating: 4.7, reviewsCount: 189, isAvailable: true),
-      DoctorModel(id: 'd4', name: 'د. محمد العلاي', specialty: 'أنف وأذن وحنجرة', photoUrl: ImageKit.doctor4, rating: 4.6, reviewsCount: 89, isAvailable: true),
-      DoctorModel(id: 'd5', name: 'د. فاطمة صديقي', specialty: 'نساء وولادة', photoUrl: ImageKit.doctor5, rating: 4.8, reviewsCount: 210, isAvailable: true),
+      {id: 'd1', name: 'د. أحمد المولد', specialty: 'باطنية', photoUrl: ImageKit.doctor1, rating: 4.9, reviewsCount: 328, isAvailable: true),
+      {id: 'd2', name: 'د. خالد النخلاني', specialty: 'قلبية', photoUrl: ImageKit.doctor2, rating: 4.8, reviewsCount: 256, isAvailable: true),
+      {id: 'd3', name: 'د. أسماء الهندي', specialty: 'أطفال', photoUrl: ImageKit.doctor3, rating: 4.7, reviewsCount: 189, isAvailable: true),
+      {id: 'd4', name: 'د. محمد العلاي', specialty: 'أنف وأذن وحنجرة', photoUrl: ImageKit.doctor4, rating: 4.6, reviewsCount: 89, isAvailable: true),
+      {id: 'd5', name: 'د. فاطمة صديقي', specialty: 'نساء وولادة', photoUrl: ImageKit.doctor5, rating: 4.8, reviewsCount: 210, isAvailable: true),
     ];
   }
 
