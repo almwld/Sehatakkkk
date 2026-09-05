@@ -1,18 +1,7 @@
-import 'package:shimmer/shimmer.dart';
-import 'package:shimmer/shimmer.dart';
-import 'package:sehatak/bloc/community/community_bloc.dart';
-import 'package:sehatak/bloc/community/community_event.dart';
-import 'package:sehatak/bloc/community/community_state.dart';
-import 'package:sehatak/core/services/permission_service.dart';
-import 'package:sehatak/presentation/widgets/create_post_sheet.dart';
-// ============================================================
-// 📁 lib/presentation/screens/home/tabs/home_tab.dart
-// 🏠 التاب الرئيسي - الإصدار النهائي
-// ============================================================
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:sehatak/bloc/home/home_bloc.dart';
 import 'package:sehatak/bloc/home/home_event.dart';
 import 'package:sehatak/bloc/home/home_state.dart';
@@ -34,6 +23,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   bool get wantKeepAlive => true;
 
   late HomeBloc _bloc;
+  int _currentBanner = 0;
+  double _appBarOpacity = 1.0;
+  bool _showScrollTopButton = false;
 
   @override
   void initState() {
@@ -58,17 +50,11 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     final opacity = maxScroll <= 0 ? 1.0 : 1.0 - (currentScroll / maxScroll).clamp(0.0, 0.65);
     final showButton = currentScroll > 400;
 
-    // تحديث حالة التمرير
     if (_appBarOpacity != opacity || _showScrollTopButton != showButton) {
       setState(() {
         _appBarOpacity = opacity;
         _showScrollTopButton = showButton;
       });
-    }
-
-    // ✅ تحميل المزيد عند الوصول للنهاية
-    if (maxScroll - currentScroll < 200 && !_isLoadingMore && _hasMore) {
-      _loadMorePosts();
     }
   }
 
@@ -99,7 +85,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                 SliverToBoxAdapter(child: _buildCurvedAppBar(state, isDark)),
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 90),
-                  sliver: ListView(
+                  sliver: SliverList(
                     delegate: SliverChildListDelegate([
                       _buildBannerCarousel(state, isDark),
                       const SizedBox(height: 18),
@@ -142,9 +128,30 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             const SizedBox(height: 15),
             Container(height: 165, margin: const EdgeInsets.symmetric(horizontal: 16), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18))),
             const SizedBox(height: 20),
-            SizedBox(height: 90, child: ListView(scrollDirection: Axis.horizontal, delegate: ListView.builder((context, index) { 6, itemBuilder: (_, __) => Container(width: 70, margin: const EdgeInsets.symmetric(horizontal: 5), child: Column(children: [Container(width: 58, height: 58, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle)), const SizedBox(height: 7), Container(width: 50, height: 8, color: Colors.white)])))),
+            SizedBox(
+              height: 90,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: 6,
+                itemBuilder: (_, __) => Container(
+                  width: 70,
+                  margin: const EdgeInsets.symmetric(horizontal: 5),
+                  child: Column(
+                    children: [
+                      Container(width: 58, height: 58, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
+                      const SizedBox(height: 7),
+                      Container(width: 50, height: 8, color: Colors.white),
+                    ],
+                  ),
+                ),
+              ),
+            ),
             const SizedBox(height: 20),
-            ...List.generate(4, (_) => Container(height: 190, margin: const EdgeInsets.fromLTRB(16, 0, 16, 15), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18)))),
+            ...List.generate(4, (_) => Container(
+              height: 190,
+              margin: const EdgeInsets.fromLTRB(16, 0, 16, 15),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18)),
+            )),
           ],
         ),
       ),
@@ -323,7 +330,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             autoPlayAnimationDuration: const Duration(milliseconds: 800),
             autoPlayCurve: Curves.fastOutSlowIn,
             viewportFraction: 0.92,
-            onPageChanged: (index, reason) => _bloc.add(HomeBannerChanged(index: index)),
+            onPageChanged: (index, reason) => setState(() => _currentBanner = index),
           ),
           items: state.bannerImages.map((url) {
             return Container(
@@ -345,7 +352,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
           children: List.generate(
             state.bannerImages.length,
             (index) {
-              final active = index == state.currentBanner;
+              final active = index == _currentBanner;
               return AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
                 width: active ? 20 : 8,
@@ -432,10 +439,10 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
 
     return SizedBox(
       height: 90,
-      child: ListView(
+      child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 8),
-        delegate: ListView.builder((context, index) { services.length,
+        itemCount: services.length,
         itemBuilder: (context, index) {
           final service = services[index];
           return Container(
@@ -477,9 +484,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         const SizedBox(height: 8),
         SizedBox(
           height: 230,
-          child: ListView(
+          child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            delegate: ListView.builder((context, index) { state.doctors.length,
+            itemCount: state.doctors.length,
             itemBuilder: (context, index) {
               final doctor = state.doctors[index];
               return Container(
@@ -608,7 +615,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             mainAxisSpacing: 10,
             childAspectRatio: 0.85,
           ),
-          delegate: ListView.builder((context, index) { items.length,
+          itemCount: items.length,
           itemBuilder: (context, index) {
             final item = items[index];
             return Container(
@@ -661,7 +668,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             mainAxisSpacing: 10,
             childAspectRatio: 0.9,
           ),
-          delegate: ListView.builder((context, index) { state.articles.length,
+          itemCount: state.articles.length,
           itemBuilder: (context, index) {
             final article = state.articles[index];
             return Container(
@@ -721,7 +728,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             mainAxisSpacing: 10,
             childAspectRatio: 1.1,
           ),
-          delegate: ListView.builder((context, index) { state.tips.length,
+          itemCount: state.tips.length,
           itemBuilder: (context, index) {
             final tip = state.tips[index];
             return Container(
