@@ -926,8 +926,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                                       ?.uid;
 
                           return MessageBubble(
-                            message:
-                                message,
+                            message: message.toFirestore(),
                             isMe:
                                 isMe,
                             onReply: () {
