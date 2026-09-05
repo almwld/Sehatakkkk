@@ -1,3 +1,8 @@
+// ============================================================
+// 📁 lib/presentation/screens/doctor/doctors_list_screen.dart
+// 👨‍⚕️ شاشة الأطباء
+// ============================================================
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -23,22 +28,10 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
   final TextEditingController _searchController = TextEditingController();
   final ChatService _chatService = ChatService();
   String _selectedSpecialty = 'الكل';
-  bool _isGridView = false;
-  bool _showOnlyAvailable = false;
 
   final List<String> _specialties = [
-    'الكل',
-    'باطنية',
-    'قلبية',
-    'أطفال',
-    'نساء وولادة',
-    'جلدية',
-    'عظام',
-    'نفسية',
-    'أنف وأذن وحنجرة',
-    'أسنان',
-    'عيون',
-    'جراحة عامة',
+    'الكل', 'باطنية', 'قلبية', 'أطفال', 'نساء وولادة',
+    'جلدية', 'عظام', 'نفسية', 'أنف وأذن وحنجرة',
   ];
 
   @override
@@ -47,7 +40,6 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
     context.read<DoctorBloc>().add(LoadDoctors());
   }
 
-  // ✅ بدء محادثة مع الطبيب
   Future<void> _startChatWithDoctor(DoctorModel doctor) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -80,7 +72,6 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
     }
   }
 
-  // ✅ بدء مكالمة مع الطبيب
   void _startCallWithDoctor(DoctorModel doctor, bool isVideo) {
     Navigator.push(
       context,
@@ -106,17 +97,6 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
         backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
         foregroundColor: isDark ? Colors.white : Colors.black87,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: Icon(_showOnlyAvailable ? Icons.visibility : Icons.visibility_off),
-            onPressed: () => setState(() => _showOnlyAvailable = !_showOnlyAvailable),
-            tooltip: _showOnlyAvailable ? 'عرض الكل' : 'عرض المتاحين فقط',
-          ),
-          IconButton(
-            icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view),
-            onPressed: () => setState(() => _isGridView = !_isGridView),
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -132,41 +112,19 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                     ),
                   );
                 }
-
                 if (state is DoctorError) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.error_outline, size: 60, color: Colors.red[300]),
-                        const SizedBox(height: 16),
-                        Text(state.message),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () {
-                            context.read<DoctorBloc>().add(LoadDoctors());
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
-                          ),
-                          child: const Text('إعادة المحاولة'),
-                        ),
-                      ],
-                    ),
-                  );
+                  return _buildErrorState(isDark);
                 }
-
                 if (state is DoctorLoaded) {
                   final doctors = state.doctors;
                   if (doctors.isEmpty) {
                     return _buildEmptyState(isDark);
                   }
-                  return _isGridView
-                      ? _buildGridView(doctors, isDark)
-                      : _buildListView(doctors, isDark);
+                  return ListView(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    children: doctors.map((doctor) => _buildDoctorCard(doctor, isDark)).toList(),
+                  );
                 }
-
                 return const SizedBox.shrink();
               },
             ),
@@ -176,9 +134,6 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
     );
   }
 
-  // ============================================================
-  // 🧩 ويدجت البحث
-  // ============================================================
   Widget _buildSearchBar(bool isDark) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -193,7 +148,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
       ),
       child: Row(
         children: [
-          Icon(Icons.search, color: isDark ? Colors.grey.shade400 : Colors.grey.shade500),
+          const Icon(Icons.search, color: Colors.grey),
           const SizedBox(width: 8),
           Expanded(
             child: TextField(
@@ -210,10 +165,10 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
           ),
           if (_searchController.text.isNotEmpty)
             IconButton(
-              icon: Icon(Icons.clear, color: isDark ? Colors.grey.shade400 : Colors.grey.shade500),
+              icon: const Icon(Icons.clear),
               onPressed: () {
                 _searchController.clear();
-                context.read<DoctorBloc>().add(LoadDoctors()(query: ''));
+                context.read<DoctorBloc>().add(LoadDoctors());
               },
             ),
         ],
@@ -221,25 +176,18 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
     );
   }
 
-  // ============================================================
-  // 🏷️ فلتر التخصصات
-  // ============================================================
   Widget _buildSpecialtiesFilter(bool isDark) {
     return SizedBox(
       height: 40,
-      child: ListView.builder(
+      child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: _specialties.length,
-        itemBuilder: (context, index) {
-          final specialty = _specialties[index];
+        children: _specialties.map((specialty) {
           final isSelected = _selectedSpecialty == specialty;
           return GestureDetector(
             onTap: () {
               setState(() => _selectedSpecialty = specialty);
-              context.read<DoctorBloc>().add(LoadDoctors()
-                // DoctorEventFilter(specialty: specialty),
-              );
+              context.read<DoctorBloc>().add(LoadDoctors());
             },
             child: Container(
               margin: const EdgeInsets.only(right: 8),
@@ -261,48 +209,11 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
               ),
             ),
           );
-        },
+        }).toList(),
       ),
     );
   }
 
-  // ============================================================
-  // 📋 عرض القائمة
-  // ============================================================
-  Widget _buildListView(List<DoctorModel> doctors, bool isDark) {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: doctors.length,
-      itemBuilder: (context, index) {
-        final doctor = doctors[index];
-        return _buildDoctorCard(doctor, isDark);
-      },
-    );
-  }
-
-  // ============================================================
-  // 📊 عرض الشبكة
-  // ============================================================
-  Widget _buildGridView(List<DoctorModel> doctors, bool isDark) {
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 0.75,
-      ),
-      itemCount: doctors.length,
-      itemBuilder: (context, index) {
-        final doctor = doctors[index];
-        return _buildDoctorGridCard(doctor, isDark);
-      },
-    );
-  }
-
-  // ============================================================
-  // 🃏 بطاقة الطبيب (قائمة) - مع أزرار الدردشة والمكالمات
-  // ============================================================
   Widget _buildDoctorCard(DoctorModel doctor, bool isDark) {
     return GestureDetector(
       onTap: () {
@@ -329,7 +240,6 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
         ),
         child: Row(
           children: [
-            // ✅ صورة الطبيب
             Container(
               width: 60,
               height: 60,
@@ -351,7 +261,6 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
               ),
             ),
             const SizedBox(width: 12),
-            // ✅ المعلومات
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -398,9 +307,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                         decoration: BoxDecoration(
-                          color: doctor.isAvailable
-                              ? Colors.green.withOpacity(0.1)
-                              : Colors.red.withOpacity(0.1),
+                          color: doctor.isAvailable ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
@@ -455,7 +362,6 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                 ],
               ),
             ),
-            // ✅ أزرار الدردشة والمكالمات
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -485,201 +391,6 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
     );
   }
 
-  // ============================================================
-  // 🃏 بطاقة الطبيب (شبكة)
-  // ============================================================
-  Widget _buildDoctorGridCard(DoctorModel doctor, bool isDark) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => DoctorDetailsScreen(doctorId: doctor.id),
-          ),
-        );
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1A2540) : Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ✅ صورة الطبيب
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
-                  child: AppImage(
-                    imageUrl: doctor.photoUrl ?? ImageKit.doctor1,
-                    height: 100,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                Positioned(
-                  top: 6,
-                  right: 6,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.7),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.star, color: Colors.amber, size: 10),
-                        const SizedBox(width: 2),
-                        Text(
-                          '${doctor.rating ?? 0}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: 6,
-                  left: 6,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: doctor.isAvailable
-                          ? Colors.green.withOpacity(0.9)
-                          : Colors.red.withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      doctor.isAvailable ? 'متاح' : 'غير متاح',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 8,
-                      ),
-                    ),
-                  ),
-                ),
-                if (doctor.isOnline)
-                  Positioned(
-                    bottom: 6,
-                    right: 6,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.9),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Text(
-                        'متصل',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 8,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    doctor.name,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    doctor.specialty,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(Icons.payments, size: 12, color: Colors.grey),
-                      const SizedBox(width: 2),
-                      Text(
-                        '${doctor.consultationFee ?? 0} ر.ي',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => _startChatWithDoctor(doctor),
-                          icon: const Icon(Icons.chat, size: 14),
-                          label: const Text('دردشة', style: TextStyle(fontSize: 11)),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            minimumSize: const Size(0, 28),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => _startCallWithDoctor(doctor, false),
-                          icon: const Icon(Icons.phone, size: 14),
-                          label: const Text('اتصال', style: TextStyle(fontSize: 11)),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            minimumSize: const Size(0, 28),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ============================================================
-  // 📭 حالة فارغة
-  // ============================================================
   Widget _buildEmptyState(bool isDark) {
     return Center(
       child: Column(
@@ -706,6 +417,35 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
               fontSize: 14,
               color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(bool isDark) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline, size: 60, color: Colors.red[300]),
+          const SizedBox(height: 16),
+          Text(
+            'حدث خطأ في تحميل الأطباء',
+            style: TextStyle(
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () {
+              context.read<DoctorBloc>().add(LoadDoctors());
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('إعادة المحاولة'),
           ),
         ],
       ),
