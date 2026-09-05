@@ -23,7 +23,6 @@ import 'core/routes/payment_routes.dart';
 import 'presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'presentation/bloc/theme_bloc/theme_bloc.dart';
 import 'bloc/chat/chat_bloc.dart';
-import 'presentation/bloc/doctor_bloc/doctor_bloc.dart';
 import 'presentation/screens/splash_screen.dart';
 import 'presentation/screens/wallet/wallet_screen.dart';
 
@@ -102,9 +101,7 @@ void main() async {
         ),
         BlocProvider(create: (_) => ThemeBloc()),
         BlocProvider(create: (_) => ChatBloc()),
-        BlocProvider(create: (_) => DoctorBloc()),
-        BlocProvider(create: (_) => CommunityBloc()..add(FetchCommunityPosts())),
-      ],
+                      ],
       child: const SehatakApp(),
     ),
   );
@@ -139,8 +136,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _notificationService.dispose();
-    super.dispose();
+        super.dispose();
   }
 
   @override

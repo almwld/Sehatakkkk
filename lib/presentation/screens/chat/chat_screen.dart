@@ -1,9 +1,10 @@
-import package:sehatak/presentation/screens/exercise/exercise_plan_screen.dart;
-import package:sehatak/presentation/screens/health_tips/health_tips_screen.dart;
-import package:sehatak/presentation/screens/medication/medicines_screen.dart;
-import package:sehatak/presentation/screens/symptom_checker/symptom_checker_screen.dart;
-import package:sehatak/presentation/screens/doctor/doctors_list_screen.dart;
-import package:sehatak/presentation/screens/notifications/notifications_screen.dart;
+import 'package:shimmer/shimmer.dart';
+import 'package:sehatak/presentation/screens/exercise/exercise_plan_screen.dart';
+import 'package:sehatak/presentation/screens/health_tips/health_tips_screen.dart';
+import 'package:sehatak/presentation/screens/medication/medicines_screen.dart';
+import 'package:sehatak/presentation/screens/symptom_checker/symptom_checker_screen.dart';
+import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
+import 'package:sehatak/presentation/screens/notifications/notifications_screen.dart';
 // ============================================================
 // 📁 lib/presentation/screens/chat/chat_screen.dart
 // 💬 شاشة الدردشة - الإصدار المتكامل مع الأصول المحلية
@@ -873,10 +874,10 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
 
         return ListView.builder(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          itemCount: calls.length,
+          itemCount: chats.length,
           itemBuilder: (context, index) {
-            final call = calls[index];
-            return _buildCallCard(call, isDark);
+            final chat = chats[index];
+            return _buildCallCard(chat, isDark);
           },
         );
       },

@@ -1,4 +1,5 @@
-import package:shimmer/shimmer.dart;
+import 'package:shimmer/shimmer.dart';
+import package:shimmer/shimmer.dart';
 import 'package:sehatak/bloc/community/community_bloc.dart';
 import 'package:sehatak/bloc/community/community_event.dart';
 import 'package:sehatak/bloc/community/community_state.dart';
