@@ -1,15 +1,16 @@
 // ============================================================
 // 📁 lib/presentation/screens/chat/widgets/chat_input_bar.dart
-// 💬 شريط إدخال الرسائل مع التسجيل الصوتي
+// 💬 شريط إدخال الرسائل - رفع إلى NextCloud
 // ============================================================
 
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/core/services/nextcloud_service.dart';
 import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:async';
@@ -36,26 +37,110 @@ class _ChatInputBarState extends State<ChatInputBar> {
   final TextEditingController _controller = TextEditingController();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final NextcloudService _nextcloud = NextcloudService();
   final AudioRecorder _recorder = AudioRecorder();
+  final ImagePicker _picker = ImagePicker();
   
   bool _isRecording = false;
   bool _isSending = false;
   String? _recordingPath;
   Timer? _recordingTimer;
   Duration _recordingDuration = Duration.zero;
-  StreamSubscription<RecordingState>? _recordingSubscription;
 
   @override
   void dispose() {
     _controller.dispose();
-    _recordingSubscription?.cancel();
     _recorder.dispose();
     _recordingTimer?.cancel();
     super.dispose();
   }
 
   // ============================================================
-  // 🎙️ بدء التسجيل
+  // 📤 رفع الملفات إلى NextCloud
+  // ============================================================
+  Future<String?> _uploadToNextCloud(File file, String folder) async {
+    try {
+      final result = await _nextcloud.uploadFile(
+        file: file,
+        path: 'chats/${widget.chatId}/$folder',
+        onProgress: (sent, total) {
+          // يمكن إضافة مؤشر تقدم
+        },
+      );
+      
+      if (result.success && result.url != null) {
+        return result.url;
+      }
+      return null;
+    } catch (e) {
+      ToastService.showError('❌ فشل رفع الملف: $e');
+      return null;
+    }
+  }
+
+  // ============================================================
+  // 📷 رفع الصور إلى NextCloud
+  // ============================================================
+  Future<void> _sendImage() async {
+    try {
+      final image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+      );
+      if (image == null) return;
+
+      setState(() => _isSending = true);
+
+      final file = File(image.path);
+      
+      // ✅ رفع إلى NextCloud
+      final imageUrl = await _uploadToNextCloud(file, 'images');
+      
+      if (imageUrl == null) {
+        ToastService.showError('❌ فشل رفع الصورة');
+        return;
+      }
+
+      // ✅ حفظ الرابط في Firestore
+      final user = _auth.currentUser;
+      if (user == null) return;
+
+      await _firestore
+          .collection('chats')
+          .doc(widget.chatId)
+          .collection('messages')
+          .add({
+            'chatId': widget.chatId,
+            'senderId': user.uid,
+            'senderName': user.displayName ?? 'مستخدم',
+            'senderPhotoUrl': user.photoURL,
+            'text': '📷 صورة',
+            'imageUrl': imageUrl, // ✅ رابط NextCloud
+            'timestamp': FieldValue.serverTimestamp(),
+            'type': 'image',
+            'isRead': false,
+            'isDelivered': false,
+            'reactions': {},
+          });
+
+      await _firestore.collection('chats').doc(widget.chatId).update({
+        'lastMessage': '📷 صورة',
+        'lastMessageTime': FieldValue.serverTimestamp(),
+        'lastMessageSenderId': user.uid,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      ToastService.showSuccess('✅ تم إرسال الصورة');
+      
+    } catch (e) {
+      ToastService.showError('❌ فشل إرسال الصورة: $e');
+    } finally {
+      setState(() => _isSending = false);
+    }
+  }
+
+  // ============================================================
+  // 🎙️ التسجيل الصوتي ورفع إلى NextCloud
   // ============================================================
   Future<void> _startRecording() async {
     try {
@@ -80,7 +165,6 @@ class _ChatInputBarState extends State<ChatInputBar> {
         });
         
         _startTimer();
-        
         ToastService.showInfo('🎙️ جاري التسجيل...');
       }
     } catch (e) {
@@ -88,9 +172,6 @@ class _ChatInputBarState extends State<ChatInputBar> {
     }
   }
 
-  // ============================================================
-  // ⏱️ مؤقت التسجيل
-  // ============================================================
   void _startTimer() {
     _recordingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
@@ -99,9 +180,6 @@ class _ChatInputBarState extends State<ChatInputBar> {
     });
   }
 
-  // ============================================================
-  // ⏹️ إيقاف التسجيل
-  // ============================================================
   Future<void> _stopRecording() async {
     try {
       _recordingTimer?.cancel();
@@ -109,13 +187,8 @@ class _ChatInputBarState extends State<ChatInputBar> {
       
       if (_recordingPath == null) return;
       
-      final path = _recordingPath!;
-      final file = File(path);
-      
-      if (!await file.exists()) {
-        ToastService.showError('❌ فشل حفظ التسجيل');
-        return;
-      }
+      final file = File(_recordingPath!);
+      if (!await file.exists()) return;
       
       final size = await file.length();
       if (size < 1000) {
@@ -124,33 +197,20 @@ class _ChatInputBarState extends State<ChatInputBar> {
         return;
       }
       
-      // رفع التسجيل إلى Firebase Storage
-      await _uploadAudio(file);
+      setState(() => _isSending = true);
       
-    } catch (e) {
-      ToastService.showError('❌ فشل إيقاف التسجيل: $e');
-    }
-  }
+      // ✅ رفع الصوت إلى NextCloud
+      final audioUrl = await _uploadToNextCloud(file, 'audio');
+      
+      if (audioUrl == null) {
+        ToastService.showError('❌ فشل رفع التسجيل');
+        return;
+      }
 
-  // ============================================================
-  // 📤 رفع التسجيل الصوتي
-  // ============================================================
-  Future<void> _uploadAudio(File file) async {
-    setState(() => _isSending = true);
-    
-    try {
+      // ✅ حفظ الرابط في Firestore
       final user = _auth.currentUser;
       if (user == null) return;
-      
-      // رفع إلى Firebase Storage
-      final ref = FirebaseStorage.instance
-          .ref()
-          .child('chats/${widget.chatId}/audio/${DateTime.now().millisecondsSinceEpoch}.m4a');
-      
-      await ref.putFile(file);
-      final audioUrl = await ref.getDownloadURL();
-      
-      // حفظ في Firestore
+
       await _firestore
           .collection('chats')
           .doc(widget.chatId)
@@ -161,7 +221,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
             'senderName': user.displayName ?? 'مستخدم',
             'senderPhotoUrl': user.photoURL,
             'text': '🎵 رسالة صوتية',
-            'audioUrl': audioUrl,
+            'audioUrl': audioUrl, // ✅ رابط NextCloud
             'duration': _recordingDuration.inSeconds,
             'timestamp': FieldValue.serverTimestamp(),
             'type': 'audio',
@@ -169,22 +229,23 @@ class _ChatInputBarState extends State<ChatInputBar> {
             'isDelivered': false,
             'reactions': {},
           });
-      
+
       await _firestore.collection('chats').doc(widget.chatId).update({
         'lastMessage': '🎵 رسالة صوتية',
         'lastMessageTime': FieldValue.serverTimestamp(),
         'lastMessageSenderId': user.uid,
         'updatedAt': FieldValue.serverTimestamp(),
       });
-      
+
       ToastService.showSuccess('✅ تم إرسال التسجيل الصوتي');
       
-    } catch (e) {
-      ToastService.showError('❌ فشل رفع التسجيل: $e');
-    } finally {
-      setState(() => _isSending = false);
       // حذف الملف المؤقت
       try { await file.delete(); } catch (_) {}
+      
+    } catch (e) {
+      ToastService.showError('❌ فشل إرسال التسجيل: $e');
+    } finally {
+      setState(() => _isSending = false);
     }
   }
 
@@ -324,7 +385,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
               title: const Text('صورة من المعرض'),
               onTap: () {
                 Navigator.pop(context);
-                widget.onSendImage('');
+                _sendImage();
               },
             ),
             ListTile(
