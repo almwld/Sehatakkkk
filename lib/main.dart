@@ -25,7 +25,7 @@ import 'presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'presentation/bloc/theme_bloc/theme_bloc.dart';
 import 'bloc/chat/chat_bloc.dart';
 import 'bloc/messages/messages_bloc.dart';
-import 'presentation/bloc/doctor_bloc/doctor_bloc.dart';
+import 'bloc/doctor_bloc/doctor_bloc.dart';
 import 'presentation/screens/splash_screen.dart';
 import 'presentation/screens/chat/incoming_call_screen.dart';
 import 'presentation/screens/wallet/wallet_screen.dart';

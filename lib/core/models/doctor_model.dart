@@ -59,31 +59,81 @@ class DoctorModel extends Equatable {
   });
 
   factory DoctorModel.fromFirestore(String id, Map<String, dynamic> data) {
+    // ✅ معالجة education (يمكن أن يكون String أو List)
+    List<Map<String, dynamic>> parseEducation(dynamic value) {
+      if (value == null) return [];
+      if (value is List) {
+        return value.map((e) {
+          if (e is Map<String, dynamic>) return e;
+          if (e is String) return {'degree': e};
+          return {};
+        }).toList();
+      }
+      if (value is String) {
+        return [{'degree': value}];
+      }
+      return [];
+    }
+
+    // ✅ معالجة services (يمكن أن يكون String أو List)
+    List<String> parseServices(dynamic value) {
+      if (value == null) return [];
+      if (value is List) {
+        return value.map((e) => e.toString()).toList();
+      }
+      if (value is String) {
+        return [value];
+      }
+      return [];
+    }
+
+    // ✅ معالجة languages (يمكن أن يكون String أو List)
+    List<String> parseLanguages(dynamic value) {
+      if (value == null) return [];
+      if (value is List) {
+        return value.map((e) => e.toString()).toList();
+      }
+      if (value is String) {
+        return [value];
+      }
+      return [];
+    }
+
     return DoctorModel(
       id: id,
-      name: data['name'] ?? '',
-      specialty: data['specialty'] ?? '',
-      subspecialty: data['subspecialty'],
-      photoUrl: data['photoUrl'],
+      name: data['name']?.toString() ?? '',
+      specialty: data['specialty']?.toString() ?? '',
+      subspecialty: data['subspecialty']?.toString(),
+      photoUrl: data['photoUrl']?.toString(),
       rating: (data['rating'] as num?)?.toDouble(),
-      reviewsCount: data['reviewsCount'],
+      reviewsCount: data['reviewsCount'] as int?,
       consultationFee: (data['consultationFee'] as num?)?.toDouble(),
       isAvailable: data['isAvailable'] ?? false,
       isOnline: data['isOnline'] ?? false,
-      experienceYears: data['experienceYears'],
-      hospital: data['hospital'],
-      clinicAddress: data['clinicAddress'],
-      about: data['about'],
-      languages: List<String>.from(data['languages'] ?? []),
-      services: List<String>.from(data['services'] ?? []),
-      workingHours: Map<String, dynamic>.from(data['workingHours'] ?? {}),
-      education: List<Map<String, dynamic>>.from(data['education'] ?? []),
-      certifications: List<Map<String, dynamic>>.from(data['certifications'] ?? []),
-      reviews: List<Map<String, dynamic>>.from(data['reviews'] ?? []),
+      experienceYears: data['experienceYears'] as int?,
+      hospital: data['hospital']?.toString(),
+      clinicAddress: data['clinicAddress']?.toString(),
+      about: data['about']?.toString(),
+      languages: parseLanguages(data['languages']),
+      services: parseServices(data['services']),
+      workingHours: data['workingHours'] is Map 
+          ? Map<String, dynamic>.from(data['workingHours']) 
+          : null,
+      education: parseEducation(data['education']),
+      certifications: data['certifications'] is List
+          ? List<Map<String, dynamic>>.from(data['certifications'])
+          : null,
+      reviews: data['reviews'] is List
+          ? List<Map<String, dynamic>>.from(data['reviews'])
+          : null,
       isVerified: data['isVerified'] ?? false,
-      patientsCount: data['patientsCount'],
-      specialties: List<String>.from(data['specialties'] ?? []),
-      ratingBreakdown: Map<String, double>.from(data['ratingBreakdown'] ?? {}),
+      patientsCount: data['patientsCount'] as int?,
+      specialties: data['specialties'] is List
+          ? List<String>.from(data['specialties'])
+          : null,
+      ratingBreakdown: data['ratingBreakdown'] is Map
+          ? Map<String, double>.from(data['ratingBreakdown'])
+          : null,
       isFeatured: data['isFeatured'] ?? false,
       createdAt: data['createdAt'],
     );
