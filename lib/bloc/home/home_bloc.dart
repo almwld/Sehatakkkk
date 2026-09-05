@@ -1,6 +1,6 @@
 // ============================================================
 // 📁 lib/bloc/home/home_bloc.dart
-// 🧠 منطق Home
+// 🧠 منطق الشاشة الرئيسية
 // ============================================================
 
 import 'package:bloc/bloc.dart';
@@ -12,11 +12,10 @@ import 'package:sehatak/core/constants/imagekit.dart';
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final HomeRepository _repository = HomeRepository();
 
-  HomeBloc() : super(const HomeState()) {
+  HomeBloc() : super(const HomeState(status: HomeStatus.initial)) {
     on<HomeStarted>(_onStarted);
     on<HomeDataFetched>(_onDataFetched);
     on<HomeDataRefreshed>(_onDataRefreshed);
-    on<HomeBannerChanged>(_onBannerChanged);
   }
 
   Future<void> _onStarted(HomeStarted event, Emitter<HomeState> emit) async {
@@ -33,10 +32,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   Future<void> _onDataRefreshed(HomeDataRefreshed event, Emitter<HomeState> emit) async {
     emit(state.copyWith(status: HomeStatus.refreshing));
     await _fetchAllData(emit);
-  }
-
-  void _onBannerChanged(HomeBannerChanged event, Emitter<HomeState> emit) {
-    emit(state.copyWith(currentBanner: event.index));
   }
 
   Future<void> _fetchAllData(Emitter<HomeState> emit) async {
@@ -56,13 +51,13 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
       final userData = results[0] as ({bool isLoggedIn, String userName});
       final healthStats = results[1] as ({double calories, double steps, double sleep, double heartRate});
-      final doctors = results[2] as List<Map<String, dynamic>>;
-      final hospitals = results[3] as List<Map<String, dynamic>>;
-      final pharmacies = results[4] as List<Map<String, dynamic>>;
-      final labs = results[5] as List<Map<String, dynamic>>;
-      final articles = results[6] as List<Map<String, dynamic>>;
-      final tips = results[7] as List<Map<String, dynamic>>;
-      final communityPosts = results[8] as List<Map<String, dynamic>>;
+      final doctors = results[2] as List<DoctorModel>;
+      final hospitals = results[3] as List<HospitalModel>;
+      final pharmacies = results[4] as List<PharmacyModel>;
+      final labs = results[5] as List<LabModel>;
+      final articles = results[6] as List<ArticleModel>;
+      final tips = results[7] as List<TipModel>;
+      final communityPosts = results[8] as List<CommunityPostModel>;
       final notificationCount = results[9] as int;
 
       emit(state.copyWith(
