@@ -1,4 +1,3 @@
-import 'package:sehatak/bloc/community/community_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,6 +7,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'firebase_options.dart';
 import 'core/providers/font_size_provider.dart';
 import 'core/providers/user_provider.dart';
@@ -24,13 +24,11 @@ import 'presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'presentation/bloc/theme_bloc/theme_bloc.dart';
 import 'bloc/chat/chat_bloc.dart';
 import 'presentation/screens/splash_screen.dart';
-import 'presentation/screens/wallet/wallet_screen.dart';
+import 'presentation/screens/home/home_screen.dart';
 
-// ✅ معالج الخلفية للإشعارات
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print('📩 Handling background message: ${message.messageId}');
-  print('📩 Data: ${message.data}');
 }
 
 void main() async {
@@ -67,7 +65,6 @@ void main() async {
   }
 
   await CacheService.init();
-
   await PreloadService().preloadEssentialData();
 
   runApp(
@@ -101,7 +98,7 @@ void main() async {
         ),
         BlocProvider(create: (_) => ThemeBloc()),
         BlocProvider(create: (_) => ChatBloc()),
-                      ],
+      ],
       child: const SehatakApp(),
     ),
   );
@@ -125,17 +122,12 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
 
     FirebaseMessaging.onMessage.listen(_handleMessage);
     FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpened);
-
-    FirebaseMessaging.onMessage.listen((message) {
-      if (message.data['type'] == 'incoming_call') {
-              }
-    });
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-        super.dispose();
+    super.dispose();
   }
 
   @override
@@ -164,8 +156,6 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
 
   void _handleMessageOpened(RemoteMessage message) {
     print('📱 Message opened: ${message.data}');
-    if (message.data['type'] == 'incoming_call') {
-          }
   }
 
   @override
