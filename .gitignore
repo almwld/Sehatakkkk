@@ -108,3 +108,5 @@ Thumbs.db
 *.bash~
 *.tmp.sh
 /tmp/
+service-account.json
+*.json

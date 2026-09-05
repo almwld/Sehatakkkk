@@ -400,3 +400,52 @@ class _MessageBubbleState extends State<MessageBubble> {
     );
   }
 }
+
+// ============================================================
+// 🎵 عرض الرسالة الصوتية
+// ============================================================
+Widget _buildAudioMessage(Map<String, dynamic> message, bool isMe, bool isDark) {
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    decoration: BoxDecoration(
+      color: isMe ? AppColors.primary : (isDark ? const Color(0xFF1A2540) : Colors.grey[100]),
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.play_arrow, color: isMe ? Colors.white : AppColors.primary, size: 20),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                height: 4,
+                decoration: BoxDecoration(
+                  color: isMe ? Colors.white.withOpacity(0.3) : Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                _formatDuration(message['duration'] ?? 0),
+                style: TextStyle(
+                  fontSize: 10,
+                  color: isMe ? Colors.white.withOpacity(0.8) : Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+        ),
+        Icon(Icons.audiotrack, color: isMe ? Colors.white.withOpacity(0.6) : Colors.grey[600], size: 16),
+      ],
+    ),
+  );
+}
+
+String _formatDuration(int seconds) {
+  final minutes = seconds ~/ 60;
+  final remainingSeconds = seconds % 60;
+  return '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
+}

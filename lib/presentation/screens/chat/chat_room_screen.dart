@@ -451,7 +451,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                           isMe: isMe,
                           onReply: () {
                             setState(() {
-                              _replyToMessage = message as Map<String, dynamic>?;
+                              _replyToMessage = message;
                               _replyToMessageId = message.id;
                             });
                           },
@@ -497,7 +497,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 _textController.clear();
                 _scrollToBottom();
               },
-              onSendImage: (String path) { _sendImage(); },
+              onSendImage: (path) {},
               onShareLocation: _shareLocation,
             ),
           ],

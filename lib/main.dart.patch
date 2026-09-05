@@ -1,7 +1,11 @@
-// ✅ في main.dart، استبدل:
-_callService.handleIncomingCall(context, message);
+// إزالة DoctorBloc وإضافة CommunityBloc بشكل صحيح
+// استبدال السطر:
+// import 'presentation/bloc/doctor_bloc/doctor_bloc.dart';
+// بـ:
+// import 'bloc/doctor_bloc/doctor_bloc.dart';
 
-// ✅ بـ:
-_callService.handleIncomingCall(context, message);
-// ✅ أو استخدم handleIncomingCallData:
-// _callService.handleIncomingCallData(context, message.data);
+// وفي MultiBlocProvider:
+// استبدال:
+// BlocProvider(create: (_) => DoctorBloc()),
+// بـ:
+// BlocProvider(create: (_) => DoctorBloc()..add(LoadDoctors())),

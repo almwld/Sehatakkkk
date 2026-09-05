@@ -1,0 +1,15 @@
+tree 2f4a463d8ca7e3a99cae5b1f9dfbc06cdd4cb155
+parent 7d3346a1891c67bb7c93cd863655dbba89f654fd
+author almwld <almwld@github.com> 1785731483 +0300
+committer almwld <almwld@github.com> 1785731483 +0300
+
+✅ تطوير BannerCarousel - إضافة تحكمات وتخصيص
+
+- ✅ إضافة CarouselSliderController للتحكم البرمجي
+- ✅ إضافة أزرار تنقل (يسار/يمين)
+- ✅ إضافة مؤشرات قابلة للنقر
+- ✅ إضافة معلمات مخصصة
+- ✅ إضافة تخصيص المؤشرات
+- ✅ إضافة ظل للصور
+- ✅ إضافة دالة onPageChanged
+- ✅ إضافة NetworkBannerCarousel

@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/almwld/Sehatakkkk#readme",
   "dependencies": {
-    "firebase-admin": "^14.3.0"
+    "firebase-admin": "^11.11.0",
+    "google-auth-library": "^9.4.0"
   }
 }

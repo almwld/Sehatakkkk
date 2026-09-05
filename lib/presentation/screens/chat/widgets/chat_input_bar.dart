@@ -1,8 +1,3 @@
-// ============================================================
-// 📁 lib/presentation/screens/chat/widgets/chat_input_bar.dart
-// 💬 شريط الإدخال - رفع إلى NextCloud
-// ============================================================
-
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -18,11 +13,15 @@ import 'dart:async';
 class ChatInputBar extends StatefulWidget {
   final String chatId;
   final Function(String) onSendMessage;
+  final Function(String)? onSendImage;
+  final VoidCallback? onShareLocation;
 
   const ChatInputBar({
     super.key,
     required this.chatId,
     required this.onSendMessage,
+    this.onSendImage,
+    this.onShareLocation,
   });
 
   @override
@@ -51,9 +50,6 @@ class _ChatInputBarState extends State<ChatInputBar> {
     super.dispose();
   }
 
-  // ============================================================
-  // 📤 رفع إلى NextCloud
-  // ============================================================
   Future<String?> _uploadToNextCloud(File file, String folder) async {
     try {
       final result = await _nextcloud.uploadFile(
@@ -67,9 +63,6 @@ class _ChatInputBarState extends State<ChatInputBar> {
     }
   }
 
-  // ============================================================
-  // 📷 رفع الصورة
-  // ============================================================
   Future<void> _sendImage() async {
     final image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
     if (image == null) return;
@@ -79,21 +72,30 @@ class _ChatInputBarState extends State<ChatInputBar> {
     final imageUrl = await _uploadToNextCloud(file, 'images');
     
     if (imageUrl != null) {
-      await _saveMessage('📷 صورة', imageUrl, 'image');
+      final user = _auth.currentUser;
+      if (user != null) {
+        await _firestore.collection('chats').doc(widget.chatId).collection('messages').add({
+          'chatId': widget.chatId,
+          'senderId': user.uid,
+          'senderName': user.displayName ?? 'مستخدم',
+          'text': '📷 صورة',
+          'imageUrl': imageUrl,
+          'timestamp': FieldValue.serverTimestamp(),
+          'type': 'image',
+          'isRead': false,
+          'isDelivered': false,
+        });
+        ToastService.showSuccess('✅ تم إرسال الصورة');
+      }
     }
     setState(() => _isSending = false);
   }
 
-  // ============================================================
-  // 🎙️ التسجيل الصوتي
-  // ============================================================
   Future<void> _startRecording() async {
     if (!await _recorder.hasPermission()) return;
-    
     final tempDir = await getTemporaryDirectory();
     final path = '${tempDir.path}/audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
     await _recorder.start(RecordConfig(encoder: AudioEncoder.aacLc), path: path);
-    
     setState(() { _isRecording = true; _recordingPath = path; });
     _recordingTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       setState(() => _recordingDuration += const Duration(seconds: 1));
@@ -104,7 +106,6 @@ class _ChatInputBarState extends State<ChatInputBar> {
   Future<void> _stopRecording() async {
     _recordingTimer?.cancel();
     setState(() => _isRecording = false);
-    
     if (_recordingPath == null) return;
     final file = File(_recordingPath!);
     if (await file.length() < 1000) {
@@ -112,56 +113,30 @@ class _ChatInputBarState extends State<ChatInputBar> {
       await file.delete();
       return;
     }
-
     setState(() => _isSending = true);
     final audioUrl = await _uploadToNextCloud(file, 'audio');
-    
     if (audioUrl != null) {
-      await _saveMessage('🎵 رسالة صوتية', audioUrl, 'audio', duration: _recordingDuration.inSeconds);
+      final user = _auth.currentUser;
+      if (user != null) {
+        await _firestore.collection('chats').doc(widget.chatId).collection('messages').add({
+          'chatId': widget.chatId,
+          'senderId': user.uid,
+          'senderName': user.displayName ?? 'مستخدم',
+          'text': '🎵 رسالة صوتية',
+          'audioUrl': audioUrl,
+          'duration': _recordingDuration.inSeconds,
+          'timestamp': FieldValue.serverTimestamp(),
+          'type': 'audio',
+          'isRead': false,
+          'isDelivered': false,
+        });
+        ToastService.showSuccess('✅ تم إرسال التسجيل الصوتي');
+      }
     }
     setState(() => _isSending = false);
     await file.delete();
   }
 
-  // ============================================================
-  // 💾 حفظ في Firestore
-  // ============================================================
-  Future<void> _saveMessage(String text, String mediaUrl, String type, {int duration = 0}) async {
-    final user = _auth.currentUser;
-    if (user == null) return;
-
-    final data = {
-      'chatId': widget.chatId,
-      'senderId': user.uid,
-      'senderName': user.displayName ?? 'مستخدم',
-      'text': text,
-      'timestamp': FieldValue.serverTimestamp(),
-      'type': type,
-      'isRead': false,
-      'isDelivered': false,
-      'reactions': {},
-    };
-
-    if (type == 'image') data['imageUrl'] = mediaUrl;
-    if (type == 'audio') {
-      data['audioUrl'] = mediaUrl;
-      data['duration'] = duration;
-    }
-    if (type == 'video') data['videoUrl'] = mediaUrl;
-
-    await _firestore.collection('chats').doc(widget.chatId).collection('messages').add(data);
-    await _firestore.collection('chats').doc(widget.chatId).update({
-      'lastMessage': text,
-      'lastMessageTime': FieldValue.serverTimestamp(),
-      'lastMessageSenderId': user.uid,
-    });
-
-    ToastService.showSuccess('✅ تم الإرسال');
-  }
-
-  // ============================================================
-  // 🏗️ الواجهة
-  // ============================================================
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -247,11 +222,12 @@ class _ChatInputBarState extends State<ChatInputBar> {
               title: const Text('صورة من المعرض'),
               onTap: () { Navigator.pop(context); _sendImage(); },
             ),
-            ListTile(
-              leading: const Icon(Icons.location_on, color: AppColors.primary),
-              title: const Text('مشاركة الموقع'),
-              onTap: () { Navigator.pop(context); },
-            ),
+            if (widget.onShareLocation != null)
+              ListTile(
+                leading: const Icon(Icons.location_on, color: AppColors.primary),
+                title: const Text('مشاركة الموقع'),
+                onTap: () { Navigator.pop(context); widget.onShareLocation?.call(); },
+              ),
           ],
         ),
       ),

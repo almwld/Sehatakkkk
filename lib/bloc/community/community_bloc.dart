@@ -20,7 +20,6 @@ class CommunityBloc extends Bloc<CommunityEvent, CommunityState> {
 
   CommunityBloc() : super(const CommunityState()) {
     on<FetchCommunityPosts>(_onFetchPosts);
-    on<LoadMoreCommunityPosts>(_onLoadMore);
     on<CreateCommunityPost>(_onCreatePost);
     on<DeleteCommunityPost>(_onDeletePost);
     on<ToggleLikePost>(_onToggleLike);
@@ -81,7 +80,6 @@ class CommunityBloc extends Bloc<CommunityEvent, CommunityState> {
   // 📋 تحميل المزيد
   // ============================================================
   Future<void> _onLoadMore(
-    LoadMoreCommunityPosts event,
     Emitter<CommunityState> emit,
   ) async {
     if (state.isLoading || !state.hasMore) return;
@@ -429,7 +427,6 @@ class CommunityBloc extends Bloc<CommunityEvent, CommunityState> {
   // 📋 تحميل المزيد من المنشورات
   // ============================================================
   Future<void> _onLoadMore(
-    LoadMoreCommunityPosts event,
     Emitter<CommunityState> emit,
   ) async {
     if (state.isLoading || !state.hasMore) return;
