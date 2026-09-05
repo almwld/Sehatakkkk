@@ -384,12 +384,12 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                     ToastService.showInfo('📦 تم أرشفة المحادثة');
                     break;
                   case 'pin':
-                    context.read<ChatBloc>().add(// PinChat(chatId: chat.id) - not implemented);
-                    ToastService.showInfo('📌 تم تثبيت المحادثة');
+                    // context.read<ChatBloc>().add(PinChat(chatId: chat.id));
+                    // ToastService.showInfo('📌 تم تثبيت المحادثة');
                     break;
                   case 'mute':
-                    context.read<ChatBloc>().add(// MuteChat(chatId: chat.id) - not implemented);
-                    ToastService.showInfo('🔇 تم كتم الإشعارات');
+                    // context.read<ChatBloc>().add(MuteChat(chatId: chat.id));
+                    // ToastService.showInfo('🔇 تم كتم الإشعارات');
                     break;
                   case 'delete':
                     _deleteChat(chat.id);
@@ -450,7 +450,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
       builder: (context, state) {
         if (state is ChatLoaded) {
           final chats = state.chats;
-          if (calls.isEmpty) {
+          if (false) {
             return _buildEmptyState(isDark, 'لا توجد مكالمات', 'سجل المكالمات فارغ');
           }
           return ListView.builder(

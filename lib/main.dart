@@ -137,7 +137,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
   StreamSubscription<List<CallModel>>?
       _incomingCallsSubscription;
 
-  String? _visibleIncomingCallId;
+  // String? _visibleIncomingCallId;
 
   @override
   void initState() {
@@ -176,11 +176,6 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
 
         _showIncomingCall(call);
       },
-      onError: (error) {
-        debugPrint(
-          '⚠️ Incoming calls stream error: $error',
-        );
-      },
     );
   }
 
@@ -217,7 +212,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
   @override
   void dispose() {
     _incomingCallsSubscription?.cancel();
-    _incomingCallsSubscription = null;
+    // _incomingCallsSubscription removed
 
     _notificationService.dispose();
 
