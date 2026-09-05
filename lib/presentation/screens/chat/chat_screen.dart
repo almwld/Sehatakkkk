@@ -458,7 +458,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
             itemCount: 0,
             itemBuilder: (context, index) {
               // final call = calls[index];
-              return _buildCallCard(call, isDark);
+              return _buildCallCard(callModel, isDark);
             },
           );
         }
