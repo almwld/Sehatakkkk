@@ -447,11 +447,11 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                         final message = messages[index];
                         final isMe = message.senderId == _auth.currentUser?.uid;
                         return MessageBubble(
-                          message: message,
+                          message: message as Map<String, dynamic>,
                           isMe: isMe,
                           onReply: () {
                             setState(() {
-                              _replyToMessage = message.toJson();
+                              _replyToMessage = message as Map<String, dynamic>?;
                               _replyToMessageId = message.id;
                             });
                           },

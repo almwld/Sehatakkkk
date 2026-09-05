@@ -98,13 +98,13 @@ class _MessageBubbleState extends State<MessageBubble> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: isMe ? AppColors.primary : (isDark ? const Color(0xFF1A2540) : Colors.grey[100]),
+        color: widget.isMe ? AppColors.primary : (isDark ? const Color(0xFF1A2540) : Colors.grey[100]),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
         message['text'] ?? '',
         style: TextStyle(
-          color: isMe ? Colors.white : (isDark ? Colors.white : Colors.black87),
+          color: widget.isMe ? Colors.white : (isDark ? Colors.white : Colors.black87),
           fontSize: 14,
         ),
       ),
@@ -188,7 +188,7 @@ class _MessageBubbleState extends State<MessageBubble> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: isMe ? AppColors.primary : (isDark ? const Color(0xFF1A2540) : Colors.grey[100]),
+        color: widget.isMe ? AppColors.primary : (isDark ? const Color(0xFF1A2540) : Colors.grey[100]),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -200,12 +200,12 @@ class _MessageBubbleState extends State<MessageBubble> {
             child: Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: isMe ? Colors.white.withOpacity(0.2) : AppColors.primary.withOpacity(0.1),
+                color: widget.isMe ? Colors.white.withOpacity(0.2) : AppColors.primary.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 _isPlaying ? Icons.pause : Icons.play_arrow,
-                color: isMe ? Colors.white : AppColors.primary,
+                color: widget.isMe ? Colors.white : AppColors.primary,
                 size: 20,
               ),
             ),
@@ -220,7 +220,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                 Container(
                   height: 4,
                   decoration: BoxDecoration(
-                    color: isMe ? Colors.white.withOpacity(0.3) : Colors.grey[300],
+                    color: widget.isMe ? Colors.white.withOpacity(0.3) : Colors.grey[300],
                     borderRadius: BorderRadius.circular(2),
                   ),
                   child: Row(
@@ -229,7 +229,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                         width: 30,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: isMe ? Colors.white : AppColors.primary,
+                          color: widget.isMe ? Colors.white : AppColors.primary,
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -241,7 +241,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                   _formatDuration(duration),
                   style: TextStyle(
                     fontSize: 10,
-                    color: isMe ? Colors.white.withOpacity(0.8) : Colors.grey[600],
+                    color: widget.isMe ? Colors.white.withOpacity(0.8) : Colors.grey[600],
                   ),
                 ),
               ],
@@ -253,7 +253,7 @@ class _MessageBubbleState extends State<MessageBubble> {
           // 🎵 أيقونة الصوت
           Icon(
             Icons.audiotrack,
-            color: isMe ? Colors.white.withOpacity(0.6) : Colors.grey[600],
+            color: widget.isMe ? Colors.white.withOpacity(0.6) : Colors.grey[600],
             size: 16,
           ),
         ],
@@ -379,7 +379,7 @@ class _MessageBubbleState extends State<MessageBubble> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: isMe ? AppColors.primary : (isDark ? const Color(0xFF1A2540) : Colors.grey[100]),
+          color: widget.isMe ? AppColors.primary : (isDark ? const Color(0xFF1A2540) : Colors.grey[100]),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -390,7 +390,7 @@ class _MessageBubbleState extends State<MessageBubble> {
             Text(
               message['text'] ?? '📍 موقع',
               style: TextStyle(
-                color: isMe ? Colors.white : (isDark ? Colors.white : Colors.black87),
+                color: widget.isMe ? Colors.white : (isDark ? Colors.white : Colors.black87),
                 fontSize: 13,
               ),
             ),
@@ -408,13 +408,13 @@ Widget _buildAudioMessage(Map<String, dynamic> message, bool isMe, bool isDark) 
   return Container(
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
     decoration: BoxDecoration(
-      color: isMe ? AppColors.primary : (isDark ? const Color(0xFF1A2540) : Colors.grey[100]),
+      color: widget.isMe ? AppColors.primary : (isDark ? const Color(0xFF1A2540) : Colors.grey[100]),
       borderRadius: BorderRadius.circular(12),
     ),
     child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.play_arrow, color: isMe ? Colors.white : AppColors.primary, size: 20),
+        Icon(Icons.play_arrow, color: widget.isMe ? Colors.white : AppColors.primary, size: 20),
         const SizedBox(width: 8),
         Expanded(
           child: Column(
@@ -423,7 +423,7 @@ Widget _buildAudioMessage(Map<String, dynamic> message, bool isMe, bool isDark) 
               Container(
                 height: 4,
                 decoration: BoxDecoration(
-                  color: isMe ? Colors.white.withOpacity(0.3) : Colors.grey[300],
+                  color: widget.isMe ? Colors.white.withOpacity(0.3) : Colors.grey[300],
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -432,13 +432,13 @@ Widget _buildAudioMessage(Map<String, dynamic> message, bool isMe, bool isDark) 
                 _formatDuration(message['duration'] ?? 0),
                 style: TextStyle(
                   fontSize: 10,
-                  color: isMe ? Colors.white.withOpacity(0.8) : Colors.grey[600],
+                  color: widget.isMe ? Colors.white.withOpacity(0.8) : Colors.grey[600],
                 ),
               ),
             ],
           ),
         ),
-        Icon(Icons.audiotrack, color: isMe ? Colors.white.withOpacity(0.6) : Colors.grey[600], size: 16),
+        Icon(Icons.audiotrack, color: widget.isMe ? Colors.white.withOpacity(0.6) : Colors.grey[600], size: 16),
       ],
     ),
   );

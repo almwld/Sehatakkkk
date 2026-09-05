@@ -171,7 +171,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
                         contentPadding: EdgeInsets.symmetric(horizontal: 16),
                       ),
                       style: TextStyle(color: isDark ? Colors.white : Colors.black87),
-                      onSubmitted: _sendMessage,
+                      onSubmitted: (text) { _sendMessage(); },
                     ),
                   ),
                   GestureDetector(
