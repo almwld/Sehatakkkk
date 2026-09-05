@@ -22,10 +22,12 @@ class ChatDetailScreen extends StatefulWidget {
 
 class _ChatDetailScreenState
     extends State<ChatDetailScreen> {
-  final TextEditingController _textController =
+  final TextEditingController
+      _textController =
       TextEditingController();
 
-  final ScrollController _scrollController =
+  final ScrollController
+      _scrollController =
       ScrollController();
 
   bool _isLoadingMore = false;
@@ -41,26 +43,29 @@ class _ChatDetailScreenState
           ),
         );
 
-    _scrollController.addListener(_onScroll);
+    _scrollController.addListener(
+      _onScroll,
+    );
   }
 
   @override
   void dispose() {
     _textController.dispose();
     _scrollController.dispose();
-
     super.dispose();
   }
 
   // ============================================================
-  // 📜 مراقبة التمرير
+  // مراقبة التمرير
   // ============================================================
+
   void _onScroll() {
     if (!_scrollController.hasClients) {
       return;
     }
 
-    final position = _scrollController.position;
+    final position =
+        _scrollController.position;
 
     if (position.maxScrollExtent <= 0) {
       return;
@@ -73,8 +78,9 @@ class _ChatDetailScreenState
   }
 
   // ============================================================
-  // 📥 تحميل المزيد
+  // تحميل المزيد
   // ============================================================
+
   Future<void> _loadMoreMessages() async {
     if (_isLoadingMore) {
       return;
@@ -83,7 +89,8 @@ class _ChatDetailScreenState
     final messagesBloc =
         context.read<MessagesBloc>();
 
-    final state = messagesBloc.state;
+    final state =
+        messagesBloc.state;
 
     if (state is! MessagesLoaded) {
       return;
@@ -107,19 +114,26 @@ class _ChatDetailScreenState
     );
 
     await Future<void>.delayed(
-      const Duration(milliseconds: 300),
+      const Duration(
+        milliseconds: 300,
+      ),
     );
 
     if (mounted) {
-      _isLoadingMore = false;
+      setState(() {
+        _isLoadingMore = false;
+      });
     }
   }
 
   // ============================================================
-  // 🖥️ واجهة الشاشة
+  // واجهة الشاشة
   // ============================================================
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+    BuildContext context,
+  ) {
     final isDark =
         Theme.of(context).brightness ==
             Brightness.dark;
@@ -129,7 +143,9 @@ class _ChatDetailScreenState
           ? AppColors.backgroundDark
           : AppColors.backgroundLight,
       appBar: AppBar(
-        title: const Text('الدردشة'),
+        title: const Text(
+          'الدردشة',
+        ),
         backgroundColor: isDark
             ? AppColors.backgroundDark
             : Colors.white,
@@ -144,25 +160,24 @@ class _ChatDetailScreenState
             child: BlocBuilder<
                 MessagesBloc,
                 MessagesState>(
-              builder: (context, state) {
-                // ------------------------------------------------
-                // Loading
-                // ------------------------------------------------
-                if (state is MessagesLoading) {
+              builder:
+                  (context, state) {
+                if (state
+                    is MessagesLoading) {
                   return const Center(
                     child:
                         CircularProgressIndicator(),
                   );
                 }
 
-                // ------------------------------------------------
-                // Error
-                // ------------------------------------------------
-                if (state is MessagesError) {
+                if (state
+                    is MessagesError) {
                   return Center(
                     child: Padding(
                       padding:
-                          const EdgeInsets.all(20),
+                          const EdgeInsets.all(
+                        20,
+                      ),
                       child: Text(
                         state.message,
                         textAlign:
@@ -172,11 +187,10 @@ class _ChatDetailScreenState
                   );
                 }
 
-                // ------------------------------------------------
-                // Messages
-                // ------------------------------------------------
-                if (state is MessagesLoaded) {
-                  if (state.messages.isEmpty) {
+                if (state
+                    is MessagesLoaded) {
+                  if (state.messages
+                      .isEmpty) {
                     return const Center(
                       child: Text(
                         'لا توجد رسائل',
@@ -195,7 +209,9 @@ class _ChatDetailScreenState
                         _scrollController,
                     reverse: true,
                     padding:
-                        const EdgeInsets.all(12),
+                        const EdgeInsets.all(
+                      12,
+                    ),
                     itemCount:
                         state.messages.length +
                             (state.isLoadingMore
@@ -203,11 +219,9 @@ class _ChatDetailScreenState
                                 : 0),
                     itemBuilder:
                         (context, index) {
-                      // ------------------------------------------
-                      // Pagination Loader
-                      // ------------------------------------------
                       if (index ==
-                          state.messages.length) {
+                          state.messages
+                              .length) {
                         return const Padding(
                           padding:
                               EdgeInsets.all(8),
@@ -239,20 +253,26 @@ class _ChatDetailScreenState
           ),
 
           // ======================================================
-          // ✉️ Chat Input
+          // شريط الكتابة
           // ======================================================
+
           ChatInputBar(
-            textController: _textController,
+            textController:
+                _textController,
             onSend: (text) {
-              final value = text.trim();
+              final value =
+                  text.trim();
 
               if (value.isEmpty) {
                 return;
               }
 
-              context.read<MessagesBloc>().add(
+              context
+                  .read<MessagesBloc>()
+                  .add(
                     SendMessage(
-                      chatId: widget.chatId,
+                      chatId:
+                          widget.chatId,
                       text: value,
                     ),
                   );

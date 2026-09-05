@@ -68,7 +68,8 @@ class CustomBottomNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
 
     final backgroundColor = isDark
         ? const Color(0xFF1E293B)
@@ -95,12 +96,16 @@ class CustomBottomNavigationBar extends StatelessWidget {
         child: SafeArea(
           top: false,
           bottom: true,
-          minimum: const EdgeInsets.only(bottom: 2),
+          minimum: const EdgeInsets.only(
+            bottom: 2,
+          ),
           child: SizedBox(
             height: _barHeight - 2,
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment:
+                  MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment:
+                  CrossAxisAlignment.center,
               children: _navItems.map((item) {
                 if (item.isSpecial) {
                   return _buildSpecialChatButton(
@@ -128,7 +133,8 @@ class CustomBottomNavigationBar extends StatelessWidget {
     NavItem item,
     bool isDark,
   ) {
-    final isSelected = currentIndex == item.index;
+    final isSelected =
+        currentIndex == item.index;
 
     final inactiveColor = isDark
         ? Colors.grey.shade400
@@ -141,11 +147,13 @@ class CustomBottomNavigationBar extends StatelessWidget {
         width: 48,
         height: 68,
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment:
+              MainAxisAlignment.center,
           children: [
             AnimatedScale(
               scale: isSelected ? 1.08 : 1.0,
-              duration: const Duration(milliseconds: 180),
+              duration:
+                  const Duration(milliseconds: 180),
               curve: Curves.easeOut,
               child: Icon(
                 item.icon,
@@ -158,11 +166,13 @@ class CustomBottomNavigationBar extends StatelessWidget {
             const SizedBox(height: 3),
             AnimatedOpacity(
               opacity: isSelected ? 1.0 : 0.75,
-              duration: const Duration(milliseconds: 180),
+              duration:
+                  const Duration(milliseconds: 180),
               child: Text(
                 item.label,
                 maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+                overflow:
+                    TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 9.5,
                   fontWeight: isSelected
@@ -176,13 +186,15 @@ class CustomBottomNavigationBar extends StatelessWidget {
             ),
             const SizedBox(height: 3),
             AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
+              duration:
+                  const Duration(milliseconds: 180),
               curve: Curves.easeOut,
               width: isSelected ? 20 : 0,
               height: 3,
               decoration: BoxDecoration(
                 color: AppColors.primary,
-                borderRadius: BorderRadius.circular(3),
+                borderRadius:
+                    BorderRadius.circular(3),
               ),
             ),
           ],
@@ -196,7 +208,8 @@ class CustomBottomNavigationBar extends StatelessWidget {
     NavItem item,
     bool isDark,
   ) {
-    final isSelected = currentIndex == item.index;
+    final isSelected =
+        currentIndex == item.index;
 
     final inactiveColor = isDark
         ? Colors.grey.shade400
@@ -209,11 +222,13 @@ class CustomBottomNavigationBar extends StatelessWidget {
         width: 64,
         height: 68,
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment:
+              MainAxisAlignment.center,
           children: [
             AnimatedScale(
               scale: isSelected ? 1.04 : 1.0,
-              duration: const Duration(milliseconds: 180),
+              duration:
+                  const Duration(milliseconds: 180),
               curve: Curves.easeOut,
               child: Container(
                 width: 52,
@@ -230,9 +245,11 @@ class CustomBottomNavigationBar extends StatelessWidget {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withOpacity(0.25),
+                      color: AppColors.primary
+                          .withOpacity(0.25),
                       blurRadius: 12,
-                      offset: const Offset(0, 4),
+                      offset:
+                          const Offset(0, 4),
                     ),
                   ],
                 ),
@@ -247,7 +264,8 @@ class CustomBottomNavigationBar extends StatelessWidget {
             Text(
               item.label,
               maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+              overflow:
+                  TextOverflow.ellipsis,
               style: TextStyle(
                 fontSize: 9.5,
                 fontWeight: isSelected
@@ -265,7 +283,8 @@ class CustomBottomNavigationBar extends StatelessWidget {
   }
 
   void _handleTap(NavItem item) {
-    if (item.isProtected && !isLoggedIn) {
+    if (item.isProtected &&
+        !isLoggedIn) {
       onAuthRequired();
       return;
     }
@@ -284,6 +303,7 @@ class NavItem {
   const NavItem({
     required this.index,
     required this.icon,
+    required this.label,
     this.isProtected = false,
     this.isSpecial = false,
   });
