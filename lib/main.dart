@@ -1,3 +1,4 @@
+import 'package:sehatak/bloc/community/community_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -102,6 +103,7 @@ void main() async {
         BlocProvider(create: (_) => ThemeBloc()),
         BlocProvider(create: (_) => ChatBloc()),
         BlocProvider(create: (_) => DoctorBloc()),
+        BlocProvider(create: (_) => CommunityBloc()..add(FetchCommunityPosts())),
       ],
       child: const SehatakApp(),
     ),

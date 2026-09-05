@@ -81,3 +81,13 @@ class AppConstants {
   static const int pageSize = 20;
   static const int infiniteScrollThreshold = 5;
 }
+
+// ============================================================
+// ☁️ NextCloud Configuration
+// ============================================================
+class NextCloudConfig {
+  static const String baseUrl = 'https://noa.it.tabdigital.cloud';
+  static const String username = 'PlatformSehatak@gmail.com';
+  static const String password = '10.10.10.1010.10.10.10';
+  static const String uploadPath = 'sehatak/uploads';
+}
