@@ -8,6 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/presentation/screens/booking/booking_screen.dart';
 
 class AppointmentsScreen extends StatefulWidget {
   const AppointmentsScreen({super.key});
@@ -21,6 +22,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   bool _isLoading = true;
   List<Map<String, dynamic>> _appointments = [];
+  String _filter = 'all'; // all, pending, confirmed, completed, cancelled
 
   @override
   void initState() {
@@ -63,6 +65,11 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
     }
   }
 
+  List<Map<String, dynamic>> get _filteredAppointments {
+    if (_filter == 'all') return _appointments;
+    return _appointments.where((a) => a['status'] == _filter).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -83,22 +90,82 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _appointments.isEmpty
-              ? _buildEmptyState(isDark)
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _appointments.length,
-                  itemBuilder: (context, index) {
-                    final appointment = _appointments[index];
-                    return _buildAppointmentCard(appointment, isDark);
-                  },
+          : Column(
+              children: [
+                // ✅ فلتر المواعيد
+                _buildFilterBar(isDark),
+                Expanded(
+                  child: _filteredAppointments.isEmpty
+                      ? _buildEmptyState(isDark)
+                      : ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: _filteredAppointments.length,
+                          itemBuilder: (context, index) {
+                            final appointment = _filteredAppointments[index];
+                            return _buildAppointmentCard(appointment, isDark);
+                          },
+                        ),
                 ),
+              ],
+            ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          ToastService.showInfo('📅 حجز موعد جديد');
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const BookingScreen(),
+            ),
+          );
         },
         backgroundColor: AppColors.primary,
         child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  Widget _buildFilterBar(bool isDark) {
+    final filters = [
+      {'key': 'all', 'label': 'الكل'},
+      {'key': 'pending', 'label': 'قيد الانتظار'},
+      {'key': 'confirmed', 'label': 'مؤكد'},
+      {'key': 'completed', 'label': 'مكتمل'},
+      {'key': 'cancelled', 'label': 'ملغي'},
+    ];
+
+    return Container(
+      height: 50,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: filters.length,
+        itemBuilder: (context, index) {
+          final filter = filters[index];
+          final isSelected = _filter == filter['key'];
+          return GestureDetector(
+            onTap: () => setState(() => _filter = filter['key'] as String),
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: BoxDecoration(
+                color: isSelected ? AppColors.primary : (isDark ? const Color(0xFF1A2540) : Colors.grey[200]),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isSelected ? AppColors.primary : Colors.transparent,
+                ),
+              ),
+              child: Center(
+                child: Text(
+                  filter['label'] as String,
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : (isDark ? Colors.grey[400] : Colors.grey[700]),
+                    fontSize: 12,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -227,7 +294,12 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () {
-              ToastService.showInfo('📅 حجز موعد جديد');
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const BookingScreen(),
+                ),
+              );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
