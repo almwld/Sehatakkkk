@@ -1,3 +1,7 @@
+import package:sehatak/presentation/screens/exercise/exercise_plan_screen.dart;
+import package:sehatak/presentation/screens/health_tips/health_tips_screen.dart;
+import package:sehatak/presentation/screens/medication/medicines_screen.dart;
+import package:sehatak/presentation/screens/symptom_checker/symptom_checker_screen.dart;
 import package:sehatak/presentation/screens/doctor/doctors_list_screen.dart;
 import package:sehatak/presentation/screens/notifications/notifications_screen.dart;
 // ============================================================
@@ -1086,28 +1090,28 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                   label: 'تحليل الأعراض',
                   color: Colors.blue,
                   isDark: isDark,
-                  onTap: () => ToastService.showInfo('🔍 تحليل الأعراض'),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SymptomCheckerScreen())),
                 ),
                 _buildAIFeature(
                   icon: Icons.medication,
                   label: 'معلومات الأدوية',
                   color: Colors.green,
                   isDark: isDark,
-                  onTap: () => ToastService.showInfo('💊 معلومات الأدوية'),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MedicinesScreen())),
                 ),
                 _buildAIFeature(
                   icon: Icons.food_bank,
                   label: 'نصائح غذائية',
                   color: Colors.orange,
                   isDark: isDark,
-                  onTap: () => ToastService.showInfo('🍎 نصائح غذائية'),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HealthTipsScreen())),
                 ),
                 _buildAIFeature(
                   icon: Icons.fitness_center,
                   label: 'خطط رياضية',
                   color: Colors.purple,
                   isDark: isDark,
-                  onTap: () => ToastService.showInfo('🏃 خطط رياضية'),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ExercisePlanScreen())),
                 ),
               ],
             ),
