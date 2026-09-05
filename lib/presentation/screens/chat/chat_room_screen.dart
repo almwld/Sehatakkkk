@@ -135,6 +135,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   }
 
   void _startCall(bool isVideo) {
+    _saveSystemMessage(isVideo ? "📹 بدأ مكالمة فيديو" : "📞 بدأ مكالمة صوتية", "system_call");
+    _saveSystemMessage(isVideo ? "📹 مكالمة فيديو" : "📞 مكالمة صوتية", "call");
     ToastService.showInfo('📞 جاري الاتصال...');
   }
 
@@ -673,3 +675,39 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     );
   }
 }
+
+  // ============================================================
+  // 💾 حفظ رسالة النظام (للمكالمات)
+  // ============================================================
+  Future<void> _saveSystemMessage(String message, String type) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return;
+
+      await _firestore
+          .collection('chats')
+          .doc(widget.chatId)
+          .collection('messages')
+          .add({
+        'chatId': widget.chatId,
+        'senderId': user.uid,
+        'senderName': user.displayName ?? 'مستخدم',
+        'senderPhotoUrl': user.photoURL,
+        'text': message,
+        'timestamp': FieldValue.serverTimestamp(),
+        'type': type,
+        'isRead': false,
+        'isDelivered': false,
+        'reactions': {},
+      });
+
+      await _firestore.collection('chats').doc(widget.chatId).update({
+        'lastMessage': message,
+        'lastMessageTime': FieldValue.serverTimestamp(),
+        'lastMessageSenderId': user.uid,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print('❌ فشل حفظ رسالة النظام: $e');
+    }
+  }
