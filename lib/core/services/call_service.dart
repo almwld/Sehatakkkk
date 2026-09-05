@@ -65,3 +65,26 @@ class CallService {
     ToastService.showInfo('📞 تم إنهاء المكالمة');
   }
 }
+
+  // ============================================================
+  // ❌ إلغاء المكالمة (من المتصل)
+  // ============================================================
+  Future<void> cancelCall(String callId) async {
+    await _firestore.runTransaction((transaction) async {
+      final doc = await transaction.get(_firestore.collection('calls').doc(callId));
+      if (!doc.exists) return;
+      
+      final data = doc.data()!;
+      final status = data['status'] as String;
+      
+      // ✅ فقط CALLING أو RINGING يمكن إلغاؤها
+      if (status != CallStatus.calling.name && status != CallStatus.ringing.name) {
+        throw Exception('لا يمكن إلغاء المكالمة في حالتها الحالية');
+      }
+      
+      transaction.update(_firestore.collection('calls').doc(callId), {
+        'status': CallStatus.cancelled.name,
+        'endedAt': FieldValue.serverTimestamp(),
+      });
+    });
+  }
