@@ -1,107 +1,54 @@
-import 'package:flutter/foundation.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class NotificationService {
-  static final NotificationService _instance =
-      NotificationService._internal();
-
+  static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
-
   NotificationService._internal();
 
-  final FirebaseMessaging _fcm =
-      FirebaseMessaging.instance;
-
-  final FlutterLocalNotificationsPlugin
-      _localNotifications =
+  final FlutterLocalNotificationsPlugin _notifications =
       FlutterLocalNotificationsPlugin();
 
-  bool _isInitialized = false;
+  Future<void> initialize() async {
+    const AndroidInitializationSettings androidSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
 
-  Future<void> init() async {
-    if (_isInitialized) return;
-
-    const android =
-        AndroidInitializationSettings(
-      '@mipmap/ic_launcher',
-    );
-
-    const ios =
+    const DarwinInitializationSettings iosSettings =
         DarwinInitializationSettings();
 
-    const settings = InitializationSettings(
-      android: android,
-      iOS: ios,
+    const InitializationSettings initSettings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
     );
 
-    await _localNotifications.initialize(
-      settings,
-    );
-
-    await _fcm.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
-
-    FirebaseMessaging.onMessage.listen(
-      _handleMessage,
-    );
-
-    _isInitialized = true;
-
-    debugPrint(
-      '✅ Notification service initialized',
-    );
+    await _notifications.initialize(initSettings);
+    print('✅ NotificationService initialized');
   }
 
-  void _handleMessage(
-    RemoteMessage message,
-  ) {
-    debugPrint(
-      '📩 FCM foreground: '
-      '${message.notification?.title}',
-    );
-
-    _showLocalNotification(message);
-  }
-
-  Future<void> _showLocalNotification(
-    RemoteMessage message,
-  ) async {
-    final notification = message.notification;
-
-    if (notification == null) return;
-
-    const androidDetails =
+  Future<void> showNotification({
+    required String title,
+    required String body,
+    String? payload,
+  }) async {
+    const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
       'sehatak_channel',
-      'إشعارات صحتك',
-      channelDescription: 'إشعارات التطبيق',
-      importance: Importance.high,
+      'صحتك - الإشعارات',
+      channelDescription: 'إشعارات تطبيق صحتك',
+      importance: Importance.max,
       priority: Priority.high,
-      icon: '@mipmap/ic_launcher',
     );
 
-    const iosDetails =
-        DarwinNotificationDetails();
-
-    const platformSpecifics =
-        NotificationDetails(
+    const NotificationDetails details = NotificationDetails(
       android: androidDetails,
-      iOS: iosDetails,
     );
 
-    await _localNotifications.show(
-      notification.hashCode,
-      notification.title,
-      notification.body,
-      platformSpecifics,
+    await _notifications.show(
+      DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      title,
+      body,
+      details,
+      payload: payload,
     );
-  }
-
-  void dispose() {
-    _isInitialized = false;
   }
 }

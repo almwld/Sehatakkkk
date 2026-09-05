@@ -27,7 +27,7 @@ class ScrollDetector extends StatelessWidget {
   }
 
   void _handleScroll(ScrollNotification notification, BuildContext context) {
-    // ✅ استخدام UserScrollNotification - نفس طريقة X
+    // ✅ استخدام UserScrollNotification
     if (notification is UserScrollNotification) {
       final route = ModalRoute.of(context)?.settings.name ?? 'home';
       
@@ -35,11 +35,10 @@ class ScrollDetector extends StatelessWidget {
         return;
       }
 
+      // ✅ استخدام ScrollDirection مباشرة مع import
       if (notification.direction == ScrollDirection.reverse) {
-        // ⬇️ التمرير للأسفل → إخفاء الشريط
         scrollManager.hide();
       } else if (notification.direction == ScrollDirection.forward) {
-        // ⬆️ التمرير للأعلى → إظهار الشريط
         scrollManager.show();
       }
     }
