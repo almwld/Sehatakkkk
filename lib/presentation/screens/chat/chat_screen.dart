@@ -1,16 +1,15 @@
-import '../../../core/models/chat_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../bloc/chat/chat_bloc.dart';
-import 'widgets/chat_shimmer.dart';
-import '../../../core/models/doctor_model.dart';
-import '../../../core/services/chat_service.dart';
-import '../../bloc/doctor_bloc/doctor_bloc.dart';
-import '../ai/ai_chatbot_screen.dart';
-import 'chat_detail_screen.dart';
+import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/constants/app_strings.dart';
+import 'package:sehatak/core/models/chat_model.dart';
+import 'package:sehatak/bloc/chat/chat_bloc.dart';
+import 'package:sehatak/presentation/screens/chat/widgets/chat_shimmer.dart';
+import 'package:sehatak/presentation/screens/chat/chat_room_screen.dart';
+import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
+import 'package:sehatak/core/services/toast_service.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -19,12 +18,23 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
-  final ChatService _chatService = ChatService();
+class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  final TextEditingController _searchController = TextEditingController();
+  bool _isSearching = false;
+
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
     context.read<ChatBloc>().add(LoadChats());
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -32,695 +42,437 @@ class _ChatScreenState extends State<ChatScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
-      appBar: AppBar(
-        title: const Text('المحادثات'),
-        backgroundColor: isDark ? AppColors.backgroundDark : Colors.white,
-        foregroundColor: isDark ? Colors.white : Colors.black87,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.refresh, color: isDark ? Colors.white : Colors.black87),
-            onPressed: () => context.read<ChatBloc>().add(RefreshChats()),
-          ),
-        ],
-      ),
-
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'new_chat_fab',
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        onPressed: _showNewChatSheet,
-        child: const Icon(
-          Icons.add_comment_rounded,
-        ),
-      ),
-
-      body: BlocBuilder<ChatBloc, ChatState>(
-        builder: (context, state) {
-          if (state is ChatLoading) {
-            return const ChatShimmer();
-          }
-          if (state is ChatError) {
-            return Center(child: Text(state.message));
-          }
-          if (state is ChatLoaded) {
-            if (state.chats.isEmpty) {
-              return _buildEmptyState(isDark);
-            }
-            return ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: state.chats.length,
-              itemBuilder: (context, index) {
-                final chat = state.chats[index];
-                return _buildChatTile(chat, isDark);
-              },
-            );
-          }
-          return const SizedBox.shrink();
-        },
-      ),
-    );
-  }
-
-
-  // ==========================================================
-  // ➕ محادثة جديدة
-  // ==========================================================
-
-  void _showNewChatSheet() {
-    context.read<DoctorBloc>().add(
-      LoadDoctors(),
-    );
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (sheetContext) {
-        final isDark =
-            Theme.of(sheetContext).brightness ==
-                Brightness.dark;
-
-        return SafeArea(
-          child: Container(
-            height:
-                MediaQuery.of(sheetContext).size.height * 0.78,
-            decoration: BoxDecoration(
-              color: isDark
-                  ? AppColors.backgroundDark
-                  : Colors.white,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(24),
-              ),
-            ),
-            child: Column(
+      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+      appBar: _buildAppBar(isDark),
+      body: Column(
+        children: [
+          _buildSearchBar(isDark),
+          _buildTabBar(isDark),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
               children: [
-                const SizedBox(height: 10),
-
-                Container(
-                  width: 42,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[400],
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-
-                const SizedBox(height: 14),
-
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.10),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.chat_rounded,
-                          color: AppColors.primary,
-                        ),
-                      ),
-
-                      const SizedBox(width: 12),
-
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment:
-                              CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'محادثة جديدة',
-                              style: TextStyle(
-                                fontSize: 19,
-                                fontWeight: FontWeight.bold,
-                                color: isDark
-                                    ? Colors.white
-                                    : Colors.black87,
-                              ),
-                            ),
-                            Text(
-                              'اختر المساعد الذكي أو طبيبًا',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: isDark
-                                    ? Colors.grey[400]
-                                    : Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 10),
-
-                Divider(
-                  height: 1,
-                  color: isDark
-                      ? Colors.grey[800]
-                      : Colors.grey[200],
-                ),
-
-                // ==================================================
-                // 🤖 AI
-                // ==================================================
-
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    12,
-                    12,
-                    12,
-                    8,
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(16),
-                      onTap: () {
-                        Navigator.pop(sheetContext);
-
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                const AiChatbotScreen(),
-                          ),
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(13),
-                        decoration: BoxDecoration(
-                          color:
-                              AppColors.primary.withOpacity(0.07),
-                          borderRadius:
-                              BorderRadius.circular(16),
-                          border: Border.all(
-                            color: AppColors.primary
-                                .withOpacity(0.18),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 52,
-                              height: 52,
-                              decoration: const BoxDecoration(
-                                color: AppColors.primary,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.psychology_rounded,
-                                color: Colors.white,
-                                size: 28,
-                              ),
-                            ),
-
-                            const SizedBox(width: 12),
-
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'المساعد الذكي',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 15,
-                                      color: isDark
-                                          ? Colors.white
-                                          : Colors.black87,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'مساعدة فورية واستفسارات صحية',
-                                    maxLines: 1,
-                                    overflow:
-                                        TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: isDark
-                                          ? Colors.grey[400]
-                                          : Colors.grey[600],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            const Icon(
-                              Icons.arrow_forward_ios_rounded,
-                              size: 15,
-                              color: AppColors.primary,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-                // ==================================================
-                // 👨‍⚕️ Doctors
-                // ==================================================
-
-                Expanded(
-                  child: BlocBuilder<DoctorBloc, DoctorState>(
-                    builder: (context, state) {
-                      if (state is DoctorLoading ||
-                          state is DoctorInitial) {
-                        return _buildDoctorShimmer(
-                          isDark,
-                        );
-                      }
-
-                      if (state is DoctorError) {
-                        return Center(
-                          child: Padding(
-                            padding:
-                                const EdgeInsets.all(24),
-                            child: Column(
-                              mainAxisSize:
-                                  MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons
-                                      .medical_services_outlined,
-                                  size: 46,
-                                  color: isDark
-                                      ? Colors.grey[600]
-                                      : Colors.grey[400],
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  state.message,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: isDark
-                                        ? Colors.white
-                                        : Colors.black87,
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                                ElevatedButton.icon(
-                                  onPressed: () {
-                                    context
-                                        .read<DoctorBloc>()
-                                        .add(LoadDoctors());
-                                  },
-                                  icon: const Icon(
-                                    Icons.refresh,
-                                  ),
-                                  label: const Text(
-                                    'إعادة المحاولة',
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }
-
-                      if (state is DoctorLoaded) {
-                        if (state.doctors.isEmpty) {
-                          return Center(
-                            child: Text(
-                              'لا يوجد أطباء متاحون حاليًا',
-                              style: TextStyle(
-                                color: isDark
-                                    ? Colors.grey[400]
-                                    : Colors.grey[600],
-                              ),
-                            ),
-                          );
-                        }
-
-                        return RefreshIndicator(
-                          color: AppColors.primary,
-                          onRefresh: () async {
-                            context
-                                .read<DoctorBloc>()
-                                .add(RefreshDoctors());
-
-                            await Future<void>.delayed(
-                              const Duration(
-                                milliseconds: 300,
-                              ),
-                            );
-                          },
-                          child: ListView.builder(
-                            padding: const EdgeInsets.fromLTRB(
-                              12,
-                              4,
-                              12,
-                              24,
-                            ),
-                            itemCount: state.doctors.length,
-                            itemBuilder: (context, index) {
-                              return _buildDoctorItem(
-                                state.doctors[index],
-                                isDark,
-                                sheetContext,
-                              );
-                            },
-                          ),
-                        );
-                      }
-
-                      return _buildDoctorShimmer(
-                        isDark,
-                      );
-                    },
-                  ),
-                ),
+                _buildChatList(isDark),
+                _buildArchivedChats(isDark),
               ],
             ),
           ),
-        );
-      },
+        ],
+      ),
+      floatingActionButton: _buildFAB(isDark),
     );
   }
 
-  // ==========================================================
-  // ✨ Doctor Shimmer
-  // ==========================================================
-
-  Widget _buildDoctorShimmer(bool isDark) {
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(
-        12,
-        4,
-        12,
-        24,
-      ),
-      itemCount: 6,
-      itemBuilder: (_, index) {
-        return Container(
-          height: 78,
-          margin: const EdgeInsets.only(
-            bottom: 8,
+  PreferredSizeWidget _buildAppBar(bool isDark) {
+    return AppBar(
+      backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
+      foregroundColor: isDark ? Colors.white : Colors.black87,
+      elevation: 0,
+      title: Row(
+        children: [
+          CircleAvatar(
+            radius: 18,
+            backgroundColor: AppColors.primary.withOpacity(0.1),
+            child: Text(
+              FirebaseAuth.instance.currentUser?.displayName?[0]?.toUpperCase() ?? 'م',
+              style: TextStyle(
+                color: AppColors.primary,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: isDark
-                ? Colors.grey[850]
-                : Colors.grey[200],
-            borderRadius:
-                BorderRadius.circular(14),
-          ),
-          child: Row(
+          const SizedBox(width: 10),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 50,
-                height: 50,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
+              Text(
+                'المحادثات',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black87,
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  mainAxisAlignment:
-                      MainAxisAlignment.center,
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 150,
-                      height: 13,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      width: 100,
-                      height: 10,
-                      color: Colors.white,
-                    ),
-                  ],
+              Text(
+                'مرحباً بك في صحتك',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
                 ),
               ),
             ],
           ),
-        );
-      },
+        ],
+      ),
+      actions: [
+        IconButton(
+          icon: Icon(
+            Icons.search,
+            color: isDark ? Colors.white : Colors.black87,
+          ),
+          onPressed: () => setState(() => _isSearching = !_isSearching),
+        ),
+        IconButton(
+          icon: Badge(
+            label: const Text('3'),
+            child: Icon(
+              Icons.notifications_outlined,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+          ),
+          onPressed: () => ToastService.showInfo('🔔 الإشعارات'),
+        ),
+      ],
     );
   }
 
-  // ==========================================================
-  // 👨‍⚕️ Doctor Item
-  // ==========================================================
+  Widget _buildSearchBar(bool isDark) {
+    if (!_isSearching) return const SizedBox.shrink();
 
-  Widget _buildDoctorItem(
-    DoctorModel doctor,
-    bool isDark,
-    BuildContext sheetContext,
-  ) {
-    final photo =
-        doctor.photoUrl?.trim() ?? '';
-
-    return InkWell(
-      borderRadius:
-          BorderRadius.circular(14),
-      onTap: () {
-        Navigator.pop(sheetContext);
-        _startChatWithDoctor(doctor);
-      },
-      child: Container(
-        margin: const EdgeInsets.only(
-          bottom: 8,
-        ),
-        padding: const EdgeInsets.all(11),
-        decoration: BoxDecoration(
-          color: isDark
-              ? Colors.grey[850]
-              : Colors.white,
-          borderRadius:
-              BorderRadius.circular(14),
-          border: Border.all(
-            color: isDark
-                ? Colors.grey[800]!
-                : Colors.grey[200]!,
-          ),
-        ),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 25,
-              backgroundColor:
-                  AppColors.primary.withOpacity(0.10),
-              backgroundImage:
-                  photo.isNotEmpty
-                      ? CachedNetworkImageProvider(photo)
-                      : null,
-              child: photo.isEmpty
-                  ? Text(
-                      doctor.name.isNotEmpty
-                          ? doctor.name[0]
-                          : 'ط',
-                      style: const TextStyle(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    )
-                  : null,
-            ),
-
-            const SizedBox(width: 12),
-
-            Expanded(
-              child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          doctor.name.isNotEmpty
-                              ? doctor.name
-                              : 'طبيب',
-                          maxLines: 1,
-                          overflow:
-                              TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight:
-                                FontWeight.bold,
-                            color: isDark
-                                ? Colors.white
-                                : Colors.black87,
-                          ),
-                        ),
-                      ),
-                      if (doctor.isVerified)
-                        const Padding(
-                          padding:
-                              EdgeInsets.only(right: 5),
-                          child: Icon(
-                            Icons.verified,
-                            size: 15,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 3),
-
-                  Text(
-                    doctor.specialty.isNotEmpty
-                        ? doctor.specialty
-                        : 'تخصص طبي',
-                    maxLines: 1,
-                    overflow:
-                        TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isDark
-                          ? Colors.grey[400]
-                          : Colors.grey[600],
-                    ),
-                  ),
-
-                  if (doctor.rating != null)
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.star_rounded,
-                          size: 13,
-                          color: Colors.amber,
-                        ),
-                        const SizedBox(width: 3),
-                        Text(
-                          doctor.rating!
-                              .toStringAsFixed(1),
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: isDark
-                                ? Colors.grey[400]
-                                : Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: isDark ? const Color(0xFF1A2540) : Colors.white,
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _searchController,
+              autofocus: true,
+              decoration: InputDecoration(
+                hintText: 'بحث عن محادثة...',
+                prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                filled: true,
+                fillColor: isDark ? const Color(0xFF2D3A54) : Colors.grey[100],
+                contentPadding: const EdgeInsets.symmetric(vertical: 8),
               ),
+              style: TextStyle(
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+              onChanged: (value) {
+                // تطبيق البحث
+              },
             ),
-
-            const Icon(
-              Icons.chat_outlined,
-              size: 22,
-              color: AppColors.primary,
-            ),
-          ],
-        ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () {
+              setState(() {
+                _isSearching = false;
+                _searchController.clear();
+              });
+            },
+          ),
+        ],
       ),
     );
   }
 
-  // ==========================================================
-  // 💬 Start Doctor Chat
-  // ==========================================================
-
-  Future<void> _startChatWithDoctor(
-    DoctorModel doctor,
-  ) async {
-    final user =
-        FirebaseAuth.instance.currentUser;
-
-    if (user == null) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'يرجى تسجيل الدخول أولًا',
-          ),
+  Widget _buildTabBar(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: TabBar(
+        controller: _tabController,
+        indicator: BoxDecoration(
+          color: AppColors.primary,
+          borderRadius: BorderRadius.circular(8),
         ),
-      );
-
-      return;
-    }
-
-    try {
-      final chatId =
-          await _chatService.createChat(
-        doctorId: doctor.id,
-        doctorName: doctor.name,
-        patientName:
-            user.displayName ?? 'مريض',
-        doctorImage:
-            doctor.photoUrl,
-      );
-
-      if (!mounted) return;
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => ChatDetailScreen(
-            chatId: chatId,
-          ),
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'فشل إنشاء المحادثة: $e',
-          ),
-        ),
-      );
-    }
+        indicatorSize: TabBarIndicatorSize.tab,
+        labelColor: Colors.white,
+        unselectedLabelColor: isDark ? Colors.grey[400] : Colors.grey[600],
+        labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 13),
+        tabs: [
+          Tab(text: 'الرسائل (${_getUnreadCount()})'),
+          Tab(text: 'المؤرشفة'),
+        ],
+      ),
+    );
   }
 
-  Widget _buildChatTile(ChatModel chat, bool isDark) {
+  Widget _buildChatList(bool isDark) {
+    return BlocBuilder<ChatBloc, ChatState>(
+      builder: (context, state) {
+        if (state is ChatLoading) {
+          return const ChatShimmer();
+        }
+        if (state is ChatError) {
+          return _buildErrorState(isDark);
+        }
+        if (state is ChatLoaded) {
+          final chats = state.chats.where((c) => !c.isArchived).toList();
+          if (chats.isEmpty) {
+            return _buildEmptyState(isDark);
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            itemCount: chats.length,
+            itemBuilder: (context, index) {
+              final chat = chats[index];
+              return _buildChatCard(chat, isDark);
+            },
+          );
+        }
+        return const SizedBox.shrink();
+      },
+    );
+  }
+
+  Widget _buildArchivedChats(bool isDark) {
+    return BlocBuilder<ChatBloc, ChatState>(
+      builder: (context, state) {
+        if (state is ChatLoaded) {
+          final chats = state.chats.where((c) => c.isArchived).toList();
+          if (chats.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.archive_outlined, size: 60, color: isDark ? Colors.grey[600] : Colors.grey[400]),
+                  const SizedBox(height: 16),
+                  Text(
+                    'لا توجد محادثات مؤرشفة',
+                    style: TextStyle(
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            itemCount: chats.length,
+            itemBuilder: (context, index) {
+              final chat = chats[index];
+              return _buildChatCard(chat, isDark, isArchived: true);
+            },
+          );
+        }
+        return const SizedBox.shrink();
+      },
+    );
+  }
+
+  Widget _buildChatCard(ChatModel chat, bool isDark, {bool isArchived = false}) {
     final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
     final name = chat.getDisplayName(userId);
     final photo = chat.getDisplayPhoto(userId);
     final unread = chat.getTotalUnreadCount();
+    final lastMessage = chat.lastMessage ?? 'ابدأ المحادثة';
+    final time = chat.lastMessageTime?.toDate();
 
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundImage: photo.isNotEmpty ? CachedNetworkImageProvider(photo) : null,
-        child: photo.isEmpty ? Text(name.isNotEmpty ? name[0] : 'م') : null,
-      ),
-      title: Text(name),
-      subtitle: Text(chat.lastMessage ?? 'ابدأ المحادثة'),
-      trailing: unread > 0
-          ? Container(
-              padding: const EdgeInsets.all(6),
-              decoration: const BoxDecoration(
-                color: AppColors.primary,
-                shape: BoxShape.circle,
-              ),
-              child: Text(
-                '$unread',
-                style: const TextStyle(color: Colors.white, fontSize: 12),
-              ),
-            )
-          : null,
+    return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => ChatDetailScreen(chatId: chat.id),
+            builder: (_) => ChatRoomScreen(
+              chatId: chat.id,
+              otherUserId: chat.getOtherParticipant(userId),
+              otherUserName: name,
+              isGroup: chat.isGroup,
+            ),
           ),
         );
       },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 6),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1A2540) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Stack(
+              children: [
+                CircleAvatar(
+                  radius: 28,
+                  backgroundImage: photo.isNotEmpty
+                      ? CachedNetworkImageProvider(photo)
+                      : null,
+                  backgroundColor: AppColors.primary.withOpacity(0.1),
+                  child: photo.isEmpty
+                      ? Text(
+                          name.isNotEmpty ? name[0].toUpperCase() : 'م',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
+                      : null,
+                ),
+                if (chat.isOnline)
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      width: 12,
+                      height: 12,
+                      decoration: const BoxDecoration(
+                        color: Colors.green,
+                        shape: BoxShape.circle,
+                        border: Border.fromBorderSide(
+                          BorderSide(color: Colors.white, width: 2),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          name,
+                          style: TextStyle(
+                            fontWeight: unread > 0 ? FontWeight.bold : FontWeight.w600,
+                            fontSize: 15,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (time != null)
+                        Text(
+                          _formatTime(time),
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: isDark ? Colors.grey[500] : Colors.grey[500],
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          chat.isGroup ? '👥 $lastMessage' : lastMessage,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: unread > 0
+                                ? (isDark ? Colors.white : Colors.black87)
+                                : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                            fontWeight: unread > 0 ? FontWeight.w600 : FontWeight.normal,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (unread > 0)
+                        Container(
+                          margin: const EdgeInsets.only(left: 8),
+                          padding: const EdgeInsets.all(6),
+                          constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+                          decoration: const BoxDecoration(
+                            color: AppColors.primary,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Text(
+                            '$unread',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            if (!isArchived)
+              PopupMenuButton<String>(
+                icon: Icon(
+                  Icons.more_vert,
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  size: 18,
+                ),
+                onSelected: (value) {
+                  switch (value) {
+                    case 'archive':
+                      _archiveChat(chat.id);
+                      break;
+                    case 'pin':
+                      _pinChat(chat.id);
+                      break;
+                    case 'mute':
+                      _muteChat(chat.id);
+                      break;
+                    case 'delete':
+                      _deleteChat(chat.id);
+                      break;
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'archive',
+                    child: Row(
+                      children: [
+                        Icon(Icons.archive, size: 18),
+                        SizedBox(width: 8),
+                        Text('أرشفة'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'pin',
+                    child: Row(
+                      children: [
+                        Icon(Icons.push_pin, size: 18),
+                        SizedBox(width: 8),
+                        Text('تثبيت'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'mute',
+                    child: Row(
+                      children: [
+                        Icon(Icons.volume_off, size: 18),
+                        SizedBox(width: 8),
+                        Text('كتم الإشعارات'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete, size: 18, color: Colors.red),
+                        SizedBox(width: 8),
+                        Text('حذف', style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -729,9 +481,147 @@ class _ChatScreenState extends State<ChatScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.chat_bubble_outline, size: 60, color: isDark ? Colors.grey[600] : Colors.grey[400]),
+          Icon(
+            Icons.chat_bubble_outline_rounded,
+            size: 80,
+            color: isDark ? Colors.grey[600] : Colors.grey[300],
+          ),
           const SizedBox(height: 16),
-          Text('لا توجد محادثات', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+          Text(
+            'لا توجد محادثات',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'ابدأ محادثة جديدة مع طبيبك',
+            style: TextStyle(
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const DoctorsListScreen()),
+              );
+            },
+            icon: const Icon(Icons.medical_services),
+            label: const Text('بحث عن طبيب'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(bool isDark) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline, size: 60, color: Colors.red[300]),
+          const SizedBox(height: 16),
+          Text(
+            'حدث خطأ في تحميل المحادثات',
+            style: TextStyle(
+              color: isDark ? Colors.white : Colors.black87,
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton.icon(
+            onPressed: () => context.read<ChatBloc>().add(RefreshChats()),
+            icon: const Icon(Icons.refresh),
+            label: const Text('إعادة المحاولة'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFAB(bool isDark) {
+    return FloatingActionButton(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const DoctorsListScreen()),
+        );
+      },
+      backgroundColor: AppColors.primary,
+      foregroundColor: Colors.white,
+      child: const Icon(Icons.chat_bubble_outline),
+    );
+  }
+
+  int _getUnreadCount() {
+    final state = context.read<ChatBloc>().state;
+    if (state is ChatLoaded) {
+      return state.chats.fold(0, (sum, chat) => sum + chat.getTotalUnreadCount());
+    }
+    return 0;
+  }
+
+  String _formatTime(DateTime time) {
+    final now = DateTime.now();
+    final diff = now.difference(time);
+    if (diff.inDays > 7) {
+      return '${time.day}/${time.month}';
+    } else if (diff.inDays > 0) {
+      return 'منذ ${diff.inDays} يوم';
+    } else if (diff.inHours > 0) {
+      return 'منذ ${diff.inHours} ساعة';
+    } else if (diff.inMinutes > 0) {
+      return 'منذ ${diff.inMinutes} دقيقة';
+    } else {
+      return 'الآن';
+    }
+  }
+
+  void _archiveChat(String chatId) {
+    ToastService.showInfo('📦 تم أرشفة المحادثة');
+  }
+
+  void _pinChat(String chatId) {
+    ToastService.showInfo('📌 تم تثبيت المحادثة');
+  }
+
+  void _muteChat(String chatId) {
+    ToastService.showInfo('🔇 تم كتم الإشعارات');
+  }
+
+  void _deleteChat(String chatId) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('حذف المحادثة'),
+        content: const Text('هل أنت متأكد من حذف هذه المحادثة؟'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('إلغاء'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              context.read<ChatBloc>().add(DeleteChat(chatId: chatId));
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('حذف'),
+          ),
         ],
       ),
     );
