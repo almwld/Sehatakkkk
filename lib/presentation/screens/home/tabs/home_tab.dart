@@ -142,7 +142,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             const SizedBox(height: 15),
             Container(height: 165, margin: const EdgeInsets.symmetric(horizontal: 16), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18))),
             const SizedBox(height: 20),
-            SizedBox(height: 90, child: ListView.builder(scrollDirection: Axis.horizontal, itemCount: 6, itemBuilder: (_, __) => Container(width: 70, margin: const EdgeInsets.symmetric(horizontal: 5), child: Column(children: [Container(width: 58, height: 58, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle)), const SizedBox(height: 7), Container(width: 50, height: 8, color: Colors.white)])))),
+            SizedBox(height: 90, child: SliverList(scrollDirection: Axis.horizontal, delegate: SliverChildBuilderDelegate((context, index) { 6, itemBuilder: (_, __) => Container(width: 70, margin: const EdgeInsets.symmetric(horizontal: 5), child: Column(children: [Container(width: 58, height: 58, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle)), const SizedBox(height: 7), Container(width: 50, height: 8, color: Colors.white)])))),
             const SizedBox(height: 20),
             ...List.generate(4, (_) => Container(height: 190, margin: const EdgeInsets.fromLTRB(16, 0, 16, 15), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18)))),
           ],
@@ -432,10 +432,10 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
 
     return SizedBox(
       height: 90,
-      child: ListView.builder(
+      child: SliverList(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 8),
-        itemCount: services.length,
+        delegate: SliverChildBuilderDelegate((context, index) { services.length,
         itemBuilder: (context, index) {
           final service = services[index];
           return Container(
@@ -477,9 +477,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         const SizedBox(height: 8),
         SizedBox(
           height: 230,
-          child: ListView.builder(
+          child: SliverList(
             scrollDirection: Axis.horizontal,
-            itemCount: state.doctors.length,
+            delegate: SliverChildBuilderDelegate((context, index) { state.doctors.length,
             itemBuilder: (context, index) {
               final doctor = state.doctors[index];
               return Container(
@@ -608,7 +608,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             mainAxisSpacing: 10,
             childAspectRatio: 0.85,
           ),
-          itemCount: items.length,
+          delegate: SliverChildBuilderDelegate((context, index) { items.length,
           itemBuilder: (context, index) {
             final item = items[index];
             return Container(
@@ -661,7 +661,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             mainAxisSpacing: 10,
             childAspectRatio: 0.9,
           ),
-          itemCount: state.articles.length,
+          delegate: SliverChildBuilderDelegate((context, index) { state.articles.length,
           itemBuilder: (context, index) {
             final article = state.articles[index];
             return Container(
@@ -721,7 +721,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             mainAxisSpacing: 10,
             childAspectRatio: 1.1,
           ),
-          itemCount: state.tips.length,
+          delegate: SliverChildBuilderDelegate((context, index) { state.tips.length,
           itemBuilder: (context, index) {
             final tip = state.tips[index];
             return Container(
