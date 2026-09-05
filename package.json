@@ -1,0 +1,28 @@
+{
+  "name": "sehatakkkk",
+  "version": "1.0.0",
+  "description": "تطبيق صحي شامل للمستخدمين في اليمن، يوفر خدمات الاستشارات الطبية، حجز المواعيد، طلب الأدوية، التحاليل المخبرية، التأمين الصحي، والمزيد.",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/almwld/Sehatakkkk.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/almwld/Sehatakkkk/issues"
+  },
+  "homepage": "https://github.com/almwld/Sehatakkkk#readme",
+  "dependencies": {
+    "firebase-admin": "^14.3.0"
+  }
+}

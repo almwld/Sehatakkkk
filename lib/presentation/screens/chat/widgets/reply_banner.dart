@@ -1,7 +1,3 @@
-// ============================================================
-// ↩️ ReplyBanner - شريط الرد
-// ============================================================
-
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
@@ -24,35 +20,70 @@ class ReplyBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.1),
+        color: isDark ? const Color(0xFF1A2540) : Colors.white,
         border: Border(
-          bottom: BorderSide(
-            color: AppColors.primary.withOpacity(0.2),
-            width: 1,
-          ),
+          right: BorderSide(color: AppColors.primary, width: 3),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 4,
+            offset: const Offset(0, -2),
+          ),
+        ],
       ),
       child: Row(
         children: [
-          const Icon(Icons.reply, color: AppColors.primary, size: 18),
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              Icons.reply,
+              color: AppColors.primary,
+              size: 18,
+            ),
+          ),
           const SizedBox(width: 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'الرد على $senderName',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      'الرد على $senderName',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        'قيد الكتابة',
+                        style: TextStyle(
+                          fontSize: 8,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 2),
                 Text(
                   message,
                   style: TextStyle(
                     fontSize: 13,
-                    color: isDark ? Colors.white : Colors.black87,
+                    color: isDark ? Colors.grey[300] : Colors.grey[700],
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -65,10 +96,14 @@ class ReplyBanner extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.2),
+                color: isDark ? Colors.grey[800] : Colors.grey[200],
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.close, size: 16, color: Colors.grey),
+              child: Icon(
+                Icons.close,
+                size: 16,
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
+              ),
             ),
           ),
         ],

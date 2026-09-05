@@ -14,9 +14,11 @@ class ChatModel extends Equatable {
   final String? groupPhoto;
   final bool isArchived;
   final bool isPinned;
+  final bool isMuted;
+  final bool isOnline;
   final Timestamp? createdAt;
   final Timestamp? updatedAt;
-  final bool isMuted;
+  final Map<String, dynamic>? metadata;
 
   const ChatModel({
     required this.id,
@@ -31,9 +33,11 @@ class ChatModel extends Equatable {
     this.groupPhoto,
     this.isArchived = false,
     this.isPinned = false,
+    this.isMuted = false,
+    this.isOnline = false,
     this.createdAt,
     this.updatedAt,
-    this.isMuted = false,
+    this.metadata,
   });
 
   factory ChatModel.fromFirestore(String id, Map<String, dynamic> data) {
@@ -50,29 +54,28 @@ class ChatModel extends Equatable {
       groupPhoto: data['groupPhoto'],
       isArchived: data['isArchived'] ?? false,
       isPinned: data['isPinned'] ?? false,
+      isMuted: data['isMuted'] ?? false,
+      isOnline: data['isOnline'] ?? false,
       createdAt: data['createdAt'],
       updatedAt: data['updatedAt'],
-      isMuted: data['isMuted'] ?? false,
+      metadata: data['metadata'],
     );
   }
 
-  // ✅ دوال مساعدة
   String getDisplayName(String userId) {
     if (isGroup) return groupName ?? 'مجموعة';
-    final otherId = participants.firstWhere(
-      (p) => p != userId,
-      orElse: () => '',
-    );
+    final otherId = participants.firstWhere((p) => p != userId, orElse: () => '');
     return participantDetails[otherId]?['name'] ?? 'مستخدم';
   }
 
   String getDisplayPhoto(String userId) {
     if (isGroup) return groupPhoto ?? '';
-    final otherId = participants.firstWhere(
-      (p) => p != userId,
-      orElse: () => '',
-    );
+    final otherId = participants.firstWhere((p) => p != userId, orElse: () => '');
     return participantDetails[otherId]?['photoUrl'] ?? '';
+  }
+
+  String getOtherParticipant(String userId) {
+    return participants.firstWhere((p) => p != userId, orElse: () => '');
   }
 
   int getTotalUnreadCount() {
@@ -83,6 +86,6 @@ class ChatModel extends Equatable {
   List<Object?> get props => [
     id, participants, participantDetails, lastMessage, lastMessageTime,
     lastMessageSenderId, unreadCount, isGroup, groupName, groupPhoto,
-    isArchived, isPinned, createdAt, updatedAt, isMuted,
+    isArchived, isPinned, isMuted, isOnline, createdAt, updatedAt, metadata,
   ];
 }

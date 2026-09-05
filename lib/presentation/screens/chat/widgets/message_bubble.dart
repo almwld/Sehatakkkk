@@ -1,26 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../../../../core/models/message_model.dart';
-import '../../../../core/constants/app_colors.dart';
+import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/models/message_model.dart';
 
 class MessageBubble extends StatelessWidget {
   final MessageModel message;
   final bool isMe;
+  final VoidCallback? onReply;
+  final VoidCallback? onDelete;
+  final Function(String)? onReaction;
 
   const MessageBubble({
     super.key,
     required this.message,
     required this.isMe,
+    this.onReply,
+    this.onDelete,
+    this.onReaction,
   });
 
   @override
   Widget build(BuildContext context) {
-    if (message.isDeleted) {
-      return _buildDeletedMessage(context);
-    }
-
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    if (message.isDeletedMessage) {
+      return _buildDeletedMessage(isDark);
+    }
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -32,7 +37,7 @@ class MessageBubble extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: isMe ? AppColors.primary : (isDark ? Colors.grey[800] : Colors.grey[200]),
+                color: isMe ? AppColors.primary : (isDark ? const Color(0xFF2D3A54) : Colors.grey[200]),
                 borderRadius: BorderRadius.circular(12).copyWith(
                   bottomRight: isMe ? const Radius.circular(4) : const Radius.circular(12),
                   bottomLeft: isMe ? const Radius.circular(12) : const Radius.circular(4),
@@ -41,7 +46,7 @@ class MessageBubble extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                 children: [
-                  if (!isMe)
+                  if (!isMe && message.senderName.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 4),
                       child: Text(
@@ -53,7 +58,7 @@ class MessageBubble extends StatelessWidget {
                         ),
                       ),
                     ),
-                  if (message.imageUrl != null)
+                  if (message.isImage && message.imageUrl != null)
                     _buildImageContent(message.imageUrl!),
                   if (message.text != null && message.text!.isNotEmpty)
                     Text(
@@ -79,11 +84,15 @@ class MessageBubble extends StatelessWidget {
                         Icon(
                           message.isRead ? Icons.done_all : Icons.done,
                           size: 14,
-                          color: message.isRead ? (isDark ? Colors.green[300] : Colors.green) : (isDark ? Colors.grey[500] : Colors.grey),
+                          color: message.isRead
+                              ? (isDark ? Colors.green[300] : Colors.green)
+                              : (isDark ? Colors.grey[500] : Colors.grey),
                         ),
                       ],
                     ],
                   ),
+                  if (message.hasReactions)
+                    _buildReactions(),
                 ],
               ),
             ),
@@ -95,7 +104,9 @@ class MessageBubble extends StatelessWidget {
 
   Widget _buildImageContent(String imageUrl) {
     return GestureDetector(
-      onTap: () {},
+      onTap: () {
+        // عرض الصورة في شاشة كاملة
+      },
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
         child: CachedNetworkImage(
@@ -113,16 +124,34 @@ class MessageBubble extends StatelessWidget {
             width: 200,
             height: 200,
             color: Colors.grey[300],
-            child: const Icon(Icons.broken_image, size: 40, color: Colors.grey),
+            child: const Icon(Icons.broken_image, size: 40),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildDeletedMessage(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  Widget _buildReactions() {
+    final reactions = message.reactions?.values.toList() ?? [];
+    if (reactions.isEmpty) return const SizedBox.shrink();
 
+    return Container(
+      margin: const EdgeInsets.only(top: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Wrap(
+        spacing: 2,
+        children: reactions.map((emoji) {
+          return Text(emoji, style: const TextStyle(fontSize: 14));
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildDeletedMessage(bool isDark) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -135,11 +164,11 @@ class MessageBubble extends StatelessWidget {
                 color: isDark ? Colors.grey[800] : Colors.grey[200],
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Text(
+              child: const Text(
                 '🗑️ تم حذف هذه الرسالة',
                 style: TextStyle(
                   fontStyle: FontStyle.italic,
-                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  color: Colors.grey,
                   fontSize: 12,
                 ),
               ),
@@ -152,11 +181,11 @@ class MessageBubble extends StatelessWidget {
 
   String _formatTime(Timestamp? timestamp) {
     if (timestamp == null) return '';
-    final time = timestamp.toDate();
+    final date = timestamp.toDate();
     final now = DateTime.now();
-    if (time.day == now.day && time.month == now.month && time.year == now.year) {
-      return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+    if (date.day == now.day && date.month == now.month && date.year == now.year) {
+      return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
     }
-    return '${time.day}/${time.month}';
+    return '${date.day}/${date.month}';
   }
 }

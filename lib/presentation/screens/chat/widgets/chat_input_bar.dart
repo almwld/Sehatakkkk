@@ -1,24 +1,19 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_colors.dart';
+import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/services/toast_service.dart';
 
 class ChatInputBar extends StatefulWidget {
-  final TextEditingController textController;
-  final Function(String) onSend;
-  final VoidCallback onImagePick;
-  final VoidCallback onVoiceRecord;
-  final VoidCallback onFilePick;
-  final VoidCallback onLocationShare;
-  final bool isSending;
+  final String chatId;
+  final Function(String) onSendMessage;
+  final Function(String) onSendImage;
+  final VoidCallback onShareLocation;
 
   const ChatInputBar({
     super.key,
-    required this.textController,
-    required this.onSend,
-    required this.onImagePick,
-    required this.onVoiceRecord,
-    required this.onFilePick,
-    required this.onLocationShare,
-    this.isSending = false,
+    required this.chatId,
+    required this.onSendMessage,
+    required this.onSendImage,
+    required this.onShareLocation,
   });
 
   @override
@@ -26,199 +21,133 @@ class ChatInputBar extends StatefulWidget {
 }
 
 class _ChatInputBarState extends State<ChatInputBar> {
+  final TextEditingController _controller = TextEditingController();
   bool _isTyping = false;
-
-  @override
-  void initState() {
-    super.initState();
-    widget.textController.addListener(_onTextChanged);
-  }
-
-  @override
-  void dispose() {
-    widget.textController.removeListener(_onTextChanged);
-    super.dispose();
-  }
-
-  void _onTextChanged() {
-    final isTyping = widget.textController.text.isNotEmpty;
-    if (_isTyping != isTyping) {
-      setState(() => _isTyping = isTyping);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2540) : Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 4,
             offset: const Offset(0, -2),
           ),
         ],
       ),
       child: Row(
         children: [
-          // زر إضافة مرفقات
           IconButton(
-            icon: Icon(
-              Icons.attach_file,
-              color: isDark ? Colors.white : Colors.grey[600],
-            ),
+            icon: Icon(Icons.attach_file, color: isDark ? Colors.grey[400] : Colors.grey[600]),
             onPressed: _showAttachmentOptions,
           ),
-          // حقل النص
+          IconButton(
+            icon: Icon(Icons.photo_library, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+            onPressed: () {
+              ToastService.showInfo('📷 اختيار صورة');
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.location_on, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+            onPressed: widget.onShareLocation,
+          ),
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: isDark ? Colors.grey[800] : Colors.grey[100],
+                color: isDark ? const Color(0xFF2a3942) : Colors.grey[100],
                 borderRadius: BorderRadius.circular(24),
               ),
               child: TextField(
-                controller: widget.textController,
-                decoration: InputDecoration(
-                  hintText: 'اكتب رسالتك...',
-                  hintStyle: TextStyle(
-                    color: isDark ? Colors.grey[500] : Colors.grey[500],
-                  ),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                ),
+                controller: _controller,
+                onChanged: (text) {
+                  setState(() => _isTyping = text.isNotEmpty);
+                },
+                onSubmitted: (_) => _sendMessage(),
                 style: TextStyle(
                   color: isDark ? Colors.white : Colors.black87,
                 ),
-                maxLines: null,
-                textDirection: TextDirection.rtl,
-                onSubmitted: (text) {
-                  if (text.trim().isNotEmpty) {
-                    widget.onSend(text.trim());
-                  }
-                },
+                textAlign: TextAlign.right,
+                decoration: InputDecoration(
+                  hintText: 'اكتب رسالة...',
+                  hintStyle: TextStyle(
+                    color: isDark ? Colors.white54 : Colors.grey[600],
+                  ),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                ),
               ),
             ),
           ),
-          // زر الإرسال
           if (_isTyping)
-            IconButton(
-              icon: const Icon(Icons.send, color: AppColors.primary),
-              onPressed: widget.isSending
-                  ? null
-                  : () {
-                      final text = widget.textController.text.trim();
-                      if (text.isNotEmpty) {
-                        widget.onSend(text);
-                      }
-                    },
-            )
-          else
-            IconButton(
-              icon: const Icon(Icons.mic, color: AppColors.primary),
-              onPressed: widget.onVoiceRecord,
+            GestureDetector(
+              onTap: _sendMessage,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.send,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
             ),
         ],
       ),
     );
+  }
+
+  void _sendMessage() {
+    final text = _controller.text.trim();
+    if (text.isNotEmpty) {
+      widget.onSendMessage(text);
+      _controller.clear();
+      setState(() => _isTyping = false);
+    }
   }
 
   void _showAttachmentOptions() {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 8),
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildAttachmentOption(
-                    icon: Icons.image,
-                    label: 'صورة',
-                    onTap: widget.onImagePick,
-                  ),
-                  _buildAttachmentOption(
-                    icon: Icons.mic,
-                    label: 'تسجيل',
-                    onTap: widget.onVoiceRecord,
-                  ),
-                  _buildAttachmentOption(
-                    icon: Icons.attach_file,
-                    label: 'ملف',
-                    onTap: widget.onFilePick,
-                  ),
-                  _buildAttachmentOption(
-                    icon: Icons.location_on,
-                    label: 'موقع',
-                    onTap: widget.onLocationShare,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildAttachmentOption({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return InkWell(
-      onTap: () {
-        Navigator.pop(context);
-        onTap();
-      },
-      child: Column(
-        children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
-              shape: BoxShape.circle,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library, color: AppColors.primary),
+              title: const Text('صورة من المعرض'),
+              onTap: () {
+                Navigator.pop(context);
+                ToastService.showInfo('📷 اختيار صورة من المعرض');
+              },
             ),
-            child: Icon(
-              icon,
-              color: AppColors.primary,
-              size: 28,
+            ListTile(
+              leading: const Icon(Icons.camera_alt, color: AppColors.primary),
+              title: const Text('التقاط صورة'),
+              onTap: () {
+                Navigator.pop(context);
+                ToastService.showInfo('📷 فتح الكاميرا');
+              },
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: isDark ? Colors.white : Colors.black87,
+            ListTile(
+              leading: const Icon(Icons.mic, color: AppColors.primary),
+              title: const Text('تسجيل صوتي'),
+              onTap: () {
+                Navigator.pop(context);
+                ToastService.showInfo('🎤 بدء التسجيل الصوتي');
+              },
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -59,7 +59,6 @@ class DoctorModel extends Equatable {
   });
 
   factory DoctorModel.fromFirestore(String id, Map<String, dynamic> data) {
-    // ✅ معالجة education (يمكن أن يكون String أو List)
     List<Map<String, dynamic>> parseEducation(dynamic value) {
       if (value == null) return [];
       if (value is List) {
@@ -69,33 +68,21 @@ class DoctorModel extends Equatable {
           return {};
         }).toList();
       }
-      if (value is String) {
-        return [{'degree': value}];
-      }
+      if (value is String) return [{'degree': value}];
       return [];
     }
 
-    // ✅ معالجة services (يمكن أن يكون String أو List)
     List<String> parseServices(dynamic value) {
       if (value == null) return [];
-      if (value is List) {
-        return value.map((e) => e.toString()).toList();
-      }
-      if (value is String) {
-        return [value];
-      }
+      if (value is List) return value.map((e) => e.toString()).toList();
+      if (value is String) return [value];
       return [];
     }
 
-    // ✅ معالجة languages (يمكن أن يكون String أو List)
     List<String> parseLanguages(dynamic value) {
       if (value == null) return [];
-      if (value is List) {
-        return value.map((e) => e.toString()).toList();
-      }
-      if (value is String) {
-        return [value];
-      }
+      if (value is List) return value.map((e) => e.toString()).toList();
+      if (value is String) return [value];
       return [];
     }
 
@@ -116,8 +103,8 @@ class DoctorModel extends Equatable {
       about: data['about']?.toString(),
       languages: parseLanguages(data['languages']),
       services: parseServices(data['services']),
-      workingHours: data['workingHours'] is Map 
-          ? Map<String, dynamic>.from(data['workingHours']) 
+      workingHours: data['workingHours'] is Map
+          ? Map<String, dynamic>.from(data['workingHours'])
           : null,
       education: parseEducation(data['education']),
       certifications: data['certifications'] is List

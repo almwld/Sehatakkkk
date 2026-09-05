@@ -33,14 +33,10 @@ class MessageModel extends Equatable {
   final Map<String, String>? reactions;
   final Map<String, dynamic>? attachments;
   final Map<String, dynamic>? metadata;
-
-  // ✅ الحقول المباشرة للوسائط (تستخدمها UI مباشرة)
   final String? imageUrl;
   final String? audioUrl;
   final String? fileUrl;
   final String? locationUrl;
-
-  // ✅ حقول إضافية للوسائط
   final String? locationAddress;
   final double? locationLat;
   final double? locationLng;
@@ -49,11 +45,8 @@ class MessageModel extends Equatable {
   final String? fileName;
   final String? fileMimeType;
   final String? thumbnailUrl;
-
-  // ✅ حقول القراءة والتسليم (قسم 21 من الـ prompt)
   final Timestamp? readAt;
   final Timestamp? deliveredAt;
-
   final bool isPinned;
 
   const MessageModel({
@@ -91,7 +84,6 @@ class MessageModel extends Equatable {
     this.isPinned = false,
   });
 
-  // ✅ من Firestore
   factory MessageModel.fromFirestore(String id, Map<String, dynamic> data) {
     return MessageModel(
       id: id,
@@ -128,7 +120,6 @@ class MessageModel extends Equatable {
     );
   }
 
-  // ✅ إلى Firestore
   Map<String, dynamic> toFirestore() {
     return {
       'chatId': chatId,
@@ -180,26 +171,16 @@ class MessageModel extends Equatable {
     }
   }
 
-  // ✅ دوال مساعدة
-  bool get isSentByCurrentUser => false; // ستُحدد في الـ UI
-  bool get hasReactions => reactions?.isNotEmpty ?? false;
-  bool get isAudio => type == MessageType.audio;
   bool get isImage => type == MessageType.image;
+  bool get isAudio => type == MessageType.audio;
   bool get isVideo => type == MessageType.video;
   bool get isFile => type == MessageType.file;
   bool get isLocation => type == MessageType.location;
+  bool get isDeletedMessage => type == MessageType.deleted;
   bool get isText => type == MessageType.text;
   bool get isReply => type == MessageType.reply;
-  bool get isSystem => type == MessageType.system;
-  bool get isDeletedMessage => type == MessageType.deleted;
+  bool get hasReactions => reactions?.isNotEmpty ?? false;
   bool get hasAttachments => attachments?.isNotEmpty ?? false;
-
-  String getStatusString() {
-    if (isDeleted) return 'تم الحذف';
-    if (isRead) return 'مقروء';
-    if (isDelivered) return 'تم التسليم';
-    return 'مرسل';
-  }
 
   @override
   List<Object?> get props => [
@@ -210,19 +191,4 @@ class MessageModel extends Equatable {
     audioDuration, fileSize, fileName, fileMimeType, thumbnailUrl,
     readAt, deliveredAt, isPinned,
   ];
-}
-
-// ============================================================
-// 📄 MessagePage - لـ Pagination
-// ============================================================
-class MessagePage {
-  final List<MessageModel> messages;
-  final DocumentSnapshot? lastDocument;
-  final bool hasMore;
-
-  const MessagePage({
-    required this.messages,
-    this.lastDocument,
-    this.hasMore = false,
-  });
 }
