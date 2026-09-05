@@ -451,7 +451,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                           isMe: isMe,
                           onReply: () {
                             setState(() {
-                              _replyToMessage = message;
+                              _replyToMessage = message.toJson();
                               _replyToMessageId = message.id;
                             });
                           },
