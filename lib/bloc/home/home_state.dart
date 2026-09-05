@@ -4,7 +4,6 @@
 // ============================================================
 
 import 'package:equatable/equatable.dart';
-import 'package:sehatak/core/models/doctor/doctor_model.dart';
 import 'package:sehatak/core/models/hospital/hospital_model.dart';
 import 'package:sehatak/core/models/pharmacy/pharmacy_model.dart';
 import 'package:sehatak/core/models/lab/lab_model.dart';

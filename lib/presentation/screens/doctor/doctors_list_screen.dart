@@ -204,7 +204,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
               ),
               style: TextStyle(color: isDark ? Colors.white : Colors.black87),
               onChanged: (value) {
-                context.read<DoctorBloc>().add(LoadDoctors()(query: value));
+                context.read<DoctorBloc>().add(SearchDoctors(query: value));
               },
             ),
           ),

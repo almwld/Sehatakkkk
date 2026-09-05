@@ -24,7 +24,7 @@ class _HealthTipsScreenState extends State<HealthTipsScreen> {
   Widget build(BuildContext context) {
     final currentTips = _tips[_selectedCategory] ?? [];
     return Scaffold(
-      appBar: CustomAppBar(title: 'نصائح صحية')),
+      appBar: CustomAppBar(title: 'نصائح صحية')
       body: Column(children: [
         SizedBox(
           height: 90,
@@ -35,7 +35,7 @@ class _HealthTipsScreenState extends State<HealthTipsScreen> {
             final selected = _selectedCategory == cat;
             return GestureDetector(
               onTap: () => setState(() => _selectedCategory = cat),
-              child: Container(width: 85, margin: const EdgeInsets.only(right: 8), decoration: BoxDecoration(color: selected ? colors[i].withOpacity(0.08) : Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: selected ? colors[i] : Colors.grey.shade300.withOpacity(0.3))), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Text(icons[i], style: const TextStyle(fontSize: 28)), Text(cat, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: selected ? colors[i] : AppColors.darkGrey))])),
+              child: Container(width: 85, margin: const EdgeInsets.only(right: 8), decoration: BoxDecoration(color: selected ? colors[i].withOpacity(0.08) : Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: selected ? colors[i] : Colors.grey.shade300.withOpacity(0.3))), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Text(icons[i], style: const TextStyle(fontSize: 28)), Text(cat, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: selected ? colors[i] : AppColors.darkGrey))])
             );
           }),
         ),
@@ -44,11 +44,11 @@ class _HealthTipsScreenState extends State<HealthTipsScreen> {
           child: ListView.builder(padding: const EdgeInsets.all(12), itemCount: currentTips.length, itemBuilder: (context, i) => Container(
             margin: const EdgeInsets.only(bottom: 6),
             padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4)]),
-            child: Row(children: [Container(width: 32, height: 32, decoration: BoxDecoration(color: AppColors.success.withOpacity(0.1), shape: BoxShape.circle), child: const Icon(Icons.check, color: AppColors.success, size: 16)), const SizedBox(width: 10), Expanded(child: Text(currentTips[i], style: const TextStyle(fontSize: 13, height: 1.4)))]),
-          )),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4)])
+            child: Row(children: [Container(width: 32, height: 32, decoration: BoxDecoration(color: AppColors.success.withOpacity(0.1), shape: BoxShape.circle), child: const Icon(Icons.check, color: AppColors.success, size: 16)), const SizedBox(width: 10), Expanded(child: Text(currentTips[i], style: const TextStyle(fontSize: 13, height: 1.4)))])
+          )
         ),
-      ]),
+      ])
     );
   }
 }

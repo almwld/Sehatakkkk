@@ -26,33 +26,33 @@ class _ExercisePlanScreenState extends State<ExercisePlanScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
-        title: 'خطة التمارين'),
+        title: 'خطة التمارين')
         backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+        
         actions: [
           IconButton(
-            icon: const Icon(Icons.timer),
+            icon: const Icon(Icons.timer)
             onPressed: () {
               ToastService.showSuccess( 'سيتم إضافة مؤقت التمارين قريباً');
             },
-          ),
+          )
         ],
-      ),
+      )
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(14)
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16)
               decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [AppColors.primary, AppColors.primaryDark]),
-                borderRadius: BorderRadius.circular(16),
-              ),
+                gradient: const LinearGradient(colors: [AppColors.primary, AppColors.primaryDark])
+                borderRadius: BorderRadius.circular(16)
+              )
               child: Column(
                 children: [
-                  const Text('مستوى التمرين', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
+                  const Text('مستوى التمرين', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold))
+                  const SizedBox(height: 8)
                   Row(
                     children: _levels.asMap().entries.map((entry) {
                       final index = entry.key;
@@ -60,35 +60,35 @@ class _ExercisePlanScreenState extends State<ExercisePlanScreen> {
                       final selected = _selectedLevel == index;
                       return Expanded(
                         child: GestureDetector(
-                          onTap: () => setState(() => _selectedLevel = index),
+                          onTap: () => setState(() => _selectedLevel = index)
                           child: Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
-                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            margin: const EdgeInsets.symmetric(horizontal: 4)
+                            padding: const EdgeInsets.symmetric(vertical: 8)
                             decoration: BoxDecoration(
-                              color: selected ? Colors.white : Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                              color: selected ? Colors.white : Colors.white.withOpacity(0.2)
+                              borderRadius: BorderRadius.circular(12)
+                            )
                             child: Text(
                               level,
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: selected ? AppColors.primary : Colors.white,
                                 fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-                              ),
-                            ),
-                          ),
-                        ),
+                              )
+                            )
+                          )
+                        )
                       );
-                    }).toList(),
-                  ),
+                    }).toList()
+                  )
                 ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text('تمارين اليوم', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 10),
-            ..._exercises.map((exercise) => _buildExerciseCard(exercise)),
-            const SizedBox(height: 20),
+              )
+            )
+            const SizedBox(height: 20)
+            const Text('تمارين اليوم', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))
+            const SizedBox(height: 10)
+            ..._exercises.map((exercise) => _buildExerciseCard(exercise))
+            const SizedBox(height: 20)
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -96,54 +96,54 @@ class _ExercisePlanScreenState extends State<ExercisePlanScreen> {
                 onPressed: () {
                   ToastService.showSuccess( '🚀 بدء التمرين...');
                 },
-                icon: const Icon(Icons.play_arrow),
-                label: const Text('بدء التمرين', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                icon: const Icon(Icons.play_arrow)
+                label: const Text('بدء التمرين', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.success,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                ),
-              ),
-            ),
+                  
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))
+                )
+              )
+            )
           ],
-        ),
-      ),
+        )
+      )
     );
   }
 
   Widget _buildExerciseCard(Map<String, dynamic> exercise) {
     final color = exercise['color'] as Color;
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: 10)
+      padding: const EdgeInsets.all(14)
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(14)
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8)],
-        border: Border.all(color: color.withOpacity(0.2)),
-      ),
+        border: Border.all(color: color.withOpacity(0.2))
+      )
       child: Row(
         children: [
           Container(
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(exercise['icon'], color: color, size: 28),
-          ),
-          const SizedBox(width: 12),
+              color: color.withOpacity(0.1)
+              borderRadius: BorderRadius.circular(12)
+            )
+            child: Icon(exercise['icon'], color: color, size: 28)
+          )
+          const SizedBox(width: 12)
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(exercise['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                const SizedBox(height: 2),
-                Text('⏱ ${exercise['time']}', style: const TextStyle(fontSize: 11, color: AppColors.grey)),
+                Text(exercise['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14))
+                const SizedBox(height: 2)
+                Text('⏱ ${exercise['time']}', style: const TextStyle(fontSize: 11, color: AppColors.grey))
               ],
-            ),
-          ),
+            )
+          )
           Column(
             children: [
               Text(
@@ -152,13 +152,13 @@ class _ExercisePlanScreenState extends State<ExercisePlanScreen> {
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                   color: color,
-                ),
-              ),
-              const Text('سعرة', style: TextStyle(fontSize: 9, color: AppColors.grey)),
+                )
+              )
+              const Text('سعرة', style: TextStyle(fontSize: 9, color: AppColors.grey))
             ],
-          ),
+          )
         ],
-      ),
+      )
     );
   }
 }

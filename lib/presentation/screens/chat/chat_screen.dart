@@ -874,6 +874,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
 
         return ListView.builder(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        final chats = state.chats;
           itemCount: chats.length,
           itemBuilder: (context, index) {
             final chat = chats[index];
