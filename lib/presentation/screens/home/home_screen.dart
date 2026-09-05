@@ -1,23 +1,19 @@
-// ============================================================
-// 🏠 HomeScreen - الشاشة الرئيسية
-// ============================================================
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
-import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
-import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
-import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
-import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
-import 'package:sehatak/presentation/screens/patient/patient_dashboard.dart';
-import 'package:sehatak/presentation/screens/more/more_screen.dart';
-import 'package:sehatak/presentation/widgets/common/custom_bottom_navigation_bar.dart';
-import 'package:sehatak/presentation/screens/home/tabs/home_tab.dart';
-import 'package:sehatak/core/managers/global_scroll_manager.dart';
 
-// ✅ مفاتيح ثابتة لكل شاشة
+import 'package:sehatak/core/managers/global_scroll_manager.dart';
+import 'package:sehatak/core/widgets/scroll_detector.dart';
+import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
+import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
+import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
+import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
+import 'package:sehatak/presentation/screens/more/more_screen.dart';
+import 'package:sehatak/presentation/screens/patient/patient_dashboard.dart';
+import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
+import 'package:sehatak/presentation/screens/home/tabs/home_tab.dart';
+import 'package:sehatak/presentation/widgets/common/custom_bottom_nav_bar.dart';
+
 class ScreenKeys {
   static const home = ValueKey('home_tab');
   static const doctors = ValueKey('doctors_tab');
@@ -35,33 +31,45 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+class _HomeScreenState extends State<HomeScreen>
+    with WidgetsBindingObserver {
   int _currentIndex = 0;
-  final ScrollController _scrollController = ScrollController();
+
+  final ScrollController _scrollController =
+      ScrollController();
+
   late final GlobalScrollManager _scrollManager;
-  bool _isLoggedIn = false;
 
   late final Map<int, Widget> _screens;
+
+  bool _isLoggedIn = false;
 
   @override
   void initState() {
     super.initState();
+
     WidgetsBinding.instance.addObserver(this);
+
     _scrollManager = GlobalScrollManager();
+
     _checkLoginStatus();
     _initializeScreens();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+
     _scrollController.dispose();
     _scrollManager.dispose();
-    WidgetsBinding.instance.removeObserver(this);
+
     super.dispose();
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
+  void didChangeAppLifecycleState(
+    AppLifecycleState state,
+  ) {
     if (state == AppLifecycleState.resumed) {
       _checkLoginStatus();
     }
@@ -70,6 +78,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void _checkLoginStatus() {
     final user = FirebaseAuth.instance.currentUser;
     final newStatus = user != null;
+
+    if (!mounted) return;
+
     if (_isLoggedIn != newStatus) {
       setState(() {
         _isLoggedIn = newStatus;
@@ -83,76 +94,121 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         key: ScreenKeys.home,
         scrollController: _scrollController,
       ),
-      1: const DoctorsListScreen(key: ScreenKeys.doctors),
-      2: const PharmacyScreen(key: ScreenKeys.pharmacy),
-      3: const ChatScreen(key: ScreenKeys.chat),
-      4: const LabsListScreen(key: ScreenKeys.labs),
-      5: const PatientDashboard(key: ScreenKeys.patient),
-      6: const MoreScreen(key: ScreenKeys.more),
+
+      1: const DoctorsListScreen(
+        key: ScreenKeys.doctors,
+      ),
+
+      2: const PharmacyScreen(
+        key: ScreenKeys.pharmacy,
+      ),
+
+      3: const ChatScreen(
+        key: ScreenKeys.chat,
+      ),
+
+      4: const LabsListScreen(
+        key: ScreenKeys.labs,
+      ),
+
+      5: const PatientDashboard(
+        key: ScreenKeys.patient,
+      ),
+
+      6: const MoreScreen(
+        key: ScreenKeys.more,
+      ),
     };
   }
 
   void _onTabTap(int index) {
-    final protectedTabs = [3, 4, 5];
+    final protectedTabs = <int>[3, 4, 5];
+
     if (protectedTabs.contains(index) && !_isLoggedIn) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const AuthScreen()),
-      ).then((_) {
-        _checkLoginStatus();
-      });
+      _openAuth();
       return;
     }
 
-    if (_currentIndex != index) {
-      setState(() {
-        _currentIndex = index;
-      });
+    if (_currentIndex == index) {
+      // إذا ضغط المستخدم على الرئيسية مرة أخرى
+      // نعيد الصفحة إلى الأعلى.
+      if (index == 0 &&
+          _scrollController.hasClients) {
+        _scrollController.animateTo(
+          0,
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeOutCubic,
+        );
+      }
+
+      return;
     }
+
+    setState(() {
+      _currentIndex = index;
+    });
+
+    // عند تغيير التبويب نعيد إظهار الشريط.
+    _scrollManager.show();
+    _scrollManager.reset();
 
     HapticFeedback.lightImpact();
   }
 
+  void _openAuth() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const AuthScreen(),
+      ),
+    ).then((_) {
+      if (mounted) {
+        _checkLoginStatus();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens.values.toList(),
+      backgroundColor: isDark
+          ? const Color(0xFF0B1121)
+          : const Color(0xFFF8FAFC),
+
+      body: ScrollDetector(
+        scrollManager: _scrollManager,
+        child: IndexedStack(
+          index: _currentIndex,
+          children: _screens.values.toList(),
+        ),
       ),
+
       bottomNavigationBar: AnimatedBuilder(
         animation: _scrollManager,
-        builder: (context, _) {
-          final isVisible = _scrollManager.isVisible;
-          final bottomPadding = MediaQuery.of(context).viewPadding.bottom;
-          final navHeight = 60.0 + bottomPadding;
+        builder: (context, child) {
+          final visible = _scrollManager.isVisible;
 
-          return AnimatedContainer(
-            duration: const Duration(milliseconds: 280),
-            curve: Curves.easeOutCubic,
-            height: isVisible ? navHeight : 0,
-            clipBehavior: Clip.hardEdge,
-            decoration: const BoxDecoration(),
-            child: SafeArea(
-              top: false,
-              bottom: true,
-              child: CustomBottomNavigationBar(
-                currentIndex: _currentIndex,
-                onTap: _onTabTap,
-                scrollManager: _scrollManager,
-                scrollController: _scrollController,
-                isLoggedIn: _isLoggedIn,
-                onAuthRequired: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const AuthScreen()),
-                  ).then((_) {
-                    _checkLoginStatus();
-                  });
-                },
+          return SizedBox(
+            height: 76,
+            child: ClipRect(
+              child: AnimatedAlign(
+                duration: const Duration(milliseconds: 260),
+                curve: Curves.easeOutCubic,
+                alignment: Alignment.bottomCenter,
+                heightFactor: visible ? 1.0 : 0.0,
+                child: IgnorePointer(
+                  ignoring: !visible,
+                  child: CustomBottomNavigationBar(
+                    currentIndex: _currentIndex,
+                    onTap: _onTabTap,
+                    scrollManager: _scrollManager,
+                    isLoggedIn: _isLoggedIn,
+                    onAuthRequired: _openAuth,
+                  ),
+                ),
               ),
             ),
           );

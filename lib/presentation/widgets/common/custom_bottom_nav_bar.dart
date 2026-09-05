@@ -1,16 +1,14 @@
-// ============================================================
-// 📱 CustomBottomNavigationBar - شريط التنقل السفلي المخصص
-// ============================================================
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/managers/global_scroll_manager.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
-  final GlobalScrollManager scrollManager;
+
+  // Optional compatibility fields for older callers.
+  final ScrollController? scrollController;
+  final dynamic scrollManager;
+
   final bool isLoggedIn;
   final VoidCallback onAuthRequired;
 
@@ -18,102 +16,248 @@ class CustomBottomNavigationBar extends StatelessWidget {
     super.key,
     required this.currentIndex,
     required this.onTap,
-    required this.scrollManager,
+    this.scrollController,
+    this.scrollManager,
     required this.isLoggedIn,
     required this.onAuthRequired,
   });
 
-  final List<NavItem> _navItems = const [
-    NavItem(index: 0, icon: Icons.home_rounded, label: 'الرئيسية'),
-    NavItem(index: 1, icon: Icons.person_search_rounded, label: 'الأطباء'),
-    NavItem(index: 2, icon: Icons.local_pharmacy_rounded, label: 'الصيدلية'),
-    NavItem(index: 3, icon: Icons.chat_rounded, label: 'الدردشة', isSpecial: true, isProtected: true),
-    NavItem(index: 4, icon: Icons.science_rounded, label: 'مختبرات', isProtected: true),
-    NavItem(index: 5, icon: Icons.folder_rounded, label: 'صحتي', isProtected: true),
-    NavItem(index: 6, icon: Icons.grid_view_rounded, label: 'المزيد'),
+  static const double _barHeight = 76.0;
+
+  static const List<NavItem> _navItems = [
+    NavItem(
+      index: 0,
+      icon: Icons.home_rounded,
+      label: 'الرئيسية',
+    ),
+    NavItem(
+      index: 1,
+      icon: Icons.person_search_rounded,
+      label: 'الأطباء',
+    ),
+    NavItem(
+      index: 2,
+      icon: Icons.local_pharmacy_rounded,
+      label: 'الصيدلية',
+    ),
+    NavItem(
+      index: 3,
+      icon: Icons.chat_rounded,
+      label: 'الدردشة',
+      isProtected: true,
+      isSpecial: true,
+    ),
+    NavItem(
+      index: 4,
+      icon: Icons.science_rounded,
+      label: 'مختبرات',
+      isProtected: true,
+    ),
+    NavItem(
+      index: 5,
+      icon: Icons.folder_rounded,
+      label: 'صحتي',
+      isProtected: true,
+    ),
+    NavItem(
+      index: 6,
+      icon: Icons.grid_view_rounded,
+      label: 'المزيد',
+    ),
   ];
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: _navItems.map((item) {
-        if (item.isSpecial) {
-          return _buildSpecialChatButton(item, isDark);
-        }
-        return _buildNavItem(item, isDark);
-      }).toList(),
+    final backgroundColor = isDark
+        ? const Color(0xFF1E293B)
+        : Colors.white;
+
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        height: _barHeight,
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(24),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 16,
+              offset: const Offset(0, -4),
+              spreadRadius: 1,
+            ),
+          ],
+        ),
+        child: SafeArea(
+          top: false,
+          bottom: true,
+          minimum: const EdgeInsets.only(bottom: 2),
+          child: SizedBox(
+            height: _barHeight - 2,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: _navItems.map((item) {
+                if (item.isSpecial) {
+                  return _buildSpecialChatButton(
+                    context,
+                    item,
+                    isDark,
+                  );
+                }
+
+                return _buildNavItem(
+                  context,
+                  item,
+                  isDark,
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
-  Widget _buildNavItem(NavItem item, bool isDark) {
+  Widget _buildNavItem(
+    BuildContext context,
+    NavItem item,
+    bool isDark,
+  ) {
     final isSelected = currentIndex == item.index;
-    final color = isSelected ? AppColors.primary : (isDark ? Colors.grey.shade500 : Colors.grey.shade400);
+
+    final inactiveColor = isDark
+        ? Colors.grey.shade400
+        : Colors.grey.shade500;
 
     return GestureDetector(
       onTap: () => _handleTap(item),
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
         width: 48,
-        height: 52,
+        height: 68,
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(item.icon, color: color, size: 22),
-            const SizedBox(height: 2),
-            Text(item.label, style: TextStyle(fontSize: 9, fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal, color: color)),
-            if (isSelected)
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 250),
-                width: 32,
-                height: 3,
-                margin: const EdgeInsets.only(top: 4),
-                decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(2)),
-              )
-            else
-              const SizedBox(height: 7),
+            AnimatedScale(
+              scale: isSelected ? 1.08 : 1.0,
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.easeOut,
+              child: Icon(
+                item.icon,
+                color: isSelected
+                    ? AppColors.primary
+                    : inactiveColor,
+                size: isSelected ? 26 : 24,
+              ),
+            ),
+            const SizedBox(height: 3),
+            AnimatedOpacity(
+              opacity: isSelected ? 1.0 : 0.75,
+              duration: const Duration(milliseconds: 180),
+              child: Text(
+                item.label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 9.5,
+                  fontWeight: isSelected
+                      ? FontWeight.w700
+                      : FontWeight.w500,
+                  color: isSelected
+                      ? AppColors.primary
+                      : inactiveColor,
+                ),
+              ),
+            ),
+            const SizedBox(height: 3),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.easeOut,
+              width: isSelected ? 20 : 0,
+              height: 3,
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSpecialChatButton(NavItem item, bool isDark) {
+  Widget _buildSpecialChatButton(
+    BuildContext context,
+    NavItem item,
+    bool isDark,
+  ) {
     final isSelected = currentIndex == item.index;
-    final color = isSelected ? AppColors.primary : (isDark ? Colors.grey.shade500 : Colors.grey.shade400);
+
+    final inactiveColor = isDark
+        ? Colors.grey.shade400
+        : Colors.grey.shade500;
 
     return GestureDetector(
       onTap: () => _handleTap(item),
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
-        width: 56,
-        height: 52,
+        width: 64,
+        height: 68,
         child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.end,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Transform.translate(
-              offset: const Offset(0, -20),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 250),
-                curve: Curves.easeOutCubic,
-                width: 54,
-                height: 54,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(colors: [AppColors.primary, AppColors.primaryDark]),
+            AnimatedScale(
+              scale: isSelected ? 1.04 : 1.0,
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.easeOut,
+              child: Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [
+                      AppColors.primary,
+                      AppColors.primaryDark,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                   shape: BoxShape.circle,
-                  boxShadow: [BoxShadow(color: AppColors.primary, blurRadius: 14, offset: Offset(0, 4))],
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.25),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-                child: Icon(item.icon, color: Colors.white, size: 28),
+                child: const Icon(
+                  Icons.chat_rounded,
+                  color: Colors.white,
+                  size: 28,
+                ),
               ),
             ),
-            const SizedBox(height: 2),
-            Text(item.label, style: TextStyle(fontSize: 9, fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal, color: color)),
-            const SizedBox(height: 7),
+            const SizedBox(height: 1),
+            Text(
+              item.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 9.5,
+                fontWeight: isSelected
+                    ? FontWeight.w700
+                    : FontWeight.w500,
+                color: isSelected
+                    ? AppColors.primary
+                    : inactiveColor,
+              ),
+            ),
           ],
         ),
       ),
@@ -125,7 +269,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
       onAuthRequired();
       return;
     }
-    HapticFeedback.lightImpact();
+
     onTap(item.index);
   }
 }
@@ -140,7 +284,6 @@ class NavItem {
   const NavItem({
     required this.index,
     required this.icon,
-    required this.label,
     this.isProtected = false,
     this.isSpecial = false,
   });

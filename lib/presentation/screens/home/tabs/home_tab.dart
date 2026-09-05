@@ -24,38 +24,17 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
 
   late HomeBloc _bloc;
   int _currentBanner = 0;
-  double _appBarOpacity = 1.0;
-  bool _showScrollTopButton = false;
 
   @override
   void initState() {
     super.initState();
     _bloc = context.read<HomeBloc>();
     _bloc.add(HomeStarted());
-    widget.scrollController?.addListener(_onScroll);
   }
 
   @override
   void dispose() {
-    widget.scrollController?.removeListener(_onScroll);
     super.dispose();
-  }
-
-  void _onScroll() {
-    final controller = widget.scrollController;
-    if (controller == null || !controller.hasClients) return;
-
-    final currentScroll = controller.position.pixels;
-    final maxScroll = controller.position.maxScrollExtent;
-    final opacity = maxScroll <= 0 ? 1.0 : 1.0 - (currentScroll / maxScroll).clamp(0.0, 0.65);
-    final showButton = currentScroll > 400;
-
-    if (_appBarOpacity != opacity || _showScrollTopButton != showButton) {
-      setState(() {
-        _appBarOpacity = opacity;
-        _showScrollTopButton = showButton;
-      });
-    }
   }
 
   @override

@@ -1,65 +1,40 @@
-// ============================================================
-// 🌍 GlobalScrollManager - مدير التمرير العام للتطبيق
-// ============================================================
+import 'package:flutter/foundation.dart';
 
-import 'package:flutter/material.dart';
-
+/// مدير ظهور الشريط السفلي.
+///
+/// يوجد منه instance واحد داخل HomeScreen.
+/// لا يستمع للتمرير بنفسه؛ ScrollDetector هو المسؤول عن ذلك.
 class GlobalScrollManager extends ChangeNotifier {
   bool _isVisible = true;
-  double _lastPosition = 0;
-  final Map<String, double> _screenPositions = {};
-  String? _currentRoute;
+  double _lastPosition = 0.0;
 
   bool get isVisible => _isVisible;
   double get lastPosition => _lastPosition;
 
-  set lastPosition(double value) {
-    _lastPosition = value;
+  void updatePosition(double position) {
+    _lastPosition = position;
   }
 
-  void registerScreen(String route) {
-    _currentRoute = route;
-    if (_screenPositions.containsKey(route)) {
-      _lastPosition = _screenPositions[route]!;
-    } else {
-      _screenPositions[route] = 0;
-    }
+  void show() {
+    if (_isVisible) return;
+
     _isVisible = true;
     notifyListeners();
   }
 
-  void savePosition(String route, double position) {
-    _screenPositions[route] = position;
+  void hide() {
+    if (!_isVisible) return;
+
+    _isVisible = false;
+    notifyListeners();
   }
 
-  void show() {
+  void reset() {
+    _lastPosition = 0.0;
+
     if (!_isVisible) {
       _isVisible = true;
       notifyListeners();
     }
-  }
-
-  void hide() {
-    if (_isVisible) {
-      _isVisible = false;
-      notifyListeners();
-    }
-  }
-
-  void reset() {
-    _isVisible = true;
-    _lastPosition = 0;
-    notifyListeners();
-  }
-
-  bool isExcludedRoute(String route) {
-    final excludedRoutes = ['/video_call', '/payment', '/onboarding', '/splash', '/auth'];
-    return excludedRoutes.any((r) => route.contains(r));
-  }
-
-  @override
-  void dispose() {
-    _screenPositions.clear();
-    super.dispose();
   }
 }

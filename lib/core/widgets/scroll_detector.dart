@@ -1,7 +1,3 @@
-// ============================================================
-// 📡 ScrollDetector - كاشف التمرير الذكي
-// ============================================================
-
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/managers/global_scroll_manager.dart';
 
@@ -18,56 +14,66 @@ class ScrollDetector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return NotificationListener<ScrollNotification>(
-      onNotification: (notification) {
-        _handleScroll(notification, context);
-        return false;
-      },
+      onNotification: _handleScroll,
       child: child,
     );
   }
 
-  void _handleScroll(
-    ScrollNotification notification,
-    BuildContext context,
-  ) {
-    final route = ModalRoute.of(context)?.settings.name ?? 'home';
-
-    if (scrollManager.isExcludedRoute(route)) {
-      return;
-    }
-
-    if (notification is ScrollStartNotification) {
-      scrollManager.registerScreen(route);
-      return;
+  bool _handleScroll(ScrollNotification notification) {
+    if (notification.metrics.axis != Axis.vertical) {
+      return false;
     }
 
     if (notification is ScrollUpdateNotification) {
-      final currentPosition = notification.metrics.pixels;
-      final delta = currentPosition - scrollManager.lastPosition;
+      final position = notification.metrics.pixels;
 
-      const threshold = 5.0;
-
-      if (delta > threshold) {
-        // ⬇️ التمرير للأسفل → إخفاء الشريط
-        scrollManager.hide();
-      } else if (delta < -threshold) {
-        // ⬆️ التمرير للأعلى → إظهار الشريط
+      // إبقاء الشريط ظاهرًا في أعلى الصفحة.
+      if (position <= 0) {
         scrollManager.show();
+        scrollManager.updatePosition(position);
+        return false;
       }
 
-      scrollManager.lastPosition = currentPosition;
-      scrollManager.savePosition(route, currentPosition);
+
+      // في Flutter:
+      // down = المحتوى يتحرك للأسفل => المستخدم يصعد الصفحة
+      // up   = المحتوى يتحرك للأعلى => المستخدم ينزل الصفحة
+      if (notification.dragDetails != null) {
+        final delta = notification.dragDetails!.primaryDelta ?? 0.0;
+
+        if (delta < -3.0) {
+          // المستخدم يسحب للأعلى → يخفي الشريط.
+          scrollManager.hide();
+        } else if (delta > 3.0) {
+          // المستخدم يسحب للأسفل → يظهر الشريط.
+          scrollManager.show();
+        }
+      } else {
+        // حالات التمرير غير المباشر مثل animateTo.
+        final currentPosition = notification.metrics.pixels;
+        final previousPosition = scrollManager.lastPosition;
+        final delta = currentPosition - previousPosition;
+
+        if (delta > 3.0) {
+          scrollManager.hide();
+        } else if (delta < -3.0) {
+          scrollManager.show();
+        }
+      }
+
+      scrollManager.updatePosition(position);
     }
 
     if (notification is ScrollEndNotification) {
-      if (notification.metrics.pixels <= 0) {
+      final position = notification.metrics.pixels;
+
+      if (position <= 0) {
         scrollManager.show();
       }
 
-      scrollManager.savePosition(
-        route,
-        notification.metrics.pixels,
-      );
+      scrollManager.updatePosition(position);
     }
+
+    return false;
   }
 }
