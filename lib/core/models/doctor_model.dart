@@ -66,7 +66,7 @@ class DoctorModel extends Equatable {
           if (e is Map<String, dynamic>) return e;
           if (e is String) return {'degree': e};
           return {};
-        }).toList();
+        }).toList().cast<Map<String, dynamic>>();
       }
       if (value is String) return [{'degree': value}];
       return [];

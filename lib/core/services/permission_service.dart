@@ -21,7 +21,7 @@ class PermissionService {
       Permission.microphone,
       Permission.storage,
       Permission.location,
-      Permission.notifications,
+      Permission.notification,
       Permission.phone,
     ];
 
@@ -62,12 +62,12 @@ class PermissionService {
   }
 
   Future<bool> checkNotificationPermissions() async {
-    final status = await Permission.notifications.status;
+    final status = await Permission.notification.status;
     return status.isGranted;
   }
 
   Future<bool> requestNotificationPermissions() async {
-    final status = await Permission.notifications.request();
+    final status = await Permission.notification.request();
     return status.isGranted;
   }
 

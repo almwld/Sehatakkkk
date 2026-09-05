@@ -1,3 +1,4 @@
+import package:shimmer/shimmer.dart;
 import 'package:sehatak/bloc/community/community_bloc.dart';
 import 'package:sehatak/bloc/community/community_event.dart';
 import 'package:sehatak/bloc/community/community_state.dart';
@@ -37,7 +38,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   void initState() {
     super.initState();
     _bloc = context.read<HomeBloc>();
-    _bloc.add(const HomeStarted());
+    _bloc.add(HomeStarted());
     widget.scrollController?.addListener(_onScroll);
   }
 
@@ -78,7 +79,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         return Scaffold(
           backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF6F8FA),
           body: RefreshIndicator(
-            onRefresh: () async => _bloc.add(const HomeDataRefreshed()),
+            onRefresh: () async => _bloc.add(HomeDataRefreshed()),
             color: AppColors.primary,
             child: CustomScrollView(
               controller: widget.scrollController,
@@ -156,7 +157,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             Text('يرجى التحقق من اتصالك بالإنترنت', style: TextStyle(fontSize: 14, color: isDark ? Colors.grey[400] : Colors.grey[600])),
             const SizedBox(height: 24),
             ElevatedButton.icon(
-              onPressed: () => _bloc.add(const HomeDataRefreshed()),
+              onPressed: () => _bloc.add(HomeDataRefreshed()),
               icon: const Icon(Icons.refresh),
               label: const Text('إعادة المحاولة'),
               style: ElevatedButton.styleFrom(

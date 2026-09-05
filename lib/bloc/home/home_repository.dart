@@ -39,7 +39,7 @@ class HomeRepository {
   Future<({double calories, double steps, double sleep, double heartRate})> getHealthStats() async {
     try {
       final user = _auth.currentUser;
-      if (user == null) return (calories: 0, steps: 0, sleep: 0, heartRate: 0);
+      if (user == null) return (calories: 0.0, steps: 0.0, sleep: 0.0, heartRate: 0.0);
       final doc = await _firestore
           .collection('users')
           .doc(user.uid)
@@ -55,9 +55,9 @@ class HomeRepository {
           heartRate: (data?['heartRate'] as num?)?.toDouble() ?? 0,
         );
       }
-      return (calories: 0, steps: 0, sleep: 0, heartRate: 0);
+      return (calories: 0.0, steps: 0.0, sleep: 0.0, heartRate: 0.0);
     } catch (e) {
-      return (calories: 0, steps: 0, sleep: 0, heartRate: 0);
+      return (calories: 0.0, steps: 0.0, sleep: 0.0, heartRate: 0.0);
     }
   }
 
@@ -221,7 +221,7 @@ class HomeRepository {
           .where('read', isEqualTo: false)
           .count()
           .get();
-      return snapshot.count;
+      return snapshot.count ?? 0;
     } catch (e) {
       return 0;
     }
