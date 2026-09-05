@@ -1,7 +1,17 @@
+// ============================================================
+// 📁 lib/core/models/booking/booking_model.dart
+// 📅 نموذج الحجز
+// ============================================================
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-enum BookingStatus { pending, confirmed, completed, cancelled }
+enum BookingStatus {
+  pending,
+  confirmed,
+  completed,
+  cancelled,
+}
 
 class BookingModel {
   final String id;
@@ -27,6 +37,52 @@ class BookingModel {
     required this.createdAt,
     this.updatedAt,
   });
+
+  factory BookingModel.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return BookingModel(
+      id: doc.id,
+      patientId: data['patientId'] ?? '',
+      patientName: data['patientName'] ?? '',
+      doctorId: data['doctorId'] ?? '',
+      doctorName: data['doctorName'] ?? '',
+      date: (data['date'] as Timestamp).toDate(),
+      time: data['time'] ?? '',
+      status: BookingStatus.values.firstWhere(
+        (e) => e.name == data['status'],
+        orElse: () => BookingStatus.pending,
+      ),
+      createdAt: (data['createdAt'] as Timestamp).toDate(),
+      updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
+    );
+  }
+
+  Map<String, dynamic> toFirestore() {
+    return {
+      'patientId': patientId,
+      'patientName': patientName,
+      'doctorId': doctorId,
+      'doctorName': doctorName,
+      'date': Timestamp.fromDate(date),
+      'time': time,
+      'status': status.name,
+      'createdAt': Timestamp.fromDate(createdAt),
+      'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : FieldValue.serverTimestamp(),
+    };
+  }
+
+  String get statusLabel {
+    switch (status) {
+      case BookingStatus.pending:
+        return 'قيد الانتظار';
+      case BookingStatus.confirmed:
+        return 'مؤكد';
+      case BookingStatus.completed:
+        return 'مكتمل';
+      case BookingStatus.cancelled:
+        return 'ملغي';
+    }
+  }
 
   Color get statusColor {
     switch (status) {

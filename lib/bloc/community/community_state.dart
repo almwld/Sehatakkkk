@@ -4,7 +4,7 @@
 // ============================================================
 
 import 'package:equatable/equatable.dart';
-import 'package:sehatak/core/models/community/community_post_model.dart';
+import 'package:sehatak/core/models/community_post_model.dart';
 
 enum CommunityStatus {
   initial,
@@ -13,7 +13,6 @@ enum CommunityStatus {
   error,
   creating,
   deleting,
-  refreshing,
 }
 
 class CommunityState extends Equatable {
@@ -58,7 +57,6 @@ class CommunityState extends Equatable {
   bool get isLoading => status == CommunityStatus.loading;
   bool get isCreating => status == CommunityStatus.creating;
   bool get isDeleting => status == CommunityStatus.deleting;
-  bool get isRefreshing => status == CommunityStatus.refreshing;
   bool get hasError => status == CommunityStatus.error;
   bool get isLoaded => status == CommunityStatus.loaded;
 

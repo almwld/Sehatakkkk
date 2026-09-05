@@ -12,7 +12,6 @@ abstract class CommunityEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-// ✅ جلب المنشورات
 class FetchCommunityPosts extends CommunityEvent {
   final int limit;
   final String? lastDocId;
@@ -21,7 +20,6 @@ class FetchCommunityPosts extends CommunityEvent {
   List<Object?> get props => [limit, lastDocId];
 }
 
-// ✅ إنشاء منشور
 class CreateCommunityPost extends CommunityEvent {
   final String title;
   final String? content;
@@ -37,7 +35,6 @@ class CreateCommunityPost extends CommunityEvent {
   List<Object?> get props => [title, content, files, category];
 }
 
-// ✅ حذف منشور
 class DeleteCommunityPost extends CommunityEvent {
   final String postId;
   const DeleteCommunityPost({required this.postId});
@@ -45,7 +42,6 @@ class DeleteCommunityPost extends CommunityEvent {
   List<Object?> get props => [postId];
 }
 
-// ✅ إعجاب
 class ToggleLikePost extends CommunityEvent {
   final String postId;
   final int index;
@@ -54,7 +50,6 @@ class ToggleLikePost extends CommunityEvent {
   List<Object?> get props => [postId, index];
 }
 
-// ✅ حفظ
 class SaveCommunityPost extends CommunityEvent {
   final String postId;
   final int index;
@@ -63,7 +58,6 @@ class SaveCommunityPost extends CommunityEvent {
   List<Object?> get props => [postId, index];
 }
 
-// ✅ إبلاغ
 class ReportCommunityPost extends CommunityEvent {
   final String postId;
   final int index;
@@ -73,7 +67,6 @@ class ReportCommunityPost extends CommunityEvent {
   List<Object?> get props => [postId, index, reason];
 }
 
-// ✅ مشاركة
 class ShareCommunityPost extends CommunityEvent {
   final String postId;
   final int index;
@@ -82,7 +75,6 @@ class ShareCommunityPost extends CommunityEvent {
   List<Object?> get props => [postId, index];
 }
 
-// ✅ إضافة تعليق
 class AddCommunityComment extends CommunityEvent {
   final String postId;
   final int index;
@@ -94,12 +86,4 @@ class AddCommunityComment extends CommunityEvent {
   });
   @override
   List<Object?> get props => [postId, index, comment];
-}
-
-// ✅ تحميل المزيد
-class LoadMoreCommunityPosts extends CommunityEvent {
-  final int limit;
-  const LoadMoreCommunityPosts({this.limit = 10});
-  @override
-  List<Object?> get props => [limit];
 }
