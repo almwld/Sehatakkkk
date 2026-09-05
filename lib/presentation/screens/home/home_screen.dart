@@ -18,7 +18,6 @@ import 'package:sehatak/presentation/screens/home/tabs/home_tab.dart';
 import 'package:sehatak/core/managers/global_scroll_manager.dart';
 import 'package:sehatak/core/widgets/scroll_detector.dart';
 
-// ✅ مفاتيح ثابتة لكل شاشة
 class ScreenKeys {
   static const home = ValueKey('home_tab');
   static const doctors = ValueKey('doctors_tab');

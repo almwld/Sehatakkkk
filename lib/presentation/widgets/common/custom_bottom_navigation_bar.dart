@@ -1,5 +1,5 @@
 // ============================================================
-// 📱 CustomBottomNavigationBar - شريط التنقل السفلي (نسخة X)
+// 📱 CustomBottomNavigationBar - شريط التنقل السفلي
 // ============================================================
 
 import 'package:flutter/material.dart';
@@ -24,7 +24,6 @@ class CustomBottomNavigationBar extends StatelessWidget {
     required this.onAuthRequired,
   });
 
-  // ✅ قائمة عناصر التنقل - صحتك
   final List<NavItem> _navItems = const [
     NavItem(index: 0, icon: Icons.home_rounded, label: 'الرئيسية'),
     NavItem(index: 1, icon: Icons.person_search_rounded, label: 'الأطباء'),
@@ -58,7 +57,6 @@ class CustomBottomNavigationBar extends StatelessWidget {
     );
   }
 
-  // 🔘 عناصر التنقل العادية
   Widget _buildNavItem(NavItem item, bool isDark) {
     final isSelected = currentIndex == item.index;
 
@@ -72,7 +70,6 @@ class CustomBottomNavigationBar extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // 🟣 الأيقونة
             Icon(
               item.icon,
               color: isSelected
@@ -81,7 +78,6 @@ class CustomBottomNavigationBar extends StatelessWidget {
               size: isSelected ? 24 : 22,
             ),
             const SizedBox(height: 2),
-            // 📝 النص
             Text(
               item.label,
               style: TextStyle(
@@ -92,7 +88,6 @@ class CustomBottomNavigationBar extends StatelessWidget {
                     : (isDark ? Colors.grey.shade400 : Colors.grey.shade500),
               ),
             ),
-            // 🔵 المؤشر السفلي
             if (isSelected)
               Container(
                 width: 16,
@@ -111,7 +106,6 @@ class CustomBottomNavigationBar extends StatelessWidget {
     );
   }
 
-  // 💬 زر الدردشة المميز
   Widget _buildSpecialChatButton(NavItem item, bool isDark) {
     final isSelected = currentIndex == item.index;
 
@@ -125,7 +119,6 @@ class CustomBottomNavigationBar extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            // 🔵 زر دائري مع تدرج
             Container(
               width: 48,
               height: 48,
@@ -151,7 +144,6 @@ class CustomBottomNavigationBar extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 2),
-            // 📝 النص
             Text(
               item.label,
               style: TextStyle(
@@ -169,20 +161,16 @@ class CustomBottomNavigationBar extends StatelessWidget {
     );
   }
 
-  // 🎯 معالجة الضغط
   void _handleTap(NavItem item) {
     if (item.isProtected && !isLoggedIn) {
       onAuthRequired();
       return;
     }
     onTap(item.index);
-    
-    // ✅ إظهار الشريط عند الضغط على أيقونة
     scrollManager?.show();
   }
 }
 
-// 📦 نموذج عنصر التنقل
 class NavItem {
   final int index;
   final IconData icon;

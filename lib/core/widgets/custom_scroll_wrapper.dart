@@ -1,5 +1,5 @@
 // ============================================================
-// 🎁 CustomScrollWrapper - غلاف التمرير المخصص (نسخة X)
+// 🎁 CustomScrollWrapper - غلاف التمرير المخصص
 // ============================================================
 
 import 'package:flutter/material.dart';
@@ -53,7 +53,6 @@ class _CustomScrollWrapperState extends State<CustomScrollWrapper>
       curve: Curves.easeInOut,
     ));
     
-    // ✅ استماع لتغيرات الرؤية
     _scrollManager.addListener(_onVisibilityChanged);
   }
 

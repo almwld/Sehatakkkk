@@ -6,8 +6,14 @@ import 'package:flutter/material.dart';
 
 class GlobalScrollManager extends ChangeNotifier {
   bool _isVisible = true;
+  double _lastPosition = 0.0;
   
   bool get isVisible => _isVisible;
+  double get lastPosition => _lastPosition;
+  
+  set lastPosition(double value) {
+    _lastPosition = value;
+  }
 
   void show() {
     if (!_isVisible) {
@@ -30,6 +36,7 @@ class GlobalScrollManager extends ChangeNotifier {
 
   void reset() {
     _isVisible = true;
+    _lastPosition = 0.0;
     notifyListeners();
   }
 

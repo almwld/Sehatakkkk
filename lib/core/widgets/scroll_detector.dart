@@ -1,5 +1,5 @@
 // ============================================================
-// 📡 ScrollDetector - كاشف التمرير الذكي (نسخة X)
+// 📡 ScrollDetector - كاشف التمرير الذكي (النسخة البديلة)
 // ============================================================
 
 import 'package:flutter/material.dart';
@@ -27,18 +27,35 @@ class ScrollDetector extends StatelessWidget {
   }
 
   void _handleScroll(ScrollNotification notification, BuildContext context) {
-    // ✅ استخدام UserScrollNotification
-    if (notification is UserScrollNotification) {
-      final route = ModalRoute.of(context)?.settings.name ?? 'home';
-      
-      if (scrollManager.isExcludedRoute(route)) {
-        return;
-      }
+    final route = ModalRoute.of(context)?.settings.name ?? 'home';
+    
+    if (scrollManager.isExcludedRoute(route)) {
+      return;
+    }
 
-      // ✅ استخدام ScrollDirection مباشرة مع import
-      if (notification.direction == ScrollDirection.reverse) {
+    // ✅ استخدام ScrollUpdateNotification
+    if (notification is ScrollUpdateNotification) {
+      final currentOffset = notification.metrics.pixels;
+      final delta = currentOffset - scrollManager.lastPosition;
+      
+      // حفظ آخر موضع
+      scrollManager.lastPosition = currentOffset;
+      
+      // عتبة الحركة - لتجنب الحركات الصغيرة
+      const threshold = 5.0;
+      
+      if (delta > threshold) {
+        // ⬇️ التمرير للأسفل → إخفاء
         scrollManager.hide();
-      } else if (notification.direction == ScrollDirection.forward) {
+      } else if (delta < -threshold) {
+        // ⬆️ التمرير للأعلى → إظهار
+        scrollManager.show();
+      }
+    }
+    
+    // عند الوصول لأعلى الصفحة، أظهر الشريط
+    if (notification is ScrollEndNotification) {
+      if (notification.metrics.pixels <= 0) {
         scrollManager.show();
       }
     }
