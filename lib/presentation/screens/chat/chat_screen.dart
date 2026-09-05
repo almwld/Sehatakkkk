@@ -862,6 +862,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
         }
 
         final calls = _sampleCalls;
+          final chats = state.chats;
         
         if (calls.isEmpty) {
           return _buildEmptyState(
@@ -874,7 +875,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
 
         return ListView.builder(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        final chats = state.chats;
+          final chats = state.chats;
           itemCount: chats.length,
           itemBuilder: (context, index) {
             final chat = chats[index];
