@@ -87,3 +87,32 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     return super.close();
   }
 }
+
+// ✅ أحداث إضافية للدردشة
+class SearchChatsEvent extends ChatEvent {
+  final String query;
+  const SearchChatsEvent({required this.query});
+  @override
+  List<Object?> get props => [query];
+}
+
+class ArchiveChatEvent extends ChatEvent {
+  final String chatId;
+  const ArchiveChatEvent({required this.chatId});
+  @override
+  List<Object?> get props => [chatId];
+}
+
+class PinChatEvent extends ChatEvent {
+  final String chatId;
+  const PinChatEvent({required this.chatId});
+  @override
+  List<Object?> get props => [chatId];
+}
+
+class MuteChatEvent extends ChatEvent {
+  final String chatId;
+  const MuteChatEvent({required this.chatId});
+  @override
+  List<Object?> get props => [chatId];
+}

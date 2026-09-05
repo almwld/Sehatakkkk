@@ -132,13 +132,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   void _startCall(bool isVideo) {
 
   void _showContactInfo() {
-    Navigator.push(
+    Navigator.push(context, 
       context,
       MaterialPageRoute(
-        builder: (_) => PatientProfileScreen(
+        builder: (_) => PatientProfile(
           userId: widget.otherUserId,
         ),
       ),
     );
   }
-    Navigator.push(
+    Navigator.push(context, 

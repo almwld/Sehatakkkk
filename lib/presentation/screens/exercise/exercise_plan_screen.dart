@@ -33,7 +33,7 @@ class _ExercisePlanScreenState extends State<ExercisePlanScreen> {
           IconButton(
             icon: const Icon(Icons.timer),
             onPressed: () {
-              ToastService.showSuccess(context, 'سيتم إضافة مؤقت التمارين قريباً');
+              ToastService.showSuccess( 'سيتم إضافة مؤقت التمارين قريباً');
             },
           ),
         ],
@@ -94,7 +94,7 @@ class _ExercisePlanScreenState extends State<ExercisePlanScreen> {
               height: 50,
               child: ElevatedButton.icon(
                 onPressed: () {
-                  ToastService.showSuccess(context, '🚀 بدء التمرين...');
+                  ToastService.showSuccess( '🚀 بدء التمرين...');
                 },
                 icon: const Icon(Icons.play_arrow),
                 label: const Text('بدء التمرين', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),

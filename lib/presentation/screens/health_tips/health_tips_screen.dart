@@ -31,11 +31,11 @@ class _HealthTipsScreenState extends State<HealthTipsScreen> {
           child: ListView.builder(scrollDirection: Axis.horizontal, padding: const EdgeInsets.all(10), itemCount: _tips.keys.length, itemBuilder: (context, i) {
             final cat = _tips.keys.elementAt(i);
             final icons = ['🥗', '🏃', '😴', '🧘', '🛡️', '❤️'];
-            final colors = [AppColors.success, AppColors.info, AppColors.purple, AppColors.teal, AppColors.primary, AppColors.error];
+            final colors = [AppColors.success, AppColors.info, AppColors.purple, Colors.teal, AppColors.primary, AppColors.error];
             final selected = _selectedCategory == cat;
             return GestureDetector(
               onTap: () => setState(() => _selectedCategory = cat),
-              child: Container(width: 85, margin: const EdgeInsets.only(right: 8), decoration: BoxDecoration(color: selected ? colors[i].withOpacity(0.08) : Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: selected ? colors[i] : AppColors.outlineVariant.withOpacity(0.3))), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Text(icons[i], style: const TextStyle(fontSize: 28)), Text(cat, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: selected ? colors[i] : AppColors.darkGrey))])),
+              child: Container(width: 85, margin: const EdgeInsets.only(right: 8), decoration: BoxDecoration(color: selected ? colors[i].withOpacity(0.08) : Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: selected ? colors[i] : Colors.grey.shade300.withOpacity(0.3))), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Text(icons[i], style: const TextStyle(fontSize: 28)), Text(cat, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: selected ? colors[i] : AppColors.darkGrey))])),
             );
           }),
         ),
