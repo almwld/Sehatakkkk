@@ -450,3 +450,186 @@ class _MessageBubbleState extends State<MessageBubble> {
     return '${date.day}/${date.month}';
   }
 }
+
+// ============================================================
+// 🖼️ عرض الصور
+// ============================================================
+Widget _buildImageMessage(String imageUrl, bool isDark) {
+  return GestureDetector(
+    onTap: () => _showFullScreenImage(imageUrl),
+    child: Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: CachedNetworkImage(
+          imageUrl: imageUrl,
+          width: 200,
+          height: 200,
+          fit: BoxFit.cover,
+          placeholder: (context, url) => Container(
+            width: 200,
+            height: 200,
+            color: isDark ? Colors.grey[800] : Colors.grey[200],
+            child: const Center(
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+              ),
+            ),
+          ),
+          errorWidget: (context, url, error) => Container(
+            width: 200,
+            height: 200,
+            color: isDark ? Colors.grey[800] : Colors.grey[200],
+            child: const Icon(
+              Icons.broken_image,
+              color: Colors.grey,
+              size: 40,
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+// ============================================================
+// 🔍 تكبير الصورة
+// ============================================================
+void _showFullScreenImage(String imageUrl) {
+  showDialog(
+    context: context,
+    barrierColor: Colors.black.withOpacity(0.9),
+    builder: (context) => Dialog(
+      backgroundColor: Colors.transparent,
+      child: GestureDetector(
+        onTap: () => Navigator.pop(context),
+        child: Center(
+          child: CachedNetworkImage(
+            imageUrl: imageUrl,
+            fit: BoxFit.contain,
+            placeholder: (context, url) => const CircularProgressIndicator(),
+            errorWidget: (context, url, error) => const Icon(
+              Icons.broken_image,
+              color: Colors.white,
+              size: 60,
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+// ============================================================
+// 🎥 عرض الفيديو
+// ============================================================
+Widget _buildVideoMessage(String videoUrl, bool isDark) {
+  return Container(
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(12),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.1),
+          blurRadius: 8,
+          offset: const Offset(0, 2),
+        ),
+      ],
+    ),
+    child: ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // ✅ صورة مصغرة للفيديو
+          CachedNetworkImage(
+            imageUrl: videoUrl,
+            width: 200,
+            height: 150,
+            fit: BoxFit.cover,
+            placeholder: (context, url) => Container(
+              width: 200,
+              height: 150,
+              color: isDark ? Colors.grey[800] : Colors.grey[200],
+              child: const Center(
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                ),
+              ),
+            ),
+            errorWidget: (context, url, error) => Container(
+              width: 200,
+              height: 150,
+              color: isDark ? Colors.grey[800] : Colors.grey[200],
+              child: const Icon(
+                Icons.videocam_off,
+                color: Colors.grey,
+                size: 40,
+              ),
+            ),
+          ),
+          
+          // ✅ زر تشغيل الفيديو
+          GestureDetector(
+            onTap: () => _playVideo(videoUrl),
+            child: Container(
+              width: 50,
+              height: 50,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 10,
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.play_arrow,
+                color: AppColors.primary,
+                size: 30,
+              ),
+            ),
+          ),
+          
+          // ✅ مدة الفيديو
+          Positioned(
+            bottom: 8,
+            right: 8,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.7),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: const Text(
+                '00:00',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+// ============================================================
+// 🎬 تشغيل الفيديو
+// ============================================================
+void _playVideo(String videoUrl) {
+  // TODO: فتح شاشة تشغيل الفيديو
+  ToastService.showInfo('🎬 جاري تشغيل الفيديو...');
+}
