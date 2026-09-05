@@ -318,12 +318,12 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
 
       if (callId != null && callId.trim().isNotEmpty) {
         if (_callDuration > 0) {
-          await _callService.endCall(
+          // await _callService.endCall(
             callId,
             durationSeconds: _callDuration,
           );
         } else if (widget.isOutgoing) {
-          await _callService.cancelCall(callId);
+          // await _callService.cancelCall(callId);
         }
       }
     } catch (e) {
