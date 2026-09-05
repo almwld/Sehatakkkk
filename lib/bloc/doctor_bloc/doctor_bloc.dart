@@ -3,7 +3,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 import '../../core/models/doctor_model.dart';
 
-// Events
+// ============================================================
+// 📋 الأحداث (Events)
+// ============================================================
 abstract class DoctorEvent extends Equatable {
   const DoctorEvent();
   @override
@@ -12,8 +14,22 @@ abstract class DoctorEvent extends Equatable {
 
 class LoadDoctors extends DoctorEvent {}
 class RefreshDoctors extends DoctorEvent {}
+class SearchDoctors extends DoctorEvent {
+  final String query;
+  const SearchDoctors({required this.query});
+  @override
+  List<Object?> get props => [query];
+}
+class FilterDoctorsBySpecialty extends DoctorEvent {
+  final String specialty;
+  const FilterDoctorsBySpecialty({required this.specialty});
+  @override
+  List<Object?> get props => [specialty];
+}
 
-// States
+// ============================================================
+// 📊 الحالات (States)
+// ============================================================
 abstract class DoctorState extends Equatable {
   const DoctorState();
   @override
@@ -25,9 +41,23 @@ class DoctorLoading extends DoctorState {}
 
 class DoctorLoaded extends DoctorState {
   final List<DoctorModel> doctors;
-  const DoctorLoaded({required this.doctors});
+  final List<DoctorModel> filteredDoctors;
+  final String? searchQuery;
+  final String? selectedSpecialty;
+
+  const DoctorLoaded({
+    required this.doctors,
+    this.filteredDoctors = const [],
+    this.searchQuery,
+    this.selectedSpecialty,
+  });
+
   @override
-  List<Object?> get props => [doctors];
+  List<Object?> get props => [doctors, filteredDoctors, searchQuery, selectedSpecialty];
+
+  List<DoctorModel> get displayDoctors {
+    return filteredDoctors.isNotEmpty ? filteredDoctors : doctors;
+  }
 }
 
 class DoctorError extends DoctorState {
@@ -37,91 +67,99 @@ class DoctorError extends DoctorState {
   List<Object?> get props => [message];
 }
 
-// BLoC
+// ============================================================
+// 🧠 BLoC
+// ============================================================
 class DoctorBloc extends Bloc<DoctorEvent, DoctorState> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  List<DoctorModel> _allDoctors = [];
 
   DoctorBloc() : super(DoctorInitial()) {
     on<LoadDoctors>(_onLoadDoctors);
     on<RefreshDoctors>(_onRefreshDoctors);
+    on<SearchDoctors>(_onSearchDoctors);
+    on<FilterDoctorsBySpecialty>(_onFilterDoctorsBySpecialty);
   }
 
-  Future<void> _onLoadDoctors(
-    LoadDoctors event,
-    Emitter<DoctorState> emit,
-  ) async {
-    bool hasCache = false;
-
-    // 1. ✅ Offline Cache
+  // ✅ تحميل الأطباء من Firestore
+  Future<void> _onLoadDoctors(LoadDoctors event, Emitter<DoctorState> emit) async {
+    emit(DoctorLoading());
     try {
-      final cacheSnapshot = await _firestore
-          .collection('doctors')
-          .get(const GetOptions(source: Source.cache));
-
-      if (cacheSnapshot.docs.isNotEmpty) {
-        final doctors = cacheSnapshot.docs.map((doc) {
-          return DoctorModel.fromFirestore(doc.id, doc.data());
-        }).toList();
-
-        if (doctors.isNotEmpty) {
-          hasCache = true;
-          emit(DoctorLoaded(doctors: doctors));
-        }
-      }
-    } catch (_) {}
-
-    // 2. ✅ Loading
-    if (!hasCache) {
-      emit(DoctorLoading());
-    }
-
-    // 3. ✅ Server
-    try {
-      print('🩺 DoctorBloc: Fetching from server...');
       final snapshot = await _firestore
           .collection('doctors')
-          .get(const GetOptions(source: Source.server));
+          .where('isAvailable', isEqualTo: true)
+          .get();
 
-      print('🩺 DoctorBloc: Found ${snapshot.docs.length} doctors');
-      
-      final doctors = snapshot.docs.map((doc) {
+      _allDoctors = snapshot.docs.map((doc) {
         return DoctorModel.fromFirestore(doc.id, doc.data());
       }).toList();
 
-      emit(DoctorLoaded(doctors: doctors));
-    } catch (e, stackTrace) {
-      print('❌ DoctorBloc ERROR: $e');
-      print(stackTrace);
-
-      if (!hasCache) {
-        emit(DoctorError(message: 'حدث خطأ: ${e.toString()}'));
-      }
-    }
-  }
-
-  Future<void> _onRefreshDoctors(
-    RefreshDoctors event,
-    Emitter<DoctorState> emit,
-  ) async {
-    final previousState = state;
-
-    try {
-      print('🩺 DoctorBloc: Refreshing...');
-      final snapshot = await _firestore
-          .collection('doctors')
-          .get(const GetOptions(source: Source.server));
-
-      final doctors = snapshot.docs.map((doc) {
-        return DoctorModel.fromFirestore(doc.id, doc.data());
-      }).toList();
-
-      emit(DoctorLoaded(doctors: doctors));
+      emit(DoctorLoaded(
+        doctors: _allDoctors,
+        filteredDoctors: _allDoctors,
+      ));
     } catch (e) {
-      if (previousState is DoctorLoaded) {
-        emit(previousState);
-      } else {
-        emit(DoctorError(message: 'تعذر تحديث قائمة الأطباء: $e'));
+      emit(DoctorError(message: 'حدث خطأ: ${e.toString()}'));
+    }
+  }
+
+  // ✅ تحديث الأطباء
+  Future<void> _onRefreshDoctors(RefreshDoctors event, Emitter<DoctorState> emit) async {
+    add(LoadDoctors());
+  }
+
+  // ✅ البحث عن الأطباء
+  void _onSearchDoctors(SearchDoctors event, Emitter<DoctorState> emit) {
+    if (state is DoctorLoaded) {
+      final currentState = state as DoctorLoaded;
+      final query = event.query.toLowerCase().trim();
+
+      if (query.isEmpty) {
+        emit(DoctorLoaded(
+          doctors: currentState.doctors,
+          filteredDoctors: currentState.doctors,
+          searchQuery: null,
+        ));
+        return;
       }
+
+      final filtered = currentState.doctors.where((doctor) {
+        final name = doctor.name.toLowerCase();
+        final specialty = doctor.specialty.toLowerCase();
+        return name.contains(query) || specialty.contains(query);
+      }).toList();
+
+      emit(DoctorLoaded(
+        doctors: currentState.doctors,
+        filteredDoctors: filtered,
+        searchQuery: query,
+      ));
+    }
+  }
+
+  // ✅ فلترة الأطباء حسب التخصص
+  void _onFilterDoctorsBySpecialty(FilterDoctorsBySpecialty event, Emitter<DoctorState> emit) {
+    if (state is DoctorLoaded) {
+      final currentState = state as DoctorLoaded;
+
+      if (event.specialty == 'الكل') {
+        emit(DoctorLoaded(
+          doctors: currentState.doctors,
+          filteredDoctors: currentState.doctors,
+          selectedSpecialty: null,
+        ));
+        return;
+      }
+
+      final filtered = currentState.doctors.where((doctor) {
+        return doctor.specialty == event.specialty;
+      }).toList();
+
+      emit(DoctorLoaded(
+        doctors: currentState.doctors,
+        filteredDoctors: filtered,
+        selectedSpecialty: event.specialty,
+      ));
     }
   }
 }
