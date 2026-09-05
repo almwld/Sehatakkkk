@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 import 'package:sehatak/core/managers/global_scroll_manager.dart';
 import 'package:sehatak/core/widgets/scroll_detector.dart';
@@ -39,7 +40,6 @@ class _HomeScreenState extends State<HomeScreen>
       ScrollController();
 
   late final GlobalScrollManager _scrollManager;
-
   late final Map<int, Widget> _screens;
 
   bool _isLoggedIn = false;
@@ -52,8 +52,13 @@ class _HomeScreenState extends State<HomeScreen>
 
     _scrollManager = GlobalScrollManager();
 
-    _checkLoginStatus();
     _initializeScreens();
+
+    // مهم:
+    // لا ننتظر Firebase هنا.
+    // الواجهة تظهر أولاً، ثم نتحقق من Firebase
+    // عندما تكون التهيئة جاهزة.
+    _checkLoginStatusSafely();
   }
 
   @override
@@ -71,20 +76,44 @@ class _HomeScreenState extends State<HomeScreen>
     AppLifecycleState state,
   ) {
     if (state == AppLifecycleState.resumed) {
-      _checkLoginStatus();
+      _checkLoginStatusSafely();
     }
   }
 
-  void _checkLoginStatus() {
-    final user = FirebaseAuth.instance.currentUser;
-    final newStatus = user != null;
+  /// التحقق من حالة تسجيل الدخول بدون التسبب
+  /// في توقف الواجهة إذا لم تكن Firebase جاهزة.
+  void _checkLoginStatusSafely() {
+    try {
+      // Firebase لم تتم تهيئتها بعد.
+      // لا نحاول الوصول إلى FirebaseAuth.
+      if (Firebase.apps.isEmpty) {
+        if (!mounted) return;
 
-    if (!mounted) return;
+        if (_isLoggedIn) {
+          setState(() {
+            _isLoggedIn = false;
+          });
+        }
 
-    if (_isLoggedIn != newStatus) {
-      setState(() {
-        _isLoggedIn = newStatus;
-      });
+        return;
+      }
+
+      final user = FirebaseAuth.instance.currentUser;
+      final newStatus = user != null;
+
+      if (!mounted) return;
+
+      if (_isLoggedIn != newStatus) {
+        setState(() {
+          _isLoggedIn = newStatus;
+        });
+      }
+    } catch (e) {
+      debugPrint(
+        '⚠️ HomeScreen Firebase status unavailable: $e',
+      );
+
+      // لا نسمح لخطأ Firebase بكسر الواجهة.
     }
   }
 
@@ -130,13 +159,14 @@ class _HomeScreenState extends State<HomeScreen>
     }
 
     if (_currentIndex == index) {
-      // إذا ضغط المستخدم على الرئيسية مرة أخرى
+      // إذا ضغط المستخدم على الرئيسية مرة أخرى،
       // نعيد الصفحة إلى الأعلى.
       if (index == 0 &&
           _scrollController.hasClients) {
         _scrollController.animateTo(
           0,
-          duration: const Duration(milliseconds: 350),
+          duration:
+              const Duration(milliseconds: 350),
           curve: Curves.easeOutCubic,
         );
       }
@@ -163,7 +193,7 @@ class _HomeScreenState extends State<HomeScreen>
       ),
     ).then((_) {
       if (mounted) {
-        _checkLoginStatus();
+        _checkLoginStatusSafely();
       }
     });
   }
@@ -171,7 +201,8 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   Widget build(BuildContext context) {
     final isDark =
-        Theme.of(context).brightness == Brightness.dark;
+        Theme.of(context).brightness ==
+            Brightness.dark;
 
     return Scaffold(
       backgroundColor: isDark
@@ -189,19 +220,24 @@ class _HomeScreenState extends State<HomeScreen>
       bottomNavigationBar: AnimatedBuilder(
         animation: _scrollManager,
         builder: (context, child) {
-          final visible = _scrollManager.isVisible;
+          final visible =
+              _scrollManager.isVisible;
 
           return SizedBox(
             height: 76,
             child: ClipRect(
               child: AnimatedAlign(
-                duration: const Duration(milliseconds: 260),
+                duration:
+                    const Duration(milliseconds: 260),
                 curve: Curves.easeOutCubic,
-                alignment: Alignment.bottomCenter,
-                heightFactor: visible ? 1.0 : 0.0,
+                alignment:
+                    Alignment.bottomCenter,
+                heightFactor:
+                    visible ? 1.0 : 0.0,
                 child: IgnorePointer(
                   ignoring: !visible,
-                  child: CustomBottomNavigationBar(
+                  child:
+                      CustomBottomNavigationBar(
                     currentIndex: _currentIndex,
                     onTap: _onTabTap,
                     scrollManager: _scrollManager,
