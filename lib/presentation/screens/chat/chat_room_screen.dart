@@ -1,3 +1,4 @@
+import package:sehatak/presentation/screens/patient/patient_profile.dart;
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -129,14 +130,157 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   }
 
   void _startCall(bool isVideo) {
+
+  void _showContactInfo() {
     Navigator.push(
       context,
       MaterialPageRoute(
+        builder: (_) => PatientProfile(
+          userId: widget.otherUserId,
+        ),
+      ),
+    );
+  }
+    Navigator.push(
+
+  void _showContactInfo() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PatientProfile(
+          userId: widget.otherUserId,
+        ),
+      ),
+    );
+  }
+      context,
+
+  void _showContactInfo() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PatientProfile(
+          userId: widget.otherUserId,
+        ),
+      ),
+    );
+  }
+      MaterialPageRoute(
+
+  void _showContactInfo() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PatientProfile(
+          userId: widget.otherUserId,
+        ),
+      ),
+    );
+  }
         builder: (_) => CallScreen(
+
+  void _showContactInfo() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PatientProfile(
+          userId: widget.otherUserId,
+        ),
+      ),
+    );
+  }
           chatId: widget.chatId,
+
+  void _showContactInfo() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PatientProfile(
+          userId: widget.otherUserId,
+        ),
+      ),
+    );
+  }
           doctorName: widget.otherUserName,
+
+  void _showContactInfo() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PatientProfile(
+          userId: widget.otherUserId,
+        ),
+      ),
+    );
+  }
           doctorId: widget.otherUserId,
+
+  void _showContactInfo() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PatientProfile(
+          userId: widget.otherUserId,
+        ),
+      ),
+    );
+  }
           isVideo: isVideo,
+
+  void _showContactInfo() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PatientProfile(
+          userId: widget.otherUserId,
+        ),
+      ),
+    );
+  }
+        ),
+
+  void _showContactInfo() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PatientProfile(
+          userId: widget.otherUserId,
+        ),
+      ),
+    );
+  }
+      ),
+
+  void _showContactInfo() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PatientProfile(
+          userId: widget.otherUserId,
+        ),
+      ),
+    );
+  }
+    );
+
+  void _showContactInfo() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PatientProfile(
+          userId: widget.otherUserId,
+        ),
+      ),
+    );
+  }
+  }
+
+  void _showContactInfo() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PatientProfile(
+          userId: widget.otherUserId,
         ),
       ),
     );
@@ -422,7 +566,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       foregroundColor: isDark ? Colors.white : Colors.black87,
       elevation: 0,
       title: GestureDetector(
-        onTap: () => ToastService.showInfo('👤 معلومات جهة الاتصال'),
+        onTap: () => _showContactInfo(),
         child: Row(
           children: [
             Stack(
