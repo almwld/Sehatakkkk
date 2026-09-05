@@ -424,3 +424,43 @@ class CommunityBloc extends Bloc<CommunityEvent, CommunityState> {
     }
   }
 }
+
+  // ============================================================
+  // 📋 تحميل المزيد من المنشورات
+  // ============================================================
+  Future<void> _onLoadMore(
+    LoadMoreCommunityPosts event,
+    Emitter<CommunityState> emit,
+  ) async {
+    if (state.isLoading || !state.hasMore) return;
+
+    emit(state.copyWith(status: CommunityStatus.loading));
+
+    try {
+      Query query = _firestore
+          .collection('community_posts')
+          .where('isPublished', isEqualTo: true)
+          .orderBy('createdAt', descending: true)
+          .startAfterDocument(
+            await _firestore.collection('community_posts').doc(state.lastDocId).get()
+          )
+          .limit(event.limit);
+
+      final snapshot = await query.get();
+      final newPosts = snapshot.docs
+          .map((doc) => CommunityPostModel.fromFirestore(doc))
+          .toList();
+
+      emit(state.copyWith(
+        status: CommunityStatus.loaded,
+        posts: [...state.posts, ...newPosts],
+        hasMore: newPosts.length == event.limit,
+        lastDocId: newPosts.isNotEmpty ? newPosts.last.id : state.lastDocId,
+      ));
+    } catch (e) {
+      emit(state.copyWith(
+        status: CommunityStatus.error,
+        errorMessage: 'فشل تحميل المزيد: $e',
+      ));
+    }
+  }

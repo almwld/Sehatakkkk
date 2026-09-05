@@ -52,14 +52,24 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   void _onScroll() {
     final controller = widget.scrollController;
     if (controller == null || !controller.hasClients) return;
+
     final currentScroll = controller.position.pixels;
     final maxScroll = controller.position.maxScrollExtent;
     final opacity = maxScroll <= 0 ? 1.0 : 1.0 - (currentScroll / maxScroll).clamp(0.0, 0.65);
     final showButton = currentScroll > 400;
 
-    // تحديث حالة التمرير عبر BLoC
-    // ملاحظة: تم إزالة HomeScrollUpdate لأن HomeState لا يحتوي على هذه الحقول
-    // بدلاً من ذلك، نستخدم setState محلياً أو نضيفها إلى HomeState
+    // تحديث حالة التمرير
+    if (_appBarOpacity != opacity || _showScrollTopButton != showButton) {
+      setState(() {
+        _appBarOpacity = opacity;
+        _showScrollTopButton = showButton;
+      });
+    }
+
+    // ✅ تحميل المزيد عند الوصول للنهاية
+    if (maxScroll - currentScroll < 200 && !_isLoadingMore && _hasMore) {
+      _loadMorePosts();
+    }
   }
 
   @override
