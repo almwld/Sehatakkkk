@@ -1,3 +1,5 @@
+import package:sehatak/presentation/screens/doctor/doctors_list_screen.dart;
+import package:sehatak/presentation/screens/notifications/notifications_screen.dart;
 // ============================================================
 // 📁 lib/presentation/screens/chat/chat_screen.dart
 // 💬 شاشة الدردشة - الإصدار المتكامل مع الأصول المحلية
@@ -225,7 +227,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
               color: isDark ? Colors.white : Colors.black87,
             ),
           ),
-          onPressed: () => ToastService.showInfo('🔔 الإشعارات'),
+          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen())),
         ),
       ],
     );
@@ -1239,7 +1241,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
   Widget _buildFAB(bool isDark) {
     return FloatingActionButton(
       onPressed: () {
-        ToastService.showInfo('➕ بدء محادثة جديدة');
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const DoctorsListScreen()));
       },
       backgroundColor: AppColors.primary,
       foregroundColor: Colors.white,
