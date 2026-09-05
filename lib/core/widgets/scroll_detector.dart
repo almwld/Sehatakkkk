@@ -1,3 +1,7 @@
+// ============================================================
+// 📡 ScrollDetector - كاشف التمرير الذكي (نسخة X)
+// ============================================================
+
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/managers/global_scroll_manager.dart';
 
@@ -14,66 +18,30 @@ class ScrollDetector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return NotificationListener<ScrollNotification>(
-      onNotification: _handleScroll,
+      onNotification: (notification) {
+        _handleScroll(notification, context);
+        return false;
+      },
       child: child,
     );
   }
 
-  bool _handleScroll(ScrollNotification notification) {
-    if (notification.metrics.axis != Axis.vertical) {
-      return false;
-    }
-
-    if (notification is ScrollUpdateNotification) {
-      final position = notification.metrics.pixels;
-
-      // إبقاء الشريط ظاهرًا في أعلى الصفحة.
-      if (position <= 0) {
-        scrollManager.show();
-        scrollManager.updatePosition(position);
-        return false;
+  void _handleScroll(ScrollNotification notification, BuildContext context) {
+    // ✅ استخدام UserScrollNotification - نفس طريقة X
+    if (notification is UserScrollNotification) {
+      final route = ModalRoute.of(context)?.settings.name ?? 'home';
+      
+      if (scrollManager.isExcludedRoute(route)) {
+        return;
       }
 
-
-      // في Flutter:
-      // down = المحتوى يتحرك للأسفل => المستخدم يصعد الصفحة
-      // up   = المحتوى يتحرك للأعلى => المستخدم ينزل الصفحة
-      if (notification.dragDetails != null) {
-        final delta = notification.dragDetails!.primaryDelta ?? 0.0;
-
-        if (delta < -3.0) {
-          // المستخدم يسحب للأعلى → يخفي الشريط.
-          scrollManager.hide();
-        } else if (delta > 3.0) {
-          // المستخدم يسحب للأسفل → يظهر الشريط.
-          scrollManager.show();
-        }
-      } else {
-        // حالات التمرير غير المباشر مثل animateTo.
-        final currentPosition = notification.metrics.pixels;
-        final previousPosition = scrollManager.lastPosition;
-        final delta = currentPosition - previousPosition;
-
-        if (delta > 3.0) {
-          scrollManager.hide();
-        } else if (delta < -3.0) {
-          scrollManager.show();
-        }
-      }
-
-      scrollManager.updatePosition(position);
-    }
-
-    if (notification is ScrollEndNotification) {
-      final position = notification.metrics.pixels;
-
-      if (position <= 0) {
+      if (notification.direction == ScrollDirection.reverse) {
+        // ⬇️ التمرير للأسفل → إخفاء الشريط
+        scrollManager.hide();
+      } else if (notification.direction == ScrollDirection.forward) {
+        // ⬆️ التمرير للأعلى → إظهار الشريط
         scrollManager.show();
       }
-
-      scrollManager.updatePosition(position);
     }
-
-    return false;
   }
 }

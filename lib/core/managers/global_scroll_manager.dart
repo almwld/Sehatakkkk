@@ -1,40 +1,45 @@
-import 'package:flutter/foundation.dart';
+// ============================================================
+// 🌍 GlobalScrollManager - مدير التمرير العام للتطبيق
+// ============================================================
 
-/// مدير ظهور الشريط السفلي.
-///
-/// يوجد منه instance واحد داخل HomeScreen.
-/// لا يستمع للتمرير بنفسه؛ ScrollDetector هو المسؤول عن ذلك.
+import 'package:flutter/material.dart';
+
 class GlobalScrollManager extends ChangeNotifier {
   bool _isVisible = true;
-  double _lastPosition = 0.0;
-
+  
   bool get isVisible => _isVisible;
-  double get lastPosition => _lastPosition;
-
-  void updatePosition(double position) {
-    _lastPosition = position;
-  }
 
   void show() {
-    if (_isVisible) return;
-
-    _isVisible = true;
-    notifyListeners();
-  }
-
-  void hide() {
-    if (!_isVisible) return;
-
-    _isVisible = false;
-    notifyListeners();
-  }
-
-  void reset() {
-    _lastPosition = 0.0;
-
     if (!_isVisible) {
       _isVisible = true;
       notifyListeners();
     }
+  }
+
+  void hide() {
+    if (_isVisible) {
+      _isVisible = false;
+      notifyListeners();
+    }
+  }
+
+  void toggle() {
+    _isVisible = !_isVisible;
+    notifyListeners();
+  }
+
+  void reset() {
+    _isVisible = true;
+    notifyListeners();
+  }
+
+  bool isExcludedRoute(String route) {
+    final excludedRoutes = ['/video_call', '/payment', '/onboarding', '/splash', '/auth'];
+    return excludedRoutes.any((r) => route.contains(r));
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 }
