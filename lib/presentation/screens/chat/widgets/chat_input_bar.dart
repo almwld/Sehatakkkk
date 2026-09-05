@@ -1,3 +1,8 @@
+// ============================================================
+// 📁 lib/presentation/screens/chat/widgets/chat_input_bar.dart
+// ⌨️ شريط إدخال الرسائل - النسخة المتكاملة
+// ============================================================
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -145,15 +150,22 @@ class _ChatInputBarState extends State<ChatInputBar> {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1A2540) : Colors.white,
-        border: Border(top: BorderSide(color: isDark ? Colors.grey[800]! : Colors.grey[200]!)),
+        border: Border(
+          top: BorderSide(
+            color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
+          ),
+        ),
       ),
       child: Row(
         children: [
+          // 📎 زر المرفقات
           IconButton(
             icon: Icon(Icons.attach_file, color: isDark ? Colors.white : Colors.black87),
             onPressed: _showAttachmentOptions,
           ),
           const SizedBox(width: 4),
+          
+          // 📝 حقل النص
           Expanded(
             child: Container(
               decoration: BoxDecoration(
@@ -171,9 +183,15 @@ class _ChatInputBarState extends State<ChatInputBar> {
                         contentPadding: EdgeInsets.symmetric(horizontal: 16),
                       ),
                       style: TextStyle(color: isDark ? Colors.white : Colors.black87),
-                      onSubmitted: (text) { _sendMessage(); },
+                      onSubmitted: (text) {
+                        if (text.isNotEmpty) {
+                          widget.onSendMessage(text);
+                          _controller.clear();
+                        }
+                      },
                     ),
                   ),
+                  // 🎙️ زر التسجيل الصوتي
                   GestureDetector(
                     onLongPress: _startRecording,
                     onLongPressUp: _stopRecording,
@@ -184,49 +202,68 @@ class _ChatInputBarState extends State<ChatInputBar> {
                         shape: BoxShape.circle,
                       ),
                       child: _isRecording
-                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                          : Icon(Icons.mic, color: isDark ? Colors.white : Colors.black87),
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : Icon(
+                              Icons.mic,
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
                     ),
                   ),
                 ],
               ),
             ),
           ),
+          
           const SizedBox(width: 4),
+          
+          // 📤 زر الإرسال
           IconButton(
             icon: Icon(Icons.send, color: AppColors.primary),
-            onPressed: _sendMessage,
+            onPressed: () {
+              final text = _controller.text.trim();
+              if (text.isNotEmpty) {
+                widget.onSendMessage(text);
+                _controller.clear();
+              }
+            },
           ),
         ],
       ),
     );
   }
 
-  void _sendMessage() {
-    final text = _controller.text.trim();
-    if (text.isNotEmpty) {
-      widget.onSendMessage(text);
-      _controller.clear();
-    }
-  }
-
   void _showAttachmentOptions() {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (context) => SafeArea(
         child: Wrap(
           children: [
             ListTile(
               leading: const Icon(Icons.photo_library, color: AppColors.primary),
               title: const Text('صورة من المعرض'),
-              onTap: () { Navigator.pop(context); _sendImage(); },
+              onTap: () {
+                Navigator.pop(context);
+                _sendImage();
+              },
             ),
             if (widget.onShareLocation != null)
               ListTile(
                 leading: const Icon(Icons.location_on, color: AppColors.primary),
                 title: const Text('مشاركة الموقع'),
-                onTap: () { Navigator.pop(context); widget.onShareLocation?.call(); },
+                onTap: () {
+                  Navigator.pop(context);
+                  widget.onShareLocation?.call();
+                },
               ),
           ],
         ),
