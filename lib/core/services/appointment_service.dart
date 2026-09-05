@@ -1,186 +1,248 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:sehatak/core/services/cache_service.dart';
 
 class AppointmentService {
-  static final AppointmentService _instance = AppointmentService._internal();
+  static final AppointmentService _instance =
+      AppointmentService._internal();
+
   factory AppointmentService() => _instance;
+
   AppointmentService._internal();
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final CacheService _cache = CacheService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  Future<void> init() async {
-    print('✅ AppointmentService initialized');
-  }
+  CollectionReference<Map<String, dynamic>> get _appointments =>
+      _firestore.collection('appointments');
 
-  Future<List<Map<String, dynamic>>> getUpcomingAppointments() async {
-    try {
-      final user = _auth.currentUser;
-      if (user == null) return [];
+  String get _userId {
+    final user = _auth.currentUser;
 
-      final cached = await _cache.getList('appointments_${user.uid}');
-      if (cached != null && cached.isNotEmpty) {
-        return cached.map((e) => e as Map<String, dynamic>).toList();
-      }
-
-      final snapshot = await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .collection('appointments')
-          .where('status', isEqualTo: 'upcoming')
-          .orderBy('date')
-          .orderBy('time')
-          .get();
-
-      final appointments = snapshot.docs.map((doc) {
-        return {
-          'id': doc.id,
-          ...doc.data(),
-        };
-      }).toList();
-
-      await _cache.saveList('appointments_${user.uid}', appointments);
-      return appointments;
-    } catch (e) {
-      print('⚠️ Error getting appointments: $e');
-      return [];
+    if (user == null) {
+      throw Exception('يجب تسجيل الدخول أولاً');
     }
+
+    return user.uid;
   }
 
-  Future<Map<String, dynamic>> bookAppointment({
-    required String doctorId,
-    required String doctorName,
-    required String specialty,
-    required String clinic,
-    required DateTime date,
-    required String time,
-    String? notes,
-  }) async {
-    try {
-      final user = _auth.currentUser;
-      if (user == null) throw Exception('User not logged in');
+  // ============================================================
+  // Real-Time: مواعيد المريض
+  // ============================================================
 
-      final data = {
-        'doctorId': doctorId,
-        'doctorName': doctorName,
-        'specialty': specialty,
-        'clinic': clinic,
-        'date': date.toIso8601String(),
-        'time': time,
-        'notes': notes ?? '',
-        'status': 'upcoming',
-        'userId': user.uid,
-        'createdAt': FieldValue.serverTimestamp(),
-        'reminderSent': false,
-        'confirmed': false,
-      };
+  Stream<List<Map<String, dynamic>>> watchPatientAppointments() {
+    final user = _auth.currentUser;
 
-      final docRef = await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .collection('appointments')
-          .add(data);
-
-      await _cache.remove('appointments_${user.uid}');
-
-      return {
-        'id': docRef.id,
-        ...data,
-      };
-    } catch (e) {
-      print('⚠️ Error booking appointment: $e');
-      rethrow;
+    if (user == null) {
+      return Stream.value([]);
     }
+
+    return _appointments
+        .where('patientId', isEqualTo: user.uid)
+        .orderBy('date')
+        .snapshots()
+        .map(_mapSnapshot);
   }
 
-  Future<void> cancelAppointment(String id) async {
-    try {
-      final user = _auth.currentUser;
-      if (user == null) throw Exception('User not logged in');
+  // ============================================================
+  // Real-Time: مواعيد الطبيب
+  // ============================================================
 
-      await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .collection('appointments')
-          .doc(id)
-          .update({
-        'status': 'cancelled',
-        'cancelledAt': FieldValue.serverTimestamp(),
-      });
+  Stream<List<Map<String, dynamic>>> watchDoctorAppointments() {
+    final user = _auth.currentUser;
 
-      await _cache.remove('appointments_${user.uid}');
-    } catch (e) {
-      print('⚠️ Error canceling appointment: $e');
-      rethrow;
+    if (user == null) {
+      return Stream.value([]);
     }
+
+    return _appointments
+        .where('doctorId', isEqualTo: user.uid)
+        .orderBy('date')
+        .snapshots()
+        .map(_mapSnapshot);
   }
 
-  Future<void> confirmAppointment(String id) async {
-    try {
-      final user = _auth.currentUser;
-      if (user == null) throw Exception('User not logged in');
-
-      await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .collection('appointments')
-          .doc(id)
-          .update({
-        'confirmed': true,
-        'confirmedAt': FieldValue.serverTimestamp(),
-      });
-
-      await _cache.remove('appointments_${user.uid}');
-    } catch (e) {
-      print('⚠️ Error confirming appointment: $e');
-      rethrow;
-    }
-  }
-
-  Future<void> rescheduleAppointment(String id, DateTime newDate, String newTime) async {
-    try {
-      final user = _auth.currentUser;
-      if (user == null) throw Exception('User not logged in');
-
-      await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .collection('appointments')
-          .doc(id)
-          .update({
-        'date': newDate.toIso8601String(),
-        'time': newTime,
-        'rescheduledAt': FieldValue.serverTimestamp(),
-      });
-
-      await _cache.remove('appointments_${user.uid}');
-    } catch (e) {
-      print('⚠️ Error rescheduling appointment: $e');
-      rethrow;
-    }
-  }
+  // ============================================================
+  // Real-Time: مواعيد قادمة للمريض
+  // ============================================================
 
   Stream<List<Map<String, dynamic>>> watchUpcomingAppointments() {
     final user = _auth.currentUser;
-    if (user == null) return Stream.value([]);
 
-    return _firestore
-        .collection('users')
-        .doc(user.uid)
-        .collection('appointments')
-        .where('status', isEqualTo: 'upcoming')
+    if (user == null) {
+      return Stream.value([]);
+    }
+
+    return _appointments
+        .where('patientId', isEqualTo: user.uid)
+        .where('status', whereIn: [
+          'pending',
+          'confirmed',
+        ])
         .orderBy('date')
-        .orderBy('time')
         .snapshots()
-        .map((snapshot) {
-          return snapshot.docs.map((doc) {
-            return {
-              'id': doc.id,
-              ...doc.data(),
-            };
-          }).toList();
-        });
+        .map(_mapSnapshot);
+  }
+
+  // ============================================================
+  // One-shot fallback
+  // ============================================================
+
+  Future<List<Map<String, dynamic>>> getPatientAppointments() async {
+    final userId = _userId;
+
+    final snapshot = await _appointments
+        .where('patientId', isEqualTo: userId)
+        .orderBy('date')
+        .get();
+
+    return _mapSnapshot(snapshot);
+  }
+
+  Future<List<Map<String, dynamic>>> getDoctorAppointments() async {
+    final userId = _userId;
+
+    final snapshot = await _appointments
+        .where('doctorId', isEqualTo: userId)
+        .orderBy('date')
+        .get();
+
+    return _mapSnapshot(snapshot);
+  }
+
+  // ============================================================
+  // Create appointment
+  // ============================================================
+
+  Future<String> bookAppointment({
+    required String doctorId,
+    required String doctorName,
+    required String doctorSpecialty,
+    required DateTime date,
+    required String time,
+    String type = 'in_person',
+    String notes = '',
+    String? clinicAddress,
+    String? clinicPhone,
+  }) async {
+    final user = _auth.currentUser;
+
+    if (user == null) {
+      throw Exception('يجب تسجيل الدخول أولاً');
+    }
+
+    final docRef = _appointments.doc();
+
+    final data = <String, dynamic>{
+      'patientId': user.uid,
+      'patientName': user.displayName ?? 'مريض',
+
+      'doctorId': doctorId,
+      'doctorName': doctorName,
+      'doctorSpecialty': doctorSpecialty,
+
+      'date': Timestamp.fromDate(date),
+      'time': time,
+
+      'type': type,
+      'status': 'pending',
+
+      'notes': notes,
+
+      'createdAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+
+      'confirmedAt': null,
+      'cancelledAt': null,
+
+      'reminderSent': false,
+
+      'clinicAddress': clinicAddress,
+      'clinicPhone': clinicPhone,
+    };
+
+    await docRef.set(data);
+
+    return docRef.id;
+  }
+
+  // ============================================================
+  // Confirm
+  // ============================================================
+
+  Future<void> confirmAppointment(String appointmentId) async {
+    _validateId(appointmentId);
+
+    await _appointments.doc(appointmentId).update({
+      'status': 'confirmed',
+      'confirmedAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  // ============================================================
+  // Cancel
+  // ============================================================
+
+  Future<void> cancelAppointment(String appointmentId) async {
+    _validateId(appointmentId);
+
+    await _appointments.doc(appointmentId).update({
+      'status': 'cancelled',
+      'cancelledAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  // ============================================================
+  // Reschedule
+  // ============================================================
+
+  Future<void> rescheduleAppointment({
+    required String appointmentId,
+    required DateTime newDate,
+    required String newTime,
+  }) async {
+    _validateId(appointmentId);
+
+    await _appointments.doc(appointmentId).update({
+      'date': Timestamp.fromDate(newDate),
+      'time': newTime,
+      'status': 'pending',
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  // ============================================================
+  // Complete
+  // ============================================================
+
+  Future<void> completeAppointment(String appointmentId) async {
+    _validateId(appointmentId);
+
+    await _appointments.doc(appointmentId).update({
+      'status': 'completed',
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  // ============================================================
+  // Helpers
+  // ============================================================
+
+  List<Map<String, dynamic>> _mapSnapshot(
+    QuerySnapshot<Map<String, dynamic>> snapshot,
+  ) {
+    return snapshot.docs.map((doc) {
+      return {
+        'id': doc.id,
+        ...doc.data(),
+      };
+    }).toList();
+  }
+
+  void _validateId(String appointmentId) {
+    if (appointmentId.trim().isEmpty) {
+      throw Exception('معرّف الموعد غير صالح');
+    }
   }
 }

@@ -1,30 +1,25 @@
-// ============================================================
-// 📁 lib/presentation/screens/appointments/appointments_screen.dart
-// 📋 شاشة قائمة المواعيد - بيانات فعلية من Firestore
-// ============================================================
-
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/core/services/appointment_service.dart';
 import 'package:sehatak/presentation/screens/booking/booking_screen.dart';
 
 class AppointmentsScreen extends StatefulWidget {
   const AppointmentsScreen({super.key});
 
   @override
-  State<AppointmentsScreen> createState() => _AppointmentsScreenState();
+  State<AppointmentsScreen> createState() =>
+      _AppointmentsScreenState();
 }
 
-class _AppointmentsScreenState extends State<AppointmentsScreen> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  bool _isLoading = true;
-  List<Map<String, dynamic>> _appointments = [];
+class _AppointmentsScreenState
+    extends State<AppointmentsScreen> {
+  final AppointmentService _appointmentService =
+      AppointmentService();
+
   String _filter = 'all';
 
-  final Map<String, String> _statusLabels = {
+  final Map<String, String> _statusLabels = const {
     'pending': 'قيد الانتظار',
     'confirmed': 'مؤكد',
     'completed': 'مكتمل',
@@ -38,97 +33,92 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
     'cancelled': Colors.red,
   };
 
-  @override
-  void initState() {
-    super.initState();
-    _loadAppointments();
-  }
-
-  Future<void> _loadAppointments() async {
-    setState(() => _isLoading = true);
-    try {
-      final user = _auth.currentUser;
-      if (user == null) {
-        setState(() => _isLoading = false);
-        return;
-      }
-
-      final snapshot = await _firestore
-          .collection('appointments')
-          .where('patientId', isEqualTo: user.uid)
-          .orderBy('date', descending: false)
-          .get();
-
-      setState(() {
-        _appointments = snapshot.docs.map((doc) {
-          final data = doc.data();
-          return {
-            'id': doc.id,
-            'doctorName': data['doctorName'] ?? 'طبيب',
-            'doctorId': data['doctorId'] ?? '',
-            'date': (data['date'] as Timestamp?)?.toDate() ?? DateTime.now(),
-            'time': data['time'] ?? '--:--',
-            'status': data['status'] ?? 'pending',
-            'createdAt': (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-          };
-        }).toList();
-        _isLoading = false;
-      });
-    } catch (e) {
-      ToastService.showError('❌ فشل تحميل المواعيد: $e');
-      setState(() => _isLoading = false);
+  List<Map<String, dynamic>> _filterAppointments(
+    List<Map<String, dynamic>> appointments,
+  ) {
+    if (_filter == 'all') {
+      return appointments;
     }
-  }
 
-  List<Map<String, dynamic>> get _filteredAppointments {
-    if (_filter == 'all') return _appointments;
-    return _appointments.where((a) => a['status'] == _filter).toList();
+    return appointments
+        .where(
+          (appointment) =>
+              appointment['status'] == _filter,
+        )
+        .toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+      backgroundColor: isDark
+          ? const Color(0xFF0B1121)
+          : const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: const Text('المواعيد'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadAppointments,
-          ),
-        ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                // شريط الفلتر
-                _buildFilterBar(isDark),
-                Expanded(
-                  child: _filteredAppointments.isEmpty
-                      ? _buildEmptyState(isDark)
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: _filteredAppointments.length,
-                          itemBuilder: (context, index) {
-                            final appointment = _filteredAppointments[index];
-                            return _buildAppointmentCard(appointment, isDark);
-                          },
-                        ),
-                ),
-              ],
-            ),
-      floatingActionButton: FloatingActionButton(
+      body: StreamBuilder<List<Map<String, dynamic>>>(
+        stream: _appointmentService
+            .watchPatientAppointments(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return _buildErrorState(
+              isDark,
+              snapshot.error.toString(),
+            );
+          }
+
+          if (snapshot.connectionState ==
+              ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(
+                color: AppColors.primary,
+              ),
+            );
+          }
+
+          final appointments =
+              snapshot.data ?? <Map<String, dynamic>>[];
+
+          final filtered =
+              _filterAppointments(appointments);
+
+          return Column(
+            children: [
+              _buildFilterBar(isDark),
+
+              Expanded(
+                child: filtered.isEmpty
+                    ? _buildEmptyState(isDark)
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: filtered.length,
+                        itemBuilder: (context, index) {
+                          return _buildAppointmentCard(
+                            filtered[index],
+                            isDark,
+                          );
+                        },
+                      ),
+              ),
+            ],
+          );
+        },
+      ),
+      floatingActionButton:
+          FloatingActionButton(
         onPressed: () {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => const BookingScreen(),
+              builder: (_) =>
+                  const BookingScreen(),
             ),
           );
         },
@@ -149,32 +139,60 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
 
     return Container(
       height: 50,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 8,
+        vertical: 4,
+      ),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: filters.length,
         itemBuilder: (context, index) {
           final filter = filters[index];
-          final isSelected = _filter == filter['key'];
+          final key = filter['key'] as String;
+          final label = filter['label'] as String;
+          final isSelected = _filter == key;
+
           return GestureDetector(
-            onTap: () => setState(() => _filter = filter['key'] as String),
+            onTap: () {
+              setState(() {
+                _filter = key;
+              });
+            },
             child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              margin: const EdgeInsets.symmetric(
+                horizontal: 4,
+              ),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 6,
+              ),
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.primary : (isDark ? const Color(0xFF1A2540) : Colors.grey[200]),
-                borderRadius: BorderRadius.circular(20),
+                color: isSelected
+                    ? AppColors.primary
+                    : isDark
+                        ? const Color(0xFF1A2540)
+                        : Colors.grey[200],
+                borderRadius:
+                    BorderRadius.circular(20),
                 border: Border.all(
-                  color: isSelected ? AppColors.primary : Colors.transparent,
+                  color: isSelected
+                      ? AppColors.primary
+                      : Colors.transparent,
                 ),
               ),
               child: Center(
                 child: Text(
-                  filter['label'] as String,
+                  label,
                   style: TextStyle(
-                    color: isSelected ? Colors.white : (isDark ? Colors.grey[400] : Colors.grey[700]),
+                    color: isSelected
+                        ? Colors.white
+                        : isDark
+                            ? Colors.grey[400]
+                            : Colors.grey[700],
                     fontSize: 12,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
                   ),
                 ),
               ),
@@ -185,29 +203,57 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
     );
   }
 
-  Widget _buildAppointmentCard(Map<String, dynamic> appointment, bool isDark) {
-    final status = appointment['status'] as String;
-    final color = _statusColors[status] ?? Colors.grey;
-    final label = _statusLabels[status] ?? status;
-    final date = appointment['date'] as DateTime;
-    final time = appointment['time'] as String;
+  Widget _buildAppointmentCard(
+    Map<String, dynamic> appointment,
+    bool isDark,
+  ) {
+    final status =
+        appointment['status']?.toString() ??
+            'pending';
+
+    final color =
+        _statusColors[status] ?? Colors.grey;
+
+    final label =
+        _statusLabels[status] ?? status;
+
+    final date = _readDate(
+      appointment['date'],
+    );
+
+    final time =
+        appointment['time']?.toString() ??
+            '--:--';
+
+    final doctorName =
+        appointment['doctorName']?.toString() ??
+            'طبيب';
+
+    final specialty =
+        appointment['doctorSpecialty']?.toString() ??
+            '';
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin:
+          const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2540) : Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        color: isDark
+            ? const Color(0xFF1A2540)
+            : Colors.white,
+        borderRadius:
+            BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color:
+                Colors.black.withOpacity(0.04),
             blurRadius: 8,
-            offset: const Offset(0, 2),
+            offset:
+                const Offset(0, 2),
           ),
         ],
         border: Border.all(
           color: color.withOpacity(0.2),
-          width: 1,
         ),
       ),
       child: Row(
@@ -216,8 +262,10 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              color:
+                  color.withOpacity(0.1),
+              borderRadius:
+                  BorderRadius.circular(12),
             ),
             child: Icon(
               Icons.calendar_today,
@@ -225,39 +273,80 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
               size: 24,
             ),
           ),
+
           const SizedBox(width: 12),
+
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
               children: [
                 Text(
-                  appointment['doctorName'],
+                  doctorName,
                   style: TextStyle(
                     fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black87,
+                    fontWeight:
+                        FontWeight.bold,
+                    color: isDark
+                        ? Colors.white
+                        : Colors.black87,
                   ),
                 ),
-                const SizedBox(height: 4),
+
+                if (specialty.isNotEmpty) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    specialty,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark
+                          ? Colors.grey[400]
+                          : Colors.grey[600],
+                    ),
+                  ),
+                ],
+
+                const SizedBox(height: 6),
+
                 Row(
                   children: [
-                    Icon(Icons.calendar_month, size: 14, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                    Icon(
+                      Icons.calendar_month,
+                      size: 14,
+                      color: isDark
+                          ? Colors.grey[400]
+                          : Colors.grey[600],
+                    ),
                     const SizedBox(width: 4),
+
                     Text(
                       '${date.day}/${date.month}/${date.year}',
                       style: TextStyle(
                         fontSize: 12,
-                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        color: isDark
+                            ? Colors.grey[400]
+                            : Colors.grey[600],
                       ),
                     ),
+
                     const SizedBox(width: 12),
-                    Icon(Icons.access_time, size: 14, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+
+                    Icon(
+                      Icons.access_time,
+                      size: 14,
+                      color: isDark
+                          ? Colors.grey[400]
+                          : Colors.grey[600],
+                    ),
                     const SizedBox(width: 4),
+
                     Text(
                       time,
                       style: TextStyle(
                         fontSize: 12,
-                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        color: isDark
+                            ? Colors.grey[400]
+                            : Colors.grey[600],
                       ),
                     ),
                   ],
@@ -265,18 +354,26 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
               ],
             ),
           ),
+
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            padding:
+                const EdgeInsets.symmetric(
+              horizontal: 10,
+              vertical: 4,
+            ),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              color:
+                  color.withOpacity(0.1),
+              borderRadius:
+                  BorderRadius.circular(12),
             ),
             child: Text(
               label,
               style: TextStyle(
                 fontSize: 10,
                 color: color,
-                fontWeight: FontWeight.bold,
+                fontWeight:
+                    FontWeight.bold,
               ),
             ),
           ),
@@ -285,48 +382,125 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
     );
   }
 
-  Widget _buildEmptyState(bool isDark) {
+  DateTime _readDate(dynamic value) {
+    if (value is DateTime) {
+      return value;
+    }
+
+    if (value is Timestamp) {
+      return value.toDate();
+    }
+
+    return DateTime.now();
+  }
+
+  Widget _buildErrorState(
+    bool isDark,
+    String error,
+  ) {
+    return Center(
+      child: Padding(
+        padding:
+            const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize:
+              MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 60,
+              color: isDark
+                  ? Colors.grey[500]
+                  : Colors.grey[600],
+            ),
+
+            const SizedBox(height: 16),
+
+            const Text(
+              'تعذر تحميل المواعيد',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight:
+                    FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            Text(
+              'تحقق من الاتصال والصلاحيات.',
+              textAlign:
+                  TextAlign.center,
+              style: TextStyle(
+                color: isDark
+                    ? Colors.grey[400]
+                    : Colors.grey[600],
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            if (error.isNotEmpty)
+              Text(
+                error,
+                maxLines: 2,
+                overflow:
+                    TextOverflow.ellipsis,
+                textAlign:
+                    TextAlign.center,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: isDark
+                      ? Colors.grey[500]
+                      : Colors.grey[500],
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(
+    bool isDark,
+  ) {
     return Center(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment:
+            MainAxisAlignment.center,
         children: [
           Icon(
             Icons.calendar_today,
             size: 80,
-            color: isDark ? Colors.grey[600] : Colors.grey[300],
+            color: isDark
+                ? Colors.grey[600]
+                : Colors.grey[300],
           ),
+
           const SizedBox(height: 16),
+
           Text(
             'لا توجد مواعيد',
             style: TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : Colors.black87,
+              fontWeight:
+                  FontWeight.bold,
+              color: isDark
+                  ? Colors.white
+                  : Colors.black87,
             ),
           ),
+
           const SizedBox(height: 8),
+
           Text(
-            'ابدأ بحجز موعد جديد',
+            'ابدأ بحجز موعد جديد من صفحة الطبيب',
             style: TextStyle(
               fontSize: 14,
-              color: isDark ? Colors.grey[400] : Colors.grey[600],
+              color: isDark
+                  ? Colors.grey[400]
+                  : Colors.grey[600],
             ),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const BookingScreen(),
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('حجز موعد'),
           ),
         ],
       ),

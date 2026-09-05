@@ -4,7 +4,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // ============================================================
-    // Helpers
+    // Authentication / Roles
     // ============================================================
 
     function isSignedIn() {
@@ -15,6 +15,124 @@ service cloud.firestore {
       return isSignedIn()
         && request.auth.uid == userId;
     }
+
+    function userExists(userId) {
+      return exists(
+        /databases/$(database)/documents/users/$(userId)
+      );
+    }
+
+    function userData(userId) {
+      return get(
+        /databases/$(database)/documents/users/$(userId)
+      ).data;
+    }
+
+    function userDataAfter(userId) {
+      return getAfter(
+        /databases/$(database)/documents/users/$(userId)
+      ).data;
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && userExists(request.auth.uid)
+        && userData(request.auth.uid).role == 'admin';
+    }
+
+    function isDoctorUser(userId) {
+      return userExists(userId)
+        && userData(userId).role == 'doctor';
+    }
+
+    function isVerifiedDoctor(userId) {
+      return isDoctorUser(userId)
+        && userData(userId).isVerified == true;
+    }
+
+    // ============================================================
+    // Users
+    // ============================================================
+
+    match /users/{userId} {
+
+      allow read:
+        if isSelf(userId)
+        || isAdmin();
+
+      allow create:
+        if isSelf(userId)
+        && request.resource.data.uid == request.auth.uid
+        && (
+          request.resource.data.role != 'doctor'
+          ||
+          request.resource.data.doctorId == request.auth.uid
+        );
+
+      allow update:
+        if isAdmin()
+        ||
+        (
+          isSelf(userId)
+          && request.resource.data.uid == resource.data.uid
+          && request.resource.data.role == resource.data.role
+          && request.resource.data.doctorId == resource.data.doctorId
+          && request.resource.data.isVerified == resource.data.isVerified
+          && request.resource.data.verificationStatus ==
+              resource.data.verificationStatus
+        );
+
+      allow delete:
+        if isAdmin();
+    }
+
+    // ============================================================
+    // Doctors
+    // ============================================================
+
+    match /doctors/{doctorId} {
+
+      allow read:
+        if isAdmin()
+        || isSelf(doctorId)
+        || isSignedIn();
+
+      allow create:
+        if isSelf(doctorId)
+        && userDataAfter(doctorId).role == 'doctor'
+        && userDataAfter(doctorId).doctorId == doctorId
+        && request.resource.data.userId == doctorId
+        && request.resource.data.isVerified == false
+        && request.resource.data.isAvailable == false
+        && request.resource.data.isOnline == false;
+
+      allow update:
+        if isAdmin()
+        ||
+        (
+          isSelf(doctorId)
+          &&
+          resource.data.userId == request.auth.uid
+          &&
+          request.resource.data.userId == resource.data.userId
+          &&
+          request.resource.data.isVerified ==
+              resource.data.isVerified
+          &&
+          (
+            request.resource.data.isAvailable == false
+            ||
+            isVerifiedDoctor(request.auth.uid)
+          )
+        );
+
+      allow delete:
+        if isAdmin();
+    }
+
+    // ============================================================
+    // Chats
+    // ============================================================
 
     function chatExists(chatId) {
       return exists(
@@ -51,51 +169,19 @@ service cloud.firestore {
         && request.resource.data.senderId == request.auth.uid;
     }
 
-    // ============================================================
-    // Users
-    // ============================================================
-
-    match /users/{userId} {
-
-      allow read:
-        if isSelf(userId);
-
-      allow create:
-        if isSelf(userId);
-
-      allow update:
-        if isSelf(userId);
-
-      allow delete:
-        if isSelf(userId);
-    }
-
-    // ============================================================
-    // Chats
-    // ============================================================
-
     match /chats/{chatId} {
 
-      // المستخدم يستطيع قراءة المحادثة
-      // إذا كان أحد المشاركين فيها.
       allow read:
         if isChatParticipant(chatId);
 
-      // إنشاء محادثة:
-      // المستخدم يجب أن يكون أحد المشاركين.
       allow create:
         if isCreatingChatParticipant();
 
-      // تحديث المحادثة:
-      // يجب أن يكون المستخدم مشاركًا مسبقًا
-      // وألا يستطيع تغيير المشاركين إلى قائمة
-      // لا تحتوي عليه.
       allow update:
         if isExistingChatParticipant(chatId)
         && request.resource.data.participants != null
         && request.auth.uid in request.resource.data.participants;
 
-      // منع حذف مستند المحادثة مباشرة.
       allow delete:
         if false;
 
@@ -105,28 +191,22 @@ service cloud.firestore {
 
       match /messages/{messageId} {
 
-        // القراءة فقط للمشاركين في المحادثة.
         allow read:
           if isChatParticipant(chatId);
 
-        // إنشاء رسالة:
-        // يجب أن يكون المرسل هو المستخدم الحالي
-        // وأن يكون مشاركًا في المحادثة.
         allow create:
           if isChatParticipant(chatId)
           && isMessageSender()
           && request.resource.data.chatId == chatId;
 
-        // تحديث الرسالة:
-        // المرسل يستطيع تعديل رسالته،
-        // أو يمكن للمشارك تحديث حالة القراءة.
         allow update:
           if isChatParticipant(chatId)
           && (
             resource.data.senderId == request.auth.uid
             ||
             (
-              request.resource.data.diff(resource.data).affectedKeys()
+              request.resource.data.diff(resource.data)
+                .affectedKeys()
                 .hasOnly([
                   'isRead',
                   'readAt'
@@ -134,15 +214,162 @@ service cloud.firestore {
             )
           );
 
-        // لا يوجد حذف فعلي للرسائل من العميل.
-        // الحذف المنطقي يستخدم isDeleted.
         allow delete:
           if false;
       }
     }
 
     // ============================================================
-    // Default deny
+    // Appointments
+    // ============================================================
+
+    function appointmentExists(appointmentId) {
+      return exists(
+        /databases/$(database)/documents/appointments/$(appointmentId)
+      );
+    }
+
+    function appointmentData(appointmentId) {
+      return get(
+        /databases/$(database)/documents/appointments/$(appointmentId)
+      ).data;
+    }
+
+    function isAppointmentPatient(appointmentId) {
+      return isSignedIn()
+        && appointmentExists(appointmentId)
+        && appointmentData(appointmentId).patientId ==
+            request.auth.uid;
+    }
+
+    function isAppointmentDoctor(appointmentId) {
+      return isSignedIn()
+        && appointmentExists(appointmentId)
+        && appointmentData(appointmentId).doctorId ==
+            request.auth.uid;
+    }
+
+    function isCreatingAppointment() {
+      return isSignedIn()
+        && request.resource.data.patientId ==
+            request.auth.uid
+        && request.resource.data.doctorId != null
+        && request.resource.data.doctorId != ''
+        && request.resource.data.status == 'pending'
+        && request.resource.data.type in [
+          'in_person',
+          'video',
+          'phone'
+        ]
+        && request.resource.data.date is timestamp
+        && request.resource.data.time is string
+        && request.resource.data.doctorName is string
+        && request.resource.data.doctorSpecialty is string
+        && exists(
+          /databases/$(database)/documents/doctors/$(request.resource.data.doctorId)
+        );
+    }
+
+    match /appointments/{appointmentId} {
+
+      // ----------------------------------------------------------
+      // Read
+      // ----------------------------------------------------------
+
+      allow read:
+        if isAdmin()
+        || isAppointmentPatient(appointmentId)
+        || isAppointmentDoctor(appointmentId);
+
+      // ----------------------------------------------------------
+      // Create
+      // ----------------------------------------------------------
+
+      allow create:
+        if isCreatingAppointment();
+
+      // ----------------------------------------------------------
+      // Update
+      // ----------------------------------------------------------
+
+      // الإدارة تستطيع إدارة الموعد بالكامل.
+      allow update:
+        if isAdmin()
+
+        // المريض:
+        // - يستطيع الإلغاء.
+        // - يستطيع إعادة الجدولة.
+        // - لا يستطيع تغيير هوية المريض أو الطبيب.
+        ||
+        (
+          isAppointmentPatient(appointmentId)
+          &&
+          request.resource.data.patientId ==
+              resource.data.patientId
+          &&
+          request.resource.data.doctorId ==
+              resource.data.doctorId
+          &&
+          request.resource.data.diff(resource.data)
+            .affectedKeys()
+            .hasOnly([
+              'date',
+              'time',
+              'status',
+              'updatedAt',
+              'cancelledAt'
+            ])
+          &&
+          (
+            request.resource.data.status == 'cancelled'
+            ||
+            request.resource.data.status == 'pending'
+          )
+        )
+
+        // الطبيب:
+        // - يستطيع تأكيد الموعد.
+        // - يستطيع إكمال الموعد.
+        // - لا يستطيع تغيير هوية الأطراف أو التاريخ والوقت.
+        ||
+        (
+          isAppointmentDoctor(appointmentId)
+          &&
+          isVerifiedDoctor(request.auth.uid)
+          &&
+          request.resource.data.patientId ==
+              resource.data.patientId
+          &&
+          request.resource.data.doctorId ==
+              resource.data.doctorId
+          &&
+          request.resource.data.diff(resource.data)
+            .affectedKeys()
+            .hasOnly([
+              'status',
+              'confirmedAt',
+              'updatedAt'
+            ])
+          &&
+          (
+            request.resource.data.status == 'confirmed'
+            ||
+            request.resource.data.status == 'completed'
+          )
+        );
+
+      // ----------------------------------------------------------
+      // Delete
+      // ----------------------------------------------------------
+
+      // الحذف المباشر ممنوع.
+      // نستخدم status = cancelled بدل حذف الموعد.
+      allow delete:
+        if false;
+    }
+
+    // ============================================================
+    // Default Deny
     // ============================================================
 
     match /{document=**} {

@@ -1,5 +1,5 @@
 import 'package:sehatak/core/services/toast_service.dart';
-import "package:flutter/material.dart";
+import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -18,23 +18,27 @@ import 'package:sehatak/presentation/screens/auth/forgot_password_screen.dart';
 
 class AuthScreen extends StatefulWidget {
   final bool isSignUp;
-  const AuthScreen({super.key, this.isSignUp = false});
+
+  const AuthScreen({
+    super.key,
+    this.isSignUp = false,
+  });
 
   @override
   State<AuthScreen> createState() => _AuthScreenState();
 }
 
-class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateMixin {
-  // ✅ Controllers
+class _AuthScreenState extends State<AuthScreen>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
   final TextEditingController _licenseController = TextEditingController();
   final TextEditingController _experienceController = TextEditingController();
 
-  // ✅ State variables
   bool _obscureText = true;
   bool _obscureConfirmText = true;
   bool _agreeTerms = false;
@@ -47,54 +51,194 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
   bool _showAdminTab = false;
   bool _isFirstTimeUser = false;
 
-  // ✅ Password strength
   String _passwordStrength = '';
   Color _passwordStrengthColor = Colors.grey;
   double _passwordStrengthValue = 0.0;
 
-  // ✅ Primary roles
   final List<Map<String, dynamic>> _primaryRoles = [
-    {'id': 'user', 'name': 'مستخدم', 'icon': Icons.person_outline, 'color': 0xFF0D5257},
-    {'id': 'doctor', 'name': 'طبيب', 'icon': Icons.local_hospital_outlined, 'color': 0xFF2196F3},
+    {
+      'id': 'user',
+      'name': 'مستخدم',
+      'icon': Icons.person_outline,
+      'color': 0xFF0D5257,
+    },
+    {
+      'id': 'doctor',
+      'name': 'طبيب',
+      'icon': Icons.local_hospital_outlined,
+      'color': 0xFF2196F3,
+    },
   ];
 
-  // ✅ Secondary roles
   final List<Map<String, dynamic>> _secondaryRoles = [
-    {'id': 'nurse', 'name': 'ممرض', 'icon': Icons.medical_services_outlined, 'color': 0xFF00BCD4},
-    {'id': 'midwife', 'name': 'قابلة وتوليد', 'icon': Icons.pregnant_woman, 'color': 0xFFE91E63},
-    {'id': 'physiotherapist', 'name': 'علاج فيزيائي', 'icon': Icons.fitness_center, 'color': 0xFFFF9800},
-    {'id': 'pharmacist', 'name': 'صيدلي', 'icon': Icons.local_pharmacy_outlined, 'color': 0xFF4CAF50},
-    {'id': 'lab', 'name': 'مختبر', 'icon': Icons.science_outlined, 'color': 0xFF9C27B0},
-    {'id': 'paramedic', 'name': 'مسعف', 'icon': Icons.emergency, 'color': 0xFFF44336},
-    {'id': 'delivery', 'name': 'موصل طلبات', 'icon': Icons.delivery_dining, 'color': 0xFFFF5722},
-    {'id': 'service', 'name': 'خدمي', 'icon': Icons.handyman, 'color': 0xFF607D8B},
-    {'id': 'admin', 'name': 'مشرف', 'icon': Icons.admin_panel_settings, 'color': 0xFFFF5722},
+    {
+      'id': 'nurse',
+      'name': 'ممرض',
+      'icon': Icons.medical_services_outlined,
+      'color': 0xFF00BCD4,
+    },
+    {
+      'id': 'midwife',
+      'name': 'قابلة وتوليد',
+      'icon': Icons.pregnant_woman,
+      'color': 0xFFE91E63,
+    },
+    {
+      'id': 'physiotherapist',
+      'name': 'علاج فيزيائي',
+      'icon': Icons.fitness_center,
+      'color': 0xFFFF9800,
+    },
+    {
+      'id': 'pharmacist',
+      'name': 'صيدلي',
+      'icon': Icons.local_pharmacy_outlined,
+      'color': 0xFF4CAF50,
+    },
+    {
+      'id': 'lab',
+      'name': 'مختبر',
+      'icon': Icons.science_outlined,
+      'color': 0xFF9C27B0,
+    },
+    {
+      'id': 'paramedic',
+      'name': 'مسعف',
+      'icon': Icons.emergency,
+      'color': 0xFFF44336,
+    },
+    {
+      'id': 'delivery',
+      'name': 'موصل طلبات',
+      'icon': Icons.delivery_dining,
+      'color': 0xFFFF5722,
+    },
+    {
+      'id': 'service',
+      'name': 'خدمي',
+      'icon': Icons.handyman,
+      'color': 0xFF607D8B,
+    },
+    {
+      'id': 'admin',
+      'name': 'مشرف',
+      'icon': Icons.admin_panel_settings,
+      'color': 0xFFFF5722,
+    },
   ];
 
-  // ✅ All roles
   final List<Map<String, dynamic>> _allRoles = [
-    {'id': 'user', 'name': 'مستخدم', 'icon': Icons.person_outline, 'color': 0xFF0D5257},
-    {'id': 'doctor', 'name': 'طبيب', 'icon': Icons.local_hospital_outlined, 'color': 0xFF2196F3},
-    {'id': 'nurse', 'name': 'ممرض', 'icon': Icons.medical_services_outlined, 'color': 0xFF00BCD4},
-    {'id': 'midwife', 'name': 'قابلة وتوليد', 'icon': Icons.pregnant_woman, 'color': 0xFFE91E63},
-    {'id': 'physiotherapist', 'name': 'علاج فيزيائي', 'icon': Icons.fitness_center, 'color': 0xFFFF9800},
-    {'id': 'pharmacist', 'name': 'صيدلي', 'icon': Icons.local_pharmacy_outlined, 'color': 0xFF4CAF50},
-    {'id': 'lab', 'name': 'مختبر', 'icon': Icons.science_outlined, 'color': 0xFF9C27B0},
-    {'id': 'paramedic', 'name': 'مسعف', 'icon': Icons.emergency, 'color': 0xFFF44336},
-    {'id': 'delivery', 'name': 'موصل طلبات', 'icon': Icons.delivery_dining, 'color': 0xFFFF5722},
-    {'id': 'service', 'name': 'خدمي', 'icon': Icons.handyman, 'color': 0xFF607D8B},
-    {'id': 'admin', 'name': 'مشرف', 'icon': Icons.admin_panel_settings, 'color': 0xFFFF5722},
+    {
+      'id': 'user',
+      'name': 'مستخدم',
+      'icon': Icons.person_outline,
+      'color': 0xFF0D5257,
+    },
+    {
+      'id': 'doctor',
+      'name': 'طبيب',
+      'icon': Icons.local_hospital_outlined,
+      'color': 0xFF2196F3,
+    },
+    {
+      'id': 'nurse',
+      'name': 'ممرض',
+      'icon': Icons.medical_services_outlined,
+      'color': 0xFF00BCD4,
+    },
+    {
+      'id': 'midwife',
+      'name': 'قابلة وتوليد',
+      'icon': Icons.pregnant_woman,
+      'color': 0xFFE91E63,
+    },
+    {
+      'id': 'physiotherapist',
+      'name': 'علاج فيزيائي',
+      'icon': Icons.fitness_center,
+      'color': 0xFFFF9800,
+    },
+    {
+      'id': 'pharmacist',
+      'name': 'صيدلي',
+      'icon': Icons.local_pharmacy_outlined,
+      'color': 0xFF4CAF50,
+    },
+    {
+      'id': 'lab',
+      'name': 'مختبر',
+      'icon': Icons.science_outlined,
+      'color': 0xFF9C27B0,
+    },
+    {
+      'id': 'paramedic',
+      'name': 'مسعف',
+      'icon': Icons.emergency,
+      'color': 0xFFF44336,
+    },
+    {
+      'id': 'delivery',
+      'name': 'موصل طلبات',
+      'icon': Icons.delivery_dining,
+      'color': 0xFFFF5722,
+    },
+    {
+      'id': 'service',
+      'name': 'خدمي',
+      'icon': Icons.handyman,
+      'color': 0xFF607D8B,
+    },
+    {
+      'id': 'admin',
+      'name': 'مشرف',
+      'icon': Icons.admin_panel_settings,
+      'color': 0xFFFF5722,
+    },
   ];
 
-  // ✅ Social media icons
   final List<Map<String, dynamic>> _socialIcons = [
-    {'id': 'google', 'name': 'Google', 'icon': 'assets/images/social/google.png', 'color': Colors.red},
-    {'id': 'apple', 'name': 'Apple', 'icon': 'assets/images/social/apple.png', 'color': Colors.black},
-    {'id': 'facebook', 'name': 'Facebook', 'icon': 'assets/images/social/facebook.png', 'color': Colors.blue.shade700},
-    {'id': 'instagram', 'name': 'Instagram', 'icon': 'assets/images/social/instagram.png', 'color': Colors.purple.shade700},
-    {'id': 'twitter', 'name': 'Twitter', 'icon': 'assets/images/social/x_twitter.png', 'color': Colors.blue.shade600},
-    {'id': 'youtube', 'name': 'YouTube', 'icon': 'assets/images/social/youtube.png', 'color': Colors.red.shade700},
-    {'id': 'tiktok', 'name': 'TikTok', 'icon': 'assets/images/social/tiktok.png', 'color': Colors.black},
+    {
+      'id': 'google',
+      'name': 'Google',
+      'icon': 'assets/images/social/google.png',
+      'color': Colors.red,
+    },
+    {
+      'id': 'apple',
+      'name': 'Apple',
+      'icon': 'assets/images/social/apple.png',
+      'color': Colors.black,
+    },
+    {
+      'id': 'facebook',
+      'name': 'Facebook',
+      'icon': 'assets/images/social/facebook.png',
+      'color': Colors.blue.shade700,
+    },
+    {
+      'id': 'instagram',
+      'name': 'Instagram',
+      'icon': 'assets/images/social/instagram.png',
+      'color': Colors.purple.shade700,
+    },
+    {
+      'id': 'twitter',
+      'name': 'Twitter',
+      'icon': 'assets/images/social/x_twitter.png',
+      'color': Colors.blue.shade600,
+    },
+    {
+      'id': 'youtube',
+      'name': 'YouTube',
+      'icon': 'assets/images/social/youtube.png',
+      'color': Colors.red.shade700,
+    },
+    {
+      'id': 'tiktok',
+      'name': 'TikTok',
+      'icon': 'assets/images/social/tiktok.png',
+      'color': Colors.black,
+    },
   ];
 
   final BiometricService _biometricService = BiometricService();
@@ -106,6 +250,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
   @override
   void initState() {
     super.initState();
+
     _checkFirstTime();
     _checkBiometric();
     _loadSavedCredentials();
@@ -115,6 +260,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       _checkPasswordStrength(_passwordController.text);
       if (mounted) setState(() {});
     });
+
     _confirmPasswordController.addListener(() {
       if (mounted) setState(() {});
     });
@@ -131,11 +277,13 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     }
 
     int score = 0;
-    bool hasLetters = RegExp(r'[a-zA-Z]').hasMatch(password);
-    bool hasNumbers = RegExp(r'[0-9]').hasMatch(password);
-    bool hasSpecial = RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(password);
-    bool hasUpperCase = RegExp(r'[A-Z]').hasMatch(password);
-    bool hasLowerCase = RegExp(r'[a-z]').hasMatch(password);
+
+    final hasLetters = RegExp(r'[a-zA-Z]').hasMatch(password);
+    final hasNumbers = RegExp(r'[0-9]').hasMatch(password);
+    final hasSpecial =
+        RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(password);
+    final hasUpperCase = RegExp(r'[A-Z]').hasMatch(password);
+    final hasLowerCase = RegExp(r'[a-z]').hasMatch(password);
 
     if (password.length >= 8) score++;
     if (hasLetters) score++;
@@ -178,18 +326,22 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
   }
 
   bool _isPasswordMatch() {
-    if (_passwordController.text.isEmpty || _confirmPasswordController.text.isEmpty) {
+    if (_passwordController.text.isEmpty ||
+        _confirmPasswordController.text.isEmpty) {
       return false;
     }
+
     return _passwordController.text == _confirmPasswordController.text;
   }
 
   Future<void> _checkFirstTime() async {
     final prefs = await SharedPreferences.getInstance();
     final isFirst = prefs.getBool('is_first_time') ?? true;
+
     if (isFirst) {
       await prefs.setBool('is_first_time', false);
     }
+
     if (mounted) {
       setState(() => _isFirstTimeUser = isFirst);
     }
@@ -197,35 +349,38 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
 
   Future<void> _checkAdminStatus() async {
     final user = FirebaseAuth.instance.currentUser;
+
     if (user != null) {
       try {
         final doc = await FirebaseFirestore.instance
             .collection('users')
             .doc(user.uid)
             .get();
+
         if (doc.exists) {
           final role = doc.data()?['role'] ?? 'user';
+
           if (role == 'admin' || role == 'superAdmin') {
             setState(() => _showAdminTab = true);
           }
         }
-      } catch (e) {}
+      } catch (_) {}
     }
   }
 
   Future<void> _loadSavedCredentials() async {
     final prefs = await SharedPreferences.getInstance();
+
     final email = prefs.getString('remember_email');
     final remember = prefs.getBool('remember_me') ?? false;
 
-    // 🔐 لا نحفظ كلمة المرور محليًا.
-    // نحذف أي كلمة مرور قديمة محفوظة من إصدار سابق.
     await prefs.remove('remember_password');
 
     if (!mounted) return;
 
     setState(() {
       _rememberMe = remember;
+
       if (remember && email != null) {
         _emailController.text = email;
       }
@@ -234,8 +389,10 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
 
   Future<void> _checkBiometric() async {
     final available = await _biometricService.isAvailable();
+
     if (available) {
       final types = await _biometricService.getAvailableTypes();
+
       setState(() {
         _hasBiometric = true;
         _biometricName = _biometricService.getBiometricName(types);
@@ -286,7 +443,9 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         ),
       ),
     );
+
     await Future.delayed(const Duration(seconds: 1));
+
     if (mounted && Navigator.canPop(context)) {
       Navigator.pop(context);
     }
@@ -295,7 +454,9 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
   void _navigateToHome() {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => const HomeScreen()),
+      MaterialPageRoute(
+        builder: (_) => const HomeScreen(),
+      ),
     );
   }
 
@@ -336,7 +497,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       final userDoc = await userRef.get();
 
       if (!userDoc.exists) {
-        // ✅ إنشاء مستخدم جديد في Firestore
         await userRef.set({
           'uid': user.uid,
           'name': user.displayName ?? googleUser.displayName ?? 'مستخدم',
@@ -356,11 +516,11 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
           'createdAt': FieldValue.serverTimestamp(),
           'updatedAt': FieldValue.serverTimestamp(),
         });
-        
-        // ✅ تحديث data المحلية بعد الإنشاء
+
         final newUserDoc = await userRef.get();
-        final role = newUserDoc.data()?['role']?.toString() ?? 'user';
-        
+        final role =
+            newUserDoc.data()?['role']?.toString() ?? 'user';
+
         _hideLoading();
         await _showSuccessAnimation();
 
@@ -376,34 +536,36 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         } else {
           _navigateToHome();
         }
+
         return;
-      } else {
-        // ✅ تحديث بيانات المستخدم الحالي
-        await userRef.set({
+      }
+
+      await userRef.set(
+        {
           'name': user.displayName ?? googleUser.displayName ?? 'مستخدم',
           'email': user.email ?? googleUser.email,
           'photoUrl': user.photoURL ?? googleUser.photoUrl ?? '',
           'updatedAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
-        
-        final role = userDoc.data()?['role']?.toString() ?? 'user';
-        
-        _hideLoading();
-        await _showSuccessAnimation();
+        },
+        SetOptions(merge: true),
+      );
 
-        if (!mounted) return;
+      final role = userDoc.data()?['role']?.toString() ?? 'user';
 
-        if (role == 'admin' || role == 'superAdmin') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const PlatformDashboard(),
-            ),
-          );
-        } else {
-          _navigateToHome();
-        }
-        return;
+      _hideLoading();
+      await _showSuccessAnimation();
+
+      if (!mounted) return;
+
+      if (role == 'admin' || role == 'superAdmin') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const PlatformDashboard(),
+          ),
+        );
+      } else {
+        _navigateToHome();
       }
     } on FirebaseAuthException catch (e) {
       _hideLoading();
@@ -425,13 +587,20 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       print('❌ Google Sign-In error: $e');
       _showMessage('تعذر تسجيل الدخول عبر Google', true);
     }
-  }Future<void> _login() async {
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
-      _showMessage('يرجى إدخال البريد الإلكتروني وكلمة المرور', true);
+  }
+
+  Future<void> _login() async {
+    if (_emailController.text.isEmpty ||
+        _passwordController.text.isEmpty) {
+      _showMessage(
+        'يرجى إدخال البريد الإلكتروني وكلمة المرور',
+        true,
+      );
       return;
     }
 
     _showLoading();
+
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
@@ -439,11 +608,15 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       );
 
       final prefs = await SharedPreferences.getInstance();
+
       await prefs.setBool('remember_me', _rememberMe);
+
       if (_rememberMe) {
         await prefs.setBool('is_logged_in', true);
-        await prefs.setString('remember_email', _emailController.text.trim());
-        // 🔐 لا يتم حفظ كلمة المرور محليًا.
+        await prefs.setString(
+          'remember_email',
+          _emailController.text.trim(),
+        );
       } else {
         await prefs.setBool('is_logged_in', false);
       }
@@ -452,20 +625,26 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       await _showSuccessAnimation();
 
       final user = FirebaseAuth.instance.currentUser;
+
       if (user != null) {
         final doc = await FirebaseFirestore.instance
             .collection('users')
             .doc(user.uid)
             .get();
+
         if (doc.exists) {
           final role = doc.data()?['role'] ?? 'user';
+
           if (role == 'admin' || role == 'superAdmin') {
             if (mounted) {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (_) => const PlatformDashboard()),
+                MaterialPageRoute(
+                  builder: (_) => const PlatformDashboard(),
+                ),
               );
             }
+
             return;
           }
         }
@@ -476,10 +655,17 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       }
     } on FirebaseAuthException catch (e) {
       _hideLoading();
+
       String message = 'حدث خطأ في تسجيل الدخول';
-      if (e.code == 'user-not-found') message = 'المستخدم غير موجود';
-      else if (e.code == 'wrong-password') message = 'كلمة المرور غير صحيحة';
-      else if (e.code == 'invalid-email') message = 'البريد الإلكتروني غير صحيح';
+
+      if (e.code == 'user-not-found') {
+        message = 'المستخدم غير موجود';
+      } else if (e.code == 'wrong-password') {
+        message = 'كلمة المرور غير صحيحة';
+      } else if (e.code == 'invalid-email') {
+        message = 'البريد الإلكتروني غير صحيح';
+      }
+
       _showMessage(message, true);
     } catch (e) {
       _hideLoading();
@@ -488,7 +674,9 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
   }
 
   Future<void> _register() async {
-    if (_nameController.text.isEmpty || _emailController.text.isEmpty || _passwordController.text.isEmpty) {
+    if (_nameController.text.isEmpty ||
+        _emailController.text.isEmpty ||
+        _passwordController.text.isEmpty) {
       _showMessage('يرجى ملء جميع الحقول المطلوبة', true);
       return;
     }
@@ -504,7 +692,10 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     }
 
     if (_passwordStrengthValue < 0.3) {
-      _showMessage('كلمة المرور ضعيفة جداً، يرجى اختيار كلمة مرور أقوى', true);
+      _showMessage(
+        'كلمة المرور ضعيفة جداً، يرجى اختيار كلمة مرور أقوى',
+        true,
+      );
       return;
     }
 
@@ -514,16 +705,23 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     }
 
     _showLoading();
+
     try {
-      final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      final credential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
 
       final user = credential.user!;
+
       await user.updateDisplayName(_nameController.text.trim());
 
-      final userData = {
+      final isDoctor = _selectedRole == 'doctor';
+
+      final now = Timestamp.now();
+
+      final userData = <String, dynamic>{
         'uid': user.uid,
         'name': _nameController.text.trim(),
         'email': _emailController.text.trim(),
@@ -532,54 +730,145 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         'specialty': _selectedSpecialty,
         'licenseNumber': _licenseController.text.trim(),
         'experience': _experienceController.text.trim(),
+
         'isVerified': false,
-        'verificationStatus': 'notSubmitted',
+        'verificationStatus':
+            _needsVerification(_selectedRole)
+                ? 'notSubmitted'
+                : 'verified',
+
         'rating': 0.0,
         'reviewCount': 0,
-        'isAvailable': true,
-        'createdAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
+
+        // الطبيب الجديد لا يصبح متاحاً قبل التوثيق.
+        'isAvailable': isDoctor ? false : true,
+
+        'createdAt': now,
+        'updatedAt': now,
       };
 
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).set(userData);
+      final firestore = FirebaseFirestore.instance;
+
+      final userRef = firestore
+          .collection('users')
+          .doc(user.uid);
+
+      final batch = firestore.batch();
+
+      batch.set(userRef, userData);
+
+      // إنشاء هوية الطبيب المرتبطة مباشرة بـ Firebase Auth UID.
+      if (isDoctor) {
+        final doctorRef = firestore
+            .collection('doctors')
+            .doc(user.uid);
+
+        final doctorData = <String, dynamic>{
+          'userId': user.uid,
+          'name': _nameController.text.trim(),
+          'specialty': _selectedSpecialty ?? '',
+          'photoUrl': user.photoURL ?? '',
+          'rating': 0.0,
+          'reviewsCount': 0,
+          'consultationFee': 0.0,
+
+          // لا يظهر كطبيب متاح قبل موافقة المشرف.
+          'isAvailable': false,
+          'isOnline': false,
+
+          'experienceYears':
+              int.tryParse(_experienceController.text.trim()),
+
+          'hospital': null,
+          'clinicAddress': null,
+          'about': null,
+          'languages': <String>[],
+          'services': <String>[],
+          'workingHours': <String, dynamic>{},
+          'education': <Map<String, dynamic>>[],
+          'certifications': <Map<String, dynamic>>[],
+          'reviews': <Map<String, dynamic>>[],
+
+          'isVerified': false,
+          'patientsCount': 0,
+          'specialties': <String>[
+            if (_selectedSpecialty != null) _selectedSpecialty!,
+          ],
+          'ratingBreakdown': <String, double>{},
+          'isFeatured': false,
+
+          'createdAt': now,
+        };
+
+        batch.set(doctorRef, doctorData);
+
+        // ربط حساب المستخدم بملف الطبيب.
+        userData['doctorId'] = user.uid;
+        userData['isDoctor'] = true;
+        userData['isPatient'] = false;
+      }
+
+      // نكتب userData مرة أخرى بعد إضافة حقول الطبيب.
+      batch.set(userRef, userData);
+
+      await batch.commit();
 
       _hideLoading();
       await _showSuccessAnimation();
 
-      if (mounted) {
-        final userModel = UserModel.fromFirestore(user.uid, userData as Map<String, dynamic>);
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => RoleOnboardingScreen(
-              role: _getUserRole(_selectedRole),
-              onComplete: () {
-                if (_needsVerification(_selectedRole)) {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => VerificationScreen(userModel: userModel),
+      if (!mounted) return;
+
+      // لا نستخدم FieldValue.serverTimestamp هنا.
+      // نستخدم Timestamp فعلي حتى يكون UserModel.fromFirestore آمناً.
+      final userModel = UserModel.fromFirestore(
+        user.uid,
+        userData,
+      );
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => RoleOnboardingScreen(
+            role: _getUserRole(_selectedRole),
+            onComplete: () {
+              if (_needsVerification(_selectedRole)) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => VerificationScreen(
+                      userModel: userModel,
                     ),
-                  );
-                } else {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (_) => const HomeScreen()),
-                  );
-                }
-              },
-            ),
+                  ),
+                );
+              } else {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const HomeScreen(),
+                  ),
+                );
+              }
+            },
           ),
-        );
-      }
+        ),
+      );
     } on FirebaseAuthException catch (e) {
       _hideLoading();
+
       String message = 'حدث خطأ في إنشاء الحساب';
-      if (e.code == 'email-already-in-use') message = 'البريد الإلكتروني مستخدم بالفعل';
-      else if (e.code == 'weak-password') message = 'كلمة المرور ضعيفة جداً';
+
+      if (e.code == 'email-already-in-use') {
+        message = 'البريد الإلكتروني مستخدم بالفعل';
+      } else if (e.code == 'weak-password') {
+        message = 'كلمة المرور ضعيفة جداً';
+      } else if (e.code == 'invalid-email') {
+        message = 'البريد الإلكتروني غير صحيح';
+      }
+
       _showMessage(message, true);
     } catch (e) {
       _hideLoading();
+      print('❌ Registration error: $e');
       _showMessage('حدث خطأ غير متوقع', true);
     }
   }
@@ -607,15 +896,20 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
 
   Future<void> _loginWithBiometric() async {
     _showLoading();
-    final authenticated = await _biometricService.authenticate(
+
+    final authenticated =
+        await _biometricService.authenticate(
       reason: 'تسجيل الدخول باستخدام $_biometricName',
     );
+
     _hideLoading();
 
     if (authenticated) {
       final user = FirebaseAuth.instance.currentUser;
+
       if (user != null) {
         await _showSuccessAnimation();
+
         if (mounted) {
           _navigateToHome();
         }
@@ -623,14 +917,19 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         _showMessage('يرجى تسجيل الدخول أولاً', true);
       }
     } else {
-      _showMessage('فشل التحقق من $_biometricName', true);
+      _showMessage(
+        'فشل التحقق من $_biometricName',
+        true,
+      );
     }
   }
 
   void _guestLogin() {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => const HomeScreen()),
+      MaterialPageRoute(
+        builder: (_) => const HomeScreen(),
+      ),
     );
   }
 
@@ -638,27 +937,39 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     ToastService.showError(message);
   }
 
-  List<Widget> _buildDynamicFields(bool isDark, Color primaryColor) {
-    List<Widget> fields = [];
+  List<Widget> _buildDynamicFields(
+    bool isDark,
+    Color primaryColor,
+  ) {
+    final fields = <Widget>[];
+
     if (_needsVerification(_selectedRole)) {
-      fields.add(_buildTextField(
-        controller: _licenseController,
-        label: 'رقم الترخيص الطبي',
-        icon: Icons.badge_outlined,
-        isDark: isDark,
-      ));
+      fields.add(
+        _buildTextField(
+          controller: _licenseController,
+          label: 'رقم الترخيص الطبي',
+          icon: Icons.badge_outlined,
+          isDark: isDark,
+        ),
+      );
+
       fields.add(const SizedBox(height: 16));
     }
+
     if (_selectedRole == 'doctor') {
-      fields.add(_buildTextField(
-        controller: _experienceController,
-        label: 'سنوات الخبرة',
-        icon: Icons.work_outline,
-        isDark: isDark,
-        keyboardType: TextInputType.number,
-      ));
+      fields.add(
+        _buildTextField(
+          controller: _experienceController,
+          label: 'سنوات الخبرة',
+          icon: Icons.work_outline,
+          isDark: isDark,
+          keyboardType: TextInputType.number,
+        ),
+      );
+
       fields.add(const SizedBox(height: 16));
     }
+
     return fields;
   }
 
@@ -667,38 +978,65 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       (r) => r['id'] == roleId,
       orElse: () => {'name': ''},
     );
+
     return role['name'] as String;
   }
 
-  Widget _buildLoginRoleTabs(bool isDark, Color primaryColor) {
+  Widget _buildLoginRoleTabs(
+    bool isDark,
+    Color primaryColor,
+  ) {
     return Row(
       children: _primaryRoles.map((role) {
         final isSelected = _selectedRole == role['id'];
+
         return Expanded(
           child: GestureDetector(
-            onTap: () => setState(() => _selectedRole = role['id']),
+            onTap: () {
+              setState(() {
+                _selectedRole = role['id'];
+              });
+            },
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 12),
-              margin: const EdgeInsets.symmetric(horizontal: 4),
+              margin:
+                  const EdgeInsets.symmetric(horizontal: 4),
               decoration: BoxDecoration(
-                color: isSelected ? primaryColor : (isDark ? const Color(0xFF1A2540) : Colors.white),
+                color: isSelected
+                    ? primaryColor
+                    : (isDark
+                        ? const Color(0xFF1A2540)
+                        : Colors.white),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: isSelected ? primaryColor : (isDark ? Colors.grey[800]! : Colors.grey[300]!),
+                  color: isSelected
+                      ? primaryColor
+                      : (isDark
+                          ? Colors.grey[800]!
+                          : Colors.grey[300]!),
                 ),
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment:
+                    MainAxisAlignment.center,
                 children: [
                   Icon(
                     role['icon'],
-                    color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.grey[700]),
+                    color: isSelected
+                        ? Colors.white
+                        : (isDark
+                            ? Colors.white70
+                            : Colors.grey[700]),
                   ),
                   const SizedBox(width: 8),
                   Text(
                     role['name'],
                     style: TextStyle(
-                      color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.grey[700]),
+                      color: isSelected
+                          ? Colors.white
+                          : (isDark
+                              ? Colors.white70
+                              : Colors.grey[700]),
                       fontWeight: FontWeight.bold,
                       fontFamily: 'NotoSansArabicUI',
                     ),
@@ -712,14 +1050,20 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildSignUpRoleTabs(bool isDark, Color primaryColor) {
+  Widget _buildSignUpRoleTabs(
+    bool isDark,
+    Color primaryColor,
+  ) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         children: _allRoles.map((role) {
-          final isSelected = _selectedRole == role['id'];
+          final isSelected =
+              _selectedRole == role['id'];
+
           return Padding(
-            padding: const EdgeInsets.only(left: 8.0),
+            padding:
+                const EdgeInsets.only(left: 8.0),
             child: ChoiceChip(
               label: Text(role['name']),
               selected: isSelected,
@@ -733,7 +1077,11 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
               },
               selectedColor: primaryColor,
               labelStyle: TextStyle(
-                color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
+                color: isSelected
+                    ? Colors.white
+                    : (isDark
+                        ? Colors.white70
+                        : Colors.black87),
                 fontFamily: 'NotoSansArabicUI',
               ),
             ),
@@ -743,7 +1091,10 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildSelectedRoleDisplay(bool isDark, Color primaryColor) {
+  Widget _buildSelectedRoleDisplay(
+    bool isDark,
+    Color primaryColor,
+  ) {
     return Text(
       'الحساب المحدد: ${_getRoleDisplayName(_selectedRole)}',
       style: TextStyle(
@@ -756,37 +1107,57 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildSpecialtyDropdown(bool isDark, Color primaryColor) {
+  Widget _buildSpecialtyDropdown(
+    bool isDark,
+    Color primaryColor,
+  ) {
     return DropdownButtonFormField<String>(
       value: _selectedSpecialty,
       decoration: InputDecoration(
         labelText: 'اختر التخصص',
         labelStyle: TextStyle(
-          color: isDark ? Colors.white70 : Colors.grey[600],
+          color: isDark
+              ? Colors.white70
+              : Colors.grey[600],
           fontFamily: 'NotoSansArabicUI',
         ),
-        prefixIcon: Icon(Icons.medical_information, color: isDark ? Colors.white70 : primaryColor),
+        prefixIcon: Icon(
+          Icons.medical_information,
+          color: isDark
+              ? Colors.white70
+              : primaryColor,
+        ),
         filled: true,
-        fillColor: isDark ? const Color(0xFF1A2540) : Colors.white,
+        fillColor: isDark
+            ? const Color(0xFF1A2540)
+            : Colors.white,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius:
+              BorderRadius.circular(16),
           borderSide: BorderSide.none,
         ),
       ),
-      dropdownColor: isDark ? const Color(0xFF1A2540) : Colors.white,
+      dropdownColor:
+          isDark ? const Color(0xFF1A2540) : Colors.white,
       items: _roleSpecialties.map((specialty) {
         return DropdownMenuItem(
           value: specialty,
           child: Text(
             specialty,
             style: TextStyle(
-              color: isDark ? Colors.white : Colors.black87,
+              color: isDark
+                  ? Colors.white
+                  : Colors.black87,
               fontFamily: 'NotoSansArabicUI',
             ),
           ),
         );
       }).toList(),
-      onChanged: (val) => setState(() => _selectedSpecialty = val),
+      onChanged: (val) {
+        setState(() {
+          _selectedSpecialty = val;
+        });
+      },
     );
   }
 
@@ -803,86 +1174,157 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       keyboardType: keyboardType,
       obscureText: obscureText,
       textAlign: TextAlign.right,
-      style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
+      style: TextStyle(
+        color: isDark
+            ? Colors.white
+            : const Color(0xFF1E293B),
+      ),
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(
-          color: isDark ? Colors.white70 : Colors.grey[600],
+          color: isDark
+              ? Colors.white70
+              : Colors.grey[600],
           fontFamily: 'NotoSansArabicUI',
         ),
-        prefixIcon: Icon(icon, color: isDark ? Colors.white70 : const Color(0xFF0D5257)),
+        prefixIcon: Icon(
+          icon,
+          color: isDark
+              ? Colors.white70
+              : const Color(0xFF0D5257),
+        ),
         filled: true,
-        fillColor: isDark ? const Color(0xFF1A2540) : Colors.white,
+        fillColor: isDark
+            ? const Color(0xFF1A2540)
+            : Colors.white,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius:
+              BorderRadius.circular(16),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: isDark ? Colors.grey[800]! : Colors.grey[300]!),
+          borderRadius:
+              BorderRadius.circular(16),
+          borderSide: BorderSide(
+            color: isDark
+                ? Colors.grey[800]!
+                : Colors.grey[300]!,
+          ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: const Color(0xFF0D5257), width: 2),
+          borderRadius:
+              BorderRadius.circular(16),
+          borderSide: const BorderSide(
+            color: Color(0xFF0D5257),
+            width: 2,
+          ),
         ),
-        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+        contentPadding:
+            const EdgeInsets.symmetric(
+          vertical: 16,
+          horizontal: 16,
+        ),
       ),
     );
   }
 
-  Widget _buildPasswordField(bool isDark, Color primaryColor) {
+  Widget _buildPasswordField(
+    bool isDark,
+    Color primaryColor,
+  ) {
     return TextFormField(
       controller: _passwordController,
       obscureText: _obscureText,
       textAlign: TextAlign.right,
-      style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
+      style: TextStyle(
+        color: isDark
+            ? Colors.white
+            : const Color(0xFF1E293B),
+      ),
       decoration: InputDecoration(
         labelText: 'كلمة المرور',
         labelStyle: TextStyle(
-          color: isDark ? Colors.white70 : Colors.grey[600],
+          color: isDark
+              ? Colors.white70
+              : Colors.grey[600],
           fontFamily: 'NotoSansArabicUI',
         ),
-        prefixIcon: Icon(Icons.lock_outline, color: isDark ? Colors.white70 : primaryColor),
+        prefixIcon: Icon(
+          Icons.lock_outline,
+          color: isDark
+              ? Colors.white70
+              : primaryColor,
+        ),
         suffixIcon: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
               icon: Icon(
-                _obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                color: isDark ? Colors.white70 : Colors.grey[600],
+                _obscureText
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
+                color: isDark
+                    ? Colors.white70
+                    : Colors.grey[600],
               ),
-              onPressed: () => setState(() => _obscureText = !_obscureText),
+              onPressed: () {
+                setState(() {
+                  _obscureText = !_obscureText;
+                });
+              },
             ),
             if (_hasBiometric && !widget.isSignUp)
               IconButton(
-                icon: Icon(Icons.fingerprint, color: primaryColor),
+                icon: Icon(
+                  Icons.fingerprint,
+                  color: primaryColor,
+                ),
                 onPressed: _loginWithBiometric,
               ),
           ],
         ),
         filled: true,
-        fillColor: isDark ? const Color(0xFF1A2540) : Colors.white,
+        fillColor: isDark
+            ? const Color(0xFF1A2540)
+            : Colors.white,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius:
+              BorderRadius.circular(16),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: isDark ? Colors.grey[800]! : Colors.grey[300]!),
+          borderRadius:
+              BorderRadius.circular(16),
+          borderSide: BorderSide(
+            color: isDark
+                ? Colors.grey[800]!
+                : Colors.grey[300]!,
+          ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: primaryColor, width: 2),
+          borderRadius:
+              BorderRadius.circular(16),
+          borderSide: BorderSide(
+            color: primaryColor,
+            width: 2,
+          ),
         ),
-        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+        contentPadding:
+            const EdgeInsets.symmetric(
+          vertical: 16,
+          horizontal: 16,
+        ),
       ),
     );
   }
 
   Widget _buildPasswordStrengthIndicator() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment:
+          CrossAxisAlignment.start,
       children: [
         Row(
           children: [
@@ -891,14 +1333,17 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
               height: 4,
               decoration: BoxDecoration(
                 color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
+                borderRadius:
+                    BorderRadius.circular(2),
               ),
               child: FractionallySizedBox(
-                widthFactor: _passwordStrengthValue,
+                widthFactor:
+                    _passwordStrengthValue,
                 child: Container(
                   decoration: BoxDecoration(
                     color: _passwordStrengthColor,
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius:
+                        BorderRadius.circular(2),
                   ),
                 ),
               ),
@@ -920,7 +1365,9 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
           'كلمة المرور يجب أن تحتوي على حروف وأرقام وأحرف خاصة',
           style: TextStyle(
             fontSize: 10,
-            color: isDark ? Colors.grey[500] : Colors.grey[400],
+            color: isDark
+                ? Colors.grey[500]
+                : Colors.grey[400],
             fontFamily: 'NotoSansArabicUI',
           ),
         ),
@@ -928,55 +1375,99 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildConfirmPasswordField(bool isDark, Color primaryColor) {
+  Widget _buildConfirmPasswordField(
+    bool isDark,
+    Color primaryColor,
+  ) {
     final isMatch = _isPasswordMatch();
-    final showMatch = _confirmPasswordController.text.isNotEmpty;
+    final showMatch =
+        _confirmPasswordController.text.isNotEmpty;
 
     return TextFormField(
       controller: _confirmPasswordController,
       obscureText: _obscureConfirmText,
       textAlign: TextAlign.right,
-      style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
+      style: TextStyle(
+        color: isDark
+            ? Colors.white
+            : const Color(0xFF1E293B),
+      ),
       decoration: InputDecoration(
         labelText: 'تأكيد كلمة المرور',
         labelStyle: TextStyle(
-          color: isDark ? Colors.white70 : Colors.grey[600],
+          color: isDark
+              ? Colors.white70
+              : Colors.grey[600],
           fontFamily: 'NotoSansArabicUI',
         ),
-        prefixIcon: Icon(Icons.lock_outline, color: isDark ? Colors.white70 : primaryColor),
+        prefixIcon: Icon(
+          Icons.lock_outline,
+          color: isDark
+              ? Colors.white70
+              : primaryColor,
+        ),
         suffixIcon: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (showMatch)
               Icon(
-                isMatch ? Icons.check_circle : Icons.cancel,
-                color: isMatch ? Colors.green : Colors.red,
+                isMatch
+                    ? Icons.check_circle
+                    : Icons.cancel,
+                color: isMatch
+                    ? Colors.green
+                    : Colors.red,
                 size: 20,
               ),
             IconButton(
               icon: Icon(
-                _obscureConfirmText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                color: isDark ? Colors.white70 : Colors.grey[600],
+                _obscureConfirmText
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
+                color: isDark
+                    ? Colors.white70
+                    : Colors.grey[600],
               ),
-              onPressed: () => setState(() => _obscureConfirmText = !_obscureConfirmText),
+              onPressed: () {
+                setState(() {
+                  _obscureConfirmText =
+                      !_obscureConfirmText;
+                });
+              },
             ),
           ],
         ),
         filled: true,
-        fillColor: isDark ? const Color(0xFF1A2540) : Colors.white,
+        fillColor: isDark
+            ? const Color(0xFF1A2540)
+            : Colors.white,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius:
+              BorderRadius.circular(16),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: isDark ? Colors.grey[800]! : Colors.grey[300]!),
+          borderRadius:
+              BorderRadius.circular(16),
+          borderSide: BorderSide(
+            color: isDark
+                ? Colors.grey[800]!
+                : Colors.grey[300]!,
+          ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: primaryColor, width: 2),
+          borderRadius:
+              BorderRadius.circular(16),
+          borderSide: BorderSide(
+            color: primaryColor,
+            width: 2,
+          ),
         ),
-        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+        contentPadding:
+            const EdgeInsets.symmetric(
+          vertical: 16,
+          horizontal: 16,
+        ),
       ),
     );
   }
@@ -995,12 +1486,18 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       child: Container(
         width: containerSize,
         height: containerSize,
-      padding: EdgeInsets.all(padding),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2540) : Colors.white,
-        shape: BoxShape.circle,
-        border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[300]!),
-      ),
+        padding: EdgeInsets.all(padding),
+        decoration: BoxDecoration(
+          color: isDark
+              ? const Color(0xFF1A2540)
+              : Colors.white,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: isDark
+                ? Colors.grey[800]!
+                : Colors.grey[300]!,
+          ),
+        ),
         child: Image.asset(
           social['icon'],
           width: iconSize,
@@ -1017,8 +1514,10 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = const Color(0xFF0D5257);
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
+    const primaryColor = Color(0xFF0D5257);
     final isSignUp = widget.isSignUp;
 
     return Scaffold(
@@ -1030,57 +1529,90 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: isDark
-                ? [const Color(0xFF0B1121), const Color(0xFF1A2540)]
-                : [const Color(0xFFF8FAFC), primaryColor.withOpacity(0.15)],
+                ? const [
+                    Color(0xFF0B1121),
+                    Color(0xFF1A2540),
+                  ]
+                : [
+                    const Color(0xFFF8FAFC),
+                    primaryColor.withOpacity(0.15),
+                  ],
           ),
         ),
         child: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 20.0,
+            ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment:
+                  CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 20),
+
                 Text(
                   isSignUp
                       ? 'إنشاء حساب جديد'
-                      : (_isFirstTimeUser ? 'أهلاً بك في منصة صحتك' : 'مرحباً بعودتك'),
+                      : (_isFirstTimeUser
+                          ? 'أهلاً بك في منصة صحتك'
+                          : 'مرحباً بعودتك'),
                   style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : const Color(0xFF1E293B),
+                    color: isDark
+                        ? Colors.white
+                        : const Color(0xFF1E293B),
                     fontFamily: 'NotoSansArabicUI',
                   ),
                   textAlign: TextAlign.center,
                 ),
+
                 const SizedBox(height: 6),
+
                 Text(
                   isSignUp
                       ? 'اختر نوع حسابك وأدخل بياناتك للانضمام'
                       : 'قم بتسجيل الدخول للمتابعة',
                   style: TextStyle(
                     fontSize: 15,
-                    color: isDark ? Colors.white70 : Colors.grey[600],
+                    color: isDark
+                        ? Colors.white70
+                        : Colors.grey[600],
                     fontFamily: 'NotoSansArabicUI',
                   ),
                   textAlign: TextAlign.center,
                 ),
+
                 const SizedBox(height: 30),
 
                 if (!isSignUp) ...[
-                  _buildLoginRoleTabs(isDark, primaryColor),
+                  _buildLoginRoleTabs(
+                    isDark,
+                    primaryColor,
+                  ),
                   const SizedBox(height: 35),
                 ],
 
                 if (isSignUp) ...[
-                  _buildSignUpRoleTabs(isDark, primaryColor),
+                  _buildSignUpRoleTabs(
+                    isDark,
+                    primaryColor,
+                  ),
                   const SizedBox(height: 16),
-                  _buildSelectedRoleDisplay(isDark, primaryColor),
+                  _buildSelectedRoleDisplay(
+                    isDark,
+                    primaryColor,
+                  ),
                   const SizedBox(height: 16),
                 ],
 
-                if (isSignUp && _roleSpecialties.isNotEmpty) ...[
-                  _buildSpecialtyDropdown(isDark, primaryColor),
+                if (isSignUp &&
+                    _roleSpecialties.isNotEmpty) ...[
+                  _buildSpecialtyDropdown(
+                    isDark,
+                    primaryColor,
+                  ),
                   const SizedBox(height: 16),
                 ],
 
@@ -1096,11 +1628,15 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
 
                 _buildTextField(
                   controller: _emailController,
-                  label: isSignUp ? 'البريد الإلكتروني' : 'رقم الموبايل أو البريد الإلكتروني',
+                  label: isSignUp
+                      ? 'البريد الإلكتروني'
+                      : 'رقم الموبايل أو البريد الإلكتروني',
                   icon: Icons.alternate_email_outlined,
                   isDark: isDark,
-                  keyboardType: TextInputType.emailAddress,
+                  keyboardType:
+                      TextInputType.emailAddress,
                 ),
+
                 const SizedBox(height: 16),
 
                 if (isSignUp) ...[
@@ -1109,46 +1645,68 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                     label: 'رقم الهاتف',
                     icon: Icons.phone_android,
                     isDark: isDark,
-                    keyboardType: TextInputType.phone,
+                    keyboardType:
+                        TextInputType.phone,
                   ),
                   const SizedBox(height: 16),
                 ],
 
-                if (isSignUp) ...[
-                  ..._buildDynamicFields(isDark, primaryColor),
-                ],
+                if (isSignUp)
+                  ..._buildDynamicFields(
+                    isDark,
+                    primaryColor,
+                  ),
 
-                _buildPasswordField(isDark, primaryColor),
+                _buildPasswordField(
+                  isDark,
+                  primaryColor,
+                ),
 
-                if (isSignUp && _passwordController.text.isNotEmpty) ...[
+                if (isSignUp &&
+                    _passwordController.text.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   _buildPasswordStrengthIndicator(),
                 ],
+
                 const SizedBox(height: 16),
 
                 if (isSignUp) ...[
-                  _buildConfirmPasswordField(isDark, primaryColor),
+                  _buildConfirmPasswordField(
+                    isDark,
+                    primaryColor,
+                  ),
                   const SizedBox(height: 16),
                 ],
 
                 if (!isSignUp) ...[
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment:
+                        MainAxisAlignment.spaceBetween,
                     children: [
                       Row(
                         children: [
                           Checkbox(
                             value: _rememberMe,
-                            onChanged: (v) => setState(() => _rememberMe = v ?? false),
-                            activeColor: primaryColor,
-                            visualDensity: VisualDensity.compact,
+                            onChanged: (v) {
+                              setState(() {
+                                _rememberMe =
+                                    v ?? false;
+                              });
+                            },
+                            activeColor:
+                                primaryColor,
+                            visualDensity:
+                                VisualDensity.compact,
                           ),
                           Text(
                             'تذكرني',
                             style: TextStyle(
                               fontSize: 13,
-                              color: isDark ? Colors.white70 : Colors.grey[600],
-                              fontFamily: 'NotoSansArabicUI',
+                              color: isDark
+                                  ? Colors.white70
+                                  : Colors.grey[600],
+                              fontFamily:
+                                  'NotoSansArabicUI',
                             ),
                           ),
                         ],
@@ -1157,7 +1715,10 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  const ForgotPasswordScreen(),
+                            ),
                           );
                         },
                         child: Text(
@@ -1165,7 +1726,8 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                           style: TextStyle(
                             fontSize: 13,
                             color: primaryColor,
-                            fontFamily: 'NotoSansArabicUI',
+                            fontFamily:
+                                'NotoSansArabicUI',
                           ),
                         ),
                       ),
@@ -1179,23 +1741,35 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                     children: [
                       Checkbox(
                         value: _agreeTerms,
-                        onChanged: (v) => setState(() => _agreeTerms = v ?? false),
+                        onChanged: (v) {
+                          setState(() {
+                            _agreeTerms =
+                                v ?? false;
+                          });
+                        },
                         activeColor: primaryColor,
-                        visualDensity: VisualDensity.compact,
+                        visualDensity:
+                            VisualDensity.compact,
                       ),
                       Text(
                         'أوافق على ',
                         style: TextStyle(
                           fontSize: 13,
-                          color: isDark ? Colors.white70 : Colors.grey[600],
-                          fontFamily: 'NotoSansArabicUI',
+                          color: isDark
+                              ? Colors.white70
+                              : Colors.grey[600],
+                          fontFamily:
+                              'NotoSansArabicUI',
                         ),
                       ),
                       GestureDetector(
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const TermsScreen()),
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  const TermsScreen(),
+                            ),
                           );
                         },
                         child: Text(
@@ -1203,9 +1777,12 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                           style: TextStyle(
                             color: primaryColor,
                             fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            decoration: TextDecoration.underline,
-                            fontFamily: 'NotoSansArabicUI',
+                            fontWeight:
+                                FontWeight.bold,
+                            decoration:
+                                TextDecoration.underline,
+                            fontFamily:
+                                'NotoSansArabicUI',
                           ),
                         ),
                       ),
@@ -1217,12 +1794,21 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                 SizedBox(
                   height: 54,
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : (isSignUp ? _register : _login),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryColor,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                    onPressed: _isLoading
+                        ? null
+                        : (isSignUp
+                            ? _register
+                            : _login),
+                    style:
+                        ElevatedButton.styleFrom(
+                      backgroundColor:
+                          primaryColor,
+                      foregroundColor:
+                          Colors.white,
+                      shape:
+                          RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.circular(16),
                       ),
                       elevation: 0,
                     ),
@@ -1232,12 +1818,15 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                           : 'تسجيل الدخول',
                       style: const TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'NotoSansArabicUI',
+                        fontWeight:
+                            FontWeight.bold,
+                        fontFamily:
+                            'NotoSansArabicUI',
                       ),
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 12),
 
                 if (!isSignUp) ...[
@@ -1245,16 +1834,29 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                     height: 50,
                     child: OutlinedButton(
                       onPressed: _guestLogin,
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: isDark ? Colors.white30 : Colors.grey[300]!),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                      style:
+                          OutlinedButton.styleFrom(
+                        side: BorderSide(
+                          color: isDark
+                              ? Colors.white30
+                              : Colors.grey[300]!,
                         ),
-                        foregroundColor: isDark ? Colors.white : Colors.black87,
+                        shape:
+                            RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(16),
+                        ),
+                        foregroundColor: isDark
+                            ? Colors.white
+                            : Colors.black87,
                       ),
                       child: const Text(
                         'تصفح كضيف',
-                        style: TextStyle(fontSize: 15, fontFamily: 'NotoSansArabicUI'),
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontFamily:
+                              'NotoSansArabicUI',
+                        ),
                       ),
                     ),
                   ),
@@ -1263,13 +1865,20 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
 
                 const Text(
                   'أو سجل الدخول عبر',
-                  style: TextStyle(fontSize: 12, color: Colors.grey, fontFamily: 'NotoSansArabicUI'),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                    fontFamily:
+                        'NotoSansArabicUI',
+                  ),
                   textAlign: TextAlign.center,
                 ),
+
                 const SizedBox(height: 16),
 
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment:
+                      MainAxisAlignment.center,
                   children: [
                     _buildSocialIcon(
                       _socialIcons[0],
@@ -1288,6 +1897,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                     ),
                   ],
                 ),
+
                 const SizedBox(height: 28),
 
                 const Text(
@@ -1296,47 +1906,90 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF0D5257),
-                    fontFamily: 'NotoSansArabicUI',
+                    fontFamily:
+                        'NotoSansArabicUI',
                   ),
                   textAlign: TextAlign.center,
                 ),
+
                 const SizedBox(height: 4),
+
                 const Text(
                   'ندعم جميع خدمات الرعاية الصحية المتكاملة',
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey,
-                    fontFamily: 'NotoSansArabicUI',
+                    fontFamily:
+                        'NotoSansArabicUI',
                   ),
                   textAlign: TextAlign.center,
                 ),
+
                 const SizedBox(height: 18),
 
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment:
+                      MainAxisAlignment.center,
                   children: [
-                    _buildSocialIcon(_socialIcons[2], isDark, containerSize: 40, iconSize: 24, padding: 7),
+                    _buildSocialIcon(
+                      _socialIcons[2],
+                      isDark,
+                      containerSize: 40,
+                      iconSize: 24,
+                      padding: 7,
+                    ),
                     const SizedBox(width: 8),
-                    _buildSocialIcon(_socialIcons[3], isDark, containerSize: 40, iconSize: 24, padding: 7),
+                    _buildSocialIcon(
+                      _socialIcons[3],
+                      isDark,
+                      containerSize: 40,
+                      iconSize: 24,
+                      padding: 7,
+                    ),
                     const SizedBox(width: 8),
-                    _buildSocialIcon(_socialIcons[4], isDark, containerSize: 40, iconSize: 24, padding: 7),
+                    _buildSocialIcon(
+                      _socialIcons[4],
+                      isDark,
+                      containerSize: 40,
+                      iconSize: 24,
+                      padding: 7,
+                    ),
                     const SizedBox(width: 8),
-                    _buildSocialIcon(_socialIcons[5], isDark, containerSize: 40, iconSize: 24, padding: 7),
+                    _buildSocialIcon(
+                      _socialIcons[5],
+                      isDark,
+                      containerSize: 40,
+                      iconSize: 24,
+                      padding: 7,
+                    ),
                     const SizedBox(width: 8),
-                    _buildSocialIcon(_socialIcons[6], isDark, containerSize: 40, iconSize: 24, padding: 7),
+                    _buildSocialIcon(
+                      _socialIcons[6],
+                      isDark,
+                      containerSize: 40,
+                      iconSize: 24,
+                      padding: 7,
+                    ),
                   ],
                 ),
+
                 const SizedBox(height: 30),
 
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment:
+                      MainAxisAlignment.center,
                   children: [
                     Text(
-                      isSignUp ? 'لديك حساب بالفعل؟' : 'ليس لديك حساب؟',
+                      isSignUp
+                          ? 'لديك حساب بالفعل؟'
+                          : 'ليس لديك حساب؟',
                       style: TextStyle(
                         fontSize: 14,
-                        color: isDark ? Colors.white70 : Colors.grey[600],
-                        fontFamily: 'NotoSansArabicUI',
+                        color: isDark
+                            ? Colors.white70
+                            : Colors.grey[600],
+                        fontFamily:
+                            'NotoSansArabicUI',
                       ),
                     ),
                     const SizedBox(width: 4),
@@ -1345,21 +1998,28 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => AuthScreen(isSignUp: !isSignUp),
+                            builder: (_) => AuthScreen(
+                              isSignUp: !isSignUp,
+                            ),
                           ),
                         );
                       },
                       child: Text(
-                        isSignUp ? 'تسجيل الدخول' : 'أنشئ حسابك الآن',
+                        isSignUp
+                            ? 'تسجيل الدخول'
+                            : 'أنشئ حسابك الآن',
                         style: TextStyle(
-                          fontWeight: FontWeight.bold,
+                          fontWeight:
+                              FontWeight.bold,
                           color: primaryColor,
-                          fontFamily: 'NotoSansArabicUI',
+                          fontFamily:
+                              'NotoSansArabicUI',
                         ),
                       ),
                     ),
                   ],
                 ),
+
                 const SizedBox(height: 20),
               ],
             ),
