@@ -48,7 +48,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (_) => DoctorDetailsScreen(
-                      doctorId: DoctorModel(
+                      doctorId: "
                         id: item['id'] ?? '',
                         name: item['name'] ?? '',
                         specialty: item['specialty'] ?? '',

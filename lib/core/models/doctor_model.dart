@@ -79,13 +79,6 @@ class DoctorModel extends Equatable {
       return [];
     }
 
-    List<String> parseLanguages(dynamic value) {
-      if (value == null) return [];
-      if (value is List) return value.map((e) => e.toString()).toList();
-      if (value is String) return [value];
-      return [];
-    }
-
     return DoctorModel(
       id: id,
       name: data['name']?.toString() ?? '',
@@ -101,7 +94,9 @@ class DoctorModel extends Equatable {
       hospital: data['hospital']?.toString(),
       clinicAddress: data['clinicAddress']?.toString(),
       about: data['about']?.toString(),
-      languages: parseLanguages(data['languages']),
+      languages: data['languages'] is List
+          ? List<String>.from(data['languages'])
+          : null,
       services: parseServices(data['services']),
       workingHours: data['workingHours'] is Map
           ? Map<String, dynamic>.from(data['workingHours'])

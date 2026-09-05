@@ -27,7 +27,7 @@ class ChatService {
         .limit(limit)
         .snapshots()
         .map((snapshot) => snapshot.docs
-            .map((doc) => ChatModel.fromFirestore(doc.id, doc.data()))
+            .map((doc) => ChatModel.fromFirestore(doc.id, doc.data() as Map<String, dynamic>))
             .toList());
   }
 
@@ -47,7 +47,7 @@ class ChatService {
     if (startAfter != null) query = query.startAfterDocument(startAfter);
     final snapshot = await query.get();
     return snapshot.docs
-        .map((doc) => ChatModel.fromFirestore(doc.id, doc.data()))
+        .map((doc) => ChatModel.fromFirestore(doc.id, doc.data() as Map<String, dynamic>))
         .toList();
   }
 
@@ -81,7 +81,7 @@ class ChatService {
         .get();
 
     for (var doc in existing.docs) {
-      final data = doc.data();
+      final data = doc.data() as Map<String, dynamic>;
       if (data['participants'].contains(doctorId) && !(data['isGroup'] ?? false)) {
         return doc.id;
       }
@@ -209,7 +209,7 @@ class ChatService {
         .limit(limit)
         .snapshots()
         .map((snapshot) => snapshot.docs
-            .map((doc) => MessageModel.fromFirestore(doc.id, doc.data()))
+            .map((doc) => MessageModel.fromFirestore(doc.id, doc.data() as Map<String, dynamic>))
             .toList());
   }
 
@@ -231,7 +231,7 @@ class ChatService {
     if (startAfter != null) query = query.startAfterDocument(startAfter);
     final snapshot = await query.get();
     return snapshot.docs
-        .map((doc) => MessageModel.fromFirestore(doc.id, doc.data()))
+        .map((doc) => MessageModel.fromFirestore(doc.id, doc.data() as Map<String, dynamic>))
         .toList();
   }
 
@@ -279,7 +279,7 @@ class ChatService {
         .collection('messages')
         .doc(messageId);
     final doc = await messageRef.get();
-    if (doc.exists && doc.data()?['senderId'] == userId) {
+    if (doc.exists && doc.data() as Map<String, dynamic>?['senderId'] == userId) {
       await messageRef.update({
         'isDeleted': true,
         'text': 'تم حذف هذه الرسالة',
