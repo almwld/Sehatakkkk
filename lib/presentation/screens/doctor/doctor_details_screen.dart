@@ -77,7 +77,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
           .doc(user.uid)
           .get();
       
-      final favorites = List<String>.from(doc.data()?[.favoriteDoctors.] ?? []);
+      final favorites = List<String>.from(doc.data()?['favoriteDoctors'] ?? []);
       setState(() => _isFavorite = favorites.contains(widget.doctorId));
     } catch (e) {
       print('⚠️ Error checking favorite: $e');
@@ -94,7 +94,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
 
       final userRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
       final doc = await userRef.get();
-      final favorites = List<String>.from(doc.data()?[.favoriteDoctors.] ?? []);
+      final favorites = List<String>.from(doc.data()?['favoriteDoctors'] ?? []);
 
       if (_isFavorite) {
         await userRef.update({
@@ -703,7 +703,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          date['day'],
+                          date['day'].toString(),
                           style: TextStyle(
                             fontSize: 10,
                             color: isSelected
@@ -720,7 +720,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                           ),
                         ),
                         Text(
-                          date['month'],
+                          date['month'].toString(),
                           style: TextStyle(
                             fontSize: 8,
                             color: isSelected

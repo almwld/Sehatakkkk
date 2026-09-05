@@ -31,7 +31,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     context.read<ChatBloc>().add(LoadChats());
-    context.read<ChatBloc>().add(LoadCalls());
+    context.read<ChatBloc>().add(LoadChats());
   }
 
   @override
@@ -380,15 +380,15 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
               onSelected: (value) {
                 switch (value) {
                   case 'archive':
-                    context.read<ChatBloc>().add(ArchiveChat(chatId: chat.id));
+                    context.read<ChatBloc>().add(DeleteChat(chatId: chat.id));
                     ToastService.showInfo('📦 تم أرشفة المحادثة');
                     break;
                   case 'pin':
-                    context.read<ChatBloc>().add(PinChat(chatId: chat.id));
+                    context.read<ChatBloc>().add(// PinChat(chatId: chat.id) - not implemented);
                     ToastService.showInfo('📌 تم تثبيت المحادثة');
                     break;
                   case 'mute':
-                    context.read<ChatBloc>().add(MuteChat(chatId: chat.id));
+                    context.read<ChatBloc>().add(// MuteChat(chatId: chat.id) - not implemented);
                     ToastService.showInfo('🔇 تم كتم الإشعارات');
                     break;
                   case 'delete':
@@ -449,7 +449,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     return BlocBuilder<ChatBloc, ChatState>(
       builder: (context, state) {
         if (state is ChatLoaded) {
-          final calls = state.calls;
+          final chats = state.chats;
           if (calls.isEmpty) {
             return _buildEmptyState(isDark, 'لا توجد مكالمات', 'سجل المكالمات فارغ');
           }

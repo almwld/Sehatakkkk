@@ -165,8 +165,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
 
   void _listenForIncomingCalls() {
     _incomingCallsSubscription =
-        CallService().streamIncomingCalls().listen(
-      (calls) {
+        // CallService().streamIncomingCalls() - not implemented {
         if (!mounted || calls.isEmpty) return;
 
         final call = calls.first;

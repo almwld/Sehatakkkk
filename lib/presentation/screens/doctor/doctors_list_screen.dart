@@ -238,7 +238,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
             onTap: () {
               setState(() => _selectedSpecialty = specialty);
               context.read<DoctorBloc>().add(
-                FilterDoctorsBySpecialty(specialty: specialty),
+                DoctorEventFilter(specialty: specialty),
               );
             },
             child: Container(
