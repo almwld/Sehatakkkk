@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,246 +7,111 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import 'firebase_options.dart';
-
 import 'core/providers/font_size_provider.dart';
 import 'core/providers/user_provider.dart';
 import 'core/providers/bot_provider.dart';
 import 'core/providers/wallet_provider.dart';
 import 'core/providers/cart_provider.dart';
-
 import 'core/themes/theme_manager.dart';
 import 'core/services/cache_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/call_service.dart';
-import 'core/services/preload_service.dart';
 import 'core/routes/payment_routes.dart';
-
 import 'presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'presentation/bloc/theme_bloc/theme_bloc.dart';
+import 'presentation/bloc/chat_bloc/chat_bloc.dart';
+import 'presentation/bloc/doctor_bloc/doctor_bloc.dart';
+import 'presentation/screens/splash_screen.dart';
+import 'presentation/screens/wallet/wallet_screen.dart';
 
-import 'bloc/chat/chat_bloc.dart';
-import 'bloc/home/home_bloc.dart';
-import 'bloc/doctor_bloc/doctor_bloc.dart';
-
-import 'presentation/screens/home/home_screen.dart';
-
-bool _backendReady = false;
-
+// ✅ معالج الخلفية للإشعارات
 @pragma('vm:entry-point')
-Future<void> _firebaseMessagingBackgroundHandler(
-  RemoteMessage message,
-) async {
-  try {
-    if (Firebase.apps.isEmpty) {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-    }
-
-    debugPrint(
-      '📩 Background message: ${message.messageId}',
-    );
-  } catch (e) {
-    debugPrint(
-      '❌ Background Firebase error: $e',
-    );
-  }
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  print('📩 Handling background message: ${message.messageId}');
+  print('📩 Data: ${message.data}');
 }
 
-///
-/// تشغيل التطبيق بدون انتظار Firebase.
-/// كل الخدمات الخلفية تبدأ بعد 20 ثانية.
-///
-Future<void> _initializeBackendInBackground() async {
-  try {
-    debugPrint('⏳ Backend initialization scheduled after 20 seconds...');
-
-    await Future.delayed(const Duration(seconds: 20));
-
-    debugPrint('🚀 Starting backend initialization...');
-
-    // ------------------------------------------------------------
-    // Firebase
-    // ------------------------------------------------------------
-    try {
-      if (Firebase.apps.isEmpty) {
-        await Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform,
-        );
-      }
-
-      _backendReady = true;
-
-      debugPrint('✅ Firebase initialized in background');
-    } catch (e, stack) {
-      _backendReady = false;
-
-      debugPrint(
-        '❌ Firebase background initialization failed: $e',
-      );
-      debugPrint('$stack');
-
-      // لا نوقف التطبيق.
-      return;
-    }
-
-    // ------------------------------------------------------------
-    // Cache
-    // ------------------------------------------------------------
-    try {
-      await CacheService.init();
-      debugPrint('✅ Cache initialized');
-    } catch (e) {
-      debugPrint('⚠️ Cache initialization failed: $e');
-    }
-
-    // ------------------------------------------------------------
-    // FCM
-    // ------------------------------------------------------------
-    try {
-      FirebaseMessaging.onBackgroundMessage(
-        _firebaseMessagingBackgroundHandler,
-      );
-
-      final fcm = FirebaseMessaging.instance;
-
-      await fcm.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
-
-      final token = await fcm.getToken();
-
-      debugPrint('✅ FCM initialized');
-      debugPrint('FCM Token: $token');
-    } catch (e) {
-      debugPrint('⚠️ FCM initialization failed: $e');
-    }
-
-    // ------------------------------------------------------------
-    // Auth state
-    // ------------------------------------------------------------
-    try {
-      final authBloc = _globalAuthBloc;
-
-      if (authBloc != null) {
-        authBloc.add(const CheckAuthStatus());
-      }
-
-      debugPrint('✅ Auth synchronization started');
-    } catch (e) {
-      debugPrint('⚠️ Auth synchronization failed: $e');
-    }
-
-    // ------------------------------------------------------------
-    // User data
-    // ------------------------------------------------------------
-    try {
-      _globalUserProvider?.loadUserSafely();
-      debugPrint('✅ User synchronization started');
-    } catch (e) {
-      debugPrint('⚠️ User synchronization failed: $e');
-    }
-
-    // ------------------------------------------------------------
-    // Essential data preload
-    // ------------------------------------------------------------
-    try {
-      await PreloadService().preloadEssentialData();
-      debugPrint('✅ Essential data preloaded');
-    } catch (e) {
-      debugPrint('⚠️ Preload failed: $e');
-    }
-
-    debugPrint('🎉 Background backend initialization completed');
-  } catch (e, stack) {
-    debugPrint('❌ Background initialization error: $e');
-    debugPrint('$stack');
-  }
-}
-
-UserProvider? _globalUserProvider;
-AuthBloc? _globalAuthBloc;
-
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // لا ننتظر أي Firebase أو Firestore أو FCM هنا.
-  //
-  // فقط إعدادات Flutter المحلية التي لا تمنع عرض التطبيق.
-  SystemChrome.setPreferredOrientations([
+  // ✅ تحديد اتجاه الشاشة
+  await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
+  // ✅ تهيئة Firebase
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    print('✅ Firebase initialized successfully');
+  } catch (e) {
+    print('❌ Firebase initialization error: $e');
+  }
+
+  // ✅ تهيئة FCM
+  try {
+    final fcm = FirebaseMessaging.instance;
+    await fcm.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+    final token = await fcm.getToken();
+    print('✅ FCM Token: $token');
+  } catch (e) {
+    print('❌ FCM initialization error: $e');
+  }
+
+  // ✅ تهيئة الكاش
+  await CacheService.init();
+
+  // ✅ تهيئة الإشعارات
+  final notificationService = NotificationService();
+  await notificationService.initialize();
+
   runApp(
     MultiProvider(
       providers: [
+        // ✅ UserProvider - باستخدام loadUserSafely
         ChangeNotifierProvider(
-          create: (_) {
-            final provider = UserProvider();
-            _globalUserProvider = provider;
-            return provider;
-          },
+          create: (_) => UserProvider()..loadUserSafely(),
         ),
-
         ChangeNotifierProvider(
           create: (_) => FontSizeProvider(),
         ),
-
         ChangeNotifierProvider(
           create: (_) => BotProvider(),
         ),
-
+        // ✅ WalletProvider - مع تحقق آمن
         ChangeNotifierProvider(
           create: (_) {
-            // Firebase غير جاهز عند البداية.
-            // WalletProvider يجب أن يتعامل مع uid فارغ.
-            return WalletProvider(uid: '');
+            try {
+              final user = FirebaseAuth.instance.currentUser;
+              return WalletProvider(uid: user?.uid ?? '');
+            } catch (e) {
+              print('❌ WalletProvider error: $e');
+              return WalletProvider(uid: '');
+            }
           },
         ),
-
         ChangeNotifierProvider(
           create: (_) => CartProvider(),
         ),
-
         BlocProvider(
-          create: (_) {
-            final bloc = AuthBloc();
-            _globalAuthBloc = bloc;
-
-            // لا CheckAuthStatus هنا.
-            // سيبدأ بعد 20 ثانية عند جاهزية Firebase.
-            return bloc;
-          },
+          create: (_) => AuthBloc()..add(CheckAuthStatus()),
         ),
-
-        BlocProvider(
-          create: (_) => ThemeBloc(),
-        ),
-
-        BlocProvider(
-          create: (_) => ChatBloc(),
-        ),
-
-        BlocProvider(
-          create: (_) => DoctorBloc(),
-        ),
-
-        BlocProvider(
-          create: (_) => HomeBloc(),
-        ),
+        BlocProvider(create: (_) => ThemeBloc()),
+        BlocProvider(create: (_) => ChatBloc()),
+        BlocProvider(create: (_) => DoctorBloc()),
       ],
       child: const SehatakApp(),
     ),
-  );
-
-  // تشغيل الخدمات في الخلفية بدون تعطيل runApp.
-  unawaited(
-    _initializeBackendInBackground(),
   );
 }
 
@@ -259,119 +122,71 @@ class SehatakApp extends StatefulWidget {
   State<SehatakApp> createState() => _SehatakAppState();
 }
 
-class _SehatakAppState extends State<SehatakApp>
-    with WidgetsBindingObserver {
+class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
   final CallService _callService = CallService();
-  final NotificationService _notificationService =
-      NotificationService();
-
-  StreamSubscription<RemoteMessage>? _messageSubscription;
-  StreamSubscription<RemoteMessage>? _openedMessageSubscription;
+  final NotificationService _notificationService = NotificationService();
 
   @override
   void initState() {
     super.initState();
-
     WidgetsBinding.instance.addObserver(this);
 
-    // لا نربط FCM قبل Firebase.
-    _waitForBackendAndAttachMessaging();
+    // ✅ الاستماع للإشعارات
+    FirebaseMessaging.onMessage.listen(_handleMessage);
+    FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpened);
 
-    // منع تحذير unused fields في حال كانت الخدمات مطلوبة
-    // لاحقًا لتدفق المكالمات والإشعارات.
-    debugPrint(
-      '📱 Services ready: $_callService / $_notificationService',
-    );
-  }
-
-  Future<void> _waitForBackendAndAttachMessaging() async {
-    while (!_backendReady && mounted) {
-      await Future.delayed(
-        const Duration(milliseconds: 500),
-      );
-    }
-
-    if (!mounted || !_backendReady) return;
-
-    try {
-      _messageSubscription =
-          FirebaseMessaging.onMessage.listen(
-        _handleMessage,
-      );
-
-      _openedMessageSubscription =
-          FirebaseMessaging.onMessageOpenedApp.listen(
-        _handleMessageOpened,
-      );
-
-      debugPrint('✅ FCM listeners attached');
-    } catch (e) {
-      debugPrint(
-        '⚠️ Failed to attach FCM listeners: $e',
-      );
-    }
+    // ✅ الاستماع لإشعارات المكالمات
+    FirebaseMessaging.onMessage.listen((message) {
+      if (message.data['type'] == 'incoming_call') {
+        _callService.handleIncomingCall(context, message);
+      }
+    });
   }
 
   @override
   void dispose() {
-    _messageSubscription?.cancel();
-    _openedMessageSubscription?.cancel();
-
     WidgetsBinding.instance.removeObserver(this);
-
     super.dispose();
   }
 
+  // ✅ معالجة العودة من الخلفية
   @override
-  void didChangeAppLifecycleState(
-    AppLifecycleState state,
-  ) {
+  void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-
-    // لا نلمس Firebase قبل جاهزيته.
-    if (!_backendReady) return;
-
     if (state == AppLifecycleState.resumed) {
-      debugPrint('🔄 App resumed');
+      print('🔄 App resumed from background');
+      if (mounted) {
+        // ✅ إعادة تحميل بيانات المستخدم
+        final userProvider = Provider.of<UserProvider>(context, listen: false);
+        userProvider.loadUserSafely();
 
-      try {
-        _globalUserProvider?.loadUserSafely();
-
+        // ✅ تحديث حالة المستخدم في Firestore
         final user = FirebaseAuth.instance.currentUser;
-
         if (user != null) {
-          unawaited(
-            FirebaseFirestore.instance
-                .collection('users')
-                .doc(user.uid)
-                .update({
-              'isOnline': true,
-              'lastSeen': FieldValue.serverTimestamp(),
-            }).catchError((e) {
-              debugPrint(
-                '⚠️ Failed to update online status: $e',
-              );
-            }),
-          );
+          FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+            'isOnline': true,
+            'lastSeen': FieldValue.serverTimestamp(),
+          });
         }
-      } catch (e) {
-        debugPrint(
-          '⚠️ Resume synchronization failed: $e',
-        );
       }
     }
   }
 
   void _handleMessage(RemoteMessage message) {
-    debugPrint(
-      '📩 New message: ${message.notification?.title}',
+    print('📩 New message: ${message.notification?.title}');
+    _notificationService.showNotification(
+      title: message.notification?.title ?? 'إشعار جديد',
+      body: message.notification?.body ?? '',
+      payload: message.data['chatId'] ?? '',
     );
   }
 
   void _handleMessageOpened(RemoteMessage message) {
-    debugPrint(
-      '📱 Message opened: ${message.data}',
-    );
+    print('📱 Message opened: ${message.data}');
+    // ✅ التنقل إلى الشاشة المناسبة
+    if (message.data['type'] == 'incoming_call') {
+      _callService.handleIncomingCall(context, message);
+    }
   }
 
   @override
@@ -379,52 +194,37 @@ class _SehatakAppState extends State<SehatakApp>
     return BlocBuilder<ThemeBloc, ThemeState>(
       builder: (context, themeState) {
         return Consumer<FontSizeProvider>(
-          builder: (
-            context,
-            fontProvider,
-            child,
-          ) {
+          builder: (context, fontProvider, child) {
             return MaterialApp(
               title: 'صحتك - Sehatak',
               debugShowCheckedModeBanner: false,
-
               locale: const Locale('ar', 'SA'),
-
               theme: ThemeManager.lightTheme,
               darkTheme: ThemeManager.darkTheme,
               themeMode: themeState.themeMode,
-
               localizationsDelegates: const [
                 GlobalMaterialLocalizations.delegate,
                 GlobalWidgetsLocalizations.delegate,
                 GlobalCupertinoLocalizations.delegate,
               ],
-
               supportedLocales: const [
                 Locale('ar', 'SA'),
                 Locale('en', 'US'),
               ],
-
               builder: (context, child) {
                 return MediaQuery(
                   data: MediaQuery.of(context).copyWith(
-                    textScaleFactor:
-                        fontProvider.fontScale,
+                    textScaleFactor: fontProvider.fontScale,
                   ),
                   child: Directionality(
                     textDirection: TextDirection.rtl,
-                    child: child ?? const SizedBox.shrink(),
+                    child: child!,
                   ),
                 );
               },
-
-              // مهم جدًا:
-              // لا Splash مرتبطة بـ Firebase.
-              // الواجهة الرئيسية تظهر فورًا.
-              home: const HomeScreen(),
-
-              onGenerateRoute:
-                  PaymentRoutes.onGenerateRoute,
+              home: const SplashScreen(),
+              onGenerateRoute: PaymentRoutes.onGenerateRoute,
+              navigatorKey: navigatorKey,
             );
           },
         );
@@ -432,3 +232,5 @@ class _SehatakAppState extends State<SehatakApp>
     );
   }
 }
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
