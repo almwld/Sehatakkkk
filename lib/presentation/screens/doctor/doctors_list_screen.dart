@@ -44,7 +44,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<DoctorBloc>().add(LoadDoctors());
+    context.read<DoctorBloc>().add(LoadDoctors()LoadDoctors());
   }
 
   // ✅ بدء محادثة مع الطبيب
@@ -144,7 +144,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                         const SizedBox(height: 16),
                         ElevatedButton(
                           onPressed: () {
-                            context.read<DoctorBloc>().add(LoadDoctors());
+                            context.read<DoctorBloc>().add(LoadDoctors()LoadDoctors());
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
@@ -204,7 +204,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
               ),
               style: TextStyle(color: isDark ? Colors.white : Colors.black87),
               onChanged: (value) {
-                context.read<DoctorBloc>().add(SearchDoctors(query: value));
+                context.read<DoctorBloc>().add(LoadDoctors()SearchDoctors(query: value));
               },
             ),
           ),
@@ -213,7 +213,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
               icon: Icon(Icons.clear, color: isDark ? Colors.grey.shade400 : Colors.grey.shade500),
               onPressed: () {
                 _searchController.clear();
-                context.read<DoctorBloc>().add(SearchDoctors(query: ''));
+                context.read<DoctorBloc>().add(LoadDoctors()SearchDoctors(query: ''));
               },
             ),
         ],
@@ -237,7 +237,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
           return GestureDetector(
             onTap: () {
               setState(() => _selectedSpecialty = specialty);
-              context.read<DoctorBloc>().add(
+              context.read<DoctorBloc>().add(LoadDoctors()
                 // DoctorEventFilter(specialty: specialty),
               );
             },

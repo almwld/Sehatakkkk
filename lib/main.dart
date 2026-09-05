@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -18,16 +17,13 @@ import 'core/themes/theme_manager.dart';
 import 'core/services/cache_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/call_service.dart';
-import 'core/models/call_model.dart';
 import 'core/services/preload_service.dart';
 import 'core/routes/payment_routes.dart';
 import 'presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'presentation/bloc/theme_bloc/theme_bloc.dart';
 import 'bloc/chat/chat_bloc.dart';
-import 'bloc/messages/messages_bloc.dart';
-import 'bloc/doctor_bloc/doctor_bloc.dart';
+import 'presentation/bloc/doctor_bloc/doctor_bloc.dart';
 import 'presentation/screens/splash_screen.dart';
-import 'presentation/screens/chat/incoming_call_screen.dart';
 import 'presentation/screens/wallet/wallet_screen.dart';
 
 // ✅ معالج الخلفية للإشعارات
@@ -40,13 +36,11 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ✅ تحديد اتجاه الشاشة
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
-  // ✅ تهيئة Firebase
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -56,7 +50,6 @@ void main() async {
     print('❌ Firebase initialization error: $e');
   }
 
-  // ✅ تهيئة FCM
   try {
     final fcm = FirebaseMessaging.instance;
     await fcm.requestPermission(
@@ -73,19 +66,13 @@ void main() async {
     print('❌ FCM initialization error: $e');
   }
 
-  // ✅ تهيئة الكاش
   await CacheService.init();
 
-  // ✅ تهيئة الإشعارات
-  
-
-  // ✅ تحميل البيانات الأساسية مسبقاً
   await PreloadService().preloadEssentialData();
 
   runApp(
     MultiProvider(
       providers: [
-        // ✅ UserProvider - باستخدام loadUserSafely
         ChangeNotifierProvider(
           create: (_) => UserProvider()..loadUserSafely(),
         ),
@@ -95,7 +82,6 @@ void main() async {
         ChangeNotifierProvider(
           create: (_) => BotProvider(),
         ),
-        // ✅ WalletProvider - مع تحقق آمن
         ChangeNotifierProvider(
           create: (_) {
             try {
@@ -115,7 +101,6 @@ void main() async {
         ),
         BlocProvider(create: (_) => ThemeBloc()),
         BlocProvider(create: (_) => ChatBloc()),
-        BlocProvider(create: (_) => MessagesBloc()),
         BlocProvider(create: (_) => DoctorBloc()),
       ],
       child: const SehatakApp(),
@@ -131,107 +116,40 @@ class SehatakApp extends StatefulWidget {
 }
 
 class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
-  final NotificationService _notificationService =
-      NotificationService();
-
-  StreamSubscription<List<CallModel>>?
-      _incomingCallsSubscription;
-
-  // String? _visibleIncomingCallId;
+  final CallService _callService = CallService();
+  final NotificationService _notificationService = NotificationService();
 
   @override
   void initState() {
     super.initState();
-
     WidgetsBinding.instance.addObserver(this);
 
-    _initializeNotifications();
-    _listenForIncomingCalls();
+    FirebaseMessaging.onMessage.listen(_handleMessage);
+    FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpened);
 
-    FirebaseMessaging.onMessageOpenedApp.listen(
-      _handleMessageOpened,
-    );
-  }
-
-  Future<void> _initializeNotifications() async {
-    try {
-      await _notificationService.init();
-    } catch (e) {
-      debugPrint(
-        '⚠️ Notification service init failed: $e',
-      );
-    }
-  }
-
-  void _listenForIncomingCalls() {
-    _incomingCallsSubscription =
-        // CallService().streamIncomingCalls() - not implemented {
-        if (!mounted || calls.isEmpty) return;
-
-        final call = calls.first;
-
-        if (_visibleIncomingCallId != null) {
-          return;
-        }
-
-        _showIncomingCall(call);
-      },
-    );
-  }
-
-  Future<void> _showIncomingCall(
-    CallModel call,
-  ) async {
-    if (!mounted) return;
-
-    final navigator = navigatorKey.currentState;
-
-    if (navigator == null) return;
-
-    if (_visibleIncomingCallId == call.id) {
-      return;
-    }
-
-    _visibleIncomingCallId = call.id;
-
-    await navigator.push(
-      MaterialPageRoute(
-        builder: (_) => IncomingCallScreen(
-          callId: call.id,
-          chatId: call.chatId,
-          callerId: call.callerId,
-          callerName: call.callerName,
-          isVideo: call.isVideoCall,
-        ),
-      ),
-    );
-
-    _visibleIncomingCallId = null;
+    FirebaseMessaging.onMessage.listen((message) {
+      if (message.data['type'] == 'incoming_call') {
+        _callService.handleIncomingCall(context, message);
+      }
+    });
   }
 
   @override
   void dispose() {
-    _incomingCallsSubscription?.cancel();
-    // _incomingCallsSubscription removed
-
-    _notificationService.dispose();
-
     WidgetsBinding.instance.removeObserver(this);
+    _notificationService.dispose();
     super.dispose();
   }
 
-  // ✅ معالجة العودة من الخلفية
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed) {
       print('🔄 App resumed from background');
       if (mounted) {
-        // ✅ إعادة تحميل بيانات المستخدم
         final userProvider = Provider.of<UserProvider>(context, listen: false);
         userProvider.loadUserSafely();
 
-        // ✅ تحديث حالة المستخدم في Firestore
         final user = FirebaseAuth.instance.currentUser;
         if (user != null) {
           FirebaseFirestore.instance.collection('users').doc(user.uid).update({
@@ -243,37 +161,14 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _handleMessageOpened(
-    RemoteMessage message,
-  ) async {
-    debugPrint(
-      '📱 FCM opened: ${message.data}',
-    );
+  void _handleMessage(RemoteMessage message) {
+    print('📩 New message: ${message.notification?.title}');
+  }
 
-    if (message.data['type'] != 'incoming_call') {
-      return;
-    }
-
-    final callId =
-        message.data['callId']?.toString();
-
-    if (callId == null || callId.trim().isEmpty) {
-      return;
-    }
-
-    try {
-      final call =
-          await CallService()
-              .streamCall(callId)
-              .first;
-
-      if (call != null && mounted) {
-        await _showIncomingCall(call);
-      }
-    } catch (e) {
-      debugPrint(
-        '⚠️ Failed to open incoming call: $e',
-      );
+  void _handleMessageOpened(RemoteMessage message) {
+    print('📱 Message opened: ${message.data}');
+    if (message.data['type'] == 'incoming_call') {
+      _callService.handleIncomingCall(context, message);
     }
   }
 
@@ -312,7 +207,6 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
               },
               home: const SplashScreen(),
               onGenerateRoute: PaymentRoutes.onGenerateRoute,
-              navigatorKey: navigatorKey,
             );
           },
         );
@@ -320,5 +214,3 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
     );
   }
 }
-
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();

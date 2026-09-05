@@ -455,9 +455,9 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
           }
           return ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            itemCount: calls.length,
+            itemCount: 0,
             itemBuilder: (context, index) {
-              final call = calls[index];
+              // final call = calls[index];
               return _buildCallCard(call, isDark);
             },
           );
