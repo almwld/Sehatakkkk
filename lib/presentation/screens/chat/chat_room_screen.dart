@@ -81,7 +81,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 .map((e) => e.key)
                 .where((id) => id != _auth.currentUser?.uid)
                 .toList();
-            setState(() => _typingUsers = users);
+            setState(() { _typingUsers = List<String>.from(users); });
           }
         });
   }
@@ -333,7 +333,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
             if (_replyToMessage != null)
               _buildReplyBanner(),
             if (_typingUsers.isNotEmpty)
-              const TypingIndicator(),
+              TypingIndicator(name: _typingUsers.isNotEmpty ? _typingUsers.first : ""),
             Expanded(
               child: BlocBuilder<MessagesBloc, MessagesState>(
                 builder: (context, state) {

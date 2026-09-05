@@ -41,7 +41,7 @@ class AppSearchDelegate extends SearchDelegate<String> {
                 context,
                 MaterialPageRoute(
                   builder: (_) => DoctorDetailsScreen(
-                    doctor: DoctorModel(id: '1', name: 'د. أحمد', specialty: 'طبيب عام'),
+                    doctorId: DoctorModel(id: '1', name: 'د. أحمد', specialty: 'طبيب عام'),
                   ),
                 ),
               );

@@ -57,7 +57,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
             .get();
         
         if (doc.exists) {
-          _doctor = DoctorModel.fromFirestore(doc.id, doc.data());
+          _doctor = DoctorModel.fromFirestore(doc.id, doc.data() as Map<String, dynamic>);
         }
       }
       setState(() => _isLoading = false);
@@ -77,7 +77,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
           .doc(user.uid)
           .get();
       
-      final favorites = List<String>.from(doc.data()?['favoriteDoctors'] ?? []);
+      final favorites = List<String>.from(doc.data() as Map<String, dynamic>?['favoriteDoctors'] ?? []);
       setState(() => _isFavorite = favorites.contains(widget.doctorId));
     } catch (e) {
       print('⚠️ Error checking favorite: $e');
@@ -94,7 +94,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
 
       final userRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
       final doc = await userRef.get();
-      final favorites = List<String>.from(doc.data()?['favoriteDoctors'] ?? []);
+      final favorites = List<String>.from(doc.data() as Map<String, dynamic>?['favoriteDoctors'] ?? []);
 
       if (_isFavorite) {
         await userRef.update({
