@@ -1,6 +1,6 @@
 // ============================================================
 // 📁 lib/presentation/screens/appointments/appointments_screen.dart
-// 📋 شاشة قائمة المواعيد
+// 📋 شاشة قائمة المواعيد - بيانات فعلية من Firestore
 // ============================================================
 
 import 'package:flutter/material.dart';
@@ -22,7 +22,21 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   bool _isLoading = true;
   List<Map<String, dynamic>> _appointments = [];
-  String _filter = 'all'; // all, pending, confirmed, completed, cancelled
+  String _filter = 'all';
+
+  final Map<String, String> _statusLabels = {
+    'pending': 'قيد الانتظار',
+    'confirmed': 'مؤكد',
+    'completed': 'مكتمل',
+    'cancelled': 'ملغي',
+  };
+
+  final Map<String, Color> _statusColors = {
+    'pending': Colors.orange,
+    'confirmed': Colors.green,
+    'completed': Colors.blue,
+    'cancelled': Colors.red,
+  };
 
   @override
   void initState() {
@@ -52,9 +66,10 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
             'id': doc.id,
             'doctorName': data['doctorName'] ?? 'طبيب',
             'doctorId': data['doctorId'] ?? '',
-            'date': data['date']?.toDate() ?? DateTime.now(),
+            'date': (data['date'] as Timestamp?)?.toDate() ?? DateTime.now(),
+            'time': data['time'] ?? '--:--',
             'status': data['status'] ?? 'pending',
-            'type': data['type'] ?? 'consultation',
+            'createdAt': (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
           };
         }).toList();
         _isLoading = false;
@@ -92,7 +107,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                // ✅ فلتر المواعيد
+                // شريط الفلتر
                 _buildFilterBar(isDark),
                 Expanded(
                   child: _filteredAppointments.isEmpty
@@ -171,21 +186,11 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
   }
 
   Widget _buildAppointmentCard(Map<String, dynamic> appointment, bool isDark) {
-    final statusColors = {
-      'pending': Colors.orange,
-      'confirmed': Colors.green,
-      'completed': Colors.blue,
-      'cancelled': Colors.red,
-    };
-    final statusLabels = {
-      'pending': 'قيد الانتظار',
-      'confirmed': 'مؤكد',
-      'completed': 'مكتمل',
-      'cancelled': 'ملغي',
-    };
     final status = appointment['status'] as String;
-    final color = statusColors[status] ?? Colors.grey;
-    final label = statusLabels[status] ?? status;
+    final color = _statusColors[status] ?? Colors.grey;
+    final label = _statusLabels[status] ?? status;
+    final date = appointment['date'] as DateTime;
+    final time = appointment['time'] as String;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -234,12 +239,28 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  '${appointment['date'].day}/${appointment['date'].month}/${appointment['date'].year}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  ),
+                Row(
+                  children: [
+                    Icon(Icons.calendar_month, size: 14, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${date.day}/${date.month}/${date.year}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Icon(Icons.access_time, size: 14, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                    const SizedBox(width: 4),
+                    Text(
+                      time,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

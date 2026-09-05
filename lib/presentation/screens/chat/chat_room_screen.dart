@@ -155,6 +155,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       ),
     );
   }
+          doctorName: widget.otherUserName,
+          doctorId: widget.otherUserId,
+          isVideo: isVideo,
+        ),
+      ),
+    );
+  }
 
   void _showContactInfo() {
     ToastService.showInfo('👤 معلومات جهة الاتصال');
@@ -695,6 +702,45 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   // ============================================================
   // 💾 حفظ رسالة النظام (للمكالمات)
   // ============================================================
+      });
+
+      await _firestore.collection('chats').doc(widget.chatId).update({
+        'lastMessage': message,
+        'lastMessageTime': FieldValue.serverTimestamp(),
+        'lastMessageSenderId': user.uid,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print('❌ فشل حفظ رسالة النظام: $e');
+    }
+  }
+
+  // ============================================================
+  // 💾 حفظ رسالة النظام (للمكالمات)
+  // ============================================================
+  Future<void> _saveCallMessage(bool isVideo) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return;
+
+      final message = isVideo ? '📹 مكالمة فيديو' : '📞 مكالمة صوتية';
+
+      await _firestore
+          .collection('chats')
+          .doc(widget.chatId)
+          .collection('messages')
+          .add({
+        'chatId': widget.chatId,
+        'senderId': user.uid,
+        'senderName': user.displayName ?? 'مستخدم',
+        'senderPhotoUrl': user.photoURL,
+        'text': message,
+        'timestamp': FieldValue.serverTimestamp(),
+        'type': 'system_call',
+        'callType': isVideo ? 'video' : 'audio',
+        'isRead': false,
+        'isDelivered': false,
+        'reactions': {},
       });
 
       await _firestore.collection('chats').doc(widget.chatId).update({
