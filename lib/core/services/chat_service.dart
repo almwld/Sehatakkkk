@@ -279,7 +279,7 @@ class ChatService {
         .collection('messages')
         .doc(messageId);
     final doc = await messageRef.get();
-    if (doc.exists && doc.data() as Map<String, dynamic>?['senderId'] == userId) {
+    if (doc.exists && (doc.data() as Map<String, dynamic>?)?['senderId'] == userId) {
       await messageRef.update({
         'isDeleted': true,
         'text': 'تم حذف هذه الرسالة',

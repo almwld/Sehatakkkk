@@ -158,7 +158,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                 }
 
                 if (state is DoctorLoaded) {
-                  final doctors = state.displayDoctors;
+                  final doctors = state.doctors;
                   if (doctors.isEmpty) {
                     return _buildEmptyState(isDark);
                   }

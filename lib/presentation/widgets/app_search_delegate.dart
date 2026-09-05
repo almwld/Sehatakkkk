@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/models/doctor_model.dart';
-import '../screens/doctor/doctor_details_screen.dart';
+import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
 
 class AppSearchDelegate extends SearchDelegate<String> {
   @override
@@ -31,18 +30,18 @@ class AppSearchDelegate extends SearchDelegate<String> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.search, size: 60, color: Colors.grey),
-          const SizedBox(height: 16),
-          Text('نتائج البحث عن: $query'),
+          const Text('نتائج البحث عن:'),
+          Text(
+            query,
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => DoctorDetailsScreen(
-                    doctorId: "id: '1', name: 'د. أحمد', specialty: 'طبيب عام'),
-                  ),
+                  builder: (_) => DoctorDetailsScreen(doctorId: '1'),
                 ),
               );
             },
@@ -55,17 +54,8 @@ class AppSearchDelegate extends SearchDelegate<String> {
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.search, size: 60, color: Colors.grey),
-          const SizedBox(height: 16),
-          const Text('ابحث عن أطباء، محادثات، أو ملفات'),
-          const SizedBox(height: 8),
-          Text('ابحث عن: $query', style: const TextStyle(color: Colors.grey)),
-        ],
-      ),
+    return const Center(
+      child: Text('ابحث عن أطباء، خدمات، أو أدوية'),
     );
   }
 }

@@ -1093,7 +1093,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       itemBuilder: (context, index) {
         final doctor = _topDoctors[index];
         return GestureDetector(
-          onTap: () => _goTo(context, DoctorDetailsScreen(doctorId: doctor[.id.])),
+          onTap: () => _goTo(context, DoctorDetailsScreen(doctorId: doctor['id'])),
           child: Container(
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1A2540) : Colors.white,
@@ -1143,7 +1143,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () => _goTo(context, DoctorDetailsScreen(doctorId: doctor[.id.])),
+                          onPressed: () => _goTo(context, DoctorDetailsScreen(doctorId: doctor['id'])),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
