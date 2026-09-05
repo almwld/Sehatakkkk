@@ -1,8 +1,3 @@
-// ============================================================
-// 📁 lib/presentation/screens/chat/chat_room_screen.dart
-// 💬 شاشة غرفة المحادثة
-// ============================================================
-
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -135,32 +130,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   }
 
   void _startCall(bool isVideo) {
-    _saveCallMessage(isVideo);
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => CallScreen(
-          chatId: 'call_${DateTime.now().millisecondsSinceEpoch}',
-          doctorName: widget.otherUserName,
-          doctorId: widget.otherUserId,
-          isVideo: isVideo,
-        ),
-      ),
-    );
-  }
-          doctorName: widget.otherUserName,
-          doctorId: widget.otherUserId,
-          isVideo: isVideo,
-        ),
-      ),
-    );
-  }
-          doctorName: widget.otherUserName,
-          doctorId: widget.otherUserId,
-          isVideo: isVideo,
-        ),
-      ),
-    );
+    ToastService.showInfo(isVideo ? '📹 جاري بدء مكالمة فيديو...' : '📞 جاري بدء مكالمة صوتية...');
   }
 
   void _showContactInfo() {
@@ -698,97 +668,3 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     );
   }
 }
-
-  // ============================================================
-  // 💾 حفظ رسالة النظام (للمكالمات)
-  // ============================================================
-      });
-
-      await _firestore.collection('chats').doc(widget.chatId).update({
-        'lastMessage': message,
-        'lastMessageTime': FieldValue.serverTimestamp(),
-        'lastMessageSenderId': user.uid,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-    } catch (e) {
-      print('❌ فشل حفظ رسالة النظام: $e');
-    }
-  }
-
-  // ============================================================
-  // 💾 حفظ رسالة النظام (للمكالمات)
-  // ============================================================
-  Future<void> _saveCallMessage(bool isVideo) async {
-    try {
-      final user = _auth.currentUser;
-      if (user == null) return;
-
-      final message = isVideo ? '📹 مكالمة فيديو' : '📞 مكالمة صوتية';
-
-      await _firestore
-          .collection('chats')
-          .doc(widget.chatId)
-          .collection('messages')
-          .add({
-        'chatId': widget.chatId,
-        'senderId': user.uid,
-        'senderName': user.displayName ?? 'مستخدم',
-        'senderPhotoUrl': user.photoURL,
-        'text': message,
-        'timestamp': FieldValue.serverTimestamp(),
-        'type': 'system_call',
-        'callType': isVideo ? 'video' : 'audio',
-        'isRead': false,
-        'isDelivered': false,
-        'reactions': {},
-      });
-
-      await _firestore.collection('chats').doc(widget.chatId).update({
-        'lastMessage': message,
-        'lastMessageTime': FieldValue.serverTimestamp(),
-        'lastMessageSenderId': user.uid,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-    } catch (e) {
-      print('❌ فشل حفظ رسالة النظام: $e');
-    }
-  }
-
-  // ============================================================
-  // 💾 حفظ رسالة النظام (للمكالمات)
-  // ============================================================
-  Future<void> _saveCallMessage(bool isVideo) async {
-    try {
-      final user = _auth.currentUser;
-      if (user == null) return;
-
-      final message = isVideo ? '📹 مكالمة فيديو' : '📞 مكالمة صوتية';
-
-      await _firestore
-          .collection('chats')
-          .doc(widget.chatId)
-          .collection('messages')
-          .add({
-        'chatId': widget.chatId,
-        'senderId': user.uid,
-        'senderName': user.displayName ?? 'مستخدم',
-        'senderPhotoUrl': user.photoURL,
-        'text': message,
-        'timestamp': FieldValue.serverTimestamp(),
-        'type': 'system_call',
-        'callType': isVideo ? 'video' : 'audio',
-        'isRead': false,
-        'isDelivered': false,
-        'reactions': {},
-      });
-
-      await _firestore.collection('chats').doc(widget.chatId).update({
-        'lastMessage': message,
-        'lastMessageTime': FieldValue.serverTimestamp(),
-        'lastMessageSenderId': user.uid,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-    } catch (e) {
-      print('❌ فشل حفظ رسالة النظام: $e');
-    }
-  }

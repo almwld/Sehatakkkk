@@ -513,7 +513,7 @@ class _BookingScreenState extends State<BookingScreen> {
                     : Colors.red.withOpacity(0.3),
             width: isSelected ? 2 : 1,
           ),
-          color: isAvailable
+          //
               ? (isSelected ? AppColors.primary.withOpacity(0.05) : null)
               : Colors.grey.withOpacity(0.1),
         ),
@@ -525,7 +525,7 @@ class _BookingScreenState extends State<BookingScreen> {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isAvailable
+          //
                     ? (isSelected ? AppColors.primary : (isDark ? Colors.white : Colors.black87))
                     : Colors.grey,
               ),
@@ -535,7 +535,7 @@ class _BookingScreenState extends State<BookingScreen> {
               slot.date,
               style: TextStyle(
                 fontSize: 10,
-                color: isAvailable
+          //
                     ? (isDark ? Colors.grey[400] : Colors.grey[600])
                     : Colors.grey,
               ),
