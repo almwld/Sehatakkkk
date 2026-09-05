@@ -336,6 +336,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       final userDoc = await userRef.get();
 
       if (!userDoc.exists) {
+        // ✅ إنشاء مستخدم جديد في Firestore
         await userRef.set({
           'uid': user.uid,
           'name': user.displayName ?? googleUser.displayName ?? 'مستخدم',
@@ -355,33 +356,54 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
           'createdAt': FieldValue.serverTimestamp(),
           'updatedAt': FieldValue.serverTimestamp(),
         });
+        
+        // ✅ تحديث data المحلية بعد الإنشاء
+        final newUserDoc = await userRef.get();
+        final role = newUserDoc.data()?['role']?.toString() ?? 'user';
+        
+        _hideLoading();
+        await _showSuccessAnimation();
+
+        if (!mounted) return;
+
+        if (role == 'admin' || role == 'superAdmin') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const PlatformDashboard(),
+            ),
+          );
+        } else {
+          _navigateToHome();
+        }
+        return;
       } else {
+        // ✅ تحديث بيانات المستخدم الحالي
         await userRef.set({
           'name': user.displayName ?? googleUser.displayName ?? 'مستخدم',
           'email': user.email ?? googleUser.email,
           'photoUrl': user.photoURL ?? googleUser.photoUrl ?? '',
           'updatedAt': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
-      }
+        
+        final role = userDoc.data()?['role']?.toString() ?? 'user';
+        
+        _hideLoading();
+        await _showSuccessAnimation();
 
-      _hideLoading();
-      await _showSuccessAnimation();
+        if (!mounted) return;
 
-      if (!mounted) return;
-
-      final role = userDoc.exists
-          ? (userDoc.data()?['role']?.toString() ?? 'user')
-          : 'user';
-
-      if (role == 'admin' || role == 'superAdmin') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const PlatformDashboard(),
-          ),
-        );
-      } else {
-        _navigateToHome();
+        if (role == 'admin' || role == 'superAdmin') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const PlatformDashboard(),
+            ),
+          );
+        } else {
+          _navigateToHome();
+        }
+        return;
       }
     } on FirebaseAuthException catch (e) {
       _hideLoading();
@@ -403,9 +425,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       print('❌ Google Sign-In error: $e');
       _showMessage('تعذر تسجيل الدخول عبر Google', true);
     }
-  }
-
-  Future<void> _login() async {
+  }Future<void> _login() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       _showMessage('يرجى إدخال البريد الإلكتروني وكلمة المرور', true);
       return;
