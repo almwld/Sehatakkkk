@@ -1,3 +1,8 @@
+// ============================================================
+// 📁 lib/presentation/screens/chat/chat_room_screen.dart
+// 💬 شاشة غرفة المحادثة - النسخة المتكاملة
+// ============================================================
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,6 +20,8 @@ import 'package:sehatak/presentation/screens/chat/widgets/message_bubble.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/chat_input_bar.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/typing_indicator.dart';
 import 'package:sehatak/core/services/location_service.dart';
+import 'package:sehatak/presentation/screens/call/call_screen.dart';
+import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
 
 class ChatRoomScreen extends StatefulWidget {
   final String chatId;
@@ -129,19 +136,91 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     });
   }
 
+  // ============================================================
+  // 📞 المكالمات - مع حفظ رسائل النظام
+  // ============================================================
+  Future<void> _saveCallMessage(bool isVideo) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return;
+
+      final message = isVideo ? '📹 مكالمة فيديو' : '📞 مكالمة صوتية';
+
+      await _firestore
+          .collection('chats')
+          .doc(widget.chatId)
+          .collection('messages')
+          .add({
+        'chatId': widget.chatId,
+        'senderId': user.uid,
+        'senderName': user.displayName ?? 'مستخدم',
+        'senderPhotoUrl': user.photoURL,
+        'text': message,
+        'timestamp': FieldValue.serverTimestamp(),
+        'type': 'system_call',
+        'callType': isVideo ? 'video' : 'audio',
+        'isRead': false,
+        'isDelivered': false,
+        'reactions': {},
+      });
+
+      await _firestore.collection('chats').doc(widget.chatId).update({
+        'lastMessage': message,
+        'lastMessageTime': FieldValue.serverTimestamp(),
+        'lastMessageSenderId': user.uid,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print('❌ فشل حفظ رسالة النظام: $e');
+    }
+  }
+
   void _startCall(bool isVideo) {
-    ToastService.showInfo(isVideo ? '📹 جاري بدء مكالمة فيديو...' : '📞 جاري بدء مكالمة صوتية...');
+    _saveCallMessage(isVideo);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CallScreen(
+          chatId: 'call_${DateTime.now().millisecondsSinceEpoch}',
+          doctorName: widget.otherUserName,
+          doctorId: widget.otherUserId,
+          isVideo: isVideo,
+        ),
+      ),
+    );
   }
 
+  // ============================================================
+  // 👤 معلومات جهة الاتصال
+  // ============================================================
   void _showContactInfo() {
-    ToastService.showInfo('👤 معلومات جهة الاتصال');
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PatientProfile(),
+      ),
+    );
   }
 
+  // ============================================================
+  // 🔍 البحث في المحادثة
+  // ============================================================
   void _searchInChat() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('🔍 بحث في المحادثة'),
+        title: Row(
+          children: [
+            Image.asset(
+              'assets/images/icons/search/Search_button.png',
+              width: 24,
+              height: 24,
+              errorBuilder: (_, __, ___) => const Icon(Icons.search),
+            ),
+            const SizedBox(width: 8),
+            const Text('بحث في المحادثة'),
+          ],
+        ),
         content: TextField(
           decoration: const InputDecoration(
             hintText: 'اكتب كلمة البحث...',
@@ -163,6 +242,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     );
   }
 
+  // ============================================================
+  // 🔇 كتم الإشعارات
+  // ============================================================
   void _toggleMute() {
     final newMute = !_isMuted;
     _firestore.collection('chats').doc(widget.chatId).update({
@@ -174,11 +256,20 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     );
   }
 
+  // ============================================================
+  // 🗑️ مسح المحادثة
+  // ============================================================
   void _clearChat() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('🗑️ مسح المحادثة'),
+        title: Row(
+          children: [
+            const Icon(Icons.delete_sweep, color: Colors.red),
+            const SizedBox(width: 8),
+            const Text('🗑️ مسح المحادثة'),
+          ],
+        ),
         content: const Text('هل أنت متأكد من مسح جميع رسائل هذه المحادثة؟'),
         actions: [
           TextButton(
@@ -210,6 +301,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     );
   }
 
+  // ============================================================
+  // 📍 مشاركة الموقع
+  // ============================================================
   Future<void> _shareLocation() async {
     try {
       final position = await _locationService.getCurrentLocation();
@@ -260,6 +354,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     }
   }
 
+  // ============================================================
+  // 📷 إرسال الصور
+  // ============================================================
   Future<void> _sendImage() async {
     try {
       final image = await _picker.pickImage(
@@ -311,6 +408,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     }
   }
 
+  // ============================================================
+  // 🏗️ الـ Build الرئيسي
+  // ============================================================
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -406,6 +506,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     );
   }
 
+  // ============================================================
+  // 📱 AppBar مع الأيقونات المحلية
+  // ============================================================
   PreferredSizeWidget _buildAppBar(bool isDark) {
     return AppBar(
       backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
@@ -489,18 +592,33 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         ),
       ),
       actions: [
+        // 📞 مكالمة صوتية
         if (!widget.isGroup)
           IconButton(
-            icon: const Icon(Icons.call),
+            icon: Image.asset(
+              'assets/images/chat/phone_call.png',
+              width: 24,
+              height: 24,
+              color: isDark ? Colors.white : Colors.black87,
+              errorBuilder: (_, __, ___) => const Icon(Icons.call),
+            ),
             onPressed: () => _startCall(false),
             tooltip: 'مكالمة صوتية',
           ),
+        // 📹 مكالمة فيديو
         if (!widget.isGroup)
           IconButton(
-            icon: const Icon(Icons.videocam),
+            icon: Image.asset(
+              'assets/images/chat/video_call.png',
+              width: 24,
+              height: 24,
+              color: isDark ? Colors.white : Colors.black87,
+              errorBuilder: (_, __, ___) => const Icon(Icons.videocam),
+            ),
             onPressed: () => _startCall(true),
             tooltip: 'مكالمة فيديو',
           ),
+        // ⋮ القائمة
         PopupMenuButton<String>(
           icon: Icon(Icons.more_vert, color: isDark ? Colors.white : Colors.black87),
           onSelected: (value) {
@@ -553,6 +671,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     );
   }
 
+  // ============================================================
+  // 💬 شريط الرد
+  // ============================================================
   Widget _buildReplyBanner() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -608,15 +729,24 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     );
   }
 
+  // ============================================================
+  // 📭 حالة فارغة
+  // ============================================================
   Widget _buildEmptyState(bool isDark) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.chat_bubble_outline,
-            size: 60,
+          Image.asset(
+            'assets/images/ui/chat_bubble.png',
+            width: 60,
+            height: 60,
             color: isDark ? Colors.grey[600] : Colors.grey[400],
+            errorBuilder: (_, __, ___) => Icon(
+              Icons.chat_bubble_outline,
+              size: 60,
+              color: isDark ? Colors.grey[600] : Colors.grey[400],
+            ),
           ),
           const SizedBox(height: 16),
           Text(
@@ -639,6 +769,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     );
   }
 
+  // ============================================================
+  // ❌ حالة خطأ
+  // ============================================================
   Widget _buildErrorState(bool isDark) {
     return Center(
       child: Column(
