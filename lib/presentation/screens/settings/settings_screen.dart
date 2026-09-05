@@ -97,12 +97,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('biometric_enabled', true);
-
         ToastService.showSuccess('✅ تم تفعيل تسجيل الدخول بالبصمة بنجاح');
       } else {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('biometric_enabled', false);
-
         ToastService.showError('❌ تم إلغاء تفعيل تسجيل الدخول بالبصمة');
       }
 
@@ -114,6 +112,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ToastService.showError('❌ حدث خطأ: $e');
       await _loadBiometricPrefs();
     }
+  }
+
+  // ✅ دالة مساعدة لعرض الأيقونات المحلية
+  Widget _buildLocalIcon(String path, {double size = 24, Color? color}) {
+    return Image.asset(
+      path,
+      width: size,
+      height: size,
+      color: color,
+      errorBuilder: (_, __, ___) => Icon(
+        Icons.circle,
+        color: color ?? AppColors.primary,
+        size: size,
+      ),
+    );
   }
 
   @override
@@ -131,7 +144,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded),
+            icon: _buildLocalIcon('assets/images/ui/settings_gear.png', color: Colors.white),
             onPressed: () {
               setState(() {});
               _loadThemeMode();
@@ -172,7 +185,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   subtitle: 'متابعة إعدادات النظام',
                   value: _isSystemMode,
                   onChanged: (value) {
-                    // ✅ تفعيل الوضع التلقائي
                     setState(() {
                       _isSystemMode = value;
                       _isDarkMode = false;
@@ -186,7 +198,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 16),
 
-          // ✅ قسم البصمة
+          // ✅ قسم الأمان
           if (_isBiometricSupported)
             Column(
               children: [
@@ -240,11 +252,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           color: Colors.blue.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: Icon(
-                          Icons.text_fields,
-                          color: Colors.blue,
-                          size: 24,
-                        ),
+                        child: _buildLocalIcon('assets/images/ui/font_size.png', size: 24),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -356,7 +364,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               children: [
                 _buildListTile(
-                  icon: Icons.person_rounded,
+                  icon: 'assets/images/ui/user_profile.png',
                   title: 'الملف الشخصي',
                   subtitle: 'تعديل بياناتك الشخصية',
                   onTap: () {
@@ -369,7 +377,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 _buildDivider(isDark),
                 _buildListTile(
-                  icon: Icons.lock_rounded,
+                  icon: 'assets/images/ui/lock.png',
                   title: 'تغيير كلمة المرور',
                   subtitle: 'تحديث كلمة المرور الخاصة بك',
                   onTap: () {
@@ -382,7 +390,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 _buildDivider(isDark),
                 _buildListTile(
-                  icon: Icons.notifications_rounded,
+                  icon: 'assets/images/ui/notifications.png',
                   title: 'الإشعارات',
                   subtitle: 'إدارة إعدادات الإشعارات',
                   onTap: () {
@@ -406,7 +414,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               children: [
                 _buildListTile(
-                  icon: Icons.language_rounded,
+                  icon: 'assets/images/ui/language.png',
                   title: 'اللغة',
                   subtitle: 'تغيير لغة التطبيق',
                   onTap: () {
@@ -419,7 +427,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 _buildDivider(isDark),
                 _buildListTile(
-                  icon: Icons.help_outline_rounded,
+                  icon: 'assets/images/ui/help_center.png',
                   title: 'المساعدة والدعم',
                   subtitle: 'الأسئلة الشائعة والدعم الفني',
                   onTap: () {
@@ -432,7 +440,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 _buildDivider(isDark),
                 _buildListTile(
-                  icon: Icons.privacy_tip_rounded,
+                  icon: 'assets/images/ui/privacy.png',
                   title: 'الخصوصية',
                   subtitle: 'سياسة الخصوصية والأمان',
                   onTap: () {
@@ -445,7 +453,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 _buildDivider(isDark),
                 _buildListTile(
-                  icon: Icons.info_outline_rounded,
+                  icon: 'assets/images/ui/about_app.png',
                   title: 'عن التطبيق',
                   subtitle: 'الإصدار 1.1.0',
                   onTap: () {
@@ -465,7 +473,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildCard(
             isDark: isDark,
             child: ListTile(
-              leading: const Icon(Icons.logout_rounded, color: Colors.red),
+              leading: _buildLocalIcon('assets/images/ui/logout.png', color: Colors.red),
               title: const Text(
                 'تسجيل الخروج',
                 style: TextStyle(color: Colors.red),
@@ -588,8 +596,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  // ✅ دالة buildListTile المعدلة - تدعم الأيقونات المحلية والـ Material
   Widget _buildListTile({
-    required IconData icon,
+    required dynamic icon,
     required String title,
     required String subtitle,
     required VoidCallback onTap,
@@ -597,7 +606,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-      leading: Icon(icon, color: AppColors.primary),
+      leading: icon is String
+          ? Image.asset(
+              icon,
+              width: 24,
+              height: 24,
+              color: AppColors.primary,
+              errorBuilder: (_, __, ___) => Icon(
+                Icons.circle,
+                color: AppColors.primary,
+                size: 24,
+              ),
+            )
+          : Icon(icon as IconData, color: AppColors.primary),
       title: Text(
         title,
         style: TextStyle(
@@ -624,7 +645,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
-        title: Text('تسجيل الخروج'),
+        title: const Text('تسجيل الخروج'),
         content: const Text('هل أنت متأكد من رغبتك في تسجيل الخروج؟'),
         actions: [
           TextButton(
