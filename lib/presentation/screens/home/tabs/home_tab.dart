@@ -485,16 +485,16 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   children: [
                     ClipRRect(
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
-                      child: AppImage(imageUrl: doctor.photoUrl ?? ImageKit.doctor1, height: 90, width: double.infinity, fit: BoxFit.cover),
+                      child: AppImage(imageUrl: doctor["photoUrl"] ?? ImageKit.doctor1, height: 90, width: double.infinity, fit: BoxFit.cover),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(8),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(doctor.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: isDark ? Colors.white : Colors.black87), maxLines: 1, overflow: TextOverflow.ellipsis),
+                          Text(doctor["name"], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: isDark ? Colors.white : Colors.black87), maxLines: 1, overflow: TextOverflow.ellipsis),
                           const SizedBox(height: 2),
-                          Text(doctor.specialty, style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[400] : Colors.grey[600]), maxLines: 1, overflow: TextOverflow.ellipsis),
+                          Text(doctor["specialty"], style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[400] : Colors.grey[600]), maxLines: 1, overflow: TextOverflow.ellipsis),
                           const SizedBox(height: 4),
                           SizedBox(
                             width: double.infinity,
@@ -529,11 +529,11 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   Widget _buildHospitals(HomeState state, bool isDark) {
     return _buildPlaceGrid(
       items: state.hospitals.map((h) => ({
-        'id': h.id,
-        'name': h.name,
-        'location': h.address ?? '',
-        'image': h.imageUrl ?? ImageKit.hospital1,
-        'rating': h.rating ?? 0,
+        'id': h["id"],
+        'name': h["name"],
+        'location': h["address"] ?? '',
+        'image': h["imageUrl"] ?? ImageKit.hospital1,
+        'rating': h["rating"] ?? 0,
       })).toList(),
       isDark: isDark,
       title: 'مستشفيات مميزة',
@@ -546,11 +546,11 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   Widget _buildPharmacies(HomeState state, bool isDark) {
     return _buildPlaceGrid(
       items: state.pharmacies.map((p) => ({
-        'id': p.id,
-        'name': p.name,
-        'location': p.address ?? '',
-        'image': p.imageUrl ?? ImageKit.pharmacy1,
-        'rating': p.rating ?? 0,
+        'id': p["id"],
+        'name': p["name"],
+        'location': p["address"] ?? '',
+        'image': p["imageUrl"] ?? ImageKit.pharmacy1,
+        'rating': p["rating"] ?? 0,
       })).toList(),
       isDark: isDark,
       title: 'صيدليات مميزة',
@@ -563,11 +563,11 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   Widget _buildLabs(HomeState state, bool isDark) {
     return _buildPlaceGrid(
       items: state.labs.map((l) => ({
-        'id': l.id,
-        'name': l.name,
-        'location': l.address ?? '',
-        'image': l.imageUrl ?? ImageKit.lab1,
-        'rating': l.rating ?? 0,
+        'id': l["id"],
+        'name': l["name"],
+        'location': l["address"] ?? '',
+        'image': l["imageUrl"] ?? ImageKit.lab1,
+        'rating': l["rating"] ?? 0,
       })).toList(),
       isDark: isDark,
       title: 'مختبرات مميزة',
@@ -665,7 +665,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                 children: [
                   ClipRRect(
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
-                    child: AppImage(imageUrl: article.imageUrl ?? ImageKit.morningWalk, height: 80, width: double.infinity, fit: BoxFit.cover),
+                    child: AppImage(imageUrl: article["imageUrl"] ?? ImageKit.morningWalk, height: 80, width: double.infinity, fit: BoxFit.cover),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(8),
@@ -675,12 +675,12 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                           decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-                          child: Text(article.category ?? 'صحة عامة', style: TextStyle(fontSize: 8, color: AppColors.primary)),
+                          child: Text(article["category"] ?? 'صحة عامة', style: TextStyle(fontSize: 8, color: AppColors.primary)),
                         ),
                         const SizedBox(height: 4),
-                        Text(article.title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: isDark ? Colors.white : Colors.black87), maxLines: 2, overflow: TextOverflow.ellipsis),
+                        Text(article["title"], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: isDark ? Colors.white : Colors.black87), maxLines: 2, overflow: TextOverflow.ellipsis),
                         const SizedBox(height: 2),
-                        Text(article.timeAgo, style: TextStyle(fontSize: 8, color: isDark ? Colors.grey[400] : Colors.grey[600])),
+                        Text(article["timeAgo"], style: TextStyle(fontSize: 8, color: isDark ? Colors.grey[400] : Colors.grey[600])),
                       ],
                     ),
                   ),
@@ -725,14 +725,14 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Image.asset(
-                    tip.icon ?? 'assets/images/tracking/health.png',
+                    tip["icon"] ?? 'assets/images/tracking/health.png',
                     width: 40,
                     height: 40,
                     errorBuilder: (_, __, ___) => Icon(Icons.image, color: isDark ? Colors.grey[400] : Colors.grey[600], size: 40),
                   ),
                   const SizedBox(height: 8),
-                  Text(tip.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.primary), textAlign: TextAlign.center),
-                  Text(tip.subtitle ?? '', style: TextStyle(fontSize: 11, color: isDark ? Colors.grey[400] : Colors.grey[600]), textAlign: TextAlign.center),
+                  Text(tip["title"], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.primary), textAlign: TextAlign.center),
+                  Text(tip["subtitle"] ?? '', style: TextStyle(fontSize: 11, color: isDark ? Colors.grey[400] : Colors.grey[600]), textAlign: TextAlign.center),
                 ],
               ),
             );
@@ -768,31 +768,31 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                     CircleAvatar(
                       radius: 18,
                       backgroundColor: AppColors.primary.withOpacity(0.1),
-                      child: Text(post.userAvatar ?? post.userName[0], style: TextStyle(color: AppColors.primary, fontSize: 14, fontWeight: FontWeight.bold)),
+                      child: Text(post["userAvatar"] ?? post["userName"][0], style: TextStyle(color: AppColors.primary, fontSize: 14, fontWeight: FontWeight.bold)),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(post.userName, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: isDark ? Colors.white : Colors.black87)),
-                          Text(post.timeAgo, style: TextStyle(fontSize: 11, color: isDark ? Colors.grey[400] : Colors.grey[600])),
+                          Text(post["userName"], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: isDark ? Colors.white : Colors.black87)),
+                          Text(post["timeAgo"], style: TextStyle(fontSize: 11, color: isDark ? Colors.grey[400] : Colors.grey[600])),
                         ],
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text(post.title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: isDark ? Colors.white : Colors.black87)),
-                if (post.content != null) ...[
+                Text(post["title"], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: isDark ? Colors.white : Colors.black87)),
+                if (post["content"] != null) ...[
                   const SizedBox(height: 4),
-                  Text(post.content!, style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[300] : Colors.grey[700]), maxLines: 3, overflow: TextOverflow.ellipsis),
+                  Text(post["content"]!, style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[300] : Colors.grey[700]), maxLines: 3, overflow: TextOverflow.ellipsis),
                 ],
-                if (post.imageUrl != null) ...[
+                if (post["imageUrl"] != null) ...[
                   const SizedBox(height: 8),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(10),
-                    child: AppImage(imageUrl: post.imageUrl!, height: 180, width: double.infinity, fit: BoxFit.contain),
+                    child: AppImage(imageUrl: post["imageUrl"]!, height: 180, width: double.infinity, fit: BoxFit.contain),
                   ),
                 ],
                 const SizedBox(height: 10),
@@ -800,19 +800,19 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                   children: [
                     Icon(Icons.favorite_border, color: isDark ? Colors.grey[400] : Colors.grey[600], size: 18),
                     const SizedBox(width: 4),
-                    Text('${post.likes}', style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[400] : Colors.grey[600])),
+                    Text('${post["likes"]}', style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[400] : Colors.grey[600])),
                     const SizedBox(width: 16),
                     Icon(Icons.comment, color: isDark ? Colors.grey[400] : Colors.grey[600], size: 18),
                     const SizedBox(width: 4),
-                    Text('${post.comments}', style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[400] : Colors.grey[600])),
+                    Text('${post["comments"]}', style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[400] : Colors.grey[600])),
                     const SizedBox(width: 16),
                     Icon(Icons.share, color: isDark ? Colors.grey[400] : Colors.grey[600], size: 18),
                     const SizedBox(width: 4),
-                    Text('${post.shares}', style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[400] : Colors.grey[600])),
+                    Text('${post["shares"]}', style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[400] : Colors.grey[600])),
                     const Spacer(),
                     Icon(Icons.remove_red_eye, color: isDark ? Colors.grey[400] : Colors.grey[600], size: 16),
                     const SizedBox(width: 4),
-                    Text('${post.views}', style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[400] : Colors.grey[600])),
+                    Text('${post["views"]}', style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[400] : Colors.grey[600])),
                   ],
                 ),
               ],
