@@ -135,9 +135,17 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   }
 
   void _startCall(bool isVideo) {
-    _saveSystemMessage(isVideo ? "📹 بدأ مكالمة فيديو" : "📞 بدأ مكالمة صوتية", "system_call");
-    _saveSystemMessage(isVideo ? "📹 مكالمة فيديو" : "📞 مكالمة صوتية", "call");
-    ToastService.showInfo('📞 جاري الاتصال...');
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CallScreen(
+          chatId: 'call_${DateTime.now().millisecondsSinceEpoch}',
+          doctorName: widget.otherUserName,
+          doctorId: widget.otherUserId,
+          isVideo: isVideo,
+        ),
+      ),
+    );
   }
 
   void _showContactInfo() {
