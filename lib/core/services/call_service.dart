@@ -1,17 +1,14 @@
 // ============================================================
-// 📞 خدمة المكالمات - النسخة النهائية
+// 📞 خدمة المكالمات
 // ============================================================
 
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sehatak/core/services/toast_service.dart';
-import 'package:sehatak/models/call_model.dart';
+import 'package:sehatak/core/models/call_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/presentation/screens/call/call_screen.dart';
-
-enum CallType { audio, video }
-enum CallStatus { calling, ringing, connected, ended, missed, rejected, busy, cancelled }
 
 class CallService {
   static final CallService _instance = CallService._internal();
@@ -26,7 +23,6 @@ class CallService {
 
   bool get isInCall => _isInCall;
   String? get currentCallId => _currentCallId;
-
   String? get currentUserId => _auth.currentUser?.uid;
 
   String _getUserIdOrThrow() {
@@ -35,14 +31,9 @@ class CallService {
     return userId;
   }
 
-  // ============================================================
-  // 📋 جلب سجل المكالمات (Stream)
-  // ============================================================
-
   Stream<List<CallModel>> streamCallHistory({int limit = 50}) {
     final userId = _getUserIdOrThrow();
-    return _firestore
-        .collection('calls')
+    return _firestore.collection('calls')
         .where('participants', arrayContains: userId)
         .orderBy('startedAt', descending: true)
         .limit(limit)
@@ -52,21 +43,11 @@ class CallService {
             .toList());
   }
 
-  // ============================================================
-  // 📋 الاستماع لمكالمة محددة
-  // ============================================================
-
   Stream<CallModel?> streamCall(String callId) {
-    return _firestore
-        .collection('calls')
-        .doc(callId)
-        .snapshots()
-        .map((doc) => doc.exists ? CallModel.fromFirestore(doc.id, doc.data()!) : null);
+    return _firestore.collection('calls').doc(callId).snapshots().map(
+      (doc) => doc.exists ? CallModel.fromFirestore(doc.id, doc.data()!) : null,
+    );
   }
-
-  // ============================================================
-  // 📞 بدء مكالمة
-  // ============================================================
 
   Future<CallModel?> initiateCall({
     required String receiverId,
@@ -78,18 +59,13 @@ class CallService {
   }) async {
     final userId = _getUserIdOrThrow();
     final user = _auth.currentUser!;
-
     final callId = idempotencyKey ?? _firestore.collection('calls').doc().id;
     final callRef = _firestore.collection('calls').doc(callId);
 
     final existing = await callRef.get();
-    if (existing.exists) {
-      return CallModel.fromFirestore(callId, existing.data()!);
-    }
+    if (existing.exists) return CallModel.fromFirestore(callId, existing.data()!);
 
-    final roomName = chatId;
-
-    final callData = {
+    final callData = <String, dynamic>{
       'id': callId,
       'chatId': chatId,
       'callerId': userId,
@@ -103,146 +79,79 @@ class CallService {
       'startedAt': FieldValue.serverTimestamp(),
       'isAnswered': false,
       'participants': [userId, receiverId],
-      'liveKitRoomName': roomName,
+      'liveKitRoomName': chatId,
       'isVideoCall': type == CallType.video,
     };
 
     await callRef.set(callData);
     _isInCall = true;
     _currentCallId = callId;
-
     return CallModel.fromFirestore(callId, callData);
   }
 
-  // ============================================================
-  // ✅ قبول المكالمة
-  // ============================================================
+  Future<void> acceptCall(String callId) async => _updateCallState(
+    callId,
+    allowed: const [CallStatus.calling, CallStatus.ringing],
+    data: {'status': CallStatus.connected.name, 'isAnswered': true, 'connectedAt': FieldValue.serverTimestamp()},
+    active: true,
+  );
 
-  Future<void> acceptCall(String callId) async {
+  Future<void> rejectCall(String callId) async => _updateCallState(
+    callId,
+    allowed: const [CallStatus.calling, CallStatus.ringing],
+    data: {'status': CallStatus.rejected.name, 'endedAt': FieldValue.serverTimestamp()},
+    active: false,
+  );
+
+  Future<void> cancelCall(String callId) async => _updateCallState(
+    callId,
+    allowed: const [CallStatus.calling, CallStatus.ringing],
+    data: {'status': CallStatus.cancelled.name, 'endedAt': FieldValue.serverTimestamp()},
+    active: false,
+  );
+
+  Future<void> endCall(String callId, {int? durationSeconds}) async => _updateCallState(
+    callId,
+    allowed: const [CallStatus.connected],
+    data: {'status': CallStatus.ended.name, 'endedAt': FieldValue.serverTimestamp(), 'durationSeconds': durationSeconds},
+    active: false,
+  );
+
+  Future<void> missCall(String callId) async => _updateCallState(
+    callId,
+    allowed: const [CallStatus.calling, CallStatus.ringing],
+    data: {'status': CallStatus.missed.name, 'endedAt': FieldValue.serverTimestamp()},
+    active: false,
+    ignoreInvalidState: true,
+  );
+
+  Future<void> _updateCallState(
+    String callId, {
+    required List<CallStatus> allowed,
+    required Map<String, dynamic> data,
+    required bool active,
+    bool ignoreInvalidState = false,
+  }) async {
     await _firestore.runTransaction((transaction) async {
-      final doc = await transaction.get(_firestore.collection('calls').doc(callId));
+      final ref = _firestore.collection('calls').doc(callId);
+      final doc = await transaction.get(ref);
       if (!doc.exists) return;
-
-      final status = doc.data()?['status'] as String?;
-      if (status != CallStatus.calling.name && status != CallStatus.ringing.name) {
-        throw Exception('لا يمكن قبول المكالمة في حالتها الحالية');
+      final rawStatus = doc.data()?['status'] as String?;
+      final current = CallStatus.values.firstWhere(
+        (value) => value.name == rawStatus,
+        orElse: () => CallStatus.calling,
+      );
+      if (!allowed.contains(current)) {
+        if (ignoreInvalidState) return;
+        throw Exception('لا يمكن تغيير حالة المكالمة الحالية');
       }
-
-      transaction.update(_firestore.collection('calls').doc(callId), {
-        'status': CallStatus.connected.name,
-        'isAnswered': true,
-        'connectedAt': FieldValue.serverTimestamp(),
-      });
-
-      _isInCall = true;
-      _currentCallId = callId;
+      transaction.update(ref, data);
     });
+    _isInCall = active;
+    _currentCallId = active ? callId : null;
   }
-
-  // ============================================================
-  // ❌ رفض المكالمة
-  // ============================================================
-
-  Future<void> rejectCall(String callId) async {
-    await _firestore.runTransaction((transaction) async {
-      final doc = await transaction.get(_firestore.collection('calls').doc(callId));
-      if (!doc.exists) return;
-
-      final status = doc.data()?['status'] as String?;
-      if (status != CallStatus.calling.name && status != CallStatus.ringing.name) {
-        throw Exception('لا يمكن رفض المكالمة في حالتها الحالية');
-      }
-
-      transaction.update(_firestore.collection('calls').doc(callId), {
-        'status': CallStatus.rejected.name,
-        'endedAt': FieldValue.serverTimestamp(),
-      });
-
-      _isInCall = false;
-      _currentCallId = null;
-    });
-  }
-
-  // ============================================================
-  // ❌ إلغاء المكالمة (من المتصل)
-  // ============================================================
-
-  Future<void> cancelCall(String callId) async {
-    await _firestore.runTransaction((transaction) async {
-      final doc = await transaction.get(_firestore.collection('calls').doc(callId));
-      if (!doc.exists) return;
-
-      final status = doc.data()?['status'] as String?;
-      if (status != CallStatus.calling.name && status != CallStatus.ringing.name) {
-        throw Exception('لا يمكن إلغاء المكالمة في حالتها الحالية');
-      }
-
-      transaction.update(_firestore.collection('calls').doc(callId), {
-        'status': CallStatus.cancelled.name,
-        'endedAt': FieldValue.serverTimestamp(),
-      });
-
-      _isInCall = false;
-      _currentCallId = null;
-    });
-  }
-
-  // ============================================================
-  // 🔚 إنهاء المكالمة
-  // ============================================================
-
-  Future<void> endCall(String callId, {int? durationSeconds}) async {
-    await _firestore.runTransaction((transaction) async {
-      final doc = await transaction.get(_firestore.collection('calls').doc(callId));
-      if (!doc.exists) return;
-
-      final status = doc.data()?['status'] as String?;
-      if (status != CallStatus.connected.name) {
-        throw Exception('لا يمكن إنهاء المكالمة في حالتها الحالية');
-      }
-
-      transaction.update(_firestore.collection('calls').doc(callId), {
-        'status': CallStatus.ended.name,
-        'endedAt': FieldValue.serverTimestamp(),
-        'durationSeconds': durationSeconds,
-      });
-
-      _isInCall = false;
-      _currentCallId = null;
-    });
-  }
-
-  // ============================================================
-  // ⏰ تفويت المكالمة
-  // ============================================================
-
-  Future<void> missCall(String callId) async {
-    await _firestore.runTransaction((transaction) async {
-      final doc = await transaction.get(_firestore.collection('calls').doc(callId));
-      if (!doc.exists) return;
-
-      final status = doc.data()?['status'] as String?;
-      if (status != CallStatus.calling.name && status != CallStatus.ringing.name) {
-        return;
-      }
-
-      transaction.update(_firestore.collection('calls').doc(callId), {
-        'status': CallStatus.missed.name,
-        'endedAt': FieldValue.serverTimestamp(),
-      });
-
-      _isInCall = false;
-      _currentCallId = null;
-    });
-  }
-
-  // ============================================================
-  // 📞 معالجة المكالمة الواردة (لـ FCM)
-  // ============================================================
 
   void handleIncomingCall(BuildContext context, RemoteMessage message) {
-    print('📞 Incoming call from: ${message.data}');
-    
     final callId = message.data['callId'] ?? message.data['id'];
     final callerName = message.data['callerName'] ?? 'طبيب';
     final callerId = message.data['callerId'] ?? 'unknown';
@@ -250,14 +159,11 @@ class CallService {
     final isVideo = message.data['isVideo'] == 'true';
 
     if (callId == null || callId.isEmpty) {
-      print('⚠️ No callId in message');
       ToastService.showError('❌ لا يمكن معالجة المكالمة');
       return;
     }
 
     ToastService.showInfo('📞 مكالمة واردة من $callerName');
-
-    // ✅ التنقل إلى شاشة المكالمة
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -272,10 +178,6 @@ class CallService {
       ),
     );
   }
-
-  // ============================================================
-  // 🧹 تنظيف الموارد
-  // ============================================================
 
   void dispose() {
     _isInCall = false;
