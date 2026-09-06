@@ -1,17 +1,22 @@
 const express = require('express');
 const admin = require('firebase-admin');
-const {AccessToken} = require('livekit-server-sdk');
+const { AccessToken } = require('livekit-server-sdk');
 
 const app = express();
-app.use(express.json({limit: '32kb'}));
+app.disable('x-powered-by');
+app.use(express.json({ limit: '32kb' }));
 
 const PORT = Number(process.env.PORT || 8080);
+const FIREBASE_PROJECT_ID = process.env.FIREBASE_PROJECT_ID || 'sehatak-platform';
 const LIVEKIT_API_KEY = process.env.LIVEKIT_API_KEY;
 const LIVEKIT_API_SECRET = process.env.LIVEKIT_API_SECRET;
 const LIVEKIT_URL = process.env.LIVEKIT_URL || 'wss://platformsehatak-z73p6n5m.livekit.cloud';
 
+// Firebase Admin Auth token verification only needs the project ID and
+// Google's public signing certificates. No service-account private key is
+// required for this small standalone token service.
 if (!admin.apps.length) {
-  admin.initializeApp();
+  admin.initializeApp({ projectId: FIREBASE_PROJECT_ID });
 }
 
 function requireLiveKitConfig() {
@@ -29,19 +34,27 @@ function validText(value, max) {
 }
 
 app.get('/health', (_req, res) => {
-  res.json({ok: true, service: 'sehatak-livekit-token-server'});
+  res.json({
+    ok: true,
+    service: 'sehatak-livekit-token-server',
+    firebaseProjectId: FIREBASE_PROJECT_ID,
+    livekitConfigured: Boolean(LIVEKIT_API_KEY && LIVEKIT_API_SECRET),
+  });
 });
 
 app.post('/token', async (req, res) => {
   try {
     requireLiveKitConfig();
+
     const header = req.get('authorization') || '';
     if (!header.startsWith('Bearer ')) {
-      return res.status(401).json({success: false, message: 'Firebase ID token is required'});
+      return res.status(401).json({ success: false, message: 'Firebase ID token is required' });
     }
 
     const idToken = header.slice('Bearer '.length).trim();
-    if (!idToken) return res.status(401).json({success: false, message: 'Invalid authorization token'});
+    if (!idToken) {
+      return res.status(401).json({ success: false, message: 'Invalid authorization token' });
+    }
 
     const decoded = await admin.auth().verifyIdToken(idToken);
     const uid = decoded.uid;
@@ -49,7 +62,7 @@ app.post('/token', async (req, res) => {
     const participantName = validText(req.body?.participantName || decoded.name || uid, 120);
 
     if (!roomName || !participantName) {
-      return res.status(400).json({success: false, message: 'Invalid roomName or participantName'});
+      return res.status(400).json({ success: false, message: 'Invalid roomName or participantName' });
     }
 
     const token = new AccessToken(LIVEKIT_API_KEY, LIVEKIT_API_SECRET, {
@@ -87,7 +100,7 @@ app.post('/token', async (req, res) => {
   }
 });
 
-app.use((_req, res) => res.status(404).json({success: false, message: 'Not found'}));
+app.use((_req, res) => res.status(404).json({ success: false, message: 'Not found' }));
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Sehatak LiveKit token server listening on port ${PORT}`);
