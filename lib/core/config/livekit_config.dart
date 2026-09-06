@@ -1,7 +1,15 @@
 // إعدادات LiveKit العامة لتطبيق صحتك.
-// مفاتيح LiveKit السرية لا تدخل التطبيق أبداً؛ إصدار التوكن يتم عبر Firebase Functions.
+// مفتاح LiveKit السري لا يدخل التطبيق أبداً؛ يتم إصدار التوكن عبر خادم صغير مستقل.
 class LiveKitConfig {
   static const String serverUrl = 'wss://platformsehatak-z73p6n5m.livekit.cloud';
+
+  // عنوان خادم إصدار التوكن يمرر عند البناء/التشغيل عبر --dart-define.
+  // مثال التطوير: http://10.0.2.2:8080
+  // مثال الإنتاج: https://your-token-server.example.com
+  static const String tokenServerUrl = String.fromEnvironment(
+    'LIVEKIT_TOKEN_SERVER_URL',
+    defaultValue: 'http://10.0.2.2:8080',
+  );
 
   static const int videoBitrate = 1000000;
   static const int videoFps = 30;
@@ -14,5 +22,6 @@ class LiveKitConfig {
   static const int connectionTimeout = 30;
   static const int reconnectAttempts = 3;
 
-  static bool get isValid => serverUrl.startsWith('wss://');
+  static bool get isValid =>
+      serverUrl.startsWith('wss://') && tokenServerUrl.startsWith('http');
 }
