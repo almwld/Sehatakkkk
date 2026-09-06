@@ -46,6 +46,7 @@ class _CallScreenState extends State<CallScreen> {
   bool _muted = false;
   bool _speaker = false;
   bool _cameraOff = false;
+  bool _outgoing = false;
   String? _error;
 
   @override
@@ -66,7 +67,9 @@ class _CallScreenState extends State<CallScreen> {
         if (!camera.isGranted) throw Exception('إذن الكاميرا مطلوب');
       }
 
-      if (widget.isOutgoing) {
+      _outgoing = widget.isOutgoing || widget.callId == null || widget.callId!.isEmpty;
+
+      if (_outgoing) {
         if (widget.callId != null && widget.callId!.isNotEmpty) {
           _activeCallId = widget.callId;
         } else {
@@ -76,22 +79,24 @@ class _CallScreenState extends State<CallScreen> {
             type: widget.isVideo ? CallType.video : CallType.audio,
             chatId: widget.chatId,
           );
-          if (call == null) throw Exception('تعذر إنشاء المكالمة');
-          _activeCallId = call.id;
+          _activeCallId = call?.id;
+          if (_activeCallId == null || _activeCallId!.isEmpty) {
+            throw Exception('تعذر إنشاء المكالمة');
+          }
         }
-      } else if (widget.callId != null && widget.callId!.isNotEmpty) {
+      } else {
         _activeCallId = widget.callId;
-        await _callService.acceptCall(widget.callId!);
+        await _callService.acceptCall(_activeCallId!);
       }
 
+      // الطرفان يستخدمان نفس غرفة LiveKit عبر callId، وليس chatId مؤقتاً.
+      final roomName = 'call_${_activeCallId!}';
       _room = await _liveKitService.connectRoom(
-        roomName: widget.chatId,
+        roomName: roomName,
         participantName: user.displayName ?? 'مستخدم',
       );
 
-      if (widget.isVideo) {
-        await _liveKitService.enableCamera();
-      }
+      if (widget.isVideo) await _liveKitService.enableCamera();
 
       if (!mounted) return;
       setState(() {
@@ -99,6 +104,7 @@ class _CallScreenState extends State<CallScreen> {
         _connected = true;
         _error = null;
       });
+
       _timer = Timer.periodic(const Duration(seconds: 1), (_) {
         if (mounted) setState(() => _seconds++);
       });
@@ -130,7 +136,7 @@ class _CallScreenState extends State<CallScreen> {
       if (callId != null && callId.isNotEmpty) {
         if (_connected) {
           await _callService.endCall(callId, durationSeconds: _seconds);
-        } else if (widget.isOutgoing) {
+        } else if (_outgoing) {
           await _callService.cancelCall(callId);
         }
       }
@@ -208,7 +214,16 @@ class _CallScreenState extends State<CallScreen> {
               ),
             Positioned(top: 0, left: 0, right: 0, child: _topBar()),
             if (_error != null)
-              Positioned(left: 20, right: 20, top: 130, child: Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.red.withOpacity(.9), borderRadius: BorderRadius.circular(12)), child: Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white)))),
+              Positioned(
+                left: 20,
+                right: 20,
+                top: 130,
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(color: Colors.red.withOpacity(.9), borderRadius: BorderRadius.circular(12)),
+                  child: Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white)),
+                ),
+              ),
             Positioned(left: 0, right: 0, bottom: 24, child: _controls()),
           ],
         ),
@@ -216,18 +231,54 @@ class _CallScreenState extends State<CallScreen> {
     );
   }
 
-  Widget _audioCenter() => Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [CircleAvatar(radius: 58, backgroundColor: AppColors.primary.withOpacity(.2), child: const Icon(Icons.person, color: Colors.white, size: 58)), const SizedBox(height: 16), Text(widget.doctorName, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)), const SizedBox(height: 8), Text(_starting ? 'جاري الاتصال...' : (_connected ? 'مكالمة صوتية متصلة' : 'بانتظار الاتصال'), style: const TextStyle(color: Colors.white70))]));
+  Widget _audioCenter() => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircleAvatar(radius: 58, backgroundColor: AppColors.primary.withOpacity(.2), child: const Icon(Icons.person, color: Colors.white, size: 58)),
+            const SizedBox(height: 16),
+            Text(widget.doctorName, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text(_starting ? 'جاري الاتصال...' : (_connected ? 'مكالمة صوتية متصلة' : 'بانتظار الاتصال'), style: const TextStyle(color: Colors.white70)),
+          ],
+        ),
+      );
 
-  Widget _topBar() => Container(padding: const EdgeInsets.fromLTRB(12, 12, 12, 18), decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.black.withOpacity(.65), Colors.transparent], begin: Alignment.topCenter, end: Alignment.bottomCenter)), child: Row(children: [IconButton(onPressed: _endCall, icon: const Icon(Icons.close, color: Colors.white)), const Spacer(), Text(_formatDuration(_seconds), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)), const SizedBox(width: 10), Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5), decoration: BoxDecoration(color: (_connected ? Colors.green : Colors.orange).withOpacity(.25), borderRadius: BorderRadius.circular(14)), child: Text(_connected ? 'متصل' : 'جاري الاتصال', style: TextStyle(color: _connected ? Colors.greenAccent : Colors.orangeAccent, fontSize: 11)))]));
+  Widget _topBar() => Container(
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 18),
+        decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.black.withOpacity(.65), Colors.transparent], begin: Alignment.topCenter, end: Alignment.bottomCenter)),
+        child: Row(
+          children: [
+            IconButton(onPressed: _endCall, icon: const Icon(Icons.close, color: Colors.white)),
+            const Spacer(),
+            Text(_formatDuration(_seconds), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            const SizedBox(width: 10),
+            Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5), decoration: BoxDecoration(color: (_connected ? Colors.green : Colors.orange).withOpacity(.25), borderRadius: BorderRadius.circular(14)), child: Text(_connected ? 'متصل' : 'جاري الاتصال', style: TextStyle(color: _connected ? Colors.greenAccent : Colors.orangeAccent, fontSize: 11))),
+          ],
+        ),
+      );
 
-  Widget _controls() => Container(padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), decoration: BoxDecoration(color: Colors.black.withOpacity(.65), borderRadius: const BorderRadius.vertical(top: Radius.circular(26))), child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-    _control(icon: _muted ? Icons.mic_off : Icons.mic, label: _muted ? 'إلغاء الكتم' : 'كتم', onTap: _toggleMute),
-    if (widget.isVideo) _control(icon: _cameraOff ? Icons.videocam_off : Icons.videocam, label: _cameraOff ? 'تشغيل' : 'كاميرا', onTap: _toggleCamera),
-    _control(icon: _speaker ? Icons.volume_up : Icons.volume_down, label: 'مكبر', onTap: _toggleSpeaker),
-    _control(icon: Icons.call_end, label: 'إنهاء', color: Colors.red, onTap: _endCall),
-  ]);
+  Widget _controls() => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+        decoration: BoxDecoration(color: Colors.black.withOpacity(.65), borderRadius: const BorderRadius.vertical(top: Radius.circular(26))),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _control(icon: _muted ? Icons.mic_off : Icons.mic, label: _muted ? 'إلغاء الكتم' : 'كتم', onTap: _toggleMute),
+            if (widget.isVideo) _control(icon: _cameraOff ? Icons.videocam_off : Icons.videocam, label: _cameraOff ? 'تشغيل' : 'كاميرا', onTap: _toggleCamera),
+            _control(icon: _speaker ? Icons.volume_up : Icons.volume_down, label: 'مكبر', onTap: _toggleSpeaker),
+            _control(icon: Icons.call_end, label: 'إنهاء', color: Colors.red, onTap: _endCall),
+          ],
+        ),
+      );
 
-  Widget _control({required IconData icon, required String label, required VoidCallback onTap, Color color = Colors.white24}) => Column(children: [GestureDetector(onTap: onTap, child: Container(width: 54, height: 54, decoration: BoxDecoration(color: color, shape: BoxShape.circle), child: Icon(icon, color: Colors.white))), const SizedBox(height: 5), Text(label, style: const TextStyle(color: Colors.white70, fontSize: 10))]);
+  Widget _control({required IconData icon, required String label, required VoidCallback onTap, Color color = Colors.white24}) => Column(
+        children: [
+          GestureDetector(onTap: onTap, child: Container(width: 54, height: 54, decoration: BoxDecoration(color: color, shape: BoxShape.circle), child: Icon(icon, color: Colors.white))),
+          const SizedBox(height: 5),
+          Text(label, style: const TextStyle(color: Colors.white70, fontSize: 10)),
+        ],
+      );
 
   String _formatDuration(int seconds) => '${(seconds ~/ 60).toString().padLeft(2, '0')}:${(seconds % 60).toString().padLeft(2, '0')}';
 }
