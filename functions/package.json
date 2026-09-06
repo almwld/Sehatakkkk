@@ -1,10 +1,8 @@
 {
   "name": "sehatak-functions",
-  "description": "Trusted backend functions for Sehatak payments and wallet processing",
+  "description": "Trusted backend functions for Sehatak payments, wallet processing, refunds and withdrawals",
   "main": "index.js",
-  "engines": {
-    "node": "18"
-  },
+  "engines": {"node": "18"},
   "private": true,
   "dependencies": {
     "firebase-admin": "^12.7.0",
