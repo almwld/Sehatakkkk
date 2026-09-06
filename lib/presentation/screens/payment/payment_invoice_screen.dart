@@ -10,14 +10,7 @@ class PaymentInvoiceScreen extends StatefulWidget {
   final String invoiceTitle;
   final List<Map<String, dynamic>>? items;
 
-  const PaymentInvoiceScreen({
-    super.key,
-    required this.amount,
-    required this.orderId,
-    required this.paymentMethod,
-    this.invoiceTitle = 'فاتورة خدمات طبية',
-    this.items,
-  });
+  const PaymentInvoiceScreen({super.key, required this.amount, required this.orderId, required this.paymentMethod, this.invoiceTitle = 'فاتورة خدمات طبية', this.items});
 
   @override
   State<PaymentInvoiceScreen> createState() => _PaymentInvoiceScreenState();
@@ -30,113 +23,60 @@ class _PaymentInvoiceScreenState extends State<PaymentInvoiceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.invoiceTitle),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-      ),
+      appBar: AppBar(title: Text(widget.invoiceTitle), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('تفاصيل الفاتورة', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    const Divider(),
-                    _buildRow('رقم الطلب', widget.orderId),
-                    _buildRow('طريقة الدفع', widget.paymentMethod),
-                    if (widget.items != null && widget.items!.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      const Text('المنتجات:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                      ...widget.items!.map((item) => Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(child: Text('${item['name'] ?? 'منتج'}')),
-                                Text('${item['price'] ?? 0} ﷼'),
-                              ],
-                            ),
-                          )),
-                    ],
-                    const Divider(),
-                    _buildRow('المبلغ الإجمالي', '${widget.amount.toStringAsFixed(2)} ﷼', isBold: true),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : _processPayment,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                child: _isLoading
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Text('إرسال طلب الدفع', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              ),
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              'سيتم تسجيل الطلب كمعلّق، ولا يُعتبر الدفع ناجحًا حتى تتم معالجته من النظام الموثوق.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-          ],
-        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text('تفاصيل الفاتورة', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Divider(),
+            _buildRow('رقم الطلب', widget.orderId),
+            _buildRow('طريقة الدفع', widget.paymentMethod),
+            if (widget.items != null && widget.items!.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              const Text('المنتجات:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              ...widget.items!.map((item) => Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Expanded(child: Text('${item['name'] ?? 'منتج'}')), Text('${item['price'] ?? 0} ﷼')]))),
+            ],
+            const Divider(),
+            _buildRow('المبلغ الإجمالي', '${widget.amount.toStringAsFixed(2)} ﷼', isBold: true),
+          ]))),
+          const SizedBox(height: 16),
+          SizedBox(width: double.infinity, child: ElevatedButton(
+            onPressed: _isLoading ? null : _processPayment,
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+            child: _isLoading ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Text('تأكيد الدفع', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          )),
+          const SizedBox(height: 10),
+          const Text('يتم تنفيذ الخصم وتسجيل المعاملة بشكل ذري وآمن عبر النظام الموثوق.', textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Colors.grey)),
+        ]),
       ),
     );
   }
 
-  Widget _buildRow(String label, String value, {bool isBold = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
-          Flexible(
-            child: Text(value, textAlign: TextAlign.end, style: TextStyle(fontSize: 14, fontWeight: isBold ? FontWeight.bold : FontWeight.normal)),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _buildRow(String label, String value, {bool isBold = false}) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 6),
+    child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(label, style: TextStyle(fontSize: 14, color: Colors.grey[600])), Flexible(child: Text(value, textAlign: TextAlign.end, style: TextStyle(fontSize: 14, fontWeight: isBold ? FontWeight.bold : FontWeight.normal))) ]),
+  );
 
   Future<void> _processPayment() async {
-    if (widget.amount <= 0) {
-      ToastService.showError('❌ المبلغ غير صالح');
-      return;
-    }
-
+    if (widget.amount <= 0) { ToastService.showError('❌ المبلغ غير صالح'); return; }
     setState(() => _isLoading = true);
-
     try {
       final transaction = await _paymentService.processPayment(
         amount: widget.amount,
         title: widget.invoiceTitle,
-        description: 'طلب دفع للطلب ${widget.orderId}',
+        description: 'دفع للطلب ${widget.orderId}',
         orderId: widget.orderId,
         serviceType: widget.paymentMethod,
         metadata: {'paymentMethod': widget.paymentMethod},
+        idempotencyKey: widget.orderId.isNotEmpty ? 'order_${widget.orderId}' : null,
       );
-
       if (!mounted) return;
-      ToastService.showInfo('⏳ تم إرسال طلب الدفع للمراجعة: ${transaction.id}');
+      ToastService.showSuccess('✅ تم الدفع بنجاح — رقم المعاملة: ${transaction.id}');
       Navigator.pop(context, transaction.id);
     } catch (e) {
       if (!mounted) return;
-      ToastService.showError('❌ تعذر إرسال طلب الدفع: $e');
+      ToastService.showError('❌ تعذر إتمام الدفع: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
