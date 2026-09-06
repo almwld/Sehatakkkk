@@ -54,7 +54,7 @@ class _BannerCarouselState extends State<BannerCarousel> {
   }
 
   @override
-  Widget build(BuildContext context) const {
+  Widget build(BuildContext context) {
     if (widget.images.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -220,7 +220,7 @@ class NetworkBannerCarousel extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) const {
+  Widget build(BuildContext context) {
     return BannerCarousel(
       images: imageUrls,
       height: height,

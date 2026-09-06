@@ -42,7 +42,7 @@ class _HomeTabState extends State<HomeTab> {
       if (!mounted) return;
 
       try {
-        context.read<HomeBloc>().add(const HomeStarted());
+        context.read<HomeBloc>().add(HomeStarted());
       } catch (e) {
         debugPrint('Home background loading unavailable: $e');
       }
@@ -67,7 +67,7 @@ class _HomeTabState extends State<HomeTab> {
           onRefresh: () async {
             try {
               context.read<HomeBloc>().add(
-                    const HomeDataRefreshed(),
+                    HomeDataRefreshed(),
                   );
             } catch (e) {
               debugPrint('Home refresh unavailable: $e');
