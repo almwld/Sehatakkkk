@@ -25,7 +25,11 @@ jobs:
         run: npm install --ignore-scripts
       - name: Syntax check
         working-directory: functions
-        run: node --check index.js
+        run: |
+          node --check index.js
+          node --check lab_functions.js
+          node --check chat_notifications.js
+          node --check loader.js
 
   deploy:
     if: ${{ github.event_name == 'workflow_dispatch' }}
