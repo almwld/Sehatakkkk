@@ -1,12 +1,8 @@
-// ============================================================
-// 📁 lib/core/services/nextcloud_service.dart
-// ☁️ خدمة Nextcloud المتكاملة
-// ============================================================
-
-import 'dart:io';
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'dart:io';
+
 import 'package:dio/dio.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class NextcloudService {
@@ -14,44 +10,29 @@ class NextcloudService {
   factory NextcloudService() => _instance;
   NextcloudService._internal();
 
-  // ✅ بيانات Tab Digital (شريك Nextcloud)
-  String baseUrl = 'https://noa.it.tabdigital.cloud';
-  String username = 'PlatformSehatak@gmail.com';
-  String password = '10.10.10.1010.10.10.10';
+  String baseUrl = const String.fromEnvironment('NEXTCLOUD_URL', defaultValue: '');
+  String username = const String.fromEnvironment('NEXTCLOUD_USERNAME', defaultValue: '');
+  String password = const String.fromEnvironment('NEXTCLOUD_PASSWORD', defaultValue: '');
 
-  final Dio _dio = Dio(
-    BaseOptions(
-      connectTimeout: const Duration(seconds: 30),
-      receiveTimeout: const Duration(seconds: 60),
-    ),
-  );
+  final Dio _dio = Dio(BaseOptions(
+    connectTimeout: Duration(seconds: 30),
+    receiveTimeout: Duration(seconds: 60),
+  ));
 
-  // ============================================================
-  // 🔐 المصادقة
-  // ============================================================
-  String _getBasicAuth() {
-    final credentials = '$username:$password';
-    return base64Encode(utf8.encode(credentials));
+  String _basicAuth() => base64Encode(utf8.encode('$username:$password'));
+
+  Map<String, String> _headers() => {
+    'OCS-APIRequest': 'true',
+    'Authorization': 'Basic ${_basicAuth()}',
+    'Content-Type': 'application/x-www-form-urlencoded',
+  };
+
+  void _ensureConfigured() {
+    if (baseUrl.isEmpty || username.isEmpty || password.isEmpty) {
+      throw StateError('Nextcloud غير مهيأ؛ اضبط بياناته من إعدادات Nextcloud.');
+    }
   }
 
-  Map<String, String> _getHeaders() {
-    return {
-      'OCS-APIRequest': 'true',
-      'Authorization': 'Basic ${_getBasicAuth()}',
-      'Content-Type': 'application/x-www-form-urlencoded',
-    };
-  }
-
-  Map<String, String> _getJsonHeaders() {
-    return {
-      'Authorization': 'Basic ${_getBasicAuth()}',
-      'Content-Type': 'application/json',
-    };
-  }
-
-  // ============================================================
-  // 📤 رفع ملف
-  // ============================================================
   Future<NextcloudUploadResult> uploadFile({
     required File file,
     required String path,
@@ -59,195 +40,67 @@ class NextcloudService {
     void Function(int, int)? onProgress,
   }) async {
     try {
+      _ensureConfigured();
       final name = fileName ?? file.path.split('/').last;
+      final normalizedBase = baseUrl.replaceFirst(RegExp(r'\/\$'), '');
       final fullPath = '/$path/$name';
-
-      final formData = FormData.fromMap({
-        'file': await MultipartFile.fromFile(
-          file.path,
-          filename: name,
-        ),
-      });
-
       final response = await _dio.put(
-        '$baseUrl/remote.php/dav/files/$username$fullPath',
-        data: formData,
-        options: Options(
-          headers: _getJsonHeaders(),
-          
-        ),
+        '$normalizedBase/remote.php/dav/files/$username$fullPath',
+        data: await MultipartFile.fromFile(file.path, filename: name),
+        options: Options(headers: {
+          'Authorization': 'Basic ${_basicAuth()}',
+          'Content-Type': 'application/octet-stream',
+        }),
+        onSendProgress: onProgress,
       );
-
-      if (response.statusCode == 201 || response.statusCode == 204) {
-        final url = '$baseUrl/remote.php/dav/files/$username$fullPath';
-        return NextcloudUploadResult(
-          success: true,
-          url: url,
-          path: fullPath,
-          fileName: name,
-        );
-      }
-
+      final success = response.statusCode == 201 || response.statusCode == 204;
       return NextcloudUploadResult(
-        success: false,
-        error: 'فشل رفع الملف: ${response.statusCode}',
+        success: success,
+        url: success ? '$normalizedBase/remote.php/dav/files/$username$fullPath' : null,
+        path: fullPath,
+        fileName: name,
+        error: success ? null : 'فشل رفع الملف: ${response.statusCode}',
       );
     } catch (e) {
-      return NextcloudUploadResult(
-        success: false,
-        error: 'خطأ في رفع الملف: $e',
-      );
+      return NextcloudUploadResult(success: false, error: e.toString());
     }
   }
 
-  // ============================================================
-  // 📥 تحميل ملف
-  // ============================================================
-  Future<String?> downloadFile(String path) async {
-    try {
-      final response = await _dio.get(
-        '$baseUrl/remote.php/dav/files/$username/$path',
-        options: Options(
-          headers: _getJsonHeaders(),
-          responseType: ResponseType.bytes,
-        ),
-      );
-
-      if (response.statusCode == 200) {
-        final tempDir = Directory.systemTemp;
-        final fileName = path.split('/').last;
-        final file = File('${tempDir.path}/$fileName');
-        await file.writeAsBytes(response.data as List<int>);
-        return file.path;
-      }
-      return null;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  // ============================================================
-  // 🗑️ حذف ملف
-  // ============================================================
-  Future<bool> deleteFile(String path) async {
-    try {
-      final response = await _dio.delete(
-        '$baseUrl/remote.php/dav/files/$username/$path',
-        options: Options(headers: _getJsonHeaders()),
-      );
-      return response.statusCode == 204;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  // ============================================================
-  // 📁 إنشاء مجلد
-  // ============================================================
-  Future<bool> createFolder(String path) async {
-    try {
-      final response = await _dio.request(
-        '$baseUrl/remote.php/dav/files/$username/$path',
-        options: Options(
-          method: 'MKCOL',
-          headers: _getJsonHeaders(),
-        ),
-      );
-      return response.statusCode == 201;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  // ============================================================
-  // 💬 وظائف الدردشة (المحفوظة)
-  // ============================================================
-  Future<String> getChatUrl(String chatId, String userId) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/ocs/v2.php/apps/spreed/api/v4/room'),
-        headers: _getHeaders(),
-        body: {
-          'roomType': '1',
-          'invite': userId,
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return data['ocs']['data']['url'];
-      } else {
-        print('❌ Error response: ${response.body}');
-        throw Exception('فشل إنشاء غرفة الدردشة: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('❌ Nextcloud error: $e');
-      rethrow;
-    }
-  }
-
-  Future<void> sendMessage(String roomId, String message) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/ocs/v2.php/apps/spreed/api/v4/room/$roomId/message'),
-        headers: _getHeaders(),
-        body: {'message': message},
-      );
-
-      if (response.statusCode != 201) {
-        throw Exception('فشل إرسال الرسالة');
-      }
-    } catch (e) {
-      print('❌ Send message error: $e');
-    }
-  }
-
-  // ============================================================
-  // 🔍 التحقق من الخادم
-  // ============================================================
   Future<bool> checkServerStatus() async {
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/status.php'),
-      );
-      print('✅ Server status: ${response.statusCode}');
+      if (baseUrl.isEmpty) return false;
+      final response = await http.get(Uri.parse('${baseUrl.replaceFirst(RegExp(r'\/\$'), '')}/status.php'));
       return response.statusCode == 200;
-    } catch (e) {
-      print('❌ Server status error: $e');
+    } catch (_) {
       return false;
     }
   }
 
   Future<bool> testAuth() async {
     try {
+      _ensureConfigured();
       final response = await http.get(
-        Uri.parse('$baseUrl/ocs/v2.php/cloud/user'),
-        headers: _getHeaders(),
+        Uri.parse('${baseUrl.replaceFirst(RegExp(r'\/\$'), '')}/ocs/v2.php/cloud/user'),
+        headers: _headers(),
       );
-      print('✅ Auth test: ${response.statusCode}');
       return response.statusCode == 200;
-    } catch (e) {
-      print('❌ Auth test error: $e');
+    } catch (_) {
       return false;
     }
   }
 
-  // ============================================================
-  // 💾 حفظ الإعدادات
-  // ============================================================
   Future<void> updateConfig({
     required String baseUrl,
     required String username,
     required String password,
   }) async {
-    this.baseUrl = baseUrl;
-    this.username = username;
+    this.baseUrl = baseUrl.trim().replaceFirst(RegExp(r'\/\$'), '');
+    this.username = username.trim();
     this.password = password;
-
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('nextcloud_base_url', baseUrl);
-    await prefs.setString('nextcloud_username', username);
-    await prefs.setString('nextcloud_password', password);
+    await prefs.setString('nextcloud_base_url', this.baseUrl);
+    await prefs.setString('nextcloud_username', this.username);
+    await prefs.setString('nextcloud_password', this.password);
   }
 
   Future<void> loadConfig() async {
@@ -258,9 +111,6 @@ class NextcloudService {
   }
 }
 
-// ============================================================
-// 📦 نموذج نتيجة الرفع
-// ============================================================
 class NextcloudUploadResult {
   final bool success;
   final String? url;
