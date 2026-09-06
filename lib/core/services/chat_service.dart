@@ -156,7 +156,62 @@ class ChatService {
       'reactions': <String, dynamic>{},
       if (idempotencyKey != null && idempotencyKey.isNotEmpty) 'idempotencyKey': idempotencyKey,
     });
-    // تحديث المحادثة مرة واحدة فقط: يمنع duplicate-write داخل WriteBatch.
+    batch.update(chatRef, chatUpdate);
+    await batch.commit();
+    return messageRef.id;
+  }
+
+  Future<String> sendSystemMessage({
+    required String chatId,
+    required String text,
+    String? idempotencyKey,
+    Map<String, dynamic>? metadata,
+  }) async {
+    final userId = _getUserIdOrThrow();
+    final user = _auth.currentUser!;
+    final chatRef = _firestore.collection('chats').doc(chatId);
+    final chatDoc = await chatRef.get();
+    if (!chatDoc.exists) throw Exception('المحادثة غير موجودة');
+
+    final data = chatDoc.data() ?? <String, dynamic>{};
+    final participants = List<String>.from(data['participants'] ?? const <String>[]);
+    if (!participants.contains(userId)) throw Exception('ليس لديك صلاحية لهذه المحادثة');
+
+    if (idempotencyKey != null && idempotencyKey.isNotEmpty) {
+      final existing = await chatRef.collection('messages').where('idempotencyKey', isEqualTo: idempotencyKey).limit(1).get();
+      if (existing.docs.isNotEmpty) return existing.docs.first.id;
+    }
+
+    final messageRef = chatRef.collection('messages').doc();
+    final chatUpdate = <String, dynamic>{
+      'lastMessage': text.trim(),
+      'lastMessageTime': FieldValue.serverTimestamp(),
+      'lastMessageSenderId': userId,
+      'updatedAt': FieldValue.serverTimestamp(),
+    };
+    for (final participantId in participants) {
+      if (participantId != userId) {
+        chatUpdate['unreadCount.$participantId'] = FieldValue.increment(1);
+      }
+    }
+
+    final batch = _firestore.batch();
+    batch.set(messageRef, {
+      'chatId': chatId,
+      'senderId': userId,
+      'senderName': user.displayName ?? 'مستخدم',
+      'senderPhotoUrl': user.photoURL,
+      'text': text,
+      'type': 'system',
+      'timestamp': FieldValue.serverTimestamp(),
+      'isRead': false,
+      'isDelivered': true,
+      'isDeleted': false,
+      'isEdited': false,
+      'reactions': <String, dynamic>{},
+      if (metadata != null) 'metadata': metadata,
+      if (idempotencyKey != null && idempotencyKey.isNotEmpty) 'idempotencyKey': idempotencyKey,
+    });
     batch.update(chatRef, chatUpdate);
     await batch.commit();
     return messageRef.id;
