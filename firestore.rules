@@ -1,5 +1,4 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
     function isSignedIn() { return request.auth != null; }
@@ -17,84 +16,60 @@ service cloud.firestore {
       allow update: if isAdmin() || (isSelf(userId) && request.resource.data.uid == resource.data.uid && request.resource.data.role == resource.data.role && request.resource.data.doctorId == resource.data.doctorId && request.resource.data.isVerified == resource.data.isVerified && request.resource.data.verificationStatus == resource.data.verificationStatus);
       allow delete: if isAdmin();
     }
-
     match /users/{userId}/favorites/{doctorId} {
       allow read: if isSelf(userId);
       allow create: if isSelf(userId) && request.resource.data.doctorId == doctorId && request.resource.data.doctorId != '';
       allow delete: if isSelf(userId);
       allow update: if false;
     }
-
     match /doctors/{doctorId} {
       allow read: if isAdmin() || isSelf(doctorId) || resource.data.isVerified == true;
       allow create: if isSelf(doctorId) && userDataAfter(doctorId).role == 'doctor' && userDataAfter(doctorId).doctorId == doctorId && request.resource.data.userId == doctorId && request.resource.data.isVerified == false && request.resource.data.isAvailable == false && request.resource.data.isOnline == false;
       allow update: if isAdmin() || (isSelf(doctorId) && resource.data.userId == request.auth.uid && request.resource.data.userId == resource.data.userId && request.resource.data.isVerified == resource.data.isVerified && (request.resource.data.isAvailable == false || isVerifiedDoctor(request.auth.uid)));
       allow delete: if isAdmin();
     }
-
     match /hospitals/{hospitalId} {
       allow read: if true;
-      allow create, update, delete: if isAdmin() || (isSignedIn() && isSelf(hospitalId) && resource.data.userId == request.auth.uid);
+      allow create: if isAdmin() || (isSignedIn() && request.resource.data.userId == request.auth.uid);
+      allow update, delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
     }
     match /labs/{labId} {
       allow read: if true;
-      allow create, update, delete: if isAdmin() || (isSignedIn() && isSelf(labId) && resource.data.userId == request.auth.uid);
+      allow create: if isAdmin() || (isSignedIn() && request.resource.data.userId == request.auth.uid);
+      allow update, delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
     }
     match /pharmacies/{pharmacyId} {
       allow read: if true;
-      allow create, update, delete: if isAdmin() || (isSignedIn() && isSelf(pharmacyId) && resource.data.userId == request.auth.uid);
+      allow create: if isAdmin() || (isSignedIn() && request.resource.data.userId == request.auth.uid);
+      allow update, delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
     }
-    match /articles/{articleId} {
-      allow read: if resource.data.isPublished == true || isAdmin();
-      allow create, update, delete: if isAdmin();
+    match /lab_bookings/{bookingId} {
+      allow read: if isAdmin() || (isSignedIn() && (resource.data.patientId == request.auth.uid || resource.data.labId == request.auth.uid));
+      allow create: if isSignedIn() && request.resource.data.patientId == request.auth.uid && request.resource.data.labId != '' && exists(/databases/$(database)/documents/labs/$(request.resource.data.labId));
+      allow update: if isAdmin() || (isSignedIn() && resource.data.patientId == request.auth.uid && request.resource.data.patientId == resource.data.patientId && request.resource.data.labId == resource.data.labId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','date','time','notes','updatedAt','cancelledAt']));
+      allow delete: if isAdmin();
     }
-    match /community_posts/{postId} {
-      allow read: if resource.data.isPublished == true || isAdmin();
-      allow create: if isSignedIn();
-      allow update: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
-      allow delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
-    }
-
+    match /articles/{articleId} { allow read: if resource.data.isPublished == true || isAdmin(); allow create, update, delete: if isAdmin(); }
+    match /community_posts/{postId} { allow read: if resource.data.isPublished == true || isAdmin(); allow create: if isSignedIn(); allow update: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid); allow delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid); }
     function chatExists(chatId) { return exists(/databases/$(database)/documents/chats/$(chatId)); }
     function chatData(chatId) { return get(/databases/$(database)/documents/chats/$(chatId)).data; }
     function isChatParticipant(chatId) { return isSignedIn() && chatExists(chatId) && request.auth.uid in chatData(chatId).participants; }
-    function isExistingChatParticipant(chatId) { return isSignedIn() && resource.data.participants != null && request.auth.uid in resource.data.participants; }
-    function isCreatingChatParticipant() { return isSignedIn() && request.resource.data.participants != null && request.auth.uid in request.resource.data.participants; }
-
     match /chats/{chatId} {
-      allow read: if isChatParticipant(chatId);
-      allow create: if isCreatingChatParticipant();
-      allow update: if isExistingChatParticipant(chatId) && request.resource.data.participants != null && request.auth.uid in request.resource.data.participants;
-      allow delete: if false;
-      match /messages/{messageId} {
-        allow read: if isChatParticipant(chatId);
-        allow create: if isChatParticipant(chatId) && request.resource.data.senderId == request.auth.uid && request.resource.data.chatId == chatId;
-        allow update: if isChatParticipant(chatId) && (resource.data.senderId == request.auth.uid || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead', 'readAt']));
-        allow delete: if false;
-      }
+      allow read: if isChatParticipant(chatId); allow create: if isSignedIn() && request.resource.data.participants != null && request.auth.uid in request.resource.data.participants; allow update: if isChatParticipant(chatId) && request.auth.uid in request.resource.data.participants; allow delete: if false;
+      match /messages/{messageId} { allow read: if isChatParticipant(chatId); allow create: if isChatParticipant(chatId) && request.resource.data.senderId == request.auth.uid && request.resource.data.chatId == chatId; allow update: if isChatParticipant(chatId) && (resource.data.senderId == request.auth.uid || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead','readAt'])); allow delete: if false; }
     }
-
-    function appointmentExists(appointmentId) { return exists(/databases/$(database)/documents/appointments/$(appointmentId)); }
-    function appointmentData(appointmentId) { return get(/databases/$(database)/documents/appointments/$(appointmentId)).data; }
-    function isAppointmentPatient(appointmentId) { return isSignedIn() && appointmentExists(appointmentId) && appointmentData(appointmentId).patientId == request.auth.uid; }
-    function isAppointmentDoctor(appointmentId) { return isSignedIn() && appointmentExists(appointmentId) && appointmentData(appointmentId).doctorId == request.auth.uid; }
-
+    function appointmentExists(id) { return exists(/databases/$(database)/documents/appointments/$(id)); }
+    function appointmentData(id) { return get(/databases/$(database)/documents/appointments/$(id)).data; }
+    function isAppointmentPatient(id) { return isSignedIn() && appointmentExists(id) && appointmentData(id).patientId == request.auth.uid; }
+    function isAppointmentDoctor(id) { return isSignedIn() && appointmentExists(id) && appointmentData(id).doctorId == request.auth.uid; }
     match /appointments/{appointmentId} {
-      // Creation is trusted-backend only: it verifies the doctor and atomically prevents double-booking.
       allow create: if false;
       allow read: if isAdmin() || isAppointmentPatient(appointmentId) || isAppointmentDoctor(appointmentId);
-      allow update: if isAdmin() || (isAppointmentPatient(appointmentId) && request.resource.data.patientId == resource.data.patientId && request.resource.data.doctorId == resource.data.doctorId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['date', 'time', 'status', 'updatedAt', 'cancelledAt']) && request.resource.data.status in ['cancelled', 'pending']) || (isAppointmentDoctor(appointmentId) && isVerifiedDoctor(request.auth.uid) && request.resource.data.patientId == resource.data.patientId && request.resource.data.doctorId == resource.data.doctorId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'confirmedAt', 'updatedAt']) && request.resource.data.status in ['confirmed', 'completed']);
+      allow update: if isAdmin() || (isAppointmentPatient(appointmentId) && request.resource.data.patientId == resource.data.patientId && request.resource.data.doctorId == resource.data.doctorId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['date','time','status','updatedAt','cancelledAt']) && request.resource.data.status in ['cancelled','pending']) || (isAppointmentDoctor(appointmentId) && isVerifiedDoctor(request.auth.uid) && request.resource.data.patientId == resource.data.patientId && request.resource.data.doctorId == resource.data.doctorId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','confirmedAt','updatedAt']) && request.resource.data.status in ['confirmed','completed']);
       allow delete: if false;
     }
-
-    match /wallets/{userId} {
-      allow read: if isSelf(userId) || isAdmin();
-      allow write: if false;
-    }
-    match /transactions/{transactionId} {
-      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
-      allow create, update, delete: if false;
-    }
+    match /wallets/{userId} { allow read: if isSelf(userId) || isAdmin(); allow write: if false; }
+    match /transactions/{transactionId} { allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid); allow create, update, delete: if false; }
     match /{document=**} { allow read, write: if false; }
   }
 }
