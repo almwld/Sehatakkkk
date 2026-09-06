@@ -1,26 +1,23 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sehatak/data/models/doctor_model.dart';
+import 'package:sehatak/core/models/doctor_model.dart';
 
 void main() {
   group('DoctorModel', () {
-    test('fromJson should create correct model', () {
-      const json = {
-        'id': '1',
+    test('fromFirestore should create the canonical model', () {
+      final doctor = DoctorModel.fromFirestore('1', {
         'name': 'د. أحمد',
         'specialty': 'باطنية',
         'rating': 4.9,
-        'reviews': 328,
-        'image': 'doctor.png',
-        'gender': 'male',
-      };
-      
-      final doctor = DoctorModel.fromJson(json);
-      
+        'reviewsCount': 328,
+        'photoUrl': 'doctor.png',
+      });
+
       expect(doctor.id, '1');
       expect(doctor.name, 'د. أحمد');
       expect(doctor.specialty, 'باطنية');
       expect(doctor.rating, 4.9);
-      expect(doctor.reviews, 328);
+      expect(doctor.reviewsCount, 328);
+      expect(doctor.photoUrl, 'doctor.png');
     });
   });
 }
