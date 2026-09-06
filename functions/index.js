@@ -38,6 +38,78 @@ exports.createWallet = onCall(async (request) => {
   return {userId: uid, created: !snap.exists};
 });
 
+exports.submitDoctorVerification = onCall(async (request) => {
+  const uid = requireAuth(request);
+  const doctorRef = db.collection('doctors').doc(uid);
+  const userRef = db.collection('users').doc(uid);
+  await db.runTransaction(async (tx) => {
+    const [doctorSnap, userSnap] = await Promise.all([tx.get(doctorRef), tx.get(userRef)]);
+    if (!doctorSnap.exists || !userSnap.exists) throw new HttpsError('not-found', 'ملف الطبيب غير موجود');
+    const user = userSnap.data();
+    const doctor = doctorSnap.data();
+    if (user.role !== 'doctor' || doctor.userId !== uid) throw new HttpsError('permission-denied', 'حساب الطبيب غير صالح');
+    if (doctor.isVerified === true) throw new HttpsError('failed-precondition', 'الطبيب موثق بالفعل');
+    tx.update(doctorRef, {verificationStatus: 'pending', isVerified: false, updatedAt: FieldValue.serverTimestamp()});
+    tx.update(userRef, {verificationStatus: 'pending', isVerified: false, updatedAt: FieldValue.serverTimestamp()});
+  });
+  return {status: 'pending'};
+});
+
+exports.reviewDoctorVerification = onCall(async (request) => {
+  const adminUid = requireAuth(request);
+  if (!(await isAdmin(adminUid))) throw new HttpsError('permission-denied', 'صلاحية المدير مطلوبة');
+  const doctorId = text(request.data.doctorId, 'doctorId', 128);
+  const decision = text(request.data.decision, 'decision', 20);
+  if (!['approve', 'reject'].includes(decision)) throw new HttpsError('invalid-argument', 'قرار غير صالح');
+  const doctorRef = db.collection('doctors').doc(doctorId);
+  const userRef = db.collection('users').doc(doctorId);
+  await db.runTransaction(async (tx) => {
+    const [doctorSnap, userSnap] = await Promise.all([tx.get(doctorRef), tx.get(userRef)]);
+    if (!doctorSnap.exists || !userSnap.exists) throw new HttpsError('not-found', 'ملف الطبيب أو المستخدم غير موجود');
+    const doctor = doctorSnap.data();
+    const user = userSnap.data();
+    if (user.role !== 'doctor' || doctor.userId !== doctorId) throw new HttpsError('failed-precondition', 'ارتباط الطبيب بالمستخدم غير صالح');
+    const approved = decision === 'approve';
+    const now = FieldValue.serverTimestamp();
+    tx.update(doctorRef, {isVerified: approved, verificationStatus: approved ? 'approved' : 'rejected', isAvailable: approved ? Boolean(doctor.isAvailable) : false, isOnline: false, verifiedAt: approved ? now : null, verifiedBy: adminUid, updatedAt: now});
+    tx.update(userRef, {isVerified: approved, verificationStatus: approved ? 'approved' : 'rejected', updatedAt: now});
+  });
+  return {doctorId, status: decision === 'approve' ? 'approved' : 'rejected'};
+});
+
+exports.createAppointment = onCall(async (request) => {
+  const uid = requireAuth(request);
+  const doctorId = text(request.data.doctorId, 'doctorId', 128);
+  const doctorRef = db.collection('doctors').doc(doctorId);
+  const userRef = db.collection('users').doc(uid);
+  const appointmentRef = db.collection('appointments').doc();
+  const dateValue = request.data.date;
+  const time = text(request.data.time, 'time', 20);
+  const type = request.data.type ? String(request.data.type) : 'in_person';
+  if (!['in_person', 'video', 'phone'].includes(type)) throw new HttpsError('invalid-argument', 'نوع الموعد غير صالح');
+  let date;
+  if (dateValue && typeof dateValue === 'string') date = new Date(dateValue);
+  else if (dateValue && typeof dateValue._seconds === 'number') date = new Date(dateValue._seconds * 1000);
+  else throw new HttpsError('invalid-argument', 'تاريخ الموعد غير صالح');
+  if (Number.isNaN(date.getTime()) || date.getTime() < Date.now() - 60000) throw new HttpsError('invalid-argument', 'تاريخ الموعد يجب أن يكون مستقبلياً');
+
+  await db.runTransaction(async (tx) => {
+    const [doctorSnap, userSnap, existingSnap] = await Promise.all([
+      tx.get(doctorRef),
+      tx.get(userRef),
+      tx.get(db.collection('appointments').where('doctorId', '==', doctorId).where('date', '==', admin.firestore.Timestamp.fromDate(date)).where('time', '==', time).where('status', 'in', ['pending', 'confirmed']).limit(1)),
+    ]);
+    if (!userSnap.exists) throw new HttpsError('failed-precondition', 'حساب المريض غير موجود');
+    if (!doctorSnap.exists) throw new HttpsError('not-found', 'الطبيب غير موجود');
+    const doctor = doctorSnap.data();
+    if (doctor.userId !== doctorId || doctor.isVerified !== true) throw new HttpsError('failed-precondition', 'الطبيب غير موثق أو ارتباط الحساب غير صالح');
+    if (existingSnap.docs.length) throw new HttpsError('already-exists', 'هذا الموعد محجوز مسبقاً');
+    const now = FieldValue.serverTimestamp();
+    tx.create(appointmentRef, {patientId: uid, patientName: userSnap.data().name || userSnap.data().displayName || 'مريض', doctorId, doctorName: doctor.name || '', doctorSpecialty: doctor.specialty || '', date: admin.firestore.Timestamp.fromDate(date), time, type, status: 'pending', notes: String(request.data.notes || '').trim().slice(0, 1000), clinicAddress: doctor.clinicAddress || null, clinicPhone: doctor.clinicPhone || null, createdAt: now, updatedAt: now, confirmedAt: null, cancelledAt: null, reminderSent: false});
+  });
+  return {appointmentId: appointmentRef.id, status: 'pending'};
+});
+
 exports.createPayment = onCall(async (request) => {
   const uid = requireAuth(request);
   const amount = amountOf(request.data.amount);
@@ -51,29 +123,21 @@ exports.createPayment = onCall(async (request) => {
   const txRef = db.collection('transactions').doc(txId);
   const walletRef = db.collection('wallets').doc(uid);
   const orderRef = orderId ? db.collection('orders').doc(orderId) : null;
-
   await db.runTransaction(async (tx) => {
-    const [walletSnap, existingSnap, orderSnap] = await Promise.all([
-      tx.get(walletRef),
-      tx.get(txRef),
-      orderRef ? tx.get(orderRef) : Promise.resolve(null),
-    ]);
+    const [walletSnap, existingSnap, orderSnap] = await Promise.all([tx.get(walletRef), tx.get(txRef), orderRef ? tx.get(orderRef) : Promise.resolve(null)]);
     if (existingSnap.exists) return;
     if (!walletSnap.exists) throw new HttpsError('failed-precondition', 'المحفظة غير مفعلة لهذا الحساب');
     const wallet = walletSnap.data();
     const balance = Number(wallet.balance || 0);
     if (wallet.isActive === false) throw new HttpsError('failed-precondition', 'المحفظة غير نشطة');
     if (balance < amount) throw new HttpsError('failed-precondition', 'رصيد المحفظة غير كافٍ');
-
     if (orderRef) {
       if (!orderSnap || !orderSnap.exists) throw new HttpsError('not-found', 'الطلب غير موجود');
       const order = orderSnap.data();
       if (order.userId !== uid) throw new HttpsError('permission-denied', 'لا تملك هذا الطلب');
-      const orderTotal = Number(order.total || 0);
-      if (Math.abs(orderTotal - amount) > 0.01) throw new HttpsError('failed-precondition', 'مبلغ الدفع لا يطابق إجمالي الطلب');
+      if (Math.abs(Number(order.total || 0) - amount) > 0.01) throw new HttpsError('failed-precondition', 'مبلغ الدفع لا يطابق إجمالي الطلب');
       if (order.transactionId) throw new HttpsError('already-exists', 'تم ربط الطلب بمعاملة دفع مسبقاً');
     }
-
     const now = FieldValue.serverTimestamp();
     tx.update(walletRef, {balance: balance - amount, totalSpent: Number(wallet.totalSpent || 0) + amount, updatedAt: now, lastTransactionAt: now});
     tx.set(txRef, {userId: uid, amount, fee: 0, netAmount: amount, type: 'payment', status: 'completed', title, description, orderId, serviceId, serviceType, metadata: request.data.metadata || null, idempotencyKey, createdAt: now, completedAt: now});
@@ -159,13 +223,11 @@ exports.reviewTransaction = onCall(async (request) => {
     if (!walletSnap.exists) throw new HttpsError('failed-precondition', 'محفظة المستخدم غير موجودة');
     const wallet = walletSnap.data();
     const now = FieldValue.serverTimestamp();
-
     if (decision === 'reject') {
       if (data.type === 'withdrawal') tx.update(walletRef, {balance: Number(wallet.balance || 0) + amount, pendingBalance: Math.max(0, Number(wallet.pendingBalance || 0) - amount), updatedAt: now});
       tx.update(txRef, {status: 'failed', completedAt: now, updatedAt: now, reviewedBy: uid});
       return;
     }
-
     if (data.type === 'deposit') tx.update(walletRef, {balance: Number(wallet.balance || 0) + amount, totalDeposited: Number(wallet.totalDeposited || 0) + amount, updatedAt: now, lastTransactionAt: now});
     else if (data.type === 'refund') tx.update(walletRef, {balance: Number(wallet.balance || 0) + amount, totalSpent: Math.max(0, Number(wallet.totalSpent || 0) - amount), updatedAt: now, lastTransactionAt: now});
     else if (data.type === 'withdrawal') tx.update(walletRef, {pendingBalance: Math.max(0, Number(wallet.pendingBalance || 0) - amount), totalWithdrawn: Number(wallet.totalWithdrawn || 0) + amount, updatedAt: now, lastTransactionAt: now});
