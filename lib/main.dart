@@ -30,87 +30,71 @@ import 'presentation/screens/splash_screen.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-// ✅ معالج الخلفية للإشعارات
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  print('📩 Handling background message: ${message.messageId}');
-  print('📩 Data: ${message.data}');
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  debugPrint('📩 Handling background message: ${message.messageId}');
+}
+
+Future<void> _syncFcmToken() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return;
+  try {
+    final token = await FirebaseMessaging.instance.getToken();
+    if (token == null || token.isEmpty) return;
+    await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+      'fcmToken': token,
+      'lastTokenUpdate': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  } catch (e) {
+    debugPrint('❌ FCM token sync error: $e');
+  }
 }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ✅ تحديد اتجاه الشاشة
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
-  // ✅ تهيئة Firebase
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    print('✅ Firebase initialized successfully');
+    debugPrint('✅ Firebase initialized successfully');
   } catch (e) {
-    print('❌ Firebase initialization error: $e');
+    debugPrint('❌ Firebase initialization error: $e');
+    runApp(const _StartupErrorApp());
+    return;
   }
 
-  // ✅ تهيئة FCM
   try {
-    final fcm = FirebaseMessaging.instance;
-    await fcm.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
-
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-    final token = await fcm.getToken();
-    print('✅ FCM Token: $token');
+    final fcm = FirebaseMessaging.instance;
+    await fcm.requestPermission(alert: true, badge: true, sound: true);
+    await _syncFcmToken();
   } catch (e) {
-    print('❌ FCM initialization error: $e');
+    debugPrint('❌ FCM initialization error: $e');
   }
 
-  // ✅ تهيئة الكاش
   await CacheService.init();
 
-  // ✅ تهيئة الإشعارات
   final notificationService = NotificationService();
   await notificationService.initialize();
 
   runApp(
     MultiProvider(
       providers: [
-        // ✅ UserProvider - باستخدام loadUserSafely
+        ChangeNotifierProvider(create: (_) => UserProvider()..loadUserSafely()),
+        ChangeNotifierProvider(create: (_) => FontSizeProvider()),
+        ChangeNotifierProvider(create: (_) => BotProvider()),
         ChangeNotifierProvider(
-          create: (_) => UserProvider()..loadUserSafely(),
+          create: (_) => WalletProvider(uid: FirebaseAuth.instance.currentUser?.uid ?? ''),
         ),
-        ChangeNotifierProvider(
-          create: (_) => FontSizeProvider(),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => BotProvider(),
-        ),
-        // ✅ WalletProvider - مع تحقق آمن
-        ChangeNotifierProvider(
-          create: (_) {
-            try {
-              final user = FirebaseAuth.instance.currentUser;
-              return WalletProvider(uid: user?.uid ?? '');
-            } catch (e) {
-              print('❌ WalletProvider error: $e');
-              return WalletProvider(uid: '');
-            }
-          },
-        ),
-        ChangeNotifierProvider(
-          create: (_) => CartProvider(),
-        ),
-        BlocProvider(
-          create: (_) => AuthBloc()..add(CheckAuthStatus()),
-        ),
+        ChangeNotifierProvider(create: (_) => CartProvider()),
+        BlocProvider(create: (_) => AuthBloc()..add(CheckAuthStatus())),
         BlocProvider(create: (_) => ThemeBloc()),
         BlocProvider(create: (_) => ChatBloc()),
         BlocProvider(create: (_) => DoctorBloc()),
@@ -118,6 +102,22 @@ void main() async {
       child: const SehatakApp(),
     ),
   );
+}
+
+class _StartupErrorApp extends StatelessWidget {
+  const _StartupErrorApp();
+
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: Text('تعذر تشغيل التطبيق بسبب خطأ في تهيئة الخدمات الأساسية.'),
+        ),
+      ),
+    );
+  }
 }
 
 class SehatakApp extends StatefulWidget {
@@ -130,26 +130,31 @@ class SehatakApp extends StatefulWidget {
 class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
   final CallService _callService = CallService();
   final NotificationService _notificationService = NotificationService();
+  StreamSubscription<String>? _tokenSubscription;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-
-    // ✅ الاستماع للإشعارات
     FirebaseMessaging.onMessage.listen(_handleMessage);
     FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpened);
-
-    // ✅ الاستماع لإشعارات المكالمات
-    FirebaseMessaging.onMessage.listen((message) {
-      if (message.data['type'] == 'incoming_call') {
-        _callService.handleIncomingCall(context, message);
+    _tokenSubscription = FirebaseMessaging.instance.onTokenRefresh.listen((token) async {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null || token.isEmpty) return;
+      try {
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+          'fcmToken': token,
+          'lastTokenUpdate': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      } catch (e) {
+        debugPrint('❌ FCM refresh sync error: $e');
       }
     });
   }
 
   @override
   void dispose() {
+    _tokenSubscription?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -157,27 +162,25 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.resumed) {
-      print('🔄 App resumed from background');
-      if (mounted) {
-        // ✅ إعادة تحميل بيانات المستخدم
-        final userProvider = Provider.of<UserProvider>(context, listen: false);
-        userProvider.loadUserSafely();
-
-        // ✅ تحديث حالة المستخدم في Firestore
-        final user = FirebaseAuth.instance.currentUser;
-        if (user != null) {
-          FirebaseFirestore.instance.collection('users').doc(user.uid).update({
-            'isOnline': true,
-            'lastSeen': FieldValue.serverTimestamp(),
-          });
-        }
+    if (state == AppLifecycleState.resumed && mounted) {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      userProvider.loadUserSafely();
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+          'isOnline': true,
+          'lastSeen': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+        _syncFcmToken();
       }
     }
   }
 
   void _handleMessage(RemoteMessage message) {
-    print('📩 New message: ${message.notification?.title}');
+    if (message.data['type'] == 'incoming_call') {
+      _callService.handleIncomingCall(context, message);
+      return;
+    }
     _notificationService.showNotification(
       title: message.notification?.title ?? 'إشعار جديد',
       body: message.notification?.body ?? '',
@@ -186,8 +189,6 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
   }
 
   void _handleMessageOpened(RemoteMessage message) {
-    print('📱 Message opened: ${message.data}');
-    // ✅ التنقل إلى الشاشة المناسبة
     if (message.data['type'] == 'incoming_call') {
       _callService.handleIncomingCall(context, message);
     }
