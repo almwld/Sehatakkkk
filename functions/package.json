@@ -1,7 +1,7 @@
 {
   "name": "sehatak-functions",
-  "description": "Trusted backend functions for Sehatak payments, wallet processing, refunds and withdrawals",
-  "main": "index.js",
+  "description": "Trusted backend functions for Sehatak payments, wallet, verification and lab services",
+  "main": "loader.js",
   "engines": {"node": "18"},
   "private": true,
   "dependencies": {
