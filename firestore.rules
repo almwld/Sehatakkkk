@@ -95,7 +95,7 @@ service cloud.firestore {
       allow read:
         if isAdmin()
         || isSelf(doctorId)
-        || isSignedIn();
+        || resource.data.isVerified == true;
 
       allow create:
         if isSelf(doctorId)

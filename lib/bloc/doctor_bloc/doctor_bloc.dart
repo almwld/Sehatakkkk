@@ -1,83 +1,285 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
-import '../../core/models/doctor_model.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-// Events
+import 'package:sehatak/core/models/doctor_model.dart';
+
 abstract class DoctorEvent extends Equatable {
   const DoctorEvent();
+
   @override
   List<Object?> get props => [];
 }
 
-class LoadDoctors extends DoctorEvent {}
-class RefreshDoctors extends DoctorEvent {}
+class LoadDoctors extends DoctorEvent {
+  final String specialty;
+
+  const LoadDoctors({
+    this.specialty = 'الكل',
+  });
+
+  @override
+  List<Object?> get props => [specialty];
+}
+
+class RefreshDoctors extends DoctorEvent {
+  const RefreshDoctors();
+}
+
 class SearchDoctors extends DoctorEvent {
   final String query;
-  const SearchDoctors({required this.query});
+
+  const SearchDoctors({
+    required this.query,
+  });
+
   @override
   List<Object?> get props => [query];
 }
 
-// States
+class FilterDoctors extends DoctorEvent {
+  final String specialty;
+
+  const FilterDoctors({
+    required this.specialty,
+  });
+
+  @override
+  List<Object?> get props => [specialty];
+}
+
 abstract class DoctorState extends Equatable {
   const DoctorState();
+
   @override
   List<Object?> get props => [];
 }
 
-class DoctorInitial extends DoctorState {}
-class DoctorLoading extends DoctorState {}
+class DoctorInitial extends DoctorState {
+  const DoctorInitial();
+}
+
+class DoctorLoading extends DoctorState {
+  const DoctorLoading();
+}
 
 class DoctorLoaded extends DoctorState {
   final List<DoctorModel> doctors;
-  const DoctorLoaded({required this.doctors});
+
+  const DoctorLoaded({
+    required this.doctors,
+  });
+
   @override
   List<Object?> get props => [doctors];
 }
 
 class DoctorError extends DoctorState {
   final String message;
-  const DoctorError({required this.message});
+
+  const DoctorError({
+    required this.message,
+  });
+
   @override
   List<Object?> get props => [message];
 }
 
-// BLoC
 class DoctorBloc extends Bloc<DoctorEvent, DoctorState> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  List<DoctorModel> _allDoctors = [];
 
-  DoctorBloc() : super(DoctorInitial()) {
+  String _searchQuery = '';
+  String _selectedSpecialty = 'الكل';
+
+  DoctorBloc() : super(const DoctorInitial()) {
     on<LoadDoctors>(_onLoadDoctors);
     on<RefreshDoctors>(_onRefreshDoctors);
     on<SearchDoctors>(_onSearchDoctors);
+    on<FilterDoctors>(_onFilterDoctors);
   }
 
-  Future<void> _onLoadDoctors(LoadDoctors event, Emitter<DoctorState> emit) async {
-    emit(DoctorLoading());
+  FirebaseFirestore? get _firestore {
+    if (Firebase.apps.isEmpty) {
+      return null;
+    }
+
+    return FirebaseFirestore.instance;
+  }
+
+  Future<void> _onLoadDoctors(
+    LoadDoctors event,
+    Emitter<DoctorState> emit,
+  ) async {
+    _selectedSpecialty = event.specialty;
+    _searchQuery = '';
+
+    emit(const DoctorLoading());
+
+    await _fetchDoctors(emit);
+  }
+
+  Future<void> _onRefreshDoctors(
+    RefreshDoctors event,
+    Emitter<DoctorState> emit,
+  ) async {
+    if (_firestore == null) {
+      emit(
+        const DoctorError(
+          message: 'الخدمة غير جاهزة بعد، حاول مرة أخرى.',
+        ),
+      );
+      return;
+    }
+
+    await _fetchDoctors(
+      emit,
+      showLoading: false,
+    );
+  }
+
+  Future<void> _onSearchDoctors(
+    SearchDoctors event,
+    Emitter<DoctorState> emit,
+  ) async {
+    _searchQuery = event.query.trim();
+
+    emit(
+      DoctorLoaded(
+        doctors: _applyFilters(),
+      ),
+    );
+  }
+
+  Future<void> _onFilterDoctors(
+    FilterDoctors event,
+    Emitter<DoctorState> emit,
+  ) async {
+    _selectedSpecialty = event.specialty;
+
+    emit(
+      DoctorLoaded(
+        doctors: _applyFilters(),
+      ),
+    );
+  }
+
+  Future<void> _fetchDoctors(
+    Emitter<DoctorState> emit, {
+    bool showLoading = true,
+  }) async {
+    final firestore = _firestore;
+
+    if (firestore == null) {
+      emit(
+        const DoctorError(
+          message: 'خدمة الأطباء غير جاهزة بعد.',
+        ),
+      );
+      return;
+    }
+
     try {
-      final snapshot = await _firestore.collection('doctors').get();
-      final doctors = snapshot.docs.map((doc) {
-        return DoctorModel.fromFirestore(doc.id, doc.data() as Map<String, dynamic>);
-      }).toList();
-      emit(DoctorLoaded(doctors: doctors));
+      Query<Map<String, dynamic>> query = firestore
+          .collection('doctors')
+          .where('isVerified', isEqualTo: true);
+
+      final snapshot = await query.get();
+
+      _allDoctors = snapshot.docs
+          .map(
+            (doc) => DoctorModel.fromFirestore(
+              doc.id,
+              doc.data(),
+            ),
+          )
+          .where(
+            (doctor) =>
+                doctor.name.trim().isNotEmpty &&
+                doctor.specialty.trim().isNotEmpty,
+          )
+          .toList();
+
+      _allDoctors.sort((a, b) {
+        final aFeatured = a.isFeatured ? 0 : 1;
+        final bFeatured = b.isFeatured ? 0 : 1;
+
+        if (aFeatured != bFeatured) {
+          return aFeatured.compareTo(bFeatured);
+        }
+
+        final aRating = a.rating ?? 0;
+        final bRating = b.rating ?? 0;
+
+        return bRating.compareTo(aRating);
+      });
+
+      emit(
+        DoctorLoaded(
+          doctors: _applyFilters(),
+        ),
+      );
     } catch (e) {
-      emit(DoctorError(message: 'حدث خطأ: ${e.toString()}'));
+      emit(
+        DoctorError(
+          message: 'تعذر تحميل الأطباء: $e',
+        ),
+      );
     }
   }
 
-  Future<void> _onRefreshDoctors(RefreshDoctors event, Emitter<DoctorState> emit) async {
-    add(LoadDoctors());
+  List<DoctorModel> _applyFilters() {
+    Iterable<DoctorModel> result = _allDoctors;
+
+    final specialty = _selectedSpecialty.trim();
+
+    if (specialty.isNotEmpty && specialty != 'الكل') {
+      final normalizedSpecialty = specialty.toLowerCase();
+
+      result = result.where((doctor) {
+        final mainSpecialty = doctor.specialty.toLowerCase();
+
+        final subspecialty =
+            (doctor.subspecialty ?? '').toLowerCase();
+
+        final specialties = (doctor.specialties ?? const <String>[])
+            .map((item) => item.toLowerCase());
+
+        return mainSpecialty.contains(normalizedSpecialty) ||
+            normalizedSpecialty.contains(mainSpecialty) ||
+            subspecialty.contains(normalizedSpecialty) ||
+            specialties.any(
+              (item) =>
+                  item.contains(normalizedSpecialty) ||
+                  normalizedSpecialty.contains(item),
+            );
+      });
+    }
+
+    final query = _searchQuery.toLowerCase();
+
+    if (query.isNotEmpty) {
+      result = result.where((doctor) {
+        final name = doctor.name.toLowerCase();
+        final specialtyName = doctor.specialty.toLowerCase();
+        final subspecialty =
+            (doctor.subspecialty ?? '').toLowerCase();
+        final hospital =
+            (doctor.hospital ?? '').toLowerCase();
+
+        return name.contains(query) ||
+            specialtyName.contains(query) ||
+            subspecialty.contains(query) ||
+            hospital.contains(query);
+      });
+    }
+
+    return result.toList();
   }
 
-  Future<void> _onSearchDoctors(SearchDoctors event, Emitter<DoctorState> emit) async {
-    if (state is! DoctorLoaded) return;
-    final currentState = state as DoctorLoaded;
-    final query = event.query.toLowerCase();
-    final filtered = currentState.doctors.where((d) =>
-      d.name.toLowerCase().contains(query) ||
-      d.specialty.toLowerCase().contains(query)
-    ).toList();
-    emit(DoctorLoaded(doctors: filtered));
+  @override
+  Future<void> close() {
+    _allDoctors = [];
+    return super.close();
   }
 }
