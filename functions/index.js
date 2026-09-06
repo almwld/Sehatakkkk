@@ -92,11 +92,9 @@ exports.createAppointment = onCall(async (request) => {
   else if (dateValue && typeof dateValue._seconds === 'number') date = new Date(dateValue._seconds * 1000);
   else throw new HttpsError('invalid-argument', 'تاريخ الموعد غير صالح');
   if (Number.isNaN(date.getTime()) || date.getTime() < Date.now() - 60000) throw new HttpsError('invalid-argument', 'تاريخ الموعد يجب أن يكون مستقبلياً');
-
   await db.runTransaction(async (tx) => {
     const [doctorSnap, userSnap, existingSnap] = await Promise.all([
-      tx.get(doctorRef),
-      tx.get(userRef),
+      tx.get(doctorRef), tx.get(userRef),
       tx.get(db.collection('appointments').where('doctorId', '==', doctorId).where('date', '==', admin.firestore.Timestamp.fromDate(date)).where('time', '==', time).where('status', 'in', ['pending', 'confirmed']).limit(1)),
     ]);
     if (!userSnap.exists) throw new HttpsError('failed-precondition', 'حساب المريض غير موجود');
@@ -236,3 +234,6 @@ exports.reviewTransaction = onCall(async (request) => {
   });
   return {transactionId, status: 'completed'};
 });
+
+// Triggers are kept separate from the core callable functions to keep this file maintainable.
+Object.assign(exports, require('./notification_triggers'));
