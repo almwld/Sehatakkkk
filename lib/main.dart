@@ -90,9 +90,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => FontSizeProvider()),
         ChangeNotifierProvider(create: (_) => BotProvider()),
         ChangeNotifierProvider(
-          create: (_) => WalletProvider(
-            uid: FirebaseAuth.instance.currentUser?.uid ?? '',
-          ),
+          create: (_) => WalletProvider(uid: FirebaseAuth.instance.currentUser?.uid ?? ''),
         ),
         ChangeNotifierProvider(create: (_) => CartProvider()),
         BlocProvider(create: (_) => AuthBloc()..add(CheckAuthStatus())),
@@ -115,9 +113,117 @@ class _StartupErrorApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         body: Center(
-          child: Text('تعذر تشغيل خدمات Firebase. تحقق من إعدادات التطبيق.'),
+          child: Text('تعذر تشغيل التطبيق بسبب خطأ في تهيئة الخدمات الأساسية.'),
         ),
       ),
+    );
+  }
+}
+
+class SehatakApp extends StatefulWidget {
+  const SehatakApp({super.key});
+  @override
+  State<SehatakApp> createState() => _SehatakAppState();
+}
+
+class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
+  final CallService _callService = CallService();
+  final NotificationService _notificationService = NotificationService();
+  StreamSubscription<String>? _tokenSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    FirebaseMessaging.onMessage.listen(_handleMessage);
+    FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpened);
+    _tokenSubscription = FirebaseMessaging.instance.onTokenRefresh.listen((token) async {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null || token.isEmpty) return;
+      try {
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+          'fcmToken': token,
+          'lastTokenUpdate': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      } catch (e) {
+        debugPrint('❌ FCM refresh sync error: $e');
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _tokenSubscription?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed && mounted) {
+      Provider.of<UserProvider>(context, listen: false).loadUserSafely();
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+          'isOnline': true,
+          'lastSeen': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+        _syncFcmToken();
+      }
+    }
+  }
+
+  void _handleMessage(RemoteMessage message) {
+    if (message.data['type'] == 'incoming_call') {
+      _callService.handleIncomingCall(context, message);
+      return;
+    }
+    _notificationService.showNotification(
+      title: message.notification?.title ?? 'إشعار جديد',
+      body: message.notification?.body ?? '',
+      payload: message.data['chatId'] ?? '',
+    );
+  }
+
+  void _handleMessageOpened(RemoteMessage message) {
+    if (message.data['type'] == 'incoming_call') {
+      _callService.handleIncomingCall(context, message);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ThemeBloc, ThemeState>(
+      builder: (context, themeState) {
+        return Consumer<FontSizeProvider>(
+          builder: (context, fontProvider, child) {
+            return MaterialApp(
+              title: 'صحتك - Sehatak',
+              debugShowCheckedModeBanner: false,
+              locale: const Locale('ar', 'SA'),
+              theme: ThemeManager.lightTheme,
+              darkTheme: ThemeManager.darkTheme,
+              themeMode: themeState.themeMode,
+              localizationsDelegates: const [
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: const [Locale('ar', 'SA'), Locale('en', 'US')],
+              builder: (context, child) {
+                return MediaQuery(
+                  data: MediaQuery.of(context).copyWith(textScaleFactor: fontProvider.fontScale),
+                  child: Directionality(textDirection: TextDirection.rtl, child: child!),
+                );
+              },
+              home: const SplashScreen(),
+              onGenerateRoute: PaymentRoutes.onGenerateRoute,
+              navigatorKey: navigatorKey,
+            );
+          },
+        );
+      },
     );
   }
 }
