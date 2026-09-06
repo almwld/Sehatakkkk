@@ -1,3 +1,7 @@
+// ============================================================
+// 📱 main.dart - نقطة الدخول الرئيسية
+// ============================================================
+
 import 'presentation/bloc/doctor_bloc/doctor_bloc.dart';
 import 'presentation/bloc/chat_bloc/chat_bloc.dart';
 import 'package:flutter/material.dart';
@@ -23,7 +27,8 @@ import 'core/routes/payment_routes.dart';
 import 'presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'presentation/bloc/theme_bloc/theme_bloc.dart';
 import 'presentation/screens/splash_screen.dart';
-import 'presentation/screens/wallet/wallet_screen.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 // ✅ معالج الخلفية للإشعارات
 @pragma('vm:entry-point')
@@ -149,7 +154,6 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  // ✅ معالجة العودة من الخلفية
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
@@ -232,5 +236,3 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
     );
   }
 }
-
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();

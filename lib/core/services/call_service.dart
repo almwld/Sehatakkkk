@@ -1,13 +1,29 @@
-import 'package:firebase_auth/firebase_auth.dart';
+// ============================================================
+// 📞 خدمة المكالمات - النسخة النهائية
+// ============================================================
+
+import 'package:flutter/material.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/call_model.dart';
+import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/models/call_model.dart';
 
 enum CallType { audio, video }
 enum CallStatus { calling, ringing, connected, ended, missed, rejected, busy, cancelled }
 
 class CallService {
+  static final CallService _instance = CallService._internal();
+  factory CallService() => _instance;
+  CallService._internal();
+
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  bool _isInCall = false;
+  String? _currentCallId;
+
+  bool get isInCall => _isInCall;
+  String? get currentCallId => _currentCallId;
 
   String? get currentUserId => _auth.currentUser?.uid;
 
@@ -20,6 +36,7 @@ class CallService {
   // ============================================================
   // 📋 جلب سجل المكالمات (Stream)
   // ============================================================
+
   Stream<List<CallModel>> streamCallHistory({int limit = 50}) {
     final userId = _getUserIdOrThrow();
     return _firestore
@@ -36,6 +53,7 @@ class CallService {
   // ============================================================
   // 📋 الاستماع لمكالمة محددة
   // ============================================================
+
   Stream<CallModel?> streamCall(String callId) {
     return _firestore
         .collection('calls')
@@ -47,6 +65,7 @@ class CallService {
   // ============================================================
   // 📞 بدء مكالمة
   // ============================================================
+
   Future<CallModel?> initiateCall({
     required String receiverId,
     required String receiverName,
@@ -87,101 +106,177 @@ class CallService {
     };
 
     await callRef.set(callData);
+    _isInCall = true;
+    _currentCallId = callId;
+
     return CallModel.fromFirestore(callId, callData);
   }
 
   // ============================================================
   // ✅ قبول المكالمة
   // ============================================================
+
   Future<void> acceptCall(String callId) async {
     await _firestore.runTransaction((transaction) async {
       final doc = await transaction.get(_firestore.collection('calls').doc(callId));
       if (!doc.exists) return;
+
       final status = doc.data()?['status'] as String?;
       if (status != CallStatus.calling.name && status != CallStatus.ringing.name) {
         throw Exception('لا يمكن قبول المكالمة في حالتها الحالية');
       }
+
       transaction.update(_firestore.collection('calls').doc(callId), {
         'status': CallStatus.connected.name,
         'isAnswered': true,
         'connectedAt': FieldValue.serverTimestamp(),
       });
+
+      _isInCall = true;
+      _currentCallId = callId;
     });
   }
 
   // ============================================================
   // ❌ رفض المكالمة
   // ============================================================
+
   Future<void> rejectCall(String callId) async {
     await _firestore.runTransaction((transaction) async {
       final doc = await transaction.get(_firestore.collection('calls').doc(callId));
       if (!doc.exists) return;
+
       final status = doc.data()?['status'] as String?;
       if (status != CallStatus.calling.name && status != CallStatus.ringing.name) {
         throw Exception('لا يمكن رفض المكالمة في حالتها الحالية');
       }
+
       transaction.update(_firestore.collection('calls').doc(callId), {
         'status': CallStatus.rejected.name,
         'endedAt': FieldValue.serverTimestamp(),
       });
+
+      _isInCall = false;
+      _currentCallId = null;
     });
   }
 
   // ============================================================
   // ❌ إلغاء المكالمة (من المتصل)
   // ============================================================
+
   Future<void> cancelCall(String callId) async {
     await _firestore.runTransaction((transaction) async {
       final doc = await transaction.get(_firestore.collection('calls').doc(callId));
       if (!doc.exists) return;
-      final data = doc.data()!;
-      final status = data['status'] as String?;
+
+      final status = doc.data()?['status'] as String?;
       if (status != CallStatus.calling.name && status != CallStatus.ringing.name) {
         throw Exception('لا يمكن إلغاء المكالمة في حالتها الحالية');
       }
+
       transaction.update(_firestore.collection('calls').doc(callId), {
         'status': CallStatus.cancelled.name,
         'endedAt': FieldValue.serverTimestamp(),
       });
+
+      _isInCall = false;
+      _currentCallId = null;
     });
   }
 
   // ============================================================
   // 🔚 إنهاء المكالمة
   // ============================================================
+
   Future<void> endCall(String callId, {int? durationSeconds}) async {
     await _firestore.runTransaction((transaction) async {
       final doc = await transaction.get(_firestore.collection('calls').doc(callId));
       if (!doc.exists) return;
-      final data = doc.data()!;
-      final status = data['status'] as String?;
+
+      final status = doc.data()?['status'] as String?;
       if (status != CallStatus.connected.name) {
         throw Exception('لا يمكن إنهاء المكالمة في حالتها الحالية');
       }
+
       transaction.update(_firestore.collection('calls').doc(callId), {
         'status': CallStatus.ended.name,
         'endedAt': FieldValue.serverTimestamp(),
         'durationSeconds': durationSeconds,
       });
+
+      _isInCall = false;
+      _currentCallId = null;
     });
   }
 
   // ============================================================
   // ⏰ تفويت المكالمة
   // ============================================================
+
   Future<void> missCall(String callId) async {
     await _firestore.runTransaction((transaction) async {
       final doc = await transaction.get(_firestore.collection('calls').doc(callId));
       if (!doc.exists) return;
-      final data = doc.data()!;
-      final status = data['status'] as String?;
+
+      final status = doc.data()?['status'] as String?;
       if (status != CallStatus.calling.name && status != CallStatus.ringing.name) {
         return;
       }
+
       transaction.update(_firestore.collection('calls').doc(callId), {
         'status': CallStatus.missed.name,
         'endedAt': FieldValue.serverTimestamp(),
       });
+
+      _isInCall = false;
+      _currentCallId = null;
     });
+  }
+
+  // ============================================================
+  // 📞 معالجة المكالمة الواردة (لـ FCM)
+  // ============================================================
+
+  void handleIncomingCall(BuildContext context, RemoteMessage message) {
+    print('📞 Incoming call from: ${message.data}');
+    
+    final callId = message.data['callId'] ?? message.data['id'];
+    final callerName = message.data['callerName'] ?? 'طبيب';
+    final callerId = message.data['callerId'] ?? 'unknown';
+    final chatId = message.data['chatId'] ?? 'call_$callId';
+    final isVideo = message.data['isVideo'] == 'true';
+
+    if (callId == null || callId.isEmpty) {
+      print('⚠️ No callId in message');
+      ToastService.showError('❌ لا يمكن معالجة المكالمة');
+      return;
+    }
+
+    ToastService.showInfo('📞 مكالمة واردة من $callerName');
+
+    // ✅ التنقل إلى شاشة المكالمة
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CallScreen(
+          chatId: chatId,
+          doctorName: callerName,
+          doctorId: callerId,
+          isVideo: isVideo,
+          callId: callId,
+          isOutgoing: false,
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // 🧹 تنظيف الموارد
+  // ============================================================
+
+  void dispose() {
+    _isInCall = false;
+    _currentCallId = null;
   }
 }
