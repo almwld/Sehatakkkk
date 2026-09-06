@@ -2,7 +2,7 @@ import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/delivery/delivery_service.dart';
-import 'package:sehatak/data/models/delivery/delivery_model.dart';
+import 'package:sehatak/core/models/delivery/delivery_model.dart';
 
 class DeliveryTrackingScreen extends StatefulWidget {
   final String orderId;

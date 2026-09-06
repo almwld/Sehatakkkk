@@ -1,4 +1,4 @@
-import 'package:sehatak/data/models/delivery/delivery_model.dart';
+import 'package:sehatak/core/models/delivery/delivery_model.dart';
 
 class DeliveryService {
   // ✅ محاكاة جلب حالة التوصيل

@@ -1,7 +1,6 @@
-import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
-import 'package:sehatak/data/models/product_model.dart';
+import 'package:sehatak/core/models/pharmacy/product_model.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class HomeProductsRow extends StatelessWidget {
@@ -63,13 +62,13 @@ class HomeProductsRow extends StatelessWidget {
                     Stack(
                       children: [
                         AppImage(
-                          imageUrl: product.image,
+                          imageUrl: product.imageUrl ?? '',
                           width: 80,
                           height: 80,
                           borderRadius: BorderRadius.circular(12),
                           fit: BoxFit.contain,
                         ),
-                        if (product.discount > 0)
+                        if ((product.discount ?? 0) > 0)
                           Positioned(
                             top: 4,
                             right: 4,
@@ -80,7 +79,7 @@ class HomeProductsRow extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
-                                '-${product.discount}%',
+                                '-${(product.discount ?? 0).toStringAsFixed(0)}%',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 9,
@@ -105,7 +104,7 @@ class HomeProductsRow extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      product.category,
+                      product.categoryText,
                       style: TextStyle(
                         color: isDark ? Colors.grey[400] : Colors.grey[600],
                         fontSize: 10,

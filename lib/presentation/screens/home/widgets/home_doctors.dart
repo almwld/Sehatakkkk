@@ -1,8 +1,6 @@
-import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
-import 'package:sehatak/data/models/doctor_model.dart';
-import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/models/doctor_model.dart';
 
 class HomeDoctorsList extends StatelessWidget {
   final List<DoctorModel> doctors;
@@ -61,7 +59,7 @@ class HomeDoctorsList extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     AppImage(
-                      imageUrl: doctor.image,
+                      imageUrl: doctor.photoUrl ?? '',
                       width: 80,
                       height: 80,
                       borderRadius: BorderRadius.circular(40),
@@ -109,7 +107,7 @@ class HomeDoctorsList extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          '(${doctor.reviews ?? 0})',
+                          '(${doctor.reviewsCount ?? 0})',
                           style: TextStyle(
                             fontSize: 10,
                             color: isDark ? Colors.grey[400] : Colors.grey[600],
