@@ -3,8 +3,6 @@
 // ============================================================
 
 import 'dart:async';
-import 'presentation/bloc/doctor_bloc/doctor_bloc.dart';
-import 'presentation/bloc/chat_bloc/chat_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -27,6 +25,9 @@ import 'core/services/call_service.dart';
 import 'core/routes/payment_routes.dart';
 import 'presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'presentation/bloc/theme_bloc/theme_bloc.dart';
+import 'package:sehatak/bloc/home/home_bloc.dart';
+import 'package:sehatak/bloc/chat/chat_bloc.dart';
+import 'package:sehatak/bloc/doctor_bloc/doctor_bloc.dart';
 import 'presentation/screens/splash_screen.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -93,6 +94,8 @@ void main() async {
         ChangeNotifierProvider(create: (_) => CartProvider()),
         BlocProvider(create: (_) => AuthBloc()..add(CheckAuthStatus())),
         BlocProvider(create: (_) => ThemeBloc()),
+        // استخدم الـ BLoCs الفعلية التي تستوردها الشاشات، وليس نسخاً موازية بسيطة.
+        BlocProvider(create: (_) => HomeBloc()..add(HomeStarted())),
         BlocProvider(create: (_) => ChatBloc()),
         BlocProvider(create: (_) => DoctorBloc()),
       ],
