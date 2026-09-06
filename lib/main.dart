@@ -2,6 +2,7 @@
 // 📱 main.dart - نقطة الدخول الرئيسية
 // ============================================================
 
+import 'dart:async';
 import 'presentation/bloc/doctor_bloc/doctor_bloc.dart';
 import 'presentation/bloc/chat_bloc/chat_bloc.dart';
 import 'package:flutter/material.dart';
@@ -53,16 +54,13 @@ Future<void> _syncFcmToken() async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
   try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
     debugPrint('✅ Firebase initialized successfully');
   } catch (e) {
     debugPrint('❌ Firebase initialization error: $e');
@@ -80,7 +78,6 @@ void main() async {
   }
 
   await CacheService.init();
-
   final notificationService = NotificationService();
   await notificationService.initialize();
 
@@ -122,7 +119,6 @@ class _StartupErrorApp extends StatelessWidget {
 
 class SehatakApp extends StatefulWidget {
   const SehatakApp({super.key});
-
   @override
   State<SehatakApp> createState() => _SehatakAppState();
 }
@@ -163,8 +159,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed && mounted) {
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
-      userProvider.loadUserSafely();
+      Provider.of<UserProvider>(context, listen: false).loadUserSafely();
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         FirebaseFirestore.instance.collection('users').doc(user.uid).set({
@@ -212,19 +207,11 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
                 GlobalWidgetsLocalizations.delegate,
                 GlobalCupertinoLocalizations.delegate,
               ],
-              supportedLocales: const [
-                Locale('ar', 'SA'),
-                Locale('en', 'US'),
-              ],
+              supportedLocales: const [Locale('ar', 'SA'), Locale('en', 'US')],
               builder: (context, child) {
                 return MediaQuery(
-                  data: MediaQuery.of(context).copyWith(
-                    textScaleFactor: fontProvider.fontScale,
-                  ),
-                  child: Directionality(
-                    textDirection: TextDirection.rtl,
-                    child: child!,
-                  ),
+                  data: MediaQuery.of(context).copyWith(textScaleFactor: fontProvider.fontScale),
+                  child: Directionality(textDirection: TextDirection.rtl, child: child!),
                 );
               },
               home: const SplashScreen(),
