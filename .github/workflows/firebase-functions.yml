@@ -27,7 +27,7 @@ jobs:
         run: node --check index.js
 
   deploy:
-    if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     needs: validate
     runs-on: ubuntu-latest
     steps:
