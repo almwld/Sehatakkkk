@@ -6,6 +6,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -31,9 +32,10 @@ class DoctorDetailsScreen extends StatefulWidget {
 }
 
 class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final ChatService _chatService = ChatService();
+  FirebaseFirestore? _firestore;
+  FirebaseAuth? _auth;
+  ChatService? _chatService;
+
   DoctorModel? _doctor;
   bool _isLoading = true;
   bool _isFavorite = false;
@@ -44,16 +46,80 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    _loadDoctorData();
-    _checkFavorite();
+    _initializeFirebaseAndLoad();
+  }
+
+  Future<bool> _waitForFirebase() async {
+    if (Firebase.apps.isEmpty) {
+      for (int i = 0; i < 60; i++) {
+        if (!mounted) return false;
+
+        if (Firebase.apps.isNotEmpty) {
+          break;
+        }
+
+        await Future.delayed(const Duration(milliseconds: 500));
+      }
+    }
+
+    if (!mounted || Firebase.apps.isEmpty) {
+      return false;
+    }
+
+    _firestore ??= FirebaseFirestore.instance;
+    _auth ??= FirebaseAuth.instance;
+    _chatService ??= ChatService();
+
+    return true;
+  }
+
+  Future<void> _initializeFirebaseAndLoad() async {
+    final ready = await _waitForFirebase();
+
+    if (!mounted) return;
+
+    if (!ready) {
+      setState(() {
+        _isLoading = false;
+      });
+      ToastService.showError('❌ خدمة Firebase غير جاهزة');
+      return;
+    }
+
+    await Future.wait([
+      _loadDoctorData(),
+      _checkFavorite(),
+    ]);
   }
 
   Future<void> _loadDoctorData() async {
     try {
-      final doc = await _firestore.collection('doctors').doc(widget.doctorId).get();
-      if (doc.exists) {
+      final firestore = _firestore;
+      if (firestore == null) return;
+
+      final doc = await firestore
+          .collection('doctors')
+          .doc(widget.doctorId)
+          .get();
+
+      if (!mounted) return;
+
+      if (doc.exists && doc.data() != null) {
+        final doctor = DoctorModel.fromFirestore(
+          doc.id,
+          doc.data()!,
+        );
+
+        if (doctor.isVerified != true) {
+          setState(() {
+            _isLoading = false;
+          });
+          ToastService.showError('❌ الطبيب غير متاح');
+          return;
+        }
+
         setState(() {
-          _doctor = DoctorModel.fromFirestore(doc.id, doc.data() as Map<String, dynamic>);
+          _doctor = doctor;
           _isLoading = false;
         });
       } else {
@@ -63,40 +129,60 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
         ToastService.showError('❌ الطبيب غير موجود');
       }
     } catch (e) {
+      if (!mounted) return;
+
       setState(() {
         _isLoading = false;
       });
+
       ToastService.showError('❌ فشل تحميل البيانات: $e');
     }
   }
 
   Future<void> _checkFavorite() async {
     try {
-      final user = _auth.currentUser;
+      final auth = _auth;
+      final firestore = _firestore;
+
+      if (auth == null || firestore == null) return;
+
+      final user = auth.currentUser;
       if (user == null) return;
-      final doc = await _firestore
+
+      final doc = await firestore
           .collection('users')
           .doc(user.uid)
           .collection('favorites')
           .doc(widget.doctorId)
           .get();
+
+      if (!mounted) return;
+
       setState(() {
         _isFavorite = doc.exists;
       });
-    } catch (e) {
-      // ignore
+    } catch (_) {
+      // عدم وجود المفضلة أو عدم توفر الصلاحية لا يمنع عرض تفاصيل الطبيب.
     }
   }
 
   Future<void> _toggleFavorite() async {
     try {
-      final user = _auth.currentUser;
+      final auth = _auth;
+      final firestore = _firestore;
+
+      if (auth == null || firestore == null) {
+        ToastService.showError('❌ خدمة Firebase غير جاهزة');
+        return;
+      }
+
+      final user = auth.currentUser;
       if (user == null) {
         ToastService.showError('❌ يرجى تسجيل الدخول أولاً');
         return;
       }
 
-      final ref = _firestore
+      final ref = firestore
           .collection('users')
           .doc(user.uid)
           .collection('favorites')
@@ -104,6 +190,9 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
 
       if (_isFavorite) {
         await ref.delete();
+
+        if (!mounted) return;
+
         setState(() => _isFavorite = false);
         ToastService.showInfo('❌ تم إزالة الطبيب من المفضلة');
       } else {
@@ -111,10 +200,14 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
           'doctorId': widget.doctorId,
           'addedAt': FieldValue.serverTimestamp(),
         });
+
+        if (!mounted) return;
+
         setState(() => _isFavorite = true);
         ToastService.showSuccess('✅ تم إضافة الطبيب إلى المفضلة');
       }
     } catch (e) {
+      if (!mounted) return;
       ToastService.showError('❌ فشل تحديث المفضلة: $e');
     }
   }
@@ -122,49 +215,95 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
   // ✅ دردشة مع الطبيب
   Future<void> _startChat() async {
     try {
-      final user = _auth.currentUser;
+      final auth = _auth;
+      final chatService = _chatService;
+
+      if (auth == null || chatService == null) {
+        ToastService.showError('❌ خدمة Firebase غير جاهزة');
+        return;
+      }
+
+      final user = auth.currentUser;
       if (user == null) {
         ToastService.showError('❌ يرجى تسجيل الدخول أولاً');
         return;
       }
 
-      if (_doctor == null) return;
+      final doctor = _doctor;
+      if (doctor == null) return;
 
-      final chatId = await _chatService.createChat(
-        doctorId: _doctor!.id,
-        doctorName: _doctor!.name,
+      final doctorUid = doctor.userId?.trim();
+
+      if (doctorUid == null || doctorUid.isEmpty) {
+        ToastService.showError('❌ حساب الطبيب غير مرتبط بحساب المستخدم');
+        return;
+      }
+
+      if (doctorUid == user.uid) {
+        ToastService.showError('❌ لا يمكنك بدء محادثة مع حسابك');
+        return;
+      }
+
+      final chatId = await chatService.createChat(
+        doctorId: doctorUid,
+        doctorName: doctor.name,
         patientName: user.displayName ?? 'مريض',
+        doctorImage: doctor.photoUrl,
       );
 
-      if (chatId.isNotEmpty) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ChatRoomScreen(
-              chatId: chatId,
-              otherUserId: _doctor!.id,
-              otherUserName: _doctor!.name,
-              isGroup: false,
-            ),
+      if (!mounted || chatId.isEmpty) return;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ChatRoomScreen(
+            chatId: chatId,
+            otherUserId: doctorUid,
+            otherUserName: doctor.name,
+            isGroup: false,
           ),
-        );
-      }
+        ),
+      );
     } catch (e) {
+      if (!mounted) return;
       ToastService.showError('❌ فشل بدء المحادثة: $e');
     }
   }
 
   // ✅ مكالمة مع الطبيب
   void _startCall(bool isVideo) {
-    if (_doctor == null) return;
+    final doctor = _doctor;
+    if (doctor == null) return;
+
+    final doctorUid = doctor.userId?.trim();
+
+    if (doctorUid == null || doctorUid.isEmpty) {
+      ToastService.showError('❌ حساب الطبيب غير مرتبط بحساب المستخدم');
+      return;
+    }
+
+    final auth = _auth;
+    final user = auth?.currentUser;
+
+    if (user == null) {
+      ToastService.showError('❌ يرجى تسجيل الدخول أولاً');
+      return;
+    }
+
+    if (doctorUid == user.uid) {
+      ToastService.showError('❌ لا يمكنك الاتصال بنفسك');
+      return;
+    }
+
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => CallScreen(
           chatId: 'call_${DateTime.now().millisecondsSinceEpoch}',
-          doctorName: _doctor!.name,
-          doctorId: _doctor!.id,
+          doctorName: doctor.name,
+          doctorId: doctorUid,
           isVideo: isVideo,
+          isOutgoing: true,
         ),
       ),
     );
@@ -172,11 +311,15 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
 
   // ✅ حجز موعد مع الطبيب
   void _bookAppointment() {
-    if (_doctor == null) return;
+    final doctor = _doctor;
+    if (doctor == null) return;
+
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => BookingScreen(doctorId: _doctor!.id),
+        builder: (_) => BookingScreen(
+          doctorId: doctor.id,
+        ),
       ),
     );
   }
