@@ -3,12 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DoctorModel extends Equatable {
   final String id;
-
-  /// Firebase Auth UID المرتبط بهذا الطبيب.
-  /// للطبيب الجديد سيكون:
-  /// doctors/{uid} + userId == uid
   final String? userId;
-
   final String name;
   final String specialty;
   final String? subspecialty;
@@ -65,186 +60,98 @@ class DoctorModel extends Equatable {
     this.createdAt,
   });
 
-  factory DoctorModel.fromFirestore(
-    String id,
-    Map<String, dynamic> data,
-  ) {
-    List<Map<String, dynamic>> parseEducation(dynamic value) {
-      if (value == null) return [];
-
-      if (value is List) {
-        return value.map((e) {
-          if (e is Map<String, dynamic>) return e;
-          if (e is String) return {'degree': e};
-          return <String, dynamic>{};
-        }).toList().cast<Map<String, dynamic>>();
-      }
-
-      if (value is String) {
-        return [
-          {'degree': value}
-        ];
-      }
-
-      return [];
+  factory DoctorModel.fromFirestore(String id, Map<String, dynamic> data) {
+    List<Map<String, dynamic>> parseMapList(dynamic value) {
+      if (value is! List) return [];
+      return value.map((e) => e is Map ? Map<String, dynamic>.from(e) : <String, dynamic>{}).toList();
     }
-
-    List<Map<String, dynamic>>? parseMapList(dynamic value) {
-      if (value is! List) return null;
-
-      return value.map((e) {
-        if (e is Map<String, dynamic>) {
-          return Map<String, dynamic>.from(e);
-        }
-
-        if (e is Map) {
-          return Map<String, dynamic>.from(e);
-        }
-
-        return <String, dynamic>{};
-      }).toList();
-    }
-
     List<String> parseStringList(dynamic value) {
-      if (value == null) return [];
-
-      if (value is List) {
-        return value.map((e) => e.toString()).toList();
-      }
-
-      if (value is String) {
-        return [value];
-      }
-
+      if (value is List) return value.map((e) => e.toString()).toList();
+      if (value is String && value.trim().isNotEmpty) return [value.trim()];
       return [];
     }
-
-    Map<String, double>? parseRatingBreakdown(dynamic value) {
-      if (value is! Map) return null;
-
-      final result = <String, double>{};
-
-      value.forEach((key, value) {
-        if (value is num) {
-          result[key.toString()] = value.toDouble();
-        }
-      });
-
-      return result;
-    }
-
     int? parseInt(dynamic value) {
-      if (value is int) return value;
       if (value is num) return value.toInt();
       return int.tryParse(value?.toString() ?? '');
     }
+    double? parseDouble(dynamic value) {
+      if (value is num) return value.toDouble();
+      return double.tryParse(value?.toString() ?? '');
+    }
+    Map<String, double>? parseRatingBreakdown(dynamic value) {
+      if (value is! Map) return null;
+      final result = <String, double>{};
+      value.forEach((key, item) {
+        final parsed = parseDouble(item);
+        if (parsed != null) result[key.toString()] = parsed;
+      });
+      return result.isEmpty ? null : result;
+    }
+
+    final rawReviewsCount = data['reviewsCount'] ?? data['reviewCount'];
+    final rawFee = data['consultationFee'] ?? data['fee'];
+    final rawExperience = data['experienceYears'] ?? data['experience'];
 
     return DoctorModel(
       id: id,
-
-      // الهوية المرتبطة بحساب Firebase Auth.
-      userId: data['userId']?.toString(),
-
+      userId: data['userId']?.toString() ?? data['uid']?.toString(),
       name: data['name']?.toString() ?? '',
       specialty: data['specialty']?.toString() ?? '',
       subspecialty: data['subspecialty']?.toString(),
-      photoUrl: data['photoUrl']?.toString(),
-
-      rating: (data['rating'] as num?)?.toDouble(),
-      reviewsCount: parseInt(data['reviewsCount']),
-      consultationFee: (data['consultationFee'] as num?)?.toDouble(),
-
+      photoUrl: data['photoUrl']?.toString() ?? data['image']?.toString(),
+      rating: parseDouble(data['rating']),
+      reviewsCount: parseInt(rawReviewsCount),
+      consultationFee: parseDouble(rawFee),
       isAvailable: data['isAvailable'] == true,
       isOnline: data['isOnline'] == true,
-
-      experienceYears: parseInt(data['experienceYears']),
-
+      experienceYears: parseInt(rawExperience),
       hospital: data['hospital']?.toString(),
       clinicAddress: data['clinicAddress']?.toString(),
       about: data['about']?.toString(),
-
-      languages: data['languages'] is List
-          ? parseStringList(data['languages'])
-          : null,
-
+      languages: data.containsKey('languages') ? parseStringList(data['languages']) : null,
       services: parseStringList(data['services']),
-
-      workingHours: data['workingHours'] is Map
-          ? Map<String, dynamic>.from(data['workingHours'])
-          : null,
-
-      education: parseEducation(data['education']),
-
+      workingHours: data['workingHours'] is Map ? Map<String, dynamic>.from(data['workingHours']) : null,
+      education: parseMapList(data['education']),
       certifications: parseMapList(data['certifications']),
-
       reviews: parseMapList(data['reviews']),
-
       isVerified: data['isVerified'] == true,
-
       patientsCount: parseInt(data['patientsCount']),
-
-      specialties: data['specialties'] is List
-          ? parseStringList(data['specialties'])
-          : null,
-
-      ratingBreakdown:
-          parseRatingBreakdown(data['ratingBreakdown']),
-
+      specialties: data.containsKey('specialties') ? parseStringList(data['specialties']) : null,
+      ratingBreakdown: parseRatingBreakdown(data['ratingBreakdown']),
       isFeatured: data['isFeatured'] == true,
-
-      createdAt: data['createdAt'] is Timestamp
-          ? data['createdAt'] as Timestamp
-          : null,
+      createdAt: data['createdAt'] is Timestamp ? data['createdAt'] as Timestamp : null,
     );
   }
 
-  Map<String, dynamic> toFirestore() {
-    return {
-      'userId': userId,
-      'name': name,
-      'specialty': specialty,
-      'subspecialty': subspecialty,
-      'photoUrl': photoUrl,
-      'rating': rating,
-      'reviewsCount': reviewsCount,
-      'consultationFee': consultationFee,
-      'isAvailable': isAvailable,
-      'isOnline': isOnline,
-      'experienceYears': experienceYears,
-      'hospital': hospital,
-      'clinicAddress': clinicAddress,
-      'about': about,
-      'languages': languages,
-      'services': services,
-      'workingHours': workingHours,
-      'education': education,
-      'certifications': certifications,
-      'reviews': reviews,
-      'isVerified': isVerified,
-      'patientsCount': patientsCount,
-      'specialties': specialties,
-      'ratingBreakdown': ratingBreakdown,
-      'isFeatured': isFeatured,
-      'createdAt': createdAt ?? FieldValue.serverTimestamp(),
-    };
-  }
+  Map<String, dynamic> toFirestore() => {
+        'userId': userId,
+        'name': name,
+        'specialty': specialty,
+        'subspecialty': subspecialty,
+        'photoUrl': photoUrl,
+        'rating': rating,
+        'reviewsCount': reviewsCount,
+        'consultationFee': consultationFee,
+        'isAvailable': isAvailable,
+        'isOnline': isOnline,
+        'experienceYears': experienceYears,
+        'hospital': hospital,
+        'clinicAddress': clinicAddress,
+        'about': about,
+        'languages': languages,
+        'services': services,
+        'workingHours': workingHours,
+        'education': education,
+        'certifications': certifications,
+        'reviews': reviews,
+        'isVerified': isVerified,
+        'patientsCount': patientsCount,
+        'specialties': specialties,
+        'ratingBreakdown': ratingBreakdown,
+        'isFeatured': isFeatured,
+        'createdAt': createdAt ?? FieldValue.serverTimestamp(),
+      };
 
   @override
-  List<Object?> get props => [
-        id,
-        userId,
-        name,
-        specialty,
-        photoUrl,
-        rating,
-        reviewsCount,
-        consultationFee,
-        isAvailable,
-        isOnline,
-        experienceYears,
-        hospital,
-        about,
-        isVerified,
-        isFeatured,
-      ];
+  List<Object?> get props => [id, userId, name, specialty, photoUrl, rating, reviewsCount, consultationFee, isAvailable, isOnline, experienceYears, hospital, about, isVerified, isFeatured];
 }
