@@ -5,7 +5,11 @@ on:
     branches: [master]
     paths:
       - 'scripts/upload_lab_images.js'
+      - '.github/workflows/imagekit-lab-images.yml'
   workflow_dispatch:
+
+env:
+  HAS_IMAGEKIT_PRIVATE_KEY: ${{ secrets.IMAGEKIT_PRIVATE_KEY != '' }}
 
 jobs:
   upload:
@@ -13,11 +17,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Upload lab images
-        if: ${{ secrets.IMAGEKIT_PRIVATE_KEY != '' }}
+        if: ${{ env.HAS_IMAGEKIT_PRIVATE_KEY == 'true' }}
         env:
           IMAGEKIT_PRIVATE_KEY: ${{ secrets.IMAGEKIT_PRIVATE_KEY }}
           IMAGEKIT_PUBLIC_KEY: ${{ secrets.IMAGEKIT_PUBLIC_KEY }}
         run: node scripts/upload_lab_images.js
       - name: Verify configuration
-        if: ${{ secrets.IMAGEKIT_PRIVATE_KEY == '' }}
+        if: ${{ env.HAS_IMAGEKIT_PRIVATE_KEY != 'true' }}
         run: echo 'ImageKit upload skipped because IMAGEKIT_PRIVATE_KEY is not configured in repository secrets.'
