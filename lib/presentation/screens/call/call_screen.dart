@@ -357,7 +357,7 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
                       ),
                       // ✅ مكبر الصوت
                       _buildControlButton(
-                        icon: _isSpeakerOn ? Icons.speaker : Icons.speaker_off,
+                        icon: _isSpeakerOn ? Icons.speaker : Icons.volume_off,
                         label: _isSpeakerOn ? 'مكبر' : 'سماعة',
                         onTap: _toggleSpeaker,
                         color: _isSpeakerOn ? AppColors.primary : Colors.grey[700]!,
