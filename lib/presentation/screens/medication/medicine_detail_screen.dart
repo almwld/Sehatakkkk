@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/image_service.dart';
-import 'package:sehatak/data/medicines_data.dart';
+import 'package:sehatak/core/data/medicines_data.dart';
 
 class MedicineDetailScreen extends StatelessWidget {
   final String medicineId;

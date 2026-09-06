@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/reports/reports_service.dart';
-import 'package:sehatak/data/models/reports/report_model.dart';
+import 'package:sehatak/core/models/reports/report_model.dart';
 
 class ReportsDashboard extends StatefulWidget {
   const ReportsDashboard({super.key});

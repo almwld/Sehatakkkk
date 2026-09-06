@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:sehatak/data/models/reports/report_model.dart';
+import 'package:sehatak/core/models/reports/report_model.dart';
 
 class ReportsService {
   static final ReportsService _instance = ReportsService._internal();
