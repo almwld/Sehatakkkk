@@ -32,10 +32,6 @@ function text(value, field, max = 500) {
   return result;
 }
 
-function paymentDoc(uid, id) {
-  return db.collection('transactions').doc(id || db.collection('transactions').doc().id);
-}
-
 function digest(value) {
   return crypto.createHash('sha256').update(value).digest('hex').slice(0, 40);
 }
@@ -61,24 +57,14 @@ exports.createPayment = onCall(async (request) => {
   const walletRef = db.collection('wallets').doc(uid);
 
   await db.runTransaction(async (tx) => {
-    const [walletSnap, existingSnap] = await Promise.all([
-      tx.get(walletRef),
-      tx.get(txRef),
-    ]);
-
+    const [walletSnap, existingSnap] = await Promise.all([tx.get(walletRef), tx.get(txRef)]);
     if (existingSnap.exists) return;
-    if (!walletSnap.exists) {
-      throw new HttpsError('failed-precondition', 'المحفظة غير مفعلة لهذا الحساب');
-    }
+    if (!walletSnap.exists) throw new HttpsError('failed-precondition', 'المحفظة غير مفعلة لهذا الحساب');
 
     const wallet = walletSnap.data();
     const balance = Number(wallet.balance || 0);
-    if (wallet.isActive === false) {
-      throw new HttpsError('failed-precondition', 'المحفظة غير نشطة');
-    }
-    if (balance < amount) {
-      throw new HttpsError('failed-precondition', 'رصيد المحفظة غير كافٍ');
-    }
+    if (wallet.isActive === false) throw new HttpsError('failed-precondition', 'المحفظة غير نشطة');
+    if (balance < amount) throw new HttpsError('failed-precondition', 'رصيد المحفظة غير كافٍ');
 
     const now = FieldValue.serverTimestamp();
     tx.update(walletRef, {
@@ -121,9 +107,7 @@ exports.submitTopUp = onCall(async (request) => {
   await db.runTransaction(async (tx) => {
     const [existing, wallet] = await Promise.all([tx.get(txRef), tx.get(walletRef)]);
     if (existing.exists) return;
-    if (!wallet.exists || wallet.data().isActive === false) {
-      throw new HttpsError('failed-precondition', 'المحفظة غير مفعلة');
-    }
+    if (!wallet.exists || wallet.data().isActive === false) throw new HttpsError('failed-precondition', 'المحفظة غير مفعلة');
     tx.set(txRef, {
       userId: uid,
       amount,
@@ -154,17 +138,12 @@ exports.requestRefund = onCall(async (request) => {
   const refundRef = db.collection('transactions').doc(refundId);
 
   await db.runTransaction(async (tx) => {
-    const [original, existing] = await Promise.all([
-      tx.get(originalRef),
-      tx.get(refundRef),
-    ]);
+    const [original, existing] = await Promise.all([tx.get(originalRef), tx.get(refundRef)]);
     if (existing.exists) return;
     if (!original.exists) throw new HttpsError('not-found', 'المعاملة غير موجودة');
     const data = original.data();
     if (data.userId !== uid) throw new HttpsError('permission-denied', 'لا تملك هذه المعاملة');
-    if (data.type !== 'payment' || data.status !== 'completed') {
-      throw new HttpsError('failed-precondition', 'لا يمكن استرداد هذه المعاملة');
-    }
+    if (data.type !== 'payment' || data.status !== 'completed') throw new HttpsError('failed-precondition', 'لا يمكن استرداد هذه المعاملة');
 
     tx.set(refundRef, {
       userId: uid,
@@ -200,13 +179,9 @@ exports.requestWithdrawal = onCall(async (request) => {
   await db.runTransaction(async (tx) => {
     const [wallet, existing] = await Promise.all([tx.get(walletRef), tx.get(txRef)]);
     if (existing.exists) return;
-    if (!wallet.exists || wallet.data().isActive === false) {
-      throw new HttpsError('failed-precondition', 'المحفظة غير مفعلة');
-    }
+    if (!wallet.exists || wallet.data().isActive === false) throw new HttpsError('failed-precondition', 'المحفظة غير مفعلة');
     const data = wallet.data();
-    if (Number(data.balance || 0) < amount) {
-      throw new HttpsError('failed-precondition', 'الرصيد غير كافٍ');
-    }
+    if (Number(data.balance || 0) < amount) throw new HttpsError('failed-precondition', 'الرصيد غير كافٍ');
     tx.update(walletRef, {
       balance: Number(data.balance || 0) - amount,
       pendingBalance: Number(data.pendingBalance || 0) + amount,
@@ -238,23 +213,17 @@ exports.reviewTransaction = onCall(async (request) => {
 
   const transactionId = text(request.data.transactionId, 'transactionId', 150);
   const decision = text(request.data.decision, 'decision', 20);
-  if (!['approve', 'reject'].includes(decision)) {
-    throw new HttpsError('invalid-argument', 'قرار غير صالح');
-  }
+  if (!['approve', 'reject'].includes(decision)) throw new HttpsError('invalid-argument', 'قرار غير صالح');
   const txRef = db.collection('transactions').doc(transactionId);
 
   await db.runTransaction(async (tx) => {
     const snap = await tx.get(txRef);
     if (!snap.exists) throw new HttpsError('not-found', 'المعاملة غير موجودة');
     const data = snap.data();
-    if (data.status !== 'pending') {
-      throw new HttpsError('failed-precondition', 'المعاملة تمت معالجتها مسبقاً');
-    }
+    if (data.status !== 'pending') throw new HttpsError('failed-precondition', 'المعاملة تمت معالجتها مسبقاً');
 
     const amount = Number(data.amount || 0);
-    if (!Number.isFinite(amount) || amount <= 0) {
-      throw new HttpsError('failed-precondition', 'مبلغ المعاملة غير صالح');
-    }
+    if (!Number.isFinite(amount) || amount <= 0) throw new HttpsError('failed-precondition', 'مبلغ المعاملة غير صالح');
 
     const walletRef = db.collection('wallets').doc(data.userId);
     const walletSnap = await tx.get(walletRef);
@@ -263,13 +232,15 @@ exports.reviewTransaction = onCall(async (request) => {
     const now = FieldValue.serverTimestamp();
 
     if (decision === 'reject') {
-      const updates = {status: 'failed', completedAt: now, updatedAt: now, reviewedBy: uid};
+      const txUpdates = {status: 'failed', completedAt: now, updatedAt: now, reviewedBy: uid};
       if (data.type === 'withdrawal') {
-        updates.balance = Number(wallet.balance || 0) + amount;
-        updates.pendingBalance = Math.max(0, Number(wallet.pendingBalance || 0) - amount);
+        tx.update(walletRef, {
+          balance: Number(wallet.balance || 0) + amount,
+          pendingBalance: Math.max(0, Number(wallet.pendingBalance || 0) - amount),
+          updatedAt: now,
+        });
       }
-      tx.update(walletRef, {...updates, updatedAt: now});
-      tx.update(txRef, updates);
+      tx.update(txRef, txUpdates);
       return;
     }
 
