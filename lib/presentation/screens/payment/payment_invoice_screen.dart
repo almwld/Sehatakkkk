@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/services/payment_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 
 class PaymentInvoiceScreen extends StatefulWidget {
@@ -23,6 +24,7 @@ class PaymentInvoiceScreen extends StatefulWidget {
 }
 
 class _PaymentInvoiceScreenState extends State<PaymentInvoiceScreen> {
+  final PaymentService _paymentService = PaymentService();
   bool _isLoading = false;
 
   @override
@@ -44,44 +46,26 @@ class _PaymentInvoiceScreenState extends State<PaymentInvoiceScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'تفاصيل الفاتورة',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    const Text('تفاصيل الفاتورة', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                     const Divider(),
                     _buildRow('رقم الطلب', widget.orderId),
                     _buildRow('طريقة الدفع', widget.paymentMethod),
                     if (widget.items != null && widget.items!.isNotEmpty) ...[
                       const SizedBox(height: 8),
-                      const Text(
-                        'المنتجات:',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                      ...widget.items!.map((item) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(item['name'] ?? 'منتج'),
-                              Text('${item['price'] ?? 0} ﷼'),
-                            ],
-                          ),
-                        );
-                      }).toList(),
+                      const Text('المنتجات:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                      ...widget.items!.map((item) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(child: Text('${item['name'] ?? 'منتج'}')),
+                                Text('${item['price'] ?? 0} ﷼'),
+                              ],
+                            ),
+                          )),
                     ],
                     const Divider(),
-                    _buildRow(
-                      'المبلغ الإجمالي',
-                      '${widget.amount.toStringAsFixed(2)} ﷼',
-                      isBold: true,
-                    ),
+                    _buildRow('المبلغ الإجمالي', '${widget.amount.toStringAsFixed(2)} ﷼', isBold: true),
                   ],
                 ),
               ),
@@ -95,27 +79,18 @@ class _PaymentInvoiceScreenState extends State<PaymentInvoiceScreen> {
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 child: _isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Text(
-                        'تأكيد الدفع',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Text('إرسال طلب الدفع', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'سيتم تسجيل الطلب كمعلّق، ولا يُعتبر الدفع ناجحًا حتى تتم معالجته من النظام الموثوق.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12, color: Colors.grey),
             ),
           ],
         ),
@@ -129,19 +104,9 @@ class _PaymentInvoiceScreenState extends State<PaymentInvoiceScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-            ),
+          Text(label, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+          Flexible(
+            child: Text(value, textAlign: TextAlign.end, style: TextStyle(fontSize: 14, fontWeight: isBold ? FontWeight.bold : FontWeight.normal)),
           ),
         ],
       ),
@@ -149,23 +114,31 @@ class _PaymentInvoiceScreenState extends State<PaymentInvoiceScreen> {
   }
 
   Future<void> _processPayment() async {
+    if (widget.amount <= 0) {
+      ToastService.showError('❌ المبلغ غير صالح');
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
-      await Future.delayed(const Duration(seconds: 2));
-      
-      if (mounted) {
-        ToastService.showSuccess('✅ تم الدفع بنجاح');
-        Navigator.pop(context, true);
-      }
+      final transaction = await _paymentService.processPayment(
+        amount: widget.amount,
+        title: widget.invoiceTitle,
+        description: 'طلب دفع للطلب ${widget.orderId}',
+        orderId: widget.orderId,
+        serviceType: widget.paymentMethod,
+        metadata: {'paymentMethod': widget.paymentMethod},
+      );
+
+      if (!mounted) return;
+      ToastService.showInfo('⏳ تم إرسال طلب الدفع للمراجعة: ${transaction.id}');
+      Navigator.pop(context, transaction.id);
     } catch (e) {
-      if (mounted) {
-        ToastService.showError('❌ فشل الدفع: $e');
-      }
+      if (!mounted) return;
+      ToastService.showError('❌ تعذر إرسال طلب الدفع: $e');
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 }
