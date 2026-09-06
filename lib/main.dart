@@ -28,8 +28,10 @@ import 'presentation/bloc/theme_bloc/theme_bloc.dart';
 import 'package:sehatak/bloc/home/home_bloc.dart';
 import 'package:sehatak/bloc/home/home_event.dart';
 import 'package:sehatak/bloc/chat/chat_bloc.dart';
+import 'package:sehatak/bloc/messages/messages_bloc.dart';
 import 'package:sehatak/bloc/doctor_bloc/doctor_bloc.dart';
 import 'presentation/screens/splash_screen.dart';
+import 'presentation/screens/chat/chat_room_screen.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -54,7 +56,7 @@ Future<void> _syncFcmToken() async {
   }
 }
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -97,6 +99,7 @@ void main() async {
         BlocProvider(create: (_) => ThemeBloc()),
         BlocProvider(create: (_) => HomeBloc()..add(HomeStarted())),
         BlocProvider(create: (_) => ChatBloc()),
+        BlocProvider(create: (_) => MessagesBloc()),
         BlocProvider(create: (_) => DoctorBloc()),
       ],
       child: const SehatakApp(),
@@ -137,6 +140,13 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     FirebaseMessaging.onMessage.listen(_handleMessage);
     FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpened);
+    FirebaseMessaging.instance.getInitialMessage().then((message) {
+      if (message != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _handleMessageOpened(message);
+        });
+      }
+    });
     _tokenSubscription = FirebaseMessaging.instance.onTokenRefresh.listen((token) async {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null || token.isEmpty) return;
@@ -180,8 +190,8 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
       return;
     }
     _notificationService.showNotification(
-      title: message.notification?.title ?? 'إشعار جديد',
-      body: message.notification?.body ?? '',
+      title: message.notification?.title ?? 'رسالة جديدة',
+      body: message.notification?.body ?? 'لديك رسالة جديدة في الدردشة',
       payload: message.data['chatId'] ?? '',
     );
   }
@@ -189,7 +199,27 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
   void _handleMessageOpened(RemoteMessage message) {
     if (message.data['type'] == 'incoming_call') {
       _callService.handleIncomingCall(context, message);
+      return;
     }
+
+    final chatId = message.data['chatId']?.toString();
+    if (chatId == null || chatId.isEmpty) return;
+
+    final senderId = message.data['senderId']?.toString() ?? '';
+    final senderName = message.data['senderName']?.toString() ?? 'محادثة';
+    final nav = navigatorKey.currentState;
+    if (nav == null) return;
+
+    nav.push(
+      MaterialPageRoute(
+        builder: (_) => ChatRoomScreen(
+          chatId: chatId,
+          otherUserId: senderId,
+          otherUserName: senderName,
+          isGroup: false,
+        ),
+      ),
+    );
   }
 
   @override
