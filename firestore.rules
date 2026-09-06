@@ -25,7 +25,6 @@ service cloud.firestore {
       allow update: if false;
     }
 
-    // Public provider directory: read-only for app users/guests.
     match /doctors/{doctorId} {
       allow read: if isAdmin() || isSelf(doctorId) || resource.data.isVerified == true;
       allow create: if isSelf(doctorId) && userDataAfter(doctorId).role == 'doctor' && userDataAfter(doctorId).doctorId == doctorId && request.resource.data.userId == doctorId && request.resource.data.isVerified == false && request.resource.data.isAvailable == false && request.resource.data.isOnline == false;
@@ -37,22 +36,18 @@ service cloud.firestore {
       allow read: if true;
       allow create, update, delete: if isAdmin() || (isSignedIn() && isSelf(hospitalId) && resource.data.userId == request.auth.uid);
     }
-
     match /labs/{labId} {
       allow read: if true;
       allow create, update, delete: if isAdmin() || (isSignedIn() && isSelf(labId) && resource.data.userId == request.auth.uid);
     }
-
     match /pharmacies/{pharmacyId} {
       allow read: if true;
       allow create, update, delete: if isAdmin() || (isSignedIn() && isSelf(pharmacyId) && resource.data.userId == request.auth.uid);
     }
-
     match /articles/{articleId} {
       allow read: if resource.data.isPublished == true || isAdmin();
       allow create, update, delete: if isAdmin();
     }
-
     match /community_posts/{postId} {
       allow read: if resource.data.isPublished == true || isAdmin();
       allow create: if isSignedIn();
@@ -83,11 +78,11 @@ service cloud.firestore {
     function appointmentData(appointmentId) { return get(/databases/$(database)/documents/appointments/$(appointmentId)).data; }
     function isAppointmentPatient(appointmentId) { return isSignedIn() && appointmentExists(appointmentId) && appointmentData(appointmentId).patientId == request.auth.uid; }
     function isAppointmentDoctor(appointmentId) { return isSignedIn() && appointmentExists(appointmentId) && appointmentData(appointmentId).doctorId == request.auth.uid; }
-    function isCreatingAppointment() { return isSignedIn() && request.resource.data.patientId == request.auth.uid && request.resource.data.doctorId != null && request.resource.data.doctorId != '' && request.resource.data.status == 'pending' && request.resource.data.type in ['in_person', 'video', 'phone'] && request.resource.data.date is timestamp && request.resource.data.time is string && request.resource.data.doctorName is string && request.resource.data.doctorSpecialty is string && exists(/databases/$(database)/documents/doctors/$(request.resource.data.doctorId)); }
 
     match /appointments/{appointmentId} {
+      // Creation is trusted-backend only: it verifies the doctor and atomically prevents double-booking.
+      allow create: if false;
       allow read: if isAdmin() || isAppointmentPatient(appointmentId) || isAppointmentDoctor(appointmentId);
-      allow create: if isCreatingAppointment();
       allow update: if isAdmin() || (isAppointmentPatient(appointmentId) && request.resource.data.patientId == resource.data.patientId && request.resource.data.doctorId == resource.data.doctorId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['date', 'time', 'status', 'updatedAt', 'cancelledAt']) && request.resource.data.status in ['cancelled', 'pending']) || (isAppointmentDoctor(appointmentId) && isVerifiedDoctor(request.auth.uid) && request.resource.data.patientId == resource.data.patientId && request.resource.data.doctorId == resource.data.doctorId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'confirmedAt', 'updatedAt']) && request.resource.data.status in ['confirmed', 'completed']);
       allow delete: if false;
     }
@@ -96,12 +91,10 @@ service cloud.firestore {
       allow read: if isSelf(userId) || isAdmin();
       allow write: if false;
     }
-
     match /transactions/{transactionId} {
       allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
       allow create, update, delete: if false;
     }
-
     match /{document=**} { allow read, write: if false; }
   }
 }
