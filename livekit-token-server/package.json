@@ -1,0 +1,13 @@
+{
+  "name": "sehatak-livekit-token-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Small standalone LiveKit token server for Sehatak; Firebase remains the application backend.",
+  "main": "server.js",
+  "engines": {"node": ">=18"},
+  "scripts": {"start": "node server.js"},
+  "dependencies": {
+    "@livekit/protocol": "^1.43.0",
+    "livekit-server-sdk": "^2.15.0"
+  }
+}
