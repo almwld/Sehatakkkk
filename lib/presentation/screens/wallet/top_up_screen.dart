@@ -19,7 +19,6 @@ class _TopUpScreenState extends State<TopUpScreen> {
   final TextEditingController _refController = TextEditingController();
   LocalWalletOption? _selectedWallet;
   bool _isLoading = false;
-  bool _isProcessing = false;
 
   final PaymentService _paymentService = PaymentService();
 
@@ -63,13 +62,10 @@ class _TopUpScreenState extends State<TopUpScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'الرصيد الحالي:',
-                          style: TextStyle(fontSize: 16),
-                        ),
+                        const Text('الرصيد الحالي:', style: TextStyle(fontSize: 16)),
                         Text(
                           '${currentBalance.toStringAsFixed(0)} ر.ي',
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: AppColors.primary,
@@ -79,7 +75,6 @@ class _TopUpScreenState extends State<TopUpScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-
                   Text(
                     'اختر المحفظة التي قمت بالتحويل منها:',
                     style: TextStyle(
@@ -90,20 +85,18 @@ class _TopUpScreenState extends State<TopUpScreen> {
                   ),
                   const SizedBox(height: 12),
                   InkWell(
-                    onTap: _isProcessing
+                    onTap: _isLoading
                         ? null
                         : () async {
                             final result = await Navigator.push<LocalWalletOption>(
                               context,
                               MaterialPageRoute(
                                 builder: (_) => PaymentMethodsScreen(
-                                  onSelectWallet: (w) {
-                                    Navigator.pop(context, w);
-                                  },
+                                  onSelectWallet: (w) => Navigator.pop(context, w),
                                 ),
                               ),
                             );
-                            if (result != null) {
+                            if (result != null && mounted) {
                               setState(() => _selectedWallet = result);
                             }
                           },
@@ -129,8 +122,10 @@ class _TopUpScreenState extends State<TopUpScreen> {
                                 width: 40,
                                 height: 40,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) =>
-                                    const Icon(Icons.wallet, color: AppColors.primary),
+                                errorBuilder: (_, __, ___) => const Icon(
+                                  Icons.wallet,
+                                  color: AppColors.primary,
+                                ),
                               ),
                             )
                           else
@@ -156,7 +151,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
                               ),
                             ),
                           ),
-                          Icon(
+                          const Icon(
                             Icons.arrow_forward_ios,
                             color: AppColors.primary,
                             size: 16,
@@ -165,7 +160,6 @@ class _TopUpScreenState extends State<TopUpScreen> {
                       ),
                     ),
                   ),
-
                   if (_selectedWallet != null) ...[
                     const SizedBox(height: 12),
                     Container(
@@ -193,14 +187,14 @@ class _TopUpScreenState extends State<TopUpScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'قم بالتحويل إلى رقم حساب المحفظة: ${_selectedWallet!.accountNumber}',
+                            'قم بالتحويل إلى رقم الحساب: ${_selectedWallet!.accountNumber}',
                             style: TextStyle(
                               fontSize: 13,
                               color: isDark ? Colors.amber[200] : Colors.amber[900],
                             ),
                           ),
                           Text(
-                            'ثم أدخل رقم الحوالة/الإشعار أدناه.',
+                            'ثم أدخل رقم الحوالة/الإشعار أدناه. سيتم مراجعة الطلب قبل إضافة الرصيد.',
                             style: TextStyle(
                               fontSize: 13,
                               color: isDark ? Colors.amber[200] : Colors.amber[900],
@@ -210,73 +204,55 @@ class _TopUpScreenState extends State<TopUpScreen> {
                       ),
                     ),
                   ],
-
                   const SizedBox(height: 24),
-
                   TextFormField(
                     controller: _amountController,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    enabled: !_isProcessing,
+                    enabled: !_isLoading,
                     decoration: InputDecoration(
                       labelText: 'المبلغ (ر.ي)',
                       hintText: 'أدخل المبلغ المراد شحنه',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       prefixIcon: const Icon(Icons.attach_money),
                     ),
                     validator: (val) {
-                      if (val == null || val.isEmpty) {
-                        return 'يرجى إدخال المبلغ';
-                      }
+                      if (val == null || val.isEmpty) return 'يرجى إدخال المبلغ';
                       final amount = double.tryParse(val);
-                      if (amount == null || amount <= 0) {
-                        return 'إدخال غير صحيح';
-                      }
+                      if (amount == null || amount <= 0) return 'إدخال غير صحيح';
                       return null;
                     },
                   ),
                   const SizedBox(height: 16),
-
                   TextFormField(
                     controller: _refController,
                     keyboardType: TextInputType.number,
-                    enabled: !_isProcessing,
+                    enabled: !_isLoading,
                     decoration: InputDecoration(
                       labelText: 'رقم الإشعار / الحوالة',
                       hintText: 'أدخل رقم الإشعار من المحفظة',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       prefixIcon: const Icon(Icons.receipt_long),
                     ),
                     validator: (val) {
-                      if (val == null || val.isEmpty) {
-                        return 'يرجى إدخال رقم الإشعار';
-                      }
-                      if (val.length < 4) {
-                        return 'رقم الإشعار قصير جداً';
-                      }
+                      if (val == null || val.isEmpty) return 'يرجى إدخال رقم الإشعار';
+                      if (val.length < 4) return 'رقم الإشعار قصير جداً';
                       return null;
                     },
                   ),
                   const SizedBox(height: 32),
-
                   SizedBox(
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
-                      onPressed: (_isLoading || _isProcessing) ? null : _submitTopUp,
+                      onPressed: _isLoading ? null : _submitTopUp,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: _isLoading || _isProcessing
+                      child: _isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
                           : const Text(
-                              'تأكيد التغذية',
+                              'إرسال طلب التغذية',
                               style: TextStyle(fontSize: 16, color: Colors.white),
                             ),
                     ),
@@ -292,26 +268,17 @@ class _TopUpScreenState extends State<TopUpScreen> {
 
   Future<void> _submitTopUp() async {
     if (!_formKey.currentState!.validate()) return;
-
     if (_selectedWallet == null) {
       ToastService.showError('يرجى اختيار المحفظة أولاً');
       return;
     }
 
     setState(() => _isLoading = true);
-
     try {
       final amount = double.parse(_amountController.text.trim());
       final referenceNumber = _refController.text.trim();
 
-      if (amount <= 0) {
-        ToastService.showError('المبلغ يجب أن يكون أكبر من صفر');
-        return;
-      }
-
-      setState(() => _isProcessing = true);
-
-      final transaction = await _paymentService.topUpWallet(
+      await _paymentService.topUpWallet(
         amount: amount,
         walletName: _selectedWallet!.name,
         referenceNumber: referenceNumber,
@@ -322,20 +289,13 @@ class _TopUpScreenState extends State<TopUpScreen> {
       );
 
       if (mounted) {
-        ToastService.showSuccess('تمت إضافة ${amount.toStringAsFixed(0)} ر.ي إلى محفظتك بنجاح');
+        ToastService.showSuccess('تم إرسال طلب التغذية للمراجعة، وسيُضاف الرصيد بعد التحقق.');
         Navigator.pop(context, true);
       }
     } catch (e) {
-      if (mounted) {
-        ToastService.showError('فشلت العملية: $e');
-      }
+      if (mounted) ToastService.showError('فشل إرسال الطلب: $e');
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _isProcessing = false;
-        });
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 }
