@@ -8,162 +8,225 @@ class ReportsService {
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // ============================================================
-  // 📊 جلب إحصائيات المستخدم
-  // ============================================================
   Future<UserStatsModel> getUserStats(String userId) async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    
+    if (userId.trim().isEmpty) {
+      return _emptyStats();
+    }
+
+    final results = await Future.wait([
+      _firestore.collection('appointments').where('patientId', isEqualTo: userId).get(),
+      _firestore.collection('orders').where('userId', isEqualTo: userId).get(),
+      _firestore.collection('consultations').where('patientId', isEqualTo: userId).get(),
+      _firestore.collection('users').doc(userId).get(),
+    ]);
+
+    final appointments = results[0] as QuerySnapshot<Map<String, dynamic>>;
+    final orders = results[1] as QuerySnapshot<Map<String, dynamic>>;
+    final consultations = results[2] as QuerySnapshot<Map<String, dynamic>>;
+    final user = results[3] as DocumentSnapshot<Map<String, dynamic>>;
+
+    final appointmentStatuses = appointments.docs
+        .map((d) => _string(d.data()['status']).toLowerCase())
+        .toList();
+    final orderData = orders.docs.map((d) => d.data()).toList();
+
     return UserStatsModel(
-      totalAppointments: 24,
-      completedAppointments: 18,
-      cancelledAppointments: 3,
-      pendingAppointments: 3,
-      totalOrders: 12,
-      completedOrders: 10,
-      totalConsultations: 8,
-      totalSpent: 12500,
-      totalSaved: 3500,
-      lastActive: DateTime.now().subtract(const Duration(hours: 2)),
+      totalAppointments: appointments.size,
+      completedAppointments: appointmentStatuses.where((s) => s == 'completed').length,
+      cancelledAppointments: appointmentStatuses.where((s) => s == 'cancelled').length,
+      pendingAppointments: appointmentStatuses.where((s) => s == 'pending' || s == 'confirmed').length,
+      totalOrders: orders.size,
+      completedOrders: orderData.where((d) => _string(d['status']).toLowerCase() == 'delivered').length,
+      totalConsultations: consultations.size,
+      totalSpent: orderData.fold<double>(0, (sum, d) => sum + _number(d['total'])),
+      totalSaved: orderData.fold<double>(0, (sum, d) => sum + _number(d['discount'])),
+      lastActive: _dateFrom(user.data()?['lastActive']) ??
+          _dateFrom(user.data()?['updatedAt']) ??
+          _dateFrom(user.data()?['createdAt']) ??
+          DateTime.fromMillisecondsSinceEpoch(0),
     );
   }
 
-  // ============================================================
-  // 📈 جلب بيانات الرسم البياني
-  // ============================================================
-  Future<List<ChartDataModel>> getChartData(
-    String userId,
-    ChartType type,
-  ) async {
-    await Future.delayed(const Duration(milliseconds: 500));
+  Future<List<ChartDataModel>> getChartData(String userId, ChartType type) async {
+    if (userId.trim().isEmpty) return [];
 
-    final List<ChartDataModel> data = [];
     final now = DateTime.now();
+    final start = DateTime(now.year, now.month, now.day).subtract(const Duration(days: 6));
+    QuerySnapshot<Map<String, dynamic>> snapshot;
+    String dateField;
 
-    for (int i = 6; i >= 0; i--) {
-      final date = now.subtract(Duration(days: i));
-      data.add(
-        ChartDataModel(
-          label: _formatDate(date),
-          value: _generateRandomValue(type),
-          date: date,
-        ),
-      );
-    }
-
-    return data;
-  }
-
-  // ============================================================
-  // 📋 جلب التقارير الطبية
-  // ============================================================
-  Future<List<MedicalReportModel>> getMedicalReports(String userId) async {
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    return [
-      MedicalReportModel(
-        id: '1',
-        title: 'تقرير الفحص السنوي',
-        date: DateTime.now().subtract(const Duration(days: 5)),
-        doctor: 'د. أحمد المولد',
-        type: 'فحص عام',
-        status: 'مكتمل',
-        summary: 'جميع المؤشرات طبيعية، ينصح بمتابعة النشاط البدني',
-        details: 'تم إجراء الفحص الشامل وتبين أن جميع المؤشرات ضمن المعدلات الطبيعية',
-      ),
-      MedicalReportModel(
-        id: '2',
-        title: 'تقرير تحاليل الدم',
-        date: DateTime.now().subtract(const Duration(days: 12)),
-        doctor: 'د. خالد النخلاني',
-        type: 'مختبر',
-        status: 'مكتمل',
-        summary: 'نسبة السكر مرتفعة قليلاً، ينصح بمراجعة النظام الغذائي',
-        details: 'تم إجراء تحاليل الدم الشاملة وتبين ارتفاع طفيف في نسبة السكر',
-      ),
-      MedicalReportModel(
-        id: '3',
-        title: 'تقرير الأشعة',
-        date: DateTime.now().subtract(const Duration(days: 20)),
-        doctor: 'د. أسماء الهندي',
-        type: 'أشعة',
-        status: 'قيد المراجعة',
-        summary: 'جاري تحليل النتائج من قبل الأخصائي',
-        details: 'تم إجراء أشعة الصدر وسيتم إرسال النتائج خلال 48 ساعة',
-      ),
-      MedicalReportModel(
-        id: '4',
-        title: 'تقرير متابعة الضغط',
-        date: DateTime.now().subtract(const Duration(days: 30)),
-        doctor: 'د. محمد العلاي',
-        type: 'متابعة',
-        status: 'مكتمل',
-        summary: 'قراءات الضغط طبيعية، استمر على العلاج الحالي',
-        details: 'تم متابعة قراءات الضغط لمدة شهر وتبين استقرارها',
-      ),
-    ];
-  }
-
-  // ============================================================
-  // 💊 جلب تقارير الأدوية
-  // ============================================================
-  Future<List<MedicationReportModel>> getMedicationReports(String userId) async {
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    return [
-      MedicationReportModel(
-        id: '1',
-        name: 'بار.ييتامول 500mg',
-        dosage: 'مرة كل 8 ساعات',
-        duration: '7 أيام',
-        startDate: DateTime.now().subtract(const Duration(days: 7)),
-        endDate: DateTime.now(),
-        status: 'مكتمل',
-        prescribedBy: 'د. أحمد المولد',
-        notes: 'للمساعدة في تخفيف الآلام',
-      ),
-      MedicationReportModel(
-        id: '2',
-        name: 'أموكسيسيلين 500mg',
-        dosage: 'مرة كل 12 ساعة',
-        duration: '10 أيام',
-        startDate: DateTime.now().subtract(const Duration(days: 3)),
-        endDate: DateTime.now().add(const Duration(days: 7)),
-        status: 'نشط',
-        prescribedBy: 'د. خالد النخلاني',
-        notes: 'مضاد حيوي لعلاج الالتهاب',
-      ),
-      MedicationReportModel(
-        id: '3',
-        name: 'لوسارتان 50mg',
-        dosage: 'مرة يومياً',
-        duration: 'شهر',
-        startDate: DateTime.now().subtract(const Duration(days: 15)),
-        endDate: DateTime.now().add(const Duration(days: 15)),
-        status: 'نشط',
-        prescribedBy: 'د. محمد العلاي',
-        notes: 'لعلاج ارتفاع ضغط الدم',
-      ),
-    ];
-  }
-
-  // ============================================================
-  // 🛠️ دوال مساعدة
-  // ============================================================
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}';
-  }
-
-  double _generateRandomValue(ChartType type) {
     switch (type) {
       case ChartType.appointments:
-        return (10 + DateTime.now().millisecondsSinceEpoch % 20).toDouble();
+        snapshot = await _firestore.collection('appointments').where('patientId', isEqualTo: userId).get();
+        dateField = 'date';
+        break;
       case ChartType.orders:
-        return (5 + DateTime.now().millisecondsSinceEpoch % 15).toDouble();
       case ChartType.spending:
-        return (500 + DateTime.now().millisecondsSinceEpoch % 2000).toDouble();
+        snapshot = await _firestore.collection('orders').where('userId', isEqualTo: userId).get();
+        dateField = 'createdAt';
+        break;
       case ChartType.consultations:
-        return (3 + DateTime.now().millisecondsSinceEpoch % 10).toDouble();
+        snapshot = await _firestore.collection('consultations').where('patientId', isEqualTo: userId).get();
+        dateField = 'createdAt';
+        break;
     }
+
+    final totals = <DateTime, double>{
+      for (int i = 0; i < 7; i++) start.add(Duration(days: i)): 0,
+    };
+
+    for (final doc in snapshot.docs) {
+      final data = doc.data();
+      final date = _dateFrom(data[dateField]);
+      if (date == null) continue;
+      final day = DateTime(date.year, date.month, date.day);
+      if (!totals.containsKey(day)) continue;
+
+      final value = switch (type) {
+        ChartType.appointments => 1.0,
+        ChartType.orders => 1.0,
+        ChartType.consultations => 1.0,
+        ChartType.spending => _number(data['total']),
+      };
+      totals[day] = totals[day]! + value;
+    }
+
+    return totals.entries
+        .map((entry) => ChartDataModel(
+              label: _formatDate(entry.key),
+              value: entry.value,
+              date: entry.key,
+            ))
+        .toList();
+  }
+
+  Future<List<MedicalReportModel>> getMedicalReports(String userId) async {
+    if (userId.trim().isEmpty) return [];
+
+    final snapshot = await _firestore
+        .collection('consultations')
+        .where('patientId', isEqualTo: userId)
+        .get();
+
+    final reports = <MedicalReportModel>[];
+    for (final doc in snapshot.docs) {
+      final data = doc.data();
+      final hasMedicalContent = data['diagnosis'] != null ||
+          data['labResult'] != null ||
+          data['labTests'] != null ||
+          data['prescription'] != null;
+      if (!hasMedicalContent) continue;
+
+      final date = _dateFrom(data['updatedAt']) ?? _dateFrom(data['createdAt']);
+      if (date == null) continue;
+      final diagnosis = _string(data['diagnosis']);
+      final labResult = _string(data['labResult']);
+      final status = _string(data['status']);
+      final summary = diagnosis.isNotEmpty
+          ? diagnosis
+          : labResult.isNotEmpty
+              ? labResult
+              : 'توجد نتائج أو وصفة مرتبطة بهذه الاستشارة.';
+
+      reports.add(MedicalReportModel(
+        id: doc.id,
+        title: 'تقرير استشارة طبية',
+        date: date,
+        doctor: _string(data['doctorName']),
+        type: labResult.isNotEmpty || data['labTests'] != null ? 'مختبر' : 'استشارة',
+        status: status.isNotEmpty ? status : 'غير محدد',
+        summary: summary,
+        details: _buildDetails(data),
+      ));
+    }
+
+    reports.sort((a, b) => b.date.compareTo(a.date));
+    return reports;
+  }
+
+  Future<List<MedicationReportModel>> getMedicationReports(String userId) async {
+    if (userId.trim().isEmpty) return [];
+
+    final snapshot = await _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('medications')
+        .get();
+
+    final reports = <MedicationReportModel>[];
+    for (final doc in snapshot.docs) {
+      final data = doc.data();
+      final startDate = _dateFrom(data['startDate']);
+      final endDate = _dateFrom(data['endDate']);
+      final createdAt = _dateFrom(data['createdAt']);
+      final start = startDate ?? createdAt;
+      if (start == null) continue;
+
+      reports.add(MedicationReportModel(
+        id: doc.id,
+        name: _string(data['name']),
+        dosage: _joinNonEmpty([_string(data['dose']), _string(data['frequency'])]),
+        duration: _durationText(start, endDate),
+        startDate: start,
+        endDate: endDate ?? start,
+        status: data['active'] == true ? 'نشط' : 'غير نشط',
+        prescribedBy: _string(data['prescribedBy']),
+        notes: _string(data['notes']),
+      ));
+    }
+
+    reports.sort((a, b) => b.startDate.compareTo(a.startDate));
+    return reports;
+  }
+
+  UserStatsModel _emptyStats() => UserStatsModel(
+        totalAppointments: 0,
+        completedAppointments: 0,
+        cancelledAppointments: 0,
+        pendingAppointments: 0,
+        totalOrders: 0,
+        completedOrders: 0,
+        totalConsultations: 0,
+        totalSpent: 0,
+        totalSaved: 0,
+        lastActive: DateTime.fromMillisecondsSinceEpoch(0),
+      );
+
+  static String _string(dynamic value) => value?.toString().trim() ?? '';
+
+  static double _number(dynamic value) {
+    if (value is num) return value.toDouble();
+    return double.tryParse(_string(value)) ?? 0;
+  }
+
+  static DateTime? _dateFrom(dynamic value) {
+    if (value is Timestamp) return value.toDate();
+    if (value is DateTime) return value;
+    if (value is String) return DateTime.tryParse(value);
+    return null;
+  }
+
+  static String _formatDate(DateTime date) => '${date.day}/${date.month}';
+
+  static String _joinNonEmpty(List<String> values) =>
+      values.where((value) => value.isNotEmpty).join(' - ');
+
+  static String _durationText(DateTime start, DateTime? end) {
+    if (end == null) return 'غير محددة';
+    final days = end.difference(start).inDays.abs();
+    if (days == 0) return 'يوم واحد';
+    return '$days يوم';
+  }
+
+  static String _buildDetails(Map<String, dynamic> data) {
+    final parts = <String>[];
+    final labResult = _string(data['labResult']);
+    final diagnosis = _string(data['diagnosis']);
+    final instructions = _string(data['medicineInstructions']);
+    if (diagnosis.isNotEmpty) parts.add('التشخيص: $diagnosis');
+    if (labResult.isNotEmpty) parts.add('نتيجة المختبر: $labResult');
+    if (instructions.isNotEmpty) parts.add('تعليمات الدواء: $instructions');
+    if (data['prescription'] != null) parts.add('توجد وصفة طبية مرتبطة بالاستشارة.');
+    return parts.join('\n');
   }
 }
