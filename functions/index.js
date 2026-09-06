@@ -5,7 +5,6 @@ const crypto = require('crypto');
 
 admin.initializeApp();
 setGlobalOptions({region: 'us-central1', maxInstances: 10});
-
 const db = admin.firestore();
 const FieldValue = admin.firestore.FieldValue;
 
@@ -29,6 +28,16 @@ async function isAdmin(uid) {
   return snap.exists && snap.data().role === 'admin';
 }
 
+exports.createWallet = onCall(async (request) => {
+  const uid = requireAuth(request);
+  const ref = db.collection('wallets').doc(uid);
+  const snap = await ref.get();
+  if (!snap.exists) {
+    await ref.set({userId: uid, balance: 0, pendingBalance: 0, totalDeposited: 0, totalWithdrawn: 0, totalSpent: 0, currency: 'YER', isActive: true, createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp()});
+  }
+  return {userId: uid, created: !snap.exists};
+});
+
 exports.createPayment = onCall(async (request) => {
   const uid = requireAuth(request);
   const amount = amountOf(request.data.amount);
@@ -41,18 +50,34 @@ exports.createPayment = onCall(async (request) => {
   const txId = `pay_${uid}_${digest(idempotencyKey)}`;
   const txRef = db.collection('transactions').doc(txId);
   const walletRef = db.collection('wallets').doc(uid);
+  const orderRef = orderId ? db.collection('orders').doc(orderId) : null;
 
   await db.runTransaction(async (tx) => {
-    const [walletSnap, existingSnap] = await Promise.all([tx.get(walletRef), tx.get(txRef)]);
+    const [walletSnap, existingSnap, orderSnap] = await Promise.all([
+      tx.get(walletRef),
+      tx.get(txRef),
+      orderRef ? tx.get(orderRef) : Promise.resolve(null),
+    ]);
     if (existingSnap.exists) return;
     if (!walletSnap.exists) throw new HttpsError('failed-precondition', 'المحفظة غير مفعلة لهذا الحساب');
     const wallet = walletSnap.data();
     const balance = Number(wallet.balance || 0);
     if (wallet.isActive === false) throw new HttpsError('failed-precondition', 'المحفظة غير نشطة');
     if (balance < amount) throw new HttpsError('failed-precondition', 'رصيد المحفظة غير كافٍ');
+
+    if (orderRef) {
+      if (!orderSnap || !orderSnap.exists) throw new HttpsError('not-found', 'الطلب غير موجود');
+      const order = orderSnap.data();
+      if (order.userId !== uid) throw new HttpsError('permission-denied', 'لا تملك هذا الطلب');
+      const orderTotal = Number(order.total || 0);
+      if (Math.abs(orderTotal - amount) > 0.01) throw new HttpsError('failed-precondition', 'مبلغ الدفع لا يطابق إجمالي الطلب');
+      if (order.transactionId) throw new HttpsError('already-exists', 'تم ربط الطلب بمعاملة دفع مسبقاً');
+    }
+
     const now = FieldValue.serverTimestamp();
     tx.update(walletRef, {balance: balance - amount, totalSpent: Number(wallet.totalSpent || 0) + amount, updatedAt: now, lastTransactionAt: now});
     tx.set(txRef, {userId: uid, amount, fee: 0, netAmount: amount, type: 'payment', status: 'completed', title, description, orderId, serviceId, serviceType, metadata: request.data.metadata || null, idempotencyKey, createdAt: now, completedAt: now});
+    if (orderRef) tx.update(orderRef, {paymentMethod: serviceType || 'wallet', transactionId: txId, updatedAt: new Date().toISOString()});
   });
   return {transactionId: txId, status: 'completed'};
 });
@@ -145,7 +170,6 @@ exports.reviewTransaction = onCall(async (request) => {
     else if (data.type === 'refund') tx.update(walletRef, {balance: Number(wallet.balance || 0) + amount, totalSpent: Math.max(0, Number(wallet.totalSpent || 0) - amount), updatedAt: now, lastTransactionAt: now});
     else if (data.type === 'withdrawal') tx.update(walletRef, {pendingBalance: Math.max(0, Number(wallet.pendingBalance || 0) - amount), totalWithdrawn: Number(wallet.totalWithdrawn || 0) + amount, updatedAt: now, lastTransactionAt: now});
     else throw new HttpsError('failed-precondition', 'نوع المعاملة لا يدعم المراجعة');
-
     tx.update(txRef, {status: 'completed', completedAt: now, reviewedBy: uid, updatedAt: now});
   });
   return {transactionId, status: 'completed'};
