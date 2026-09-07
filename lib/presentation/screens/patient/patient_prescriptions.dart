@@ -1,136 +1,67 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/presentation/screens/medication/medication_reminder_screen.dart';
 
-class PatientPrescriptions extends StatefulWidget {
+class PatientPrescriptions extends StatelessWidget {
   const PatientPrescriptions({super.key});
 
   @override
-  State<PatientPrescriptions> createState() => _PatientPrescriptionsState();
-}
-
-class _PatientPrescriptionsState extends State<PatientPrescriptions> {
-  final List<Map<String, dynamic>> _prescriptions = [
-    {
-      'id': '1',
-      'medication': 'أموكسيسيلين 500mg',
-      'dosage': 'قرص واحد 3 مرات يومياً',
-      'duration': '7 أيام',
-      'doctor': 'د. أحمد المولد',
-      'date': '2024-01-15',
-      'status': 'نشط',
-    },
-    {
-      'id': '2',
-      'medication': 'باراسيتامول 500mg',
-      'dosage': 'قرص واحد عند الحاجة',
-      'duration': '5 أيام',
-      'doctor': 'د. خالد النخلاني',
-      'date': '2024-01-10',
-      'status': 'منتهي',
-    },
-  ];
-
-  @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    if (uid == null) return const Scaffold(body: Center(child: Text('يرجى تسجيل الدخول')));
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text('الوصفات الطبية'),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {},
-          ),
-        ],
-      ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: _prescriptions.length,
-        itemBuilder: (context, index) {
-          final prescription = _prescriptions[index];
-          final statusColor = prescription['status'] == 'نشط'
-              ? Colors.green
-              : Colors.grey;
-          return Container(
-            margin: const EdgeInsets.only(bottom: 10),
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1A2540) : Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        prescription['medication'],
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        prescription['status'],
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: statusColor,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'الجرعة: ${prescription['dosage']}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'المدة: ${prescription['duration']} • الدكتور: ${prescription['doctor']}',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'التاريخ: ${prescription['date']}',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
+      backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+      appBar: AppBar(title: const Text('الوصفات الطبية'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+      body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: FirebaseFirestore.instance.collection('consultations').where('patientId', isEqualTo: uid).orderBy('createdAt', descending: true).snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) return Center(child: Text('تعذر تحميل الوصفات: ${snapshot.error}'));
+          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+          final docs = snapshot.data!.docs.where((d) {
+            final p = d.data()['prescription'];
+            return p is List && p.isNotEmpty;
+          }).toList();
+          if (docs.isEmpty) return const Center(child: Text('لا توجد وصفات طبية حالياً'));
+          return ListView.builder(
+            padding: const EdgeInsets.all(16), itemCount: docs.length,
+            itemBuilder: (_, i) {
+              final data = docs[i].data();
+              final items = (data['prescription'] as List).map((e) => Map<String, dynamic>.from(e as Map)).toList();
+              final date = _date(data['prescriptionDate'] ?? data['createdAt']);
+              return Card(
+                margin: const EdgeInsets.only(bottom: 14),
+                child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Row(children: [const Icon(Icons.receipt_long, color: AppColors.primary), const SizedBox(width: 8), Expanded(child: Text('وصفة من ${data['doctorName'] ?? 'الطبيب'}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16))), if (date != null) Text(DateFormat('yyyy/MM/dd').format(date), style: const TextStyle(fontSize: 11))]),
+                  if ((data['diagnosis'] ?? '').toString().isNotEmpty) ...[const SizedBox(height: 10), Text('التشخيص: ${data['diagnosis']}')],
+                  const Divider(height: 24),
+                  ...items.map((m) => ListTile(contentPadding: EdgeInsets.zero, leading: const CircleAvatar(backgroundColor: Color(0x1A0A8F83), child: Icon(Icons.medication, color: AppColors.primary)), title: Text((m['name'] ?? m['medicine'] ?? '').toString()), subtitle: Text(_details(m))),
+                  if ((data['medicineInstructions'] ?? '').toString().isNotEmpty) Text('تعليمات الطبيب: ${data['medicineInstructions']}', style: const TextStyle(fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 10),
+                  SizedBox(width: double.infinity, child: OutlinedButton.icon(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MedicationReminderScreen())), icon: const Icon(Icons.notifications_active), label: const Text('متابعة مواعيد الأدوية'))),
+                ])),
+              );
+            },
           );
         },
       ),
     );
+  }
+
+  static String _details(Map<String, dynamic> m) {
+    final dose = (m['dose'] ?? m['dosage'] ?? '').toString();
+    final freq = (m['frequency'] ?? '').toString();
+    final times = m['times'] is List ? (m['times'] as List).join('، ') : (m['time'] ?? '').toString();
+    return [dose, freq, times].where((e) => e.isNotEmpty).join(' • ');
+  }
+
+  static DateTime? _date(dynamic v) {
+    if (v is Timestamp) return v.toDate();
+    if (v is DateTime) return v;
+    if (v is String) return DateTime.tryParse(v);
+    return null;
   }
 }
