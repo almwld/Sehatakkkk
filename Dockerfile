@@ -1,12 +1,10 @@
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
-# Railway deploys from the repository root. The actual token service lives
-# under livekit-token-server/, so build that service explicitly instead of
-# letting Nixpacks guess a root index.js entrypoint.
 COPY livekit-token-server/package*.json ./
-RUN npm install --omit=dev
+RUN npm install --omit=dev --no-audit --no-fund
+
 COPY livekit-token-server/server.js ./server.js
 
 ENV NODE_ENV=production
