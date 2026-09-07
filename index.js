@@ -1,4 +1,3 @@
-// Railway/Nixpacks root entrypoint for Sehatak's standalone LiveKit token server.
-// Railway deployments may default to `node index.js`; keep this entrypoint at
-// the repository root and delegate to the isolated token-server implementation.
+// Railway production entrypoint for Sehatak's standalone LiveKit token server.
+// The Railway service may execute `node index.js` from the repository root.
 require('./livekit-token-server/server.js');
