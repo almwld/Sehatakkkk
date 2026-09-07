@@ -1,0 +1,9 @@
+.git
+.github
+.dart_tool
+.build_cache
+build
+android/.gradle
+ios/Pods
+livekit-token-server/node_modules
+functions/node_modules
