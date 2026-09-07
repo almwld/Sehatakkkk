@@ -3,6 +3,7 @@
 // ============================================================
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
@@ -84,17 +85,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   bool _handleScrollNotification(ScrollNotification notification) {
-    // Listen to vertical user scrolling from every tab/screen inside this shell.
-    // depth > 0 is intentional: the active screen's own scrollable is nested
-    // under the HomeScreen's body, while horizontal carousels are ignored.
     if (notification.metrics.axis != Axis.vertical) return false;
 
     if (notification is UserScrollNotification) {
       if (notification.direction == ScrollDirection.forward) {
-        // Content is moving upward on screen (user scrolls down) -> hide nav.
         _setBottomNavVisibility(false);
       } else if (notification.direction == ScrollDirection.reverse) {
-        // User scrolls back up -> reveal nav.
         _setBottomNavVisibility(true);
       }
     } else if (notification is ScrollEndNotification &&
@@ -153,17 +149,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 }
 
-/// Collapses the navigation bar out of the Scaffold layout while scrolling,
-/// rather than merely translating it off-screen. This prevents the bar from
-/// reserving empty space and lets every tab use the full viewport.
 class _AnimatedBottomNavigationBar extends StatelessWidget {
   final bool visible;
   final Widget child;
 
-  const _AnimatedBottomNavigationBar({
-    required this.visible,
-    required this.child,
-  });
+  const _AnimatedBottomNavigationBar({required this.visible, required this.child});
 
   @override
   Widget build(BuildContext context) {
