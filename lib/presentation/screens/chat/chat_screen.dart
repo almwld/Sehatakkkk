@@ -12,7 +12,7 @@ import 'package:sehatak/core/models/doctor_model.dart';
 import 'package:sehatak/core/services/call_service.dart';
 import 'package:sehatak/core/services/chat_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
-import 'package:sehatak/presentation/screens/ai_chatbot/ai_chatbot_screen.dart';
+import 'package:sehatak/presentation/screens/ai/ai_chatbot_screen.dart';
 import 'package:sehatak/presentation/screens/call/call_screen.dart';
 import 'package:sehatak/presentation/screens/chat/chat_room_screen.dart';
 
@@ -70,8 +70,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
     _creatingDefaultChats = true;
     try {
-      // Create the conversation records once. ChatService is idempotent by
-      // participant pair, so reopening this screen never creates duplicates.
       for (final doctor in doctors) {
         final doctorId = doctor.userId?.trim();
         if (doctorId == null || doctorId.isEmpty || doctorId == user.uid) continue;
@@ -84,8 +82,6 @@ class _ChatScreenState extends State<ChatScreen> {
             patientImage: user.photoURL,
           );
         } catch (e) {
-          // One unavailable doctor must not prevent the remaining doctors
-          // from appearing in the chat list.
           debugPrint('default doctor chat skipped for $doctorId: $e');
         }
       }
@@ -190,15 +186,25 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
         title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text(chat.lastMessage?.isNotEmpty == true ? chat.lastMessage! : 'اضغط لفتح المحادثة', maxLines: 1, overflow: TextOverflow.ellipsis),
-        trailing: unread > 0 ? CircleAvatar(radius: 12, backgroundColor: AppColors.primary, child: Text('$unread', style: const TextStyle(color: Colors.white, fontSize: 11))) : const Icon(Icons.chevron_left),
-        onTap: otherId.isEmpty
-            ? null
-            : () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ChatRoomScreen(chatId: chat.id, doctorId: otherId, doctorName: name, doctorImage: image),
-                  ),
-                ),
+        trailing: unread > 0
+            ? CircleAvatar(radius: 12, backgroundColor: AppColors.primary, child: Text('$unread', style: const TextStyle(color: Colors.white, fontSize: 11)))
+            : const Icon(Icons.chevron_left),
+        onTap: otherId.isEmpty ? null : () => _openExistingChat(chat.id, otherId, name, image),
+      ),
+    );
+  }
+
+  Future<void> _openExistingChat(String chatId, String otherId, String name, String image) async {
+    if (!mounted) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ChatRoomScreen(
+          chatId: chatId,
+          otherUserId: otherId,
+          otherUserName: name,
+          groupImage: image.isEmpty ? null : image,
+        ),
       ),
     );
   }
@@ -234,7 +240,17 @@ class _ChatScreenState extends State<ChatScreen> {
       );
       if (!mounted) return;
       Navigator.pop(context);
-      Navigator.push(context, MaterialPageRoute(builder: (_) => ChatRoomScreen(chatId: chatId, doctorId: doctorId, doctorName: doctor.name, doctorImage: doctor.photoUrl ?? '')));
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ChatRoomScreen(
+            chatId: chatId,
+            otherUserId: doctorId,
+            otherUserName: doctor.name,
+            groupImage: doctor.photoUrl,
+          ),
+        ),
+      );
     } catch (e) {
       ToastService.showError('تعذر فتح المحادثة');
       debugPrint('open chat error: $e');
@@ -246,10 +262,32 @@ class _ChatScreenState extends State<ChatScreen> {
     if (user == null) return ToastService.showError('يرجى تسجيل الدخول أولاً');
     if (otherId.isEmpty || otherId == user.uid) return ToastService.showError('حساب الطرف الآخر غير صالح');
     try {
-      final chatId = await _chatService.createChat(doctorId: otherId, doctorName: name, patientName: user.displayName ?? 'مستخدم', patientImage: user.photoURL);
-      final call = await _callService.initiateCall(receiverId: otherId, receiverName: name, type: isVideo ? CallType.video : CallType.audio, chatId: chatId);
+      final chatId = await _chatService.createChat(
+        doctorId: otherId,
+        doctorName: name,
+        patientName: user.displayName ?? 'مستخدم',
+        patientImage: user.photoURL,
+      );
+      final call = await _callService.initiateCall(
+        receiverId: otherId,
+        receiverName: name,
+        type: isVideo ? CallType.video : CallType.audio,
+        chatId: chatId,
+      );
       if (!mounted || call == null) return;
-      Navigator.push(context, MaterialPageRoute(builder: (_) => CallScreen(chatId: chatId, doctorName: name, doctorId: otherId, isVideo: isVideo, callId: call.id, isOutgoing: true));
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CallScreen(
+            chatId: chatId,
+            doctorName: name,
+            doctorId: otherId,
+            isVideo: isVideo,
+            callId: call.id,
+            isOutgoing: true,
+          ),
+        ),
+      );
     } catch (e) {
       ToastService.showError('فشل بدء المكالمة');
       debugPrint('call error: $e');
