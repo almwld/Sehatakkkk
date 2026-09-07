@@ -18,15 +18,31 @@ class ChatService {
 
   Stream<List<ChatModel>> streamChats({int limit = 50}) {
     final userId = _getUserIdOrThrow();
+
+    // Do not combine arrayContains with orderBy here. That query requires a
+    // composite Firestore index and was the reason the chat screen could show
+    // "حدث خطأ في تحميل المحادثة" on a fresh Firebase project.
     return _firestore
         .collection('chats')
         .where('participants', arrayContains: userId)
-        .orderBy('updatedAt', descending: true)
         .limit(limit)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ChatModel.fromFirestore(doc.id, doc.data()))
-            .toList());
+        .map((snapshot) {
+      final chats = snapshot.docs
+          .map((doc) => ChatModel.fromFirestore(doc.id, doc.data()))
+          .toList();
+
+      chats.sort((a, b) {
+        final aTime = a.updatedAt;
+        final bTime = b.updatedAt;
+        if (aTime == null && bTime == null) return 0;
+        if (aTime == null) return 1;
+        if (bTime == null) return -1;
+        return bTime.compareTo(aTime);
+      });
+
+      return chats;
+    });
   }
 
   Future<List<ChatModel>> getMoreChats({required int limit, DocumentSnapshot? startAfter}) async {
@@ -34,11 +50,19 @@ class ChatService {
     Query<Map<String, dynamic>> query = _firestore
         .collection('chats')
         .where('participants', arrayContains: userId)
-        .orderBy('updatedAt', descending: true)
         .limit(limit);
     if (startAfter != null) query = query.startAfterDocument(startAfter);
     final snapshot = await query.get();
-    return snapshot.docs.map((doc) => ChatModel.fromFirestore(doc.id, doc.data())).toList();
+    final chats = snapshot.docs.map((doc) => ChatModel.fromFirestore(doc.id, doc.data())).toList();
+    chats.sort((a, b) {
+      final aTime = a.updatedAt;
+      final bTime = b.updatedAt;
+      if (aTime == null && bTime == null) return 0;
+      if (aTime == null) return 1;
+      if (bTime == null) return -1;
+      return bTime.compareTo(aTime);
+    });
+    return chats;
   }
 
   Future<String> createChat({
