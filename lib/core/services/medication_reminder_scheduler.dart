@@ -90,6 +90,7 @@ class MedicationReminderScheduler {
             iOS: DarwinNotificationDetails(presentAlert: true, presentSound: true, presentBadge: true),
           ),
           androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
           payload: 'medication:$medicationId',
         );
       }
