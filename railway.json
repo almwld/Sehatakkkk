@@ -1,10 +1,11 @@
 {
   "$schema": "https://railway.com/railway.schema.json",
   "build": {
+    "builder": "RAILPACK",
     "buildCommand": "cd livekit-token-server && npm install --omit=dev"
   },
   "deploy": {
-    "startCommand": "cd livekit-token-server && node server.js",
+    "startCommand": "node livekit-token-server/server.js",
     "healthcheckPath": "/health",
     "healthcheckTimeout": 30,
     "restartPolicyType": "ON_FAILURE",
