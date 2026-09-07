@@ -1,6 +1,5 @@
 // Railway production entrypoint for Sehatak's standalone LiveKit token server.
-// Railway may execute `node index.js` from the repository root.
-// Keep this file at repository root so the service works even when Railway's
-// Start Command is configured as `node index.js`.
-console.log('Starting Sehatak LiveKit token server entrypoint');
+// This intentionally lives at the repository root because Railway may invoke
+// `node index.js` when a service has a custom start command configured.
+console.log('[Sehatak] booting LiveKit token server from repository root');
 require('./livekit-token-server/server.js');
