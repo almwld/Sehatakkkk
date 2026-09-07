@@ -9,7 +9,6 @@ class MedicationService {
   MedicationService._internal();
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final CacheService _cache = CacheService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final MedicationReminderScheduler _scheduler = MedicationReminderScheduler.instance;
 
@@ -24,13 +23,13 @@ class MedicationService {
     try {
       final snapshot = await _collection(user.uid).where('active', isEqualTo: true).get();
       final medications = snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
-      await _cache.saveList('medications_${user.uid}', medications);
+      await CacheService.saveList('medications_${user.uid}', medications);
       await _scheduler.sync(medications);
       return medications;
     } catch (e) {
       print('⚠️ Error getting medications: $e');
-      final cached = await _cache.getList('medications_${user.uid}');
-      return cached?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? [];
+      final cached = await CacheService.getList('medications_${user.uid}');
+      return cached ?? [];
     }
   }
 
@@ -68,7 +67,7 @@ class MedicationService {
     };
     final ref = await _collection(user.uid).add(data);
     final result = {'id': ref.id, ...data, 'startDate': startDate ?? DateTime.now()};
-    await _cache.remove('medications_${user.uid}');
+    await CacheService.remove('medications_${user.uid}');
     await _scheduler.scheduleMedication(medication: result);
     return result;
   }
@@ -78,7 +77,7 @@ class MedicationService {
     if (user == null) throw Exception('User not logged in');
     final updates = {...data, 'updatedAt': FieldValue.serverTimestamp()};
     await _collection(user.uid).doc(id).update(updates);
-    await _cache.remove('medications_${user.uid}');
+    await CacheService.remove('medications_${user.uid}');
     final doc = await _collection(user.uid).doc(id).get();
     if (doc.exists) {
       await _scheduler.scheduleMedication(medication: {'id': doc.id, ...doc.data()!});
@@ -90,7 +89,7 @@ class MedicationService {
     if (user == null) throw Exception('User not logged in');
     await _collection(user.uid).doc(id).delete();
     await _scheduler.cancelMedication(id);
-    await _cache.remove('medications_${user.uid}');
+    await CacheService.remove('medications_${user.uid}');
   }
 
   Future<void> toggleReminder(String id, bool enabled) async {
@@ -100,7 +99,7 @@ class MedicationService {
       'reminderEnabled': enabled,
       'updatedAt': FieldValue.serverTimestamp(),
     });
-    await _cache.remove('medications_${user.uid}');
+    await CacheService.remove('medications_${user.uid}');
     final doc = await _collection(user.uid).doc(id).get();
     if (enabled && doc.exists) {
       await _scheduler.scheduleMedication(medication: {'id': doc.id, ...doc.data()!});
@@ -113,7 +112,13 @@ class MedicationService {
     final user = _auth.currentUser;
     if (user == null) return [];
     try {
-      final snapshot = await _firestore.collection('users').doc(user.uid).collection('medications_history').orderBy('takenAt', descending: true).limit(100).get();
+      final snapshot = await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('medications_history')
+          .orderBy('takenAt', descending: true)
+          .limit(100)
+          .get();
       return snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
     } catch (e) {
       print('⚠️ Error getting medication history: $e');
@@ -129,7 +134,10 @@ class MedicationService {
       'takenAt': FieldValue.serverTimestamp(),
       'userId': user.uid,
     });
-    await _collection(user.uid).doc(medicationId).update({'taken': true, 'updatedAt': FieldValue.serverTimestamp()});
+    await _collection(user.uid).doc(medicationId).update({
+      'taken': true,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
   }
 
   Stream<List<Map<String, dynamic>>> watchUpcomingMedications() {
