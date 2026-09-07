@@ -8,8 +8,7 @@ class LabBookingScreen extends StatefulWidget {
   final String labId;
   final String? testId;
   const LabBookingScreen({super.key, required this.labId, this.testId});
-  @override
-  State<LabBookingScreen> createState() => _LabBookingScreenState();
+  @override State<LabBookingScreen> createState() => _LabBookingScreenState();
 }
 
 class _LabBookingScreenState extends State<LabBookingScreen> {
@@ -35,11 +34,7 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
       if (!snap.exists) throw Exception('المختبر غير موجود');
       final data = Map<String, dynamic>.from(snap.data()!);
       final raw = data['tests'] is List ? data['tests'] as List : const [];
-      final tests = raw.asMap().entries.map((e) {
-        final v = e.value;
-        if (v is Map) { final t = Map<String, dynamic>.from(v); if (_s(t['id']).isEmpty) t['id'] = 'test_${e.key}'; return t; }
-        return {'id': 'test_${e.key}', 'name': _s(v), 'price': 0, 'description': ''};
-      }).toList();
+      final tests = raw.asMap().entries.map((e) { final v = e.value; if (v is Map) { final t = Map<String, dynamic>.from(v); if (_s(t['id']).isEmpty) t['id'] = 'test_${e.key}'; return t; } return {'id': 'test_${e.key}', 'name': _s(v), 'price': 0, 'description': ''}; }).toList();
       if (widget.testId != null && tests.any((t) => _s(t['id']) == widget.testId)) _selected.add(widget.testId!);
       if (!mounted) return;
       setState(() { _lab = {'id': snap.id, ...data}; _tests = tests; _loading = false; });
@@ -49,21 +44,19 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
   Future<void> _bookAndPay() async {
     if (FirebaseAuth.instance.currentUser == null) { _show('يجب تسجيل الدخول أولاً', false); return; }
     if (_selected.isEmpty || _date == null || _time == null) { _show('اختر الفحوصات والتاريخ والوقت.', false); return; }
-    final d = _date!; final t = _time!;
-    final appointment = DateTime(d.year, d.month, d.day, t.hour, t.minute);
+    final d = _date!; final t = _time!; final appointment = DateTime(d.year, d.month, d.day, t.hour, t.minute);
     if (!appointment.isAfter(DateTime.now())) { _show('اختر موعداً مستقبلياً.', false); return; }
     final date = '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
     final time = '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+    final notes = _notes.text.trim();
     setState(() => _saving = true);
     try {
-      final create = await _functions.httpsCallable('createLabBooking').call({'labId': widget.labId, 'testIds': _selected.toList(), 'date': date, 'time': time, 'notes': _notes.text.trim().substring(0, _notes.text.trim().length.clamp(0, 1000))});
-      final map = Map<String, dynamic>.from(create.data as Map);
-      final bookingId = map['bookingId']?.toString() ?? '';
+      final create = await _functions.httpsCallable('createLabBooking').call({'labId': widget.labId, 'testIds': _selected.toList(), 'date': date, 'time': time, 'notes': notes.length > 1000 ? notes.substring(0, 1000) : notes});
+      final map = Map<String, dynamic>.from(create.data as Map); final bookingId = map['bookingId']?.toString() ?? '';
       if (bookingId.isEmpty) throw Exception('لم يتم إنشاء الحجز');
       if (_total > 0) await _functions.httpsCallable('payLabBooking').call({'bookingId': bookingId, 'idempotencyKey': 'lab-$bookingId'});
       if (!mounted) return;
-      _show('تم الحجز والدفع بنجاح. رقم الحجز: $bookingId', true);
-      Navigator.pop(context, bookingId);
+      _show('تم الحجز والدفع بنجاح. رقم الحجز: $bookingId', true); Navigator.pop(context, bookingId);
     } on FirebaseFunctionsException catch (e) { if (mounted) _show(e.message ?? 'تعذر إتمام الحجز والدفع.', false); }
     catch (e) { if (mounted) _show('تعذر إتمام العملية: $e', false); }
     finally { if (mounted) setState(() => _saving = false); }
@@ -73,8 +66,7 @@ class _LabBookingScreenState extends State<LabBookingScreen> {
   Future<void> _pickTime() async { final t = await showTimePicker(context: context, initialTime: _time ?? const TimeOfDay(hour: 9, minute: 0)); if (t != null) setState(() => _time = t); }
   void _show(String m, bool ok) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(m), backgroundColor: ok ? AppColors.primary : Colors.red));
 
-  @override
-  Widget build(BuildContext context) {
+  @override Widget build(BuildContext context) {
     if (_loading) return const Scaffold(body: Center(child: CircularProgressIndicator(color: AppColors.primary)));
     if (_error != null) return Scaffold(appBar: AppBar(title: const Text('حجز فحص')), body: Center(child: Text(_error!)));
     final dark = Theme.of(context).brightness == Brightness.dark;
