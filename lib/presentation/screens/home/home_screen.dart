@@ -14,8 +14,6 @@ import 'package:sehatak/presentation/screens/patient/patient_dashboard.dart';
 import 'package:sehatak/presentation/screens/more/more_screen.dart';
 import 'package:sehatak/presentation/widgets/common/custom_bottom_navigation_bar.dart';
 import 'package:sehatak/presentation/screens/home/tabs/home_tab.dart';
-import 'package:sehatak/core/managers/global_scroll_manager.dart';
-import 'package:sehatak/core/widgets/scroll_detector.dart';
 
 class ScreenKeys {
   static const home = ValueKey('home_tab');
@@ -37,7 +35,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int _currentIndex = 0;
   final ScrollController _scrollController = ScrollController();
-  late final GlobalScrollManager _scrollManager;
   bool _isLoggedIn = false;
   late final Map<int, Widget> _screens;
 
@@ -45,7 +42,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _scrollManager = GlobalScrollManager();
     _checkLoginStatus();
     _initializeScreens();
   }
@@ -53,7 +49,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void dispose() {
     _scrollController.dispose();
-    _scrollManager.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -90,10 +85,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     if (_currentIndex != index) {
       setState(() => _currentIndex = index);
-      // عند الانتقال بين التبويبات نبدأ بحالة مرئية دائمًا.
-      _scrollManager.reset();
-    } else {
-      _scrollManager.show();
     }
 
     HapticFeedback.lightImpact();
@@ -111,70 +102,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor:
-          isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      // مهم: ScrollDetector يحيط بكل IndexedStack، لذلك أي ScrollView
-      // داخل الأطباء/الصيدلية/المختبرات/المزيد وغيرها يرسل إشعاره هنا.
-      body: ScrollDetector(
-        scrollManager: _scrollManager,
-        child: IndexedStack(
-          index: _currentIndex,
-          children: _screens.values.toList(growable: false),
-        ),
+      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+      // التمرير داخل كل شاشة يبقى مستقلاً. شريط التنقل ثابت ولا يختفي
+      // ولا ينزلق مع تمرير الأطباء أو المختبرات أو الدردشة أو المزيد.
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _screens.values.toList(growable: false),
       ),
-      // نستخدم Stack حتى يتحرك الشريط خارج الشاشة بدون تغيير مساحة body.
-      // هذا يمنع القفزة/إعادة تخطيط المحتوى أثناء التمرير.
-      bottomNavigationBar: _buildAnimatedBottomNav(),
-    );
-  }
-
-  Widget _buildAnimatedBottomNav() {
-    final bottomPadding = MediaQuery.of(context).viewPadding.bottom;
-    final navHeight = 60.0 + bottomPadding;
-
-    return AnimatedBuilder(
-      animation: _scrollManager,
-      builder: (context, _) {
-        final visible = _scrollManager.isVisible;
-
-        return SizedBox(
-          height: navHeight,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Positioned.fill(
-                child: IgnorePointer(
-                  ignoring: !visible,
-                  child: AnimatedSlide(
-                    duration: const Duration(milliseconds: 280),
-                    curve: Curves.easeOutCubic,
-                    offset: visible ? Offset.zero : const Offset(0, 1.25),
-                    child: Material(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? const Color(0xFF1E293B)
-                          : Colors.white,
-                      elevation: 10,
-                      shadowColor: Colors.black.withOpacity(0.12),
-                      child: SafeArea(
-                        top: false,
-                        bottom: true,
-                        child: CustomBottomNavigationBar(
-                          currentIndex: _currentIndex,
-                          onTap: _onTabTap,
-                          scrollManager: _scrollManager,
-                          scrollController: _scrollController,
-                          isLoggedIn: _isLoggedIn,
-                          onAuthRequired: _openAuth,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+      bottomNavigationBar: CustomBottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: _onTabTap,
+        isLoggedIn: _isLoggedIn,
+        onAuthRequired: _openAuth,
+      ),
     );
   }
 }
