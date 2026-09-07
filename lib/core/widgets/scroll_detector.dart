@@ -1,6 +1,6 @@
 // ============================================================
 // 📡 ScrollDetector - كاشف التمرير الذكي
-// يعتمد على اتجاه التمرير الفعلي بدل مقارنة موضع عام بين الشاشات.
+// يعتمد على حركة المستخدم الفعلية مع عتبة 5dp.
 // ============================================================
 
 import 'package:flutter/material.dart';
@@ -39,17 +39,12 @@ class ScrollDetector extends StatelessWidget {
       return;
     }
 
-    // الاتجاه الفعلي للمستخدم، وليس فرق موضع قد ينتمي إلى ScrollView آخر.
-    if (notification is UserScrollNotification) {
-      switch (notification.direction) {
-        case ScrollDirection.reverse:
-          scrollManager.hide();
-          break;
-        case ScrollDirection.forward:
-          scrollManager.show();
-          break;
-        case ScrollDirection.idle:
-          break;
+    // Accumulate actual user movement so small 1-2dp updates do not cause
+    // jitter. The manager activates hide/show only after 5dp is reached.
+    if (notification is ScrollUpdateNotification) {
+      final delta = notification.scrollDelta ?? 0.0;
+      if (delta != 0.0) {
+        scrollManager.handleScrollDelta(delta);
       }
     }
 
