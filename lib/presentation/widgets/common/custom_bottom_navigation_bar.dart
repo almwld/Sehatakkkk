@@ -1,5 +1,5 @@
 // ============================================================
-// 📱 CustomBottomNavigationBar - شريط التنقل السفلي
+// 📱 CustomBottomNavigationBar - شريط التنقل السفلي المخصص
 // ============================================================
 
 import 'package:flutter/material.dart';
@@ -24,7 +24,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
     required this.onAuthRequired,
   });
 
-  final List<NavItem> _navItems = const [
+  static const List<NavItem> _navItems = [
     NavItem(index: 0, icon: Icons.home_rounded, label: 'الرئيسية'),
     NavItem(index: 1, icon: Icons.person_search_rounded, label: 'الأطباء'),
     NavItem(index: 2, icon: Icons.local_pharmacy_rounded, label: 'الصيدلية'),
@@ -40,19 +40,27 @@ class CustomBottomNavigationBar extends StatelessWidget {
     final bottomPadding = MediaQuery.of(context).viewPadding.bottom;
 
     return Container(
-      height: 56 + bottomPadding,
+      height: 60 + bottomPadding,
       padding: EdgeInsets.only(bottom: bottomPadding > 0 ? 0 : 4),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.12),
+            blurRadius: 12,
+            offset: const Offset(0, -4),
+          ),
+        ],
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: _navItems.map((item) {
-          if (item.isSpecial) {
-            return _buildSpecialChatButton(item, isDark);
-          }
-          return _buildNavItem(item, isDark);
-        }).toList(),
+          return item.isSpecial
+              ? _buildSpecialChatButton(item, isDark)
+              : _buildNavItem(item, isDark);
+        }).toList(growable: false),
       ),
     );
   }
@@ -67,7 +75,6 @@ class CustomBottomNavigationBar extends StatelessWidget {
         width: 48,
         height: 56,
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
@@ -87,6 +94,8 @@ class CustomBottomNavigationBar extends StatelessWidget {
                     ? AppColors.primary
                     : (isDark ? Colors.grey.shade400 : Colors.grey.shade500),
               ),
+              maxLines: 1,
+              overflow: TextOverflow.clip,
             ),
             if (isSelected)
               Container(
@@ -106,6 +115,8 @@ class CustomBottomNavigationBar extends StatelessWidget {
     );
   }
 
+  // 💬 زر الدردشة مرتفع عن مستوى الشريط بشكل احترافي.
+  // Stack + Clip.none يمنع قص الدائرة عند خروجها أعلى الشريط.
   Widget _buildSpecialChatButton(NavItem item, bool isDark) {
     final isSelected = currentIndex == item.index;
 
@@ -113,48 +124,57 @@ class CustomBottomNavigationBar extends StatelessWidget {
       onTap: () => _handleTap(item),
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
-        width: 60,
-        height: 64,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.end,
+        width: 62,
+        height: 60,
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.bottomCenter,
           children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppColors.primary, AppColors.primaryDark],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+            Positioned(
+              bottom: 0,
+              child: Text(
+                item.label,
+                style: TextStyle(
+                  fontSize: 9,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  color: isSelected
+                      ? AppColors.primary
+                      : (isDark ? Colors.grey.shade400 : Colors.grey.shade500),
                 ),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withOpacity(0.4),
-                    blurRadius: 16,
-                    offset: const Offset(0, 4),
+              ),
+            ),
+            Positioned(
+              top: -17,
+              child: Container(
+                width: 58,
+                height: 58,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppColors.primary, AppColors.primaryDark],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                ],
-              ),
-              child: Icon(
-                item.icon,
-                color: Colors.white,
-                size: 26,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                    width: 4,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.38),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.chat_rounded,
+                  color: Colors.white,
+                  size: 28,
+                ),
               ),
             ),
-            const SizedBox(height: 2),
-            Text(
-              item.label,
-              style: TextStyle(
-                fontSize: 9,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected
-                    ? AppColors.primary
-                    : (isDark ? Colors.grey.shade400 : Colors.grey.shade500),
-              ),
-            ),
-            const SizedBox(height: 2),
           ],
         ),
       ),
