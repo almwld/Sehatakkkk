@@ -1,4 +1,4 @@
 // Railway/Nixpacks root entrypoint for Sehatak's standalone LiveKit token server.
-// Railway starts `npm start` from the repository root; the actual server lives
-// under livekit-token-server so the Flutter source tree remains unchanged.
+// Railway deployments may default to `node index.js`; keep this entrypoint at
+// the repository root and delegate to the isolated token-server implementation.
 require('./livekit-token-server/server.js');
