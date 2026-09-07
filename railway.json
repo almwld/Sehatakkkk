@@ -4,7 +4,9 @@
     "buildCommand": "cd livekit-token-server && npm install --omit=dev"
   },
   "deploy": {
-    "startCommand": "cd livekit-token-server && npm start",
+    "startCommand": "cd livekit-token-server && node server.js",
+    "healthcheckPath": "/health",
+    "healthcheckTimeout": 30,
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }
