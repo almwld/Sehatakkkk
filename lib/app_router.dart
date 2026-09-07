@@ -1,4 +1,3 @@
-import 'package:sehatak/core/models/doctor_model.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
@@ -47,10 +46,13 @@ class AppRouter {
       GoRoute(path: home, builder: (context, state) => const HomeScreen()),
       GoRoute(path: auth, builder: (context, state) => const AuthScreen()),
       GoRoute(path: doctors, builder: (context, state) => const DoctorsListScreen()),
-      GoRoute(path: doctorDetails, builder: (context, state) {
-        final id = state.pathParameters['id'] ?? '';
-        return DoctorDetailsScreen(doctor: DoctorModel(id: id, name: 'طبيب', specialty: 'طبيب عام'));
-      }),
+      GoRoute(
+        path: doctorDetails,
+        builder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          return DoctorDetailsScreen(doctorId: id);
+        },
+      ),
       GoRoute(path: pharmacy, builder: (context, state) => const PharmacyScreen()),
       GoRoute(path: labs, builder: (context, state) => const LabsListScreen()),
       GoRoute(path: chat, builder: (context, state) => const ChatScreen()),
