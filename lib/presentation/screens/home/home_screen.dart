@@ -36,6 +36,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int _currentIndex = 0;
   final ScrollController _scrollController = ScrollController();
   bool _isLoggedIn = false;
+  bool _isBottomNavVisible = true;
   late final Map<int, Widget> _screens;
 
   @override
@@ -77,11 +78,40 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     };
   }
 
+  void _setBottomNavVisibility(bool visible) {
+    if (_isBottomNavVisible == visible || !mounted) return;
+    setState(() => _isBottomNavVisible = visible);
+  }
+
+  bool _handleScrollNotification(ScrollNotification notification) {
+    // Listen to vertical user scrolling from every tab/screen inside this shell.
+    // depth > 0 is intentional: the active screen's own scrollable is nested
+    // under the HomeScreen's body, while horizontal carousels are ignored.
+    if (notification.metrics.axis != Axis.vertical) return false;
+
+    if (notification is UserScrollNotification) {
+      if (notification.direction == ScrollDirection.forward) {
+        // Content is moving upward on screen (user scrolls down) -> hide nav.
+        _setBottomNavVisibility(false);
+      } else if (notification.direction == ScrollDirection.reverse) {
+        // User scrolls back up -> reveal nav.
+        _setBottomNavVisibility(true);
+      }
+    } else if (notification is ScrollEndNotification &&
+        notification.metrics.pixels <= notification.metrics.minScrollExtent + 2) {
+      _setBottomNavVisibility(true);
+    }
+
+    return false;
+  }
+
   void _onTabTap(int index) {
     if (index == 5 && !_isLoggedIn) {
       _openAuth();
       return;
     }
+
+    _setBottomNavVisibility(true);
 
     if (_currentIndex != index) {
       setState(() => _currentIndex = index);
@@ -103,17 +133,55 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      // التمرير داخل كل شاشة يبقى مستقلاً. شريط التنقل ثابت ولا يختفي
-      // ولا ينزلق مع تمرير الأطباء أو المختبرات أو الدردشة أو المزيد.
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens.values.toList(growable: false),
+      body: NotificationListener<ScrollNotification>(
+        onNotification: _handleScrollNotification,
+        child: IndexedStack(
+          index: _currentIndex,
+          children: _screens.values.toList(growable: false),
+        ),
       ),
-      bottomNavigationBar: CustomBottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: _onTabTap,
-        isLoggedIn: _isLoggedIn,
-        onAuthRequired: _openAuth,
+      bottomNavigationBar: _AnimatedBottomNavigationBar(
+        visible: _isBottomNavVisible,
+        child: CustomBottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: _onTabTap,
+          isLoggedIn: _isLoggedIn,
+          onAuthRequired: _openAuth,
+        ),
+      ),
+    );
+  }
+}
+
+/// Collapses the navigation bar out of the Scaffold layout while scrolling,
+/// rather than merely translating it off-screen. This prevents the bar from
+/// reserving empty space and lets every tab use the full viewport.
+class _AnimatedBottomNavigationBar extends StatelessWidget {
+  final bool visible;
+  final Widget child;
+
+  const _AnimatedBottomNavigationBar({
+    required this.visible,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOutCubic,
+      alignment: Alignment.topCenter,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 160),
+        curve: Curves.easeOut,
+        opacity: visible ? 1 : 0,
+        child: ClipRect(
+          child: Align(
+            alignment: Alignment.topCenter,
+            heightFactor: visible ? 1 : 0,
+            child: child,
+          ),
+        ),
       ),
     );
   }
