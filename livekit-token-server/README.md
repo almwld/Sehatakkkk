@@ -2,33 +2,40 @@
 
 خادم Node.js صغير مستقل لإصدار LiveKit JWT لتطبيق «صحتك».
 
-- Firebase Auth هو مصدر الهوية.
+- Firebase Auth هو مصدر الهوية والتحقق من المستخدم.
 - Firebase/Firestore يبقى الـBackend الرئيسي للتطبيق.
-- هذا الخادم لا يخزن بيانات المستخدمين.
-- `LIVEKIT_API_KEY` و`LIVEKIT_API_SECRET` متغيرات بيئية سرية ولا توضع في Git.
+- الخادم لا يخزن بيانات المستخدمين.
+- `LIVEKIT_API_KEY` و`LIVEKIT_API_SECRET` أسرار ولا توضع في Git.
+- مناسب للنشر على Railway من مجلد المستودع نفسه.
+
+## تشغيل Railway
+
+اضبط متغيرات الخدمة في Railway:
+
+- `PORT` — Railway يضبطه تلقائياً، ويمكن تركه بدون قيمة.
+- `FIREBASE_PROJECT_ID` — معرف مشروع Firebase.
+- `FIREBASE_SERVICE_ACCOUNT_JSON` — JSON لحساب خدمة Firebase كمتغير سري في Railway. لا ترفع ملف الحساب إلى Git.
+- `LIVEKIT_API_KEY` — مفتاح LiveKit السري.
+- `LIVEKIT_API_SECRET` — سر LiveKit السري.
+- `LIVEKIT_URL` — رابط WebSocket الخاص بـ LiveKit، ويمكن ترك القيمة الافتراضية المستخدمة في الكود.
+
+الخدمة تستمع على `0.0.0.0` وتستخدم `PORT` الذي توفره منصة الاستضافة.
 
 ## التشغيل المحلي
 
 ```bash
 cd livekit-token-server
 npm install
-export GOOGLE_APPLICATION_CREDENTIALS=/path/to/firebase-service-account.json
+export FIREBASE_PROJECT_ID='your-project-id'
+export FIREBASE_SERVICE_ACCOUNT_JSON='{"type":"service_account",...}'
 export LIVEKIT_API_KEY='...'
 export LIVEKIT_API_SECRET='...'
 npm start
 ```
 
-## متغيرات البيئة
-
-- `PORT` (اختياري، الافتراضي 8080)
-- `LIVEKIT_API_KEY` (سري)
-- `LIVEKIT_API_SECRET` (سري)
-- `LIVEKIT_URL` (اختياري، الافتراضي رابط LiveKit الخاص بصحتك)
-- اعتماد Firebase Admin عبر بيئة الاستضافة؛ لا ترفع ملف service-account إلى المستودع.
-
 ## API
 
-`GET /health` للتحقق من أن الخادم يعمل.
+`GET /health` للتحقق من أن الخادم يعمل، ويعرض فقط حالة إعداد Firebase وLiveKit بدون كشف الأسرار.
 
 `POST /token` يتطلب:
 
@@ -40,6 +47,10 @@ npm start
 {"roomName":"call_<callId>","participantName":"اسم المستخدم"}
 ```
 
-الخادم يتحقق من Firebase ID token ثم يصدر توكن LiveKit بهوية Firebase UID فقط.
+الخادم يتحقق من Firebase ID token ثم يصدر توكن LiveKit بهوية Firebase UID.
 
-> GitHub Repository هو مصدر الكود. تشغيل الخادم نفسه يحتاج بيئة استضافة Node.js مستمرة؛ GitHub Actions ليس خادمًا دائمًا.
+## Railway / GitHub
+
+المستودع يحتوي على `index.js` في الجذر لأن بعض إعدادات Railway/Node تشغّل افتراضياً `node index.js`. هذا الملف يفوض التنفيذ إلى `livekit-token-server/server.js`.
+
+GitHub يحفظ الكود، بينما Railway يشغّل الخادم بشكل دائم. لا توجد مفاتيح LiveKit أو Firebase سرية داخل المستودع.
