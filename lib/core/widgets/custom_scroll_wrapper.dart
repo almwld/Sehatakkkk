@@ -31,6 +31,10 @@ class CustomScrollWrapper extends StatefulWidget {
 
 class _CustomScrollWrapperState extends State<CustomScrollWrapper>
     with SingleTickerProviderStateMixin {
+  static const Duration _animationDuration = Duration(milliseconds: 220);
+  static const double _slideOffset = 1.2;
+  static const double _navHeight = 56.0;
+
   late final GlobalScrollManager _scrollManager;
   late final AnimationController _animationController;
   late final Animation<Offset> _slideAnimation;
@@ -39,24 +43,27 @@ class _CustomScrollWrapperState extends State<CustomScrollWrapper>
   void initState() {
     super.initState();
     _scrollManager = GlobalScrollManager();
-    
+
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 250),
+      duration: _animationDuration,
     );
-    
+
     _slideAnimation = Tween<Offset>(
       begin: Offset.zero,
-      end: const Offset(0, 1.2),
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
-    
+      end: const Offset(0, _slideOffset),
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
     _scrollManager.addListener(_onVisibilityChanged);
   }
 
   void _onVisibilityChanged() {
+    if (!mounted) return;
     if (_scrollManager.isVisible) {
       _animationController.reverse();
     } else {
@@ -85,14 +92,14 @@ class _CustomScrollWrapperState extends State<CustomScrollWrapper>
 
   Widget _buildBottomNavBar() {
     final bottomPadding = MediaQuery.of(context).viewPadding.bottom;
-    final navHeight = 56.0 + bottomPadding;
+    final navHeight = _navHeight + bottomPadding;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       height: navHeight,
+      clipBehavior: Clip.none,
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? const Color(0xFF1E293B)
-            : Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.08),
@@ -104,17 +111,19 @@ class _CustomScrollWrapperState extends State<CustomScrollWrapper>
       child: SafeArea(
         top: false,
         bottom: true,
-        child: SlideTransition(
-          position: _slideAnimation,
-          child: SizedBox(
-            height: 56,
-            child: CustomBottomNavigationBar(
-              currentIndex: widget.currentIndex,
-              onTap: widget.onTap,
-              scrollManager: _scrollManager,
-              scrollController: widget.scrollController,
-              isLoggedIn: widget.isLoggedIn,
-              onAuthRequired: widget.onAuthRequired,
+        child: Clip.none(
+          child: SlideTransition(
+            position: _slideAnimation,
+            child: SizedBox(
+              height: _navHeight,
+              child: CustomBottomNavigationBar(
+                currentIndex: widget.currentIndex,
+                onTap: widget.onTap,
+                scrollManager: _scrollManager,
+                scrollController: widget.scrollController,
+                isLoggedIn: widget.isLoggedIn,
+                onAuthRequired: widget.onAuthRequired,
+              ),
             ),
           ),
         ),
