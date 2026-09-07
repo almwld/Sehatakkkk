@@ -172,7 +172,10 @@ class _CallScreenState extends State<CallScreen> {
   RemoteVideoTrack? _remoteVideoTrack() {
     final room = _room;
     if (room == null) return null;
-    for (final participant in room.remoteParticipants.values) {
+    // livekit_client 1.5.6 exposes remote participants as `participants`.
+    // `remoteParticipants` was introduced by the 2.x API and therefore does
+    // not compile against the version used by this project.
+    for (final participant in room.participants.values) {
       for (final publication in participant.trackPublications.values) {
         final track = publication.track;
         if (track is RemoteVideoTrack) return track;
