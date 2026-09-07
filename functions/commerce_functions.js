@@ -1,0 +1,126 @@
+const {onCall, HttpsError} = require('firebase-functions/v2/https');
+const admin = require('firebase-admin');
+const db = admin.firestore();
+const FieldValue = admin.firestore.FieldValue;
+const crypto = require('crypto');
+
+function requireAuth(request) {
+  if (!request.auth?.uid) throw new HttpsError('unauthenticated', 'يجب تسجيل الدخول أولاً');
+  return request.auth.uid;
+}
+function amount(value, allowZero = false) {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n < 0 || n > 100000000 || (!allowZero && n <= 0)) throw new HttpsError('invalid-argument', 'مبلغ غير صالح');
+  return Math.round(n * 100) / 100;
+}
+function text(value, field, max = 300) {
+  const v = String(value ?? '').trim();
+  if (!v || v.length > max) throw new HttpsError('invalid-argument', `الحقل ${field} غير صالح`);
+  return v;
+}
+function digest(v) { return crypto.createHash('sha256').update(v).digest('hex').slice(0, 40); }
+
+const pharmacyCatalog = Object.freeze({
+  panadol_extra: {name: 'بانادول إكسترا', price: 1200},
+  amoxicillin_500: {name: 'أموكسيسيلين 500mg', price: 3500},
+  vitamin_c: {name: 'فيتامين سي', price: 800},
+  omeprazole_20: {name: 'أوميبرازول 20mg', price: 2500},
+  aloe_gel: {name: 'جل الصبار', price: 1500},
+});
+
+async function chargeWallet(tx, uid, total, title, description, serviceType, orderId, metadata, idempotencyKey) {
+  const walletRef = db.collection('wallets').doc(uid);
+  const txId = `pay_${uid}_${digest(idempotencyKey)}`;
+  const txRef = db.collection('transactions').doc(txId);
+  const walletSnap = await tx.get(walletRef);
+  const existing = await tx.get(txRef);
+  if (existing.exists) return {txId, reused: true};
+  if (!walletSnap.exists || walletSnap.data().isActive === false) throw new HttpsError('failed-precondition', 'المحفظة غير مفعلة');
+  const wallet = walletSnap.data();
+  if (Number(wallet.balance || 0) < total) throw new HttpsError('failed-precondition', 'رصيد المحفظة غير كافٍ');
+  const now = FieldValue.serverTimestamp();
+  tx.update(walletRef, {balance: Number(wallet.balance || 0) - total, totalSpent: Number(wallet.totalSpent || 0) + total, updatedAt: now, lastTransactionAt: now});
+  tx.set(txRef, {userId: uid, amount: total, fee: 0, netAmount: total, type: 'payment', status: 'completed', title, description, orderId: orderId || null, serviceType, metadata: metadata || null, idempotencyKey, createdAt: now, completedAt: now});
+  return {txId, reused: false};
+}
+
+function writeInvoice(tx, {uid, transactionId, orderId, serviceType, subtotal, deliveryFee, total, items, title}) {
+  const invoiceId = `INV-${Date.now()}-${digest(`${uid}|${transactionId}`).slice(0, 8).toUpperCase()}`;
+  tx.set(db.collection('invoices').doc(invoiceId), {invoiceId, invoiceNumber: invoiceId, userId: uid, transactionId, orderId: orderId || null, serviceType, title, currency: 'YER', subtotal, deliveryFee, total, items, paymentStatus: 'paid', status: 'issued', issuedAt: FieldValue.serverTimestamp()});
+  return invoiceId;
+}
+
+exports.checkoutCart = onCall(async (request) => {
+  const uid = requireAuth(request);
+  const rawItems = Array.isArray(request.data.items) ? request.data.items : [];
+  if (!rawItems.length) throw new HttpsError('invalid-argument', 'السلة فارغة');
+  if (rawItems.length > 50) throw new HttpsError('invalid-argument', 'عدد عناصر السلة كبير جداً');
+  const items = [];
+  let subtotal = 0;
+  for (const raw of rawItems) {
+    const productId = text(raw.productId, 'productId', 100);
+    const quantity = Math.max(1, Math.min(99, Math.floor(Number(raw.quantity || 1))));
+    const product = pharmacyCatalog[productId];
+    if (!product) throw new HttpsError('not-found', `المنتج ${productId} غير متوفر في الكتالوج`);
+    const lineTotal = product.price * quantity;
+    subtotal += lineTotal;
+    items.push({productId, name: product.name, quantity, unitPrice: product.price, lineTotal});
+  }
+  const deliveryFee = amount(request.data.deliveryFee ?? 0, true);
+  const total = amount(subtotal + deliveryFee);
+  const idempotencyKey = text(request.data.idempotencyKey || `cart|${uid}|${Date.now()}`, 'idempotencyKey', 180);
+  const orderId = `ord_${uid}_${digest(idempotencyKey)}`;
+  const orderRef = db.collection('orders').doc(orderId);
+  await db.runTransaction(async (tx) => {
+    const existing = await tx.get(orderRef);
+    if (existing.exists) return;
+    const payment = await chargeWallet(tx, uid, total, 'شراء من الصيدلية', 'شراء منتجات صيدلية مع التوصيل', 'pharmacy', orderId, {deliveryAddress: request.data.deliveryAddress || null}, idempotencyKey);
+    const now = FieldValue.serverTimestamp();
+    tx.set(orderRef, {orderId, userId: uid, type: 'pharmacy', items, subtotal, deliveryFee, total, currency: 'YER', status: 'paid', paymentStatus: 'paid', paymentMethod: 'wallet', transactionId: payment.txId, delivery: {required: deliveryFee > 0, address: request.data.deliveryAddress || null, status: deliveryFee > 0 ? 'pending' : 'not_required'}, createdAt: now, updatedAt: now});
+    writeInvoice(tx, {uid, transactionId: payment.txId, orderId, serviceType: 'pharmacy', subtotal, deliveryFee, total, items, title: 'فاتورة شراء من الصيدلية'});
+  });
+  return {orderId, status: 'paid', total, currency: 'YER'};
+});
+
+exports.activateSubscription = onCall(async (request) => {
+  const uid = requireAuth(request);
+  const planName = text(request.data.planName, 'planName', 100);
+  const planCode = text(request.data.planCode, 'planCode', 80);
+  const billing = text(request.data.billing, 'billing', 20);
+  if (!['monthly', 'annual'].includes(billing)) throw new HttpsError('invalid-argument', 'نوع الاشتراك غير صالح');
+  const price = amount(request.data.price);
+  const idempotencyKey = text(request.data.idempotencyKey || `subscription|${uid}|${planCode}|${billing}|${Date.now()}`, 'idempotencyKey', 180);
+  const subscriptionId = `sub_${uid}_${digest(idempotencyKey)}`;
+  const subRef = db.collection('subscriptions').doc(subscriptionId);
+  await db.runTransaction(async (tx) => {
+    const existing = await tx.get(subRef);
+    if (existing.exists) return;
+    const payment = await chargeWallet(tx, uid, price, `اشتراك ${planName}`, `تفعيل ${planName} - ${billing === 'annual' ? 'سنوي' : 'شهري'}`, 'subscription', subscriptionId, {planCode, billing}, idempotencyKey);
+    const now = FieldValue.serverTimestamp();
+    const start = new Date();
+    const end = new Date(start);
+    if (billing === 'annual') end.setFullYear(end.getFullYear() + 1); else end.setMonth(end.getMonth() + 1);
+    tx.set(subRef, {subscriptionId, userId: uid, planCode, planName, billing, price, currency: 'YER', status: 'active', transactionId: payment.txId, startedAt: start, expiresAt: end, createdAt: now, updatedAt: now});
+    writeInvoice(tx, {uid, transactionId: payment.txId, orderId: subscriptionId, serviceType: 'subscription', subtotal: price, deliveryFee: 0, total: price, items: [{name: planName, quantity: 1, unitPrice: price, lineTotal: price}], title: `فاتورة اشتراك ${planName}`});
+  });
+  return {subscriptionId, status: 'active', price, currency: 'YER'};
+});
+
+exports.payLabBooking = onCall(async (request) => {
+  const uid = requireAuth(request);
+  const bookingId = text(request.data.bookingId, 'bookingId', 150);
+  const ref = db.collection('lab_bookings').doc(bookingId);
+  const idempotencyKey = text(request.data.idempotencyKey || `lab|${uid}|${bookingId}`, 'idempotencyKey', 180);
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    if (!snap.exists) throw new HttpsError('not-found', 'حجز المختبر غير موجود');
+    const booking = snap.data();
+    if (booking.patientId !== uid) throw new HttpsError('permission-denied', 'لا تملك هذا الحجز');
+    if (booking.paymentStatus === 'paid') return;
+    const total = amount(booking.total);
+    const payment = await chargeWallet(tx, uid, total, `حجز فحص ${booking.labName || ''}`, 'دفع حجز المختبر', 'lab', bookingId, {labId: booking.labId, testIds: booking.testIds || []}, idempotencyKey);
+    tx.update(ref, {paymentStatus: 'paid', paymentMethod: 'wallet', transactionId: payment.txId, status: 'confirmed', updatedAt: FieldValue.serverTimestamp()});
+    writeInvoice(tx, {uid, transactionId: payment.txId, orderId: bookingId, serviceType: 'lab', subtotal: total, deliveryFee: 0, total, items: booking.tests || [], title: 'فاتورة حجز فحص مختبر'});
+  });
+  return {bookingId, status: 'paid'};
+});
