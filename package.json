@@ -1,12 +1,12 @@
 {
   "name": "sehatakkkk",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Sehatak Flutter application and standalone LiveKit token service.",
-  "main": "livekit-token-server/server.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"No Node test suite\"",
-    "start": "node livekit-token-server/server.js"
+    "start": "node index.js"
   },
   "repository": {"type": "git", "url": "git+https://github.com/almwld/Sehatakkkk.git"},
   "license": "ISC",
