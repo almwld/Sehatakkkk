@@ -111,19 +111,17 @@ class _CustomScrollWrapperState extends State<CustomScrollWrapper>
       child: SafeArea(
         top: false,
         bottom: true,
-        child: Clip.none(
-          child: SlideTransition(
-            position: _slideAnimation,
-            child: SizedBox(
-              height: _navHeight,
-              child: CustomBottomNavigationBar(
-                currentIndex: widget.currentIndex,
-                onTap: widget.onTap,
-                scrollManager: _scrollManager,
-                scrollController: widget.scrollController,
-                isLoggedIn: widget.isLoggedIn,
-                onAuthRequired: widget.onAuthRequired,
-              ),
+        child: SlideTransition(
+          position: _slideAnimation,
+          child: SizedBox(
+            height: _navHeight,
+            child: CustomBottomNavigationBar(
+              currentIndex: widget.currentIndex,
+              onTap: widget.onTap,
+              scrollManager: _scrollManager,
+              scrollController: widget.scrollController,
+              isLoggedIn: widget.isLoggedIn,
+              onAuthRequired: widget.onAuthRequired,
             ),
           ),
         ),
