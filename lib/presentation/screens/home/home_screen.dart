@@ -5,7 +5,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
 import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
@@ -40,7 +39,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final ScrollController _scrollController = ScrollController();
   late final GlobalScrollManager _scrollManager;
   bool _isLoggedIn = false;
-
   late final Map<int, Widget> _screens;
 
   @override
@@ -62,27 +60,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _checkLoginStatus();
-    }
+    if (state == AppLifecycleState.resumed) _checkLoginStatus();
   }
 
   void _checkLoginStatus() {
-    final user = FirebaseAuth.instance.currentUser;
-    final newStatus = user != null;
-    if (_isLoggedIn != newStatus) {
-      setState(() {
-        _isLoggedIn = newStatus;
-      });
+    final newStatus = FirebaseAuth.instance.currentUser != null;
+    if (_isLoggedIn != newStatus && mounted) {
+      setState(() => _isLoggedIn = newStatus);
     }
   }
 
   void _initializeScreens() {
     _screens = {
-      0: HomeTab(
-        key: ScreenKeys.home,
-        scrollController: _scrollController,
-      ),
+      0: HomeTab(key: ScreenKeys.home, scrollController: _scrollController),
       1: const DoctorsListScreen(key: ScreenKeys.doctors),
       2: const PharmacyScreen(key: ScreenKeys.pharmacy),
       3: const ChatScreen(key: ScreenKeys.chat),
@@ -93,24 +83,27 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   void _onTabTap(int index) {
-    final protectedTabs = [5];
-    if (protectedTabs.contains(index) && !_isLoggedIn) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const AuthScreen()),
-      ).then((_) {
-        _checkLoginStatus();
-      });
+    if (index == 5 && !_isLoggedIn) {
+      _openAuth();
       return;
     }
 
     if (_currentIndex != index) {
-      setState(() {
-        _currentIndex = index;
-      });
+      setState(() => _currentIndex = index);
+      // عند الانتقال بين التبويبات نبدأ بحالة مرئية دائمًا.
+      _scrollManager.reset();
+    } else {
+      _scrollManager.show();
     }
 
     HapticFeedback.lightImpact();
+  }
+
+  void _openAuth() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const AuthScreen()),
+    ).then((_) => _checkLoginStatus());
   }
 
   @override
@@ -118,55 +111,70 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+      backgroundColor:
+          isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+      // مهم: ScrollDetector يحيط بكل IndexedStack، لذلك أي ScrollView
+      // داخل الأطباء/الصيدلية/المختبرات/المزيد وغيرها يرسل إشعاره هنا.
       body: ScrollDetector(
         scrollManager: _scrollManager,
         child: IndexedStack(
           index: _currentIndex,
-          children: _screens.values.toList(),
+          children: _screens.values.toList(growable: false),
         ),
       ),
-      bottomNavigationBar: _buildBottomNavBar(),
+      // نستخدم Stack حتى يتحرك الشريط خارج الشاشة بدون تغيير مساحة body.
+      // هذا يمنع القفزة/إعادة تخطيط المحتوى أثناء التمرير.
+      bottomNavigationBar: _buildAnimatedBottomNav(),
     );
   }
 
-  Widget _buildBottomNavBar() {
+  Widget _buildAnimatedBottomNav() {
     final bottomPadding = MediaQuery.of(context).viewPadding.bottom;
-    final navHeight = 56.0 + bottomPadding;
+    final navHeight = 60.0 + bottomPadding;
 
-    return Container(
-      height: navHeight,
-      decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? const Color(0xFF1E293B)
-            : Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
+    return AnimatedBuilder(
+      animation: _scrollManager,
+      builder: (context, _) {
+        final visible = _scrollManager.isVisible;
+
+        return SizedBox(
+          height: navHeight,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned.fill(
+                child: IgnorePointer(
+                  ignoring: !visible,
+                  child: AnimatedSlide(
+                    duration: const Duration(milliseconds: 280),
+                    curve: Curves.easeOutCubic,
+                    offset: visible ? Offset.zero : const Offset(0, 1.25),
+                    child: Material(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF1E293B)
+                          : Colors.white,
+                      elevation: 10,
+                      shadowColor: Colors.black.withOpacity(0.12),
+                      child: SafeArea(
+                        top: false,
+                        bottom: true,
+                        child: CustomBottomNavigationBar(
+                          currentIndex: _currentIndex,
+                          onTap: _onTabTap,
+                          scrollManager: _scrollManager,
+                          scrollController: _scrollController,
+                          isLoggedIn: _isLoggedIn,
+                          onAuthRequired: _openAuth,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        bottom: true,
-        child: CustomBottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: _onTabTap,
-          scrollManager: _scrollManager,
-          scrollController: _scrollController,
-          isLoggedIn: _isLoggedIn,
-          onAuthRequired: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const AuthScreen()),
-            ).then((_) {
-              _checkLoginStatus();
-            });
-          },
-        ),
-      ),
+        );
+      },
     );
   }
 }
