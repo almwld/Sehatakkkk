@@ -37,19 +37,20 @@ class CustomBottomNavigationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bottomPadding = MediaQuery.of(context).viewPadding.bottom;
 
+    // SafeArea is owned by CustomScrollWrapper. Keeping this widget at the
+    // exact 56dp navigation height prevents double-counting the bottom inset.
     return Container(
-      height: 60 + bottomPadding,
-      padding: EdgeInsets.only(bottom: bottomPadding > 0 ? 0 : 4),
+      height: 56,
+      clipBehavior: Clip.none,
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.12),
-            blurRadius: 12,
-            offset: const Offset(0, -4),
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
           ),
         ],
       ),
@@ -115,8 +116,8 @@ class CustomBottomNavigationBar extends StatelessWidget {
     );
   }
 
-  // 💬 زر الدردشة مرتفع عن مستوى الشريط بشكل احترافي.
-  // Stack + Clip.none يمنع قص الدائرة عند خروجها أعلى الشريط.
+  // 💬 Chat button deliberately paints above the 56dp bar.
+  // Stack + Clip.none prevents the circular button from being clipped.
   Widget _buildSpecialChatButton(NavItem item, bool isDark) {
     final isSelected = currentIndex == item.index;
 
@@ -125,13 +126,13 @@ class CustomBottomNavigationBar extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
         width: 62,
-        height: 60,
+        height: 56,
         child: Stack(
           clipBehavior: Clip.none,
           alignment: Alignment.bottomCenter,
           children: [
             Positioned(
-              bottom: 0,
+              bottom: 1,
               child: Text(
                 item.label,
                 style: TextStyle(
