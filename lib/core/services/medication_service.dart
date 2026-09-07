@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/services/cache_service.dart';
+import 'package:sehatak/core/services/medication_reminder_scheduler.dart';
 
 class MedicationService {
   static final MedicationService _instance = MedicationService._internal();
@@ -10,45 +11,26 @@ class MedicationService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final CacheService _cache = CacheService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final MedicationReminderScheduler _scheduler = MedicationReminderScheduler.instance;
 
-  Future<void> init() async {
-    print('✅ MedicationService initialized');
-  }
+  Future<void> init() async => _scheduler.initialize();
+
+  CollectionReference<Map<String, dynamic>> _collection(String uid) =>
+      _firestore.collection('users').doc(uid).collection('medications');
 
   Future<List<Map<String, dynamic>>> getUpcomingMedications() async {
+    final user = _auth.currentUser;
+    if (user == null) return [];
     try {
-      final user = _auth.currentUser;
-      if (user == null) return [];
-
-      // محاولة تحميل من الكاش أولاً
-      final cached = await _cache.getList('medications_${user.uid}');
-      if (cached != null && cached.isNotEmpty) {
-        return cached.map((e) => e as Map<String, dynamic>).toList();
-      }
-
-      // جلب من Firestore
-      final snapshot = await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .collection('medications')
-          .where('active', isEqualTo: true)
-          .orderBy('time')
-          .get();
-
-      final medications = snapshot.docs.map((doc) {
-        return {
-          'id': doc.id,
-          ...doc.data(),
-        };
-      }).toList();
-
-      // حفظ في الكاش
+      final snapshot = await _collection(user.uid).where('active', isEqualTo: true).get();
+      final medications = snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
       await _cache.saveList('medications_${user.uid}', medications);
-      
+      await _scheduler.sync(medications);
       return medications;
     } catch (e) {
       print('⚠️ Error getting medications: $e');
-      return [];
+      final cached = await _cache.getList('medications_${user.uid}');
+      return cached?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? [];
     }
   }
 
@@ -60,120 +42,79 @@ class MedicationService {
     String? notes,
     DateTime? startDate,
     DateTime? endDate,
+    List<String>? times,
+    String? doctorId,
+    String? consultationId,
   }) async {
-    try {
-      final user = _auth.currentUser;
-      if (user == null) throw Exception('User not logged in');
-
-      final data = {
-        'name': name,
-        'dose': dose,
-        'frequency': frequency,
-        'time': time,
-        'notes': notes ?? '',
-        'startDate': startDate ?? FieldValue.serverTimestamp(),
-        'endDate': endDate,
-        'active': true,
-        'createdAt': FieldValue.serverTimestamp(),
-        'userId': user.uid,
-        'reminderEnabled': true,
-      };
-
-      final docRef = await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .collection('medications')
-          .add(data);
-
-      // تحديث الكاش
-      await _cache.remove('medications_${user.uid}');
-
-      return {
-        'id': docRef.id,
-        ...data,
-      };
-    } catch (e) {
-      print('⚠️ Error adding medication: $e');
-      rethrow;
-    }
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('User not logged in');
+    final data = <String, dynamic>{
+      'name': name.trim(),
+      'dose': dose.trim(),
+      'frequency': frequency.trim(),
+      'time': time.trim(),
+      'times': times ?? [time.trim()],
+      'notes': notes ?? '',
+      'startDate': startDate ?? DateTime.now(),
+      'endDate': endDate,
+      'active': true,
+      'reminderEnabled': true,
+      'taken': false,
+      'createdAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+      'userId': user.uid,
+      if (doctorId != null) 'doctorId': doctorId,
+      if (consultationId != null) 'consultationId': consultationId,
+    };
+    final ref = await _collection(user.uid).add(data);
+    final result = {'id': ref.id, ...data, 'startDate': startDate ?? DateTime.now()};
+    await _cache.remove('medications_${user.uid}');
+    await _scheduler.scheduleMedication(medication: result);
+    return result;
   }
 
   Future<void> updateMedication(String id, Map<String, dynamic> data) async {
-    try {
-      final user = _auth.currentUser;
-      if (user == null) throw Exception('User not logged in');
-
-      await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .collection('medications')
-          .doc(id)
-          .update(data);
-
-      await _cache.remove('medications_${user.uid}');
-    } catch (e) {
-      print('⚠️ Error updating medication: $e');
-      rethrow;
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('User not logged in');
+    final updates = {...data, 'updatedAt': FieldValue.serverTimestamp()};
+    await _collection(user.uid).doc(id).update(updates);
+    await _cache.remove('medications_${user.uid}');
+    final doc = await _collection(user.uid).doc(id).get();
+    if (doc.exists) {
+      await _scheduler.scheduleMedication(medication: {'id': doc.id, ...doc.data()!});
     }
   }
 
   Future<void> deleteMedication(String id) async {
-    try {
-      final user = _auth.currentUser;
-      if (user == null) throw Exception('User not logged in');
-
-      await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .collection('medications')
-          .doc(id)
-          .delete();
-
-      await _cache.remove('medications_${user.uid}');
-    } catch (e) {
-      print('⚠️ Error deleting medication: $e');
-      rethrow;
-    }
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('User not logged in');
+    await _collection(user.uid).doc(id).delete();
+    await _scheduler.cancelMedication(id);
+    await _cache.remove('medications_${user.uid}');
   }
 
   Future<void> toggleReminder(String id, bool enabled) async {
-    try {
-      final user = _auth.currentUser;
-      if (user == null) throw Exception('User not logged in');
-
-      await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .collection('medications')
-          .doc(id)
-          .update({'reminderEnabled': enabled});
-
-      await _cache.remove('medications_${user.uid}');
-    } catch (e) {
-      print('⚠️ Error toggling reminder: $e');
-      rethrow;
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('User not logged in');
+    await _collection(user.uid).doc(id).update({
+      'reminderEnabled': enabled,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+    await _cache.remove('medications_${user.uid}');
+    final doc = await _collection(user.uid).doc(id).get();
+    if (enabled && doc.exists) {
+      await _scheduler.scheduleMedication(medication: {'id': doc.id, ...doc.data()!});
+    } else {
+      await _scheduler.cancelMedication(id);
     }
   }
 
   Future<List<Map<String, dynamic>>> getMedicationHistory() async {
+    final user = _auth.currentUser;
+    if (user == null) return [];
     try {
-      final user = _auth.currentUser;
-      if (user == null) return [];
-
-      final snapshot = await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .collection('medications_history')
-          .orderBy('takenAt', descending: true)
-          .limit(50)
-          .get();
-
-      return snapshot.docs.map((doc) {
-        return {
-          'id': doc.id,
-          ...doc.data(),
-        };
-      }).toList();
+      final snapshot = await _firestore.collection('users').doc(user.uid).collection('medications_history').orderBy('takenAt', descending: true).limit(100).get();
+      return snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
     } catch (e) {
       print('⚠️ Error getting medication history: $e');
       return [];
@@ -181,43 +122,23 @@ class MedicationService {
   }
 
   Future<void> markAsTaken(String medicationId) async {
-    try {
-      final user = _auth.currentUser;
-      if (user == null) throw Exception('User not logged in');
-
-      await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .collection('medications_history')
-          .add({
-        'medicationId': medicationId,
-        'takenAt': FieldValue.serverTimestamp(),
-        'userId': user.uid,
-      });
-    } catch (e) {
-      print('⚠️ Error marking as taken: $e');
-      rethrow;
-    }
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('User not logged in');
+    await _firestore.collection('users').doc(user.uid).collection('medications_history').add({
+      'medicationId': medicationId,
+      'takenAt': FieldValue.serverTimestamp(),
+      'userId': user.uid,
+    });
+    await _collection(user.uid).doc(medicationId).update({'taken': true, 'updatedAt': FieldValue.serverTimestamp()});
   }
 
   Stream<List<Map<String, dynamic>>> watchUpcomingMedications() {
     final user = _auth.currentUser;
     if (user == null) return Stream.value([]);
-
-    return _firestore
-        .collection('users')
-        .doc(user.uid)
-        .collection('medications')
-        .where('active', isEqualTo: true)
-        .orderBy('time')
-        .snapshots()
-        .map((snapshot) {
-          return snapshot.docs.map((doc) {
-            return {
-              'id': doc.id,
-              ...doc.data(),
-            };
-          }).toList();
-        });
+    return _collection(user.uid).where('active', isEqualTo: true).snapshots().asyncMap((snapshot) async {
+      final medications = snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
+      await _scheduler.sync(medications);
+      return medications;
+    });
   }
 }
