@@ -12,12 +12,31 @@ const LIVEKIT_API_KEY = process.env.LIVEKIT_API_KEY;
 const LIVEKIT_API_SECRET = process.env.LIVEKIT_API_SECRET;
 const LIVEKIT_URL = process.env.LIVEKIT_URL || 'wss://platformsehatak-z73p6n5m.livekit.cloud';
 
-// Firebase Admin Auth token verification only needs the project ID and
-// Google's public signing certificates. No service-account private key is
-// required for this small standalone token service.
-if (!admin.apps.length) {
+function initializeFirebase() {
+  if (admin.apps.length) return;
+
+  // Railway and other external hosts do not provide Google ADC automatically.
+  // Prefer a service-account JSON secret supplied through the host environment.
+  const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+  if (raw) {
+    try {
+      const credentials = JSON.parse(raw);
+      admin.initializeApp({
+        credential: admin.credential.cert(credentials),
+        projectId: credentials.project_id || FIREBASE_PROJECT_ID,
+      });
+      return;
+    } catch (error) {
+      throw new Error(`Invalid FIREBASE_SERVICE_ACCOUNT_JSON: ${error.message}`);
+    }
+  }
+
+  // GOOGLE_APPLICATION_CREDENTIALS is supported for local/dev environments.
+  // On Railway, configure FIREBASE_SERVICE_ACCOUNT_JSON instead.
   admin.initializeApp({ projectId: FIREBASE_PROJECT_ID });
 }
+
+initializeFirebase();
 
 function requireLiveKitConfig() {
   if (!LIVEKIT_API_KEY || !LIVEKIT_API_SECRET) {
@@ -38,6 +57,7 @@ app.get('/health', (_req, res) => {
     ok: true,
     service: 'sehatak-livekit-token-server',
     firebaseProjectId: FIREBASE_PROJECT_ID,
+    firebaseCredentialConfigured: Boolean(process.env.FIREBASE_SERVICE_ACCOUNT_JSON || process.env.GOOGLE_APPLICATION_CREDENTIALS),
     livekitConfigured: Boolean(LIVEKIT_API_KEY && LIVEKIT_API_SECRET),
   });
 });
