@@ -1,19 +1,16 @@
 import 'dart:async';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:sehatak/bloc/doctor_bloc/doctor_bloc.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/models/call_model.dart';
 import 'package:sehatak/core/models/chat_model.dart';
 import 'package:sehatak/core/models/doctor_model.dart';
-import 'package:sehatak/core/services/call_service.dart';
 import 'package:sehatak/core/services/chat_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/screens/ai/ai_chatbot_screen.dart';
-import 'package:sehatak/presentation/screens/call/call_screen.dart';
 import 'package:sehatak/presentation/screens/chat/chat_room_screen.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -25,66 +22,72 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final ChatService _chatService = ChatService();
-  final CallService _callService = CallService();
   final TextEditingController _searchController = TextEditingController();
-  StreamSubscription<List<ChatModel>>? _chatsSubscription;
+  StreamSubscription<List<ChatModel>>? _subscription;
   List<ChatModel> _chats = [];
   String _search = '';
   bool _loadingChats = true;
+  bool _openingChat = false;
 
   @override
   void initState() {
     super.initState();
-    _searchController.addListener(() {
-      if (mounted) {
-        setState(() => _search = _searchController.text.trim().toLowerCase());
-      }
-    });
+    _searchController.addListener(_onSearchChanged);
     _subscribeChats();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) context.read<DoctorBloc>().add(const LoadDoctors());
     });
   }
 
+  void _onSearchChanged() {
+    if (mounted) {
+      setState(() => _search = _searchController.text.trim().toLowerCase());
+    }
+  }
+
   void _subscribeChats() {
     try {
-      _chatsSubscription = _chatService.streamChats().listen((items) {
-        if (!mounted) return;
-        setState(() {
-          _chats = items;
-          _loadingChats = false;
-        });
-      }, onError: (e) {
-        debugPrint('chat list error: $e');
-        if (mounted) setState(() => _loadingChats = false);
-      });
-    } catch (e) {
-      debugPrint('chat subscription error: $e');
+      _subscription = _chatService.streamChats().listen(
+        (items) {
+          if (!mounted) return;
+          setState(() {
+            _chats = items;
+            _loadingChats = false;
+          });
+        },
+        onError: (error) {
+          debugPrint('chat list error: $error');
+          if (mounted) setState(() => _loadingChats = false);
+        },
+      );
+    } catch (error) {
+      debugPrint('chat subscription error: $error');
       _loadingChats = false;
     }
   }
 
   @override
   void dispose() {
-    _chatsSubscription?.cancel();
+    _subscription?.cancel();
+    _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     super.dispose();
   }
 
-  List<ChatModel> get _filteredChats => _chats.where((chat) {
-        if (_search.isEmpty) return true;
-        final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
-        return chat.getDisplayName(uid).toLowerCase().contains(_search) ||
-            (chat.lastMessage ?? '').toLowerCase().contains(_search);
-      }).toList();
+  List<ChatModel> get _filteredChats {
+    final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+    if (_search.isEmpty) return _chats;
+    return _chats.where((chat) {
+      return chat.getDisplayName(uid).toLowerCase().contains(_search) ||
+          (chat.lastMessage ?? '').toLowerCase().contains(_search);
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
-      backgroundColor:
-          isDark ? const Color(0xFF0B1121) : const Color(0xFFF7FAFA),
+      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF7FAFA),
       appBar: AppBar(title: const Text('الدردشة'), centerTitle: true),
       body: Column(
         children: [
@@ -112,7 +115,7 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            child: _buildAIAssistantCard(),
+            child: _buildAIAssistantCard(isDark),
           ),
           _buildDoctorsSection(isDark),
           const SizedBox(height: 4),
@@ -121,11 +124,28 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppColors.primary,
-        onPressed: () => _showDoctorsForNewChat(isDark),
+        onPressed: _openingChat ? null : () => _showDoctorsForNewChat(isDark),
         icon: const Icon(Icons.add_comment, color: Colors.white),
-        label: const Text(
-          'محادثة جديدة',
-          style: TextStyle(color: Colors.white),
+        label: const Text('محادثة جديدة', style: TextStyle(color: Colors.white)),
+      ),
+    );
+  }
+
+  Widget _buildAIAssistantCard(bool isDark) {
+    return Card(
+      elevation: 0,
+      color: isDark ? const Color(0xFF162039) : Colors.white,
+      child: ListTile(
+        leading: const CircleAvatar(
+          backgroundColor: AppColors.primary,
+          child: Icon(Icons.smart_toy_outlined, color: Colors.white),
+        ),
+        title: const Text('المساعد الصحي الذكي', style: TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: const Text('اسأل الآن عن صحتك'),
+        trailing: const Icon(Icons.chevron_left),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AiChatbotScreen()),
         ),
       ),
     );
@@ -136,31 +156,20 @@ class _ChatScreenState extends State<ChatScreen> {
       builder: (context, state) {
         if (state is DoctorLoading || state is DoctorInitial) {
           return const SizedBox(
-            height: 122,
-            child: Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
-            ),
+            height: 118,
+            child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
           );
         }
-
         if (state is DoctorError) {
-          return _buildSectionMessage(
-            'تعذر تحميل الأطباء. اسحب للتحديث أو جرّب مرة أخرى.',
-            isDark,
-          );
+          return _sectionMessage('تعذر تحميل الأطباء. حاول مرة أخرى.', isDark);
         }
-
         final doctors = state is DoctorLoaded ? state.doctors : <DoctorModel>[];
         if (doctors.isEmpty) {
-          return _buildSectionMessage(
-            'لا يوجد أطباء موثّقون متاحون للمحادثة حالياً.',
-            isDark,
-          );
+          return _sectionMessage('لا يوجد أطباء موثقون متاحون للمحادثة حالياً.', isDark);
         }
-
         final visible = doctors.take(5).toList();
         return SizedBox(
-          height: 142,
+          height: 140,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -169,15 +178,9 @@ class _ChatScreenState extends State<ChatScreen> {
                 child: Row(
                   children: [
                     const Expanded(
-                      child: Text(
-                        'الأطباء المتاحون للمحادثة',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                      ),
+                      child: Text('الأطباء المتاحون للمحادثة', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                     ),
-                    TextButton(
-                      onPressed: () => _showDoctorsForNewChat(isDark),
-                      child: const Text('عرض الكل'),
-                    ),
+                    TextButton(onPressed: () => _showDoctorsForNewChat(isDark), child: const Text('عرض الكل')),
                   ],
                 ),
               ),
@@ -187,10 +190,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   scrollDirection: Axis.horizontal,
                   itemCount: visible.length,
                   separatorBuilder: (_, __) => const SizedBox(width: 8),
-                  itemBuilder: (_, index) => _buildDoctorMiniCard(
-                    visible[index],
-                    isDark,
-                  ),
+                  itemBuilder: (_, i) => _doctorMiniCard(visible[i], isDark),
                 ),
               ),
             ],
@@ -200,17 +200,16 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildDoctorMiniCard(DoctorModel doctor, bool isDark) {
+  Widget _doctorMiniCard(DoctorModel doctor, bool isDark) {
     final image = doctor.photoUrl ?? '';
     return SizedBox(
       width: 220,
       child: Card(
         elevation: 0,
-        margin: const EdgeInsets.only(bottom: 4),
         color: isDark ? const Color(0xFF162039) : Colors.white,
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
-          onTap: () => _openChat(doctor),
+          onTap: _openingChat ? null : () => _openChat(doctor),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
             child: Row(
@@ -218,11 +217,8 @@ class _ChatScreenState extends State<ChatScreen> {
                 CircleAvatar(
                   radius: 25,
                   backgroundColor: AppColors.primary.withOpacity(.12),
-                  backgroundImage:
-                      image.isNotEmpty ? NetworkImage(image) : null,
-                  child: image.isEmpty
-                      ? const Icon(Icons.person, color: AppColors.primary)
-                      : null,
+                  backgroundImage: image.isNotEmpty ? NetworkImage(image) : null,
+                  child: image.isEmpty ? const Icon(Icons.person, color: AppColors.primary) : null,
                 ),
                 const SizedBox(width: 9),
                 Expanded(
@@ -230,36 +226,16 @@ class _ChatScreenState extends State<ChatScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        doctor.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        doctor.specialty,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isDark ? Colors.white70 : Colors.black54,
-                        ),
-                      ),
+                      Text(doctor.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      Text(doctor.specialty, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12)),
                       const SizedBox(height: 2),
                       Row(
                         children: [
                           const Icon(Icons.star, size: 14, color: Colors.amber),
                           const SizedBox(width: 2),
-                          Text(
-                            (doctor.rating ?? 0).toStringAsFixed(1),
-                            style: const TextStyle(fontSize: 11),
-                          ),
+                          Text((doctor.rating ?? 0).toStringAsFixed(1), style: const TextStyle(fontSize: 11)),
                           const Spacer(),
-                          const Icon(
-                            Icons.chat_bubble_outline,
-                            size: 17,
-                            color: AppColors.primary,
-                          ),
+                          const Icon(Icons.chat_bubble_outline, size: 17, color: AppColors.primary),
                         ],
                       ),
                     ],
@@ -273,54 +249,41 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildSectionMessage(String message, bool isDark) {
-    return SizedBox(
-      height: 74,
-      child: Center(
-        child: Text(
-          message,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 13,
-            color: isDark ? Colors.white70 : Colors.black54,
-          ),
+  Widget _sectionMessage(String text, bool isDark) => SizedBox(
+        height: 74,
+        child: Center(
+          child: Text(text, textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : Colors.black54)),
         ),
-      ),
-    );
-  }
+      );
 
   Widget _buildChatList(bool isDark) {
     if (_loadingChats) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.primary),
-      );
+      return const Center(child: CircularProgressIndicator(color: AppColors.primary));
     }
-
     final chats = _filteredChats;
     if (chats.isEmpty) {
-      return _buildInlineEmpty(
-        _search.isEmpty
-            ? 'لا توجد محادثات بعد\nاضغط على طبيب أعلاه لبدء الاختبار'
-            : 'لا توجد نتائج مطابقة',
-        isDark,
+      return Center(
+        child: Text(
+          _search.isEmpty ? 'لا توجد محادثات بعد\nاضغط على طبيب أعلاه لبدء محادثة' : 'لا توجد نتائج مطابقة',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
+        ),
       );
     }
-
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
       itemCount: chats.length,
       separatorBuilder: (_, __) => const SizedBox(height: 8),
-      itemBuilder: (_, i) => _buildChatTile(chats[i], isDark),
+      itemBuilder: (_, i) => _chatTile(chats[i], isDark),
     );
   }
 
-  Widget _buildChatTile(ChatModel chat, bool isDark) {
+  Widget _chatTile(ChatModel chat, bool isDark) {
     final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
     final name = chat.getDisplayName(uid);
     final image = chat.getDisplayPhoto(uid);
     final otherId = chat.getOtherParticipant(uid);
     final unread = chat.unreadCount[uid] ?? 0;
-
     return Card(
       elevation: 0,
       color: isDark ? const Color(0xFF162039) : Colors.white,
@@ -330,92 +293,55 @@ class _ChatScreenState extends State<ChatScreen> {
           radius: 27,
           backgroundColor: AppColors.primary.withOpacity(.12),
           backgroundImage: image.isNotEmpty ? NetworkImage(image) : null,
-          child: image.isEmpty
-              ? const Icon(Icons.person, color: AppColors.primary)
-              : null,
+          child: image.isEmpty ? const Icon(Icons.person, color: AppColors.primary) : null,
         ),
         title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(
-          chat.lastMessage?.isNotEmpty == true
-              ? chat.lastMessage!
-              : 'اضغط لفتح المحادثة',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
+        subtitle: Text(chat.lastMessage?.isNotEmpty == true ? chat.lastMessage! : 'اضغط لفتح المحادثة', maxLines: 1, overflow: TextOverflow.ellipsis),
         trailing: unread > 0
-            ? CircleAvatar(
-                radius: 12,
-                backgroundColor: AppColors.primary,
-                child: Text(
-                  '$unread',
-                  style: const TextStyle(color: Colors.white, fontSize: 11),
-                ),
-              )
+            ? CircleAvatar(radius: 12, backgroundColor: AppColors.primary, child: Text('$unread', style: const TextStyle(color: Colors.white, fontSize: 11)))
             : const Icon(Icons.chevron_left),
-        onTap: otherId.isEmpty
-            ? null
-            : () => _openExistingChat(chat.id, otherId, name, image),
+        onTap: otherId.isEmpty ? null : () => _openExistingChat(chat.id, otherId, name, image),
       ),
     );
   }
 
-  Future<void> _openExistingChat(
-    String chatId,
-    String otherId,
-    String name,
-    String image,
-  ) async {
-    if (!mounted) return;
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ChatRoomScreen(
-          chatId: chatId,
-          otherUserId: otherId,
-          otherUserName: name,
-          groupImage: image.isEmpty ? null : image,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDoctorCard(DoctorModel d, bool isDark) => Card(
-        elevation: 0,
-        color: isDark ? const Color(0xFF162039) : Colors.white,
-        child: ListTile(
-          leading: CircleAvatar(
-            backgroundColor: AppColors.primary.withOpacity(.1),
-            backgroundImage:
-                (d.photoUrl ?? '').isNotEmpty ? NetworkImage(d.photoUrl!) : null,
-            child: (d.photoUrl ?? '').isEmpty
-                ? const Icon(Icons.person, color: AppColors.primary)
-                : null,
+  Future<void> _openExistingChat(String chatId, String otherId, String name, String image) async {
+    if (!mounted || _openingChat) return;
+    setState(() => _openingChat = true);
+    try {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ChatRoomScreen(
+            chatId: chatId,
+            otherUserId: otherId,
+            otherUserName: name,
+            groupImage: image.isEmpty ? null : image,
           ),
-          title: Text(d.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-          subtitle: Text(
-            '${d.specialty} • ⭐ ${(d.rating ?? 0).toStringAsFixed(1)}',
-          ),
-          trailing: const Icon(
-            Icons.chat_bubble_outline,
-            color: AppColors.primary,
-          ),
-          onTap: () => _openChat(d),
         ),
       );
+    } finally {
+      if (mounted) setState(() => _openingChat = false);
+    }
+  }
 
   Future<void> _openChat(DoctorModel doctor) async {
+    if (_openingChat) return;
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       ToastService.showError('يرجى تسجيل الدخول أولاً');
       return;
     }
-
-    final doctorId = doctor.userId;
+    final doctorId = doctor.userId?.trim();
     if (doctorId == null || doctorId.isEmpty) {
       ToastService.showError('حساب الطبيب غير صالح');
       return;
     }
-
+    if (doctorId == user.uid) {
+      ToastService.showError('لا يمكنك بدء محادثة مع حسابك');
+      return;
+    }
+    setState(() => _openingChat = true);
     try {
       final chatId = await _chatService.createChat(
         doctorId: doctorId,
@@ -424,8 +350,7 @@ class _ChatScreenState extends State<ChatScreen> {
         patientName: user.displayName ?? 'مستخدم',
         patientImage: user.photoURL,
       );
-      if (!mounted) return;
-      Navigator.pop(context);
+      if (!mounted || chatId.trim().isEmpty) return;
       await Navigator.push(
         context,
         MaterialPageRoute(
@@ -434,137 +359,77 @@ class _ChatScreenState extends State<ChatScreen> {
             otherUserId: doctorId,
             otherUserName: doctor.name,
             groupImage: doctor.photoUrl,
+            isGroup: false,
           ),
         ),
       );
     } catch (e) {
-      ToastService.showError('تعذر فتح المحادثة');
       debugPrint('open chat error: $e');
+      if (mounted) ToastService.showError('تعذر فتح المحادثة: $e');
+    } finally {
+      if (mounted) setState(() => _openingChat = false);
     }
   }
 
-  Future<void> _startCall(String otherId, String name, bool isVideo) async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      ToastService.showError('يرجى تسجيل الدخول أولاً');
+  Future<void> _showDoctorsForNewChat(bool isDark) async {
+    if (_openingChat || !mounted) return;
+    final state = context.read<DoctorBloc>().state;
+    final doctors = state is DoctorLoaded ? state.doctors : <DoctorModel>[];
+    if (doctors.isEmpty) {
+      ToastService.showError('لا يوجد أطباء موثقون متاحون للمحادثة حالياً');
       return;
     }
-    if (otherId.isEmpty || otherId == user.uid) {
-      ToastService.showError('حساب الطرف الآخر غير صالح');
-      return;
-    }
-    try {
-      final chatId = await _chatService.createChat(
-        doctorId: otherId,
-        doctorName: name,
-        patientName: user.displayName ?? 'مستخدم',
-        patientImage: user.photoURL,
-      );
-      final call = await _callService.initiateCall(
-        receiverId: otherId,
-        receiverName: name,
-        type: isVideo ? CallType.video : CallType.audio,
-        chatId: chatId,
-      );
-      if (!mounted || call == null) return;
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => CallScreen(
-            chatId: chatId,
-            doctorName: name,
-            doctorId: otherId,
-            isVideo: isVideo,
-            callId: call.id,
-            isOutgoing: true,
-          ),
-        ),
-      );
-    } catch (e) {
-      ToastService.showError('فشل بدء المكالمة');
-      debugPrint('call error: $e');
-    }
-  }
-
-  Widget _buildAIAssistantCard() => Card(
-        elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        color: AppColors.primary,
-        child: ListTile(
-          leading: const CircleAvatar(
-            backgroundColor: Colors.white24,
-            child: Icon(Icons.psychology, color: Colors.white),
-          ),
-          title: const Text(
-            'المساعد الذكي',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-          subtitle: const Text(
-            'استشارات ومعلومات صحية',
-            style: TextStyle(color: Colors.white70),
-          ),
-          trailing: const Icon(
-            Icons.arrow_forward_ios,
-            color: Colors.white,
-            size: 16,
-          ),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const AiChatbotScreen()),
-          ),
-        ),
-      );
-
-  void _showDoctorsForNewChat(bool isDark) {
-    showModalBottomSheet(
+    await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.white,
-      builder: (_) => SizedBox(
-        height: MediaQuery.of(context).size.height * .75,
-        child: BlocBuilder<DoctorBloc, DoctorState>(
-          builder: (_, state) {
-            if (state is DoctorLoading || state is DoctorInitial) {
-              return const Center(
-                child: CircularProgressIndicator(color: AppColors.primary),
-              );
-            }
-            if (state is DoctorError) return Center(child: Text(state.message));
-            final doctors = state is DoctorLoaded
-                ? state.doctors
-                : <DoctorModel>[];
-            if (doctors.isEmpty) {
-              return const Center(
-                child: Text('لا يوجد أطباء موثّقون متاحون حالياً'),
-              );
-            }
-            return ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                const Text(
-                  'اختر طبيباً لبدء محادثة',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
-                ...doctors.map((d) => _buildDoctorCard(d, isDark)),
-              ],
-            );
-          },
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => Container(
+        height: MediaQuery.of(sheetContext).size.height * .72,
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF0F172A) : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          children: [
+            const SizedBox(height: 10),
+            Container(width: 42, height: 4, decoration: BoxDecoration(color: Colors.grey, borderRadius: BorderRadius.circular(4))),
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Align(alignment: Alignment.centerRight, child: Text('اختر طبيباً لبدء المحادثة', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
+            ),
+            Expanded(
+              child: ListView.separated(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                itemCount: doctors.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                itemBuilder: (_, i) => _buildDoctorPickerTile(doctors[i], isDark, sheetContext),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildInlineEmpty(String text, bool isDark) => Padding(
-        padding: const EdgeInsets.all(28),
-        child: Center(
-          child: Text(
-            text,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: isDark ? Colors.grey[400] : Colors.grey[600],
-            ),
-          ),
+  Widget _buildDoctorPickerTile(DoctorModel doctor, bool isDark, BuildContext sheetContext) {
+    final image = doctor.photoUrl ?? '';
+    return Card(
+      elevation: 0,
+      color: isDark ? const Color(0xFF162039) : const Color(0xFFF7FAFA),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: AppColors.primary.withOpacity(.12),
+          backgroundImage: image.isNotEmpty ? NetworkImage(image) : null,
+          child: image.isEmpty ? const Icon(Icons.person, color: AppColors.primary) : null,
         ),
-      );
+        title: Text(doctor.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(doctor.specialty),
+        trailing: const Icon(Icons.chat_bubble_outline, color: AppColors.primary),
+        onTap: () {
+          Navigator.pop(sheetContext);
+          _openChat(doctor);
+        },
+      ),
+    );
+  }
 }
