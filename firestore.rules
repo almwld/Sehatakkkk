@@ -11,7 +11,6 @@ service cloud.firestore {
     function isVerifiedDoctor(userId) { return isDoctorUser(userId) && userData(userId).isVerified == true; }
     function consultationExists(id) { return exists(/databases/$(database)/documents/consultations/$(id)); }
     function consultationData(id) { return get(/databases/$(database)/documents/consultations/$(id)).data; }
-
     match /users/{userId} {
       allow read: if isSelf(userId) || isAdmin();
       allow create: if isSelf(userId) && request.resource.data.uid == request.auth.uid && (request.resource.data.role != 'doctor' || request.resource.data.doctorId == request.auth.uid);
@@ -26,17 +25,8 @@ service cloud.firestore {
     }
     match /users/{userId}/medications/{medicationId} {
       allow read: if isSelf(userId) || isAdmin() || (isSignedIn() && isVerifiedDoctor(request.auth.uid) && resource.data.doctorId == request.auth.uid);
-      allow create: if isAdmin()
-        || (isSelf(userId) && request.resource.data.userId == request.auth.uid)
-        || (isSignedIn() && isVerifiedDoctor(request.auth.uid)
-          && request.resource.data.userId == userId
-          && request.resource.data.doctorId == request.auth.uid
-          && consultationExists(request.resource.data.consultationId)
-          && consultationData(request.resource.data.consultationId).doctorId == request.auth.uid
-          && consultationData(request.resource.data.consultationId).patientId == userId);
-      allow update: if isAdmin()
-        || (isSelf(userId) && request.resource.data.userId == resource.data.userId && request.resource.data.doctorId == resource.data.doctorId)
-        || (isSignedIn() && isVerifiedDoctor(request.auth.uid) && resource.data.doctorId == request.auth.uid && request.resource.data.userId == resource.data.userId && request.resource.data.doctorId == resource.data.doctorId);
+      allow create: if isAdmin() || (isSelf(userId) && request.resource.data.userId == request.auth.uid) || (isSignedIn() && isVerifiedDoctor(request.auth.uid) && request.resource.data.userId == userId && request.resource.data.doctorId == request.auth.uid && consultationExists(request.resource.data.consultationId) && consultationData(request.resource.data.consultationId).doctorId == request.auth.uid && consultationData(request.resource.data.consultationId).patientId == userId);
+      allow update: if isAdmin() || (isSelf(userId) && request.resource.data.userId == resource.data.userId && request.resource.data.doctorId == resource.data.doctorId) || (isSignedIn() && isVerifiedDoctor(request.auth.uid) && resource.data.doctorId == request.auth.uid && request.resource.data.userId == resource.data.userId && request.resource.data.doctorId == resource.data.doctorId);
       allow delete: if isAdmin() || isSelf(userId);
     }
     match /users/{userId}/medications_history/{historyId} {
@@ -52,6 +42,20 @@ service cloud.firestore {
     match /hospitals/{hospitalId} { allow read: if true; allow create: if isAdmin() || (isSignedIn() && request.resource.data.userId == request.auth.uid); allow update, delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid); }
     match /labs/{labId} { allow read: if true; allow create: if isAdmin() || (isSignedIn() && request.resource.data.userId == request.auth.uid && request.resource.data.isVerified == false); allow update: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid && request.resource.data.userId == resource.data.userId && request.resource.data.isVerified == resource.data.isVerified && request.resource.data.verificationStatus == resource.data.verificationStatus); allow delete: if isAdmin(); }
     match /pharmacies/{pharmacyId} { allow read: if true; allow create: if isAdmin() || (isSignedIn() && request.resource.data.userId == request.auth.uid); allow update, delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid); }
+    // Demo products are readable by the app; prices/stock/orders remain server-authoritative.
+    match /products/{productId} { allow read: if true; allow write: if isAdmin(); }
+    match /orders/{orderId} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create, update, delete: if false;
+    }
+    match /invoices/{invoiceId} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create, update, delete: if false;
+    }
+    match /subscriptions/{subscriptionId} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create, update, delete: if false;
+    }
     match /lab_bookings/{bookingId} {
       allow read: if isAdmin() || (isSignedIn() && resource.data.patientId == request.auth.uid) || (isSignedIn() && exists(/databases/$(database)/documents/labs/$(resource.data.labId)) && get(/databases/$(database)/documents/labs/$(resource.data.labId)).data.userId == request.auth.uid);
       allow create: if false;
