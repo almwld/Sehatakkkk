@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 
 class AppImage extends StatelessWidget {
@@ -35,29 +36,25 @@ class AppImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget child;
-
     final isNetwork = imageUrl.startsWith('http');
     final isSvgFile = imageUrl.endsWith('.svg') || isSvg;
-    final isAsset = !isNetwork && !isSvgFile;
+    final Widget child;
 
     if (isSvgFile) {
-      if (isNetwork) {
-        child = SvgPicture.network(
-          imageUrl,
-          width: width,
-          height: height,
-          fit: fit,
-          placeholderBuilder: (_) => placeholder ?? _buildPlaceholder(),
-        );
-      } else {
-        child = SvgPicture.asset(
-          imageUrl,
-          width: width,
-          height: height,
-          fit: fit,
-        );
-      }
+      child = isNetwork
+          ? SvgPicture.network(
+              imageUrl,
+              width: width,
+              height: height,
+              fit: fit,
+              placeholderBuilder: (_) => placeholder ?? buildImageShimmer(context),
+            )
+          : SvgPicture.asset(
+              imageUrl,
+              width: width,
+              height: height,
+              fit: fit,
+            );
     } else if (isNetwork) {
       child = CachedNetworkImage(
         imageUrl: imageUrl,
@@ -69,10 +66,10 @@ class AppImage extends StatelessWidget {
         maxWidthDiskCache: maxWidthDiskCache,
         maxHeightDiskCache: maxHeightDiskCache,
         filterQuality: FilterQuality.medium,
-        placeholder: (context, _) => placeholder ?? _buildPlaceholder(),
-        errorWidget: (context, _, __) => errorWidget ?? _buildErrorWidget(),
-        fadeInDuration: const Duration(milliseconds: 300),
-        fadeOutDuration: const Duration(milliseconds: 150),
+        placeholder: (context, _) => placeholder ?? buildImageShimmer(context),
+        errorWidget: (context, _, __) => errorWidget ?? buildImageError(context),
+        fadeInDuration: const Duration(milliseconds: 320),
+        fadeOutDuration: const Duration(milliseconds: 160),
       );
     } else {
       child = Image.asset(
@@ -80,49 +77,59 @@ class AppImage extends StatelessWidget {
         width: width,
         height: height,
         fit: fit,
-        errorBuilder: (_, __, ___) => errorWidget ?? _buildErrorWidget(),
+        errorBuilder: (_, __, ___) => errorWidget ?? buildImageError(context),
       );
     }
 
     if (borderRadius != null) {
-      return ClipRRect(
-        borderRadius: borderRadius!,
-        child: child,
-      );
+      return ClipRRect(borderRadius: borderRadius!, child: child);
     }
     return child;
   }
 
-  Widget _buildPlaceholder() {
-    return Container(
-      width: width ?? 50,
-      height: height ?? 50,
-      color: Colors.grey.shade200,
-      child: Center(
-        child: SizedBox(
-          width: 20,
-          height: 20,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: Colors.grey.shade400,
-          ),
-        ),
+  Widget buildImageShimmer(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final base = dark ? const Color(0xFF1A2540) : const Color(0xFFE9EEF2);
+    final highlight = dark ? const Color(0xFF263653) : const Color(0xFFF7FAFC);
+    return Shimmer.fromColors(
+      baseColor: base,
+      highlightColor: highlight,
+      period: const Duration(milliseconds: 1200),
+      child: Container(
+        width: width ?? double.infinity,
+        height: height ?? double.infinity,
+        color: base,
       ),
     );
   }
 
-  Widget _buildErrorWidget() {
+  Widget buildImageError(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: width ?? 50,
       height: height ?? 50,
-      color: Colors.grey.shade200,
-      child: Icon(
-        Icons.image_not_supported,
-        color: Colors.grey.shade400,
-        size: (width ?? 50) * 0.4,
-      ),
+      color: dark ? const Color(0xFF172033) : const Color(0xFFF1F4F6),
+      alignment: Alignment.center,
+      child: const SizedBox.shrink(),
     );
   }
+}
+
+Widget buildImageShimmer(BuildContext context, {double? width, double? height, BorderRadius? radius}) {
+  final dark = Theme.of(context).brightness == Brightness.dark;
+  return ClipRRect(
+    borderRadius: radius ?? BorderRadius.zero,
+    child: Shimmer.fromColors(
+      baseColor: dark ? const Color(0xFF1A2540) : const Color(0xFFE9EEF2),
+      highlightColor: dark ? const Color(0xFF263653) : const Color(0xFFF7FAFC),
+      period: const Duration(milliseconds: 1200),
+      child: Container(
+        width: width,
+        height: height,
+        color: dark ? const Color(0xFF1A2540) : const Color(0xFFE9EEF2),
+      ),
+    ),
+  );
 }
 
 class DoctorImage extends StatelessWidget {
@@ -139,13 +146,8 @@ class DoctorImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ استخدام صورة افتراضية من ImageKit
-    final defaultImage = gender == 'female'
-        ? ImageKit.doctor3 // استخدام صورة دكتورة
-        : ImageKit.doctor1; // استخدام صورة دكتور
-
+    final defaultImage = gender == 'female' ? ImageKit.doctor3 : ImageKit.doctor1;
     final url = (imagePath?.isNotEmpty == true) ? imagePath! : defaultImage;
-
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: AppImage(
@@ -155,11 +157,19 @@ class DoctorImage extends StatelessWidget {
         errorWidget: Container(
           width: size,
           height: size,
-          color: Colors.grey.shade200,
-          child: Icon(
-            gender == 'female' ? Icons.woman : Icons.man,
-            color: Colors.grey.shade400,
-            size: size * 0.5,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? const Color(0xFF172033)
+              : const Color(0xFFF1F4F6),
+          alignment: Alignment.center,
+          child: Text(
+            gender == 'female' ? 'د' : 'د',
+            style: TextStyle(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white70
+                  : Colors.black45,
+              fontSize: size * .34,
+              fontWeight: FontWeight.w800,
+            ),
           ),
         ),
       ),
@@ -173,24 +183,16 @@ class HospitalImage extends StatelessWidget {
   final double? height;
   final BoxFit fit;
 
-  const HospitalImage({
-    super.key,
-    required this.imagePath,
-    this.width,
-    this.height,
-    this.fit = BoxFit.cover,
-  });
+  const HospitalImage({super.key, required this.imagePath, this.width, this.height, this.fit = BoxFit.cover});
 
   @override
-  Widget build(BuildContext context) {
-    return AppImage(
-      imageUrl: imagePath,
-      width: width,
-      height: height,
-      fit: fit,
-      borderRadius: BorderRadius.circular(12),
-    );
-  }
+  Widget build(BuildContext context) => AppImage(
+        imageUrl: imagePath,
+        width: width,
+        height: height,
+        fit: fit,
+        borderRadius: BorderRadius.circular(12),
+      );
 }
 
 class BannerImage extends StatelessWidget {
@@ -198,25 +200,18 @@ class BannerImage extends StatelessWidget {
   final double? width;
   final double? height;
 
-  const BannerImage({
-    super.key,
-    required this.imagePath,
-    this.width,
-    this.height,
-  });
+  const BannerImage({super.key, required this.imagePath, this.width, this.height});
 
   @override
-  Widget build(BuildContext context) {
-    return AppImage(
-      imageUrl: imagePath,
-      width: width,
-      height: height,
-      fit: BoxFit.cover,
-      borderRadius: BorderRadius.circular(16),
-      memCacheWidth: 1200,
-      memCacheHeight: 600,
-    );
-  }
+  Widget build(BuildContext context) => AppImage(
+        imageUrl: imagePath,
+        width: width,
+        height: height,
+        fit: BoxFit.cover,
+        borderRadius: BorderRadius.circular(16),
+        memCacheWidth: 1200,
+        memCacheHeight: 600,
+      );
 }
 
 class MedicineImage extends StatelessWidget {
@@ -224,23 +219,16 @@ class MedicineImage extends StatelessWidget {
   final double? width;
   final double? height;
 
-  const MedicineImage({
-    super.key,
-    required this.imagePath,
-    this.width,
-    this.height,
-  });
+  const MedicineImage({super.key, required this.imagePath, this.width, this.height});
 
   @override
-  Widget build(BuildContext context) {
-    return AppImage(
-      imageUrl: imagePath,
-      width: width,
-      height: height,
-      fit: BoxFit.contain,
-      borderRadius: BorderRadius.circular(12),
-    );
-  }
+  Widget build(BuildContext context) => AppImage(
+        imageUrl: imagePath,
+        width: width,
+        height: height,
+        fit: BoxFit.contain,
+        borderRadius: BorderRadius.circular(12),
+      );
 }
 
 class LabImage extends StatelessWidget {
@@ -248,23 +236,16 @@ class LabImage extends StatelessWidget {
   final double? width;
   final double? height;
 
-  const LabImage({
-    super.key,
-    required this.imagePath,
-    this.width,
-    this.height,
-  });
+  const LabImage({super.key, required this.imagePath, this.width, this.height});
 
   @override
-  Widget build(BuildContext context) {
-    return AppImage(
-      imageUrl: imagePath,
-      width: width,
-      height: height,
-      fit: BoxFit.cover,
-      borderRadius: BorderRadius.circular(12),
-    );
-  }
+  Widget build(BuildContext context) => AppImage(
+        imageUrl: imagePath,
+        width: width,
+        height: height,
+        fit: BoxFit.cover,
+        borderRadius: BorderRadius.circular(12),
+      );
 }
 
 class PharmacyImage extends StatelessWidget {
@@ -272,21 +253,14 @@ class PharmacyImage extends StatelessWidget {
   final double? width;
   final double? height;
 
-  const PharmacyImage({
-    super.key,
-    required this.imagePath,
-    this.width,
-    this.height,
-  });
+  const PharmacyImage({super.key, required this.imagePath, this.width, this.height});
 
   @override
-  Widget build(BuildContext context) {
-    return AppImage(
-      imageUrl: imagePath,
-      width: width,
-      height: height,
-      fit: BoxFit.cover,
-      borderRadius: BorderRadius.circular(12),
-    );
-  }
+  Widget build(BuildContext context) => AppImage(
+        imageUrl: imagePath,
+        width: width,
+        height: height,
+        fit: BoxFit.cover,
+        borderRadius: BorderRadius.circular(12),
+      );
 }
