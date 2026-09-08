@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/constants/app_images.dart';
 import 'package:sehatak/core/providers/font_size_provider.dart';
 import 'package:sehatak/presentation/bloc/theme_bloc/theme_bloc.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
@@ -32,9 +33,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _isBiometricEnabled = false;
   bool _isSystemMode = false;
 
-  static const String _ui = 'assets/images/ui/';
-  static const String _services = 'assets/images/services/';
-
   @override
   void initState() {
     super.initState();
@@ -47,9 +45,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       final available = await _localAuth.canCheckBiometrics;
       final supported = await _localAuth.isDeviceSupported();
-      if (mounted) {
-        setState(() => _isBiometricSupported = available && supported);
-      }
+      if (mounted) setState(() => _isBiometricSupported = available && supported);
     } catch (_) {
       if (mounted) setState(() => _isBiometricSupported = false);
     }
@@ -58,16 +54,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _loadBiometricPrefs() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      if (mounted) {
-        setState(() => _isBiometricEnabled = prefs.getBool('biometric_enabled') ?? false);
-      }
+      if (mounted) setState(() => _isBiometricEnabled = prefs.getBool('biometric_enabled') ?? false);
     } catch (_) {}
   }
 
   void _loadThemeMode() {
     final mode = context.read<ThemeBloc>().state.themeMode;
-    if (!mounted) return;
-    setState(() => _isSystemMode = mode == ThemeMode.system);
+    if (mounted) setState(() => _isSystemMode = mode == ThemeMode.system);
   }
 
   Future<void> _toggleBiometric(bool value) async {
@@ -86,23 +79,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await prefs.setBool('biometric_enabled', value);
       if (mounted) setState(() => _isBiometricEnabled = value);
       ToastService.showSuccess(value ? 'تم تفعيل تسجيل الدخول بالبصمة' : 'تم إلغاء تفعيل تسجيل الدخول بالبصمة');
-    } catch (e) {
+    } catch (_) {
       ToastService.showError('تعذر تحديث إعداد البصمة');
     }
   }
 
-  Widget _assetIcon(String path, {double size = 24, Color? color, IconData fallback = Icons.settings}) {
+  Widget _localImage(String path, {double size = 24, Color? color}) {
     return Image.asset(
       path,
       width: size,
       height: size,
       fit: BoxFit.contain,
       color: color,
-      errorBuilder: (_, __, ___) => Icon(fallback, size: size, color: color ?? AppColors.primary),
+      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
     );
   }
 
-  Widget _icon(IconData icon, {double size = 24}) => Icon(icon, size: size, color: AppColors.primary);
+  Widget _localTileIcon(String path, {double size = 24}) => _localImage(path, size: size, color: AppColors.primary);
+
+  Widget _arrow(bool dark, {Color? color}) => Padding(
+    padding: const EdgeInsetsDirectional.only(start: 8),
+    child: Text('‹', style: TextStyle(fontSize: 28, height: 1, color: color ?? (dark ? Colors.grey.shade500 : Colors.grey.shade500))),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -120,7 +118,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           IconButton(
             tooltip: 'الإعدادات',
-            icon: _assetIcon('${_ui}settings_gear.png', color: Colors.white, fallback: Icons.settings),
+            icon: _localImage(AppImages.uiSettingsGear, color: Colors.white),
             onPressed: _loadThemeMode,
           ),
         ],
@@ -130,12 +128,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           _section('المظهر', isDark),
           _card(isDark, Column(children: [
-            _switchTile(Icons.dark_mode_rounded, 'الوضع المظلم', 'تفعيل الوضع المظلم للتطبيق', isDark, isDark, (v) {
+            _switchTile(AppImages.uiSettingsGear, 'الوضع المظلم', 'تفعيل الوضع المظلم للتطبيق', isDark, isDark, (v) {
               context.read<ThemeBloc>().setThemeMode(v ? ThemeMode.dark : ThemeMode.light);
               setState(() => _isSystemMode = false);
             }),
             _divider(isDark),
-            _switchTile(Icons.brightness_auto_rounded, 'الوضع التلقائي', 'متابعة إعدادات النظام', isDark, _isSystemMode, (v) {
+            _switchTile(AppImages.uiSettingsGear, 'الوضع التلقائي', 'متابعة إعدادات النظام', isDark, _isSystemMode, (v) {
               context.read<ThemeBloc>().setThemeMode(v ? ThemeMode.system : ThemeMode.light);
               setState(() => _isSystemMode = v);
             }),
@@ -145,9 +143,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           if (_isBiometricSupported) ...[
             _section('الأمان', isDark),
             _card(isDark, Column(children: [
-              _switchTile(Icons.fingerprint_rounded, 'تسجيل الدخول بالبصمة', _isBiometricEnabled ? 'تم التفعيل - استخدم بصمتك للدخول' : 'تفعيل تسجيل الدخول باستخدام بصمة الإصبع', isDark, _isBiometricEnabled, _toggleBiometric),
+              _switchTile(AppImages.uiUserProfile, 'تسجيل الدخول بالبصمة', _isBiometricEnabled ? 'تم التفعيل - استخدم بصمتك للدخول' : 'تفعيل تسجيل الدخول باستخدام بصمة الإصبع', isDark, _isBiometricEnabled, _toggleBiometric),
               _divider(isDark),
-              _listTile(Icons.security_rounded, 'المصادقة الثنائية', 'تفعيل المصادقة الثنائية لمزيد من الأمان', isDark, () => ToastService.showSuccess('سيتم تفعيل المصادقة الثنائية قريباً')),
+              _listTileAsset(AppImages.uiSettingsGear, 'المصادقة الثنائية', 'تفعيل المصادقة الثنائية لمزيد من الأمان', isDark, () => ToastService.showSuccess('سيتم تفعيل المصادقة الثنائية قريباً')),
             ])),
             const SizedBox(height: 16),
           ],
@@ -157,15 +155,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
             padding: const EdgeInsets.all(16),
             child: Column(children: [
               Row(children: [
-                _icon(Icons.text_fields_rounded),
+                _localTileIcon(AppImages.uiSettingsGear),
                 const SizedBox(width: 12),
                 Expanded(child: Text('حجم الخط الحالي', style: TextStyle(fontWeight: FontWeight.w600, color: isDark ? Colors.white : Colors.black87))),
                 Text('${(scale * 100).round()}%', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
               ]),
               Row(children: [
-                IconButton(icon: const Icon(Icons.remove_circle_outline, color: AppColors.primary), onPressed: () => fontProvider.setFontScale((scale - .05).clamp(.8, 1.6))),
+                IconButton(
+                  onPressed: () => fontProvider.setFontScale((scale - .05).clamp(.8, 1.6)),
+                  icon: const Text('−', style: TextStyle(fontSize: 26, color: AppColors.primary, fontWeight: FontWeight.w600)),
+                  tooltip: 'تصغير الخط',
+                ),
                 Expanded(child: Slider(value: scale.clamp(.8, 1.6), min: .8, max: 1.6, divisions: 16, activeColor: AppColors.primary, onChanged: fontProvider.setFontScale)),
-                IconButton(icon: const Icon(Icons.add_circle_outline, color: AppColors.primary), onPressed: () => fontProvider.setFontScale((scale + .05).clamp(.8, 1.6))),
+                IconButton(
+                  onPressed: () => fontProvider.setFontScale((scale + .05).clamp(.8, 1.6)),
+                  icon: const Text('+', style: TextStyle(fontSize: 24, color: AppColors.primary, fontWeight: FontWeight.w600)),
+                  tooltip: 'تكبير الخط',
+                ),
               ]),
               Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.center, children: [
                 _sizeButton('صغير', .8, fontProvider, isDark),
@@ -179,35 +185,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           _section('الحساب', isDark),
           _card(isDark, Column(children: [
-            _listTileAsset('${_ui}user_profile.png', Icons.person_outline_rounded, 'الملف الشخصي', 'تعديل بياناتك الشخصية', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()))),
+            _listTileAsset(AppImages.uiUserProfile, 'الملف الشخصي', 'تعديل بياناتك الشخصية', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()))),
             _divider(isDark),
-            _listTile(Icons.lock_outline_rounded, 'تغيير كلمة المرور', 'تحديث كلمة المرور الخاصة بك', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChangePasswordScreen()))),
+            _listTileAsset(AppImages.uiSettingsGear, 'تغيير كلمة المرور', 'تحديث كلمة المرور الخاصة بك', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChangePasswordScreen()))),
             _divider(isDark),
-            _listTileAsset('${_services}notifications.png', Icons.notifications_none_rounded, 'الإشعارات', 'إدارة إعدادات الإشعارات', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()))),
+            _listTileAsset(AppImages.notificationsIcon, 'الإشعارات', 'إدارة إعدادات الإشعارات', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()))),
           ])),
           const SizedBox(height: 16),
 
           _section('التطبيق', isDark),
           _card(isDark, Column(children: [
-            _listTile(Icons.language_rounded, 'اللغة', 'تغيير لغة التطبيق', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LanguageScreen()))),
+            _listTileAsset(AppImages.uiSettingsGear, 'اللغة', 'تغيير لغة التطبيق', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LanguageScreen()))),
             _divider(isDark),
-            _listTile(Icons.help_outline_rounded, 'المساعدة والدعم', 'الأسئلة الشائعة والدعم الفني', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpScreen()))),
+            _listTileAsset(AppImages.uiHelpCenter, 'المساعدة والدعم', 'الأسئلة الشائعة والدعم الفني', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpScreen()))),
             _divider(isDark),
-            _listTile(Icons.privacy_tip_outlined, 'الخصوصية', 'سياسة الخصوصية والأمان', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyScreen()))),
+            _listTileAsset(AppImages.uiPrivacy, 'الخصوصية', 'سياسة الخصوصية والأمان', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyScreen()))),
             _divider(isDark),
-            _listTileAsset('${_ui}about_app.png', Icons.info_outline_rounded, 'عن التطبيق', 'الإصدار 1.1.0', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen()))),
+            _listTileAsset(AppImages.uiAboutApp, 'عن التطبيق', 'الإصدار 1.1.0', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen()))),
           ])),
           const SizedBox(height: 16),
 
           _card(isDark, ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-            leading: _icon(Icons.logout_rounded),
+            leading: _localImage(AppImages.uiReportProblem, color: Colors.red),
             title: const Text('تسجيل الخروج', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600)),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.red),
+            trailing: _arrow(isDark, color: Colors.red),
             onTap: () => _showLogoutDialog(context),
           )),
           const SizedBox(height: 20),
-          Center(child: Text('صحتك - الإصدار 1.1.0', style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[500] : Colors.grey[500]))),
+          Center(child: Text('صحتك - الإصدار 1.1.0', style: TextStyle(fontSize: 12, color: Colors.grey[500]))),
           const SizedBox(height: 10),
         ],
       ),
@@ -228,9 +234,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _divider(bool dark) => Divider(height: 1, color: dark ? Colors.grey[800] : Colors.grey[200], indent: 16, endIndent: 16);
 
-  Widget _switchTile(IconData icon, String title, String subtitle, bool dark, bool value, ValueChanged<bool> onChanged) => SwitchListTile(
+  Widget _switchTile(String iconPath, String title, String subtitle, bool dark, bool value, ValueChanged<bool> onChanged) => SwitchListTile(
     contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-    secondary: _icon(icon),
+    secondary: _localTileIcon(iconPath),
     title: Text(title, style: TextStyle(color: dark ? Colors.white : Colors.black87, fontWeight: FontWeight.w500)),
     subtitle: Text(subtitle, style: TextStyle(fontSize: 12, color: dark ? Colors.grey[400] : Colors.grey[600])),
     value: value,
@@ -238,21 +244,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     onChanged: onChanged,
   );
 
-  Widget _listTile(IconData icon, String title, String subtitle, bool dark, VoidCallback onTap) => ListTile(
+  Widget _listTileAsset(String path, String title, String subtitle, bool dark, VoidCallback onTap) => ListTile(
     contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-    leading: _icon(icon),
+    leading: _localTileIcon(path),
     title: Text(title, style: TextStyle(color: dark ? Colors.white : Colors.black87, fontWeight: FontWeight.w500)),
     subtitle: Text(subtitle, style: TextStyle(fontSize: 12, color: dark ? Colors.grey[400] : Colors.grey[600])),
-    trailing: Icon(Icons.arrow_forward_ios, size: 16, color: dark ? Colors.grey[500] : Colors.grey[500]),
-    onTap: onTap,
-  );
-
-  Widget _listTileAsset(String path, IconData fallback, String title, String subtitle, bool dark, VoidCallback onTap) => ListTile(
-    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-    leading: _assetIcon(path, fallback: fallback),
-    title: Text(title, style: TextStyle(color: dark ? Colors.white : Colors.black87, fontWeight: FontWeight.w500)),
-    subtitle: Text(subtitle, style: TextStyle(fontSize: 12, color: dark ? Colors.grey[400] : Colors.grey[600])),
-    trailing: Icon(Icons.arrow_forward_ios, size: 16, color: dark ? Colors.grey[500] : Colors.grey[500]),
+    trailing: _arrow(dark),
     onTap: onTap,
   );
 
@@ -282,9 +279,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onPressed: () async {
               try {
                 await FirebaseAuth.instance.signOut();
-                if (context.mounted) {
-                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AuthScreen()));
-                }
+                if (context.mounted) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AuthScreen()));
               } catch (e) {
                 ToastService.showError('خطأ في تسجيل الخروج: $e');
               }
