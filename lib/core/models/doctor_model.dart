@@ -63,21 +63,33 @@ class DoctorModel extends Equatable {
   factory DoctorModel.fromFirestore(String id, Map<String, dynamic> data) {
     List<Map<String, dynamic>> parseMapList(dynamic value) {
       if (value is! List) return [];
-      return value.map((e) => e is Map ? Map<String, dynamic>.from(e) : <String, dynamic>{}).toList();
+      return value
+          .map((e) => e is Map ? Map<String, dynamic>.from(e) : <String, dynamic>{})
+          .toList();
     }
+
     List<String> parseStringList(dynamic value) {
       if (value is List) return value.map((e) => e.toString()).toList();
       if (value is String && value.trim().isNotEmpty) return [value.trim()];
       return [];
     }
+
     int? parseInt(dynamic value) {
       if (value is num) return value.toInt();
       return int.tryParse(value?.toString() ?? '');
     }
+
     double? parseDouble(dynamic value) {
       if (value is num) return value.toDouble();
       return double.tryParse(value?.toString() ?? '');
     }
+
+    bool parseBool(dynamic value) {
+      if (value is bool) return value;
+      final normalized = value?.toString().trim().toLowerCase();
+      return normalized == 'true' || normalized == '1' || normalized == 'yes';
+    }
+
     Map<String, double>? parseRatingBreakdown(dynamic value) {
       if (value is! Map) return null;
       final result = <String, double>{};
@@ -91,10 +103,11 @@ class DoctorModel extends Equatable {
     final rawReviewsCount = data['reviewsCount'] ?? data['reviewCount'];
     final rawFee = data['consultationFee'] ?? data['fee'];
     final rawExperience = data['experienceYears'] ?? data['experience'];
+    final resolvedUserId = (data['userId'] ?? data['uid'] ?? id).toString().trim();
 
     return DoctorModel(
       id: id,
-      userId: data['userId']?.toString() ?? data['uid']?.toString(),
+      userId: resolvedUserId.isEmpty ? null : resolvedUserId,
       name: data['name']?.toString() ?? '',
       specialty: data['specialty']?.toString() ?? '',
       subspecialty: data['subspecialty']?.toString(),
@@ -102,8 +115,8 @@ class DoctorModel extends Equatable {
       rating: parseDouble(data['rating']),
       reviewsCount: parseInt(rawReviewsCount),
       consultationFee: parseDouble(rawFee),
-      isAvailable: data['isAvailable'] == true,
-      isOnline: data['isOnline'] == true,
+      isAvailable: parseBool(data['isAvailable']),
+      isOnline: parseBool(data['isOnline']),
       experienceYears: parseInt(rawExperience),
       hospital: data['hospital']?.toString(),
       clinicAddress: data['clinicAddress']?.toString(),
@@ -114,11 +127,11 @@ class DoctorModel extends Equatable {
       education: parseMapList(data['education']),
       certifications: parseMapList(data['certifications']),
       reviews: parseMapList(data['reviews']),
-      isVerified: data['isVerified'] == true,
+      isVerified: parseBool(data['isVerified']),
       patientsCount: parseInt(data['patientsCount']),
       specialties: data.containsKey('specialties') ? parseStringList(data['specialties']) : null,
       ratingBreakdown: parseRatingBreakdown(data['ratingBreakdown']),
-      isFeatured: data['isFeatured'] == true,
+      isFeatured: parseBool(data['isFeatured']),
       createdAt: data['createdAt'] is Timestamp ? data['createdAt'] as Timestamp : null,
     );
   }
@@ -153,5 +166,21 @@ class DoctorModel extends Equatable {
       };
 
   @override
-  List<Object?> get props => [id, userId, name, specialty, photoUrl, rating, reviewsCount, consultationFee, isAvailable, isOnline, experienceYears, hospital, about, isVerified, isFeatured];
+  List<Object?> get props => [
+        id,
+        userId,
+        name,
+        specialty,
+        photoUrl,
+        rating,
+        reviewsCount,
+        consultationFee,
+        isAvailable,
+        isOnline,
+        experienceYears,
+        hospital,
+        about,
+        isVerified,
+        isFeatured,
+      ];
 }
