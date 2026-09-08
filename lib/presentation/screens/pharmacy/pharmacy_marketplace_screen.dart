@@ -25,11 +25,11 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen> {
   Future<void> _load() async {
     setState(()=>_loading=true);
     try {
-      final result=await _functions.httpsCallable('getMarketplaceProducts').call({'limit':100});
+      final result=await _functions.httpsCallable('getMarketplaceProducts').call({'limit':300});
       final data=Map<String,dynamic>.from(result.data as Map);
       _products=(data['products'] as List? ?? []).map((e)=>Map<String,dynamic>.from(e as Map)).toList();
       if(mounted)setState(()=>_error=null);
-    } on FirebaseFunctionsException catch(e){if(mounted)setState(()=>_error=e.message??'تعذر تحميل Marketplace');}
+    } on FirebaseFunctionsException catch(e){if(mounted)setState(()=>_error=e.message??'تعذر تحميل متجر الأدوية');}
       catch(e){if(mounted)setState(()=>_error=e.toString());}
     finally{if(mounted)setState(()=>_loading=false);}
   }
@@ -37,7 +37,7 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen> {
   List<Map<String,dynamic>> get _filtered {
     final q=_search.text.trim().toLowerCase();
     final list=_products.where((p){
-      final matchesQ=q.isEmpty || '${p['name']??''} ${p['genericName']??''} ${p['category']??''}'.toLowerCase().contains(q);
+      final matchesQ=q.isEmpty || '${p['name']??''} ${p['genericName']??''} ${p['activeIngredient']??''} ${p['category']??''}'.toLowerCase().contains(q);
       final matchesC=_category=='الكل' || p['category']==_category;
       return matchesQ&&matchesC;
     }).toList();
@@ -48,13 +48,15 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen> {
 
   void _add(Map<String,dynamic> p){
     final id='${p['productId']??p['id']??''}'; if(id.isEmpty)return;
-    _cart.add(productId:id,name:'${p['name']??''}',unitPrice:(p['price'] as num).toDouble(),requiresPrescription:p['requiresPrescription']==true);
+    final price=(p['price'] as num?)?.toDouble()??0;
+    if(price<=0)return;
+    _cart.add(productId:id,name:'${p['name']??''}',unitPrice:price,requiresPrescription:p['requiresPrescription']==true);
     setState((){}); ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text('تمت إضافة ${p['name']} إلى السلة')));
   }
 
   @override Widget build(BuildContext context){
     return Scaffold(
-      appBar: AppBar(backgroundColor:AppColors.primary,foregroundColor:Colors.white,title:const Text('Marketplace الصيدليات'),actions:[Stack(children:[IconButton(icon:const Icon(Icons.shopping_cart_outlined),onPressed:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>const CartScreen())).then((_){if(mounted)setState((){});})),if(_cart.itemCount>0)Positioned(top:6,right:6,child:CircleAvatar(radius:9,backgroundColor:Colors.red,child:Text('${_cart.itemCount}',style:const TextStyle(color:Colors.white,fontSize:9))))])]),
+      appBar: AppBar(backgroundColor:AppColors.primary,foregroundColor:Colors.white,title:const Text('متجر أدوية صحتك'),actions:[Stack(children:[IconButton(icon:const Icon(Icons.shopping_cart_outlined),onPressed:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>const CartScreen())).then((_){if(mounted)setState((){});})),if(_cart.itemCount>0)Positioned(top:6,right:6,child:CircleAvatar(radius:9,backgroundColor:Colors.red,child:Text('${_cart.itemCount}',style:const TextStyle(color:Colors.white,fontSize:9))))])]),
       body: Column(children:[
         Padding(padding:const EdgeInsets.fromLTRB(12,12,12,8),child:TextField(controller:_search,textDirection:TextDirection.rtl,decoration:InputDecoration(hintText:'ابحث باسم الدواء أو المادة أو الفئة',prefixIcon:const Icon(Icons.search),filled:true,border:OutlineInputBorder(borderRadius:BorderRadius.circular(14),borderSide:BorderSide.none)))),
         if(_categories.length>1) SizedBox(height:46,child:ListView.separated(scrollDirection:Axis.horizontal,padding:const EdgeInsets.symmetric(horizontal:12),itemCount:_categories.length,itemBuilder:(_,i){final c=_categories[i];return ChoiceChip(label:Text(c),selected:_category==c,onSelected:(_)=>setState(()=>_category=c));},separatorBuilder:(_,__)=>const SizedBox(width:6))),
@@ -62,5 +64,5 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen> {
       ]),
     );
   }
-  Widget _card(Map<String,dynamic> p){final platform=p['sourceType']=='platform';final pharmacy=p['pharmacyId'];final stock=(p['stock'] as num?)?.toInt()??0;return Card(margin:const EdgeInsets.only(bottom:10),child:Padding(padding:const EdgeInsets.all(12),child:Row(children:[Container(width:64,height:64,decoration:BoxDecoration(color:AppColors.primary.withOpacity(.08),borderRadius:BorderRadius.circular(12)),child:const Icon(Icons.medication_outlined,color:AppColors.primary,size:34)),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('${p['name']??'دواء'}',style:const TextStyle(fontWeight:FontWeight.bold)),if(p['genericName']!=null)Text('${p['genericName']}',style:const TextStyle(fontSize:12,color:Colors.grey)),const SizedBox(height:5),Row(children:[Container(padding:const EdgeInsets.symmetric(horizontal:7,vertical:3),decoration:BoxDecoration(color:platform?AppColors.primary.withOpacity(.1):Colors.orange.withOpacity(.1),borderRadius:BorderRadius.circular(8)),child:Text(platform?'منصة صحتك':'صيدلية معتمدة',style:TextStyle(fontSize:10,color:platform?AppColors.primary:Colors.orange))),if(pharmacy!=null)...[const SizedBox(width:6),Text('بائع: $pharmacy',style:const TextStyle(fontSize:10,color:Colors.grey))]],),const SizedBox(height:7),Row(children:[Text('${p['price']??0} ر.ي',style:const TextStyle(fontWeight:FontWeight.bold,color:AppColors.primary)),const SizedBox(width:8),Text(stock>0?'متوفر':'غير متوفر',style:TextStyle(fontSize:11,color:stock>0?Colors.green:Colors.red))]),]),),IconButton(onPressed:stock>0?()=>_add(p):null,icon:Icon(Icons.add_shopping_cart,color:stock>0?AppColors.primary:Colors.grey))])));}
+  Widget _card(Map<String,dynamic> p){final platform=p['sourceType']=='platform';final pharmacy=p['pharmacyId'];final stock=(p['stock'] as num?)?.toInt()??0;return Card(margin:const EdgeInsets.only(bottom:10),child:Padding(padding:const EdgeInsets.all(12),child:Row(children:[Container(width:64,height:64,decoration:BoxDecoration(color:AppColors.primary.withOpacity(.08),borderRadius:BorderRadius.circular(12)),child:const Icon(Icons.medication_outlined,color:AppColors.primary,size:34)),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('${p['name']??'دواء'}',style:const TextStyle(fontWeight:FontWeight.bold)),if(p['genericName']!=null)Text('${p['genericName']}',style:const TextStyle(fontSize:12,color:Colors.grey)),if(p['activeIngredient']!=null)Text('${p['activeIngredient']}',style:const TextStyle(fontSize:11,color:Colors.grey)),const SizedBox(height:5),Row(children:[Container(padding:const EdgeInsets.symmetric(horizontal:7,vertical:3),decoration:BoxDecoration(color:platform?AppColors.primary.withOpacity(.1):Colors.orange.withOpacity(.1),borderRadius:BorderRadius.circular(8)),child:Text(platform?'منتج رسمي من صحتك':'صيدلية معتمدة',style:TextStyle(fontSize:10,color:platform?AppColors.primary:Colors.orange))),if(pharmacy!=null)...[const SizedBox(width:6),Text('بائع: $pharmacy',style:const TextStyle(fontSize:10,color:Colors.grey))]],),const SizedBox(height:7),Row(children:[Text('${p['price']??0} ر.ي',style:const TextStyle(fontWeight:FontWeight.bold,color:AppColors.primary)),const SizedBox(width:8),Text(stock>0?'متوفر':'غير متوفر',style:TextStyle(fontSize:11,color:stock>0?Colors.green:Colors.red))]),]),),IconButton(onPressed:stock>0?()=>_add(p):null,icon:Icon(Icons.add_shopping_cart,color:stock>0?AppColors.primary:Colors.grey))])));}
 }
