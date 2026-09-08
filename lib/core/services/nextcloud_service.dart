@@ -14,18 +14,17 @@ class NextcloudService {
   String username = const String.fromEnvironment('NEXTCLOUD_USERNAME', defaultValue: '');
   String password = const String.fromEnvironment('NEXTCLOUD_PASSWORD', defaultValue: '');
 
-  final Dio _dio = Dio(BaseOptions(
-    connectTimeout: Duration(seconds: 30),
-    receiveTimeout: Duration(seconds: 60),
-  ));
+  final Dio _dio = Dio(BaseOptions(connectTimeout: const Duration(seconds: 30), receiveTimeout: const Duration(seconds: 60)));
 
   String _basicAuth() => base64Encode(utf8.encode('$username:$password'));
 
   Map<String, String> _headers() => {
-    'OCS-APIRequest': 'true',
-    'Authorization': 'Basic ${_basicAuth()}',
-    'Content-Type': 'application/x-www-form-urlencoded',
-  };
+        'OCS-APIRequest': 'true',
+        'Authorization': 'Basic ${_basicAuth()}',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      };
+
+  String _normalizedBase() => baseUrl.replaceFirst(RegExp(r'\/$'), '');
 
   void _ensureConfigured() {
     if (baseUrl.isEmpty || username.isEmpty || password.isEmpty) {
@@ -42,34 +41,45 @@ class NextcloudService {
     try {
       _ensureConfigured();
       final name = fileName ?? file.path.split('/').last;
-      final normalizedBase = baseUrl.replaceFirst(RegExp(r'\/\$'), '');
       final fullPath = '/$path/$name';
       final response = await _dio.put(
-        '$normalizedBase/remote.php/dav/files/$username$fullPath',
+        '${_normalizedBase()}/remote.php/dav/files/$username$fullPath',
         data: await MultipartFile.fromFile(file.path, filename: name),
-        options: Options(headers: {
-          'Authorization': 'Basic ${_basicAuth()}',
-          'Content-Type': 'application/octet-stream',
-        }),
+        options: Options(headers: {'Authorization': 'Basic ${_basicAuth()}', 'Content-Type': 'application/octet-stream'}),
         onSendProgress: onProgress,
       );
       final success = response.statusCode == 201 || response.statusCode == 204;
-      return NextcloudUploadResult(
-        success: success,
-        url: success ? '$normalizedBase/remote.php/dav/files/$username$fullPath' : null,
-        path: fullPath,
-        fileName: name,
-        error: success ? null : 'فشل رفع الملف: ${response.statusCode}',
-      );
+      if (!success) return NextcloudUploadResult(success: false, path: fullPath, fileName: name, error: 'فشل رفع الملف: ${response.statusCode}');
+
+      final publicUrl = await createPublicShare(fullPath);
+      return NextcloudUploadResult(success: true, url: publicUrl, path: fullPath, fileName: name);
     } catch (e) {
       return NextcloudUploadResult(success: false, error: e.toString());
+    }
+  }
+
+  Future<String?> createPublicShare(String remotePath) async {
+    _ensureConfigured();
+    try {
+      final response = await http.post(
+        Uri.parse('${_normalizedBase()}/ocs/v2.php/apps/files_sharing/api/v1/shares?format=json'),
+        headers: _headers(),
+        body: {'path': remotePath, 'shareType': '3'},
+      );
+      if (response.statusCode < 200 || response.statusCode >= 300) return null;
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      final ocs = body['ocs'] as Map<String, dynamic>?;
+      final data = ocs?['data'] as Map<String, dynamic>?;
+      return data?['url']?.toString();
+    } catch (_) {
+      return null;
     }
   }
 
   Future<bool> checkServerStatus() async {
     try {
       if (baseUrl.isEmpty) return false;
-      final response = await http.get(Uri.parse('${baseUrl.replaceFirst(RegExp(r'\/\$'), '')}/status.php'));
+      final response = await http.get(Uri.parse('${_normalizedBase()}/status.php'));
       return response.statusCode == 200;
     } catch (_) {
       return false;
@@ -79,22 +89,15 @@ class NextcloudService {
   Future<bool> testAuth() async {
     try {
       _ensureConfigured();
-      final response = await http.get(
-        Uri.parse('${baseUrl.replaceFirst(RegExp(r'\/\$'), '')}/ocs/v2.php/cloud/user'),
-        headers: _headers(),
-      );
+      final response = await http.get(Uri.parse('${_normalizedBase()}/ocs/v2.php/cloud/user'), headers: _headers());
       return response.statusCode == 200;
     } catch (_) {
       return false;
     }
   }
 
-  Future<void> updateConfig({
-    required String baseUrl,
-    required String username,
-    required String password,
-  }) async {
-    this.baseUrl = baseUrl.trim().replaceFirst(RegExp(r'\/\$'), '');
+  Future<void> updateConfig({required String baseUrl, required String username, required String password}) async {
+    this.baseUrl = baseUrl.trim().replaceFirst(RegExp(r'\/$'), '');
     this.username = username.trim();
     this.password = password;
     final prefs = await SharedPreferences.getInstance();
@@ -118,11 +121,5 @@ class NextcloudUploadResult {
   final String? fileName;
   final String? error;
 
-  const NextcloudUploadResult({
-    required this.success,
-    this.url,
-    this.path,
-    this.fileName,
-    this.error,
-  });
+  const NextcloudUploadResult({required this.success, this.url, this.path, this.fileName, this.error});
 }
