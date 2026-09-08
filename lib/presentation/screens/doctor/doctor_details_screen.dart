@@ -574,7 +574,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
   Widget _infoRow(IconData icon, String label, String value, bool dark) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 11),
-      child: Row(children: [Container(width: 36, height: 36, decoration: BoxDecoration(color: AppColors.primary.withOpacity(.08), borderRadius: BorderRadius.circular(10)), child: Icon(icon, size: 18, color: AppColors.primary)), const SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(label, style: TextStyle(fontSize: 10, color: dark ? Colors.white45 : Colors.black45)), const SizedBox(height: 2), Text(value, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: dark ? Colors.white : Colors.black87))]))]),
+      child: Row(children: [Container(width: 36, height: 36, decoration: BoxDecoration(color: AppColors.primary.withOpacity(.08), borderRadius: BorderRadius.circular(10)), child: Icon(icon, size: 18, color: AppColors.primary)), const SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(label, style: TextStyle(fontSize: 10, color: dark ? Colors.white54 : Colors.black45)), const SizedBox(height: 2), Text(value, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: dark ? Colors.white : Colors.black87))]))]),
     );
   }
 
@@ -583,7 +583,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
       onTap: _busy ? null : onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-        child: Row(children: [Container(width: 40, height: 40, decoration: BoxDecoration(color: AppColors.primary.withOpacity(.08), borderRadius: BorderRadius.circular(11)), child: Icon(icon, color: AppColors.primary, size: 20)), const SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: dark ? Colors.white : Colors.black87)), const SizedBox(height: 2), Text(subtitle, style: TextStyle(fontSize: 10, color: dark ? Colors.white45 : Colors.black45))])), const Icon(Icons.chevron_left_rounded, size: 20, color: Colors.grey)]),
+        child: Row(children: [Container(width: 40, height: 40, decoration: BoxDecoration(color: AppColors.primary.withOpacity(.08), borderRadius: BorderRadius.circular(11)), child: Icon(icon, color: AppColors.primary, size: 20)), const SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: dark ? Colors.white : Colors.black87)), const SizedBox(height: 2), Text(subtitle, style: TextStyle(fontSize: 10, color: dark ? Colors.white54 : Colors.black45))])), const Icon(Icons.chevron_left_rounded, size: 20, color: Colors.grey)]),
       ),
     );
   }
