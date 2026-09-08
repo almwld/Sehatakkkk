@@ -12,7 +12,7 @@ class PharmacyMarketplaceScreen extends StatefulWidget {
 
 class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen> {
   final _search = TextEditingController();
-  final _cart = UnifiedCartService();
+  final _cart = UnifiedCartService.instance;
   bool _loading = true;
   String? _error;
   String _category = 'الكل';
