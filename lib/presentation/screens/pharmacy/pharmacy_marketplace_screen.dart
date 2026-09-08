@@ -1,4 +1,4 @@
-import 'package:cloud_functions/cloud_functions.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/unified_cart_service.dart';
@@ -10,7 +10,6 @@ class PharmacyMarketplaceScreen extends StatefulWidget {
 }
 
 class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen> {
-  final _functions = FirebaseFunctions.instanceFor(region: 'us-central1');
   final _cart = UnifiedCartService.instance;
   final _search = TextEditingController();
   bool _loading = true;
@@ -25,12 +24,10 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen> {
   Future<void> _load() async {
     setState(()=>_loading=true);
     try {
-      final result=await _functions.httpsCallable('getMarketplaceProducts').call({'limit':300});
-      final data=Map<String,dynamic>.from(result.data as Map);
-      _products=(data['products'] as List? ?? []).map((e)=>Map<String,dynamic>.from(e as Map)).toList();
+      final snap = await FirebaseFirestore.instance.collection('products').where('approvalStatus', isEqualTo: 'approved').where('isPublished', isEqualTo: true).where('isActive', isEqualTo: true).limit(300).get();
+      _products = snap.docs.map((d)=>{'id':d.id,...d.data()}).toList();
       if(mounted)setState(()=>_error=null);
-    } on FirebaseFunctionsException catch(e){if(mounted)setState(()=>_error=e.message??'تعذر تحميل متجر الأدوية');}
-      catch(e){if(mounted)setState(()=>_error=e.toString());}
+    } catch(e){if(mounted)setState(()=>_error='تعذر تحميل متجر الأدوية: $e');}
     finally{if(mounted)setState(()=>_loading=false);}
   }
 
