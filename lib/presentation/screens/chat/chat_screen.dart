@@ -11,6 +11,7 @@ import 'package:sehatak/core/models/doctor_model.dart';
 import 'package:sehatak/core/services/chat_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/screens/ai/ai_chatbot_screen.dart';
+import 'package:sehatak/presentation/screens/chat/calls_screen.dart';
 import 'package:sehatak/presentation/screens/chat/chat_room_screen.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -28,6 +29,7 @@ class _ChatScreenState extends State<ChatScreen> {
   String _search = '';
   bool _loadingChats = true;
   bool _openingChat = false;
+  int _tabIndex = 0;
 
   @override
   void initState() {
@@ -88,46 +90,119 @@ class _ChatScreenState extends State<ChatScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF7FAFA),
-      appBar: AppBar(title: const Text('الدردشة'), centerTitle: true),
-      body: Column(
+      appBar: AppBar(
+        title: const Text('الدردشة'),
+        centerTitle: true,
+        elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(58),
+          child: _buildTabs(isDark),
+        ),
+      ),
+      body: IndexedStack(
+        index: _tabIndex,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'ابحث في محادثاتك...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _search.isEmpty
-                    ? null
-                    : IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: _searchController.clear,
-                      ),
-                filled: true,
-                fillColor: isDark ? const Color(0xFF162039) : Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide.none,
+          _buildConversationsTab(isDark),
+          const CallsScreen(),
+          _buildContactsTab(isDark),
+        ],
+      ),
+      floatingActionButton: (_tabIndex == 0 || _tabIndex == 2)
+          ? FloatingActionButton.extended(
+              backgroundColor: AppColors.primary,
+              onPressed: _openingChat ? null : () => _showDoctorsForNewChat(isDark),
+              icon: Image.asset(
+                'assets/images/chat/attach_file.png',
+                width: 21,
+                height: 21,
+                color: Colors.white,
+                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+              ),
+              label: const Text('محادثة جديدة', style: TextStyle(color: Colors.white)),
+            )
+          : null,
+    );
+  }
+
+  Widget _buildTabs(bool isDark) {
+    const labels = ['المحادثات', 'المكالمات', 'جهات الاتصال'];
+    return Container(
+      margin: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+      height: 48,
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF162039) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? Colors.white10 : const Color(0xFFE6EEEE),
+        ),
+      ),
+      child: Row(
+        children: List.generate(labels.length, (index) {
+          final selected = _tabIndex == index;
+          return Expanded(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => setState(() => _tabIndex = index),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 220),
+                margin: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: selected ? AppColors.primary : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: AnimatedDefaultTextStyle(
+                    duration: const Duration(milliseconds: 180),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                      color: selected
+                          ? Colors.white
+                          : (isDark ? Colors.white70 : const Color(0xFF526467)),
+                    ),
+                    child: Text(labels[index]),
+                  ),
                 ),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            child: _buildAIAssistantCard(isDark),
-          ),
-          _buildDoctorsSection(isDark),
-          const SizedBox(height: 4),
-          Expanded(child: _buildChatList(isDark)),
-        ],
+          );
+        }),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppColors.primary,
-        onPressed: _openingChat ? null : () => _showDoctorsForNewChat(isDark),
-        icon: const Icon(Icons.add_comment, color: Colors.white),
-        label: const Text('محادثة جديدة', style: TextStyle(color: Colors.white)),
-      ),
+    );
+  }
+
+  Widget _buildConversationsTab(bool isDark) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+          child: TextField(
+            controller: _searchController,
+            textDirection: TextDirection.rtl,
+            decoration: InputDecoration(
+              hintText: 'ابحث في محادثاتك...',
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: _search.isEmpty
+                  ? null
+                  : IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: _searchController.clear,
+                    ),
+              filled: true,
+              fillColor: isDark ? const Color(0xFF162039) : Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+          child: _buildAIAssistantCard(isDark),
+        ),
+        Expanded(child: _buildChatList(isDark)),
+      ],
     );
   }
 
@@ -135,6 +210,7 @@ class _ChatScreenState extends State<ChatScreen> {
     return Card(
       elevation: 0,
       color: isDark ? const Color(0xFF162039) : Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ListTile(
         leading: const CircleAvatar(
           backgroundColor: AppColors.primary,
@@ -151,111 +227,6 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildDoctorsSection(bool isDark) {
-    return BlocBuilder<DoctorBloc, DoctorState>(
-      builder: (context, state) {
-        if (state is DoctorLoading || state is DoctorInitial) {
-          return const SizedBox(
-            height: 118,
-            child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
-          );
-        }
-        if (state is DoctorError) {
-          return _sectionMessage('تعذر تحميل الأطباء. حاول مرة أخرى.', isDark);
-        }
-        final doctors = state is DoctorLoaded ? state.doctors : <DoctorModel>[];
-        if (doctors.isEmpty) {
-          return _sectionMessage('لا يوجد أطباء موثقون متاحون للمحادثة حالياً.', isDark);
-        }
-        final visible = doctors.take(5).toList();
-        return SizedBox(
-          height: 140,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                child: Row(
-                  children: [
-                    const Expanded(
-                      child: Text('الأطباء المتاحون للمحادثة', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                    ),
-                    TextButton(onPressed: () => _showDoctorsForNewChat(isDark), child: const Text('عرض الكل')),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  scrollDirection: Axis.horizontal,
-                  itemCount: visible.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 8),
-                  itemBuilder: (_, i) => _doctorMiniCard(visible[i], isDark),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _doctorMiniCard(DoctorModel doctor, bool isDark) {
-    final image = doctor.photoUrl ?? '';
-    return SizedBox(
-      width: 220,
-      child: Card(
-        elevation: 0,
-        color: isDark ? const Color(0xFF162039) : Colors.white,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: _openingChat ? null : () => _openChat(doctor),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 25,
-                  backgroundColor: AppColors.primary.withOpacity(.12),
-                  backgroundImage: image.isNotEmpty ? NetworkImage(image) : null,
-                  child: image.isEmpty ? const Icon(Icons.person, color: AppColors.primary) : null,
-                ),
-                const SizedBox(width: 9),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(doctor.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      Text(doctor.specialty, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12)),
-                      const SizedBox(height: 2),
-                      Row(
-                        children: [
-                          const Icon(Icons.star, size: 14, color: Colors.amber),
-                          const SizedBox(width: 2),
-                          Text((doctor.rating ?? 0).toStringAsFixed(1), style: const TextStyle(fontSize: 11)),
-                          const Spacer(),
-                          const Icon(Icons.chat_bubble_outline, size: 17, color: AppColors.primary),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _sectionMessage(String text, bool isDark) => SizedBox(
-        height: 74,
-        child: Center(
-          child: Text(text, textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : Colors.black54)),
-        ),
-      );
-
   Widget _buildChatList(bool isDark) {
     if (_loadingChats) {
       return const Center(child: CircularProgressIndicator(color: AppColors.primary));
@@ -264,7 +235,9 @@ class _ChatScreenState extends State<ChatScreen> {
     if (chats.isEmpty) {
       return Center(
         child: Text(
-          _search.isEmpty ? 'لا توجد محادثات بعد\nاضغط على طبيب أعلاه لبدء محادثة' : 'لا توجد نتائج مطابقة',
+          _search.isEmpty
+              ? 'لا توجد محادثات بعد\nابدأ محادثة مع طبيب من تبويب جهات الاتصال'
+              : 'لا توجد نتائج مطابقة',
           textAlign: TextAlign.center,
           style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
         ),
@@ -287,6 +260,7 @@ class _ChatScreenState extends State<ChatScreen> {
     return Card(
       elevation: 0,
       color: isDark ? const Color(0xFF162039) : Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         leading: CircleAvatar(
@@ -296,11 +270,105 @@ class _ChatScreenState extends State<ChatScreen> {
           child: image.isEmpty ? const Icon(Icons.person, color: AppColors.primary) : null,
         ),
         title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(chat.lastMessage?.isNotEmpty == true ? chat.lastMessage! : 'اضغط لفتح المحادثة', maxLines: 1, overflow: TextOverflow.ellipsis),
+        subtitle: Text(
+          chat.lastMessage?.isNotEmpty == true ? chat.lastMessage! : 'اضغط لفتح المحادثة',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         trailing: unread > 0
-            ? CircleAvatar(radius: 12, backgroundColor: AppColors.primary, child: Text('$unread', style: const TextStyle(color: Colors.white, fontSize: 11)))
+            ? CircleAvatar(
+                radius: 12,
+                backgroundColor: AppColors.primary,
+                child: Text('$unread', style: const TextStyle(color: Colors.white, fontSize: 11)),
+              )
             : const Icon(Icons.chevron_left),
         onTap: otherId.isEmpty ? null : () => _openExistingChat(chat.id, otherId, name, image),
+      ),
+    );
+  }
+
+  Widget _buildContactsTab(bool isDark) {
+    return BlocBuilder<DoctorBloc, DoctorState>(
+      builder: (context, state) {
+        if (state is DoctorLoading || state is DoctorInitial) {
+          return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+        }
+        if (state is DoctorError) {
+          return Center(
+            child: Text(
+              'تعذر تحميل جهات الاتصال الطبية. حاول مرة أخرى.',
+              style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
+            ),
+          );
+        }
+        final doctors = state is DoctorLoaded ? state.doctors : <DoctorModel>[];
+        if (doctors.isEmpty) {
+          return Center(
+            child: Text(
+              'لا يوجد أطباء موثقون متاحون للمحادثة حالياً.',
+              style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
+            ),
+          );
+        }
+        final filtered = _search.isEmpty
+            ? doctors
+            : doctors.where((doctor) {
+                final value = '${doctor.name} ${doctor.specialty}'.toLowerCase();
+                return value.contains(_search);
+              }).toList();
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'ابحث عن طبيب أو تخصص...',
+                  prefixIcon: const Icon(Icons.search),
+                  filled: true,
+                  fillColor: isDark ? const Color(0xFF162039) : Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: ListView.separated(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
+                itemCount: filtered.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                itemBuilder: (_, index) => _doctorContactTile(filtered[index], isDark),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _doctorContactTile(DoctorModel doctor, bool isDark) {
+    final image = doctor.photoUrl ?? '';
+    return Card(
+      elevation: 0,
+      color: isDark ? const Color(0xFF162039) : Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        leading: CircleAvatar(
+          radius: 27,
+          backgroundColor: AppColors.primary.withOpacity(.12),
+          backgroundImage: image.isNotEmpty ? NetworkImage(image) : null,
+          child: image.isEmpty ? const Icon(Icons.person, color: AppColors.primary) : null,
+        ),
+        title: Text(doctor.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(doctor.specialty),
+        trailing: TextButton(
+          onPressed: _openingChat ? null : () => _openChat(doctor),
+          child: const Text('محادثة'),
+        ),
+        onTap: _openingChat ? null : () => _openChat(doctor),
       ),
     );
   }
@@ -395,7 +463,10 @@ class _ChatScreenState extends State<ChatScreen> {
             Container(width: 42, height: 4, decoration: BoxDecoration(color: Colors.grey, borderRadius: BorderRadius.circular(4))),
             const Padding(
               padding: EdgeInsets.all(16),
-              child: Align(alignment: Alignment.centerRight, child: Text('اختر طبيباً لبدء المحادثة', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Text('اختر طبيباً لبدء المحادثة', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              ),
             ),
             Expanded(
               child: ListView.separated(
