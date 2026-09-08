@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:sehatak/core/constants/app_assets.dart';
 
 /// Local asset icon used by the UI instead of Material Icons.
-///
-/// The widget deliberately has no IconData fallback: if an asset cannot be
-/// rendered, it stays empty rather than silently reintroducing a Material icon.
+/// Supports both verified PNG/JPG assets and local SVG assets.
 class LocalAssetIcon extends StatelessWidget {
   final String assetPath;
   final double size;
@@ -20,10 +20,26 @@ class LocalAssetIcon extends StatelessWidget {
     this.semanticLabel,
   });
 
+  String get _resolvedPath {
+    if (assetPath == 'assets/images/tracking/heart_rate.png') return AppAssets.heartRateIcon;
+    return assetPath;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final path = _resolvedPath;
+    if (path.toLowerCase().endsWith('.svg')) {
+      return SvgPicture.asset(
+        path,
+        width: size,
+        height: size,
+        fit: fit,
+        colorFilter: color == null ? null : ColorFilter.mode(color!, BlendMode.srcIn),
+        semanticsLabel: semanticLabel,
+      );
+    }
     return Image.asset(
-      assetPath,
+      path,
       width: size,
       height: size,
       fit: fit,
