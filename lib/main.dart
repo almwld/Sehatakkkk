@@ -38,7 +38,25 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  debugPrint('📩 Handling background message: ${message.messageId}');
+  final notificationService = NotificationService();
+  await notificationService.initialize();
+  final type = message.data['type']?.toString();
+  if (type == 'incoming_call') {
+    final callId = (message.data['callId'] ?? message.data['id'])?.toString();
+    if (callId != null && callId.isNotEmpty) {
+      await notificationService.showIncomingCallNotification(
+        callerName: message.data['callerName']?.toString() ?? message.notification?.title ?? 'مكالمة واردة',
+        callId: callId,
+        isVideo: message.data['isVideo']?.toString() == 'true' || message.data['callType']?.toString() == 'video',
+      );
+    }
+    return;
+  }
+  await notificationService.showMessageNotification(
+    title: message.notification?.title ?? message.data['senderName']?.toString() ?? 'رسالة جديدة',
+    body: message.notification?.body ?? message.data['body']?.toString() ?? 'لديك رسالة جديدة في الدردشة',
+    payload: message.data['chatId']?.toString(),
+  );
 }
 
 Future<void> _syncFcmToken() async {
@@ -62,7 +80,6 @@ Future<void> main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-
   try {
     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
     debugPrint('✅ Firebase initialized successfully');
@@ -71,7 +88,6 @@ Future<void> main() async {
     runApp(const _StartupErrorApp());
     return;
   }
-
   try {
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     final fcm = FirebaseMessaging.instance;
@@ -80,20 +96,16 @@ Future<void> main() async {
   } catch (e) {
     debugPrint('❌ FCM initialization error: $e');
   }
-
   await CacheService.init();
   final notificationService = NotificationService();
   await notificationService.initialize();
-
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => UserProvider()..loadUserSafely()),
         ChangeNotifierProvider(create: (_) => FontSizeProvider()),
         ChangeNotifierProvider(create: (_) => BotProvider()),
-        ChangeNotifierProvider(
-          create: (_) => WalletProvider(uid: FirebaseAuth.instance.currentUser?.uid ?? ''),
-        ),
+        ChangeNotifierProvider(create: (_) => WalletProvider(uid: FirebaseAuth.instance.currentUser?.uid ?? '')),
         ChangeNotifierProvider(create: (_) => CartProvider()),
         BlocProvider(create: (_) => AuthBloc()..add(CheckAuthStatus())),
         BlocProvider(create: (_) => ThemeBloc()),
@@ -109,15 +121,12 @@ Future<void> main() async {
 
 class _StartupErrorApp extends StatelessWidget {
   const _StartupErrorApp();
-
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        body: Center(
-          child: Text('تعذر تشغيل التطبيق بسبب خطأ في تهيئة الخدمات الأساسية.'),
-        ),
+        body: Center(child: Text('تعذر تشغيل التطبيق بسبب خطأ في تهيئة الخدمات الأساسية.')),
       ),
     );
   }
@@ -184,32 +193,41 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
     }
   }
 
-  void _handleMessage(RemoteMessage message) {
+  Future<void> _handleMessage(RemoteMessage message) async {
     if (message.data['type'] == 'incoming_call') {
-      _callService.handleIncomingCall(context, message);
+      final callId = (message.data['callId'] ?? message.data['id'])?.toString();
+      if (callId != null && callId.isNotEmpty) {
+        await _notificationService.showIncomingCallNotification(
+          callerName: message.data['callerName']?.toString() ?? message.notification?.title ?? 'مكالمة واردة',
+          callId: callId,
+          isVideo: message.data['isVideo']?.toString() == 'true' || message.data['callType']?.toString() == 'video',
+        );
+      }
+      if (mounted) await _callService.handleIncomingCall(context, message);
       return;
     }
-    _notificationService.showNotification(
-      title: message.notification?.title ?? 'رسالة جديدة',
-      body: message.notification?.body ?? 'لديك رسالة جديدة في الدردشة',
-      payload: message.data['chatId'] ?? '',
+    await _notificationService.showMessageNotification(
+      title: message.notification?.title ?? message.data['senderName']?.toString() ?? 'رسالة جديدة',
+      body: message.notification?.body ?? message.data['body']?.toString() ?? 'لديك رسالة جديدة في الدردشة',
+      payload: message.data['chatId']?.toString(),
     );
   }
 
-  void _handleMessageOpened(RemoteMessage message) {
+  Future<void> _handleMessageOpened(RemoteMessage message) async {
     if (message.data['type'] == 'incoming_call') {
-      _callService.handleIncomingCall(context, message);
+      final callId = (message.data['callId'] ?? message.data['id'])?.toString();
+      if (callId != null && callId.isNotEmpty) {
+        await _notificationService.cancelIncomingCallNotification(callId);
+      }
+      if (mounted) await _callService.handleIncomingCall(context, message);
       return;
     }
-
     final chatId = message.data['chatId']?.toString();
     if (chatId == null || chatId.isEmpty) return;
-
     final senderId = message.data['senderId']?.toString() ?? '';
     final senderName = message.data['senderName']?.toString() ?? 'محادثة';
     final nav = navigatorKey.currentState;
     if (nav == null) return;
-
     nav.push(
       MaterialPageRoute(
         builder: (_) => ChatRoomScreen(
