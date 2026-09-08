@@ -9,7 +9,9 @@
     {"collectionGroup":"appointments","queryScope":"COLLECTION","fields":[{"fieldPath":"doctorId","order":"ASCENDING"},{"fieldPath":"date","order":"ASCENDING"}]},
     {"collectionGroup":"appointments","queryScope":"COLLECTION","fields":[{"fieldPath":"patientId","order":"ASCENDING"},{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"date","order":"ASCENDING"}]},
     {"collectionGroup":"pharmacy_products","queryScope":"COLLECTION","fields":[{"fieldPath":"pharmacyId","order":"ASCENDING"},{"fieldPath":"createdAt","order":"DESCENDING"}]},
+    {"collectionGroup":"pharmacy_products","queryScope":"COLLECTION","fields":[{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"createdAt","order":"DESCENDING"}]},
     {"collectionGroup":"pharmacies","queryScope":"COLLECTION","fields":[{"fieldPath":"ownerId","order":"ASCENDING"},{"fieldPath":"status","order":"ASCENDING"}]},
+    {"collectionGroup":"pharmacies","queryScope":"COLLECTION","fields":[{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"createdAt","order":"DESCENDING"}]},
     {"collectionGroup":"products","queryScope":"COLLECTION","fields":[{"fieldPath":"approvalStatus","order":"ASCENDING"},{"fieldPath":"isPublished","order":"ASCENDING"},{"fieldPath":"isActive","order":"ASCENDING"}]}
   ],
   "fieldOverrides": [
