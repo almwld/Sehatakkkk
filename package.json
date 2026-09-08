@@ -3,15 +3,16 @@
   "version": "1.0.2",
   "private": true,
   "description": "Sehatak Flutter application and standalone LiveKit token service.",
-  "main": "livekit-token-server/server.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"No Node test suite\"",
-    "start": "node livekit-token-server/server.js"
+    "start": "node index.js"
   },
   "repository": {"type": "commonjs", "url": "git+https://github.com/almwld/Sehatakkkk.git"},
   "license": "ISC",
   "engines": {"node": ">=20"},
   "dependencies": {
+    "dotenv": "^17.4.2",
     "express": "^4.21.2",
     "firebase-admin": "^13.0.2",
     "google-auth-library": "^9.4.0",
