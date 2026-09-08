@@ -1,4 +1,5 @@
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:uuid/uuid.dart';
 
 class CartItem {
   final String productId;
@@ -31,6 +32,8 @@ class UnifiedCartService {
   static final UnifiedCartService instance = UnifiedCartService._();
 
   final List<CartItem> _items = [];
+  String? _checkoutIdempotencyKey;
+
   List<CartItem> get items => List.unmodifiable(_items);
   int get itemCount => _items.fold(0, (sum, item) => sum + item.quantity);
   double get subtotal => _items.fold(0, (sum, item) => sum + item.total);
@@ -52,6 +55,7 @@ class UnifiedCartService {
         requiresPrescription: requiresPrescription,
       ));
     }
+    _checkoutIdempotencyKey ??= 'cart-${const Uuid().v4()}';
   }
 
   void increment(String productId) {
@@ -67,10 +71,18 @@ class UnifiedCartService {
     } else {
       item.quantity--;
     }
+    if (_items.isEmpty) _checkoutIdempotencyKey = null;
   }
 
-  void remove(String productId) => _items.removeWhere((item) => item.productId == productId);
-  void clear() => _items.clear();
+  void remove(String productId) {
+    _items.removeWhere((item) => item.productId == productId);
+    if (_items.isEmpty) _checkoutIdempotencyKey = null;
+  }
+
+  void clear() {
+    _items.clear();
+    _checkoutIdempotencyKey = null;
+  }
 
   CartItem? _find(String productId) {
     final index = _items.indexWhere((item) => item.productId == productId);
@@ -82,15 +94,19 @@ class UnifiedCartService {
     String? deliveryAddress,
   }) async {
     if (_items.isEmpty) throw Exception('السلة فارغة');
+    _checkoutIdempotencyKey ??= 'cart-${const Uuid().v4()}';
+
     final functions = FirebaseFunctions.instanceFor(region: 'us-central1');
     final result = await functions.httpsCallable('checkoutCart').call({
       'items': _items.map((item) => {
             'productId': item.productId,
             'quantity': item.quantity,
           }).toList(),
+      // The trusted backend calculates the actual delivery fee; this value is
+      // retained only for backwards compatibility with older function clients.
       'deliveryFee': deliveryFee,
       'deliveryAddress': deliveryAddress,
-      'idempotencyKey': 'cart-${DateTime.now().microsecondsSinceEpoch}',
+      'idempotencyKey': _checkoutIdempotencyKey,
     });
     final data = Map<String, dynamic>.from(result.data as Map);
     clear();
