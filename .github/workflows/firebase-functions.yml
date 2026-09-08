@@ -5,6 +5,8 @@ on:
     branches: [master]
     paths:
       - 'functions/**'
+      - 'lib/core/data/medicines_data.dart'
+      - 'scripts/build_official_drug_catalog.js'
       - 'firebase.json'
       - 'firestore.rules'
       - '.github/workflows/firebase-functions.yml'
@@ -19,17 +21,21 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
       - name: Install functions dependencies
         working-directory: functions
         run: npm install --ignore-scripts
       - name: Syntax check
-        working-directory: functions
         run: |
-          node --check index.js
-          node --check lab_functions.js
-          node --check chat_notifications.js
-          node --check loader.js
+          node --check index.js 2>/dev/null || node --check functions/index.js
+          node --check functions/lab_functions.js
+          node --check functions/pharmacy_marketplace_functions.js
+          node --check functions/catalog_import_v2.js
+          node --check functions/loader.js
+      - name: Validate official 300-drug source
+        run: |
+          node scripts/build_official_drug_catalog.js
+          node -e "const x=require('./functions/data/official_drug_catalog.json'); if(x.length!==300) process.exit(1); if(new Set(x.map(d=>d.drugId)).size!==300) process.exit(1); console.log('official catalog records:', x.length)"
 
   deploy:
     if: ${{ github.event_name == 'workflow_dispatch' }}
@@ -41,15 +47,47 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
       - name: Write Firebase service account
         shell: bash
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-service-account.json"
-      - name: Install Firebase CLI
-        run: npm install -g firebase-tools
+      - name: Install dependencies
+        run: |
+          cd functions && npm install --ignore-scripts
+          npm install -g firebase-tools
+      - name: Build canonical catalog
+        run: node scripts/build_official_drug_catalog.js
       - name: Deploy Functions and Firestore rules
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-service-account.json
         run: firebase deploy --project sehatak-platform --only functions,firestore:rules
+      - name: Seed official catalog and platform offers
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-service-account.json
+        run: |
+          node <<'NODE'
+          const admin = require('./functions/node_modules/firebase-admin');
+          const fs = require('fs');
+          admin.initializeApp({credential: admin.credential.applicationDefault(), projectId: 'sehatak-platform'});
+          const db = admin.firestore();
+          const drugs = JSON.parse(fs.readFileSync('./functions/data/official_drug_catalog.json', 'utf8'));
+          (async () => {
+            if (drugs.length !== 300) throw new Error(`Expected 300 drugs, got ${drugs.length}`);
+            for (let i = 0; i < drugs.length; i += 100) {
+              const batch = db.batch();
+              for (const drug of drugs.slice(i, i + 100)) {
+                const catalogRef = db.collection('drug_catalog').doc(drug.drugId);
+                batch.set(catalogRef, {...drug, isOfficial: true, isActive: true, verificationStatus: 'unverified_source', updatedAt: admin.firestore.FieldValue.serverTimestamp()}, {merge: true});
+                const productId = `official_${drug.drugId}`;
+                const stock = drug.legacyInStock === true ? 1 : 0;
+                batch.set(db.collection('products').doc(productId), {productId, sourceType: 'platform', sellerType: 'platform', sellerId: 'sehatak', drugId: drug.drugId, name: drug.name, genericName: drug.genericName, activeIngredient: drug.activeIngredient, strength: drug.strength, dosageForm: drug.dosageForm, category: drug.category, subcategory: drug.subcategory, manufacturer: drug.manufacturer, description: drug.description, imageAsset: drug.imageAsset, imageUrl: drug.imageAsset, price: drug.legacyPrice, stock, requiresPrescription: drug.requiresPrescription === true, approvalStatus: 'approved', isPublished: true, isActive: stock > 0, verificationStatus: 'unverified_source', rating: drug.legacyRating, updatedAt: admin.firestore.FieldValue.serverTimestamp()}, {merge: true});
+                batch.set(db.collection('product_inventory').doc(productId), {productId, sourceType: 'platform', sellerType: 'platform', sellerId: 'sehatak', quantity: stock, isAvailable: stock > 0, updatedAt: admin.firestore.FieldValue.serverTimestamp()}, {merge: true});
+              }
+              await batch.commit();
+            }
+            console.log('Seeded official drug catalog:', drugs.length);
+            await admin.app().delete();
+          })().catch(async e => { console.error(e); try { await admin.app().delete(); } catch (_) {} process.exit(1); });
+          NODE
