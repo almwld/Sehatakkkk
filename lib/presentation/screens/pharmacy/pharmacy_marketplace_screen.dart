@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
-import '../cart/cart_screen.dart';
+import '../../../core/config/imagekit_config.dart';
+import 'cart_screen.dart';
 import '../../../core/services/unified_cart_service.dart';
 
 class PharmacyMarketplaceScreen extends StatefulWidget {
@@ -90,6 +91,24 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('تمت إضافة ${p['name']} إلى السلة')),
     );
+  }
+
+  String _medicineImage(Map<String, dynamic> p) {
+    final stored = '${p['imageUrl'] ?? p['image'] ?? ''}'.trim();
+    if (stored.isNotEmpty && stored.startsWith('http')) return stored;
+
+    final rawId = '${p['productId'] ?? p['id'] ?? '1'}';
+    final number = int.tryParse(rawId.replaceAll(RegExp(r'[^0-9]'), '')) ?? 1;
+    switch ((number - 1) % 4) {
+      case 0:
+        return ImageKitConfig.medicine1;
+      case 1:
+        return ImageKitConfig.medicine2;
+      case 2:
+        return ImageKitConfig.medicine3;
+      default:
+        return ImageKitConfig.medicine4;
+    }
   }
 
   @override
@@ -196,20 +215,29 @@ class _PharmacyMarketplaceScreenState extends State<PharmacyMarketplaceScreen> {
     final platform = p['sourceType'] == 'platform';
     final pharmacy = p['pharmacyId'];
     final stock = (p['stock'] as num?)?.toInt() ?? 0;
+    final imageUrl = _medicineImage(p);
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                width: 64,
+                height: 64,
                 color: AppColors.primary.withOpacity(.08),
-                borderRadius: BorderRadius.circular(12),
+                child: Image.network(
+                  imageUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => const Icon(
+                    Icons.medication_outlined,
+                    color: AppColors.primary,
+                    size: 34,
+                  ),
+                ),
               ),
-              child: const Icon(Icons.medication_outlined, color: AppColors.primary, size: 34),
             ),
             const SizedBox(width: 12),
             Expanded(
