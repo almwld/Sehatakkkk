@@ -2,7 +2,9 @@ import 'package:sehatak/presentation/widgets/common/custom_bottom_nav_bar.dart';
 import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_icons.dart';
 import '../../../core/constants/app_strings.dart';
+import '../../../presentation/widgets/app_icon.dart';
 import 'home_screen.dart';
 import '../doctor/doctors_list_screen.dart';
 import '../patient/patient_appointments.dart';
@@ -35,33 +37,22 @@ class _MainNavigationState extends State<MainNavigation> {
     AppStrings.more,
   ];
 
-  final List<IconData> _icons = [
-    Icons.home_outlined,
-    Icons.local_hospital_outlined,
-    Icons.calendar_today_outlined,
-    Icons.folder_open_outlined,
-    Icons.menu_outlined,
-  ];
-
-  final List<IconData> _activeIcons = [
-    Icons.home,
-    Icons.local_hospital,
-    Icons.calendar_today,
-    Icons.folder_open,
-    Icons.menu,
+  final List<String> _icons = [
+    AppIcons.navHome,
+    AppIcons.navDoctor,
+    AppIcons.navBlood,
+    AppIcons.navHealthRecord,
+    AppIcons.navMore,
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
-      ),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
-            ),
-          ],
+      body: IndexedStack(index: _currentIndex, children: _screens),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          boxShadow: const [BoxShadow(blurRadius: 10, offset: Offset(0, -2))],
         ),
         child: SafeArea(
           child: Padding(
@@ -82,11 +73,7 @@ class _MainNavigationState extends State<MainNavigation> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          isSelected ? _activeIcons[index] : _icons[index],
-                          color: isSelected ? AppColors.primary : AppColors.grey,
-                          size: 24,
-                        ),
+                        NavigationIcon(path: _icons[index], isSelected: isSelected, size: 24),
                         const SizedBox(height: 4),
                         Text(
                           _titles[index],
