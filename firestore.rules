@@ -17,12 +17,7 @@ service cloud.firestore {
       allow create: if isSelf(userId) && request.resource.data.uid == request.auth.uid && (request.resource.data.role != 'doctor' || request.resource.data.doctorId == request.auth.uid);
       allow update: if isAdmin() || (isSelf(userId) && request.resource.data.uid == resource.data.uid && request.resource.data.role == resource.data.role && request.resource.data.doctorId == resource.data.doctorId && request.resource.data.isVerified == resource.data.isVerified && request.resource.data.verificationStatus == resource.data.verificationStatus);
       allow delete: if isAdmin();
-      match /favorites/{doctorId} {
-        allow read: if isSelf(userId);
-        allow create: if isSelf(userId) && request.resource.data.doctorId == doctorId && request.resource.data.doctorId != '';
-        allow delete: if isSelf(userId);
-        allow update: if false;
-      }
+      match /favorites/{doctorId} { allow read: if isSelf(userId); allow create: if isSelf(userId) && request.resource.data.doctorId == doctorId && request.resource.data.doctorId != ''; allow delete: if isSelf(userId); allow update: if false; }
       match /medications/{medicationId} {
         allow read: if isSelf(userId) || isAdmin() || (isSignedIn() && isVerifiedDoctor(request.auth.uid) && resource.data.doctorId == request.auth.uid);
         allow create: if isAdmin() || (isSelf(userId) && request.resource.data.userId == request.auth.uid) || (isSignedIn() && isVerifiedDoctor(request.auth.uid) && request.resource.data.userId == userId && request.resource.data.doctorId == request.auth.uid && consultationExists(request.resource.data.consultationId) && consultationData(request.resource.data.consultationId).doctorId == request.auth.uid && consultationData(request.resource.data.consultationId).patientId == userId);
@@ -32,6 +27,12 @@ service cloud.firestore {
       match /medications_history/{historyId} { allow read, create: if isSelf(userId) && request.resource.data.userId == request.auth.uid; allow update, delete: if isAdmin() || isSelf(userId); }
       match /liked_posts/{postId} { allow read: if isSelf(userId); allow create: if isSelf(userId) && request.resource.data.postId == postId; allow delete: if isSelf(userId); allow update: if false; }
       match /saved_posts/{postId} { allow read: if isSelf(userId); allow create: if isSelf(userId) && request.resource.data.postId == postId; allow delete: if isSelf(userId); allow update: if false; }
+    }
+
+    match /search_history/{entryId} {
+      allow read, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid && request.resource.data.query is string && request.resource.data.query.size() > 0 && request.resource.data.query.size() <= 200;
+      allow update: if false;
     }
 
     match /doctors/{doctorId} {
@@ -63,13 +64,8 @@ service cloud.firestore {
         || (isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['comments']) && request.resource.data.comments == resource.data.comments + 1)
         || (isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['shares']) && request.resource.data.shares == resource.data.shares + 1);
       allow delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
-      match /comments/{commentId} {
-        allow read: if true;
-        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid && request.resource.data.comment is string && request.resource.data.comment.size() > 0 && request.resource.data.comment.size() <= 2000;
-        allow update, delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
-      }
+      match /comments/{commentId} { allow read: if true; allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid && request.resource.data.comment is string && request.resource.data.comment.size() > 0 && request.resource.data.comment.size() <= 2000; allow update, delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid); }
     }
-
     match /reports/{reportId} { allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid; allow read, update, delete: if isAdmin(); }
 
     function chatExists(chatId) { return exists(/databases/$(database)/documents/chats/$(chatId)); }
