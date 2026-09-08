@@ -21,6 +21,7 @@ import 'package:sehatak/presentation/screens/services/services_screen.dart';
 import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart';
 import 'package:sehatak/presentation/screens/blood_donation/blood_donation_screen.dart';
 import 'package:sehatak/presentation/screens/settings/settings_screen.dart';
+import 'package:sehatak/presentation/screens/search/search_screen.dart';
 
 class AppRouter {
   static const String home = '/';
@@ -93,6 +94,7 @@ class AppRouter {
         builder: (c, s) => const BloodDonationScreen(),
       ),
       GoRoute(path: settings, builder: (c, s) => const SettingsScreen()),
+      GoRoute(path: search, builder: (c, s) => const SearchScreen()),
     ],
   );
 }
