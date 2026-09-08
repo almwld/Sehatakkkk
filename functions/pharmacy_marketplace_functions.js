@@ -3,167 +3,52 @@ const admin = require('firebase-admin');
 const db = admin.firestore();
 const FieldValue = admin.firestore.FieldValue;
 
-function auth(request) {
-  if (!request.auth?.uid) throw new HttpsError('unauthenticated', 'يجب تسجيل الدخول أولاً');
-  return request.auth.uid;
-}
+function auth(request) { if (!request.auth?.uid) throw new HttpsError('unauthenticated', 'يجب تسجيل الدخول أولاً'); return request.auth.uid; }
+function clean(value, field, max = 200, required = true) { const v = String(value ?? '').trim(); if (required && (!v || v.length > max)) throw new HttpsError('invalid-argument', `الحقل ${field} غير صالح`); return v.slice(0, max); }
+function money(value) { const n = Number(value); if (!Number.isFinite(n) || n <= 0 || n > 100000000) throw new HttpsError('invalid-argument', 'السعر غير صالح'); return Math.round(n * 100) / 100; }
+function quantity(value) { const n = Number(value); if (!Number.isFinite(n) || n < 0 || n > 100000) throw new HttpsError('invalid-argument', 'المخزون غير صالح'); return Math.floor(n); }
+async function userData(uid) { const s = await db.collection('users').doc(uid).get(); return s.exists ? s.data() : {}; }
+async function assertAdmin(uid) { const u = await userData(uid); if (!['admin', 'super_admin'].includes(String(u.role || '').toLowerCase())) throw new HttpsError('permission-denied', 'هذه العملية للإدارة فقط'); return u; }
+async function pharmacyRef(id) { const ref = db.collection('pharmacies').doc(id); const s = await ref.get(); if (!s.exists) throw new HttpsError('not-found', 'الصيدلية غير موجودة'); return {ref, data: s.data()}; }
+async function assertPharmacyOwner(uid, id, approved = true) { const r = await pharmacyRef(id); if (r.data.ownerId !== uid) throw new HttpsError('permission-denied', 'لا تملك هذه الصيدلية'); if (approved && r.data.status !== 'approved') throw new HttpsError('failed-precondition', 'الصيدلية لم تعتمد بعد'); return r; }
+function safeId(raw, fallback) { const id = String(raw ?? '').trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 120); return id || fallback; }
 
-function clean(value, field, max = 200) {
-  const v = String(value ?? '').trim();
-  if (!v || v.length > max) throw new HttpsError('invalid-argument', `الحقل ${field} غير صالح`);
-  return v;
-}
-
-function money(value, field = 'price') {
-  const n = Number(value);
-  if (!Number.isFinite(n) || n <= 0 || n > 100000000) throw new HttpsError('invalid-argument', `السعر ${field} غير صالح`);
-  return Math.round(n * 100) / 100;
-}
-
-async function userData(uid) {
-  const snap = await db.collection('users').doc(uid).get();
-  return snap.exists ? snap.data() : {};
-}
-
-async function assertAdmin(uid) {
-  const u = await userData(uid);
-  if (!['admin', 'super_admin'].includes(String(u.role || '').toLowerCase())) {
-    throw new HttpsError('permission-denied', 'هذه العملية للإدارة فقط');
-  }
-  return u;
-}
-
-async function assertPharmacyOwner(uid, pharmacyId) {
-  const ref = db.collection('pharmacies').doc(pharmacyId);
-  const snap = await ref.get();
-  if (!snap.exists) throw new HttpsError('not-found', 'الصيدلية غير موجودة');
-  if (snap.data().ownerId !== uid) throw new HttpsError('permission-denied', 'لا تملك هذه الصيدلية');
-  if (snap.data().status !== 'approved') throw new HttpsError('failed-precondition', 'الصيدلية لم تعتمد بعد');
-  return {ref, data: snap.data()};
-}
-
-// Database model:
-// pharmacies/{pharmacyId}              -> pharmacy identity, ownerId, approval status
-// pharmacy_products/{submissionId}     -> seller submissions and review lifecycle
-// products/{productId}                 -> public marketplace offers after approval
-// drug_catalog/{drugId}                -> official platform master drug catalog (300+)
-// product_inventory/{productId}        -> stock/availability owned by platform or pharmacy
-
-exports.createPharmacyProfile = onCall(async (request) => {
-  const uid = auth(request);
-  const name = clean(request.data.name, 'name', 160);
-  const phone = clean(request.data.phone, 'phone', 40);
-  const address = clean(request.data.address, 'address', 300);
-  const licenseNumber = String(request.data.licenseNumber ?? '').trim().slice(0, 120);
-  const user = await userData(uid);
-  if (!['pharmacy', 'pharmacist', 'pharmacy_owner'].includes(String(user.role || '').toLowerCase())) {
-    throw new HttpsError('permission-denied', 'حساب الصيدلية يجب أن يكون من نوع صيدلية');
-  }
-  const existing = await db.collection('pharmacies').where('ownerId', '==', uid).limit(1).get();
-  if (!existing.empty) return {pharmacyId: existing.docs[0].id, status: existing.docs[0].data().status};
-  const ref = db.collection('pharmacies').doc();
-  await ref.set({pharmacyId: ref.id, ownerId: uid, name, phone, address, licenseNumber, status: 'pending', isActive: false, createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp()});
-  return {pharmacyId: ref.id, status: 'pending'};
+exports.createPharmacyProfile = onCall(async request => {
+  const uid = auth(request); const user = await userData(uid);
+  if (!['pharmacy','pharmacist','pharmacy_owner'].includes(String(user.role || '').toLowerCase())) throw new HttpsError('permission-denied','حساب الصيدلية يجب أن يكون من نوع صيدلية');
+  const name=clean(request.data.name,'name',160), phone=clean(request.data.phone,'phone',40), address=clean(request.data.address,'address',300), licenseNumber=clean(request.data.licenseNumber,'licenseNumber',120,false);
+  const existing=await db.collection('pharmacies').where('ownerId','==',uid).limit(1).get(); if(!existing.empty) return {pharmacyId:existing.docs[0].id,status:existing.docs[0].data().status};
+  const ref=db.collection('pharmacies').doc(); await ref.set({pharmacyId:ref.id,ownerId:uid,name,phone,address,licenseNumber:licenseNumber||null,status:'pending',isActive:false,createdAt:FieldValue.serverTimestamp(),updatedAt:FieldValue.serverTimestamp()}); return {pharmacyId:ref.id,status:'pending'};
 });
 
-exports.getMyPharmacy = onCall(async (request) => {
-  const uid = auth(request);
-  const snap = await db.collection('pharmacies').where('ownerId', '==', uid).limit(1).get();
-  if (snap.empty) return {exists: false};
-  return {exists: true, pharmacy: {id: snap.docs[0].id, ...snap.docs[0].data()}};
+exports.getMyPharmacy = onCall(async request => { const uid=auth(request); const s=await db.collection('pharmacies').where('ownerId','==',uid).limit(1).get(); if(s.empty)return {exists:false}; return {exists:true,pharmacy:{id:s.docs[0].id,...s.docs[0].data()}}; });
+
+exports.submitPharmacyProduct = onCall(async request => {
+  const uid=auth(request), pharmacyId=clean(request.data.pharmacyId,'pharmacyId',128); await assertPharmacyOwner(uid,pharmacyId);
+  const name=clean(request.data.name,'name',180), genericName=clean(request.data.genericName,'genericName',180,false), category=clean(request.data.category,'category',100), price=money(request.data.price), stock=quantity(request.data.stock??0), imageUrl=clean(request.data.imageUrl,'imageUrl',1000,false), drugId=clean(request.data.drugId,'drugId',128,false);
+  const ref=db.collection('pharmacy_products').doc(); await ref.set({submissionId:ref.id,pharmacyId,ownerId:uid,drugId:drugId||null,name,genericName:genericName||null,category,price,stock,imageUrl:imageUrl||null,requiresPrescription:Boolean(request.data.requiresPrescription),status:'pending',reviewNote:null,createdAt:FieldValue.serverTimestamp(),updatedAt:FieldValue.serverTimestamp()}); return {submissionId:ref.id,status:'pending'};
 });
 
-exports.submitPharmacyProduct = onCall(async (request) => {
-  const uid = auth(request);
-  const pharmacyId = clean(request.data.pharmacyId, 'pharmacyId', 128);
-  await assertPharmacyOwner(uid, pharmacyId);
-  const name = clean(request.data.name, 'name', 180);
-  const genericName = String(request.data.genericName ?? '').trim().slice(0, 180);
-  const category = clean(request.data.category, 'category', 100);
-  const price = money(request.data.price);
-  const stock = Math.max(0, Math.min(100000, Math.floor(Number(request.data.stock ?? 0))));
-  const imageUrl = String(request.data.imageUrl ?? '').trim().slice(0, 1000);
-  const drugId = String(request.data.drugId ?? '').trim().slice(0, 128);
-  const requiresPrescription = Boolean(request.data.requiresPrescription);
-  const ref = db.collection('pharmacy_products').doc();
-  await ref.set({submissionId: ref.id, pharmacyId, ownerId: uid, drugId: drugId || null, name, genericName, category, price, stock, imageUrl: imageUrl || null, requiresPrescription, status: 'pending', reviewNote: null, createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp()});
-  return {submissionId: ref.id, status: 'pending'};
+exports.getMyPharmacyProducts = onCall(async request => { const uid=auth(request), pharmacyId=clean(request.data.pharmacyId,'pharmacyId',128); await assertPharmacyOwner(uid,pharmacyId); const s=await db.collection('pharmacy_products').where('pharmacyId','==',pharmacyId).orderBy('createdAt','desc').limit(100).get(); return {products:s.docs.map(d=>({id:d.id,...d.data()}))}; });
+
+exports.updatePharmacyProductOffer = onCall(async request => { const uid=auth(request), pharmacyId=clean(request.data.pharmacyId,'pharmacyId',128), productId=clean(request.data.productId,'productId',200), price=money(request.data.price), stock=quantity(request.data.stock); await assertPharmacyOwner(uid,pharmacyId); const ref=db.collection('products').doc(productId), inv=db.collection('product_inventory').doc(productId); await db.runTransaction(async tx=>{const s=await tx.get(ref); if(!s.exists||s.data().pharmacyId!==pharmacyId||s.data().approvalStatus!=='approved')throw new HttpsError('not-found','العرض غير موجود أو غير معتمد'); const now=FieldValue.serverTimestamp(); tx.update(ref,{price,stock,isActive:stock>0,updatedAt:now}); tx.set(inv,{productId,sourceType:'pharmacy',pharmacyId,ownerId:uid,quantity:stock,isAvailable:stock>0,updatedAt:now},{merge:true});}); return {productId,price,stock}; });
+
+exports.updatePharmacyProductStock = onCall(async request => { const uid=auth(request), pharmacyId=clean(request.data.pharmacyId,'pharmacyId',128), productId=clean(request.data.productId,'productId',200), stock=quantity(request.data.quantity); await assertPharmacyOwner(uid,pharmacyId); const ref=db.collection('products').doc(productId); const s=await ref.get(); if(!s.exists||s.data().pharmacyId!==pharmacyId)throw new HttpsError('not-found','المنتج غير موجود'); await db.runTransaction(async tx=>{const now=FieldValue.serverTimestamp();tx.update(ref,{stock,isActive:stock>0,updatedAt:now});tx.set(db.collection('product_inventory').doc(productId),{productId,sourceType:'pharmacy',pharmacyId,ownerId:uid,quantity:stock,isAvailable:stock>0,updatedAt:now},{merge:true});}); return {productId,quantity:stock}; });
+
+exports.reviewPharmacy = onCall(async request => { const uid=auth(request); await assertAdmin(uid); const pharmacyId=clean(request.data.pharmacyId,'pharmacyId',128), decision=clean(request.data.decision,'decision',20), note=clean(request.data.note,'note',500,false); if(!['approve','reject'].includes(decision))throw new HttpsError('invalid-argument','قرار غير صالح'); const ref=db.collection('pharmacies').doc(pharmacyId); const s=await ref.get(); if(!s.exists)throw new HttpsError('not-found','الصيدلية غير موجودة'); await ref.update({status:decision==='approve'?'approved':'rejected',isActive:decision==='approve',reviewNote:note||null,reviewedBy:uid,reviewedAt:FieldValue.serverTimestamp(),updatedAt:FieldValue.serverTimestamp()}); return {pharmacyId,status:decision==='approve'?'approved':'rejected'}; });
+
+exports.getMarketplaceReviewQueue = onCall(async request => { const uid=auth(request); await assertAdmin(uid); const [products,pharmacies]=await Promise.all([db.collection('pharmacy_products').where('status','==','pending').orderBy('createdAt','desc').limit(100).get(),db.collection('pharmacies').where('status','==','pending').orderBy('createdAt','desc').limit(100).get()]); return {products:products.docs.map(d=>({id:d.id,...d.data()})),pharmacies:pharmacies.docs.map(d=>({id:d.id,...d.data()}))}; });
+
+exports.reviewPharmacyProduct = onCall(async request => {
+  const uid=auth(request); await assertAdmin(uid); const submissionId=clean(request.data.submissionId,'submissionId',150), decision=clean(request.data.decision,'decision',20), note=clean(request.data.note,'note',500,false); if(!['approve','reject'].includes(decision))throw new HttpsError('invalid-argument','قرار غير صالح'); const submissionRef=db.collection('pharmacy_products').doc(submissionId);
+  await db.runTransaction(async tx=>{const snap=await tx.get(submissionRef); if(!snap.exists)throw new HttpsError('not-found','المنتج غير موجود'); const p=snap.data(), now=FieldValue.serverTimestamp(); if(decision==='reject'){tx.update(submissionRef,{status:'rejected',reviewNote:note||'لم يتم اعتماد المنتج',reviewedBy:uid,reviewedAt:now,updatedAt:now});return;} const productId=p.productId||`pharmacy_${p.pharmacyId}_${submissionId}`; tx.set(db.collection('products').doc(productId),{productId,sourceType:'pharmacy',sellerType:'pharmacy',pharmacyId:p.pharmacyId,ownerId:p.ownerId,drugId:p.drugId||null,name:p.name,genericName:p.genericName||null,category:p.category,price:p.price,stock:p.stock,imageUrl:p.imageUrl||null,requiresPrescription:Boolean(p.requiresPrescription),approvalStatus:'approved',isPublished:true,isActive:p.stock>0,createdAt:p.createdAt||now,updatedAt:now}); tx.set(db.collection('product_inventory').doc(productId),{productId,sourceType:'pharmacy',pharmacyId:p.pharmacyId,ownerId:p.ownerId,quantity:p.stock,isAvailable:p.stock>0,updatedAt:now}); tx.update(submissionRef,{status:'approved',reviewNote:note||null,reviewedBy:uid,reviewedAt:now,productId,updatedAt:now});}); return {submissionId,status:decision==='approve'?'approved':'rejected'};
 });
 
-exports.getMyPharmacyProducts = onCall(async (request) => {
-  const uid = auth(request);
-  const pharmacyId = clean(request.data.pharmacyId, 'pharmacyId', 128);
-  await assertPharmacyOwner(uid, pharmacyId);
-  const snap = await db.collection('pharmacy_products').where('pharmacyId', '==', pharmacyId).orderBy('createdAt', 'desc').limit(100).get();
-  return {products: snap.docs.map(d => ({id: d.id, ...d.data()}))};
+exports.importOfficialDrugCatalog = onCall(async request => {
+  const uid=auth(request); await assertAdmin(uid); const drugs=Array.isArray(request.data.drugs)?request.data.drugs:[]; if(drugs.length!==300)throw new HttpsError('invalid-argument',`يجب استيراد 300 دواء بالضبط، تم استلام ${drugs.length}`);
+  let batch=db.batch(), writes=0, imported=0, offers=0; const flush=async()=>{if(writes>=450){await batch.commit();batch=db.batch();writes=0;}};
+  for(let i=0;i<drugs.length;i++){const raw=drugs[i]||{},id=safeId(raw.id||raw.code,`drug_${String(i+1).padStart(3,'0')}`),name=clean(raw.name,`name_${i+1}`,180),inStock=raw.inStock!==false,price=Number(raw.price),hasPrice=Number.isFinite(price)&&price>0; const catalog={drugId:id,name,genericName:clean(raw.genericName,'genericName',180,false)||null,activeIngredient:clean(raw.activeIngredient,'activeIngredient',180,false)||null,strength:clean(raw.strength,'strength',100,false)||null,dosageForm:clean(raw.dosageForm,'dosageForm',100,false)||null,category:clean(raw.category,'category',100,false)||null,subcategory:clean(raw.subcategory,'subcategory',100,false)||null,manufacturer:clean(raw.manufacturer,'manufacturer',180,false)||null,requiresPrescription:Boolean(raw.requiresPrescription),description:clean(raw.description,'description',1000,false)||null,imageAsset:clean(raw.image,'image',1000,false)||null,isOfficial:true,isActive:true,source:'Sehatak official 300-drug catalog',updatedAt:FieldValue.serverTimestamp()}; batch.set(db.collection('drug_catalog').doc(id),catalog,{merge:true});writes++;await flush(); if(hasPrice){const pid=`official_${id}`,stock=inStock?1:0;batch.set(db.collection('products').doc(pid),{productId:pid,sourceType:'platform',sellerType:'platform',drugId:id,name,genericName:catalog.genericName,category:catalog.category,price:Math.round(price*100)/100,stock,imageUrl:catalog.imageAsset,requiresPrescription:catalog.requiresPrescription,approvalStatus:'approved',isPublished:true,isActive:inStock,updatedAt:FieldValue.serverTimestamp()},{merge:true});writes++;batch.set(db.collection('product_inventory').doc(pid),{productId:pid,sourceType:'platform',quantity:stock,isAvailable:inStock,updatedAt:FieldValue.serverTimestamp()},{merge:true});writes++;offers++;await flush();} imported++;}
+  if(writes)await batch.commit(); return {imported,platformOffersSynced:offers,collection:'drug_catalog'};
 });
 
-exports.reviewPharmacyProduct = onCall(async (request) => {
-  const uid = auth(request);
-  await assertAdmin(uid);
-  const submissionId = clean(request.data.submissionId, 'submissionId', 150);
-  const decision = clean(request.data.decision, 'decision', 20);
-  if (!['approve', 'reject'].includes(decision)) throw new HttpsError('invalid-argument', 'قرار غير صالح');
-  const note = String(request.data.note ?? '').trim().slice(0, 500);
-  const submissionRef = db.collection('pharmacy_products').doc(submissionId);
-  await db.runTransaction(async tx => {
-    const snap = await tx.get(submissionRef);
-    if (!snap.exists) throw new HttpsError('not-found', 'المنتج غير موجود');
-    const p = snap.data();
-    if (p.status === 'approved' && decision === 'approve') return;
-    const now = FieldValue.serverTimestamp();
-    if (decision === 'reject') {
-      tx.update(submissionRef, {status: 'rejected', reviewNote: note || 'لم يتم اعتماد المنتج', reviewedBy: uid, reviewedAt: now, updatedAt: now});
-      return;
-    }
-    const productId = `pharmacy_${p.pharmacyId}_${submissionId}`;
-    tx.set(db.collection('products').doc(productId), {productId, sourceType: 'pharmacy', pharmacyId: p.pharmacyId, ownerId: p.ownerId, drugId: p.drugId || null, name: p.name, genericName: p.genericName || null, category: p.category, price: p.price, stock: p.stock, imageUrl: p.imageUrl || null, requiresPrescription: Boolean(p.requiresPrescription), approvalStatus: 'approved', isPublished: true, isActive: p.stock > 0, createdAt: p.createdAt || now, updatedAt: now});
-    tx.set(db.collection('product_inventory').doc(productId), {productId, sourceType: 'pharmacy', pharmacyId: p.pharmacyId, ownerId: p.ownerId, quantity: p.stock, isAvailable: p.stock > 0, updatedAt: now});
-    tx.update(submissionRef, {status: 'approved', reviewNote: note || null, reviewedBy: uid, reviewedAt: now, productId, updatedAt: now});
-  });
-  return {submissionId, status: decision === 'approve' ? 'approved' : 'rejected'};
-});
-
-exports.updatePharmacyProductStock = onCall(async (request) => {
-  const uid = auth(request);
-  const pharmacyId = clean(request.data.pharmacyId, 'pharmacyId', 128);
-  await assertPharmacyOwner(uid, pharmacyId);
-  const productId = clean(request.data.productId, 'productId', 200);
-  const quantity = Math.max(0, Math.min(100000, Math.floor(Number(request.data.quantity))));
-  const productRef = db.collection('products').doc(productId);
-  const inventoryRef = db.collection('product_inventory').doc(productId);
-  await db.runTransaction(async tx => {
-    const snap = await tx.get(productRef);
-    if (!snap.exists || snap.data().pharmacyId !== pharmacyId || snap.data().approvalStatus !== 'approved') throw new HttpsError('not-found', 'المنتج غير موجود أو غير معتمد');
-    const now = FieldValue.serverTimestamp();
-    tx.update(productRef, {stock: quantity, isActive: quantity > 0, updatedAt: now});
-    tx.set(inventoryRef, {productId, sourceType: 'pharmacy', pharmacyId, ownerId: uid, quantity, isAvailable: quantity > 0, updatedAt: now}, {merge: true});
-  });
-  return {productId, quantity};
-});
-
-exports.importOfficialDrugCatalog = onCall(async (request) => {
-  const uid = auth(request);
-  await assertAdmin(uid);
-  const drugs = Array.isArray(request.data.drugs) ? request.data.drugs : [];
-  if (!drugs.length || drugs.length > 1000) throw new HttpsError('invalid-argument', 'قائمة الأدوية غير صالحة');
-  const batch = db.batch();
-  let count = 0;
-  for (const raw of drugs) {
-    const id = clean(raw.id || raw.code || raw.name, 'id', 160).toLowerCase().replace(/[^a-z0-9_-]+/g, '_');
-    const name = clean(raw.name, 'name', 180);
-    const ref = db.collection('drug_catalog').doc(id);
-    batch.set(ref, {drugId: id, name, genericName: String(raw.genericName ?? '').trim().slice(0, 180) || null, activeIngredient: String(raw.activeIngredient ?? '').trim().slice(0, 180) || null, strength: String(raw.strength ?? '').trim().slice(0, 100) || null, dosageForm: String(raw.dosageForm ?? '').trim().slice(0, 100) || null, category: String(raw.category ?? '').trim().slice(0, 100) || null, manufacturer: String(raw.manufacturer ?? '').trim().slice(0, 180) || null, requiresPrescription: Boolean(raw.requiresPrescription), isOfficial: true, isActive: raw.isActive !== false, updatedAt: FieldValue.serverTimestamp()}, {merge: true});
-    count++;
-    if (count % 450 === 0) { await batch.commit(); }
-  }
-  await batch.commit();
-  return {imported: count, collection: 'drug_catalog'};
-});
-
-exports.getMarketplaceProducts = onCall(async (request) => {
-  auth(request);
-  const limit = Math.max(1, Math.min(100, Number(request.data.limit || 50)));
-  const snap = await db.collection('products').where('approvalStatus', '==', 'approved').where('isPublished', '==', true).where('isActive', '==', true).limit(limit).get();
-  return {products: snap.docs.map(d => ({id: d.id, ...d.data()}))};
-});
+exports.getMarketplaceProducts = onCall(async request => { auth(request); const limit=Math.max(1,Math.min(100,Number(request.data.limit||50))); const s=await db.collection('products').where('approvalStatus','==','approved').where('isPublished','==',true).where('isActive','==',true).limit(limit).get(); return {products:s.docs.map(d=>({id:d.id,...d.data()}))}; });
