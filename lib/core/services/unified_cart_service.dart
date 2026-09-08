@@ -1,5 +1,4 @@
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:uuid/uuid.dart';
 
 class CartItem {
   final String productId;
@@ -55,7 +54,7 @@ class UnifiedCartService {
         requiresPrescription: requiresPrescription,
       ));
     }
-    _checkoutIdempotencyKey ??= 'cart-${const Uuid().v4()}';
+    _checkoutIdempotencyKey ??= 'cart-${DateTime.now().microsecondsSinceEpoch}';
   }
 
   void increment(String productId) {
@@ -94,7 +93,7 @@ class UnifiedCartService {
     String? deliveryAddress,
   }) async {
     if (_items.isEmpty) throw Exception('السلة فارغة');
-    _checkoutIdempotencyKey ??= 'cart-${const Uuid().v4()}';
+    _checkoutIdempotencyKey ??= 'cart-${DateTime.now().microsecondsSinceEpoch}';
 
     final functions = FirebaseFunctions.instanceFor(region: 'us-central1');
     final result = await functions.httpsCallable('checkoutCart').call({
@@ -102,8 +101,7 @@ class UnifiedCartService {
             'productId': item.productId,
             'quantity': item.quantity,
           }).toList(),
-      // The trusted backend calculates the actual delivery fee; this value is
-      // retained only for backwards compatibility with older function clients.
+      // The trusted backend calculates the actual delivery fee.
       'deliveryFee': deliveryFee,
       'deliveryAddress': deliveryAddress,
       'idempotencyKey': _checkoutIdempotencyKey,
