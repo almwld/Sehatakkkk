@@ -1,10 +1,7 @@
-import 'package:sehatak/presentation/widgets/common/custom_bottom_nav_bar.dart';
-import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_icons.dart';
+import '../../../core/constants/app_images.dart';
 import '../../../core/constants/app_strings.dart';
-import '../../../presentation/widgets/app_icon.dart';
 import 'home_screen.dart';
 import '../doctor/doctors_list_screen.dart';
 import '../patient/patient_appointments.dart';
@@ -38,12 +35,21 @@ class _MainNavigationState extends State<MainNavigation> {
   ];
 
   final List<String> _icons = [
-    AppIcons.navHome,
-    AppIcons.navDoctor,
-    AppIcons.navBlood,
-    AppIcons.navHealthRecord,
-    AppIcons.navMore,
+    AppImages.uiAllServices,
+    AppImages.doctorMale,
+    AppImages.servicesPharmacy,
+    AppImages.servicesMedicalRecords,
+    AppImages.uiAllServices,
   ];
+
+  Widget _image(String path, {double size = 24, Color? color}) => Image.asset(
+    path,
+    width: size,
+    height: size,
+    fit: BoxFit.contain,
+    color: color,
+    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +79,7 @@ class _MainNavigationState extends State<MainNavigation> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        NavigationIcon(path: _icons[index], isSelected: isSelected, size: 24),
+                        _image(_icons[index], size: 24, color: isSelected ? AppColors.primary : AppColors.grey),
                         const SizedBox(height: 4),
                         Text(
                           _titles[index],
