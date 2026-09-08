@@ -1,16 +1,13 @@
-import 'package:sehatak/core/services/toast_service.dart';
-import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/providers/font_size_provider.dart';
-import 'package:sehatak/core/utils/icon_helper.dart';
 import 'package:sehatak/presentation/bloc/theme_bloc/theme_bloc.dart';
-import 'package:sehatak/presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
 import 'package:sehatak/presentation/screens/profile/profile_screen.dart';
 import 'package:sehatak/presentation/screens/shared/notifications_screen.dart';
@@ -19,6 +16,8 @@ import 'package:sehatak/presentation/screens/settings/language_screen.dart';
 import 'package:sehatak/presentation/screens/settings/privacy_screen.dart';
 import 'package:sehatak/presentation/screens/about/about_screen.dart';
 import 'package:sehatak/presentation/screens/settings/help_screen.dart';
+import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -31,8 +30,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final LocalAuthentication _localAuth = LocalAuthentication();
   bool _isBiometricSupported = false;
   bool _isBiometricEnabled = false;
-  bool _isDarkMode = false;
   bool _isSystemMode = false;
+
+  static const String _ui = 'assets/images/ui/';
+  static const String _services = 'assets/images/services/';
 
   @override
   void initState() {
@@ -44,99 +45,73 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _checkBiometricSupport() async {
     try {
-      final isAvailable = await _localAuth.canCheckBiometrics;
-      final isDeviceSupported = await _localAuth.isDeviceSupported();
-      setState(() {
-        _isBiometricSupported = isAvailable && isDeviceSupported;
-      });
-    } catch (e) {
-      print('Biometric check error: $e');
-      setState(() {
-        _isBiometricSupported = false;
-      });
+      final available = await _localAuth.canCheckBiometrics;
+      final supported = await _localAuth.isDeviceSupported();
+      if (mounted) {
+        setState(() => _isBiometricSupported = available && supported);
+      }
+    } catch (_) {
+      if (mounted) setState(() => _isBiometricSupported = false);
     }
   }
 
   Future<void> _loadBiometricPrefs() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      setState(() {
-        _isBiometricEnabled = prefs.getBool('biometric_enabled') ?? false;
-      });
-    } catch (e) {
-      print('Error loading biometric prefs: $e');
-    }
+      if (mounted) {
+        setState(() => _isBiometricEnabled = prefs.getBool('biometric_enabled') ?? false);
+      }
+    } catch (_) {}
   }
 
   void _loadThemeMode() {
-    final state = context.read<ThemeBloc>().state;
-    setState(() {
-      _isDarkMode = state.themeMode == ThemeMode.dark;
-      _isSystemMode = state.themeMode == ThemeMode.system;
-    });
+    final mode = context.read<ThemeBloc>().state.themeMode;
+    if (!mounted) return;
+    setState(() => _isSystemMode = mode == ThemeMode.system);
   }
 
   Future<void> _toggleBiometric(bool value) async {
     try {
       if (value) {
-        final isAuthenticated = await _localAuth.authenticate(
+        final authenticated = await _localAuth.authenticate(
           localizedReason: 'سجل باستخدام بصمة الإصبع لتأكيد الهوية',
-          options: const AuthenticationOptions(
-            stickyAuth: true,
-            biometricOnly: true,
-          ),
+          options: const AuthenticationOptions(stickyAuth: true, biometricOnly: true),
         );
-
-        if (!isAuthenticated) {
-          ToastService.showError('❌ فشل التحقق من البصمة، حاول مرة أخرى');
-          setState(() {
-            _isBiometricEnabled = false;
-          });
+        if (!authenticated) {
+          ToastService.showError('فشل التحقق من البصمة، حاول مرة أخرى');
           return;
         }
-
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool('biometric_enabled', true);
-        ToastService.showSuccess('✅ تم تفعيل تسجيل الدخول بالبصمة بنجاح');
-      } else {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool('biometric_enabled', false);
-        ToastService.showError('❌ تم إلغاء تفعيل تسجيل الدخول بالبصمة');
       }
-
-      setState(() {
-        _isBiometricEnabled = value;
-      });
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('biometric_enabled', value);
+      if (mounted) setState(() => _isBiometricEnabled = value);
+      ToastService.showSuccess(value ? 'تم تفعيل تسجيل الدخول بالبصمة' : 'تم إلغاء تفعيل تسجيل الدخول بالبصمة');
     } catch (e) {
-      print('Error toggling biometric: $e');
-      ToastService.showError('❌ حدث خطأ: $e');
-      await _loadBiometricPrefs();
+      ToastService.showError('تعذر تحديث إعداد البصمة');
     }
   }
 
-  // ✅ دالة مساعدة لعرض الأيقونات المحلية
-  Widget _buildLocalIcon(String path, {double size = 24, Color? color}) {
+  Widget _assetIcon(String path, {double size = 24, Color? color, IconData fallback = Icons.settings}) {
     return Image.asset(
       path,
       width: size,
       height: size,
+      fit: BoxFit.contain,
       color: color,
-      errorBuilder: (_, __, ___) => Icon(
-        Icons.circle,
-        color: color ?? AppColors.primary,
-        size: size,
-      ),
+      errorBuilder: (_, __, ___) => Icon(fallback, size: size, color: color ?? AppColors.primary),
     );
   }
+
+  Widget _icon(IconData icon, {double size = 24}) => Icon(icon, size: size, color: AppColors.primary);
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final fontSizeProvider = context.watch<FontSizeProvider>();
-    final fontScale = fontSizeProvider.fontScale;
+    final fontProvider = context.watch<FontSizeProvider>();
+    final scale = fontProvider.fontScale;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1121) : Colors.grey[50],
+      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF7F9FA),
       appBar: CustomAppBar(
         title: 'الإعدادات',
         backgroundColor: AppColors.primary,
@@ -144,497 +119,152 @@ class _SettingsScreenState extends State<SettingsScreen> {
         elevation: 0,
         actions: [
           IconButton(
-            icon: _buildLocalIcon('assets/images/ui/settings_gear.png', color: Colors.white),
-            onPressed: () {
-              setState(() {});
-              _loadThemeMode();
-            },
+            tooltip: 'الإعدادات',
+            icon: _assetIcon('${_ui}settings_gear.png', color: Colors.white, fallback: Icons.settings),
+            onPressed: _loadThemeMode,
           ),
         ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // ✅ قسم المظهر
-          _buildSectionHeader('المظهر', isDark),
-          const SizedBox(height: 8),
-          _buildCard(
-            isDark: isDark,
-            child: Column(
-              children: [
-                _buildSwitchTile(
-                  icon: Icons.dark_mode_rounded,
-                  title: 'الوضع المظلم',
-                  subtitle: 'تفعيل الوضع المظلم للتطبيق',
-                  value: isDark,
-                  onChanged: (value) {
-                    context.read<ThemeBloc>().setThemeMode(
-                      value ? ThemeMode.dark : ThemeMode.light,
-                    );
-                    setState(() {
-                      _isDarkMode = value;
-                      _isSystemMode = false;
-                    });
-                  },
-                  isDark: isDark,
-                ),
-                _buildDivider(isDark),
-                _buildSwitchTile(
-                  icon: Icons.brightness_auto_rounded,
-                  title: 'الوضع التلقائي',
-                  subtitle: 'متابعة إعدادات النظام',
-                  value: _isSystemMode,
-                  onChanged: (value) {
-                    setState(() {
-                      _isSystemMode = value;
-                      _isDarkMode = false;
-                    });
-                    ToastService.showSuccess('🔄 تم تفعيل الوضع التلقائي - متابعة إعدادات النظام');
-                  },
-                  isDark: isDark,
-                ),
-              ],
-            ),
-          ),
+          _section('المظهر', isDark),
+          _card(isDark, Column(children: [
+            _switchTile(Icons.dark_mode_rounded, 'الوضع المظلم', 'تفعيل الوضع المظلم للتطبيق', isDark, isDark, (v) {
+              context.read<ThemeBloc>().setThemeMode(v ? ThemeMode.dark : ThemeMode.light);
+              setState(() => _isSystemMode = false);
+            }),
+            _divider(isDark),
+            _switchTile(Icons.brightness_auto_rounded, 'الوضع التلقائي', 'متابعة إعدادات النظام', isDark, _isSystemMode, (v) {
+              context.read<ThemeBloc>().setThemeMode(v ? ThemeMode.system : ThemeMode.light);
+              setState(() => _isSystemMode = v);
+            }),
+          ])),
           const SizedBox(height: 16),
 
-          // ✅ قسم الأمان
-          if (_isBiometricSupported)
-            Column(
-              children: [
-                _buildSectionHeader('الأمان', isDark),
-                const SizedBox(height: 8),
-                _buildCard(
-                  isDark: isDark,
-                  child: Column(
-                    children: [
-                      _buildSwitchTile(
-                        icon: Icons.fingerprint_rounded,
-                        title: 'تسجيل الدخول بالبصمة',
-                        subtitle: _isBiometricEnabled
-                            ? '✅ تم التفعيل - استخدم بصمتك للدخول'
-                            : 'تفعيل تسجيل الدخول باستخدام بصمة الإصبع',
-                        value: _isBiometricEnabled,
-                        onChanged: _toggleBiometric,
-                        isDark: isDark,
-                      ),
-                      _buildDivider(isDark),
-                      _buildListTile(
-                        icon: Icons.security_rounded,
-                        title: 'المصادقة الثنائية',
-                        subtitle: 'تفعيل المصادقة الثنائية لمزيد من الأمان',
-                        onTap: () {
-                          ToastService.showSuccess('🔐 سيتم تفعيل المصادقة الثنائية قريباً');
-                        },
-                        isDark: isDark,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
-            ),
+          if (_isBiometricSupported) ...[
+            _section('الأمان', isDark),
+            _card(isDark, Column(children: [
+              _switchTile(Icons.fingerprint_rounded, 'تسجيل الدخول بالبصمة', _isBiometricEnabled ? 'تم التفعيل - استخدم بصمتك للدخول' : 'تفعيل تسجيل الدخول باستخدام بصمة الإصبع', isDark, _isBiometricEnabled, _toggleBiometric),
+              _divider(isDark),
+              _listTile(Icons.security_rounded, 'المصادقة الثنائية', 'تفعيل المصادقة الثنائية لمزيد من الأمان', isDark, () => ToastService.showSuccess('سيتم تفعيل المصادقة الثنائية قريباً')),
+            ])),
+            const SizedBox(height: 16),
+          ],
 
-          // ✅ قسم حجم الخط
-          _buildSectionHeader('حجم الخط', isDark),
-          const SizedBox(height: 8),
-          _buildCard(
-            isDark: isDark,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: _buildLocalIcon('assets/images/ui/font_size.png', size: 24),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'حجم الخط الحالي',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: isDark ? Colors.white : Colors.black87,
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue.withOpacity(0.15),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    '${((fontSizeProvider.fontScale - 0.8) / 0.6 * 100).round()}%',
-                                    style: TextStyle(
-                                      color: Colors.blue,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  fontSizeProvider.fontScale >= 1.1 ? "كبير" : "متوسط",
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      Text(
-                        'نص',
-                        style: TextStyle(
-                          fontSize: 14 * fontScale,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.remove_circle_outline, color: AppColors.primary),
-                        onPressed: () {
-                          if (fontScale > 0.81) {
-                            fontSizeProvider.setFontScale(fontScale - 0.05);
-                          }
-                        },
-                      ),
-                      Expanded(
-                        child: Slider(
-                          value: fontScale,
-                          min: 0.8,
-                          max: 1.6,
-                          divisions: 16,
-                          label: '${(fontScale * 100).round()}%',
-                          onChanged: (value) {
-                            fontSizeProvider.setFontScale(value);
-                          },
-                          activeColor: AppColors.primary,
-                          inactiveColor: isDark ? Colors.grey[700] : Colors.grey[300],
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.add_circle_outline, color: AppColors.primary),
-                        onPressed: () {
-                          if (fontScale < 1.59) {
-                            fontSizeProvider.setFontScale(fontScale + 0.05);
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildQuickSizeButton('صغير', 0.8, fontSizeProvider, isDark),
-                      _buildQuickSizeButton('متوسط', 1.0, fontSizeProvider, isDark),
-                      _buildQuickSizeButton('كبير', 1.3, fontSizeProvider, isDark),
-                      _buildQuickSizeButton('كبير جداً', 1.6, fontSizeProvider, isDark),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
+          _section('حجم الخط', isDark),
+          _card(isDark, Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(children: [
+              Row(children: [
+                _icon(Icons.text_fields_rounded),
+                const SizedBox(width: 12),
+                Expanded(child: Text('حجم الخط الحالي', style: TextStyle(fontWeight: FontWeight.w600, color: isDark ? Colors.white : Colors.black87))),
+                Text('${(scale * 100).round()}%', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+              ]),
+              Row(children: [
+                IconButton(icon: const Icon(Icons.remove_circle_outline, color: AppColors.primary), onPressed: () => fontProvider.setFontScale((scale - .05).clamp(.8, 1.6))),
+                Expanded(child: Slider(value: scale.clamp(.8, 1.6), min: .8, max: 1.6, divisions: 16, activeColor: AppColors.primary, onChanged: fontProvider.setFontScale)),
+                IconButton(icon: const Icon(Icons.add_circle_outline, color: AppColors.primary), onPressed: () => fontProvider.setFontScale((scale + .05).clamp(.8, 1.6))),
+              ]),
+              Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.center, children: [
+                _sizeButton('صغير', .8, fontProvider, isDark),
+                _sizeButton('متوسط', 1.0, fontProvider, isDark),
+                _sizeButton('كبير', 1.3, fontProvider, isDark),
+                _sizeButton('كبير جداً', 1.6, fontProvider, isDark),
+              ]),
+            ]),
+          )),
           const SizedBox(height: 16),
 
-          // ✅ قسم الحساب
-          _buildSectionHeader('الحساب', isDark),
-          const SizedBox(height: 8),
-          _buildCard(
-            isDark: isDark,
-            child: Column(
-              children: [
-                _buildListTile(
-                  icon: 'assets/images/ui/user_profile.png',
-                  title: 'الملف الشخصي',
-                  subtitle: 'تعديل بياناتك الشخصية',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const ProfileScreen()),
-                    );
-                  },
-                  isDark: isDark,
-                ),
-                _buildDivider(isDark),
-                _buildListTile(
-                  icon: 'assets/images/ui/lock.png',
-                  title: 'تغيير كلمة المرور',
-                  subtitle: 'تحديث كلمة المرور الخاصة بك',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const ChangePasswordScreen()),
-                    );
-                  },
-                  isDark: isDark,
-                ),
-                _buildDivider(isDark),
-                _buildListTile(
-                  icon: 'assets/images/ui/notifications.png',
-                  title: 'الإشعارات',
-                  subtitle: 'إدارة إعدادات الإشعارات',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const NotificationsScreen()),
-                    );
-                  },
-                  isDark: isDark,
-                ),
-              ],
-            ),
-          ),
+          _section('الحساب', isDark),
+          _card(isDark, Column(children: [
+            _listTileAsset('${_ui}user_profile.png', Icons.person_outline_rounded, 'الملف الشخصي', 'تعديل بياناتك الشخصية', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()))),
+            _divider(isDark),
+            _listTile(Icons.lock_outline_rounded, 'تغيير كلمة المرور', 'تحديث كلمة المرور الخاصة بك', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChangePasswordScreen()))),
+            _divider(isDark),
+            _listTileAsset('${_services}notifications.png', Icons.notifications_none_rounded, 'الإشعارات', 'إدارة إعدادات الإشعارات', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()))),
+          ])),
           const SizedBox(height: 16),
 
-          // ✅ قسم التطبيق
-          _buildSectionHeader('التطبيق', isDark),
-          const SizedBox(height: 8),
-          _buildCard(
-            isDark: isDark,
-            child: Column(
-              children: [
-                _buildListTile(
-                  icon: 'assets/images/ui/language.png',
-                  title: 'اللغة',
-                  subtitle: 'تغيير لغة التطبيق',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const LanguageScreen()),
-                    );
-                  },
-                  isDark: isDark,
-                ),
-                _buildDivider(isDark),
-                _buildListTile(
-                  icon: 'assets/images/ui/help_center.png',
-                  title: 'المساعدة والدعم',
-                  subtitle: 'الأسئلة الشائعة والدعم الفني',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const HelpScreen()),
-                    );
-                  },
-                  isDark: isDark,
-                ),
-                _buildDivider(isDark),
-                _buildListTile(
-                  icon: 'assets/images/ui/privacy.png',
-                  title: 'الخصوصية',
-                  subtitle: 'سياسة الخصوصية والأمان',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const PrivacyScreen()),
-                    );
-                  },
-                  isDark: isDark,
-                ),
-                _buildDivider(isDark),
-                _buildListTile(
-                  icon: 'assets/images/ui/about_app.png',
-                  title: 'عن التطبيق',
-                  subtitle: 'الإصدار 1.1.0',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const AboutScreen()),
-                    );
-                  },
-                  isDark: isDark,
-                ),
-              ],
-            ),
-          ),
+          _section('التطبيق', isDark),
+          _card(isDark, Column(children: [
+            _listTile(Icons.language_rounded, 'اللغة', 'تغيير لغة التطبيق', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LanguageScreen()))),
+            _divider(isDark),
+            _listTile(Icons.help_outline_rounded, 'المساعدة والدعم', 'الأسئلة الشائعة والدعم الفني', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpScreen()))),
+            _divider(isDark),
+            _listTile(Icons.privacy_tip_outlined, 'الخصوصية', 'سياسة الخصوصية والأمان', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyScreen()))),
+            _divider(isDark),
+            _listTileAsset('${_ui}about_app.png', Icons.info_outline_rounded, 'عن التطبيق', 'الإصدار 1.1.0', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen()))),
+          ])),
           const SizedBox(height: 16),
 
-          // ✅ قسم تسجيل الخروج
-          _buildCard(
-            isDark: isDark,
-            child: ListTile(
-              leading: _buildLocalIcon('assets/images/ui/logout.png', color: Colors.red),
-              title: const Text(
-                'تسجيل الخروج',
-                style: TextStyle(color: Colors.red),
-              ),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.red),
-              onTap: () {
-                _showLogoutDialog(context);
-              },
-            ),
-          ),
+          _card(isDark, ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+            leading: _icon(Icons.logout_rounded),
+            title: const Text('تسجيل الخروج', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600)),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.red),
+            onTap: () => _showLogoutDialog(context),
+          )),
           const SizedBox(height: 20),
-
-          Center(
-            child: Text(
-              'صحتك - الإصدار 1.1.0',
-              style: TextStyle(
-                fontSize: 12,
-                color: isDark ? Colors.grey[500] : Colors.grey[400],
-              ),
-            ),
-          ),
+          Center(child: Text('صحتك - الإصدار 1.1.0', style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[500] : Colors.grey[500]))),
           const SizedBox(height: 10),
         ],
       ),
     );
   }
 
-  Widget _buildQuickSizeButton(String label, double size, FontSizeProvider provider, bool isDark) {
-    final isSelected = (provider.fontScale - size).abs() < 0.02;
+  Widget _section(String title, bool dark) => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    child: Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: dark ? Colors.grey[400] : Colors.grey[600])),
+  );
+
+  Widget _card(bool dark, Widget child) => Card(
+    color: dark ? const Color(0xFF1A2540) : Colors.white,
+    elevation: 0,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    child: child,
+  );
+
+  Widget _divider(bool dark) => Divider(height: 1, color: dark ? Colors.grey[800] : Colors.grey[200], indent: 16, endIndent: 16);
+
+  Widget _switchTile(IconData icon, String title, String subtitle, bool dark, bool value, ValueChanged<bool> onChanged) => SwitchListTile(
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+    secondary: _icon(icon),
+    title: Text(title, style: TextStyle(color: dark ? Colors.white : Colors.black87, fontWeight: FontWeight.w500)),
+    subtitle: Text(subtitle, style: TextStyle(fontSize: 12, color: dark ? Colors.grey[400] : Colors.grey[600])),
+    value: value,
+    activeColor: AppColors.primary,
+    onChanged: onChanged,
+  );
+
+  Widget _listTile(IconData icon, String title, String subtitle, bool dark, VoidCallback onTap) => ListTile(
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+    leading: _icon(icon),
+    title: Text(title, style: TextStyle(color: dark ? Colors.white : Colors.black87, fontWeight: FontWeight.w500)),
+    subtitle: Text(subtitle, style: TextStyle(fontSize: 12, color: dark ? Colors.grey[400] : Colors.grey[600])),
+    trailing: Icon(Icons.arrow_forward_ios, size: 16, color: dark ? Colors.grey[500] : Colors.grey[500]),
+    onTap: onTap,
+  );
+
+  Widget _listTileAsset(String path, IconData fallback, String title, String subtitle, bool dark, VoidCallback onTap) => ListTile(
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+    leading: _assetIcon(path, fallback: fallback),
+    title: Text(title, style: TextStyle(color: dark ? Colors.white : Colors.black87, fontWeight: FontWeight.w500)),
+    subtitle: Text(subtitle, style: TextStyle(fontSize: 12, color: dark ? Colors.grey[400] : Colors.grey[600])),
+    trailing: Icon(Icons.arrow_forward_ios, size: 16, color: dark ? Colors.grey[500] : Colors.grey[500]),
+    onTap: onTap,
+  );
+
+  Widget _sizeButton(String label, double size, FontSizeProvider provider, bool dark) {
+    final selected = (provider.fontScale - size).abs() < .02;
     return GestureDetector(
       onTap: () => provider.setFontScale(size),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : (isDark ? const Color(0xFF1A2540) : Colors.grey[200]),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : Colors.transparent,
-            width: 1.5,
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 10 * (size / 1.0),
-            color: isSelected ? Colors.white : (isDark ? Colors.grey[400] : Colors.grey[600]),
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(color: selected ? AppColors.primary : (dark ? const Color(0xFF25314D) : Colors.grey[200]), borderRadius: BorderRadius.circular(8)),
+        child: Text(label, style: TextStyle(fontSize: 11 * size, color: selected ? Colors.white : (dark ? Colors.grey[300] : Colors.grey[700]), fontWeight: selected ? FontWeight.bold : FontWeight.normal)),
       ),
-    );
-  }
-
-  Widget _buildSectionHeader(String title, bool isDark) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Text(
-        title,
-        style: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-          color: isDark ? Colors.grey[400] : Colors.grey[600],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCard({
-    required Widget child,
-    required bool isDark,
-  }) {
-    return Card(
-      color: isDark ? const Color(0xFF1A2540) : Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      elevation: 0,
-      child: child,
-    );
-  }
-
-  Widget _buildDivider(bool isDark) {
-    return Divider(
-      height: 1,
-      thickness: 1,
-      color: isDark ? Colors.grey[800] : Colors.grey[200],
-      indent: 16,
-      endIndent: 16,
-    );
-  }
-
-  Widget _buildSwitchTile({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-    required bool isDark,
-  }) {
-    return SwitchListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-      title: Text(
-        title,
-        style: TextStyle(
-          color: isDark ? Colors.white : Colors.black87,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-      subtitle: Text(
-        subtitle,
-        style: TextStyle(
-          fontSize: 12,
-          color: isDark ? Colors.grey[400] : Colors.grey[600],
-        ),
-      ),
-      secondary: Icon(icon, color: AppColors.primary),
-      value: value,
-      onChanged: onChanged,
-      activeColor: AppColors.primary,
-    );
-  }
-
-  // ✅ دالة buildListTile المعدلة - تدعم الأيقونات المحلية والـ Material
-  Widget _buildListTile({
-    required dynamic icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-    required bool isDark,
-  }) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-      leading: icon is String
-          ? Image.asset(
-              icon,
-              width: 24,
-              height: 24,
-              color: AppColors.primary,
-              errorBuilder: (_, __, ___) => Icon(
-                Icons.circle,
-                color: AppColors.primary,
-                size: 24,
-              ),
-            )
-          : Icon(icon as IconData, color: AppColors.primary),
-      title: Text(
-        title,
-        style: TextStyle(
-          color: isDark ? Colors.white : Colors.black87,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-      subtitle: Text(
-        subtitle,
-        style: TextStyle(
-          fontSize: 12,
-          color: isDark ? Colors.grey[400] : Colors.grey[600],
-        ),
-      ),
-      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-      onTap: onTap,
     );
   }
 
@@ -642,33 +272,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('تسجيل الخروج'),
         content: const Text('هل أنت متأكد من رغبتك في تسجيل الخروج؟'),
         actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
-          ),
-          TextButton(
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
             onPressed: () async {
               try {
                 await FirebaseAuth.instance.signOut();
                 if (context.mounted) {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (_) => const AuthScreen()),
-                  );
+                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AuthScreen()));
                 }
               } catch (e) {
                 ToastService.showError('خطأ في تسجيل الخروج: $e');
               }
             },
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
-            ),
             child: const Text('تسجيل الخروج'),
           ),
         ],
