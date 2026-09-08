@@ -4,7 +4,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/constants/app_icons.dart';
 import 'package:sehatak/core/managers/global_scroll_manager.dart';
+import 'package:sehatak/presentation/widgets/app_icon.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
   final int currentIndex;
@@ -25,21 +27,18 @@ class CustomBottomNavigationBar extends StatelessWidget {
   });
 
   static const List<NavItem> _navItems = [
-    NavItem(index: 0, icon: Icons.home_rounded, label: 'الرئيسية'),
-    NavItem(index: 1, icon: Icons.person_search_rounded, label: 'الأطباء'),
-    NavItem(index: 2, icon: Icons.local_pharmacy_rounded, label: 'الصيدلية'),
-    NavItem(index: 3, icon: Icons.chat_rounded, label: 'الدردشة', isSpecial: true),
-    NavItem(index: 4, icon: Icons.science_rounded, label: 'مختبرات'),
-    NavItem(index: 5, icon: Icons.folder_rounded, label: 'صحتي', isProtected: true),
-    NavItem(index: 6, icon: Icons.grid_view_rounded, label: 'المزيد'),
+    NavItem(index: 0, iconPath: AppIcons.navHome, label: 'الرئيسية'),
+    NavItem(index: 1, iconPath: AppIcons.navDoctor, label: 'الأطباء'),
+    NavItem(index: 2, iconPath: AppIcons.navPharmacy, label: 'الصيدلية'),
+    NavItem(index: 3, iconPath: AppIcons.navChat, label: 'الدردشة', isSpecial: true),
+    NavItem(index: 4, iconPath: AppIcons.bloodTest, label: 'مختبرات'),
+    NavItem(index: 5, iconPath: AppIcons.navHealthRecord, label: 'صحتي', isProtected: true),
+    NavItem(index: 6, iconPath: AppIcons.navMore, label: 'المزيد'),
   ];
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    // The bar is tall enough to contain the elevated chat button completely.
-    // No negative-positioned content is used, so Scaffold cannot clip it.
     return Container(
       height: 72,
       clipBehavior: Clip.none,
@@ -68,7 +67,6 @@ class CustomBottomNavigationBar extends StatelessWidget {
 
   Widget _buildNavItem(NavItem item, bool isDark) {
     final isSelected = currentIndex == item.index;
-
     return GestureDetector(
       onTap: () => _handleTap(item),
       behavior: HitTestBehavior.opaque,
@@ -78,22 +76,14 @@ class CustomBottomNavigationBar extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              item.icon,
-              color: isSelected
-                  ? AppColors.primary
-                  : (isDark ? Colors.grey.shade500 : Colors.grey.shade400),
-              size: isSelected ? 24 : 22,
-            ),
+            NavigationIcon(path: item.iconPath, isSelected: isSelected, size: isSelected ? 24 : 22),
             const SizedBox(height: 2),
             Text(
               item.label,
               style: TextStyle(
                 fontSize: 9,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected
-                    ? AppColors.primary
-                    : (isDark ? Colors.grey.shade400 : Colors.grey.shade500),
+                color: isSelected ? AppColors.primary : (isDark ? Colors.grey.shade400 : Colors.grey.shade500),
               ),
               maxLines: 1,
               overflow: TextOverflow.clip,
@@ -103,10 +93,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
                 width: 16,
                 height: 3,
                 margin: const EdgeInsets.only(top: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(2),
-                ),
+                decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(2)),
               )
             else
               const SizedBox(height: 5),
@@ -116,12 +103,8 @@ class CustomBottomNavigationBar extends StatelessWidget {
     );
   }
 
-  // 💬 The complete chat button stays inside the navigation bar bounds.
-  // This avoids the previous top:-17 overflow that could be clipped by the
-  // Scaffold bottomNavigationBar slot.
   Widget _buildSpecialChatButton(NavItem item, bool isDark) {
     final isSelected = currentIndex == item.index;
-
     return GestureDetector(
       onTap: () => _handleTap(item),
       behavior: HitTestBehavior.opaque,
@@ -142,10 +125,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
                   end: Alignment.bottomRight,
                 ),
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                  width: 3,
-                ),
+                border: Border.all(color: isDark ? const Color(0xFF1E293B) : Colors.white, width: 3),
                 boxShadow: [
                   BoxShadow(
                     color: AppColors.primary.withOpacity(0.32),
@@ -155,13 +135,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
                   ),
                 ],
               ),
-              child: const Center(
-                child: Icon(
-                  Icons.chat_rounded,
-                  color: Colors.white,
-                  size: 27,
-                ),
-              ),
+              child: const Center(child: AppIcon(path: AppIcons.navChat, color: Colors.white, size: 27)),
             ),
             const SizedBox(height: 2),
             Text(
@@ -169,9 +143,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
               style: TextStyle(
                 fontSize: 9,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected
-                    ? AppColors.primary
-                    : (isDark ? Colors.grey.shade400 : Colors.grey.shade500),
+                color: isSelected ? AppColors.primary : (isDark ? Colors.grey.shade400 : Colors.grey.shade500),
               ),
               maxLines: 1,
               overflow: TextOverflow.visible,
@@ -194,14 +166,14 @@ class CustomBottomNavigationBar extends StatelessWidget {
 
 class NavItem {
   final int index;
-  final IconData icon;
+  final String iconPath;
   final String label;
   final bool isProtected;
   final bool isSpecial;
 
   const NavItem({
     required this.index,
-    required this.icon,
+    required this.iconPath,
     required this.label,
     this.isProtected = false,
     this.isSpecial = false,
