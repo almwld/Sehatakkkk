@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:livekit_client/livekit_client.dart';
 
@@ -36,10 +37,12 @@ class CallScreen extends StatefulWidget {
 class _CallScreenState extends State<CallScreen> {
   final CallService _callService = CallService();
   final LiveKitService _liveKitService = LiveKitService();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   Timer? _timer;
   Timer? _roomRefreshTimer;
   Room? _room;
   String? _activeCallId;
+  String? _resolvedChatId;
   int _seconds = 0;
   bool _starting = true;
   bool _connected = false;
@@ -55,6 +58,34 @@ class _CallScreenState extends State<CallScreen> {
     _start();
   }
 
+  Future<String> _resolveChatId() async {
+    if (widget.chatId.trim().isNotEmpty && !widget.chatId.startsWith('call_')) {
+      return widget.chatId;
+    }
+
+    if (widget.callId != null && widget.callId!.isNotEmpty) {
+      final fromCall = await _callService.resolveChatId(widget.callId!);
+      if (fromCall != null && fromCall.isNotEmpty) return fromCall;
+    }
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw Exception('يجب تسجيل الدخول');
+
+    final snapshot = await _firestore
+        .collection('chats')
+        .where('participants', arrayContains: user.uid)
+        .limit(100)
+        .get();
+
+    for (final doc in snapshot.docs) {
+      final participants = List<String>.from(doc.data()['participants'] ?? const <String>[]);
+      if (participants.contains(widget.doctorId) && doc.data()['isGroup'] != true) {
+        return doc.id;
+      }
+    }
+    throw Exception('تعذر العثور على المحادثة المرتبطة بالمكالمة');
+  }
+
   Future<void> _start() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -68,7 +99,9 @@ class _CallScreenState extends State<CallScreen> {
         if (!camera.isGranted) throw Exception('إذن الكاميرا مطلوب');
       }
 
+      _resolvedChatId = await _resolveChatId();
       _outgoing = widget.isOutgoing || widget.callId == null || widget.callId!.isEmpty;
+
       if (_outgoing) {
         if (widget.callId != null && widget.callId!.isNotEmpty) {
           _activeCallId = widget.callId;
@@ -77,18 +110,21 @@ class _CallScreenState extends State<CallScreen> {
             receiverId: widget.doctorId,
             receiverName: widget.doctorName,
             type: widget.isVideo ? CallType.video : CallType.audio,
-            chatId: widget.chatId,
+            chatId: _resolvedChatId!,
           );
           _activeCallId = call?.id;
-          if (_activeCallId == null || _activeCallId!.isEmpty) throw Exception('تعذر إنشاء المكالمة');
+          if (_activeCallId == null || _activeCallId!.isEmpty) {
+            throw Exception('تعذر إنشاء المكالمة');
+          }
         }
       } else {
         _activeCallId = widget.callId;
         await _callService.acceptCall(_activeCallId!);
       }
 
+      final roomName = 'call_${_activeCallId!}';
       _room = await _liveKitService.connectRoom(
-        roomName: 'call_${_activeCallId!}',
+        roomName: roomName,
         participantName: user.displayName ?? 'مستخدم',
       );
       if (widget.isVideo) await _liveKitService.enableCamera();
@@ -172,9 +208,6 @@ class _CallScreenState extends State<CallScreen> {
   RemoteVideoTrack? _remoteVideoTrack() {
     final room = _room;
     if (room == null) return null;
-    // livekit_client 1.5.6 exposes remote participants as `participants`.
-    // `remoteParticipants` was introduced by the 2.x API and therefore does
-    // not compile against the version used by this project.
     for (final participant in room.participants.values) {
       for (final publication in participant.trackPublications.values) {
         final track = publication.track;
@@ -251,7 +284,7 @@ class _CallScreenState extends State<CallScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              _starting ? 'جاري الاتصال...' : (_connected ? 'مكالمة صوتية متصلة' : 'بانتظار الاتصال'),
+              _starting ? 'جاري الاتصال...' : (_connected ? 'مكالمة متصلة' : 'بانتظار الاتصال'),
               style: const TextStyle(color: Colors.white70),
             ),
           ],
