@@ -13,26 +13,23 @@ const LIVEKIT_API_SECRET = process.env.LIVEKIT_API_SECRET;
 const LIVEKIT_URL = process.env.LIVEKIT_URL || 'wss://platformsehatak-z73p6n5m.livekit.cloud';
 const FIREBASE_SERVICE_ACCOUNT_JSON = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
 
+let firebaseConfigured = false;
+
+if (FIREBASE_SERVICE_ACCOUNT_JSON) {
+  try {
+    const serviceAccount = JSON.parse(FIREBASE_SERVICE_ACCOUNT_JSON);
+    admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+    firebaseConfigured = true;
+  } catch (error) {
+    console.error('Invalid FIREBASE_SERVICE_ACCOUNT_JSON:', error.message);
+  }
+} else {
+  console.warn('FIREBASE_SERVICE_ACCOUNT_JSON is not configured; /token will return 503 until configured.');
+}
+
 if (!LIVEKIT_API_KEY || !LIVEKIT_API_SECRET) {
-  console.error('❌ Missing LIVEKIT_API_KEY or LIVEKIT_API_SECRET');
-  process.exit(1);
+  console.warn('LIVEKIT_API_KEY/LIVEKIT_API_SECRET are not configured; /token will return 503 until configured.');
 }
-
-if (!FIREBASE_SERVICE_ACCOUNT_JSON) {
-  console.error('❌ Missing FIREBASE_SERVICE_ACCOUNT_JSON');
-  process.exit(1);
-}
-
-try {
-  const serviceAccount = JSON.parse(FIREBASE_SERVICE_ACCOUNT_JSON);
-  admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
-} catch (error) {
-  console.error('❌ Invalid FIREBASE_SERVICE_ACCOUNT_JSON:', error.message);
-  process.exit(1);
-}
-
-console.log('🔑 LiveKit credentials configured');
-console.log('🔐 Firebase Auth verification configured');
 
 function getBearerToken(req) {
   const header = req.get('authorization') || '';
@@ -48,6 +45,12 @@ async function verifyFirebaseUser(req) {
     throw error;
   }
 
+  if (!firebaseConfigured) {
+    const error = new Error('Firebase authentication is not configured on the token server');
+    error.statusCode = 503;
+    throw error;
+  }
+
   try {
     return await admin.auth().verifyIdToken(idToken);
   } catch (_) {
@@ -58,16 +61,26 @@ async function verifyFirebaseUser(req) {
 }
 
 app.get('/health', (_req, res) => {
-  res.json({
-    status: 'ok',
+  const ready = firebaseConfigured && Boolean(LIVEKIT_API_KEY && LIVEKIT_API_SECRET);
+  res.status(ready ? 200 : 503).json({
+    status: ready ? 'ok' : 'not_ready',
     service: 'sehatak-livekit-token-server',
     livekit: LIVEKIT_URL,
-    firebaseAuth: 'configured',
+    firebaseAuth: firebaseConfigured ? 'configured' : 'not_configured',
+    livekitCredentials: LIVEKIT_API_KEY && LIVEKIT_API_SECRET ? 'configured' : 'not_configured',
   });
+});
+
+app.get('/', (_req, res) => {
+  res.json({ service: 'sehatak-livekit-token-server', status: 'running' });
 });
 
 app.post('/token', async (req, res) => {
   try {
+    if (!LIVEKIT_API_KEY || !LIVEKIT_API_SECRET) {
+      return res.status(503).json({ success: false, message: 'LiveKit credentials are not configured' });
+    }
+
     const decodedToken = await verifyFirebaseUser(req);
     const uid = decodedToken.uid;
     const body = req.body && typeof req.body === 'object' ? req.body : {};
@@ -109,7 +122,7 @@ app.post('/token', async (req, res) => {
     });
   } catch (error) {
     const status = Number(error.statusCode) || 500;
-    if (status >= 500) console.error('❌ Token error:', error);
+    if (status >= 500) console.error('Token error:', error.message);
     return res.status(status).json({
       success: false,
       message: error.message || 'Unable to create LiveKit token',
@@ -121,11 +134,11 @@ app.use((error, _req, res, _next) => {
   if (error instanceof SyntaxError) {
     return res.status(400).json({ success: false, message: 'Invalid JSON body' });
   }
-  console.error('❌ Request error:', error);
+  console.error('Request error:', error);
   return res.status(500).json({ success: false, message: 'Internal server error' });
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📡 LIVEKIT_URL: ${LIVEKIT_URL}`);
+  console.log(`Sehatak LiveKit token server running on port ${PORT}`);
+  console.log(`LIVEKIT_URL: ${LIVEKIT_URL}`);
 });
