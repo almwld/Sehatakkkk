@@ -33,6 +33,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _isBiometricEnabled = false;
   bool _isSystemMode = false;
 
+  static const String _logoutIcon = 'assets/images/ui/logout.png';
+
   @override
   void initState() {
     super.initState();
@@ -84,16 +86,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Widget _localImage(String path, {double size = 24, Color? color}) {
-    return Image.asset(
-      path,
-      width: size,
-      height: size,
-      fit: BoxFit.contain,
-      color: color,
-      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-    );
-  }
+  Widget _localImage(String path, {double size = 24, Color? color}) => Image.asset(
+    path,
+    width: size,
+    height: size,
+    fit: BoxFit.contain,
+    color: color,
+    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+  );
 
   Widget _localTileIcon(String path, {double size = 24}) => _localImage(path, size: size, color: AppColors.primary);
 
@@ -139,7 +139,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             }),
           ])),
           const SizedBox(height: 16),
-
           if (_isBiometricSupported) ...[
             _section('الأمان', isDark),
             _card(isDark, Column(children: [
@@ -149,7 +148,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ])),
             const SizedBox(height: 16),
           ],
-
           _section('حجم الخط', isDark),
           _card(isDark, Padding(
             padding: const EdgeInsets.all(16),
@@ -161,17 +159,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Text('${(scale * 100).round()}%', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
               ]),
               Row(children: [
-                IconButton(
-                  onPressed: () => fontProvider.setFontScale((scale - .05).clamp(.8, 1.6)),
-                  icon: const Text('−', style: TextStyle(fontSize: 26, color: AppColors.primary, fontWeight: FontWeight.w600)),
-                  tooltip: 'تصغير الخط',
-                ),
+                IconButton(onPressed: () => fontProvider.setFontScale((scale - .05).clamp(.8, 1.6)), icon: const Text('−', style: TextStyle(fontSize: 26, color: AppColors.primary, fontWeight: FontWeight.w600)), tooltip: 'تصغير الخط'),
                 Expanded(child: Slider(value: scale.clamp(.8, 1.6), min: .8, max: 1.6, divisions: 16, activeColor: AppColors.primary, onChanged: fontProvider.setFontScale)),
-                IconButton(
-                  onPressed: () => fontProvider.setFontScale((scale + .05).clamp(.8, 1.6)),
-                  icon: const Text('+', style: TextStyle(fontSize: 24, color: AppColors.primary, fontWeight: FontWeight.w600)),
-                  tooltip: 'تكبير الخط',
-                ),
+                IconButton(onPressed: () => fontProvider.setFontScale((scale + .05).clamp(.8, 1.6)), icon: const Text('+', style: TextStyle(fontSize: 24, color: AppColors.primary, fontWeight: FontWeight.w600)), tooltip: 'تكبير الخط'),
               ]),
               Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.center, children: [
                 _sizeButton('صغير', .8, fontProvider, isDark),
@@ -182,7 +172,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ]),
           )),
           const SizedBox(height: 16),
-
           _section('الحساب', isDark),
           _card(isDark, Column(children: [
             _listTileAsset(AppImages.uiUserProfile, 'الملف الشخصي', 'تعديل بياناتك الشخصية', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()))),
@@ -192,7 +181,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _listTileAsset(AppImages.notificationsIcon, 'الإشعارات', 'إدارة إعدادات الإشعارات', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()))),
           ])),
           const SizedBox(height: 16),
-
           _section('التطبيق', isDark),
           _card(isDark, Column(children: [
             _listTileAsset(AppImages.uiSettingsGear, 'اللغة', 'تغيير لغة التطبيق', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LanguageScreen()))),
@@ -204,10 +192,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _listTileAsset(AppImages.uiAboutApp, 'عن التطبيق', 'الإصدار 1.1.0', isDark, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen()))),
           ])),
           const SizedBox(height: 16),
-
           _card(isDark, ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-            leading: _localImage(AppImages.uiReportProblem, color: Colors.red),
+            leading: _localImage(_logoutIcon, color: Colors.red),
             title: const Text('تسجيل الخروج', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600)),
             trailing: _arrow(isDark, color: Colors.red),
             onTap: () => _showLogoutDialog(context),
