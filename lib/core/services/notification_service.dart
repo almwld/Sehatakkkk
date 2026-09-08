@@ -1,5 +1,7 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import 'call_sound_coordinator.dart';
+
 /// Central notification and notification-sound service.
 ///
 /// The MP3 files are already bundled under assets/audio and the two Android
@@ -59,6 +61,10 @@ class NotificationService {
     final ios = _notifications.resolvePlatformSpecificImplementation<
         IOSFlutterLocalNotificationsPlugin>();
     await ios?.requestPermissions(alert: true, badge: true, sound: true);
+
+    // Foreground calls get a real looping ringtone/ringback driven by the
+    // canonical Firestore `calls` state, independently of the call UI.
+    CallSoundCoordinator.instance.start();
   }
 
   Future<void> showMessageNotification({
