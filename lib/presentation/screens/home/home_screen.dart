@@ -14,7 +14,7 @@ import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
 import 'package:sehatak/presentation/screens/patient/patient_dashboard.dart';
 import 'package:sehatak/presentation/screens/more/more_screen.dart';
 import 'package:sehatak/presentation/widgets/common/custom_bottom_navigation_bar.dart';
-import 'package:sehatak/presentation/screens/home/tabs/home_tab.dart';
+import 'package:sehatak/presentation/screens/home/tabs/home_tab_pro.dart';
 
 class ScreenKeys {
   static const home = ValueKey('home_tab');
@@ -62,9 +62,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   void _checkLoginStatus() {
     final newStatus = FirebaseAuth.instance.currentUser != null;
-    if (_isLoggedIn != newStatus && mounted) {
-      setState(() => _isLoggedIn = newStatus);
-    }
+    if (_isLoggedIn != newStatus && mounted) setState(() => _isLoggedIn = newStatus);
   }
 
   void _initializeScreens() {
@@ -86,68 +84,41 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   bool _handleScrollNotification(ScrollNotification notification) {
     if (notification.metrics.axis != Axis.vertical) return false;
-
     if (notification is UserScrollNotification) {
-      // Flutter's ScrollDirection.reverse means the scroll offset is
-      // increasing: the user is moving down through the page. Hide the bar.
-      // ScrollDirection.forward means the offset is decreasing: the user is
-      // moving back up. Show the bar again.
-      if (notification.direction == ScrollDirection.reverse) {
-        _setBottomNavVisibility(false);
-      } else if (notification.direction == ScrollDirection.forward) {
-        _setBottomNavVisibility(true);
-      }
-    } else if (notification is ScrollEndNotification &&
-        notification.metrics.pixels <= notification.metrics.minScrollExtent + 2) {
+      if (notification.direction == ScrollDirection.reverse) _setBottomNavVisibility(false);
+      if (notification.direction == ScrollDirection.forward) _setBottomNavVisibility(true);
+    } else if (notification is ScrollEndNotification && notification.metrics.pixels <= notification.metrics.minScrollExtent + 2) {
       _setBottomNavVisibility(true);
     }
-
     return false;
   }
 
   void _onTabTap(int index) {
-    if (index == 5 && !_isLoggedIn) {
+    if ((index == 3 || index == 4 || index == 5) && !_isLoggedIn) {
       _openAuth();
       return;
     }
-
     _setBottomNavVisibility(true);
-
-    if (_currentIndex != index) {
-      setState(() => _currentIndex = index);
-    }
-
+    if (_currentIndex != index) setState(() => _currentIndex = index);
     HapticFeedback.lightImpact();
   }
 
   void _openAuth() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const AuthScreen()),
-    ).then((_) => _checkLoginStatus());
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const AuthScreen())).then((_) => _checkLoginStatus());
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
+    final dark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+      backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       body: NotificationListener<ScrollNotification>(
         onNotification: _handleScrollNotification,
-        child: IndexedStack(
-          index: _currentIndex,
-          children: _screens.values.toList(growable: false),
-        ),
+        child: IndexedStack(index: _currentIndex, children: _screens.values.toList(growable: false)),
       ),
       bottomNavigationBar: _AnimatedBottomNavigationBar(
         visible: _isBottomNavVisible,
-        child: CustomBottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: _onTabTap,
-          isLoggedIn: _isLoggedIn,
-          onAuthRequired: _openAuth,
-        ),
+        child: CustomBottomNavigationBar(currentIndex: _currentIndex, onTap: _onTabTap, isLoggedIn: _isLoggedIn, onAuthRequired: _openAuth),
       ),
     );
   }
@@ -156,27 +127,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 class _AnimatedBottomNavigationBar extends StatelessWidget {
   final bool visible;
   final Widget child;
-
   const _AnimatedBottomNavigationBar({required this.visible, required this.child});
 
   @override
-  Widget build(BuildContext context) {
-    return AnimatedSize(
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOutCubic,
-      alignment: Alignment.topCenter,
-      child: AnimatedOpacity(
-        duration: const Duration(milliseconds: 160),
-        curve: Curves.easeOut,
-        opacity: visible ? 1 : 0,
-        child: ClipRect(
-          child: Align(
-            alignment: Alignment.topCenter,
-            heightFactor: visible ? 1 : 0,
-            child: child,
-          ),
+  Widget build(BuildContext context) => AnimatedSize(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        alignment: Alignment.topCenter,
+        child: AnimatedOpacity(
+          duration: const Duration(milliseconds: 160),
+          opacity: visible ? 1 : 0,
+          child: ClipRect(child: Align(alignment: Alignment.topCenter, heightFactor: visible ? 1 : 0, child: child)),
         ),
-      ),
-    );
-  }
+      );
 }
