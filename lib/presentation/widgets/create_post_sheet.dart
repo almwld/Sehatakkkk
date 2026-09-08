@@ -7,6 +7,7 @@ import 'package:sehatak/bloc/community/community_bloc.dart';
 import 'package:sehatak/bloc/community/community_event.dart';
 import 'package:sehatak/bloc/community/community_state.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/services/toast_service.dart';
 
 class CreatePostSheet extends StatefulWidget {
   const CreatePostSheet({super.key});
@@ -62,7 +63,7 @@ class _CreatePostSheetState extends State<CreatePostSheet> {
   Future<void> _submitPost() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedFiles.isEmpty && _contentController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('يرجى إضافة محتوى أو صورة للمنشور')));
+      ToastService.showWarning('يرجى إضافة محتوى أو صورة للمنشور');
       return;
     }
     setState(() => _isLoading = true);
@@ -78,7 +79,7 @@ class _CreatePostSheetState extends State<CreatePostSheet> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))));
+      ToastService.showError(e.toString().replaceFirst('Exception: ', ''));
     }
   }
 
@@ -89,10 +90,10 @@ class _CreatePostSheetState extends State<CreatePostSheet> {
       listener: (context, state) {
         if (state.status == CommunityStatus.loaded && _isLoading) {
           Navigator.of(context).pop();
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم نشر المنشور بنجاح')));
+          ToastService.showSuccess('تم نشر المنشور بنجاح');
         } else if (state.status == CommunityStatus.error && _isLoading) {
           setState(() => _isLoading = false);
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.errorMessage ?? 'فشل النشر')));
+          ToastService.showError(state.errorMessage ?? 'فشل النشر');
         }
       },
       child: Container(
