@@ -21,7 +21,7 @@ import 'package:sehatak/presentation/screens/services/services_screen.dart';
 import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart';
 import 'package:sehatak/presentation/screens/blood_donation/blood_donation_screen.dart';
 import 'package:sehatak/presentation/screens/settings/settings_screen.dart';
-import 'package:sehatak/presentation/screens/search/search_screen.dart';
+import 'package:sehatak/presentation/screens/search/advanced_search_screen.dart';
 
 class AppRouter {
   static const String home = '/';
@@ -60,41 +60,28 @@ class AppRouter {
         ),
       ),
       GoRoute(path: pharmacy, builder: (c, s) => const PharmacyScreen()),
-      GoRoute(
-        path: pharmacyDashboard,
-        builder: (c, s) => const PharmacyDashboard(),
-      ),
-      GoRoute(
-        path: marketplaceAdmin,
-        builder: (c, s) => const MarketplaceAdminDashboard(),
-      ),
+      GoRoute(path: pharmacyDashboard, builder: (c, s) => const PharmacyDashboard()),
+      GoRoute(path: marketplaceAdmin, builder: (c, s) => const MarketplaceAdminDashboard()),
       GoRoute(path: labs, builder: (c, s) => const LabsListScreen()),
       GoRoute(path: chat, builder: (c, s) => const ChatScreen()),
       GoRoute(path: more, builder: (c, s) => const MoreScreen()),
       GoRoute(path: dashboard, builder: (c, s) => const PatientDashboard()),
       GoRoute(path: profile, builder: (c, s) => const PatientProfile()),
-      GoRoute(
-        path: notifications,
-        builder: (c, s) => const NotificationsScreen(),
-      ),
+      GoRoute(path: notifications, builder: (c, s) => const NotificationsScreen()),
       GoRoute(path: cart, builder: (c, s) => const CartScreen()),
       GoRoute(path: wallet, builder: (c, s) => const WalletScreen()),
       GoRoute(path: map, builder: (c, s) => const InteractiveMapScreen()),
-      GoRoute(
-        path: consultation,
-        builder: (c, s) => const ConsultationScreen(),
-      ),
+      GoRoute(path: consultation, builder: (c, s) => const ConsultationScreen()),
       GoRoute(path: services, builder: (c, s) => const ServicesScreen()),
-      GoRoute(
-        path: emergency,
-        builder: (c, s) => const EmergencyNumbers(),
-      ),
-      GoRoute(
-        path: bloodDonation,
-        builder: (c, s) => const BloodDonationScreen(),
-      ),
+      GoRoute(path: emergency, builder: (c, s) => const EmergencyNumbers()),
+      GoRoute(path: bloodDonation, builder: (c, s) => const BloodDonationScreen()),
       GoRoute(path: settings, builder: (c, s) => const SettingsScreen()),
-      GoRoute(path: search, builder: (c, s) => const SearchScreen()),
+      GoRoute(
+        path: search,
+        builder: (c, s) => AdvancedSearchScreen(
+          initialQuery: s.uri.queryParameters['q'],
+        ),
+      ),
     ],
   );
 }
