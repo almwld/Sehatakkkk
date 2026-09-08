@@ -21,7 +21,7 @@ import 'package:sehatak/presentation/screens/services/services_screen.dart';
 import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart';
 import 'package:sehatak/presentation/screens/blood_donation/blood_donation_screen.dart';
 import 'package:sehatak/presentation/screens/settings/settings_screen.dart';
-import 'package:sehatak/presentation/screens/search/advanced_search_screen.dart';
+import 'package:sehatak/presentation/screens/search/unified_search_screen.dart';
 
 class AppRouter {
   static const String home = '/';
@@ -53,12 +53,7 @@ class AppRouter {
       GoRoute(path: home, builder: (c, s) => const HomeScreen()),
       GoRoute(path: auth, builder: (c, s) => const AuthScreen()),
       GoRoute(path: doctors, builder: (c, s) => const DoctorsListScreen()),
-      GoRoute(
-        path: doctorDetails,
-        builder: (c, s) => DoctorDetailsScreen(
-          doctorId: s.pathParameters['id'] ?? '',
-        ),
-      ),
+      GoRoute(path: doctorDetails, builder: (c, s) => DoctorDetailsScreen(doctorId: s.pathParameters['id'] ?? '')),
       GoRoute(path: pharmacy, builder: (c, s) => const PharmacyScreen()),
       GoRoute(path: pharmacyDashboard, builder: (c, s) => const PharmacyDashboard()),
       GoRoute(path: marketplaceAdmin, builder: (c, s) => const MarketplaceAdminDashboard()),
@@ -76,12 +71,7 @@ class AppRouter {
       GoRoute(path: emergency, builder: (c, s) => const EmergencyNumbers()),
       GoRoute(path: bloodDonation, builder: (c, s) => const BloodDonationScreen()),
       GoRoute(path: settings, builder: (c, s) => const SettingsScreen()),
-      GoRoute(
-        path: search,
-        builder: (c, s) => AdvancedSearchScreen(
-          initialQuery: s.uri.queryParameters['q'],
-        ),
-      ),
+      GoRoute(path: search, builder: (c, s) => AdvancedSearchScreen(initialQuery: s.uri.queryParameters['q'])),
     ],
   );
 }
