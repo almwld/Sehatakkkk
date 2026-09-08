@@ -12,35 +12,6 @@ class CommunityShareService {
   CommunityShareService._();
 
   static Future<void> sharePost(BuildContext context, CommunityPostModel post) async {
-    final boundaryKey = GlobalKey();
-    var captured = false;
-
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => Center(
-        child: Material(
-          color: Colors.transparent,
-          child: RepaintBoundary(
-            key: boundaryKey,
-            child: SizedBox(
-              width: 360,
-              child: _ShareCard(post: post),
-            ),
-          ),
-        ),
-      ),
-    ).then((_) {
-      captured = true;
-    });
-
-    if (captured) return;
-  }
-
-  static Future<void> captureAndShare(
-    BuildContext context,
-    CommunityPostModel post,
-  ) async {
     final key = GlobalKey();
     final dialogFuture = showDialog<void>(
       context: context,
@@ -56,7 +27,7 @@ class CommunityShareService {
       ),
     );
 
-    await Future<void>.delayed(const Duration(milliseconds: 350));
+    await Future<void>.delayed(const Duration(milliseconds: 450));
     final boundary = key.currentContext?.findRenderObject() as RenderRepaintBoundary?;
     if (boundary == null) {
       if (context.mounted) Navigator.of(context, rootNavigator: true).pop();
@@ -70,12 +41,11 @@ class CommunityShareService {
 
     if (context.mounted) Navigator.of(context, rootNavigator: true).pop();
     await dialogFuture;
-
     if (data == null) return;
+
     final dir = await getTemporaryDirectory();
     final file = File('${dir.path}/sehatak_post_${post.id.isEmpty ? DateTime.now().millisecondsSinceEpoch : post.id}.png');
     await file.writeAsBytes(data.buffer.asUint8List(), flush: true);
-
     await Share.shareXFiles(
       [XFile(file.path, mimeType: 'image/png')],
       text: 'منشور من منصة صحتك — الرعاية الصحية الرقمية',
@@ -89,46 +59,41 @@ class _ShareCard extends StatelessWidget {
   const _ShareCard({required this.post});
 
   @override
-  Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(28),
-          boxShadow: const [BoxShadow(blurRadius: 24, offset: Offset(0, 12), color: Color(0x33000000))],
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.fromLTRB(18, 18, 18, 14),
-              color: AppColors.primary,
-              child: const Row(
-                children: [
+  Widget build(BuildContext context) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(28),
+            boxShadow: const [BoxShadow(blurRadius: 24, offset: Offset(0, 12), color: Color(0x33000000))],
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.fromLTRB(18, 18, 18, 14),
+                color: AppColors.primary,
+                child: const Row(children: [
                   _BrandMark(),
                   SizedBox(width: 10),
                   Text('صحتك', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900)),
                   Spacer(),
                   Text('منصة الرعاية الصحية', style: TextStyle(color: Colors.white70, fontSize: 10)),
-                ],
+                ]),
               ),
-            ),
-            if ((post.images?.isNotEmpty ?? false) || (post.imageUrl?.isNotEmpty ?? false))
-              SizedBox(
-                height: 220,
-                child: AppImage(
-                  imageUrl: (post.images?.isNotEmpty ?? false) ? post.images!.first : post.imageUrl!,
-                  fit: BoxFit.cover,
+              if ((post.images?.isNotEmpty ?? false) || (post.imageUrl?.isNotEmpty ?? false))
+                SizedBox(
+                  height: 220,
+                  child: AppImage(
+                    imageUrl: (post.images?.isNotEmpty ?? false) ? post.images!.first : post.imageUrl!,
+                    fit: BoxFit.cover,
+                  ),
                 ),
-              ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(post.userName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
                   const SizedBox(height: 8),
                   Text(post.title, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w900, height: 1.35)),
@@ -137,23 +102,19 @@ class _ShareCard extends StatelessWidget {
                     Text(post.content!, maxLines: 5, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, height: 1.55)),
                   ],
                   const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Text('♥ ${post.likes}', style: const TextStyle(fontSize: 11, color: Colors.black54)),
-                      const SizedBox(width: 12),
-                      Text('تعليقات ${post.comments}', style: const TextStyle(fontSize: 11, color: Colors.black54)),
-                      const Spacer(),
-                      const Text('sehatak', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 11)),
-                    ],
-                  ),
-                ],
+                  Row(children: [
+                    Text('♥ ${post.likes}', style: const TextStyle(fontSize: 11, color: Colors.black54)),
+                    const SizedBox(width: 12),
+                    Text('تعليقات ${post.comments}', style: const TextStyle(fontSize: 11, color: Colors.black54)),
+                    const Spacer(),
+                    const Text('sehatak', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 11)),
+                  ]),
+                ]),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
 }
 
 class _BrandMark extends StatelessWidget {
