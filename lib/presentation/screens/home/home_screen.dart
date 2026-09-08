@@ -11,8 +11,8 @@ import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
 import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
 import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
 import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
-import 'package:sehatak/presentation/screens/patient/patient_dashboard.dart';
 import 'package:sehatak/presentation/screens/more/more_screen.dart';
+import 'package:sehatak/presentation/screens/dashboard/role_based_dashboard_screen.dart';
 import 'package:sehatak/presentation/widgets/common/custom_bottom_navigation_bar.dart';
 import 'package:sehatak/presentation/screens/home/tabs/home_tab_pro.dart';
 
@@ -28,7 +28,6 @@ class ScreenKeys {
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
-
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -41,28 +40,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   late final Map<int, Widget> _screens;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _checkLoginStatus();
-    _initializeScreens();
-  }
-
+  void initState() { super.initState(); WidgetsBinding.instance.addObserver(this); _checkLoginStatus(); _initializeScreens(); }
   @override
-  void dispose() {
-    _scrollController.dispose();
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
+  void dispose() { _scrollController.dispose(); WidgetsBinding.instance.removeObserver(this); super.dispose(); }
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) _checkLoginStatus();
-  }
+  void didChangeAppLifecycleState(AppLifecycleState state) { if (state == AppLifecycleState.resumed) _checkLoginStatus(); }
 
   void _checkLoginStatus() {
-    final newStatus = FirebaseAuth.instance.currentUser != null;
-    if (_isLoggedIn != newStatus && mounted) setState(() => _isLoggedIn = newStatus);
+    final status = FirebaseAuth.instance.currentUser != null;
+    if (_isLoggedIn != status && mounted) setState(() => _isLoggedIn = status);
   }
 
   void _initializeScreens() {
@@ -72,15 +58,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       2: const PharmacyScreen(key: ScreenKeys.pharmacy),
       3: const ChatScreen(key: ScreenKeys.chat),
       4: const LabsListScreen(key: ScreenKeys.labs),
-      5: const PatientDashboard(key: ScreenKeys.patient),
+      5: const RoleBasedDashboardScreen(key: ScreenKeys.patient),
       6: const MoreScreen(key: ScreenKeys.more),
     };
   }
 
-  void _setBottomNavVisibility(bool visible) {
-    if (_isBottomNavVisible == visible || !mounted) return;
-    setState(() => _isBottomNavVisible = visible);
-  }
+  void _setBottomNavVisibility(bool visible) { if (_isBottomNavVisible == visible || !mounted) return; setState(() => _isBottomNavVisible = visible); }
 
   bool _handleScrollNotification(ScrollNotification notification) {
     if (notification.metrics.axis != Axis.vertical) return false;
@@ -94,32 +77,21 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   void _onTabTap(int index) {
-    if ((index == 3 || index == 4 || index == 5) && !_isLoggedIn) {
-      _openAuth();
-      return;
-    }
+    if ((index == 3 || index == 4 || index == 5) && !_isLoggedIn) { _openAuth(); return; }
     _setBottomNavVisibility(true);
     if (_currentIndex != index) setState(() => _currentIndex = index);
     HapticFeedback.lightImpact();
   }
 
-  void _openAuth() {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => const AuthScreen())).then((_) => _checkLoginStatus());
-  }
+  void _openAuth() { Navigator.push(context, MaterialPageRoute(builder: (_) => const AuthScreen())).then((_) => _checkLoginStatus()); }
 
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-      body: NotificationListener<ScrollNotification>(
-        onNotification: _handleScrollNotification,
-        child: IndexedStack(index: _currentIndex, children: _screens.values.toList(growable: false)),
-      ),
-      bottomNavigationBar: _AnimatedBottomNavigationBar(
-        visible: _isBottomNavVisible,
-        child: CustomBottomNavigationBar(currentIndex: _currentIndex, onTap: _onTabTap, isLoggedIn: _isLoggedIn, onAuthRequired: _openAuth),
-      ),
+      body: NotificationListener<ScrollNotification>(onNotification: _handleScrollNotification, child: IndexedStack(index: _currentIndex, children: _screens.values.toList(growable: false))),
+      bottomNavigationBar: _AnimatedBottomNavigationBar(visible: _isBottomNavVisible, child: CustomBottomNavigationBar(currentIndex: _currentIndex, onTap: _onTabTap, isLoggedIn: _isLoggedIn, onAuthRequired: _openAuth)),
     );
   }
 }
@@ -128,16 +100,6 @@ class _AnimatedBottomNavigationBar extends StatelessWidget {
   final bool visible;
   final Widget child;
   const _AnimatedBottomNavigationBar({required this.visible, required this.child});
-
   @override
-  Widget build(BuildContext context) => AnimatedSize(
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOutCubic,
-        alignment: Alignment.topCenter,
-        child: AnimatedOpacity(
-          duration: const Duration(milliseconds: 160),
-          opacity: visible ? 1 : 0,
-          child: ClipRect(child: Align(alignment: Alignment.topCenter, heightFactor: visible ? 1 : 0, child: child)),
-        ),
-      );
+  Widget build(BuildContext context) => AnimatedSize(duration: const Duration(milliseconds: 220), curve: Curves.easeOutCubic, alignment: Alignment.topCenter, child: AnimatedOpacity(duration: const Duration(milliseconds: 160), opacity: visible ? 1 : 0, child: ClipRect(child: Align(alignment: Alignment.topCenter, heightFactor: visible ? 1 : 0, child: child))));
 }
