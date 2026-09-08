@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:sehatak/core/constants/app_colors.dart';
 
+/// Central icon rendering helpers for the app.
+///
+/// UI fallbacks intentionally remain asset-based/empty; Material IconData is
+/// never used as an automatic visual fallback.
 class IconHelper {
   static Widget svgIcon(String path, {double size = 24, Color? color}) {
     return SvgPicture.asset(
@@ -10,25 +13,21 @@ class IconHelper {
       height: size,
       colorFilter: color != null ? ColorFilter.mode(color, BlendMode.srcIn) : null,
       fit: BoxFit.contain,
-      // ✅ إضافة errorBuilder
+      errorBuilder: (_, __, ___) => SizedBox(width: size, height: size),
     );
   }
-  
-  // ✅ دالة جديدة مع fallback
-  static Widget safeSvgIcon(String path, {double size = 24, Color? color, IconData? fallbackIcon}) {
-    try {
-      return SvgPicture.asset(
-        path,
-        width: size,
-        height: size,
-        colorFilter: color != null ? ColorFilter.mode(color, BlendMode.srcIn) : null,
-        fit: BoxFit.contain,
-      );
-    } catch (e) {
-      return Icon(fallbackIcon ?? Icons.circle, size: size, color: color ?? Colors.grey);
-    }
+
+  static Widget safeSvgIcon(String path, {double size = 24, Color? color}) {
+    return SvgPicture.asset(
+      path,
+      width: size,
+      height: size,
+      colorFilter: color != null ? ColorFilter.mode(color, BlendMode.srcIn) : null,
+      fit: BoxFit.contain,
+      errorBuilder: (_, __, ___) => SizedBox(width: size, height: size),
+    );
   }
-  
+
   static Widget pngIcon(String path, {double size = 24, Color? color}) {
     return Image.asset(
       path,
@@ -36,7 +35,7 @@ class IconHelper {
       height: size,
       color: color,
       fit: BoxFit.contain,
-      errorBuilder: (_, __, ___) => Icon(Icons.image_not_supported, size: size, color: Colors.grey),
+      errorBuilder: (_, __, ___) => SizedBox(width: size, height: size),
     );
   }
 
@@ -47,7 +46,7 @@ class IconHelper {
       height: size,
       color: color,
       fit: BoxFit.contain,
-      errorBuilder: (_, __, ___) => Icon(Icons.medical_services, size: size, color: color ?? AppColors.primary),
+      errorBuilder: (_, __, ___) => SizedBox(width: size, height: size),
     );
   }
 
@@ -58,6 +57,7 @@ class IconHelper {
       height: size,
       colorFilter: color != null ? ColorFilter.mode(color, BlendMode.srcIn) : null,
       fit: BoxFit.contain,
+      errorBuilder: (_, __, ___) => SizedBox(width: size, height: size),
     );
   }
 
@@ -67,7 +67,7 @@ class IconHelper {
       width: size,
       height: size,
       fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => Icon(Icons.person, size: size, color: Colors.grey),
+      errorBuilder: (_, __, ___) => SizedBox(width: size, height: size),
     );
   }
 
@@ -77,7 +77,7 @@ class IconHelper {
       width: size,
       height: size,
       fit: BoxFit.contain,
-      errorBuilder: (_, __, ___) => Icon(Icons.payment, size: size, color: Colors.grey),
+      errorBuilder: (_, __, ___) => SizedBox(width: size, height: size),
     );
   }
 }
