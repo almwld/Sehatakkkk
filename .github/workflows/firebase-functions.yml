@@ -27,7 +27,7 @@ jobs:
         run: npm install --ignore-scripts
       - name: Syntax check
         run: |
-          node --check index.js 2>/dev/null || node --check functions/index.js
+          node --check functions/index.js
           node --check functions/lab_functions.js
           node --check functions/pharmacy_marketplace_functions.js
           node --check functions/catalog_import_v2.js
@@ -38,7 +38,7 @@ jobs:
           node -e "const x=require('./functions/data/official_drug_catalog.json'); if(x.length!==300) process.exit(1); if(new Set(x.map(d=>d.drugId)).size!==300) process.exit(1); console.log('official catalog records:', x.length)"
 
   deploy:
-    if: ${{ github.event_name == 'workflow_dispatch' }}
+    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
     needs: validate
     runs-on: ubuntu-latest
     steps:
