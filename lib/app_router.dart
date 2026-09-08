@@ -19,16 +19,80 @@ import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
 import 'package:sehatak/presentation/screens/consultation/consultation_screen.dart';
 import 'package:sehatak/presentation/screens/services/services_screen.dart';
 import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart';
+import 'package:sehatak/presentation/screens/blood_donation/blood_donation_screen.dart';
 import 'package:sehatak/presentation/screens/settings/settings_screen.dart';
 
 class AppRouter {
-  static const String home='/',auth='/auth',doctors='/doctors',doctorDetails='/doctor/:id',pharmacy='/pharmacy',labs='/labs',chat='/chat',more='/more',dashboard='/dashboard',profile='/profile',notifications='/notifications',cart='/cart',wallet='/wallet',map='/map',consultation='/consultation',services='/services',emergency='/emergency',settings='/settings',search='/search';
-  static const String pharmacyDashboard='/pharmacy-dashboard';
-  static const String marketplaceAdmin='/marketplace-admin';
-  static final GoRouter router=GoRouter(initialLocation:home,routes:[
-    GoRoute(path:home,builder:(c,s)=>const HomeScreen()),GoRoute(path:auth,builder:(c,s)=>const AuthScreen()),GoRoute(path:doctors,builder:(c,s)=>const DoctorsListScreen()),
-    GoRoute(path:doctorDetails,builder:(c,s)=>DoctorDetailsScreen(doctorId:s.pathParameters['id']??'')),GoRoute(path:pharmacy,builder:(c,s)=>const PharmacyScreen()),
-    GoRoute(path:pharmacyDashboard,builder:(c,s)=>const PharmacyDashboard()),GoRoute(path:marketplaceAdmin,builder:(c,s)=>const MarketplaceAdminDashboard()),
-    GoRoute(path:labs,builder:(c,s)=>const LabsListScreen()),GoRoute(path:chat,builder:(c,s)=>const ChatScreen()),GoRoute(path:more,builder:(c,s)=>const MoreScreen()),GoRoute(path:dashboard,builder:(c,s)=>const PatientDashboard()),GoRoute(path:profile,builder:(c,s)=>const PatientProfile()),GoRoute(path:notifications,builder:(c,s)=>const NotificationsScreen()),GoRoute(path:cart,builder:(c,s)=>const CartScreen()),GoRoute(path:wallet,builder:(c,s)=>const WalletScreen()),GoRoute(path:map,builder:(c,s)=>const InteractiveMapScreen()),GoRoute(path:consultation,builder:(c,s)=>const ConsultationScreen()),GoRoute(path:services,builder:(c,s)=>const ServicesScreen()),GoRoute(path:emergency,builder:(c,s)=>const EmergencyNumbers()),GoRoute(path:settings,builder:(c,s)=>const SettingsScreen()),
-  ]);
+  static const String home = '/';
+  static const String auth = '/auth';
+  static const String doctors = '/doctors';
+  static const String doctorDetails = '/doctor/:id';
+  static const String pharmacy = '/pharmacy';
+  static const String labs = '/labs';
+  static const String chat = '/chat';
+  static const String more = '/more';
+  static const String dashboard = '/dashboard';
+  static const String profile = '/profile';
+  static const String notifications = '/notifications';
+  static const String cart = '/cart';
+  static const String wallet = '/wallet';
+  static const String map = '/map';
+  static const String consultation = '/consultation';
+  static const String services = '/services';
+  static const String emergency = '/emergency';
+  static const String bloodDonation = '/blood-donation';
+  static const String settings = '/settings';
+  static const String search = '/search';
+  static const String pharmacyDashboard = '/pharmacy-dashboard';
+  static const String marketplaceAdmin = '/marketplace-admin';
+
+  static final GoRouter router = GoRouter(
+    initialLocation: home,
+    routes: [
+      GoRoute(path: home, builder: (c, s) => const HomeScreen()),
+      GoRoute(path: auth, builder: (c, s) => const AuthScreen()),
+      GoRoute(path: doctors, builder: (c, s) => const DoctorsListScreen()),
+      GoRoute(
+        path: doctorDetails,
+        builder: (c, s) => DoctorDetailsScreen(
+          doctorId: s.pathParameters['id'] ?? '',
+        ),
+      ),
+      GoRoute(path: pharmacy, builder: (c, s) => const PharmacyScreen()),
+      GoRoute(
+        path: pharmacyDashboard,
+        builder: (c, s) => const PharmacyDashboard(),
+      ),
+      GoRoute(
+        path: marketplaceAdmin,
+        builder: (c, s) => const MarketplaceAdminDashboard(),
+      ),
+      GoRoute(path: labs, builder: (c, s) => const LabsListScreen()),
+      GoRoute(path: chat, builder: (c, s) => const ChatScreen()),
+      GoRoute(path: more, builder: (c, s) => const MoreScreen()),
+      GoRoute(path: dashboard, builder: (c, s) => const PatientDashboard()),
+      GoRoute(path: profile, builder: (c, s) => const PatientProfile()),
+      GoRoute(
+        path: notifications,
+        builder: (c, s) => const NotificationsScreen(),
+      ),
+      GoRoute(path: cart, builder: (c, s) => const CartScreen()),
+      GoRoute(path: wallet, builder: (c, s) => const WalletScreen()),
+      GoRoute(path: map, builder: (c, s) => const InteractiveMapScreen()),
+      GoRoute(
+        path: consultation,
+        builder: (c, s) => const ConsultationScreen(),
+      ),
+      GoRoute(path: services, builder: (c, s) => const ServicesScreen()),
+      GoRoute(
+        path: emergency,
+        builder: (c, s) => const EmergencyNumbers(),
+      ),
+      GoRoute(
+        path: bloodDonation,
+        builder: (c, s) => const BloodDonationScreen(),
+      ),
+      GoRoute(path: settings, builder: (c, s) => const SettingsScreen()),
+    ],
+  );
 }
