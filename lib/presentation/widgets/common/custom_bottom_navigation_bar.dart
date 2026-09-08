@@ -38,10 +38,10 @@ class CustomBottomNavigationBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // SafeArea is owned by CustomScrollWrapper. Keeping this widget at the
-    // exact 56dp navigation height prevents double-counting the bottom inset.
+    // The bar is tall enough to contain the elevated chat button completely.
+    // No negative-positioned content is used, so Scaffold cannot clip it.
     return Container(
-      height: 56,
+      height: 72,
       clipBehavior: Clip.none,
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E293B) : Colors.white,
@@ -74,7 +74,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
         width: 48,
-        height: 56,
+        height: 72,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -116,8 +116,9 @@ class CustomBottomNavigationBar extends StatelessWidget {
     );
   }
 
-  // 💬 Chat button deliberately paints above the 56dp bar.
-  // Stack + Clip.none prevents the circular button from being clipped.
+  // 💬 The complete chat button stays inside the navigation bar bounds.
+  // This avoids the previous top:-17 overflow that could be clipped by the
+  // Scaffold bottomNavigationBar slot.
   Widget _buildSpecialChatButton(NavItem item, bool isDark) {
     final isSelected = currentIndex == item.index;
 
@@ -126,55 +127,54 @@ class CustomBottomNavigationBar extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
         width: 62,
-        height: 56,
-        child: Stack(
-          clipBehavior: Clip.none,
-          alignment: Alignment.bottomCenter,
+        height: 72,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Positioned(
-              bottom: 1,
-              child: Text(
-                item.label,
-                style: TextStyle(
-                  fontSize: 9,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                  color: isSelected
-                      ? AppColors.primary
-                      : (isDark ? Colors.grey.shade400 : Colors.grey.shade500),
+            Container(
+              width: 54,
+              height: 54,
+              margin: const EdgeInsets.only(top: 1),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [AppColors.primary, AppColors.primaryDark],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                  width: 3,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withOpacity(0.32),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+              child: const Center(
+                child: Icon(
+                  Icons.chat_rounded,
+                  color: Colors.white,
+                  size: 27,
                 ),
               ),
             ),
-            Positioned(
-              top: -17,
-              child: Container(
-                width: 58,
-                height: 58,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppColors.primary, AppColors.primaryDark],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                    width: 4,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withOpacity(0.38),
-                      blurRadius: 16,
-                      offset: const Offset(0, 6),
-                      spreadRadius: 1,
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.chat_rounded,
-                  color: Colors.white,
-                  size: 28,
-                ),
+            const SizedBox(height: 2),
+            Text(
+              item.label,
+              style: TextStyle(
+                fontSize: 9,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected
+                    ? AppColors.primary
+                    : (isDark ? Colors.grey.shade400 : Colors.grey.shade500),
               ),
+              maxLines: 1,
+              overflow: TextOverflow.visible,
             ),
           ],
         ),
