@@ -88,9 +88,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (notification.metrics.axis != Axis.vertical) return false;
 
     if (notification is UserScrollNotification) {
-      if (notification.direction == ScrollDirection.forward) {
+      // Flutter's ScrollDirection.reverse means the scroll offset is
+      // increasing: the user is moving down through the page. Hide the bar.
+      // ScrollDirection.forward means the offset is decreasing: the user is
+      // moving back up. Show the bar again.
+      if (notification.direction == ScrollDirection.reverse) {
         _setBottomNavVisibility(false);
-      } else if (notification.direction == ScrollDirection.reverse) {
+      } else if (notification.direction == ScrollDirection.forward) {
         _setBottomNavVisibility(true);
       }
     } else if (notification is ScrollEndNotification &&
