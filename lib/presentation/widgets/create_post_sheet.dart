@@ -1,14 +1,10 @@
-// ============================================================
-// 📁 lib/presentation/widgets/create_post_sheet.dart
-// 📝 شيت إنشاء منشور جديد
-// ============================================================
-
-import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:sehatak/bloc/community/community_bloc.dart';
 import 'package:sehatak/bloc/community/community_event.dart';
+import 'package:sehatak/bloc/community/community_state.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 
 class CreatePostSheet extends StatefulWidget {
@@ -19,7 +15,7 @@ class CreatePostSheet extends StatefulWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => const CreatePostSheet(),
+      builder: (_) => const CreatePostSheet(),
     );
   }
 
@@ -47,242 +43,149 @@ class _CreatePostSheetState extends State<CreatePostSheet> {
     super.dispose();
   }
 
+  Future<bool> _isVerifiedDoctor() async {
+    final uid = context.read<CommunityBloc>().currentUserId;
+    if (uid == null) return false;
+    final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    final data = doc.data() ?? <String, dynamic>{};
+    return data['role'] == 'doctor' && data['isVerified'] == true;
+  }
+
   Future<void> _pickFiles() async {
     final result = await FilePicker.platform.pickFiles(
       allowMultiple: true,
-      type: FileType.image,
+      withData: false,
+      type: FileType.custom,
       allowedExtensions: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
     );
-    if (result != null && result.files.isNotEmpty) {
-      setState(() {
-        _selectedFiles.addAll(result.files);
-      });
+    if (result != null && result.files.isNotEmpty && mounted) {
+      setState(() => _selectedFiles.addAll(result.files));
     }
-  }
-
-  void _removeFile(int index) {
-    setState(() {
-      _selectedFiles.removeAt(index);
-    });
   }
 
   Future<void> _submitPost() async {
     if (!_formKey.currentState!.validate()) return;
-
-    if (_selectedFiles.isEmpty && _contentController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('يرجى إضافة محتوى أو صورة للمنشور'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+    if (_selectedFiles.isEmpty && _contentController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('يرجى إضافة محتوى أو صورة للمنشور')));
       return;
     }
 
     setState(() => _isLoading = true);
-
     try {
+      if (!await _isVerifiedDoctor()) {
+        throw Exception('النشر متاح للأطباء الموثقين فقط');
+      }
+      if (!mounted) return;
       context.read<CommunityBloc>().add(CreateCommunityPost(
-        title: _titleController.text,
-        content: _contentController.text.isNotEmpty ? _contentController.text : null,
-        files: _selectedFiles.isNotEmpty ? _selectedFiles : null,
-        category: _selectedCategory,
-      ));
-
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('✅ تم نشر المنشور بنجاح'),
-          backgroundColor: Colors.green,
-        ),
-      );
+            title: _titleController.text.trim(),
+            content: _contentController.text.trim().isEmpty ? null : _contentController.text.trim(),
+            files: _selectedFiles.isEmpty ? null : _selectedFiles,
+            category: _selectedCategory,
+          ));
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('❌ فشل النشر: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))));
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.85,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0B1121) : Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Column(
-        children: [
-          // 📌 رأس
-          Row(
-            children: [
-              const Spacer(),
-              Text(
-                'منشور جديد',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.black87,
-                ),
-              ),
-              const Spacer(),
-              IconButton(
-                onPressed: () => Navigator.pop(context),
-                icon: Icon(Icons.close, color: isDark ? Colors.white : Colors.black87),
-              ),
-            ],
-          ),
-          const Divider(),
-          const SizedBox(height: 8),
-
-          // 📝 النموذج
-          Expanded(
-            child: SingleChildScrollView(
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    // العنوان
-                    TextFormField(
-                      controller: _titleController,
-                      decoration: InputDecoration(
-                        labelText: 'العنوان *',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        filled: true,
-                        fillColor: isDark ? const Color(0xFF1A2540) : Colors.grey[50],
+    return BlocListener<CommunityBloc, CommunityState>(
+      listener: (context, state) {
+        if (state.status == CommunityStatus.loaded && _isLoading) {
+          Navigator.of(context).pop();
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم نشر المنشور بنجاح')));
+        } else if (state.status == CommunityStatus.error && _isLoading) {
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.errorMessage ?? 'فشل النشر')));
+        }
+      },
+      child: Container(
+        height: MediaQuery.of(context).size.height * .85,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF0B1121) : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                const Spacer(),
+                Text('منشور جديد', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
+                const Spacer(),
+                TextButton(onPressed: _isLoading ? null : () => Navigator.pop(context), child: const Text('إغلاق')),
+              ],
+            ),
+            const Divider(),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        controller: _titleController,
+                        decoration: InputDecoration(labelText: 'العنوان *', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), filled: true, fillColor: isDark ? const Color(0xFF1A2540) : Colors.grey[50]),
+                        validator: (v) => v?.trim().isEmpty ?? true ? 'أدخل العنوان' : null,
                       ),
-                      validator: (v) => v?.isEmpty ?? true ? 'أدخل العنوان' : null,
-                    ),
-                    const SizedBox(height: 12),
-
-                    // المحتوى
-                    TextFormField(
-                      controller: _contentController,
-                      maxLines: 5,
-                      decoration: InputDecoration(
-                        labelText: 'المحتوى',
-                        hintText: 'اكتب محتوى منشورك...',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        filled: true,
-                        fillColor: isDark ? const Color(0xFF1A2540) : Colors.grey[50],
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _contentController,
+                        maxLines: 5,
+                        decoration: InputDecoration(labelText: 'المحتوى', hintText: 'اكتب محتوى منشورك...', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), filled: true, fillColor: isDark ? const Color(0xFF1A2540) : Colors.grey[50]),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // اختيار الملفات
-                    GestureDetector(
-                      onTap: _pickFiles,
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF1A2540) : Colors.grey[50],
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey[300]!),
-                        ),
-                        child: Column(
-                          children: [
-                            Icon(Icons.upload_file, color: AppColors.primary, size: 30),
-                            const SizedBox(height: 4),
-                            Text(
-                              'اضغط لإضافة صور',
-                              style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),
-                            ),
-                            if (_selectedFiles.isNotEmpty)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 8),
-                                child: Wrap(
-                                  spacing: 8,
-                                  runSpacing: 8,
-                                  children: _selectedFiles.asMap().entries.map((e) {
-                                    final index = e.key;
-                                    final file = e.value;
-                                    return Chip(
-                                      label: Text(file.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-                                      onDeleted: () => _removeFile(index),
-                                      deleteIcon: const Icon(Icons.close, size: 14),
-                                    );
-                                  }).toList(),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // التصنيف
-                    DropdownButtonFormField<String>(
-                      value: _selectedCategory,
-                      decoration: InputDecoration(
-                        labelText: 'التصنيف',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        filled: true,
-                        fillColor: isDark ? const Color(0xFF1A2540) : Colors.grey[50],
-                      ),
-                      items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-                      onChanged: (v) => setState(() => _selectedCategory = v!),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // أزرار
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: _isLoading ? null : () => Navigator.pop(context),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            ),
-                            child: const Text('إلغاء'),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          flex: 2,
-                          child: ElevatedButton(
-                            onPressed: _isLoading ? null : _submitPost,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            ),
-                            child: _isLoading
-                                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                                : const Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(Icons.send, size: 18),
-                                      SizedBox(width: 8),
-                                      Text('نشر'),
-                                    ],
+                      const SizedBox(height: 12),
+                      InkWell(
+                        onTap: _isLoading ? null : _pickFiles,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(color: isDark ? const Color(0xFF1A2540) : Colors.grey[50], borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey.shade300)),
+                          child: Column(
+                            children: [
+                              Text('إضافة صور', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800)),
+                              const SizedBox(height: 4),
+                              Text('سيتم رفع الوسائط إلى Nextcloud فقط', style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600], fontSize: 12)),
+                              if (_selectedFiles.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: _selectedFiles.asMap().entries.map((e) => Chip(label: Text(e.value.name, maxLines: 1, overflow: TextOverflow.ellipsis), onDeleted: _isLoading ? null : () => setState(() => _selectedFiles.removeAt(e.key)))).toList(),
                                   ),
+                                ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                  ],
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        value: _selectedCategory,
+                        decoration: InputDecoration(labelText: 'التصنيف', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), filled: true, fillColor: isDark ? const Color(0xFF1A2540) : Colors.grey[50]),
+                        items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                        onChanged: _isLoading ? null : (v) => setState(() => _selectedCategory = v!),
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        children: [
+                          Expanded(child: OutlinedButton(onPressed: _isLoading ? null : () => Navigator.pop(context), child: const Text('إلغاء'))),
+                          const SizedBox(width: 12),
+                          Expanded(flex: 2, child: ElevatedButton(onPressed: _isLoading ? null : _submitPost, style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white), child: _isLoading ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('نشر'))),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
