@@ -2,7 +2,7 @@
   "name": "sehatak-functions",
   "description": "Trusted backend functions for Sehatak payments, wallet, verification, lab services and LiveKit",
   "main": "loader.js",
-  "engines": {"node": "18"},
+  "engines": {"node": "20"},
   "private": true,
   "dependencies": {
     "firebase-admin": "^12.7.0",
