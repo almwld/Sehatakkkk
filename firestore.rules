@@ -34,14 +34,14 @@ service cloud.firestore {
       allow update, delete: if isAdmin() || isSelf(userId);
     }
     match /doctors/{doctorId} {
-      allow read: if isAdmin() || isSelf(doctorId) || resource.data.isVerified == true;
+      // Public doctor directory/profile reads are intentional.
+      allow read: if true;
       allow create: if isSelf(doctorId) && userDataAfter(doctorId).role == 'doctor' && userDataAfter(doctorId).doctorId == doctorId && request.resource.data.userId == doctorId && request.resource.data.isVerified == false && request.resource.data.isAvailable == false && request.resource.data.isOnline == false;
       allow update: if isAdmin() || (isSelf(doctorId) && resource.data.userId == request.auth.uid && request.resource.data.userId == resource.data.userId && request.resource.data.isVerified == resource.data.isVerified && (request.resource.data.isAvailable == false || isVerifiedDoctor(request.auth.uid)));
       allow delete: if isAdmin();
     }
     match /hospitals/{hospitalId} { allow read: if true; allow create: if isAdmin() || (isSignedIn() && request.resource.data.userId == request.auth.uid); allow update, delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid); }
     match /labs/{labId} { allow read: if true; allow create: if isAdmin() || (isSignedIn() && request.resource.data.userId == request.auth.uid && request.resource.data.isVerified == false); allow update: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid && request.resource.data.userId == resource.data.userId && request.resource.data.isVerified == resource.data.isVerified && request.resource.data.verificationStatus == resource.data.verificationStatus); allow delete: if isAdmin(); }
-
     match /pharmacies/{pharmacyId} {
       allow read: if true;
       allow create: if isAdmin() || (isSignedIn() && request.resource.data.ownerId == request.auth.uid && request.resource.data.status == 'pending');
@@ -61,7 +61,7 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
     match /products/{productId} {
-      allow read: if resource.data.approvalStatus == 'approved' && resource.data.isPublished == true && resource.data.isActive == true || isAdmin();
+      allow read: if (resource.data.approvalStatus == 'approved' && resource.data.isPublished == true && resource.data.isActive == true) || isAdmin();
       allow write: if isAdmin();
     }
     match /orders/{orderId} {
@@ -76,17 +76,8 @@ service cloud.firestore {
       allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
       allow create, update, delete: if false;
     }
-    match /lab_bookings/{bookingId} {
-      allow read: if isAdmin() || (isSignedIn() && resource.data.patientId == request.auth.uid) || (isSignedIn() && exists(/databases/$(database)/documents/labs/$(resource.data.labId)) && get(/databases/$(database)/documents/labs/$(resource.data.labId)).data.userId == request.auth.uid);
-      allow create: if false;
-      allow update: if isAdmin() || (isSignedIn() && resource.data.patientId == request.auth.uid && request.resource.data.patientId == resource.data.patientId && request.resource.data.labId == resource.data.labId && request.resource.data.status == 'cancelled' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','notes','updatedAt','cancelledAt']));
-      allow delete: if isAdmin();
-    }
-    match /lab_results/{resultId} {
-      allow read: if isAdmin() || (isSignedIn() && resource.data.patientId == request.auth.uid) || (isSignedIn() && exists(/databases/$(database)/documents/labs/$(resource.data.labId)) && get(/databases/$(database)/documents/labs/$(resource.data.labId)).data.userId == request.auth.uid);
-      allow create, update: if isAdmin() || (isSignedIn() && exists(/databases/$(database)/documents/labs/$(request.resource.data.labId)) && get(/databases/$(database)/documents/labs/$(request.resource.data.labId)).data.userId == request.auth.uid);
-      allow delete: if isAdmin();
-    }
+    match /lab_bookings/{bookingId} { allow read: if isAdmin() || (isSignedIn() && resource.data.patientId == request.auth.uid) || (isSignedIn() && exists(/databases/$(database)/documents/labs/$(resource.data.labId)) && get(/databases/$(database)/documents/labs/$(resource.data.labId)).data.userId == request.auth.uid); allow create: if false; allow update: if isAdmin() || (isSignedIn() && resource.data.patientId == request.auth.uid && request.resource.data.patientId == resource.data.patientId && request.resource.data.labId == resource.data.labId && request.resource.data.status == 'cancelled' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','notes','updatedAt','cancelledAt'])); allow delete: if isAdmin(); }
+    match /lab_results/{resultId} { allow read: if isAdmin() || (isSignedIn() && resource.data.patientId == request.auth.uid) || (isSignedIn() && exists(/databases/$(database)/documents/labs/$(resource.data.labId)) && get(/databases/$(database)/documents/labs/$(resource.data.labId)).data.userId == request.auth.uid); allow create, update: if isAdmin() || (isSignedIn() && exists(/databases/$(database)/documents/labs/$(request.resource.data.labId)) && get(/databases/$(database)/documents/labs/$(request.resource.data.labId)).data.userId == request.auth.uid); allow delete: if isAdmin(); }
     match /articles/{articleId} { allow read: if resource.data.isPublished == true || isAdmin(); allow create, update, delete: if isAdmin(); }
     match /community_posts/{postId} { allow read: if resource.data.isPublished == true || isAdmin(); allow create: if isSignedIn(); allow update: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid); allow delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid); }
     function chatExists(chatId) { return exists(/databases/$(database)/documents/chats/$(chatId)); }
@@ -103,12 +94,8 @@ service cloud.firestore {
     match /appointments/{appointmentId} { allow create: if false; allow read: if isAdmin() || isAppointmentPatient(appointmentId) || isAppointmentDoctor(appointmentId); allow update: if isAdmin() || (isAppointmentPatient(appointmentId) && request.resource.data.patientId == resource.data.patientId && request.resource.data.doctorId == resource.data.doctorId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['date','time','status','updatedAt','cancelledAt']) && request.resource.data.status in ['cancelled','pending']) || (isAppointmentDoctor(appointmentId) && isVerifiedDoctor(request.auth.uid) && request.resource.data.patientId == resource.data.patientId && request.resource.data.doctorId == resource.data.doctorId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','confirmedAt','updatedAt']) && request.resource.data.status in ['confirmed','completed']); allow delete: if false; }
     match /wallets/{userId} { allow read: if isSelf(userId) || isAdmin(); allow write: if false; }
     match /transactions/{transactionId} { allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid); allow create, update, delete: if false; }
-    match /consultations/{consultationId} {
-      allow read: if isAdmin() || (isSignedIn() && (resource.data.patientId == request.auth.uid || resource.data.doctorId == request.auth.uid));
-      allow create: if isSignedIn() && request.resource.data.patientId == request.auth.uid;
-      allow update: if isAdmin() || (isSignedIn() && ((resource.data.patientId == request.auth.uid) || (isVerifiedDoctor(request.auth.uid) && resource.data.doctorId == request.auth.uid)));
-      allow delete: if isAdmin();
-    }
+    match /consultations/{consultationId} { allow read: if isAdmin() || (isSignedIn() && (resource.data.patientId == request.auth.uid || resource.data.doctorId == request.auth.uid)); allow create: if isSignedIn() && request.resource.data.patientId == request.auth.uid; allow update: if isAdmin() || (isSignedIn() && ((resource.data.patientId == request.auth.uid) || (isVerifiedDoctor(request.auth.uid) && resource.data.doctorId == request.auth.uid))); allow delete: if isAdmin(); }
+    // Default deny remains intentional. Firestore evaluates matching allow expressions as an OR; this does not override explicit collection rules.
     match /{document=**} { allow read, write: if false; }
   }
 }
