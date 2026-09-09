@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/managers/global_scroll_manager.dart';
@@ -87,17 +88,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (notification.metrics.axis != Axis.vertical) return false;
 
     if (notification is UserScrollNotification) {
-      final direction = notification.direction;
-      if (direction == ScrollDirection.reverse) {
+      if (notification.direction == ScrollDirection.reverse) {
         _scrollManager.handleScrollDelta(6);
-      } else if (direction == ScrollDirection.forward) {
+      } else if (notification.direction == ScrollDirection.forward) {
         _scrollManager.handleScrollDelta(-6);
       }
     } else if (notification is ScrollEndNotification &&
         notification.metrics.pixels <= notification.metrics.minScrollExtent + 2) {
       _scrollManager.show();
     }
-
     return false;
   }
 
@@ -109,7 +108,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       SystemNavigator.pop();
       return;
     }
-
     _backPressedOnce = true;
     ToastService.showInfo('اضغط مرة أخرى للخروج من التطبيق');
     _backExitTimer?.cancel();
