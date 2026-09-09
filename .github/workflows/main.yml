@@ -71,10 +71,6 @@ jobs:
     - name: 📦 Install dependencies
       run: flutter pub get
 
-    - name: 🔎 Analyze Dart code
-      continue-on-error: true
-      run: flutter analyze --no-fatal-infos
-
     - name: 🔨 Build APK
       run: flutter build apk --release --split-per-abi --no-shrink
 
