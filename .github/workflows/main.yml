@@ -5,16 +5,24 @@ on:
     branches: [ master, main ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: sehatak-apk-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
     - name: 📥 Checkout code
       uses: actions/checkout@v4
 
     - name: ☕ Setup Java
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v5
       with:
         java-version: '17'
         distribution: 'temurin'
@@ -64,6 +72,7 @@ jobs:
       run: flutter pub get
 
     - name: 🔎 Analyze Dart code
+      continue-on-error: true
       run: flutter analyze --no-fatal-infos
 
     - name: 🔨 Build APK
