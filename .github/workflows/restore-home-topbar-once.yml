@@ -1,0 +1,156 @@
+name: Restore home top bar once
+
+on:
+  push:
+    branches:
+      - feat/restore-home-topbar
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Restore previous top bar
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('lib/presentation/screens/home/tabs/home_tab_pro.dart')
+          text = path.read_text()
+
+          legacy = '''  Widget _header(HomeState s) {
+    final hour = DateTime.now().hour;
+    final greeting = hour < 12 ? 'صباح الخير ☀️' : 'مساء الخير 🌙';
+    final name = s.userName.trim().isEmpty ? 'مرحباً بك في صحتك' : s.userName.trim();
+    final first = name.runes.isEmpty ? 'ص' : String.fromCharCode(name.runes.first);
+
+    return Container(
+      height: 194,
+      padding: EdgeInsets.fromLTRB(18, MediaQuery.of(context).padding.top + 10, 18, 18),
+      decoration: const BoxDecoration(
+        color: AppColors.primary,
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(34)),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 23,
+                backgroundColor: Colors.white24,
+                child: Text(
+                  first,
+                  style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(greeting, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                    const SizedBox(height: 3),
+                    Text(
+                      name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900),
+                    ),
+                  ],
+                ),
+              ),
+              _headerAction(Icons.notifications_none_rounded, AppRouter.notifications, s.notificationCount),
+              const SizedBox(width: 8),
+              _headerAction(Icons.shopping_cart_outlined, AppRouter.cart, 0),
+            ],
+          ),
+          const SizedBox(height: 18),
+          InkWell(
+            onTap: () => _go(AppRouter.search),
+            borderRadius: BorderRadius.circular(18),
+            child: Container(
+              height: 52,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18)),
+              child: const Row(
+                children: [
+                  Icon(Icons.search_rounded, color: AppColors.primary, size: 25),
+                  SizedBox(width: 10),
+                  Expanded(child: Text('ابحث عن طبيب، دواء أو خدمة...', style: TextStyle(color: Colors.black54, fontSize: 13))),
+                  Icon(Icons.mic_none_rounded, color: AppColors.primary, size: 23),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _headerAction(IconData icon, String route, int badge) {
+    return InkWell(
+      onTap: () => _go(route),
+      borderRadius: BorderRadius.circular(22),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: const BoxDecoration(color: Colors.white24, shape: BoxShape.circle),
+            child: Icon(icon, color: Colors.white, size: 21),
+          ),
+          if (badge > 0)
+            Positioned(
+              right: -2,
+              top: -2,
+              child: Container(
+                constraints: const BoxConstraints(minWidth: 17, minHeight: 17),
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(color: AppColors.error, shape: BoxShape.circle),
+                child: Text(
+                  badge > 99 ? '99+' : '$badge',
+                  style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+'''
+
+          pattern = r"  Widget _header\(HomeState s\) \{.*?\n  Widget _banners"
+          updated = re.sub(pattern, legacy + "  Widget _banners", text, count=1, flags=re.S)
+          if updated == text:
+              raise SystemExit('Current header block was not found; refusing to change anything.')
+          path.write_text(updated)
+          PY
+
+      - name: Commit restored header
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lib/presentation/screens/home/tabs/home_tab_pro.dart
+          git commit -m 'feat(home): restore previous top bar'
+          git push origin HEAD:feat/restore-home-topbar
+
+      - name: Remove one-time workflow
+        if: always()
+        shell: bash
+        run: |
+          git rm -f .github/workflows/restore-home-topbar-once.yml || true
+          git commit -m 'ci: remove one-time top bar restore workflow' || true
+          git push origin HEAD:feat/restore-home-topbar || true
