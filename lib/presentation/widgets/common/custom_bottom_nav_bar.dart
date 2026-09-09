@@ -76,7 +76,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
       child: Container(
         height: _barHeight + bottomPadding,
         padding: EdgeInsets.only(bottom: bottomPadding > 0 ? 0 : 4),
-        clipBehavior: Clip.none, // ✅ يسمح للزر الدائري بالخروج
+        clipBehavior: Clip.none,
         decoration: BoxDecoration(
           color: backgroundColor,
           borderRadius: const BorderRadius.vertical(
@@ -123,14 +123,12 @@ class CustomBottomNavigationBar extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // ✅ أيقونة بحجم مناسب
             Icon(
               item.icon,
               color: isSelected ? AppColors.primary : inactiveColor,
               size: isSelected ? 26 : 24,
             ),
             const SizedBox(height: 3),
-            // ✅ النص
             Text(
               item.label,
               maxLines: 1,
@@ -142,7 +140,6 @@ class CustomBottomNavigationBar extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 3),
-            // ✅ المؤشر السفلي
             AnimatedContainer(
               duration: const Duration(milliseconds: 180),
               curve: Curves.easeOut,
@@ -171,11 +168,11 @@ class CustomBottomNavigationBar extends StatelessWidget {
         width: 60,
         height: 56,
         child: Stack(
-          clipBehavior: Clip.none, // ✅ يسمح للزر بالخروج
+          clipBehavior: Clip.none,
           children: [
             // ✅ الزر يخرج للأعلى باستخدام Positioned
             Positioned(
-              top: -22, // ✅ يرفع الزر للأعلى 22px (يظهر كاملاً)
+              top: -22,
               left: 0,
               right: 0,
               child: Center(
@@ -249,7 +246,6 @@ class CustomBottomNavigationBar extends StatelessWidget {
       return;
     }
     onTap(item.index);
-    // ✅ إظهار الشريط عند الضغط
     if (scrollManager != null) {
       try {
         scrollManager.show();
@@ -258,7 +254,6 @@ class CustomBottomNavigationBar extends StatelessWidget {
   }
 }
 
-// 📦 نموذج عنصر التنقل
 class NavItem {
   final int index;
   final IconData icon;
