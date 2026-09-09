@@ -1,15 +1,16 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/models/call_model.dart';
 import 'package:sehatak/core/services/call_service.dart';
 import 'package:sehatak/core/services/livekit_service.dart';
-import 'package:sehatak/core/models/call_model.dart';
+import 'package:sehatak/core/services/sound_manager.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 
 class CallScreen extends StatefulWidget {
@@ -34,38 +35,52 @@ class CallScreen extends StatefulWidget {
   State<CallScreen> createState() => _CallScreenState();
 }
 
-class _CallScreenState extends State<CallScreen> {
+class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
+  final LiveKitService _liveKit = LiveKitService();
   final CallService _callService = CallService();
-  final LiveKitService _liveKitService = LiveKitService();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  Timer? _timer;
-  Timer? _roomRefreshTimer;
+
+  Timer? _durationTimer;
+  StreamSubscription<CallModel?>? _callSubscription;
+
   Room? _room;
   String? _activeCallId;
   String? _resolvedChatId;
-  int _seconds = 0;
-  bool _starting = true;
-  bool _connected = false;
-  bool _muted = false;
-  bool _speaker = false;
-  bool _cameraOff = false;
-  bool _outgoing = false;
-  String? _error;
+
+  int _callDuration = 0;
+  bool _isConnecting = true;
+  bool _isMuted = false;
+  bool _isCameraOn = true;
+  bool _isSpeakerOn = false;
+  bool _isConnected = false;
+  bool _ending = false;
+  String _errorMessage = '';
 
   @override
   void initState() {
     super.initState();
-    _start();
+    WidgetsBinding.instance.addObserver(this);
+    _startCall();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _durationTimer?.cancel();
+    _callSubscription?.cancel();
+    SoundManager().stopAll();
+    _liveKit.endCall();
+    super.dispose();
   }
 
   Future<String> _resolveChatId() async {
     if (widget.chatId.trim().isNotEmpty && !widget.chatId.startsWith('call_')) {
-      return widget.chatId;
+      return widget.chatId.trim();
     }
 
-    if (widget.callId != null && widget.callId!.isNotEmpty) {
-      final fromCall = await _callService.resolveChatId(widget.callId!);
-      if (fromCall != null && fromCall.isNotEmpty) return fromCall;
+    if (widget.callId != null && widget.callId!.trim().isNotEmpty) {
+      final fromCall = await _callService.resolveChatId(widget.callId!.trim());
+      if (fromCall != null && fromCall.trim().isNotEmpty) return fromCall.trim();
     }
 
     final user = FirebaseAuth.instance.currentUser;
@@ -78,7 +93,10 @@ class _CallScreenState extends State<CallScreen> {
         .get();
 
     for (final doc in snapshot.docs) {
-      final participants = List<String>.from(doc.data()['participants'] ?? const <String>[]);
+      final raw = doc.data()['participants'];
+      final participants = raw is Iterable
+          ? raw.map((e) => e.toString()).toList()
+          : const <String>[];
       if (participants.contains(widget.doctorId) && doc.data()['isGroup'] != true) {
         return doc.id;
       }
@@ -86,13 +104,13 @@ class _CallScreenState extends State<CallScreen> {
     throw Exception('تعذر العثور على المحادثة المرتبطة بالمكالمة');
   }
 
-  Future<void> _start() async {
+  Future<void> _startCall() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) throw Exception('يجب تسجيل الدخول');
 
-      final mic = await Permission.microphone.request();
-      if (!mic.isGranted) throw Exception('إذن الميكروفون مطلوب');
+      final microphone = await Permission.microphone.request();
+      if (!microphone.isGranted) throw Exception('إذن الميكروفون مطلوب');
 
       if (widget.isVideo) {
         final camera = await Permission.camera.request();
@@ -100,11 +118,11 @@ class _CallScreenState extends State<CallScreen> {
       }
 
       _resolvedChatId = await _resolveChatId();
-      _outgoing = widget.isOutgoing || widget.callId == null || widget.callId!.isEmpty;
+      final outgoing = widget.isOutgoing || widget.callId == null || widget.callId!.trim().isEmpty;
 
-      if (_outgoing) {
-        if (widget.callId != null && widget.callId!.isNotEmpty) {
-          _activeCallId = widget.callId;
+      if (outgoing) {
+        if (widget.callId != null && widget.callId!.trim().isNotEmpty) {
+          _activeCallId = widget.callId!.trim();
         } else {
           final call = await _callService.initiateCall(
             receiverId: widget.doctorId,
@@ -113,86 +131,122 @@ class _CallScreenState extends State<CallScreen> {
             chatId: _resolvedChatId!,
           );
           _activeCallId = call?.id;
-          if (_activeCallId == null || _activeCallId!.isEmpty) {
-            throw Exception('تعذر إنشاء المكالمة');
-          }
         }
       } else {
-        _activeCallId = widget.callId;
+        _activeCallId = widget.callId?.trim();
+        if (_activeCallId == null || _activeCallId!.isEmpty) {
+          throw Exception('معرّف المكالمة الواردة غير صالح');
+        }
         await _callService.acceptCall(_activeCallId!);
       }
 
-      final roomName = 'call_${_activeCallId!}';
-      _room = await _liveKitService.connectRoom(
+      if (_activeCallId == null || _activeCallId!.isEmpty) {
+        throw Exception('تعذر إنشاء المكالمة');
+      }
+
+      final roomName = 'call_$_activeCallId';
+      _room = await _liveKit.connectRoom(
         roomName: roomName,
         participantName: user.displayName ?? 'مستخدم',
       );
-      if (widget.isVideo) await _liveKitService.enableCamera();
 
-      if (!mounted) return;
-      setState(() {
-        _starting = false;
-        _connected = true;
-        _error = null;
-      });
-      _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-        if (mounted) setState(() => _seconds++);
-      });
-      _roomRefreshTimer = Timer.periodic(const Duration(milliseconds: 500), (_) {
-        if (mounted) setState(() {});
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _starting = false;
-        _connected = false;
-        _error = e.toString();
-      });
-      ToastService.showError('❌ فشل الاتصال بالمكالمة');
-    }
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    _roomRefreshTimer?.cancel();
-    _liveKitService.endCall();
-    super.dispose();
-  }
-
-  Future<void> _endCall() async {
-    final callId = _activeCallId;
-    try {
-      if (callId != null && callId.isNotEmpty) {
-        if (_connected) {
-          await _callService.endCall(callId, durationSeconds: _seconds);
-        } else if (_outgoing) {
-          await _callService.cancelCall(callId);
-        }
+      if (widget.isVideo) {
+        await _liveKit.enableCamera();
+        _isCameraOn = _liveKit.isCameraEnabled;
+      } else {
+        _isCameraOn = false;
       }
+
+      if (!mounted) return;
+      setState(() {
+        _isConnecting = false;
+        _isConnected = true;
+        _errorMessage = '';
+      });
+
+      _startDurationTimer();
+      _listenToCallStatus();
     } catch (e) {
-      debugPrint('Call end error: $e');
-    } finally {
-      await _liveKitService.endCall();
-      if (mounted) Navigator.pop(context);
+      SoundManager().stopAll();
+      if (!mounted) return;
+      setState(() {
+        _isConnecting = false;
+        _isConnected = false;
+        _errorMessage = _cleanError(e);
+      });
+      ToastService.showError('❌ فشل الاتصال: $_errorMessage');
     }
+  }
+
+  String _cleanError(Object error) {
+    final text = error.toString();
+    return text.startsWith('Exception: ') ? text.substring(11) : text;
+  }
+
+  void _listenToCallStatus() {
+    final callId = _activeCallId;
+    if (callId == null || callId.isEmpty) return;
+    _callSubscription?.cancel();
+    _callSubscription = _callService.streamCall(callId).listen((call) {
+      if (!mounted || call == null || _ending) return;
+      if (call.status == CallStatus.cancelled ||
+          call.status == CallStatus.rejected ||
+          call.status == CallStatus.missed ||
+          call.status == CallStatus.ended) {
+        _finishFromRemote();
+      }
+    }, onError: (error) {
+      debugPrint('Call status stream error: $error');
+    });
+  }
+
+  Future<void> _finishFromRemote() async {
+    if (_ending) return;
+    _ending = true;
+    _durationTimer?.cancel();
+    await _liveKit.endCall();
+    if (mounted) Navigator.of(context).pop();
+  }
+
+  void _startDurationTimer() {
+    _durationTimer?.cancel();
+    _durationTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted && _isConnected) setState(() => _callDuration++);
+    });
   }
 
   Future<void> _toggleMute() async {
-    final enabled = await _liveKitService.toggleMicrophone();
-    if (mounted) setState(() => _muted = !enabled);
+    final enabled = await _liveKit.toggleMicrophone();
+    if (mounted) setState(() => _isMuted = !enabled);
   }
 
   Future<void> _toggleCamera() async {
     if (!widget.isVideo) return;
-    final enabled = await _liveKitService.toggleCamera();
-    if (mounted) setState(() => _cameraOff = !enabled);
+    final enabled = await _liveKit.toggleCamera();
+    if (mounted) setState(() => _isCameraOn = enabled);
   }
 
   void _toggleSpeaker() {
-    _speaker = !_speaker;
-    _liveKitService.setSpeakerphone(_speaker);
+    _isSpeakerOn = !_isSpeakerOn;
+    _liveKit.setSpeakerphone(_isSpeakerOn);
     setState(() {});
+  }
+
+  Future<void> _switchCamera() async {
+    if (!widget.isVideo || !_isCameraOn) return;
+    final participant = _room?.localParticipant;
+    if (participant == null) return;
+    for (final publication in participant.trackPublications.values) {
+      final track = publication.track;
+      if (track is LocalVideoTrack) {
+        try {
+          await track.switchCamera();
+        } catch (e) {
+          debugPrint('Switch camera error: $e');
+        }
+        return;
+      }
+    }
   }
 
   LocalVideoTrack? _localVideoTrack() {
@@ -208,7 +262,7 @@ class _CallScreenState extends State<CallScreen> {
   RemoteVideoTrack? _remoteVideoTrack() {
     final room = _room;
     if (room == null) return null;
-    for (final participant in room.participants.values) {
+    for (final participant in room.remoteParticipants.values) {
       for (final publication in participant.trackPublications.values) {
         final track = publication.track;
         if (track is RemoteVideoTrack) return track;
@@ -217,10 +271,42 @@ class _CallScreenState extends State<CallScreen> {
     return null;
   }
 
+  Future<void> _endCall() async {
+    if (_ending) return;
+    _ending = true;
+    _durationTimer?.cancel();
+    SoundManager().stopAll();
+    SoundManager().playCallEnd();
+
+    final callId = _activeCallId;
+    try {
+      if (callId != null && callId.isNotEmpty) {
+        if (_isConnected) {
+          await _callService.endCall(callId, durationSeconds: _callDuration);
+        } else {
+          await _callService.cancelCall(callId);
+        }
+      }
+    } catch (e) {
+      debugPrint('Call end error: $e');
+    } finally {
+      await _liveKit.endCall();
+      if (mounted) Navigator.of(context).pop();
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.detached && !_ending) {
+      _durationTimer?.cancel();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final remoteTrack = _remoteVideoTrack();
     final localTrack = _localVideoTrack();
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
@@ -229,131 +315,164 @@ class _CallScreenState extends State<CallScreen> {
             Positioned.fill(
               child: widget.isVideo && remoteTrack != null
                   ? VideoTrackRenderer(remoteTrack)
-                  : Container(color: Colors.black, child: _audioCenter()),
+                  : _buildAudioSurface(),
             ),
-            if (widget.isVideo && localTrack != null && !_cameraOff)
+            if (widget.isVideo && localTrack != null && _isCameraOn && _errorMessage.isEmpty)
               Positioned(
-                top: 70,
+                top: 72,
                 right: 16,
                 width: 120,
                 height: 170,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(14),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white54, width: 1.5),
+                  ),
+                  clipBehavior: Clip.antiAlias,
                   child: VideoTrackRenderer(localTrack),
                 ),
               ),
-            Positioned(top: 0, left: 0, right: 0, child: _topBar()),
-            if (_error != null)
-              Positioned(
-                left: 20,
-                right: 20,
-                top: 130,
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(.9),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    _error!,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                ),
-              ),
-            Positioned(left: 0, right: 0, bottom: 24, child: _controls()),
+            if (widget.isVideo && _errorMessage.isEmpty) _topBar(),
+            if (_errorMessage.isNotEmpty)
+              Positioned.fill(child: _buildErrorSurface()),
+            if (_errorMessage.isEmpty)
+              Positioned(left: 0, right: 0, bottom: 18, child: _controls()),
           ],
         ),
       ),
     );
   }
 
-  Widget _audioCenter() => Center(
+  Widget _buildAudioSurface() {
+    return Container(
+      color: const Color(0xFF0B1121),
+      child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             CircleAvatar(
-              radius: 58,
-              backgroundColor: AppColors.primary.withOpacity(.2),
-              child: const Icon(Icons.person, color: Colors.white, size: 58),
+              radius: 62,
+              backgroundColor: AppColors.primary.withOpacity(.18),
+              child: const Icon(Icons.person_rounded, color: Colors.white, size: 62),
             ),
-            const SizedBox(height: 16),
-            Text(
-              widget.doctorName,
-              style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
-            ),
+            const SizedBox(height: 20),
+            Text(widget.doctorName,
+                style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Text(
-              _starting ? 'جاري الاتصال...' : (_connected ? 'مكالمة متصلة' : 'بانتظار الاتصال'),
-              style: const TextStyle(color: Colors.white70),
+              _isConnecting ? 'جاري الاتصال...' : (_isConnected ? 'مكالمة متصلة' : 'بانتظار الاتصال'),
+              style: const TextStyle(color: Colors.white70, fontSize: 14),
             ),
           ],
         ),
-      );
+      ),
+    );
+  }
 
-  Widget _topBar() => Container(
-        padding: const EdgeInsets.fromLTRB(12, 12, 12, 18),
+  Widget _buildErrorSurface() {
+    return Container(
+      color: const Color(0xFF0B1121),
+      alignment: Alignment.center,
+      padding: const EdgeInsets.all(28),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 64),
+          const SizedBox(height: 16),
+          const Text('تعذر الاتصال', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 10),
+          Text(_errorMessage, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70)),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: _ending ? null : _endCall,
+            icon: const Icon(Icons.arrow_back),
+            label: const Text('رجوع'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _topBar() {
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(8, 10, 12, 22),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.black.withOpacity(.65), Colors.transparent],
+            colors: [Colors.black.withOpacity(.72), Colors.transparent],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
         ),
         child: Row(
           children: [
-            IconButton(onPressed: _endCall, icon: const Icon(Icons.close, color: Colors.white)),
+            IconButton(onPressed: _endCall, icon: const Icon(Icons.close_rounded, color: Colors.white)),
             const Spacer(),
-            Text(_formatDuration(_seconds), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            Text(_formatDuration(_callDuration), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             const SizedBox(width: 10),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: (_connected ? Colors.green : Colors.orange).withOpacity(.25),
+                color: (_isConnected ? Colors.green : Colors.orange).withOpacity(.22),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Text(
-                _connected ? 'متصل' : 'جاري الاتصال',
-                style: TextStyle(color: _connected ? Colors.greenAccent : Colors.orangeAccent, fontSize: 11),
+                _isConnected ? 'متصل' : 'جاري الاتصال',
+                style: TextStyle(color: _isConnected ? Colors.greenAccent : Colors.orangeAccent, fontSize: 11),
               ),
             ),
           ],
         ),
-      );
+      ),
+    );
+  }
 
-  Widget _controls() => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-        decoration: BoxDecoration(
-          color: Colors.black.withOpacity(.65),
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _control(icon: _muted ? Icons.mic_off : Icons.mic, label: _muted ? 'إلغاء الكتم' : 'كتم', onTap: _toggleMute),
-            if (widget.isVideo)
-              _control(icon: _cameraOff ? Icons.videocam_off : Icons.videocam, label: _cameraOff ? 'تشغيل' : 'كاميرا', onTap: _toggleCamera),
-            _control(icon: _speaker ? Icons.volume_up : Icons.volume_down, label: 'مكبر', onTap: _toggleSpeaker),
-            _control(icon: Icons.call_end, label: 'إنهاء', color: Colors.red, onTap: _endCall),
-          ],
-        ),
-      );
-
-  Widget _control({required IconData icon, required String label, required VoidCallback onTap, Color color = Colors.white24}) => Column(
+  Widget _controls() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(.72),
+        borderRadius: BorderRadius.circular(28),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          GestureDetector(
-            onTap: onTap,
-            child: Container(
-              width: 54,
-              height: 54,
-              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-              child: Icon(icon, color: Colors.white),
-            ),
-          ),
-          const SizedBox(height: 5),
-          Text(label, style: const TextStyle(color: Colors.white70, fontSize: 10)),
+          _control(icon: _isMuted ? Icons.mic_off_rounded : Icons.mic_rounded, label: _isMuted ? 'إلغاء الكتم' : 'كتم', onTap: _toggleMute),
+          if (widget.isVideo)
+            _control(icon: _isCameraOn ? Icons.videocam_rounded : Icons.videocam_off_rounded, label: _isCameraOn ? 'كاميرا' : 'تشغيل', onTap: _toggleCamera),
+          if (widget.isVideo)
+            _control(icon: Icons.flip_camera_ios_rounded, label: 'تبديل', onTap: _switchCamera),
+          _control(icon: _isSpeakerOn ? Icons.volume_up_rounded : Icons.volume_down_rounded, label: 'مكبر', onTap: _toggleSpeaker),
+          _control(icon: Icons.call_end_rounded, label: 'إنهاء', color: Colors.red, onTap: _endCall),
         ],
-      );
+      ),
+    );
+  }
 
-  String _formatDuration(int seconds) => '${(seconds ~/ 60).toString().padLeft(2, '0')}:${(seconds % 60).toString().padLeft(2, '0')}';
+  Widget _control({required IconData icon, required String label, required VoidCallback onTap, Color color = Colors.white24}) {
+    final isEnd = color == Colors.red;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: isEnd ? 58 : 52,
+            height: isEnd ? 58 : 52,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            child: Icon(icon, color: Colors.white),
+          ),
+        ),
+        const SizedBox(height: 5),
+        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 10)),
+      ],
+    );
+  }
+
+  String _formatDuration(int seconds) =>
+      '${(seconds ~/ 60).toString().padLeft(2, '0')}:${(seconds % 60).toString().padLeft(2, '0')}';
 }
