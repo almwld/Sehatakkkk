@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sehatak/presentation/screens/splash_screen.dart';
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
@@ -23,9 +24,15 @@ import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart'
 import 'package:sehatak/presentation/screens/blood_donation/blood_donation_screen.dart';
 import 'package:sehatak/presentation/screens/settings/settings_screen.dart';
 import 'package:sehatak/presentation/screens/search/unified_search_screen.dart';
+import 'package:sehatak/presentation/screens/articles/articles_screen.dart';
 import 'package:sehatak/presentation/screens/community/community_screen.dart';
 
+/// The single navigation source of truth for the application.
+/// Home and every Home action use these routes.
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 class AppRouter {
+  static const String splash = '/splash';
   static const String home = '/';
   static const String auth = '/auth';
   static const String doctors = '/doctors';
@@ -47,13 +54,16 @@ class AppRouter {
   static const String bloodDonation = '/blood-donation';
   static const String settings = '/settings';
   static const String search = '/search';
+  static const String articles = '/articles';
   static const String community = '/community';
   static const String pharmacyDashboard = '/pharmacy-dashboard';
   static const String marketplaceAdmin = '/marketplace-admin';
 
   static final GoRouter router = GoRouter(
-    initialLocation: home,
+    navigatorKey: navigatorKey,
+    initialLocation: splash,
     routes: [
+      GoRoute(path: splash, builder: (c, s) => const SplashScreen()),
       GoRoute(path: home, builder: (c, s) => const HomeScreen()),
       GoRoute(path: auth, builder: (c, s) => const AuthScreen()),
       GoRoute(path: doctors, builder: (c, s) => const DoctorsListScreen()),
@@ -77,6 +87,7 @@ class AppRouter {
       GoRoute(path: bloodDonation, builder: (c, s) => const BloodDonationScreen()),
       GoRoute(path: settings, builder: (c, s) => const SettingsScreen()),
       GoRoute(path: search, builder: (c, s) => AdvancedSearchScreen(initialQuery: s.uri.queryParameters['q'])),
+      GoRoute(path: articles, builder: (c, s) => const ArticlesScreen()),
       GoRoute(path: community, builder: (c, s) => const CommunityScreen()),
     ],
   );
