@@ -15,6 +15,7 @@ import 'package:sehatak/core/models/pharmacy/product_model.dart';
 import 'package:sehatak/core/services/pharmacy_service.dart';
 import 'package:sehatak/presentation/screens/home/widgets/banner_carousel.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
+import 'package:sehatak/presentation/widgets/home/featured_facilities_grid.dart';
 
 class HomeTab extends StatefulWidget {
   final ScrollController scrollController;
@@ -126,19 +127,19 @@ class _HomeTabState extends State<HomeTab>
                 SliverToBoxAdapter(child: _doctors(state, dark)),
                 SliverToBoxAdapter(child: _productsSection(dark)),
                 SliverToBoxAdapter(
-                  child: _places(
-                    'مستشفيات مميزة',
-                    state.hospitals,
-                    Icons.local_hospital_outlined,
-                    dark,
+                  child: FeaturedFacilitiesGrid(
+                    title: 'مستشفيات مميزة',
+                    items: state.hospitals,
+                    isHospital: true,
+                    isDark: dark,
                   ),
                 ),
                 SliverToBoxAdapter(
-                  child: _places(
-                    'مختبرات مميزة',
-                    state.labs,
-                    Icons.biotech_outlined,
-                    dark,
+                  child: FeaturedFacilitiesGrid(
+                    title: 'مختبرات مميزة',
+                    items: state.labs,
+                    isHospital: false,
+                    isDark: dark,
                   ),
                 ),
                 SliverToBoxAdapter(
