@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sehatak/core/routes/payment_routes.dart';
 import 'package:sehatak/presentation/screens/splash_screen.dart';
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
@@ -27,8 +28,11 @@ import 'package:sehatak/presentation/screens/search/unified_search_screen.dart';
 import 'package:sehatak/presentation/screens/articles/articles_screen.dart';
 import 'package:sehatak/presentation/screens/community/community_screen.dart';
 
-/// The single navigation source of truth for the application.
-/// Home and every Home action use these routes.
+/// Single navigation source of truth.
+/// The GoRouter definition is retained for deep-link capable callers, while
+/// MaterialApp also uses [onGenerateRoute] because the current application
+/// shell is a MaterialApp and Home must not call GoRouter APIs without a
+/// GoRouter host.
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class AppRouter {
@@ -91,4 +95,67 @@ class AppRouter {
       GoRoute(path: community, builder: (c, s) => const CommunityScreen()),
     ],
   );
+
+  /// Route registry used by the current MaterialApp shell.
+  static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
+    final name = settings.name ?? home;
+    switch (name) {
+      case splash:
+        return MaterialPageRoute(builder: (_) => const SplashScreen(), settings: settings);
+      case home:
+        return MaterialPageRoute(builder: (_) => const HomeScreen(), settings: settings);
+      case auth:
+        return MaterialPageRoute(builder: (_) => const AuthScreen(), settings: settings);
+      case doctors:
+        return MaterialPageRoute(builder: (_) => const DoctorsListScreen(), settings: settings);
+      case pharmacy:
+        return MaterialPageRoute(builder: (_) => const PharmacyScreen(), settings: settings);
+      case labs:
+        return MaterialPageRoute(builder: (_) => const LabsListScreen(), settings: settings);
+      case chat:
+        return MaterialPageRoute(builder: (_) => const ChatScreen(), settings: settings);
+      case more:
+        return MaterialPageRoute(builder: (_) => const MoreScreen(), settings: settings);
+      case dashboard:
+        return MaterialPageRoute(builder: (_) => const RoleBasedDashboardScreen(), settings: settings);
+      case profile:
+        return MaterialPageRoute(builder: (_) => const PatientProfile(), settings: settings);
+      case appointments:
+        return MaterialPageRoute(builder: (_) => const PatientAppointments(), settings: settings);
+      case notifications:
+        return MaterialPageRoute(builder: (_) => const NotificationsScreen(), settings: settings);
+      case cart:
+        return MaterialPageRoute(builder: (_) => const CartScreen(), settings: settings);
+      case map:
+        return MaterialPageRoute(builder: (_) => const InteractiveMapScreen(), settings: settings);
+      case consultation:
+        return MaterialPageRoute(builder: (_) => const ConsultationScreen(), settings: settings);
+      case services:
+        return MaterialPageRoute(builder: (_) => const ServicesScreen(), settings: settings);
+      case emergency:
+        return MaterialPageRoute(builder: (_) => const EmergencyNumbers(), settings: settings);
+      case bloodDonation:
+        return MaterialPageRoute(builder: (_) => const BloodDonationScreen(), settings: settings);
+      case settings:
+        return MaterialPageRoute(builder: (_) => const SettingsScreen(), settings: settings);
+      case search:
+        final args = settings.arguments;
+        final query = args is String ? args : null;
+        return MaterialPageRoute(builder: (_) => AdvancedSearchScreen(initialQuery: query), settings: settings);
+      case articles:
+        return MaterialPageRoute(builder: (_) => const ArticlesScreen(), settings: settings);
+      case community:
+        return MaterialPageRoute(builder: (_) => const CommunityScreen(), settings: settings);
+      case pharmacyDashboard:
+        return MaterialPageRoute(builder: (_) => const PharmacyDashboard(), settings: settings);
+      case marketplaceAdmin:
+        return MaterialPageRoute(builder: (_) => const MarketplaceAdminDashboard(), settings: settings);
+      default:
+        if (name.startsWith('/doctor/')) {
+          final id = name.substring('/doctor/'.length);
+          return MaterialPageRoute(builder: (_) => DoctorDetailsScreen(doctorId: id), settings: settings);
+        }
+        return PaymentRoutes.onGenerateRoute(settings);
+    }
+  }
 }
