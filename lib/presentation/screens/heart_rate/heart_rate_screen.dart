@@ -1,14 +1,8 @@
-/*
-// ============================================================
-// 📁 lib/presentation/screens/heart_rate/heart_rate_screen.dart
-// 🫀 شاشة قياس نبضات القلب
-// ============================================================
-
 import 'dart:async';
-import 'package:flutter/material.dart';
+
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/material.dart';
 import 'package:sehatak/services/heart_rate_service.dart';
-import 'package:sehatak/presentation/widgets/animated_heart.dart';
 
 class HeartRateScreen extends StatefulWidget {
   const HeartRateScreen({super.key});
@@ -20,631 +14,381 @@ class HeartRateScreen extends StatefulWidget {
 class _HeartRateScreenState extends State<HeartRateScreen>
     with SingleTickerProviderStateMixin {
   final HeartRateService _service = HeartRateService();
-  
-  // ============================================================
-  // 📊 متغيرات الحالة
-  // ============================================================
-  int _currentBPM = 0;
-  double _oxygenSaturation = 98.0;
-  double _signalQuality = 0.0;
-  double _averageBPM = 0.0;
-  List<double> _waveformData = [];
-  bool _isMeasuring = false;
-  bool _isInitializing = false;
-  int _statusCode = 0;
-  bool _showTutorial = true;
-  
-  String get _statusText {
-    switch (_statusCode) {
-      case 0: return 'اضغط "ابدأ" لقياس نبضك';
-      case 1: return 'جاري القياس... حافظ على ثبات إصبعك';
-      case 2: return '✅ قياس مستقر';
-      default: return 'جاري التهيئة...';
-    }
-  }
-  
-  Color get _statusColor {
-    switch (_statusCode) {
-      case 0: return Colors.grey;
-      case 1: return Colors.orange;
-      case 2: return Colors.green;
-      default: return Colors.grey;
-    }
-  }
-  
-  // 🎬 الرسوم المتحركة
-  late AnimationController _breathController;
-  late Animation<double> _breathAnimation;
-  double _heartSize = 80.0;
-  
-  // 📡 Streams
-  StreamSubscription<int>? _bpmSubscription;
-  StreamSubscription<double>? _signalSubscription;
-  StreamSubscription<double>? _oxygenSubscription;
-  StreamSubscription<List<double>>? _waveformSubscription;
-  StreamSubscription<int>? _statusSubscription;
-  Timer? _updateTimer;
 
-  // ============================================================
-  // 🔄 دورة الحياة
-  // ============================================================
+  StreamSubscription<int>? _bpmSub;
+  StreamSubscription<double>? _qualitySub;
+  StreamSubscription<List<double>>? _waveformSub;
+  StreamSubscription<int>? _statusSub;
+
+  int _bpm = 0;
+  double _quality = 0;
+  double _averageBpm = 0;
+  List<double> _waveform = <double>[];
+  bool _measuring = false;
+  bool _initializing = true;
+  int _status = -1;
+  String? _error;
+
+  late final AnimationController _pulseController = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 700),
+    lowerBound: 0.92,
+    upperBound: 1.0,
+  );
+
   @override
   void initState() {
     super.initState();
-    _initAnimations();
-    _initializeService();
+    _initialize();
   }
 
-  void _initAnimations() {
-    _breathController = AnimationController(
-      duration: const Duration(seconds: 4),
-      vsync: this,
-    )..repeat(reverse: true);
-    
-    _breathAnimation = Tween<double>(begin: 0.9, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _breathController,
-        curve: Curves.easeInOut,
-      ),
-    );
-  }
-
-  Future<void> _initializeService() async {
-    setState(() {
-      _isInitializing = true;
-      _statusCode = -1;
-    });
-    
+  Future<void> _initialize() async {
     try {
       await _service.initializeCamera();
+      if (!mounted) return;
       setState(() {
-        _isInitializing = false;
-        _statusCode = 0;
+        _initializing = false;
+        _status = 0;
+        _error = null;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
-        _isInitializing = false;
-        _statusCode = 0;
+        _initializing = false;
+        _status = 0;
+        _error = e.toString();
       });
-      _showSnackBar('❌ فشل التهيئة: $e', Colors.red);
     }
   }
 
-  // ============================================================
-  🎮 التحكم في القياس
-  // ============================================================
-  Future<void> _toggleMeasurement() async {
-    if (_isMeasuring) {
-      await _stopMeasurement();
-    } else {
-      await _startMeasurement();
-    }
-  }
+  void _subscribe() {
+    _bpmSub?.cancel();
+    _qualitySub?.cancel();
+    _waveformSub?.cancel();
+    _statusSub?.cancel();
 
-  Future<void> _startMeasurement() async {
-    try {
+    _bpmSub = _service.bpmStream.listen((value) {
+      if (!mounted) return;
       setState(() {
-        _isMeasuring = true;
-        _statusCode = 1;
-        _currentBPM = 0;
+        _bpm = value;
+        _averageBpm = _service.averageBPM;
       });
-      
-      await _service.startMeasurement();
-      
-      _bpmSubscription = _service.bpmStream.listen((bpm) {
-        setState(() => _currentBPM = bpm);
-      });
-      
-      _signalSubscription = _service.signalStream.listen((quality) {
-        setState(() => _signalQuality = quality);
-      });
-      
-      _oxygenSubscription = _service.oxygenStream.listen((oxygen) {
-        setState(() => _oxygenSaturation = oxygen);
-      });
-      
-      _waveformSubscription = _service.waveformStream.listen((data) {
-        setState(() => _waveformData = data);
-      });
-      
-      _statusSubscription = _service.statusStream.listen((code) {
-        setState(() => _statusCode = code);
-      });
-      
-      _updateTimer = Timer.periodic(const Duration(milliseconds: 100), (_) {
-        setState(() {});
-      });
-      
-    } catch (e) {
-      setState(() {
-        _isMeasuring = false;
-        _statusCode = 0;
-      });
-      _showSnackBar('❌ فشل بدء القياس: $e', Colors.red);
-    }
-  }
-
-  Future<void> _stopMeasurement() async {
-    await _service.stopMeasurement();
-    
-    _bpmSubscription?.cancel();
-    _signalSubscription?.cancel();
-    _oxygenSubscription?.cancel();
-    _waveformSubscription?.cancel();
-    _statusSubscription?.cancel();
-    _updateTimer?.cancel();
-    
-    setState(() {
-      _isMeasuring = false;
-      _statusCode = 0;
-      _breathController.stop();
     });
-    
-    if (_currentBPM > 0) {
-      _showResultsDialog();
+    _qualitySub = _service.signalStream.listen((value) {
+      if (!mounted) return;
+      setState(() => _quality = value);
+    });
+    _waveformSub = _service.waveformStream.listen((value) {
+      if (!mounted) return;
+      setState(() => _waveform = value);
+    });
+    _statusSub = _service.statusStream.listen((value) {
+      if (!mounted) return;
+      setState(() => _status = value);
+    });
+  }
+
+  Future<void> _toggle() async {
+    if (_measuring) {
+      await _stop();
+    } else {
+      await _start();
     }
   }
 
-  // ============================================================
-  📊 عرض النتائج
-  // ============================================================
-  void _showResultsDialog() {
-    showDialog(
+  Future<void> _start() async {
+    if (_initializing) return;
+    try {
+      _subscribe();
+      await _service.startMeasurement();
+      if (!mounted) return;
+      setState(() {
+        _measuring = true;
+        _bpm = 0;
+        _averageBpm = 0;
+        _quality = 0;
+        _waveform = <double>[];
+        _status = 1;
+        _error = null;
+      });
+      _pulseController.repeat(reverse: true);
+    } catch (e) {
+      _bpmSub?.cancel();
+      _qualitySub?.cancel();
+      _waveformSub?.cancel();
+      _statusSub?.cancel();
+      if (!mounted) return;
+      setState(() {
+        _measuring = false;
+        _status = 0;
+        _error = e.toString();
+      });
+    }
+  }
+
+  Future<void> _stop() async {
+    await _service.stopMeasurement();
+    _bpmSub?.cancel();
+    _qualitySub?.cancel();
+    _waveformSub?.cancel();
+    _statusSub?.cancel();
+    _pulseController.stop();
+    if (!mounted) return;
+    setState(() {
+      _measuring = false;
+      _status = 0;
+    });
+    if (_bpm > 0) _showResult();
+  }
+
+  void _showResult() {
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('🫀 نتائج القياس'),
+        title: const Text('نتيجة القياس'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildResultRow(Icons.favorite, 'نبضات القلب', '$_currentBPM BPM', Colors.red),
-            const SizedBox(height: 8),
-            _buildResultRow(Icons.air, 'تشبع الأوكسجين', '${_oxygenSaturation.toStringAsFixed(1)}%', Colors.blue),
-            const SizedBox(height: 8),
-            _buildResultRow(Icons.signal_cellular_alt, 'جودة الإشارة', '${(_signalQuality * 100).toStringAsFixed(0)}%', Colors.green),
-            const SizedBox(height: 8),
-            _buildResultRow(Icons.timeline, 'متوسط النبض', '${_averageBPM.toStringAsFixed(0)} BPM', Colors.purple),
-            const Divider(),
-            _buildHealthAdvice(),
+            Text('$_bpm BPM', style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            Text('متوسط القياس: ${_averageBpm.toStringAsFixed(0)} BPM'),
+            Text('جودة الإشارة: ${(_quality * 100).round()}%'),
+            const SizedBox(height: 12),
+            const Text(
+              'هذه قراءة تقديرية من كاميرا الهاتف وليست بديلاً عن جهاز طبي معتمد أو تقييم الطبيب.',
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('حسناً'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('إغلاق')),
         ],
       ),
     );
   }
 
-  Widget _buildResultRow(IconData icon, String label, String value, Color color) {
-    return Row(
-      children: [
-        Icon(icon, color: color, size: 20),
-        const SizedBox(width: 8),
-        Text(label, style: const TextStyle(fontSize: 14)),
-        const Spacer(),
-        Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: color)),
-      ],
-    );
-  }
-
-  Widget _buildHealthAdvice() {
-    String advice;
-    IconData icon;
-    Color color;
-    
-    if (_currentBPM < 60) {
-      advice = '💪 نبضك في المعدل الطبيعي للرياضيين';
-      icon = Icons.fitness_center;
-      color = Colors.green;
-    } else if (_currentBPM < 80) {
-      advice = '😊 نبضك في المعدل الطبيعي';
-      icon = Icons.sentiment_satisfied;
-      color = Colors.blue;
-    } else if (_currentBPM < 100) {
-      advice = '🧘 حاول التنفس بعمق لتهدئة نبضك';
-      icon = Icons.self_improvement;
-      color = Colors.orange;
-    } else {
-      advice = '⚠️ نبضك مرتفع، استشر طبيباً إذا استمر';
-      icon = Icons.warning;
-      color = Colors.red;
-    }
-    
-    return Row(
-      children: [
-        Icon(icon, color: color, size: 20),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            advice,
-            style: TextStyle(fontSize: 14, color: color),
+  Future<void> _showHistory() async {
+    final rows = await _service.getHistory();
+    if (!mounted) return;
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => SafeArea(
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height * 0.65,
+          child: Column(
+            children: [
+              const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text('سجل قياسات النبض', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              ),
+              Expanded(
+                child: rows.isEmpty
+                    ? const Center(child: Text('لا توجد قياسات محفوظة بعد'))
+                    : ListView.separated(
+                        itemCount: rows.length,
+                        separatorBuilder: (_, __) => const Divider(height: 1),
+                        itemBuilder: (_, index) {
+                          final row = rows[index];
+                          final timestamp = DateTime.fromMillisecondsSinceEpoch(row['timestamp'] as int);
+                          final bpm = row['bpm'] as int;
+                          final quality = ((row['signal_quality'] as num).toDouble() * 100).round();
+                          return ListTile(
+                            leading: const Icon(Icons.favorite, color: Colors.red),
+                            title: Text('$bpm BPM'),
+                            subtitle: Text('${timestamp.day}/${timestamp.month}/${timestamp.year} • جودة $quality%'),
+                          );
+                        },
+                      ),
+              ),
+            ],
           ),
         ),
-      ],
+      ),
     );
   }
 
-  // ============================================================
-  📊 الرسم البياني
-  // ============================================================
-  Widget _buildWaveformChart() {
-    if (_waveformData.isEmpty) {
-      return const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.waves, size: 40, color: Colors.grey),
-            SizedBox(height: 8),
-            Text('⏳ انتظار الإشارة...', style: TextStyle(color: Colors.grey)),
-          ],
-        ),
+  String get _statusText {
+    if (_error != null) return 'تعذر تشغيل الكاميرا أو القياس';
+    switch (_status) {
+      case 1:
+        return _quality < 0.35 ? 'حافظ على ثبات إصبعك وحسّن الإضاءة' : 'جاري القياس...';
+      case 2:
+        return 'إشارة مستقرة';
+      case 0:
+        return 'جاهز لبدء القياس';
+      default:
+        return 'جاري التهيئة...';
+    }
+  }
+
+  Color get _statusColor {
+    if (_error != null) return Colors.red;
+    if (_status == 2) return Colors.green;
+    if (_status == 1) return Colors.orange;
+    return Colors.grey;
+  }
+
+  Widget _buildWaveform() {
+    if (_waveform.length < 2) {
+      return const SizedBox(
+        height: 140,
+        child: Center(child: Text('ستظهر الإشارة هنا أثناء القياس', style: TextStyle(color: Colors.grey))),
       );
     }
-
-    List<FlSpot> spots = [];
-    for (int i = 0; i < _waveformData.length; i++) {
-      spots.add(FlSpot(i.toDouble(), _waveformData[i]));
+    final spots = <FlSpot>[];
+    for (var i = 0; i < _waveform.length; i++) {
+      spots.add(FlSpot(i.toDouble(), _waveform[i]));
     }
-
-    return Container(
-      height: 120,
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-          ),
-        ],
-      ),
+    return SizedBox(
+      height: 140,
       child: LineChart(
         LineChartData(
+          minY: -0.08,
+          maxY: 0.08,
           gridData: const FlGridData(show: false),
           titlesData: const FlTitlesData(show: false),
           borderData: FlBorderData(show: false),
           lineBarsData: [
             LineChartBarData(
               spots: spots,
-              isCurved: true,
-              color: Colors.red.shade700,
+              isCurved: false,
               barWidth: 2,
+              color: Colors.red,
               dotData: const FlDotData(show: false),
-              belowBarData: BarAreaData(
-                show: true,
-                color: Colors.red.withOpacity(0.1),
-              ),
+              belowBarData: BarAreaData(show: false),
             ),
           ],
-          minY: -0.5,
-          maxY: 0.5,
         ),
       ),
     );
   }
 
-  // ============================================================
-  📱 بناء الواجهة
-  // ============================================================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('🫀 نبضات القلب'),
-        backgroundColor: Colors.red.shade700,
-        foregroundColor: Colors.white,
-        elevation: 0,
+        title: const Text('نبض القلب'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.help_outline),
-            onPressed: () => setState(() => _showTutorial = true),
-          ),
-          IconButton(
-            icon: const Icon(Icons.history),
-            onPressed: _showHistory,
-          ),
+          IconButton(onPressed: _showHistory, icon: const Icon(Icons.history), tooltip: 'السجل'),
         ],
       ),
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                // ❤️ القلب المتحرك
-                Center(
-                  child: AnimatedBuilder(
-                    animation: _breathAnimation,
-                    builder: (context, child) {
-                      return Transform.scale(
-                        scale: _breathAnimation.value,
-                        child: AnimatedHeart(
-                          size: _heartSize,
-                          color: _isMeasuring ? Colors.red : Colors.grey.shade400,
-                          animated: _isMeasuring,
-                          animationDuration: const Duration(milliseconds: 600),
-                        ),
-                      );
-                    },
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              if (_error != null)
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.error_outline, color: Colors.red),
+                        const SizedBox(width: 8),
+                        Expanded(child: Text(_error!)),
+                        TextButton(onPressed: _initialize, child: const Text('إعادة المحاولة')),
+                      ],
+                    ),
                   ),
                 ),
-                
-                const SizedBox(height: 20),
-                
-                // 📊 قيمة BPM
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
+              const SizedBox(height: 12),
+              ScaleTransition(
+                scale: _pulseController,
+                child: Icon(Icons.favorite, size: 86, color: _measuring ? Colors.red : Colors.grey.shade400),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                _bpm == 0 ? '--' : '$_bpm',
+                style: TextStyle(fontSize: 64, fontWeight: FontWeight.bold, color: _bpm == 0 ? Colors.grey : Colors.red),
+              ),
+              const Text('BPM', style: TextStyle(fontSize: 20, color: Colors.grey)),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(child: _metric('جودة الإشارة', '${(_quality * 100).round()}%', Icons.signal_cellular_alt)),
+                  const SizedBox(width: 10),
+                  Expanded(child: _metric('المتوسط', _averageBpm == 0 ? '--' : '${_averageBpm.round()} BPM', Icons.timeline)),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: _statusColor.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: _statusColor.withOpacity(0.25)),
+                ),
+                child: Row(
                   children: [
-                    AnimatedDefaultTextStyle(
-                      duration: const Duration(milliseconds: 300),
-                      style: TextStyle(
-                        fontSize: _currentBPM == 0 ? 36 : 64,
-                        fontWeight: FontWeight.bold,
-                        color: _currentBPM == 0 ? Colors.grey : Colors.red,
-                      ),
-                      child: Text(
-                        _currentBPM == 0 ? '--' : '$_currentBPM',
-                      ),
-                    ),
+                    Icon(Icons.circle, size: 10, color: _statusColor),
                     const SizedBox(width: 8),
-                    const Text(
-                      'BPM',
-                      style: TextStyle(fontSize: 24, color: Colors.grey),
-                    ),
+                    Expanded(child: Text(_statusText)),
                   ],
                 ),
-                
-                const SizedBox(height: 8),
-                
-                // 📊 معلومات إضافية
-                Row(
-                  children: [
-                    _buildInfoCard(
-                      'تشبع الأوكسجين',
-                      '${_oxygenSaturation.toStringAsFixed(1)}%',
-                      Icons.air,
-                      Colors.blue,
-                    ),
-                    const SizedBox(width: 8),
-                    _buildInfoCard(
-                      'جودة الإشارة',
-                      '${(_signalQuality * 100).toStringAsFixed(0)}%',
-                      Icons.signal_cellular_alt,
-                      Colors.green,
-                    ),
-                    const SizedBox(width: 8),
-                    _buildInfoCard(
-                      'متوسط النبض',
-                      '${_averageBPM.toStringAsFixed(0)} BPM',
-                      Icons.timeline,
-                      Colors.purple,
-                    ),
-                  ],
+              ),
+              const SizedBox(height: 16),
+              Card(
+                child: Padding(padding: const EdgeInsets.all(12), child: _buildWaveform()),
+              ),
+              const SizedBox(height: 18),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: _initializing ? null : _toggle,
+                  icon: Icon(_measuring ? Icons.stop : Icons.play_arrow),
+                  label: Text(_measuring ? 'إيقاف القياس' : 'بدء القياس'),
+                  style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 15)),
                 ),
-                
-                const SizedBox(height: 16),
-                
-                // 📝 حالة القياس
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: _statusColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: _statusColor.withOpacity(0.3)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 500),
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: _statusColor,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      AnimatedDefaultTextStyle(
-                        duration: const Duration(milliseconds: 500),
-                        style: TextStyle(
-                          color: _statusColor,
-                          fontSize: 14,
-                        ),
-                        child: Text(_statusText),
-                      ),
-                    ],
-                  ),
-                ),
-                
-                const SizedBox(height: 20),
-                
-                // 📈 الرسم البياني
-                _buildWaveformChart(),
-                
-                const SizedBox(height: 20),
-                
-                // 🎮 زر التحكم
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: _isInitializing ? null : _toggleMeasurement,
-                    icon: Icon(
-                      _isMeasuring ? Icons.stop : Icons.play_arrow,
-                    ),
-                    label: Text(
-                      _isMeasuring ? 'إيقاف القياس' : 'بدء القياس',
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _isMeasuring ? Colors.red : Colors.green,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      elevation: 4,
-                    ),
-                  ),
-                ),
-                
-                const SizedBox(height: 16),
-                
-                // 💡 الإرشادات
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.shade50,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.orange.shade200),
-                  ),
+              ),
+              const SizedBox(height: 14),
+              const Card(
+                child: Padding(
+                  padding: EdgeInsets.all(14),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Row(
-                        children: [
-                          Icon(Icons.lightbulb, color: Colors.orange),
-                          SizedBox(width: 8),
-                          Text('💡 إرشادات سريعة', style: TextStyle(fontWeight: FontWeight.bold)),
-                        ],
-                      ),
+                    children: [
+                      Text('طريقة القياس', style: TextStyle(fontWeight: FontWeight.bold)),
                       SizedBox(height: 8),
-                      Text('• ضع إصبعك برفق على الكاميرا الخلفية', style: TextStyle(fontSize: 12)),
-                      Text('• تأكد من تغطية الفلاش بإصبعك', style: TextStyle(fontSize: 12)),
-                      Text('• حافظ على ثبات إصبعك أثناء القياس', style: TextStyle(fontSize: 12)),
+                      Text('ضع طرف إصبعك برفق على عدسة الكاميرا الخلفية مع تغطية العدسة والضوء، وابقَ ثابتاً لمدة كافية للحصول على إشارة واضحة.'),
+                      SizedBox(height: 8),
+                      Text('مهم: قياس الكاميرا تقديري ولا يُستخدم لتشخيص حالة صحية أو لاتخاذ قرار علاجي.'),
                     ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
-  // ============================================================
-  🧩 ويدجت مساعدة
-  // ============================================================
-  Widget _buildInfoCard(String label, String value, IconData icon, Color color) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 4,
-            ),
-          ],
-        ),
+  Widget _metric(String label, String value, IconData icon) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
         child: Column(
           children: [
-            Icon(icon, color: color, size: 20),
-            const SizedBox(height: 4),
-            AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 300),
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: value.contains('%') ? 12 : 14,
-                color: color,
-              ),
-              child: Text(value),
-            ),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 10,
-                color: Colors.grey,
-              ),
-            ),
+            Icon(icon, size: 22),
+            const SizedBox(height: 5),
+            Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            const SizedBox(height: 3),
+            Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
       ),
     );
   }
 
-  // ============================================================
-  📊 عرض السجل
-  // ============================================================
-  void _showHistory() async {
-    final stats = await _service.getStatistics();
-    
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('📊 سجل القياسات'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildStatRow('متوسط النبض', '${(stats['avg_bpm'] ?? 0).toStringAsFixed(0)} BPM'),
-            _buildStatRow('متوسط الأوكسجين', '${(stats['avg_oxygen'] ?? 0).toStringAsFixed(1)}%'),
-            _buildStatRow('أعلى نبض', '${stats['max_bpm'] ?? 0} BPM'),
-            _buildStatRow('أدنى نبض', '${stats['min_bpm'] ?? 0} BPM'),
-            _buildStatRow('متوسط الجودة', '${((stats['avg_quality'] ?? 0) * 100).toStringAsFixed(0)}%'),
-            _buildStatRow('عدد القياسات', '${stats['count'] ?? 0}'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('إغلاق'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        children: [
-          Text(label, style: const TextStyle(fontSize: 14)),
-          const Spacer(),
-          Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-        ],
-      ),
-    );
-  }
-
-  // ============================================================
-  📢 عرض إشعار
-  // ============================================================
-  void _showSnackBar(String message, Color color) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: color,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 3),
-      ),
-    );
-  }
-
-  // ============================================================
-  🧹 التنظيف
-  // ============================================================
   @override
   void dispose() {
-    _bpmSubscription?.cancel();
-    _signalSubscription?.cancel();
-    _oxygenSubscription?.cancel();
-    _waveformSubscription?.cancel();
-    _statusSubscription?.cancel();
-    _updateTimer?.cancel();
-    _breathController.dispose();
+    _bpmSub?.cancel();
+    _qualitySub?.cancel();
+    _waveformSub?.cancel();
+    _statusSub?.cancel();
+    _pulseController.dispose();
     _service.dispose();
     super.dispose();
   }
 }
-*/
