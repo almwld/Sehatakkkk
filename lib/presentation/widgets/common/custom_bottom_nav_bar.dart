@@ -4,11 +4,8 @@ import 'package:sehatak/core/constants/app_colors.dart';
 class CustomBottomNavigationBar extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
-
-  // Optional compatibility fields for older callers.
   final ScrollController? scrollController;
   final dynamic scrollManager;
-
   final bool isLoggedIn;
   final VoidCallback onAuthRequired;
 
@@ -22,8 +19,10 @@ class CustomBottomNavigationBar extends StatelessWidget {
     required this.onAuthRequired,
   });
 
-  static const double _barHeight = 76.0;
+  // ✅ ارتفاع الشريط 60
+  static const double _barHeight = 60.0;
 
+  // ✅ الأيقونات من Material Icons (نفس السابقة)
   static const List<NavItem> _navItems = [
     NavItem(
       index: 0,
@@ -68,26 +67,25 @@ class CustomBottomNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark =
-        Theme.of(context).brightness == Brightness.dark;
-
-    final backgroundColor = isDark
-        ? const Color(0xFF1E293B)
-        : Colors.white;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final bottomPadding = MediaQuery.of(context).viewPadding.bottom;
 
     return Material(
       color: Colors.transparent,
       child: Container(
-        height: _barHeight,
+        height: _barHeight + bottomPadding,
+        padding: EdgeInsets.only(bottom: bottomPadding > 0 ? 0 : 4),
+        clipBehavior: Clip.none, // ✅ يسمح للزر الدائري بالخروج
         decoration: BoxDecoration(
           color: backgroundColor,
           borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(24),
+            top: Radius.circular(20),
           ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.08),
-              blurRadius: 16,
+              blurRadius: 12,
               offset: const Offset(0, -4),
               spreadRadius: 1,
             ),
@@ -96,105 +94,63 @@ class CustomBottomNavigationBar extends StatelessWidget {
         child: SafeArea(
           top: false,
           bottom: true,
-          minimum: const EdgeInsets.only(
-            bottom: 2,
-          ),
-          child: SizedBox(
-            height: _barHeight - 2,
-            child: Row(
-              mainAxisAlignment:
-                  MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment:
-                  CrossAxisAlignment.center,
-              children: _navItems.map((item) {
-                if (item.isSpecial) {
-                  return _buildSpecialChatButton(
-                    context,
-                    item,
-                    isDark,
-                  );
-                }
-
-                return _buildNavItem(
-                  context,
-                  item,
-                  isDark,
-                );
-              }).toList(),
-            ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: _navItems.map((item) {
+              if (item.isSpecial) {
+                return _buildSpecialChatButton(item, isDark);
+              }
+              return _buildNavItem(item, isDark);
+            }).toList(),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildNavItem(
-    BuildContext context,
-    NavItem item,
-    bool isDark,
-  ) {
-    final isSelected =
-        currentIndex == item.index;
-
-    final inactiveColor = isDark
-        ? Colors.grey.shade400
-        : Colors.grey.shade500;
+  // 🔘 الأيقونات العادية
+  Widget _buildNavItem(NavItem item, bool isDark) {
+    final isSelected = currentIndex == item.index;
+    final inactiveColor = isDark ? Colors.grey.shade400 : Colors.grey.shade500;
 
     return GestureDetector(
       onTap: () => _handleTap(item),
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
         width: 48,
-        height: 68,
+        height: 56,
         child: Column(
-          mainAxisAlignment:
-              MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            AnimatedScale(
-              scale: isSelected ? 1.08 : 1.0,
-              duration:
-                  const Duration(milliseconds: 180),
-              curve: Curves.easeOut,
-              child: Icon(
-                item.icon,
-                color: isSelected
-                    ? AppColors.primary
-                    : inactiveColor,
-                size: isSelected ? 26 : 24,
+            // ✅ أيقونة بحجم مناسب
+            Icon(
+              item.icon,
+              color: isSelected ? AppColors.primary : inactiveColor,
+              size: isSelected ? 26 : 24,
+            ),
+            const SizedBox(height: 3),
+            // ✅ النص
+            Text(
+              item.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 9.5,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected ? AppColors.primary : inactiveColor,
               ),
             ),
             const SizedBox(height: 3),
-            AnimatedOpacity(
-              opacity: isSelected ? 1.0 : 0.75,
-              duration:
-                  const Duration(milliseconds: 180),
-              child: Text(
-                item.label,
-                maxLines: 1,
-                overflow:
-                    TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 9.5,
-                  fontWeight: isSelected
-                      ? FontWeight.w700
-                      : FontWeight.w500,
-                  color: isSelected
-                      ? AppColors.primary
-                      : inactiveColor,
-                ),
-              ),
-            ),
-            const SizedBox(height: 3),
+            // ✅ المؤشر السفلي
             AnimatedContainer(
-              duration:
-                  const Duration(milliseconds: 180),
+              duration: const Duration(milliseconds: 180),
               curve: Curves.easeOut,
               width: isSelected ? 20 : 0,
               height: 3,
               decoration: BoxDecoration(
                 color: AppColors.primary,
-                borderRadius:
-                    BorderRadius.circular(3),
+                borderRadius: BorderRadius.circular(3),
               ),
             ),
           ],
@@ -203,77 +159,82 @@ class CustomBottomNavigationBar extends StatelessWidget {
     );
   }
 
-  Widget _buildSpecialChatButton(
-    BuildContext context,
-    NavItem item,
-    bool isDark,
-  ) {
-    final isSelected =
-        currentIndex == item.index;
-
-    final inactiveColor = isDark
-        ? Colors.grey.shade400
-        : Colors.grey.shade500;
+  // 💬 زر الدردشة المميز - يخرج من الشريط باستخدام Stack + Positioned
+  Widget _buildSpecialChatButton(NavItem item, bool isDark) {
+    final isSelected = currentIndex == item.index;
+    final inactiveColor = isDark ? Colors.grey.shade400 : Colors.grey.shade500;
 
     return GestureDetector(
       onTap: () => _handleTap(item),
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
-        width: 64,
-        height: 68,
-        child: Column(
-          mainAxisAlignment:
-              MainAxisAlignment.center,
+        width: 60,
+        height: 56,
+        child: Stack(
+          clipBehavior: Clip.none, // ✅ يسمح للزر بالخروج
           children: [
-            AnimatedScale(
-              scale: isSelected ? 1.04 : 1.0,
-              duration:
-                  const Duration(milliseconds: 180),
-              curve: Curves.easeOut,
-              child: Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [
-                      AppColors.primary,
-                      AppColors.primaryDark,
+            // ✅ الزر يخرج للأعلى باستخدام Positioned
+            Positioned(
+              top: -22, // ✅ يرفع الزر للأعلى 22px (يظهر كاملاً)
+              left: 0,
+              right: 0,
+              child: Center(
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  curve: Curves.easeOut,
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    gradient: isSelected
+                        ? const LinearGradient(
+                            colors: [AppColors.primary, AppColors.primaryDark],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          )
+                        : LinearGradient(
+                            colors: [
+                              AppColors.primary.withOpacity(0.5),
+                              AppColors.primaryDark.withOpacity(0.5),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(
+                          isSelected ? 0.4 : 0.15,
+                        ),
+                        blurRadius: isSelected ? 20 : 12,
+                        offset: const Offset(0, 4),
+                        spreadRadius: isSelected ? 2 : 0,
+                      ),
                     ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
                   ),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary
-                          .withOpacity(0.25),
-                      blurRadius: 12,
-                      offset:
-                          const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.chat_rounded,
-                  color: Colors.white,
-                  size: 28,
+                  child: Icon(
+                    item.icon,
+                    color: Colors.white,
+                    size: 28,
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: 1),
-            Text(
-              item.label,
-              maxLines: 1,
-              overflow:
-                  TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 9.5,
-                fontWeight: isSelected
-                    ? FontWeight.w700
-                    : FontWeight.w500,
-                color: isSelected
-                    ? AppColors.primary
-                    : inactiveColor,
+            // ✅ النص في الأسفل
+            Positioned(
+              bottom: 2,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Text(
+                  item.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 9.5,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    color: isSelected ? AppColors.primary : inactiveColor,
+                  ),
+                ),
               ),
             ),
           ],
@@ -283,16 +244,21 @@ class CustomBottomNavigationBar extends StatelessWidget {
   }
 
   void _handleTap(NavItem item) {
-    if (item.isProtected &&
-        !isLoggedIn) {
+    if (item.isProtected && !isLoggedIn) {
       onAuthRequired();
       return;
     }
-
     onTap(item.index);
+    // ✅ إظهار الشريط عند الضغط
+    if (scrollManager != null) {
+      try {
+        scrollManager.show();
+      } catch (_) {}
+    }
   }
 }
 
+// 📦 نموذج عنصر التنقل
 class NavItem {
   final int index;
   final IconData icon;
