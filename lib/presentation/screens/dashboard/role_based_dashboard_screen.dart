@@ -9,6 +9,7 @@ import 'package:sehatak/presentation/widgets/common/local_asset_icon.dart';
 
 class RoleBasedDashboardScreen extends StatelessWidget {
   const RoleBasedDashboardScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
@@ -25,6 +26,7 @@ class RoleBasedDashboardScreen extends StatelessWidget {
 
 class _DoctorDashboard extends StatelessWidget {
   const _DoctorDashboard();
+
   @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
@@ -38,8 +40,8 @@ class _DoctorDashboard extends StatelessWidget {
         _statGrid(uid, dark),
         const SizedBox(height: 14),
         _action(context, 'assets/images/services/calendar_booking.png', 'المواعيد', 'متابعة المواعيد والحجوزات', AppRouter.consultation),
-        _action(context, 'assets/images/services/medical_community.png', 'مجتمع صحتك', 'إنشاء وإدارة المنشورات الطبية', '/more'),
-        _action(context, 'assets/images/services/medical_records.png', 'السجلات الطبية', 'الوصول المصرح إلى بيانات المرضى', '/dashboard'),
+        _action(context, 'assets/images/services/medical_community.png', 'مجتمع صحتك', 'عرض المنشورات والتعليقات والمشاركات', AppRouter.community),
+        _action(context, 'assets/images/services/medical_records.png', 'السجلات الطبية', 'الوصول المصرح إلى بيانات المرضى', AppRouter.dashboard),
         _action(context, 'assets/images/services/wallet.png', 'المحفظة', 'المعاملات والأرصدة', AppRouter.wallet),
       ]),
     );
@@ -49,7 +51,14 @@ class _DoctorDashboard extends StatelessWidget {
     future: uid == null ? null : FirebaseFirestore.instance.collection('appointments').where('doctorId', isEqualTo: uid).limit(50).get(),
     builder: (_, snap) {
       final count = snap.data?.docs.length ?? 0;
-      return Row(children: [Expanded(child: _stat('المواعيد', '$count', 'assets/images/services/calendar_booking.png', dark)), const SizedBox(width: 10), Expanded(child: _stat('المنشورات', 'إدارة', 'assets/images/services/medical_community.png', dark))]);
+      return Row(children: [
+        Expanded(child: _stat('المواعيد', '$count', 'assets/images/services/calendar_booking.png', dark)),
+        const SizedBox(width: 10),
+        Expanded(child: FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          future: uid == null ? null : FirebaseFirestore.instance.collection('community_posts').where('userId', isEqualTo: uid).limit(50).get(),
+          builder: (_, posts) => _stat('المنشورات', '${posts.data?.docs.length ?? 0}', 'assets/images/services/medical_community.png', dark),
+        )),
+      ]);
     },
   );
 
