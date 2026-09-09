@@ -1,0 +1,63 @@
+name: Continue local icon migration
+on:
+  push:
+    branches: [master]
+permissions:
+  contents: write
+jobs:
+  migrate-auth:
+    if: ${{ !startsWith(github.event.head_commit.message, 'refactor(ui): migrate auth local icons') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch auth local icons
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('lib/presentation/screens/auth/auth_screen.dart')
+          s = path.read_text()
+          if "import 'package:sehatak/presentation/widgets/common/local_asset_icon.dart';" not in s:
+              s = "import 'package:sehatak/presentation/widgets/common/local_asset_icon.dart';\n" + s
+
+          mapping = {
+            'person_outline':'assets/icons/core/home.svg',
+            'local_hospital_outlined':'assets/icons/core/doctor.svg',
+            'medical_services_outlined':'assets/icons/services/medical.svg',
+            'pregnant_woman':'assets/icons/mini_specialties/pediatrics.svg',
+            'fitness_center':'assets/icons/mini_specialties/bone.svg',
+            'local_pharmacy_outlined':'assets/icons/core/pharmacy.svg',
+            'science_outlined':'assets/icons/lab/microscope.svg',
+            'emergency':'assets/icons/core/emergency.svg',
+            'delivery_dining':'assets/icons/core/health_record.svg',
+            'handyman':'assets/icons/core/more_menu.svg',
+            'admin_panel_settings':'assets/icons/core/more_menu.svg',
+            'check_circle':'assets/icons/core/health_record.svg',
+          }
+
+          def role_icon(m):
+              return "'icon': '" + mapping.get(m.group(1), 'assets/icons/core/more_menu.svg') + "'"
+          s = re.sub(r"'icon':\s*Icons\.([A-Za-z0-9_]+)", role_icon, s)
+
+          s = re.sub(
+              r"Icon\(\s*role\['icon'\],\s*color:\s*([^\n]+)",
+              r"LocalAssetIcon(role['icon'] as String, color: \1",
+              s,
+          )
+
+          def material_icon(m):
+              return "LocalAssetIcon('" + mapping.get(m.group(1), 'assets/icons/core/more_menu.svg') + "'"
+          s = re.sub(r"Icon\(\s*Icons\.([A-Za-z0-9_]+)", material_icon, s)
+
+          path.write_text(s)
+          PY
+          dart format lib/presentation/screens/auth/auth_screen.dart
+      - name: Commit
+        run: |
+          git add lib/presentation/screens/auth/auth_screen.dart
+          git rm -f .github/workflows/continue-local-icon-migration.yml
+          git diff --cached --quiet && exit 0
+          git commit -m 'refactor(ui): migrate auth local icons'
+          git push
