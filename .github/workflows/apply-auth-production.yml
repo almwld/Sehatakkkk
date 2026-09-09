@@ -32,4 +32,6 @@ jobs:
             exit 0
           fi
           git commit -m "fix(auth): complete Google, remember-me, biometric and splash flow"
+          git fetch origin master
+          git rebase origin/master
           git push origin HEAD:master
