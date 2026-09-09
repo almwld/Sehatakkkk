@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/models/payment/wallet_models.dart';
+import 'package:sehatak/core/services/network_service.dart';
 
 /// Unified client gateway for Sehatak financial operations.
 /// All balance mutations and transaction finalization happen in trusted
@@ -33,7 +34,7 @@ class PaymentService {
   Future<WalletModel> getWalletSnapshot() async {
     final uid = currentUserId;
     if (uid == null) throw Exception('المستخدم غير مسجل الدخول');
-    final doc = await _db.collection('wallets').doc(uid).get();
+    final doc = await NetworkService.callWithRetry(() => _db.collection('wallets').doc(uid).get());
     if (!doc.exists) return _createDefaultWallet(uid);
     return WalletModel.fromFirestore(doc.data()!, uid);
   }
@@ -45,7 +46,7 @@ class PaymentService {
   Future<bool> hasSufficientBalance(double amount) async => amount > 0 && await getBalance() >= amount;
 
   Future<TransactionModel> _readTransaction(String transactionId) async {
-    final snapshot = await _db.collection('transactions').doc(transactionId).get();
+    final snapshot = await NetworkService.callWithRetry(() => _db.collection('transactions').doc(transactionId).get());
     if (!snapshot.exists) throw Exception('تعذر العثور على المعاملة');
     return TransactionModel.fromFirestore(snapshot.id, snapshot.data()!);
   }
@@ -62,8 +63,7 @@ class PaymentService {
   }) async {
     if (currentUserId == null) throw Exception('المستخدم غير مسجل الدخول');
     if (amount <= 0) throw Exception('المبلغ يجب أن يكون أكبر من صفر');
-    final callable = _functions.httpsCallable('createPayment');
-    final result = await callable.call({
+    final result = await NetworkService.callWithRetry(() => _functions.httpsCallable('createPayment').call({
       'amount': amount,
       'title': title,
       'description': description,
@@ -72,8 +72,9 @@ class PaymentService {
       'serviceType': serviceType,
       'metadata': metadata,
       'idempotencyKey': idempotencyKey,
-    });
-    return _readTransaction(result.data['transactionId'] as String);
+    }));
+    final data = Map<String, dynamic>.from(result.data as Map);
+    return _readTransaction(data['transactionId'] as String);
   }
 
   Future<TransactionModel> topUpWallet({
@@ -85,20 +86,22 @@ class PaymentService {
     if (currentUserId == null) throw Exception('المستخدم غير مسجل الدخول');
     if (amount <= 0) throw Exception('المبلغ يجب أن يكون أكبر من صفر');
     if (referenceNumber.trim().isEmpty) throw Exception('رقم الإشعار مطلوب');
-    final result = await _functions.httpsCallable('submitTopUp').call({
+    final result = await NetworkService.callWithRetry(() => _functions.httpsCallable('submitTopUp').call({
       'amount': amount,
       'walletName': walletName,
       'referenceNumber': referenceNumber,
       'metadata': metadata,
-    });
-    return _readTransaction(result.data['transactionId'] as String);
+    }));
+    final data = Map<String, dynamic>.from(result.data as Map);
+    return _readTransaction(data['transactionId'] as String);
   }
 
   Future<TransactionModel> refundTransaction({required String transactionId, required String reason}) async {
     if (currentUserId == null) throw Exception('المستخدم غير مسجل الدخول');
     if (reason.trim().isEmpty) throw Exception('سبب الاسترداد مطلوب');
-    final result = await _functions.httpsCallable('requestRefund').call({'transactionId': transactionId, 'reason': reason});
-    return _readTransaction(result.data['transactionId'] as String);
+    final result = await NetworkService.callWithRetry(() => _functions.httpsCallable('requestRefund').call({'transactionId': transactionId, 'reason': reason}));
+    final data = Map<String, dynamic>.from(result.data as Map);
+    return _readTransaction(data['transactionId'] as String);
   }
 
   Future<TransactionModel> requestWithdrawal({
@@ -107,27 +110,29 @@ class PaymentService {
     required String destination,
   }) async {
     if (currentUserId == null) throw Exception('المستخدم غير مسجل الدخول');
-    final result = await _functions.httpsCallable('requestWithdrawal').call({
+    final result = await NetworkService.callWithRetry(() => _functions.httpsCallable('requestWithdrawal').call({
       'amount': amount,
       'walletName': walletName,
       'destination': destination,
-    });
-    return _readTransaction(result.data['transactionId'] as String);
+    }));
+    final data = Map<String, dynamic>.from(result.data as Map);
+    return _readTransaction(data['transactionId'] as String);
   }
 
   Future<TransactionModel> reviewTransaction({required String transactionId, required bool approve}) async {
-    final result = await _functions.httpsCallable('reviewTransaction').call({
+    final result = await NetworkService.callWithRetry(() => _functions.httpsCallable('reviewTransaction').call({
       'transactionId': transactionId,
       'decision': approve ? 'approve' : 'reject',
-    });
-    return _readTransaction(result.data['transactionId'] as String);
+    }));
+    final data = Map<String, dynamic>.from(result.data as Map);
+    return _readTransaction(data['transactionId'] as String);
   }
 
   Future<Map<String, dynamic>> getWalletStats() async {
     final uid = currentUserId;
     if (uid == null) throw Exception('المستخدم غير مسجل الدخول');
     final wallet = await getWalletSnapshot();
-    final snapshot = await _db.collection('transactions').where('userId', isEqualTo: uid).count().get();
+    final snapshot = await NetworkService.callWithRetry(() => _db.collection('transactions').where('userId', isEqualTo: uid).count().get());
     return {
       'balance': wallet.balance,
       'pendingBalance': wallet.pendingBalance,
@@ -140,11 +145,11 @@ class PaymentService {
 
   Future<void> createDefaultWallet(String uid) async {
     if (uid != currentUserId) throw Exception('غير مصرح');
-    await _functions.httpsCallable('createWallet').call();
+    await NetworkService.callWithRetry(() => _functions.httpsCallable('createWallet').call());
   }
 
   Future<void> ensureWalletExists() async {
     if (currentUserId == null) throw Exception('المستخدم غير مسجل الدخول');
-    await _functions.httpsCallable('createWallet').call();
+    await NetworkService.callWithRetry(() => _functions.httpsCallable('createWallet').call());
   }
 }
