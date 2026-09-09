@@ -2,8 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 
-/// Single source of truth for HomeBloc data access.
-/// Collection names intentionally match existing platform services/rules.
+/// Data source used by the home screen. Every section reads existing Firestore
+/// collections/contracts; the UI never fabricates provider or health records.
 class HomeRepositoryFixed {
   FirebaseFirestore? get firestore =>
       Firebase.apps.isEmpty ? null : FirebaseFirestore.instance;
@@ -17,7 +17,7 @@ class HomeRepositoryFixed {
       var name = user.displayName ?? '';
       if (name.trim().isEmpty) {
         final data = (await firestore?.collection('users').doc(user.uid).get())?.data();
-        name = data?['name']?.toString() ?? '';
+        name = data?['name']?.toString() ?? data?['displayName']?.toString() ?? '';
       }
       return (
         isLoggedIn: true,
@@ -36,7 +36,13 @@ class HomeRepositoryFixed {
       if (f == null || user == null) {
         return (calories: 0, steps: 0, sleep: 0, heartRate: 0);
       }
-      final data = (await f.collection('health_metrics').doc(user.uid).get()).data();
+      final data = (await f
+              .collection('users')
+              .doc(user.uid)
+              .collection('health_metrics')
+              .doc('current')
+              .get())
+          .data();
       double number(dynamic value) => value is num
           ? value.toDouble()
           : double.tryParse(value?.toString() ?? '') ?? 0;
@@ -52,41 +58,30 @@ class HomeRepositoryFixed {
   }
 
   Future<List<Map<String, dynamic>>> getDoctors({int limit = 10}) =>
-      _query('doctors', limit, verified: true);
+      _query('doctors', limit, activeField: 'isAvailable');
 
   Future<List<Map<String, dynamic>>> getHospitals({int limit = 6}) =>
-      _getCityFacilities('hospitals', limit);
+      _query('hospitals', limit, activeField: 'isActive');
 
   Future<List<Map<String, dynamic>>> getLabs({int limit = 6}) =>
-      _getCityFacilities('labs', limit);
+      _query('labs', limit, activeField: 'isAvailable');
 
   Future<List<Map<String, dynamic>>> getPharmacies({int limit = 6}) =>
-      _getCityFacilities('pharmacies', limit);
+      _query('pharmacies', limit, activeField: 'isOpen');
 
-  Future<List<Map<String, dynamic>>> _getCityFacilities(
-      String collection, int limit) async {
+  Future<List<Map<String, dynamic>>> _query(
+    String collection,
+    int limit, {
+    required String activeField,
+  }) async {
     try {
       final f = firestore;
       if (f == null) return [];
       final snapshot = await f
           .collection(collection)
-          .where('cityNormalized', isEqualTo: 'صنعاء')
+          .where(activeField, isEqualTo: true)
           .limit(limit)
           .get();
-      return snapshot.docs.map((d) => {'id': d.id, ...d.data()}).toList();
-    } catch (_) {
-      return [];
-    }
-  }
-
-  Future<List<Map<String, dynamic>>> _query(
-      String collection, int limit, {bool verified = false}) async {
-    try {
-      final f = firestore;
-      if (f == null) return [];
-      Query<Map<String, dynamic>> query = f.collection(collection);
-      if (verified) query = query.where('isVerified', isEqualTo: true);
-      final snapshot = await query.limit(limit).get();
       return snapshot.docs.map((d) => {'id': d.id, ...d.data()}).toList();
     } catch (_) {
       return [];
@@ -108,10 +103,11 @@ class HomeRepositoryFixed {
     }
   }
 
-  /// No tips collection was found in the repository, so no synthetic data is returned.
+  /// No verified tips collection exists in the current data model, therefore
+  /// the home screen intentionally hides the tips section instead of showing
+  /// invented health content as if it came from the backend.
   Future<List<Map<String, dynamic>>> getTips() async => [];
 
-  /// Uses the same collection and publication contract already used by CommunityBloc.
   Future<List<Map<String, dynamic>>> getCommunityPosts({int limit = 10}) async {
     try {
       final f = firestore;
