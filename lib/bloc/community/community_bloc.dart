@@ -64,6 +64,7 @@ class CommunityBloc extends Bloc<CommunityEvent, CommunityState> {
       final userName = (userData['name'] ?? user.displayName ?? 'طبيب').toString();
       final files = event.files ?? const <PlatformFile>[];
       final mediaUrls = <String>[];
+      final mediaNames = <String>[];
 
       for (var i = 0; i < files.length; i++) {
         final file = files[i];
@@ -83,6 +84,7 @@ class CommunityBloc extends Bloc<CommunityEvent, CommunityState> {
           throw Exception(upload.error ?? 'فشل رفع الوسائط إلى Nextcloud');
         }
         mediaUrls.add(upload.url!);
+        mediaNames.add(file.name);
       }
 
       final tags = _extractTags('${event.title} ${event.content ?? ''}');
@@ -103,7 +105,13 @@ class CommunityBloc extends Bloc<CommunityEvent, CommunityState> {
         isPublished: true,
       );
 
-      final docRef = await _firestore.collection('community_posts').add(post.toFirestore());
+      final docRef = await _firestore.collection('community_posts').add({
+        ...post.toFirestore(),
+        'mediaNames': mediaNames,
+        'mediaCount': mediaUrls.length,
+        'mediaStorage': 'nextcloud',
+        'mediaOwnerId': user.uid,
+      });
       final savedPost = post.copyWith(id: docRef.id);
       emit(state.copyWith(
         status: CommunityStatus.loaded,
@@ -174,11 +182,7 @@ class CommunityBloc extends Bloc<CommunityEvent, CommunityState> {
       if (doc.exists) {
         await saveRef.delete();
       } else {
-        final postDoc = await _firestore.collection('community_posts').doc(event.postId).get();
         await saveRef.set({'postId': event.postId, 'savedAt': FieldValue.serverTimestamp()});
-        if (postDoc.exists && event.index < state.posts.length) {
-          // Keep the source document authoritative; only the user save state is stored here.
-        }
       }
       if (event.index < state.posts.length) {
         final posts = List<CommunityPostModel>.from(state.posts);
@@ -209,7 +213,16 @@ class CommunityBloc extends Bloc<CommunityEvent, CommunityState> {
 
   Future<void> _onSharePost(ShareCommunityPost event, Emitter<CommunityState> emit) async {
     try {
-      await _firestore.collection('community_posts').doc(event.postId).update({'shares': FieldValue.increment(1)});
+      final user = _auth.currentUser;
+      if (user == null) throw Exception('يجب تسجيل الدخول');
+      await _firestore.collection('community_posts').doc(event.postId).update({
+        'shares': FieldValue.increment(1),
+        'lastSharedAt': FieldValue.serverTimestamp(),
+      });
+      await _firestore.collection('community_posts').doc(event.postId).collection('share_events').add({
+        'userId': user.uid,
+        'sharedAt': FieldValue.serverTimestamp(),
+      });
       if (event.index < state.posts.length) {
         final posts = List<CommunityPostModel>.from(state.posts);
         posts[event.index] = posts[event.index].copyWith(shares: posts[event.index].shares + 1);
@@ -226,12 +239,13 @@ class CommunityBloc extends Bloc<CommunityEvent, CommunityState> {
       final userDoc = await _firestore.collection('users').doc(user.uid).get();
       final userData = userDoc.data() ?? <String, dynamic>{};
       final userName = (userData['name'] ?? user.displayName ?? 'مستخدم').toString();
-      final commentRef = postRef.collection('comments').doc();
+      final commentRef = _firestore.collection('comments').doc();
       await _firestore.runTransaction((transaction) async {
         final postDoc = await transaction.get(postRef);
         if (!postDoc.exists) throw Exception('المنشور غير موجود');
         final current = (postDoc.data()?['comments'] as num?)?.toInt() ?? 0;
         transaction.set(commentRef, {
+          'postId': event.postId,
           'userId': user.uid,
           'userName': userName,
           'userAvatar': userData['avatar'],
