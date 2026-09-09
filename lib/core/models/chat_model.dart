@@ -62,21 +62,44 @@ class ChatModel extends Equatable {
     );
   }
 
+  String _otherParticipantId(String userId) {
+    final participant = participants.firstWhere(
+      (p) => p.trim().isNotEmpty && p != userId,
+      orElse: () => '',
+    );
+    if (participant.isNotEmpty) return participant;
+
+    // Compatibility fallback for legacy chats where participantDetails exists
+    // but the participants array is incomplete or missing.
+    for (final key in participantDetails.keys) {
+      final id = key.toString().trim();
+      if (id.isNotEmpty && id != userId) return id;
+    }
+    return '';
+  }
+
   String getDisplayName(String userId) {
     if (isGroup) return groupName ?? 'مجموعة';
-    final otherId = participants.firstWhere((p) => p != userId, orElse: () => '');
-    return participantDetails[otherId]?['name'] ?? 'مستخدم';
+    final otherId = _otherParticipantId(userId);
+    final details = participantDetails[otherId];
+    if (details is Map) {
+      final name = details['name']?.toString().trim();
+      if (name != null && name.isNotEmpty) return name;
+    }
+    return 'مستخدم';
   }
 
   String getDisplayPhoto(String userId) {
     if (isGroup) return groupPhoto ?? '';
-    final otherId = participants.firstWhere((p) => p != userId, orElse: () => '');
-    return participantDetails[otherId]?['photoUrl'] ?? '';
+    final otherId = _otherParticipantId(userId);
+    final details = participantDetails[otherId];
+    if (details is Map) {
+      return details['photoUrl']?.toString() ?? '';
+    }
+    return '';
   }
 
-  String getOtherParticipant(String userId) {
-    return participants.firstWhere((p) => p != userId, orElse: () => '');
-  }
+  String getOtherParticipant(String userId) => _otherParticipantId(userId);
 
   int getTotalUnreadCount() {
     return unreadCount.values.fold(0, (sum, count) => sum + count);
@@ -84,8 +107,22 @@ class ChatModel extends Equatable {
 
   @override
   List<Object?> get props => [
-    id, participants, participantDetails, lastMessage, lastMessageTime,
-    lastMessageSenderId, unreadCount, isGroup, groupName, groupPhoto,
-    isArchived, isPinned, isMuted, isOnline, createdAt, updatedAt, metadata,
-  ];
+        id,
+        participants,
+        participantDetails,
+        lastMessage,
+        lastMessageTime,
+        lastMessageSenderId,
+        unreadCount,
+        isGroup,
+        groupName,
+        groupPhoto,
+        isArchived,
+        isPinned,
+        isMuted,
+        isOnline,
+        createdAt,
+        updatedAt,
+        metadata,
+      ];
 }
