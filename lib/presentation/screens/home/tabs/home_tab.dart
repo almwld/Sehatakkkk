@@ -88,12 +88,15 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin<Ho
     });
   }
 
+  /// Use the application's canonical GoRouter instance instead of depending
+  /// on the nearest BuildContext. This keeps Home actions working even when
+  /// Home is hosted inside an IndexedStack or another nested navigator.
   void _go(String route) {
-    if (!mounted) return;
+    if (!mounted || route.trim().isEmpty) return;
     try {
-      context.push(route);
-    } catch (e) {
-      debugPrint('Home navigation failed for $route: $e');
+      AppRouter.router.push(route);
+    } catch (e, st) {
+      debugPrint('❌ Home navigation failed for $route: $e\n$st');
     }
   }
 
