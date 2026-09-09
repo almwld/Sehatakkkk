@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:go_router/go_router.dart';
+import 'package:sehatak/app_router.dart';
 import 'package:sehatak/core/managers/global_scroll_manager.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
@@ -135,44 +137,47 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    return PopScope(
-      canPop: false,
-      onPopInvoked: (didPop) {
-        if (!didPop) _handleBackPress();
-      },
-      child: Scaffold(
-        backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-        body: Stack(
-          children: [
-            NotificationListener<ScrollNotification>(
-              onNotification: _handleScrollNotification,
-              child: IndexedStack(
-                index: _currentIndex,
-                children: _screens.values.toList(growable: false),
-              ),
-            ),
-            if (_currentIndex == 0)
-              PositionedDirectional(
-                end: 18,
-                bottom: 92,
-                child: DoctorCommunityFab(
-                  scrollController: _scrollController,
-                  dark: dark,
+    return InheritedGoRouter(
+      goRouter: AppRouter.router,
+      child: PopScope(
+        canPop: false,
+        onPopInvoked: (didPop) {
+          if (!didPop) _handleBackPress();
+        },
+        child: Scaffold(
+          backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
+          body: Stack(
+            children: [
+              NotificationListener<ScrollNotification>(
+                onNotification: _handleScrollNotification,
+                child: IndexedStack(
+                  index: _currentIndex,
+                  children: _screens.values.toList(growable: false),
                 ),
               ),
-          ],
-        ),
-        bottomNavigationBar: AnimatedBuilder(
-          animation: _scrollManager,
-          builder: (_, __) => _AnimatedBottomNavigationBar(
-            visible: _scrollManager.isVisible,
-            child: CustomBottomNavigationBar(
-              currentIndex: _currentIndex,
-              onTap: _onTabTap,
-              scrollController: _scrollController,
-              scrollManager: _scrollManager,
-              isLoggedIn: _isLoggedIn,
-              onAuthRequired: _openAuth,
+              if (_currentIndex == 0)
+                PositionedDirectional(
+                  end: 18,
+                  bottom: 92,
+                  child: DoctorCommunityFab(
+                    scrollController: _scrollController,
+                    dark: dark,
+                  ),
+                ),
+            ],
+          ),
+          bottomNavigationBar: AnimatedBuilder(
+            animation: _scrollManager,
+            builder: (_, __) => _AnimatedBottomNavigationBar(
+              visible: _scrollManager.isVisible,
+              child: CustomBottomNavigationBar(
+                currentIndex: _currentIndex,
+                onTap: _onTabTap,
+                scrollController: _scrollController,
+                scrollManager: _scrollManager,
+                isLoggedIn: _isLoggedIn,
+                onAuthRequired: _openAuth,
+              ),
             ),
           ),
         ),
