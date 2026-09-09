@@ -29,19 +29,9 @@ class CommunityBloc extends Bloc<CommunityEvent, CommunityState> {
     if (state.isLoading) return;
     emit(state.copyWith(status: CommunityStatus.loading));
     try {
-      final snapshot = await _firestore
-          .collection('community_posts')
-          .where('isPublished', isEqualTo: true)
-          .orderBy('createdAt', descending: true)
-          .limit(event.limit)
-          .get();
+      final snapshot = await _firestore.collection('community_posts').where('isPublished', isEqualTo: true).orderBy('createdAt', descending: true).limit(event.limit).get();
       final posts = snapshot.docs.map(CommunityPostModel.fromFirestore).toList();
-      emit(state.copyWith(
-        status: CommunityStatus.loaded,
-        posts: posts,
-        hasMore: posts.length == event.limit,
-        lastDocId: posts.isNotEmpty ? posts.last.id : null,
-      ));
+      emit(state.copyWith(status: CommunityStatus.loaded, posts: posts, hasMore: posts.length == event.limit, lastDocId: posts.isNotEmpty ? posts.last.id : null));
     } catch (e) {
       emit(state.copyWith(status: CommunityStatus.error, errorMessage: 'فشل تحميل المنشورات: $e'));
     }
@@ -52,82 +42,32 @@ class CommunityBloc extends Bloc<CommunityEvent, CommunityState> {
     try {
       final user = _auth.currentUser;
       if (user == null) throw Exception('يجب تسجيل الدخول');
-
       final userDoc = await _firestore.collection('users').doc(user.uid).get();
       final userData = userDoc.data() ?? <String, dynamic>{};
-      final role = userData['role']?.toString();
-      final verified = userData['isVerified'] == true;
-      if (role != 'doctor' || !verified) {
-        throw Exception('النشر متاح للأطباء الموثقين فقط');
-      }
-
+      if (userData['role']?.toString() != 'doctor' || userData['isVerified'] != true) throw Exception('النشر متاح للأطباء الموثقين فقط');
       final userName = (userData['name'] ?? user.displayName ?? 'طبيب').toString();
       final files = event.files ?? const <PlatformFile>[];
       final mediaUrls = <String>[];
       final mediaNames = <String>[];
-
       for (var i = 0; i < files.length; i++) {
         final file = files[i];
         if (file.path == null) continue;
-        final upload = await _nextcloud.uploadFile(
-          file: File(file.path!),
-          path: 'sehatak/community/${user.uid}',
-          fileName: '${DateTime.now().millisecondsSinceEpoch}_${file.name}',
-          onProgress: (sent, total) {
-            if (total > 0) {
-              final progress = ((i + sent / total) / files.length).clamp(0.0, 1.0);
-              emit(state.copyWith(uploadProgress: progress));
-            }
-          },
-        );
-        if (!upload.success || upload.url == null) {
-          throw Exception(upload.error ?? 'فشل رفع الوسائط إلى Nextcloud');
-        }
+        final upload = await _nextcloud.uploadFile(file: File(file.path!), path: 'sehatak/community/${user.uid}', fileName: '${DateTime.now().millisecondsSinceEpoch}_${file.name}', onProgress: (sent, total) {
+          if (total > 0) emit(state.copyWith(uploadProgress: ((i + sent / total) / files.length).clamp(0.0, 1.0)));
+        });
+        if (!upload.success || upload.url == null) throw Exception(upload.error ?? 'فشل رفع الوسائط إلى Nextcloud');
         mediaUrls.add(upload.url!);
         mediaNames.add(file.name);
       }
-
-      final tags = _extractTags('${event.title} ${event.content ?? ''}');
-      final post = CommunityPostModel(
-        id: '',
-        userId: user.uid,
-        userName: userName,
-        userAvatar: userData['avatar']?.toString(),
-        title: event.title.trim(),
-        content: event.content?.trim(),
-        imageUrl: mediaUrls.isEmpty ? null : mediaUrls.first,
-        images: mediaUrls,
-        category: event.category ?? 'عام',
-        tags: tags,
-        isDoctorPost: true,
-        isVerified: true,
-        createdAt: DateTime.now(),
-        isPublished: true,
-      );
-
-      final docRef = await _firestore.collection('community_posts').add({
-        ...post.toFirestore(),
-        'mediaNames': mediaNames,
-        'mediaCount': mediaUrls.length,
-        'mediaStorage': 'nextcloud',
-        'mediaOwnerId': user.uid,
-      });
-      final savedPost = post.copyWith(id: docRef.id);
-      emit(state.copyWith(
-        status: CommunityStatus.loaded,
-        posts: [savedPost, ...state.posts],
-        isUploading: false,
-        uploadProgress: 0,
-      ));
+      final post = CommunityPostModel(id: '', userId: user.uid, userName: userName, userAvatar: userData['avatar']?.toString(), title: event.title.trim(), content: event.content?.trim(), imageUrl: mediaUrls.isEmpty ? null : mediaUrls.first, images: mediaUrls, category: event.category ?? 'عام', tags: _extractTags('${event.title} ${event.content ?? ''}'), isDoctorPost: true, isVerified: true, createdAt: DateTime.now(), isPublished: true);
+      final docRef = await _firestore.collection('community_posts').add({...post.toFirestore(), 'mediaNames': mediaNames, 'mediaCount': mediaUrls.length, 'mediaStorage': 'nextcloud', 'mediaOwnerId': user.uid});
+      emit(state.copyWith(status: CommunityStatus.loaded, posts: [post.copyWith(id: docRef.id), ...state.posts], isUploading: false, uploadProgress: 0));
     } catch (e) {
       emit(state.copyWith(status: CommunityStatus.error, errorMessage: 'فشل إنشاء المنشور: $e', isUploading: false, uploadProgress: 0));
     }
   }
 
-  List<String> _extractTags(String value) {
-    final matches = RegExp(r'#[\w\u0600-\u06FF]+').allMatches(value);
-    return matches.map((m) => m.group(0)!).toSet().toList();
-  }
+  List<String> _extractTags(String value) => RegExp(r'#[\w\u0600-\u06FF]+').allMatches(value).map((m) => m.group(0)!).toSet().toList();
 
   Future<void> _onDeletePost(DeleteCommunityPost event, Emitter<CommunityState> emit) async {
     emit(state.copyWith(status: CommunityStatus.deleting));
@@ -153,7 +93,6 @@ class CommunityBloc extends Bloc<CommunityEvent, CommunityState> {
       final likeRef = _firestore.collection('users').doc(user.uid).collection('liked_posts').doc(event.postId);
       await _firestore.runTransaction((transaction) async {
         final postDoc = await transaction.get(postRef);
-        if (!postDoc.exists) throw Exception('المنشور غير موجود');
         final likeDoc = await transaction.get(likeRef);
         final likes = (postDoc.data()?['likes'] as num?)?.toInt() ?? 0;
         if (likeDoc.exists) {
@@ -179,11 +118,7 @@ class CommunityBloc extends Bloc<CommunityEvent, CommunityState> {
       if (user == null) throw Exception('يجب تسجيل الدخول');
       final saveRef = _firestore.collection('users').doc(user.uid).collection('saved_posts').doc(event.postId);
       final doc = await saveRef.get();
-      if (doc.exists) {
-        await saveRef.delete();
-      } else {
-        await saveRef.set({'postId': event.postId, 'savedAt': FieldValue.serverTimestamp()});
-      }
+      if (doc.exists) await saveRef.delete(); else await saveRef.set({'postId': event.postId, 'savedAt': FieldValue.serverTimestamp()});
       if (event.index < state.posts.length) {
         final posts = List<CommunityPostModel>.from(state.posts);
         posts[event.index] = posts[event.index].copyWith(isSaved: !posts[event.index].isSaved);
@@ -196,13 +131,7 @@ class CommunityBloc extends Bloc<CommunityEvent, CommunityState> {
     try {
       final user = _auth.currentUser;
       if (user == null) throw Exception('يجب تسجيل الدخول');
-      await _firestore.collection('reports').add({
-        'type': 'community_post',
-        'postId': event.postId,
-        'userId': user.uid,
-        'reason': event.reason ?? 'محتوى غير مناسب',
-        'reportedAt': FieldValue.serverTimestamp(),
-      });
+      await _firestore.collection('reports').add({'type': 'community_post', 'postId': event.postId, 'userId': user.uid, 'reason': event.reason ?? 'محتوى غير مناسب', 'reportedAt': FieldValue.serverTimestamp()});
       if (event.index < state.posts.length) {
         final posts = List<CommunityPostModel>.from(state.posts);
         posts[event.index] = posts[event.index].copyWith(isReported: true);
@@ -215,14 +144,8 @@ class CommunityBloc extends Bloc<CommunityEvent, CommunityState> {
     try {
       final user = _auth.currentUser;
       if (user == null) throw Exception('يجب تسجيل الدخول');
-      await _firestore.collection('community_posts').doc(event.postId).update({
-        'shares': FieldValue.increment(1),
-        'lastSharedAt': FieldValue.serverTimestamp(),
-      });
-      await _firestore.collection('community_posts').doc(event.postId).collection('share_events').add({
-        'userId': user.uid,
-        'sharedAt': FieldValue.serverTimestamp(),
-      });
+      await _firestore.collection('community_posts').doc(event.postId).update({'shares': FieldValue.increment(1)});
+      await _firestore.collection('share_events').add({'postId': event.postId, 'userId': user.uid, 'sharedAt': FieldValue.serverTimestamp(), 'type': 'community_post'});
       if (event.index < state.posts.length) {
         final posts = List<CommunityPostModel>.from(state.posts);
         posts[event.index] = posts[event.index].copyWith(shares: posts[event.index].shares + 1);
@@ -238,21 +161,12 @@ class CommunityBloc extends Bloc<CommunityEvent, CommunityState> {
       final postRef = _firestore.collection('community_posts').doc(event.postId);
       final userDoc = await _firestore.collection('users').doc(user.uid).get();
       final userData = userDoc.data() ?? <String, dynamic>{};
-      final userName = (userData['name'] ?? user.displayName ?? 'مستخدم').toString();
       final commentRef = _firestore.collection('comments').doc();
       await _firestore.runTransaction((transaction) async {
         final postDoc = await transaction.get(postRef);
         if (!postDoc.exists) throw Exception('المنشور غير موجود');
         final current = (postDoc.data()?['comments'] as num?)?.toInt() ?? 0;
-        transaction.set(commentRef, {
-          'postId': event.postId,
-          'userId': user.uid,
-          'userName': userName,
-          'userAvatar': userData['avatar'],
-          'comment': event.comment.trim(),
-          'timestamp': FieldValue.serverTimestamp(),
-          'repliesCount': 0,
-        });
+        transaction.set(commentRef, {'postId': event.postId, 'userId': user.uid, 'userName': (userData['name'] ?? user.displayName ?? 'مستخدم').toString(), 'userAvatar': userData['avatar'], 'comment': event.comment.trim(), 'timestamp': FieldValue.serverTimestamp(), 'repliesCount': 0});
         transaction.update(postRef, {'comments': current + 1});
       });
       if (event.index < state.posts.length) {
