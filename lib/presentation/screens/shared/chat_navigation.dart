@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/services/chat_service.dart';
 import 'package:sehatak/core/services/call_service.dart';
+import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/screens/chat/chat_detail_screen.dart';
 import 'package:sehatak/presentation/screens/call/call_screen.dart';
 
@@ -13,42 +14,23 @@ class ChatNavigation {
     String? doctorImage,
   }) async {
     final user = FirebaseAuth.instance.currentUser;
-
     if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('❌ يجب تسجيل الدخول أولاً'),
-        ),
-      );
+      ToastService.showError('يجب تسجيل الدخول أولاً');
       return;
     }
-
     if (doctorId.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('❌ معرف الطبيب غير صالح'),
-        ),
-      );
+      ToastService.showError('معرف الطبيب غير صالح');
       return;
     }
-
     if (doctorId == user.uid) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('❌ لا يمكنك بدء محادثة مع نفسك'),
-        ),
-      );
+      ToastService.showError('لا يمكنك بدء محادثة مع نفسك');
       return;
     }
-
     try {
-      final patientName =
-          user.displayName?.trim().isNotEmpty == true
-              ? user.displayName!.trim()
-              : 'المريض';
-
+      final patientName = user.displayName?.trim().isNotEmpty == true
+          ? user.displayName!.trim()
+          : 'المريض';
       final chatService = ChatService();
-
       final chatId = await chatService.createChat(
         doctorId: doctorId.trim(),
         doctorName: doctorName.trim().isNotEmpty ? doctorName.trim() : 'الطبيب',
@@ -57,25 +39,17 @@ class ChatNavigation {
         doctorImage: doctorImage,
         patientImage: user.photoURL,
       );
-
       if (!context.mounted) return;
-
       if (chatId.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('❌ تعذر إنشاء المحادثة'),
-          ),
-        );
+        ToastService.showError('تعذر إنشاء المحادثة');
         return;
       }
-
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => ChatDetailScreen(
             chatId: chatId,
-            userName:
-                doctorName.trim().isNotEmpty ? doctorName.trim() : 'الطبيب',
+            userName: doctorName.trim().isNotEmpty ? doctorName.trim() : 'الطبيب',
             userId: doctorId.trim(),
             isDoctor: false,
           ),
@@ -83,12 +57,7 @@ class ChatNavigation {
       );
     } catch (e) {
       if (!context.mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('❌ فشل فتح المحادثة: $e'),
-        ),
-      );
+      ToastService.showError('فشل فتح المحادثة: $e');
     }
   }
 
@@ -100,46 +69,27 @@ class ChatNavigation {
     required bool isVideo,
   }) async {
     final user = FirebaseAuth.instance.currentUser;
-
     if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('❌ يجب تسجيل الدخول أولاً'),
-        ),
-      );
+      ToastService.showError('يجب تسجيل الدخول أولاً');
       return;
     }
-
     if (chatId.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('❌ لا توجد محادثة مرتبطة بهذه المكالمة'),
-        ),
-      );
+      ToastService.showError('لا توجد محادثة مرتبطة بهذه المكالمة');
       return;
     }
-
     if (doctorId.trim().isEmpty || doctorId == user.uid) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('❌ معرف الطرف الآخر غير صالح'),
-        ),
-      );
+      ToastService.showError('معرف الطرف الآخر غير صالح');
       return;
     }
-
     try {
       final callService = CallService();
-
       final call = await callService.initiateCall(
         chatId: chatId,
         receiverId: doctorId,
         receiverName: doctorName,
         type: isVideo ? CallType.video : CallType.audio,
       );
-
       if (!context.mounted) return;
-
       await Navigator.push(
         context,
         MaterialPageRoute(
@@ -155,12 +105,7 @@ class ChatNavigation {
       );
     } catch (e) {
       if (!context.mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('❌ فشل بدء المكالمة: $e'),
-        ),
-      );
+      ToastService.showError('فشل بدء المكالمة: $e');
     }
   }
 }
