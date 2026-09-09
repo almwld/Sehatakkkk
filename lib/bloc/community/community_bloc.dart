@@ -145,7 +145,6 @@ class CommunityBloc extends Bloc<CommunityEvent, CommunityState> {
       final user = _auth.currentUser;
       if (user == null) throw Exception('يجب تسجيل الدخول');
       await _firestore.collection('community_posts').doc(event.postId).update({'shares': FieldValue.increment(1)});
-      await _firestore.collection('share_events').add({'postId': event.postId, 'userId': user.uid, 'sharedAt': FieldValue.serverTimestamp(), 'type': 'community_post'});
       if (event.index < state.posts.length) {
         final posts = List<CommunityPostModel>.from(state.posts);
         posts[event.index] = posts[event.index].copyWith(shares: posts[event.index].shares + 1);
