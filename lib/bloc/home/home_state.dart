@@ -4,12 +4,6 @@
 // ============================================================
 
 import 'package:equatable/equatable.dart';
-import 'package:sehatak/core/models/hospital/hospital_model.dart';
-import 'package:sehatak/core/models/pharmacy/pharmacy_model.dart';
-import 'package:sehatak/core/models/lab/lab_model.dart';
-import 'package:sehatak/core/models/article/article_model.dart';
-import 'package:sehatak/core/models/tip/tip_model.dart';
-import 'package:sehatak/core/models/community/community_post_model.dart';
 
 enum HomeStatus { initial, loading, loaded, error, refreshing }
 
@@ -20,6 +14,7 @@ class HomeState extends Equatable {
   final String userName;
   final List<String> bannerImages;
   final int currentBanner;
+  final double healthScore;
   final double calories;
   final double steps;
   final double sleep;
@@ -42,6 +37,7 @@ class HomeState extends Equatable {
     this.userName = 'مستخدم',
     this.bannerImages = const [],
     this.currentBanner = 0,
+    this.healthScore = 0,
     this.calories = 0,
     this.steps = 0,
     this.sleep = 0,
@@ -61,10 +57,12 @@ class HomeState extends Equatable {
   HomeState copyWith({
     HomeStatus? status,
     String? errorMessage,
+    bool clearError = false,
     bool? isLoggedIn,
     String? userName,
     List<String>? bannerImages,
     int? currentBanner,
+    double? healthScore,
     double? calories,
     double? steps,
     double? sleep,
@@ -82,11 +80,12 @@ class HomeState extends Equatable {
   }) {
     return HomeState(
       status: status ?? this.status,
-      errorMessage: errorMessage ?? this.errorMessage,
+      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       isLoggedIn: isLoggedIn ?? this.isLoggedIn,
       userName: userName ?? this.userName,
       bannerImages: bannerImages ?? this.bannerImages,
       currentBanner: currentBanner ?? this.currentBanner,
+      healthScore: healthScore ?? this.healthScore,
       calories: calories ?? this.calories,
       steps: steps ?? this.steps,
       sleep: sleep ?? this.sleep,
@@ -110,5 +109,24 @@ class HomeState extends Equatable {
   bool get isLoaded => status == HomeStatus.loaded;
 
   @override
-  List<Object?> get props => [status, isLoggedIn, userName, doctors, hospitals];
+  List<Object?> get props => [
+        status,
+        errorMessage,
+        isLoggedIn,
+        userName,
+        currentBanner,
+        healthScore,
+        calories,
+        steps,
+        sleep,
+        heartRate,
+        doctors,
+        hospitals,
+        pharmacies,
+        labs,
+        articles,
+        tips,
+        communityPosts,
+        notificationCount,
+      ];
 }
