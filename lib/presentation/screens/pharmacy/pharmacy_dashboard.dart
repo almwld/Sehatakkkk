@@ -1,6 +1,7 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/services/toast_service.dart';
 
 class PharmacyDashboard extends StatefulWidget {
   const PharmacyDashboard({super.key});
@@ -64,8 +65,9 @@ class _PharmacyDashboardState extends State<PharmacyDashboard> {
     try {
       await _functions.httpsCallable('createPharmacyProfile').call({'name': name.text.trim(), 'phone': phone.text.trim(), 'address': address.text.trim(), 'licenseNumber': license.text.trim()});
       await _load();
+      if (mounted) ToastService.showSuccess('تم إرسال طلب تسجيل الصيدلية');
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      if (mounted) ToastService.showError(e.toString());
     }
   }
 
@@ -93,9 +95,9 @@ class _PharmacyDashboardState extends State<PharmacyDashboard> {
     try {
       await _functions.httpsCallable('submitPharmacyProduct').call({'pharmacyId': _pharmacy!['id'], 'name': name.text.trim(), 'category': category.text.trim(), 'price': double.tryParse(price.text) ?? 0, 'stock': int.tryParse(stock.text) ?? 0, 'drugId': drug.text.trim()});
       await _load();
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم إرسال المنتج للمراجعة')));
+      if (mounted) ToastService.showSuccess('تم إرسال المنتج للمراجعة');
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      if (mounted) ToastService.showError(e.toString());
     }
   }
 
@@ -121,9 +123,9 @@ class _PharmacyDashboardState extends State<PharmacyDashboard> {
     try {
       await _functions.httpsCallable('updatePharmacyProductOffer').call({'pharmacyId': _pharmacy!['id'], 'productId': productId, 'price': double.tryParse(price.text) ?? 0, 'stock': int.tryParse(stock.text) ?? 0});
       await _load();
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم تحديث العرض والمخزون')));
+      if (mounted) ToastService.showSuccess('تم تحديث العرض والمخزون');
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      if (mounted) ToastService.showError(e.toString());
     }
   }
 
