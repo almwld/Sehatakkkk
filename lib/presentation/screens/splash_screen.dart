@@ -74,7 +74,8 @@ class _SplashScreenState extends State<SplashScreen>
       final savedUid = prefs.getString('user_uid') ?? '';
 
       // ✅ التحقق من حالة المستخدم
-      final bool isUserLoggedIn = user != null && isLoggedInPrefs && user.uid == savedUid;
+      final rememberMe = prefs.getBool('remember_me') ?? false;
+      final bool isUserLoggedIn = user != null && rememberMe && isLoggedInPrefs && user.uid == savedUid;
 
       setState(() {
         _isLoggedIn = isUserLoggedIn;
@@ -82,11 +83,16 @@ class _SplashScreenState extends State<SplashScreen>
         _statusMessage = 'جاري التحقق من المستخدم...';
       });
 
-      if (user != null) {
+      if (user != null && rememberMe) {
         await prefs.setBool('is_logged_in', true);
         await prefs.setString('user_uid', user.uid);
+      } else if (user != null && !rememberMe) {
+        await FirebaseAuth.instance.signOut();
+        await prefs.setBool('is_logged_in', false);
+        await prefs.remove('user_uid');
       } else {
         await prefs.setBool('is_logged_in', false);
+        await prefs.remove('user_uid');
       }
 
       setState(() {
@@ -95,12 +101,14 @@ class _SplashScreenState extends State<SplashScreen>
         _isLoading = false;
       });
 
-      // ✅ الانتظار 9 ثواني كاملة لعرض شاشة البداية
-      await Future.delayed(const Duration(seconds: 9));
-
-      if (mounted) {
-        _navigateToNext();
+      // الجلسة المحفوظة تتجاوز Splash وAuth مباشرة إلى Home.
+      if (_isLoggedIn) {
+        if (mounted) _navigateToNext();
+        return;
       }
+
+      await Future.delayed(const Duration(seconds: 3));
+      if (mounted) _navigateToNext();
     } catch (e) {
       print('❌ Error checking login status: $e');
       setState(() {

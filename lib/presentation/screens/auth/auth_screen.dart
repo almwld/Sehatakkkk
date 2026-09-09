@@ -404,6 +404,18 @@ class _AuthScreenState extends State<AuthScreen>
     return role == 'doctor' || role == 'pharmacist' || role == 'lab';
   }
 
+  String _getGreetingTitle() {
+    final hour = DateTime.now().hour;
+    if (hour >= 5 && hour < 12) return 'صباح الخير، مرحباً بعودتك';
+    if (hour >= 12 && hour < 18) return 'مساء الخير، مرحباً بعودتك';
+    if (hour >= 18 && hour < 24) return 'مساء الخير، مرحباً بعودتك';
+    return 'ليلة هادئة، مرحباً بعودتك';
+  }
+
+  String _getGreetingSubtitle() {
+    return 'سجّل دخولك مجدداً إلى منصة صحتك';
+  }
+
   void _showLoading() {
     showDialog(
       context: context,
@@ -462,41 +474,46 @@ class _AuthScreenState extends State<AuthScreen>
 
   Future<void> _loginWithGoogle() async {
     if (_isLoading) return;
-
+    setState(() => _isLoading = true);
     _showLoading();
 
     try {
-      final GoogleSignInAccount? googleUser =
-          await GoogleSignIn().signIn();
-
+      final google = GoogleSignIn();
+      final GoogleSignInAccount? googleUser = await google.signIn();
       if (googleUser == null) {
         _hideLoading();
+        if (mounted) setState(() => _isLoading = false);
         return;
       }
 
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
-
+      final googleAuth = await googleUser.authentication;
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
+      final result = await FirebaseAuth.instance.signInWithCredential(credential);
+      final user = result.user;
+      if (user == null) throw Exception('تعذر الحصول على حساب Google');
 
-      final userCredential =
-          await FirebaseAuth.instance.signInWithCredential(credential);
+      final userRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      final existing = await userRef.get();
 
-      final user = userCredential.user;
+      if (widget.isSignUp) {
+        if (existing.exists) {
+          await FirebaseAuth.instance.signOut();
+          await google.signOut();
+          _hideLoading();
+          if (mounted) {
+            setState(() => _isLoading = false);
+            ToastService.showError('حساب Google هذا مسجل مسبقاً. سجّل الدخول من صفحة الدخول.');
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const AuthScreen(isSignUp: false)),
+            );
+          }
+          return;
+        }
 
-      if (user == null) {
-        throw Exception('تعذر الحصول على بيانات حساب Google');
-      }
-
-      final userRef =
-          FirebaseFirestore.instance.collection('users').doc(user.uid);
-
-      final userDoc = await userRef.get();
-
-      if (!userDoc.exists) {
         await userRef.set({
           'uid': user.uid,
           'name': user.displayName ?? googleUser.displayName ?? 'مستخدم',
@@ -517,75 +534,69 @@ class _AuthScreenState extends State<AuthScreen>
           'updatedAt': FieldValue.serverTimestamp(),
         });
 
-        final newUserDoc = await userRef.get();
-        final role =
-            newUserDoc.data()?['role']?.toString() ?? 'user';
+        await FirebaseAuth.instance.signOut();
+        await google.signOut();
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('remember_me', false);
+        await prefs.setBool('is_logged_in', false);
+        await prefs.remove('user_uid');
 
         _hideLoading();
-        await _showSuccessAnimation();
-
-        if (!mounted) return;
-
-        if (role == 'admin' || role == 'superAdmin') {
+        if (mounted) {
+          setState(() => _isLoading = false);
+          ToastService.showSuccess('تم إنشاء حساب Google بنجاح. اضغط Google في صفحة الدخول للمتابعة.');
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-              builder: (_) => const PlatformDashboard(),
-            ),
+            MaterialPageRoute(builder: (_) => const AuthScreen(isSignUp: false)),
           );
-        } else {
-          _navigateToHome();
         }
-
         return;
       }
 
-      await userRef.set(
-        {
-          'name': user.displayName ?? googleUser.displayName ?? 'مستخدم',
-          'email': user.email ?? googleUser.email,
-          'photoUrl': user.photoURL ?? googleUser.photoUrl ?? '',
-          'updatedAt': FieldValue.serverTimestamp(),
-        },
-        SetOptions(merge: true),
-      );
+      await userRef.set({
+        'uid': user.uid,
+        'name': user.displayName ?? googleUser.displayName ?? 'مستخدم',
+        'email': user.email ?? googleUser.email,
+        'photoUrl': user.photoURL ?? googleUser.photoUrl ?? '',
+        'provider': 'google',
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
 
-      final role = userDoc.data()?['role']?.toString() ?? 'user';
+      final role = existing.data()?['role']?.toString() ?? 'user';
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('remember_me', true);
+      await prefs.setBool('is_logged_in', true);
+      await prefs.setString('user_uid', user.uid);
 
       _hideLoading();
+      if (mounted) setState(() => _isLoading = false);
       await _showSuccessAnimation();
-
       if (!mounted) return;
 
       if (role == 'admin' || role == 'superAdmin') {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-            builder: (_) => const PlatformDashboard(),
-          ),
+          MaterialPageRoute(builder: (_) => const PlatformDashboard()),
         );
       } else {
         _navigateToHome();
       }
     } on FirebaseAuthException catch (e) {
       _hideLoading();
-
-      String message = 'حدث خطأ أثناء تسجيل الدخول عبر Google';
-
+      if (mounted) setState(() => _isLoading = false);
+      var message = 'حدث خطأ أثناء تسجيل الدخول عبر Google';
       if (e.code == 'account-exists-with-different-credential') {
-        message =
-            'هذا البريد مرتبط بطريقة تسجيل دخول أخرى. استخدم طريقة التسجيل الأصلية.';
+        message = 'هذا البريد مرتبط بطريقة تسجيل دخول أخرى. استخدم طريقة التسجيل الأصلية.';
       } else if (e.code == 'invalid-credential') {
         message = 'بيانات اعتماد Google غير صالحة';
       } else if (e.code == 'network-request-failed') {
         message = 'تحقق من اتصال الإنترنت وحاول مرة أخرى';
       }
-
-      _showMessage(message, true);
+      ToastService.showError(message);
     } catch (e) {
       _hideLoading();
-      print('❌ Google Sign-In error: $e');
-      _showMessage('تعذر تسجيل الدخول عبر Google', true);
+      if (mounted) setState(() => _isLoading = false);
+      ToastService.showError('تعذر إكمال عملية Google: $e');
     }
   }
 
@@ -613,12 +624,12 @@ class _AuthScreenState extends State<AuthScreen>
 
       if (_rememberMe) {
         await prefs.setBool('is_logged_in', true);
-        await prefs.setString(
-          'remember_email',
-          _emailController.text.trim(),
-        );
+        await prefs.setString('user_uid', FirebaseAuth.instance.currentUser?.uid ?? '');
+        await prefs.setString('remember_email', _emailController.text.trim());
       } else {
         await prefs.setBool('is_logged_in', false);
+        await prefs.remove('user_uid');
+        await prefs.remove('remember_email');
       }
 
       _hideLoading();
@@ -908,13 +919,17 @@ class _AuthScreenState extends State<AuthScreen>
       final user = FirebaseAuth.instance.currentUser;
 
       if (user != null) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('remember_me', true);
+        await prefs.setBool('is_logged_in', true);
+        await prefs.setString('user_uid', user.uid);
         await _showSuccessAnimation();
 
         if (mounted) {
           _navigateToHome();
         }
       } else {
-        _showMessage('يرجى تسجيل الدخول أولاً', true);
+        ToastService.showError('لا توجد جلسة حساب محفوظة. سجّل الدخول مرة واحدة ثم استخدم البصمة.');
       }
     } else {
       _showMessage(
@@ -1554,9 +1569,7 @@ class _AuthScreenState extends State<AuthScreen>
                 Text(
                   isSignUp
                       ? 'إنشاء حساب جديد'
-                      : (_isFirstTimeUser
-                          ? 'أهلاً بك في منصة صحتك'
-                          : 'مرحباً بعودتك'),
+                      : _getGreetingTitle(),
                   style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.bold,
@@ -1883,17 +1896,17 @@ class _AuthScreenState extends State<AuthScreen>
                     _buildSocialIcon(
                       _socialIcons[0],
                       isDark,
-                      containerSize: 48,
+                      containerSize: 40,
                       iconSize: 34,
-                      padding: 6,
+                      padding: 3,
                     ),
                     const SizedBox(width: 20),
                     _buildSocialIcon(
                       _socialIcons[1],
                       isDark,
-                      containerSize: 48,
+                      containerSize: 40,
                       iconSize: 34,
-                      padding: 6,
+                      padding: 3,
                     ),
                   ],
                 ),
@@ -1934,41 +1947,41 @@ class _AuthScreenState extends State<AuthScreen>
                     _buildSocialIcon(
                       _socialIcons[2],
                       isDark,
-                      containerSize: 40,
+                      containerSize: 32,
                       iconSize: 24,
-                      padding: 7,
+                      padding: 4,
                     ),
                     const SizedBox(width: 8),
                     _buildSocialIcon(
                       _socialIcons[3],
                       isDark,
-                      containerSize: 40,
+                      containerSize: 32,
                       iconSize: 24,
-                      padding: 7,
+                      padding: 4,
                     ),
                     const SizedBox(width: 8),
                     _buildSocialIcon(
                       _socialIcons[4],
                       isDark,
-                      containerSize: 40,
+                      containerSize: 32,
                       iconSize: 24,
-                      padding: 7,
+                      padding: 4,
                     ),
                     const SizedBox(width: 8),
                     _buildSocialIcon(
                       _socialIcons[5],
                       isDark,
-                      containerSize: 40,
+                      containerSize: 32,
                       iconSize: 24,
-                      padding: 7,
+                      padding: 4,
                     ),
                     const SizedBox(width: 8),
                     _buildSocialIcon(
                       _socialIcons[6],
                       isDark,
-                      containerSize: 40,
+                      containerSize: 32,
                       iconSize: 24,
-                      padding: 7,
+                      padding: 4,
                     ),
                   ],
                 ),
