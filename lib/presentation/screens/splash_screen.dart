@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lottie/lottie.dart';
 import 'package:go_router/go_router.dart';
-import 'package:sehatak/app_router.dart';
 import 'package:sehatak/core/utils/responsive_helper.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -82,7 +81,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   void _navigateToNext() {
     if (!mounted) return;
     final user = FirebaseAuth.instance.currentUser;
-    context.go(_isLoggedIn && user != null ? AppRouter.home : AppRouter.auth);
+    context.go(_isLoggedIn && user != null ? '/' : '/auth');
   }
 
   void _skipSplash() => _navigateToNext();
@@ -104,88 +103,39 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       body: Container(
         width: double.infinity, height: double.infinity, color: const Color(0xFF2D7E81),
         child: SafeArea(
-          child: Stack(
-            children: [
-              ..._circles.map((circle) => _buildAnimatedCircle(circle)),
-              Positioned(
-                top: ResponsiveHelper.responsivePadding(context, mobile: 16, tablet: 24),
-                right: ResponsiveHelper.responsivePadding(context, mobile: 16, tablet: 24),
-                child: GestureDetector(
-                  onTap: _skipSplash,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.white.withOpacity(0.3))),
-                    child: Text('تخطي ⏭️', style: TextStyle(color: Colors.white, fontSize: ResponsiveHelper.responsiveFontSize(context, mobile: 12, tablet: 14), fontWeight: FontWeight.w500)),
-                  ),
-                ),
+          child: Stack(children: [
+            ..._circles.map((circle) => _buildAnimatedCircle(circle)),
+            Positioned(
+              top: ResponsiveHelper.responsivePadding(context, mobile: 16, tablet: 24),
+              right: ResponsiveHelper.responsivePadding(context, mobile: 16, tablet: 24),
+              child: GestureDetector(
+                onTap: _skipSplash,
+                child: Container(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.white.withOpacity(0.3))), child: Text('تخطي ⏭️', style: TextStyle(color: Colors.white, fontSize: ResponsiveHelper.responsiveFontSize(context, mobile: 12, tablet: 14), fontWeight: FontWeight.w500))),
               ),
-              Center(
-                child: SingleChildScrollView(
-                  physics: const ClampingScrollPhysics(),
-                  child: AnimatedBuilder(
-                    animation: _mainCtrl,
-                    builder: (context, child) => Opacity(
-                      opacity: _fadeAnimation.value,
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: padding),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            SizedBox(height: screenHeight * 0.05),
-                            Transform.scale(scale: _scaleAnimation.value, child: ConstrainedBox(
-                              constraints: BoxConstraints(maxWidth: lottieWidth, maxHeight: lottieHeight, minWidth: 120, minHeight: 67),
-                              child: Lottie.asset('assets/animations/sehatak_animation.json', fit: BoxFit.contain, repeat: false, errorBuilder: (context, error, stackTrace) => Icon(Icons.health_and_safety, size: screenWidth * 0.15, color: Colors.white)),
-                            )),
-                            SizedBox(height: screenHeight * 0.04),
-                            Transform.scale(scale: _scaleAnimation.value, child: Column(children: [
-                              Text('SEHATAK', style: TextStyle(fontSize: titleSize, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 4)),
-                              SizedBox(height: screenHeight * 0.01),
-                              Text('صحتك', style: TextStyle(fontSize: subtitleSize, fontWeight: FontWeight.bold, color: Colors.white)),
-                            ])),
-                            SizedBox(height: screenHeight * 0.02),
-                            Container(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8), decoration: BoxDecoration(color: Colors.white.withOpacity(0.15), borderRadius: BorderRadius.circular(20)), child: Text('منصة الرعاية الصحية الشاملة', style: TextStyle(fontSize: ResponsiveHelper.responsiveFontSize(context, mobile: 14, tablet: 16, desktop: 18), color: Colors.white70))),
-                            SizedBox(height: screenHeight * 0.04),
-                            Container(width: screenWidth * (ResponsiveHelper.isMobile(context) ? 0.6 : 0.4), height: 4, decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(2)), child: AnimatedBuilder(animation: _loadingCtrl, builder: (context, child) => FractionallySizedBox(widthFactor: _loadingAnimation.value, child: Container(decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(2))))),),
-                            const SizedBox(height: 12),
-                            Text(_statusMessage, style: TextStyle(fontSize: ResponsiveHelper.responsiveFontSize(context, mobile: 12, tablet: 14), color: Colors.white.withOpacity(0.6))),
-                            SizedBox(height: screenHeight * 0.03),
-                            Column(children: [
-                              Text('صحتك أولاً', textAlign: TextAlign.center, style: TextStyle(fontSize: ResponsiveHelper.responsiveFontSize(context, mobile: 12, tablet: 14), color: Colors.white, fontWeight: FontWeight.w600, letterSpacing: 4, height: 1.5)),
-                              const SizedBox(height: 6),
-                              Container(width: 60, height: 1, color: Colors.white.withOpacity(0.3)),
-                              const SizedBox(height: 6),
-                              Text('© 2026 Sehatak Platform', textAlign: TextAlign.center, style: TextStyle(fontSize: ResponsiveHelper.responsiveFontSize(context, mobile: 9, tablet: 11), color: Colors.white.withOpacity(0.3), letterSpacing: 2)),
-                            ]),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+            Center(child: SingleChildScrollView(physics: const ClampingScrollPhysics(), child: AnimatedBuilder(animation: _mainCtrl, builder: (context, child) => Opacity(opacity: _fadeAnimation.value, child: Padding(padding: EdgeInsets.symmetric(horizontal: padding), child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.center, children: [
+              SizedBox(height: screenHeight * 0.05),
+              Transform.scale(scale: _scaleAnimation.value, child: ConstrainedBox(constraints: BoxConstraints(maxWidth: lottieWidth, maxHeight: lottieHeight, minWidth: 120, minHeight: 67), child: Lottie.asset('assets/animations/sehatak_animation.json', fit: BoxFit.contain, repeat: false, errorBuilder: (context, error, stackTrace) => Icon(Icons.health_and_safety, size: screenWidth * 0.15, color: Colors.white)))),
+              SizedBox(height: screenHeight * 0.04),
+              Transform.scale(scale: _scaleAnimation.value, child: Column(children: [Text('SEHATAK', style: TextStyle(fontSize: titleSize, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 4)), SizedBox(height: screenHeight * 0.01), Text('صحتك', style: TextStyle(fontSize: subtitleSize, fontWeight: FontWeight.bold, color: Colors.white))])),
+              SizedBox(height: screenHeight * 0.02),
+              Container(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8), decoration: BoxDecoration(color: Colors.white.withOpacity(0.15), borderRadius: BorderRadius.circular(20)), child: Text('منصة الرعاية الصحية الشاملة', style: TextStyle(fontSize: ResponsiveHelper.responsiveFontSize(context, mobile: 14, tablet: 16, desktop: 18), color: Colors.white70))),
+              SizedBox(height: screenHeight * 0.04),
+              Container(width: screenWidth * (ResponsiveHelper.isMobile(context) ? 0.6 : 0.4), height: 4, decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(2)), child: AnimatedBuilder(animation: _loadingCtrl, builder: (context, child) => FractionallySizedBox(widthFactor: _loadingAnimation.value, child: Container(decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(2)))))),
+              const SizedBox(height: 12), Text(_statusMessage, style: TextStyle(fontSize: ResponsiveHelper.responsiveFontSize(context, mobile: 12, tablet: 14), color: Colors.white.withOpacity(0.6))),
+              SizedBox(height: screenHeight * 0.03),
+              Column(children: [Text('صحتك أولاً', textAlign: TextAlign.center, style: TextStyle(fontSize: ResponsiveHelper.responsiveFontSize(context, mobile: 12, tablet: 14), color: Colors.white, fontWeight: FontWeight.w600, letterSpacing: 4, height: 1.5)), const SizedBox(height: 6), Container(width: 60, height: 1, color: Colors.white.withOpacity(0.3)), const SizedBox(height: 6), Text('© 2026 Sehatak Platform', textAlign: TextAlign.center, style: TextStyle(fontSize: ResponsiveHelper.responsiveFontSize(context, mobile: 9, tablet: 11), color: Colors.white.withOpacity(0.3), letterSpacing: 2))]),
+            ]))))),
+          ]),
         ),
       ),
     );
   }
 
-  Widget _buildAnimatedCircle(CircleData circle) => TweenAnimationBuilder<double>(
-    tween: Tween<double>(begin: 0, end: 2 * 3.14159), duration: Duration(seconds: circle.duration), curve: Curves.linear,
-    builder: (context, angle, child) {
-      final x = circle.dx + 150 * (angle / (2 * 3.14159) * 2 - 1);
-      final y = circle.dy + 150 * (angle / (2 * 3.14159) * 2 - 1);
-      return Positioned(left: MediaQuery.of(context).size.width / 2 + x - circle.size / 2, top: MediaQuery.of(context).size.height / 2 + y - circle.size / 2, child: Container(width: circle.size, height: circle.size, decoration: BoxDecoration(shape: BoxShape.circle, color: circle.color, border: Border.all(color: circle.color, width: 2))));
-    },
-  );
+  Widget _buildAnimatedCircle(CircleData circle) => TweenAnimationBuilder<double>(tween: Tween<double>(begin: 0, end: 2 * 3.14159), duration: Duration(seconds: circle.duration), curve: Curves.linear, builder: (context, angle, child) { final x = circle.dx + 150 * (angle / (2 * 3.14159) * 2 - 1); final y = circle.dy + 150 * (angle / (2 * 3.14159) * 2 - 1); return Positioned(left: MediaQuery.of(context).size.width / 2 + x - circle.size / 2, top: MediaQuery.of(context).size.height / 2 + y - circle.size / 2, child: Container(width: circle.size, height: circle.size, decoration: BoxDecoration(shape: BoxShape.circle, color: circle.color, border: Border.all(color: circle.color, width: 2)))); });
 }
 
 class CircleData {
-  final double size;
-  final int duration;
-  final double dx;
-  final double dy;
-  final Color color;
+  final double size; final int duration; final double dx; final double dy; final Color color;
   CircleData({required this.size, required this.duration, required this.dx, required this.dy, required this.color});
 }
