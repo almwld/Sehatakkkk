@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/services/toast_service.dart';
 
 class BookingScreen extends StatefulWidget {
   final String? doctorId;
@@ -42,10 +43,10 @@ class _BookingScreenState extends State<BookingScreen> {
       if (appointmentId.isEmpty) throw Exception('لم يتم إنشاء الموعد');
       if (_fee > 0) await _functions.httpsCallable('payAppointment').call({'appointmentId': appointmentId, 'idempotencyKey': 'appointment-$appointmentId'});
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حجز الموعد والدفع بنجاح'), backgroundColor: AppColors.primary));
+      ToastService.showSuccess('تم حجز الموعد والدفع بنجاح');
       Navigator.pop(context, appointmentId);
-    } on FirebaseFunctionsException catch (e) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message ?? 'تعذر إتمام الحجز والدفع'), backgroundColor: Colors.red)); }
-    catch (e) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تعذر إتمام العملية: $e'), backgroundColor: Colors.red)); }
+    } on FirebaseFunctionsException catch (e) { if (mounted) ToastService.showError(e.message ?? 'تعذر إتمام الحجز والدفع'); }
+    catch (e) { if (mounted) ToastService.showError('تعذر إتمام العملية: $e'); }
     finally { if (mounted) setState(() => _saving = false); }
   }
 
@@ -60,7 +61,7 @@ class _BookingScreenState extends State<BookingScreen> {
       ListTile(leading: const Icon(Icons.calendar_today, color: AppColors.primary), title: const Text('التاريخ'), subtitle: Text('${_date.day}/${_date.month}/${_date.year}'), onTap: _pickDate),
       DropdownButtonFormField<String>(value: _time, decoration: const InputDecoration(labelText: 'الوقت', border: OutlineInputBorder()), items: _times.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(), onChanged: (v) { if (v != null) setState(() => _time = v); }),
       const SizedBox(height: 20),
-      Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)), child: Column(children: [const Row(children: [Icon(Icons.account_balance_wallet_outlined, color: AppColors.primary), SizedBox(width: 8), Expanded(child: Text('سيتم الخصم من محفظة صحتك وإصدار فاتورة إلكترونية.'))]), if (_fee > 0) ...[const Divider(height: 24), Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('قيمة الموعد'), Text('${_fee.toStringAsFixed(0)} ر.ي', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary))])]])),
+      Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)), child: Column(children: [const Row(children: [Icon(Icons.account_balance_wallet_outlined, color: AppColors.primary), SizedBox(width: 8), Expanded(child: Text('سيتم الخصم من محفظة صحتك وإصدار فاتورة إلكترونية.'))]), if (_fee > 0) ...[const Divider(height: 24), Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('قيمة الموعد'), Text('${_fee.toStringAsFixed(0)} ر.ي', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary))])]])),
       const SizedBox(height: 18),
       SizedBox(height: 52, child: ElevatedButton.icon(onPressed: _saving ? null : _bookAndPay, icon: _saving ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.lock_outline), label: Text(_saving ? 'جارٍ الحجز والدفع...' : 'حجز ودفع من المحفظة'), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white))),
     ]));
