@@ -29,7 +29,8 @@ class ChatNavigation {
     try {
       final call = await CallService().initiateCall(chatId: chatId, receiverId: doctorId, receiverName: doctorName, type: isVideo ? CallType.video : CallType.audio);
       if (!context.mounted) return;
-      await Navigator.push(context, MaterialPageRoute(builder: (_) => CallScreen(callId: call.id, chatId: chatId, isVideo: isVideo, isOutgoing: true)));
+      if (call == null || call.id.isEmpty) { ToastService.showError('تعذر إنشاء المكالمة'); return; }
+      await Navigator.push(context, MaterialPageRoute(builder: (_) => CallScreen(chatId: chatId, doctorName: doctorName, doctorId: doctorId, callId: call.id, isVideo: isVideo, isOutgoing: true)));
     } catch (e) { if (context.mounted) ToastService.showError('فشل بدء المكالمة: $e'); }
   }
 }
