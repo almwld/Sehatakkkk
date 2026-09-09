@@ -18,7 +18,7 @@ import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
 import 'package:sehatak/presentation/screens/more/more_screen.dart';
 import 'package:sehatak/presentation/screens/dashboard/role_based_dashboard_screen.dart';
 import 'package:sehatak/presentation/widgets/common/custom_bottom_navigation_bar.dart';
-import 'package:sehatak/presentation/screens/home/tabs/home_tab_pro.dart';
+import 'package:sehatak/presentation/screens/home/tabs/home_tab.dart';
 
 class ScreenKeys {
   static const home = ValueKey('home_tab');
