@@ -17,8 +17,9 @@ import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
 import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
 import 'package:sehatak/presentation/screens/more/more_screen.dart';
 import 'package:sehatak/presentation/screens/dashboard/role_based_dashboard_screen.dart';
+import 'package:sehatak/presentation/screens/home/tabs/home_tab.dart';
+import 'package:sehatak/presentation/widgets/community/doctor_community_fab.dart';
 import 'package:sehatak/presentation/widgets/common/custom_bottom_navigation_bar.dart';
-import 'package:sehatak/presentation/screens/home/tabs/home_tab_integrated.dart';
 
 class ScreenKeys {
   static const home = ValueKey('home_tab');
@@ -32,7 +33,8 @@ class ScreenKeys {
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
-  @override State<HomeScreen> createState() => _HomeScreenState();
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
@@ -74,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   void _initializeScreens() {
     _screens = {
-      0: HomeTabIntegrated(key: ScreenKeys.home, scrollController: _scrollController),
+      0: HomeTab(key: ScreenKeys.home, scrollController: _scrollController),
       1: const DoctorsListScreen(key: ScreenKeys.doctors),
       2: const PharmacyScreen(key: ScreenKeys.pharmacy),
       3: const ChatScreen(key: ScreenKeys.chat),
@@ -92,7 +94,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       } else if (notification.direction == ScrollDirection.forward) {
         _scrollManager.handleScrollDelta(-6);
       }
-    } else if (notification is ScrollEndNotification && notification.metrics.pixels <= notification.metrics.minScrollExtent + 2) {
+    } else if (notification is ScrollEndNotification &&
+        notification.metrics.pixels <= notification.metrics.minScrollExtent + 2) {
       _scrollManager.show();
     }
     return false;
@@ -139,9 +142,25 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       },
       child: Scaffold(
         backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
-        body: NotificationListener<ScrollNotification>(
-          onNotification: _handleScrollNotification,
-          child: IndexedStack(index: _currentIndex, children: _screens.values.toList(growable: false)),
+        body: Stack(
+          children: [
+            NotificationListener<ScrollNotification>(
+              onNotification: _handleScrollNotification,
+              child: IndexedStack(
+                index: _currentIndex,
+                children: _screens.values.toList(growable: false),
+              ),
+            ),
+            if (_currentIndex == 0)
+              PositionedDirectional(
+                end: 18,
+                bottom: 92,
+                child: DoctorCommunityFab(
+                  scrollController: _scrollController,
+                  dark: dark,
+                ),
+              ),
+          ],
         ),
         bottomNavigationBar: AnimatedBuilder(
           animation: _scrollManager,
@@ -176,7 +195,11 @@ class _AnimatedBottomNavigationBar extends StatelessWidget {
           duration: const Duration(milliseconds: 160),
           opacity: visible ? 1 : 0,
           child: ClipRect(
-            child: Align(alignment: Alignment.topCenter, heightFactor: visible ? 1 : 0, child: child),
+            child: Align(
+              alignment: Alignment.topCenter,
+              heightFactor: visible ? 1 : 0,
+              child: child,
+            ),
           ),
         ),
       );
