@@ -22,14 +22,13 @@ class NextcloudService {
   String password = '';
 
   Future<void> loadConfig() async {
-    baseUrl = (await _storage.read(key: 'sehatak.nextcloud.base_url') ?? '')
-        .trim().replaceFirst(RegExp(r'/$'), '');
+    baseUrl = (await _storage.read(key: 'sehatak.nextcloud.base_url') ?? '').trim().replaceFirst(RegExp(r'/$'), '');
     username = (await _storage.read(key: 'sehatak.nextcloud.username') ?? '').trim();
     password = await _storage.read(key: 'sehatak.nextcloud.app_password') ?? '';
   }
 
   Future<void> updateConfig({required String baseUrl, required String username, required String password}) async {
-    this.baseUrl = baseUrl.trim().replaceFirst(RegExp(r'/$'), '');
+    this.baseUrl = baseUrl.trim().replaceFirst(RegExp(r'/$',), '');
     this.username = username.trim();
     this.password = password;
     await _storage.write(key: 'sehatak.nextcloud.base_url', value: this.baseUrl);
@@ -87,6 +86,9 @@ class NextcloudService {
       final success = response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 400;
       if (!success) return NextcloudUploadResult(success: false, path: fullPath, fileName: name, error: 'فشل رفع الملف: ${response.statusCode}');
       final publicUrl = await createPublicShare(fullPath);
+      if (publicUrl == null || publicUrl.isEmpty) {
+        return NextcloudUploadResult(success: false, path: fullPath, fileName: name, error: 'تم رفع الملف لكن تعذر إنشاء رابط عرض عام من Nextcloud');
+      }
       return NextcloudUploadResult(success: true, url: publicUrl, path: fullPath, fileName: name);
     } catch (e) {
       return NextcloudUploadResult(success: false, error: e.toString());
@@ -104,7 +106,11 @@ class NextcloudService {
       if (response.statusCode < 200 || response.statusCode >= 300) return null;
       final body = jsonDecode(response.body) as Map<String, dynamic>;
       final data = (body['ocs'] as Map<String, dynamic>?)?['data'] as Map<String, dynamic>?;
-      return data?['url']?.toString();
+      final shareUrl = data?['url']?.toString();
+      if (shareUrl == null || shareUrl.isEmpty) return null;
+      // Nextcloud share URLs open a share page by default. /download returns the
+      // actual file bytes and therefore works with image/video widgets.
+      return '${shareUrl.replaceFirst(RegExp(r'/$'), '')}/download';
     } catch (_) {
       return null;
     }
