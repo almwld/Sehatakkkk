@@ -34,13 +34,13 @@ class HomeRepositoryFixed {
       final f = firestore;
       final user = auth?.currentUser;
       if (f == null || user == null) {
-        return (calories: 0, steps: 0, sleep: 0, heartRate: 0);
+        return (calories: 0.0, steps: 0.0, sleep: 0.0, heartRate: 0.0);
       }
       // عقد البيانات الفعلي المستخدم في المشروع: health_metrics/{uid}.
       final data = (await f.collection('health_metrics').doc(user.uid).get()).data();
       double number(dynamic value) => value is num
           ? value.toDouble()
-          : double.tryParse(value?.toString() ?? '') ?? 0;
+          : double.tryParse(value?.toString() ?? '') ?? 0.0;
       return (
         calories: number(data?['calories']),
         steps: number(data?['steps']),
@@ -48,7 +48,7 @@ class HomeRepositoryFixed {
         heartRate: number(data?['heartRate']),
       );
     } catch (_) {
-      return (calories: 0, steps: 0, sleep: 0, heartRate: 0);
+      return (calories: 0.0, steps: 0.0, sleep: 0.0, heartRate: 0.0);
     }
   }
 
