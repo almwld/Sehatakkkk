@@ -5,9 +5,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:sehatak/core/managers/global_scroll_manager.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
@@ -31,15 +31,14 @@ class ScreenKeys {
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  @override State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int _currentIndex = 0;
   final ScrollController _scrollController = ScrollController();
+  late final GlobalScrollManager _scrollManager;
   bool _isLoggedIn = false;
-  bool _isBottomNavVisible = true;
   bool _backPressedOnce = false;
   Timer? _backExitTimer;
   late final Map<int, Widget> _screens;
@@ -48,14 +47,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _checkLoginStatus();
+    _scrollManager = GlobalScrollManager();
     _initializeScreens();
+    _checkLoginStatus();
   }
 
   @override
   void dispose() {
     _backExitTimer?.cancel();
     _scrollController.dispose();
+    _scrollManager.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -82,20 +83,21 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     };
   }
 
-  void _setBottomNavVisibility(bool visible) {
-    if (_isBottomNavVisible == visible || !mounted) return;
-    setState(() => _isBottomNavVisible = visible);
-  }
-
   bool _handleScrollNotification(ScrollNotification notification) {
     if (notification.metrics.axis != Axis.vertical) return false;
+
     if (notification is UserScrollNotification) {
-      if (notification.direction == ScrollDirection.reverse) _setBottomNavVisibility(false);
-      if (notification.direction == ScrollDirection.forward) _setBottomNavVisibility(true);
+      final direction = notification.direction;
+      if (direction == ScrollDirection.reverse) {
+        _scrollManager.handleScrollDelta(6);
+      } else if (direction == ScrollDirection.forward) {
+        _scrollManager.handleScrollDelta(-6);
+      }
     } else if (notification is ScrollEndNotification &&
         notification.metrics.pixels <= notification.metrics.minScrollExtent + 2) {
-      _setBottomNavVisibility(true);
+      _scrollManager.show();
     }
+
     return false;
   }
 
@@ -122,7 +124,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _openAuth();
       return;
     }
-    _setBottomNavVisibility(true);
+    _scrollManager.show();
     if (_currentIndex != index) setState(() => _currentIndex = index);
     HapticFeedback.lightImpact();
   }
@@ -149,13 +151,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             children: _screens.values.toList(growable: false),
           ),
         ),
-        bottomNavigationBar: _AnimatedBottomNavigationBar(
-          visible: _isBottomNavVisible,
-          child: CustomBottomNavigationBar(
-            currentIndex: _currentIndex,
-            onTap: _onTabTap,
-            isLoggedIn: _isLoggedIn,
-            onAuthRequired: _openAuth,
+        bottomNavigationBar: AnimatedBuilder(
+          animation: _scrollManager,
+          builder: (_, __) => _AnimatedBottomNavigationBar(
+            visible: _scrollManager.isVisible,
+            child: CustomBottomNavigationBar(
+              currentIndex: _currentIndex,
+              onTap: _onTabTap,
+              scrollController: _scrollController,
+              scrollManager: _scrollManager,
+              isLoggedIn: _isLoggedIn,
+              onAuthRequired: _openAuth,
+            ),
           ),
         ),
       ),
