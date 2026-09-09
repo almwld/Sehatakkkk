@@ -1,38 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sehatak/core/routes/payment_routes.dart';
-import 'package:sehatak/presentation/screens/splash_screen.dart';
-import 'package:sehatak/presentation/screens/home/home_screen.dart';
-import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
-import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
-import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
-import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
-import 'package:sehatak/presentation/screens/pharmacy/pharmacy_dashboard.dart';
-import 'package:sehatak/presentation/screens/platform/marketplace_admin_dashboard.dart';
-import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
-import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
-import 'package:sehatak/presentation/screens/more/more_screen.dart';
-import 'package:sehatak/presentation/screens/dashboard/role_based_dashboard_screen.dart';
-import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
-import 'package:sehatak/presentation/screens/patient/patient_appointments.dart';
-import 'package:sehatak/presentation/screens/shared/notifications_screen.dart';
-import 'package:sehatak/presentation/screens/pharmacy/cart_screen.dart';
-import 'package:sehatak/presentation/screens/wallet/wallet_screen.dart';
-import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
-import 'package:sehatak/presentation/screens/consultation/consultation_screen.dart';
-import 'package:sehatak/presentation/screens/services/services_screen.dart';
-import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart';
-import 'package:sehatak/presentation/screens/blood_donation/blood_donation_screen.dart';
-import 'package:sehatak/presentation/screens/settings/settings_screen.dart';
-import 'package:sehatak/presentation/screens/search/unified_search_screen.dart';
 import 'package:sehatak/presentation/screens/articles/articles_screen.dart';
+import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
+import 'package:sehatak/presentation/screens/blood_donation/blood_donation_screen.dart';
+import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
 import 'package:sehatak/presentation/screens/community/community_screen.dart';
+import 'package:sehatak/presentation/screens/consultation/consultation_screen.dart';
+import 'package:sehatak/presentation/screens/dashboard/role_based_dashboard_screen.dart';
+import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
+import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
+import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart';
+import 'package:sehatak/presentation/screens/home/home_screen.dart';
+import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
+import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
+import 'package:sehatak/presentation/screens/more/more_screen.dart';
+import 'package:sehatak/presentation/screens/patient/patient_appointments.dart';
+import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
+import 'package:sehatak/presentation/screens/pharmacy/cart_screen.dart';
+import 'package:sehatak/presentation/screens/pharmacy/pharmacy_dashboard.dart';
+import 'package:sehatak/presentation/screens/pharmacy/pharmacy_screen.dart';
+import 'package:sehatak/presentation/screens/platform/marketplace_admin_dashboard.dart';
+import 'package:sehatak/presentation/screens/search/unified_search_screen.dart';
+import 'package:sehatak/presentation/screens/services/services_screen.dart';
+import 'package:sehatak/presentation/screens/settings/settings_screen.dart';
+import 'package:sehatak/presentation/screens/shared/notifications_screen.dart';
+import 'package:sehatak/presentation/screens/splash_screen.dart';
+import 'package:sehatak/presentation/screens/wallet/wallet_screen.dart';
 
-/// Single navigation source of truth.
-/// The GoRouter definition is retained for deep-link capable callers, while
-/// MaterialApp also uses [onGenerateRoute] because the current application
-/// shell is a MaterialApp and Home must not call GoRouter APIs without a
-/// GoRouter host.
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class AppRouter {
@@ -67,95 +62,109 @@ class AppRouter {
     navigatorKey: navigatorKey,
     initialLocation: splash,
     routes: [
-      GoRoute(path: splash, builder: (c, s) => const SplashScreen()),
-      GoRoute(path: home, builder: (c, s) => const HomeScreen()),
-      GoRoute(path: auth, builder: (c, s) => const AuthScreen()),
-      GoRoute(path: doctors, builder: (c, s) => const DoctorsListScreen()),
-      GoRoute(path: doctorDetails, builder: (c, s) => DoctorDetailsScreen(doctorId: s.pathParameters['id'] ?? '')),
-      GoRoute(path: pharmacy, builder: (c, s) => const PharmacyScreen()),
-      GoRoute(path: pharmacyDashboard, builder: (c, s) => const PharmacyDashboard()),
-      GoRoute(path: marketplaceAdmin, builder: (c, s) => const MarketplaceAdminDashboard()),
-      GoRoute(path: labs, builder: (c, s) => const LabsListScreen()),
-      GoRoute(path: chat, builder: (c, s) => const ChatScreen()),
-      GoRoute(path: more, builder: (c, s) => const MoreScreen()),
-      GoRoute(path: dashboard, builder: (c, s) => const RoleBasedDashboardScreen()),
-      GoRoute(path: profile, builder: (c, s) => const PatientProfile()),
-      GoRoute(path: appointments, builder: (c, s) => const PatientAppointments()),
-      GoRoute(path: notifications, builder: (c, s) => const NotificationsScreen()),
-      GoRoute(path: cart, builder: (c, s) => const CartScreen()),
-      GoRoute(path: wallet, builder: (c, s) => const WalletScreen()),
-      GoRoute(path: map, builder: (c, s) => const InteractiveMapScreen()),
-      GoRoute(path: consultation, builder: (c, s) => const ConsultationScreen()),
-      GoRoute(path: services, builder: (c, s) => const ServicesScreen()),
-      GoRoute(path: emergency, builder: (c, s) => const EmergencyNumbers()),
-      GoRoute(path: bloodDonation, builder: (c, s) => const BloodDonationScreen()),
-      GoRoute(path: settings, builder: (c, s) => const SettingsScreen()),
-      GoRoute(path: search, builder: (c, s) => AdvancedSearchScreen(initialQuery: s.uri.queryParameters['q'])),
-      GoRoute(path: articles, builder: (c, s) => const ArticlesScreen()),
-      GoRoute(path: community, builder: (c, s) => const CommunityScreen()),
+      GoRoute(path: splash, builder: (_, __) => const SplashScreen()),
+      GoRoute(path: home, builder: (_, __) => const HomeScreen()),
+      GoRoute(path: auth, builder: (_, __) => const AuthScreen()),
+      GoRoute(path: doctors, builder: (_, __) => const DoctorsListScreen()),
+      GoRoute(
+        path: doctorDetails,
+        builder: (_, state) => DoctorDetailsScreen(
+          doctorId: state.pathParameters['id'] ?? '',
+        ),
+      ),
+      GoRoute(path: pharmacy, builder: (_, __) => const PharmacyScreen()),
+      GoRoute(path: pharmacyDashboard, builder: (_, __) => const PharmacyDashboard()),
+      GoRoute(path: marketplaceAdmin, builder: (_, __) => const MarketplaceAdminDashboard()),
+      GoRoute(path: labs, builder: (_, __) => const LabsListScreen()),
+      GoRoute(path: chat, builder: (_, __) => const ChatScreen()),
+      GoRoute(path: more, builder: (_, __) => const MoreScreen()),
+      GoRoute(path: dashboard, builder: (_, __) => const RoleBasedDashboardScreen()),
+      GoRoute(path: profile, builder: (_, __) => const PatientProfile()),
+      GoRoute(path: appointments, builder: (_, __) => const PatientAppointments()),
+      GoRoute(path: notifications, builder: (_, __) => const NotificationsScreen()),
+      GoRoute(path: cart, builder: (_, __) => const CartScreen()),
+      GoRoute(path: wallet, builder: (_, __) => const WalletScreen()),
+      GoRoute(path: map, builder: (_, __) => const InteractiveMapScreen()),
+      GoRoute(path: consultation, builder: (_, __) => const ConsultationScreen()),
+      GoRoute(path: services, builder: (_, __) => const ServicesScreen()),
+      GoRoute(path: emergency, builder: (_, __) => const EmergencyNumbers()),
+      GoRoute(path: bloodDonation, builder: (_, __) => const BloodDonationScreen()),
+      GoRoute(path: settings, builder: (_, __) => const SettingsScreen()),
+      GoRoute(
+        path: search,
+        builder: (_, state) => AdvancedSearchScreen(
+          initialQuery: state.uri.queryParameters['q'],
+        ),
+      ),
+      GoRoute(path: articles, builder: (_, __) => const ArticlesScreen()),
+      GoRoute(path: community, builder: (_, __) => const CommunityScreen()),
     ],
   );
 
-  /// Route registry used by the current MaterialApp shell.
-  static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
-    final name = settings.name ?? home;
+  static Route<dynamic>? onGenerateRoute(RouteSettings routeSettings) {
+    final name = routeSettings.name ?? home;
     switch (name) {
       case splash:
-        return MaterialPageRoute(builder: (_) => const SplashScreen(), settings: settings);
+        return MaterialPageRoute(builder: (_) => const SplashScreen(), settings: routeSettings);
       case home:
-        return MaterialPageRoute(builder: (_) => const HomeScreen(), settings: settings);
+        return MaterialPageRoute(builder: (_) => const HomeScreen(), settings: routeSettings);
       case auth:
-        return MaterialPageRoute(builder: (_) => const AuthScreen(), settings: settings);
+        return MaterialPageRoute(builder: (_) => const AuthScreen(), settings: routeSettings);
       case doctors:
-        return MaterialPageRoute(builder: (_) => const DoctorsListScreen(), settings: settings);
+        return MaterialPageRoute(builder: (_) => const DoctorsListScreen(), settings: routeSettings);
       case pharmacy:
-        return MaterialPageRoute(builder: (_) => const PharmacyScreen(), settings: settings);
+        return MaterialPageRoute(builder: (_) => const PharmacyScreen(), settings: routeSettings);
       case labs:
-        return MaterialPageRoute(builder: (_) => const LabsListScreen(), settings: settings);
+        return MaterialPageRoute(builder: (_) => const LabsListScreen(), settings: routeSettings);
       case chat:
-        return MaterialPageRoute(builder: (_) => const ChatScreen(), settings: settings);
+        return MaterialPageRoute(builder: (_) => const ChatScreen(), settings: routeSettings);
       case more:
-        return MaterialPageRoute(builder: (_) => const MoreScreen(), settings: settings);
+        return MaterialPageRoute(builder: (_) => const MoreScreen(), settings: routeSettings);
       case dashboard:
-        return MaterialPageRoute(builder: (_) => const RoleBasedDashboardScreen(), settings: settings);
+        return MaterialPageRoute(builder: (_) => const RoleBasedDashboardScreen(), settings: routeSettings);
       case profile:
-        return MaterialPageRoute(builder: (_) => const PatientProfile(), settings: settings);
+        return MaterialPageRoute(builder: (_) => const PatientProfile(), settings: routeSettings);
       case appointments:
-        return MaterialPageRoute(builder: (_) => const PatientAppointments(), settings: settings);
+        return MaterialPageRoute(builder: (_) => const PatientAppointments(), settings: routeSettings);
       case notifications:
-        return MaterialPageRoute(builder: (_) => const NotificationsScreen(), settings: settings);
+        return MaterialPageRoute(builder: (_) => const NotificationsScreen(), settings: routeSettings);
       case cart:
-        return MaterialPageRoute(builder: (_) => const CartScreen(), settings: settings);
+        return MaterialPageRoute(builder: (_) => const CartScreen(), settings: routeSettings);
       case map:
-        return MaterialPageRoute(builder: (_) => const InteractiveMapScreen(), settings: settings);
+        return MaterialPageRoute(builder: (_) => const InteractiveMapScreen(), settings: routeSettings);
       case consultation:
-        return MaterialPageRoute(builder: (_) => const ConsultationScreen(), settings: settings);
+        return MaterialPageRoute(builder: (_) => const ConsultationScreen(), settings: routeSettings);
       case services:
-        return MaterialPageRoute(builder: (_) => const ServicesScreen(), settings: settings);
+        return MaterialPageRoute(builder: (_) => const ServicesScreen(), settings: routeSettings);
       case emergency:
-        return MaterialPageRoute(builder: (_) => const EmergencyNumbers(), settings: settings);
+        return MaterialPageRoute(builder: (_) => const EmergencyNumbers(), settings: routeSettings);
       case bloodDonation:
-        return MaterialPageRoute(builder: (_) => const BloodDonationScreen(), settings: settings);
+        return MaterialPageRoute(builder: (_) => const BloodDonationScreen(), settings: routeSettings);
       case settings:
-        return MaterialPageRoute(builder: (_) => const SettingsScreen(), settings: settings);
+        return MaterialPageRoute(builder: (_) => const SettingsScreen(), settings: routeSettings);
       case search:
-        final args = settings.arguments;
+        final args = routeSettings.arguments;
         final query = args is String ? args : null;
-        return MaterialPageRoute(builder: (_) => AdvancedSearchScreen(initialQuery: query), settings: settings);
+        return MaterialPageRoute(
+          builder: (_) => AdvancedSearchScreen(initialQuery: query),
+          settings: routeSettings,
+        );
       case articles:
-        return MaterialPageRoute(builder: (_) => const ArticlesScreen(), settings: settings);
+        return MaterialPageRoute(builder: (_) => const ArticlesScreen(), settings: routeSettings);
       case community:
-        return MaterialPageRoute(builder: (_) => const CommunityScreen(), settings: settings);
+        return MaterialPageRoute(builder: (_) => const CommunityScreen(), settings: routeSettings);
       case pharmacyDashboard:
-        return MaterialPageRoute(builder: (_) => const PharmacyDashboard(), settings: settings);
+        return MaterialPageRoute(builder: (_) => const PharmacyDashboard(), settings: routeSettings);
       case marketplaceAdmin:
-        return MaterialPageRoute(builder: (_) => const MarketplaceAdminDashboard(), settings: settings);
+        return MaterialPageRoute(builder: (_) => const MarketplaceAdminDashboard(), settings: routeSettings);
       default:
         if (name.startsWith('/doctor/')) {
-          final id = name.substring('/doctor/'.length);
-          return MaterialPageRoute(builder: (_) => DoctorDetailsScreen(doctorId: id), settings: settings);
+          return MaterialPageRoute(
+            builder: (_) => DoctorDetailsScreen(doctorId: name.substring('/doctor/'.length)),
+            settings: routeSettings,
+          );
         }
-        return PaymentRoutes.onGenerateRoute(settings);
+        return PaymentRoutes.onGenerateRoute(routeSettings);
     }
   }
 }
