@@ -12,6 +12,7 @@ import 'package:sehatak/presentation/screens/chat/chat_screen.dart';
 import 'package:sehatak/presentation/screens/more/more_screen.dart';
 import 'package:sehatak/presentation/screens/dashboard/role_based_dashboard_screen.dart';
 import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
+import 'package:sehatak/presentation/screens/patient/patient_appointments.dart';
 import 'package:sehatak/presentation/screens/shared/notifications_screen.dart';
 import 'package:sehatak/presentation/screens/pharmacy/cart_screen.dart';
 import 'package:sehatak/presentation/screens/wallet/wallet_screen.dart';
@@ -34,6 +35,7 @@ class AppRouter {
   static const String more = '/more';
   static const String dashboard = '/dashboard';
   static const String profile = '/profile';
+  static const String appointments = '/appointments';
   static const String notifications = '/notifications';
   static const String cart = '/cart';
   static const String wallet = '/wallet';
@@ -53,12 +55,7 @@ class AppRouter {
       GoRoute(path: home, builder: (c, s) => const HomeScreen()),
       GoRoute(path: auth, builder: (c, s) => const AuthScreen()),
       GoRoute(path: doctors, builder: (c, s) => const DoctorsListScreen()),
-      GoRoute(
-        path: doctorDetails,
-        builder: (c, s) => DoctorDetailsScreen(
-          doctorId: s.pathParameters['id'] ?? '',
-        ),
-      ),
+      GoRoute(path: doctorDetails, builder: (c, s) => DoctorDetailsScreen(doctorId: s.pathParameters['id'] ?? '')),
       GoRoute(path: pharmacy, builder: (c, s) => const PharmacyScreen()),
       GoRoute(path: pharmacyDashboard, builder: (c, s) => const PharmacyDashboard()),
       GoRoute(path: marketplaceAdmin, builder: (c, s) => const MarketplaceAdminDashboard()),
@@ -67,6 +64,7 @@ class AppRouter {
       GoRoute(path: more, builder: (c, s) => const MoreScreen()),
       GoRoute(path: dashboard, builder: (c, s) => const RoleBasedDashboardScreen()),
       GoRoute(path: profile, builder: (c, s) => const PatientProfile()),
+      GoRoute(path: appointments, builder: (c, s) => const PatientAppointments()),
       GoRoute(path: notifications, builder: (c, s) => const NotificationsScreen()),
       GoRoute(path: cart, builder: (c, s) => const CartScreen()),
       GoRoute(path: wallet, builder: (c, s) => const WalletScreen()),
@@ -76,12 +74,7 @@ class AppRouter {
       GoRoute(path: emergency, builder: (c, s) => const EmergencyNumbers()),
       GoRoute(path: bloodDonation, builder: (c, s) => const BloodDonationScreen()),
       GoRoute(path: settings, builder: (c, s) => const SettingsScreen()),
-      GoRoute(
-        path: search,
-        builder: (c, s) => AdvancedSearchScreen(
-          initialQuery: s.uri.queryParameters['q'],
-        ),
-      ),
+      GoRoute(path: search, builder: (c, s) => AdvancedSearchScreen(initialQuery: s.uri.queryParameters['q'])),
     ],
   );
 }
