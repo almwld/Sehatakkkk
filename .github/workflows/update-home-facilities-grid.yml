@@ -54,10 +54,6 @@ jobs:
           path.write_text(text, encoding='utf-8')
           print('HomeTab updated:', hospitals_count, labs_count)
 
-      - name: Format touched Dart file
-        run: |
-          dart format lib/presentation/screens/home/tabs/home_tab.dart lib/presentation/widgets/home/featured_facilities_grid.dart
-
       - name: Commit HomeTab update
         run: |
           git config user.name 'github-actions[bot]'
