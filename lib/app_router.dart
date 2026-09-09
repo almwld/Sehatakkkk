@@ -23,6 +23,7 @@ import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart'
 import 'package:sehatak/presentation/screens/blood_donation/blood_donation_screen.dart';
 import 'package:sehatak/presentation/screens/settings/settings_screen.dart';
 import 'package:sehatak/presentation/screens/search/unified_search_screen.dart';
+import 'package:sehatak/presentation/screens/community/community_screen.dart';
 
 class AppRouter {
   static const String home = '/';
@@ -46,6 +47,7 @@ class AppRouter {
   static const String bloodDonation = '/blood-donation';
   static const String settings = '/settings';
   static const String search = '/search';
+  static const String community = '/community';
   static const String pharmacyDashboard = '/pharmacy-dashboard';
   static const String marketplaceAdmin = '/marketplace-admin';
 
@@ -75,6 +77,7 @@ class AppRouter {
       GoRoute(path: bloodDonation, builder: (c, s) => const BloodDonationScreen()),
       GoRoute(path: settings, builder: (c, s) => const SettingsScreen()),
       GoRoute(path: search, builder: (c, s) => AdvancedSearchScreen(initialQuery: s.uri.queryParameters['q'])),
+      GoRoute(path: community, builder: (c, s) => const CommunityScreen()),
     ],
   );
 }
