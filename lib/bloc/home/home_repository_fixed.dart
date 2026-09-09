@@ -2,8 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 
-/// Data source used by the home screen. Every section reads existing Firestore
-/// collections/contracts; the UI never fabricates provider or health records.
+/// مصدر بيانات الشاشة الرئيسية. لا يتم إنشاء سجلات وهمية؛ كل قسم يقرأ من
+/// مجموعات Firestore المستخدمة فعلياً في المشروع.
 class HomeRepositoryFixed {
   FirebaseFirestore? get firestore =>
       Firebase.apps.isEmpty ? null : FirebaseFirestore.instance;
@@ -36,13 +36,8 @@ class HomeRepositoryFixed {
       if (f == null || user == null) {
         return (calories: 0, steps: 0, sleep: 0, heartRate: 0);
       }
-      final data = (await f
-              .collection('users')
-              .doc(user.uid)
-              .collection('health_metrics')
-              .doc('current')
-              .get())
-          .data();
+      // عقد البيانات الفعلي المستخدم في المشروع: health_metrics/{uid}.
+      final data = (await f.collection('health_metrics').doc(user.uid).get()).data();
       double number(dynamic value) => value is num
           ? value.toDouble()
           : double.tryParse(value?.toString() ?? '') ?? 0;
@@ -103,9 +98,6 @@ class HomeRepositoryFixed {
     }
   }
 
-  /// No verified tips collection exists in the current data model, therefore
-  /// the home screen intentionally hides the tips section instead of showing
-  /// invented health content as if it came from the backend.
   Future<List<Map<String, dynamic>>> getTips() async => [];
 
   Future<List<Map<String, dynamic>>> getCommunityPosts({int limit = 10}) async {
