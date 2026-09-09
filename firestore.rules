@@ -1,34 +1,117 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    function signedIn() { return request.auth != null; }
-    function self(id) { return signedIn() && request.auth.uid == id; }
-    function existsUser(id) { return exists(/databases/$(database)/documents/users/$(id)); }
-    function user(id) { return get(/databases/$(database)/documents/users/$(id)).data; }
-    function admin() { return signedIn() && existsUser(request.auth.uid) && user(request.auth.uid).role == 'admin'; }
-    function doctor(id) { return existsUser(id) && user(id).role == 'doctor'; }
-    function verifiedDoctor(id) { return doctor(id) && user(id).isVerified == true; }
-    function owner(field) { return signedIn() && resource.data[field] == request.auth.uid; }
-    function newOwner(field) { return signedIn() && request.resource.data[field] == request.auth.uid; }
+
+    // ============================================================
+    // 🔐 دوال مساعدة
+    // ============================================================
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function self(id) {
+      return signedIn() && request.auth.uid == id;
+    }
+
+    function existsUser(id) {
+      return exists(/databases/$(database)/documents/users/$(id));
+    }
+
+    function user(id) {
+      return get(/databases/$(database)/documents/users/$(id)).data;
+    }
+
+    function admin() {
+      return signedIn() && existsUser(request.auth.uid) && user(request.auth.uid).role == 'admin';
+    }
+
+    function doctor(id) {
+      return existsUser(id) && user(id).role == 'doctor';
+    }
+
+    function verifiedDoctor(id) {
+      return doctor(id) && user(id).isVerified == true;
+    }
+
+    function owner(field) {
+      return signedIn() && resource.data[field] == request.auth.uid;
+    }
+
+    function newOwner(field) {
+      return signedIn() && request.resource.data[field] == request.auth.uid;
+    }
+
+    function isChatParticipant(chatId) {
+      return signedIn() &&
+        exists(/databases/$(database)/documents/chats/$(chatId)) &&
+        request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+    }
+
+    function isCallParticipant(callId) {
+      return signedIn() &&
+        exists(/databases/$(database)/documents/calls/$(callId)) &&
+        request.auth.uid in get(/databases/$(database)/documents/calls/$(callId)).data.participants;
+    }
+
+    // ============================================================
+    // 👤 المستخدمون
+    // ============================================================
 
     match /users/{userId} {
       allow read: if self(userId) || admin();
       allow create: if self(userId) && request.resource.data.uid == request.auth.uid && (request.resource.data.role != 'doctor' || request.resource.data.doctorId == request.auth.uid);
       allow update: if admin() || (self(userId) && request.resource.data.uid == resource.data.uid && request.resource.data.role == resource.data.role && request.resource.data.doctorId == resource.data.doctorId && request.resource.data.isVerified == resource.data.isVerified && request.resource.data.verificationStatus == resource.data.verificationStatus);
       allow delete: if admin();
-      match /favorites/{doctorId} { allow read: if self(userId); allow create: if self(userId) && request.resource.data.doctorId == doctorId; allow delete: if self(userId); allow update: if false; }
+
+      match /favorites/{doctorId} {
+        allow read: if self(userId);
+        allow create: if self(userId) && request.resource.data.doctorId == doctorId;
+        allow delete: if self(userId);
+        allow update: if false;
+      }
+
       match /medications/{medicationId} {
         allow read: if self(userId) || admin() || (signedIn() && verifiedDoctor(request.auth.uid) && resource.data.doctorId == request.auth.uid);
         allow create: if admin() || (self(userId) && request.resource.data.userId == request.auth.uid) || (signedIn() && verifiedDoctor(request.auth.uid) && request.resource.data.userId == userId && request.resource.data.doctorId == request.auth.uid);
         allow update: if admin() || (self(userId) && request.resource.data.userId == resource.data.userId && request.resource.data.doctorId == resource.data.doctorId) || (signedIn() && verifiedDoctor(request.auth.uid) && resource.data.doctorId == request.auth.uid && request.resource.data.userId == resource.data.userId && request.resource.data.doctorId == resource.data.doctorId);
         allow delete: if admin() || self(userId);
       }
-      match /medications_history/{historyId} { allow read, create: if self(userId) && request.resource.data.userId == request.auth.uid; allow update, delete: if admin() || self(userId); }
-      match /liked_posts/{postId} { allow read: if self(userId); allow create: if self(userId) && request.resource.data.postId == postId; allow delete: if self(userId); allow update: if false; }
-      match /saved_posts/{postId} { allow read: if self(userId); allow create: if self(userId) && request.resource.data.postId == postId; allow delete: if self(userId); allow update: if false; }
+
+      match /medications_history/{historyId} {
+        allow read, create: if self(userId) && request.resource.data.userId == request.auth.uid;
+        allow update, delete: if admin() || self(userId);
+      }
+
+      match /liked_posts/{postId} {
+        allow read: if self(userId);
+        allow create: if self(userId) && request.resource.data.postId == postId;
+        allow delete: if self(userId);
+        allow update: if false;
+      }
+
+      match /saved_posts/{postId} {
+        allow read: if self(userId);
+        allow create: if self(userId) && request.resource.data.postId == postId;
+        allow delete: if self(userId);
+        allow update: if false;
+      }
     }
 
-    match /search_history/{id} { allow read, delete: if owner('userId'); allow create: if newOwner('userId') && request.resource.data.query is string && request.resource.data.query.size() > 0 && request.resource.data.query.size() <= 200; allow update: if false; }
+    // ============================================================
+    // 🔍 سجل البحث
+    // ============================================================
+
+    match /search_history/{id} {
+      allow read, delete: if owner('userId');
+      allow create: if newOwner('userId') && request.resource.data.query is string && request.resource.data.query.size() > 0 && request.resource.data.query.size() <= 200;
+      allow update: if false;
+    }
+
+    // ============================================================
+    // 👨‍⚕️ الأطباء
+    // ============================================================
 
     match /doctors/{id} {
       allow read: if true;
@@ -37,13 +120,70 @@ service cloud.firestore {
       allow delete: if admin();
     }
 
-    match /hospitals/{id} { allow read: if true; allow create: if admin() || newOwner('userId'); allow update: if admin() || (owner('userId') && request.resource.data.userId == resource.data.userId); allow delete: if admin(); }
-    match /labs/{id} { allow read: if true; allow create: if admin() || (newOwner('userId') && request.resource.data.isVerified == false); allow update: if admin() || (owner('userId') && request.resource.data.userId == resource.data.userId && request.resource.data.isVerified == resource.data.isVerified && request.resource.data.verificationStatus == resource.data.verificationStatus); allow delete: if admin(); }
-    match /pharmacies/{id} { allow read: if true; allow create: if admin() || (newOwner('ownerId') && request.resource.data.status == 'pending'); allow update: if admin() || (owner('ownerId') && request.resource.data.ownerId == resource.data.ownerId && request.resource.data.status == resource.data.status); allow delete: if admin(); }
-    match /pharmacy_products/{id} { allow read: if admin() || owner('ownerId') || resource.data.pharmacyId == request.auth.uid; allow create, update, delete: if false; }
-    match /drug_catalog/{id} { allow read: if true; allow create, update, delete: if admin(); }
-    match /product_inventory/{id} { allow read: if true; allow create, update, delete: if false; }
-    match /products/{id} { allow read: if admin() || (resource.data.approvalStatus == 'approved' && resource.data.isPublished == true && resource.data.isActive == true); allow write: if admin(); }
+    // ============================================================
+    // 🏥 المستشفيات
+    // ============================================================
+
+    match /hospitals/{id} {
+      allow read: if true;
+      allow create: if admin() || newOwner('userId');
+      allow update: if admin() || (owner('userId') && request.resource.data.userId == resource.data.userId);
+      allow delete: if admin();
+    }
+
+    // ============================================================
+    // 🧪 المختبرات
+    // ============================================================
+
+    match /labs/{id} {
+      allow read: if true;
+      allow create: if admin() || (newOwner('userId') && request.resource.data.isVerified == false);
+      allow update: if admin() || (owner('userId') && request.resource.data.userId == resource.data.userId && request.resource.data.isVerified == resource.data.isVerified && request.resource.data.verificationStatus == resource.data.verificationStatus);
+      allow delete: if admin();
+    }
+
+    // ============================================================
+    // 💊 الصيدليات
+    // ============================================================
+
+    match /pharmacies/{id} {
+      allow read: if true;
+      allow create: if admin() || (newOwner('ownerId') && request.resource.data.status == 'pending');
+      allow update: if admin() || (owner('ownerId') && request.resource.data.ownerId == resource.data.ownerId && request.resource.data.status == resource.data.status);
+      allow delete: if admin();
+    }
+
+    match /pharmacy_products/{id} {
+      allow read: if admin() || owner('ownerId') || resource.data.pharmacyId == request.auth.uid;
+      allow create, update, delete: if false;
+    }
+
+    // ============================================================
+    // 📚 كتالوج الأدوية
+    // ============================================================
+
+    match /drug_catalog/{id} {
+      allow read: if true;
+      allow create, update, delete: if admin();
+    }
+
+    // ============================================================
+    // 📦 المخزون والمنتجات
+    // ============================================================
+
+    match /product_inventory/{id} {
+      allow read: if true;
+      allow create, update, delete: if false;
+    }
+
+    match /products/{id} {
+      allow read: if admin() || (resource.data.approvalStatus == 'approved' && resource.data.isPublished == true && resource.data.isActive == true);
+      allow write: if admin();
+    }
+
+    // ============================================================
+    // 📦 الطلبات والفواتير
+    // ============================================================
 
     match /orders/{id} {
       allow read: if admin() || owner('userId');
@@ -51,13 +191,76 @@ service cloud.firestore {
       allow update: if admin() || (owner('userId') && request.resource.data.userId == resource.data.userId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['deliveryAddress','updatedAt','status']) && request.resource.data.status == 'cancelled');
       allow delete: if false;
     }
-    match /order_items/{id} { allow read: if admin() || (signedIn() && exists(/databases/$(database)/documents/orders/$(resource.data.orderId)) && get(/databases/$(database)/documents/orders/$(resource.data.orderId)).data.userId == request.auth.uid); allow write: if admin(); }
-    match /invoices/{id} { allow read: if admin() || owner('userId'); allow write: if false; }
-    match /payments/{id} { allow read: if admin() || owner('userId'); allow write: if false; }
-    match /payment_methods/{id} { allow read: if admin() || owner('userId'); allow write: if false; }
-    match /refunds/{id} { allow read: if admin() || owner('userId'); allow write: if false; }
-    match /subscriptions/{id} { allow read: if admin() || owner('userId'); allow write: if false; }
-    match /subscription_history/{id} { allow read: if admin() || owner('userId'); allow write: if false; }
+
+    match /order_items/{id} {
+      allow read: if admin() || (signedIn() && exists(/databases/$(database)/documents/orders/$(resource.data.orderId)) && get(/databases/$(database)/documents/orders/$(resource.data.orderId)).data.userId == request.auth.uid);
+      allow write: if admin();
+    }
+
+    match /invoices/{id} {
+      allow read: if admin() || owner('userId');
+      allow write: if false;
+    }
+
+    // ============================================================
+    // 💳 المدفوعات والمحفظة
+    // ============================================================
+
+    match /payments/{id} {
+      allow read: if admin() || owner('userId');
+      allow write: if false;
+    }
+
+    match /payment_methods/{id} {
+      allow read: if admin() || owner('userId');
+      allow write: if false;
+    }
+
+    match /refunds/{id} {
+      allow read: if admin() || owner('userId');
+      allow write: if false;
+    }
+
+    match /wallets/{id} {
+      allow read: if admin() || self(id);
+      allow write: if false;
+    }
+
+    match /transactions/{id} {
+      allow read: if admin() || owner('userId');
+      allow write: if false;
+    }
+
+    match /wallet_transactions/{id} {
+      allow read: if admin() || owner('userId');
+      allow write: if false;
+    }
+
+    // ============================================================
+    // 📅 المواعيد
+    // ============================================================
+
+    match /appointments/{id} {
+      allow create: if false;
+      allow read: if admin() || (signedIn() && (resource.data.patientId == request.auth.uid || resource.data.doctorId == request.auth.uid));
+      allow update: if admin() || (signedIn() && resource.data.patientId == request.auth.uid && request.resource.data.patientId == resource.data.patientId && request.resource.data.doctorId == resource.data.doctorId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['date','time','status','updatedAt','cancelledAt']) && request.resource.data.status in ['cancelled','pending']) || (signedIn() && verifiedDoctor(request.auth.uid) && resource.data.doctorId == request.auth.uid && request.resource.data.patientId == resource.data.patientId && request.resource.data.doctorId == resource.data.doctorId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','confirmedAt','updatedAt']) && request.resource.data.status in ['confirmed','completed']);
+      allow delete: if false;
+    }
+
+    // ============================================================
+    // 🩺 الاستشارات
+    // ============================================================
+
+    match /consultations/{id} {
+      allow read: if admin() || (signedIn() && (resource.data.patientId == request.auth.uid || resource.data.doctorId == request.auth.uid));
+      allow create: if signedIn() && newOwner('patientId');
+      allow update: if admin() || (signedIn() && (owner('patientId') || (verifiedDoctor(request.auth.uid) && resource.data.doctorId == request.auth.uid)));
+      allow delete: if admin();
+    }
+
+    // ============================================================
+    // 🧪 حجوزات المختبرات
+    // ============================================================
 
     match /lab_bookings/{id} {
       allow read: if admin() || owner('patientId') || (signedIn() && exists(/databases/$(database)/documents/labs/$(resource.data.labId)) && get(/databases/$(database)/documents/labs/$(resource.data.labId)).data.userId == request.auth.uid);
@@ -65,150 +268,538 @@ service cloud.firestore {
       allow update: if admin() || (owner('patientId') && request.resource.data.patientId == resource.data.patientId && request.resource.data.labId == resource.data.labId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','notes','updatedAt','cancelledAt']) && request.resource.data.status == 'cancelled') || (signedIn() && exists(/databases/$(database)/documents/labs/$(resource.data.labId)) && get(/databases/$(database)/documents/labs/$(resource.data.labId)).data.userId == request.auth.uid && request.resource.data.patientId == resource.data.patientId && request.resource.data.labId == resource.data.labId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','notes','updatedAt','sampleDate','resultDate']) && request.resource.data.status in ['confirmed','sampleTaken','completed']);
       allow delete: if admin();
     }
+
     match /lab_results/{id} {
       allow read: if admin() || owner('patientId') || (signedIn() && exists(/databases/$(database)/documents/labs/$(resource.data.labId)) && get(/databases/$(database)/documents/labs/$(resource.data.labId)).data.userId == request.auth.uid);
       allow create, update: if admin() || (signedIn() && exists(/databases/$(database)/documents/labs/$(request.resource.data.labId)) && get(/databases/$(database)/documents/labs/$(request.resource.data.labId)).data.userId == request.auth.uid && request.resource.data.labId == resource.data.labId && request.resource.data.patientId == resource.data.patientId);
       allow delete: if admin();
     }
 
-    match /articles/{id} { allow read: if admin() || resource.data.isPublished == true; allow create, update, delete: if admin(); }
-    match /videos/{id} { allow read: if admin() || resource.data.isPublished == true; allow write: if admin(); }
-    match /recipes/{id} { allow read: if admin() || resource.data.isPublished == true; allow write: if admin(); }
-    match /tips/{id} { allow read: if admin() || resource.data.isPublished != false; allow write: if admin(); }
-    match /diet_plans/{id} { allow read: if admin() || owner('userId'); allow write: if admin() || newOwner('userId'); }
-    match /ads/{id} { allow read: if admin() || resource.data.isActive != false; allow write: if admin(); }
-    match /packages/{id} { allow read: if true; allow write: if admin(); }
-    match /promo_codes/{id} { allow read: if admin(); allow write: if admin(); }
-    match /offers/{id} { allow read: if resource.data.isActive != false || admin(); allow write: if admin(); }
+    // ============================================================
+    // 📰 المقالات والمحتوى
+    // ============================================================
+
+    match /articles/{id} {
+      allow read: if admin() || resource.data.isPublished == true;
+      allow create, update, delete: if admin();
+    }
+
+    match /videos/{id} {
+      allow read: if admin() || resource.data.isPublished == true;
+      allow write: if admin();
+    }
+
+    match /recipes/{id} {
+      allow read: if admin() || resource.data.isPublished == true;
+      allow write: if admin();
+    }
+
+    match /tips/{id} {
+      allow read: if admin() || resource.data.isPublished != false;
+      allow write: if admin();
+    }
+
+    match /diet_plans/{id} {
+      allow read: if admin() || owner('userId');
+      allow write: if admin() || newOwner('userId');
+    }
+
+    match /ads/{id} {
+      allow read: if admin() || resource.data.isActive != false;
+      allow write: if admin();
+    }
+
+    // ============================================================
+    // 📦 الباقات والعروض
+    // ============================================================
+
+    match /packages/{id} {
+      allow read: if true;
+      allow write: if admin();
+    }
+
+    match /subscriptions/{id} {
+      allow read: if admin() || owner('userId');
+      allow write: if false;
+    }
+
+    match /subscription_history/{id} {
+      allow read: if admin() || owner('userId');
+      allow write: if false;
+    }
+
+    match /promo_codes/{id} {
+      allow read: if admin();
+      allow write: if admin();
+    }
+
+    match /offers/{id} {
+      allow read: if resource.data.isActive != false || admin();
+      allow write: if admin();
+    }
+
+    // ============================================================
+    // 👥 المجتمع
+    // ============================================================
 
     match /community_posts/{id} {
       allow read: if admin() || resource.data.isPublished == true;
       allow create: if signedIn() && verifiedDoctor(request.auth.uid) && newOwner('userId') && request.resource.data.isDoctorPost == true && request.resource.data.isVerified == true && request.resource.data.isPublished == true;
       allow update: if admin() || (owner('userId') && request.resource.data.userId == resource.data.userId && request.resource.data.isDoctorPost == resource.data.isDoctorPost && request.resource.data.isVerified == resource.data.isVerified) || (signedIn() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes']) && request.resource.data.likes >= 0 && (request.resource.data.likes == resource.data.likes + 1 || request.resource.data.likes == resource.data.likes - 1)) || (signedIn() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['comments']) && request.resource.data.comments == resource.data.comments + 1) || (signedIn() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['shares']) && request.resource.data.shares == resource.data.shares + 1);
       allow delete: if admin() || owner('userId');
-      match /comments/{commentId} { allow read: if true; allow create: if signedIn() && newOwner('userId') && request.resource.data.comment is string && request.resource.data.comment.size() > 0 && request.resource.data.comment.size() <= 2000; allow update, delete: if admin() || owner('userId'); }
     }
-    match /comments/{id} { allow read: if true; allow create: if signedIn() && newOwner('userId'); allow update, delete: if admin() || owner('userId'); }
-    match /reactions/{id} { allow read: if true; allow create: if signedIn() && newOwner('userId'); allow delete: if owner('userId'); allow update: if false; }
-    match /groups/{id} { allow read: if true; allow create: if signedIn() && newOwner('ownerId'); allow update, delete: if admin() || owner('ownerId'); }
-    match /group_members/{id} { allow read: if signedIn(); allow create: if signedIn() && newOwner('userId'); allow delete: if owner('userId') || admin(); allow update: if false; }
-    match /reports/{id} { allow create: if signedIn() && newOwner('userId'); allow read, update, delete: if admin(); }
 
-    match /notifications/{id} { allow read: if admin() || owner('userId'); allow create, update, delete: if admin(); }
-    match /notification_preferences/{id} { allow read, write: if admin() || self(id) || owner('userId'); }
-    match /notification_settings/{id} { allow read, write: if admin() || self(id) || owner('userId'); }
-    match /push_tokens/{id} { allow read: if admin() || owner('userId'); allow create, update, delete: if signedIn() && newOwner('userId'); }
-    match /user_preferences/{id} { allow read, write: if admin() || self(id) || owner('userId'); }
-    match /language_preferences/{id} { allow read, write: if admin() || self(id) || owner('userId'); }
-    match /theme_preferences/{id} { allow read, write: if admin() || self(id) || owner('userId'); }
-    match /location_preferences/{id} { allow read, write: if admin() || self(id) || owner('userId'); }
-
-    match /vitals/{id} { allow read, write: if admin() || owner('userId') || newOwner('userId'); }
-    match /health_stats/{id} { allow read, write: if admin() || owner('userId') || newOwner('userId'); }
-    match /health_goals/{id} { allow read, write: if admin() || owner('userId') || newOwner('userId'); }
-    match /health_records/{id} { allow read, write: if admin() || owner('userId') || newOwner('userId'); }
-    match /medical_history/{id} { allow read, write: if admin() || owner('userId') || newOwner('userId'); }
-    match /allergies/{id} { allow read, write: if admin() || owner('userId') || newOwner('userId'); }
-    match /chronic_diseases/{id} { allow read, write: if admin() || owner('userId') || newOwner('userId'); }
-    match /medications/{id} { allow read, write: if admin() || owner('userId') || newOwner('userId'); }
-    match /medication_reminders/{id} { allow read, write: if admin() || owner('userId') || newOwner('userId'); }
-    match /medication_history/{id} { allow read, write: if admin() || owner('userId') || newOwner('userId'); }
-    match /favorites/{id} { allow read, write: if admin() || owner('userId') || newOwner('userId'); }
-
-    match /family_members/{id} { allow read, write: if admin() || owner('userId') || newOwner('userId'); }
-    match /family_connections/{id} { allow read, write: if admin() || owner('userId') || newOwner('userId'); }
-    match /family_appointments/{id} { allow read, write: if admin() || owner('userId') || newOwner('userId'); }
-    match /family_health_records/{id} { allow read, write: if admin() || owner('userId') || newOwner('userId'); }
-    match /family_medications/{id} { allow read, write: if admin() || owner('userId') || newOwner('userId'); }
-
-    match /appointments/{id} {
-      function existsAppointment() { return exists(/databases/$(database)/documents/appointments/$(id)); }
-      allow create: if false;
-      allow read: if admin() || (signedIn() && (resource.data.patientId == request.auth.uid || resource.data.doctorId == request.auth.uid));
-      allow update: if admin() || (signedIn() && resource.data.patientId == request.auth.uid && request.resource.data.patientId == resource.data.patientId && request.resource.data.doctorId == resource.data.doctorId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['date','time','status','updatedAt','cancelledAt']) && request.resource.data.status in ['cancelled','pending']) || (signedIn() && verifiedDoctor(request.auth.uid) && resource.data.doctorId == request.auth.uid && request.resource.data.patientId == resource.data.patientId && request.resource.data.doctorId == resource.data.doctorId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','confirmedAt','updatedAt']) && request.resource.data.status in ['confirmed','completed']);
-      allow delete: if false;
+    match /comments/{id} {
+      allow read: if true;
+      allow create: if signedIn() && newOwner('userId');
+      allow update, delete: if admin() || owner('userId');
     }
-    match /consultations/{id} { allow read: if admin() || (signedIn() && (resource.data.patientId == request.auth.uid || resource.data.doctorId == request.auth.uid)); allow create: if signedIn() && newOwner('patientId'); allow update: if admin() || (signedIn() && (owner('patientId') || (verifiedDoctor(request.auth.uid) && resource.data.doctorId == request.auth.uid))); allow delete: if admin(); }
 
-    match /wallets/{id} { allow read: if admin() || self(id); allow write: if false; }
-    match /transactions/{id} { allow read: if admin() || owner('userId'); allow write: if false; }
-    match /wallet_transactions/{id} { allow read: if admin() || owner('userId'); allow write: if false; }
+    match /reactions/{id} {
+      allow read: if true;
+      allow create: if signedIn() && newOwner('userId');
+      allow delete: if owner('userId');
+      allow update: if false;
+    }
+
+    match /groups/{id} {
+      allow read: if true;
+      allow create: if signedIn() && newOwner('ownerId');
+      allow update, delete: if admin() || owner('ownerId');
+    }
+
+    match /group_members/{id} {
+      allow read: if signedIn();
+      allow create: if signedIn() && newOwner('userId');
+      allow delete: if owner('userId') || admin();
+      allow update: if false;
+    }
+
+    // ============================================================
+    // 📊 التقارير
+    // ============================================================
+
+    match /reports/{id} {
+      allow create: if signedIn() && newOwner('userId');
+      allow read, update, delete: if admin();
+    }
+
+    // ============================================================
+    // 🔔 الإشعارات
+    // ============================================================
+
+    match /notifications/{id} {
+      allow read: if admin() || owner('userId');
+      allow create, update, delete: if admin();
+    }
+
+    match /notification_preferences/{id} {
+      allow read, write: if admin() || self(id) || owner('userId');
+    }
+
+    match /notification_settings/{id} {
+      allow read, write: if admin() || self(id) || owner('userId');
+    }
+
+    match /push_tokens/{id} {
+      allow read: if admin() || owner('userId');
+      allow create, update, delete: if signedIn() && newOwner('userId');
+    }
+
+    // ============================================================
+    // ⚙️ التفضيلات
+    // ============================================================
+
+    match /user_preferences/{id} {
+      allow read, write: if admin() || self(id) || owner('userId');
+    }
+
+    match /language_preferences/{id} {
+      allow read, write: if admin() || self(id) || owner('userId');
+    }
+
+    match /theme_preferences/{id} {
+      allow read, write: if admin() || self(id) || owner('userId');
+    }
+
+    match /location_preferences/{id} {
+      allow read, write: if admin() || self(id) || owner('userId');
+    }
+
+    // ============================================================
+    // 📊 الصحة والعلامات الحيوية
+    // ============================================================
+
+    match /vitals/{id} {
+      allow read, write: if admin() || owner('userId') || newOwner('userId');
+    }
+
+    match /health_stats/{id} {
+      allow read, write: if admin() || owner('userId') || newOwner('userId');
+    }
+
+    match /health_goals/{id} {
+      allow read, write: if admin() || owner('userId') || newOwner('userId');
+    }
+
+    match /health_records/{id} {
+      allow read, write: if admin() || owner('userId') || newOwner('userId');
+    }
+
+    match /medical_history/{id} {
+      allow read, write: if admin() || owner('userId') || newOwner('userId');
+    }
+
+    match /allergies/{id} {
+      allow read, write: if admin() || owner('userId') || newOwner('userId');
+    }
+
+    match /chronic_diseases/{id} {
+      allow read, write: if admin() || owner('userId') || newOwner('userId');
+    }
+
+    match /medications/{id} {
+      allow read, write: if admin() || owner('userId') || newOwner('userId');
+    }
+
+    match /medication_reminders/{id} {
+      allow read, write: if admin() || owner('userId') || newOwner('userId');
+    }
+
+    match /medication_history/{id} {
+      allow read, write: if admin() || owner('userId') || newOwner('userId');
+    }
+
+    // ============================================================
+    // ⭐ المفضلة
+    // ============================================================
+
+    match /favorites/{id} {
+      allow read, write: if admin() || owner('userId') || newOwner('userId');
+    }
+
+    // ============================================================
+    // 👨‍👩‍👧‍👦 العائلة
+    // ============================================================
+
+    match /family_members/{id} {
+      allow read, write: if admin() || owner('userId') || newOwner('userId');
+    }
+
+    match /family_connections/{id} {
+      allow read, write: if admin() || owner('userId') || newOwner('userId');
+    }
+
+    match /family_appointments/{id} {
+      allow read, write: if admin() || owner('userId') || newOwner('userId');
+    }
+
+    match /family_health_records/{id} {
+      allow read, write: if admin() || owner('userId') || newOwner('userId');
+    }
+
+    match /family_medications/{id} {
+      allow read, write: if admin() || owner('userId') || newOwner('userId');
+    }
+
+    // ============================================================
+    // 💬 المحادثات - صحيح
+    // ============================================================
 
     match /chats/{chatId} {
-      function chatExists() { return exists(/databases/$(database)/documents/chats/$(chatId)); }
-      function chatData() { return get(/databases/$(database)/documents/chats/$(chatId)).data; }
-      function participant() { return signedIn() && chatExists() && request.auth.uid in chatData().participants; }
-      allow read: if participant();
+      allow read: if isChatParticipant(chatId);
       allow create: if signedIn() && request.resource.data.participants is list && request.auth.uid in request.resource.data.participants;
-      allow update: if participant() && request.resource.data.participants == resource.data.participants;
+      allow update: if isChatParticipant(chatId) && request.resource.data.participants == resource.data.participants;
       allow delete: if false;
+
       match /messages/{messageId} {
-        allow read: if participant();
-        allow create: if participant() && newOwner('senderId') && request.resource.data.chatId == chatId;
-        allow update: if participant() && (resource.data.senderId == request.auth.uid || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead','readAt']));
+        allow read: if isChatParticipant(chatId);
+        allow create: if isChatParticipant(chatId) && request.resource.data.senderId == request.auth.uid && request.resource.data.chatId == chatId;
+        allow update: if isChatParticipant(chatId) && (resource.data.senderId == request.auth.uid || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead','readAt']));
         allow delete: if false;
       }
     }
 
+    // ============================================================
+    // 📞 المكالمات
+    // ============================================================
+
     match /calls/{id} {
-      allow read: if signedIn() && request.auth.uid in resource.data.participants;
+      allow read: if isCallParticipant(id);
       allow create: if signedIn() && request.resource.data.callerId == request.auth.uid && request.resource.data.receiverId is string && request.resource.data.receiverId != request.auth.uid && request.resource.data.participants is list && request.auth.uid in request.resource.data.participants && request.resource.data.receiverId in request.resource.data.participants;
-      allow update: if signedIn() && request.auth.uid in resource.data.participants && request.resource.data.callerId == resource.data.callerId && request.resource.data.receiverId == resource.data.receiverId && request.resource.data.participants == resource.data.participants && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','isAnswered','connectedAt','endedAt','durationSeconds']);
+      allow update: if isCallParticipant(id) && request.resource.data.callerId == resource.data.callerId && request.resource.data.receiverId == resource.data.receiverId && request.resource.data.participants == resource.data.participants && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','isAnswered','connectedAt','endedAt','durationSeconds']);
       allow delete: if false;
     }
-    match /call_history/{id} { allow read: if signedIn() && (owner('callerId') || owner('receiverId') || admin()); allow write: if false; }
-    match /call_settings/{id} { allow read, write: if admin() || self(id) || owner('userId'); }
 
-    match /emergency_contacts/{id} { allow read, write: if admin() || owner('userId') || newOwner('userId'); }
-    match /ambulance_requests/{id} { allow read: if admin() || owner('userId'); allow create: if signedIn() && newOwner('userId'); allow update: if admin(); allow delete: if false; }
-    match /ambulance_locations/{id} { allow read: if signedIn(); allow write: if admin(); }
-    match /emergency_alerts/{id} { allow read: if admin() || owner('userId'); allow create: if signedIn() && newOwner('userId'); allow update, delete: if admin(); }
-    match /sos_history/{id} { allow read: if admin() || owner('userId'); allow create: if signedIn() && newOwner('userId'); allow update, delete: if admin(); }
+    match /call_history/{id} {
+      allow read: if signedIn() && (owner('callerId') || owner('receiverId') || admin());
+      allow write: if false;
+    }
 
-    match /blood_donors/{id} { allow read: if signedIn(); allow create: if signedIn() && newOwner('userId'); allow update, delete: if admin() || owner('userId'); }
-    match /blood_requests/{id} { allow read: if signedIn(); allow create: if signedIn() && newOwner('userId'); allow update, delete: if admin() || owner('userId'); }
-    match /blood_banks/{id} { allow read: if true; allow write: if admin(); }
-    match /donation_history/{id} { allow read: if admin() || owner('userId'); allow write: if false; }
+    match /call_settings/{id} {
+      allow read, write: if admin() || self(id) || owner('userId');
+    }
 
-    match /insurance_plans/{id} { allow read: if true; allow write: if admin(); }
-    match /insurance_providers/{id} { allow read: if true; allow write: if admin(); }
-    match /insurance_claims/{id} { allow read: if admin() || owner('userId'); allow create: if signedIn() && newOwner('userId'); allow update, delete: if admin(); }
-    match /insurance_policies/{id} { allow read: if admin() || owner('userId'); allow write: if admin(); }
+    // ============================================================
+    // 🚑 الطوارئ والإسعاف
+    // ============================================================
 
-    match /weather_data/{id} { allow read: if true; allow write: if admin(); }
-    match /health_alerts/{id} { allow read: if signedIn(); allow write: if admin(); }
-    match /air_quality/{id} { allow read: if true; allow write: if admin(); }
-    match /pollution_data/{id} { allow read: if true; allow write: if admin(); }
-    match /ai_recommendations/{id} { allow read: if admin() || owner('userId'); allow write: if false; }
-    match /health_insights/{id} { allow read: if admin() || owner('userId'); allow write: if false; }
-    match /symptom_checker/{id} { allow read: if admin() || owner('userId'); allow create: if signedIn() && newOwner('userId'); allow update, delete: if owner('userId') || admin(); }
-    match /symptom_history/{id} { allow read: if admin() || owner('userId'); allow write: if signedIn() && (owner('userId') || newOwner('userId')); }
-    match /diagnoses/{id} { allow read: if admin() || owner('userId'); allow write: if false; }
+    match /emergency_contacts/{id} {
+      allow read, write: if admin() || owner('userId') || newOwner('userId');
+    }
 
-    match /analytics/{id} { allow read: if admin() || owner('userId'); allow write: if false; }
-    match /activity_logs/{id} { allow read: if admin() || owner('userId'); allow write: if false; }
-    match /usage_stats/{id} { allow read: if admin() || owner('userId'); allow write: if false; }
-    match /app_settings/{id} { allow read: if true; allow write: if admin(); }
-    match /regions/{id} { allow read: if true; allow write: if admin(); }
-    match /cities/{id} { allow read: if true; allow write: if admin(); }
-    match /specialties/{id} { allow read: if true; allow write: if admin(); }
-    match /locations/{id} { allow read: if true; allow write: if admin(); }
-    match /nearby_services/{id} { allow read: if true; allow write: if admin(); }
-    match /poi/{id} { allow read: if true; allow write: if admin(); }
+    match /ambulance_requests/{id} {
+      allow read: if admin() || owner('userId');
+      allow create: if signedIn() && newOwner('userId');
+      allow update: if admin();
+      allow delete: if false;
+    }
 
-    match /sessions/{id} { allow read, write: if false; }
-    match /login_attempts/{id} { allow read, write: if false; }
-    match /password_resets/{id} { allow read, write: if false; }
+    match /ambulance_locations/{id} {
+      allow read: if signedIn();
+      allow write: if admin();
+    }
 
-    match /cart_items/{id} { allow read: if admin() || owner('userId'); allow write: if signedIn() && (owner('userId') || newOwner('userId')); }
-    match /favorite_doctors/{id} { allow read, write: if admin() || owner('userId') || newOwner('userId'); }
-    match /favorite_hospitals/{id} { allow read, write: if admin() || owner('userId') || newOwner('userId'); }
-    match /favorite_products/{id} { allow read, write: if admin() || owner('userId') || newOwner('userId'); }
-    match /favorite_articles/{id} { allow read, write: if admin() || owner('userId') || newOwner('userId'); }
+    match /emergency_alerts/{id} {
+      allow read: if admin() || owner('userId');
+      allow create: if signedIn() && newOwner('userId');
+      allow update, delete: if admin();
+    }
 
-    match /roles/{id} { allow read: if admin() || self(id); allow write: if admin(); }
-    match /user_permissions/{id} { allow read: if admin() || self(id); allow write: if admin(); }
+    match /sos_history/{id} {
+      allow read: if admin() || owner('userId');
+      allow create: if signedIn() && newOwner('userId');
+      allow update, delete: if admin();
+    }
 
-    match /{document=**} { allow read, write: if false; }
+    // ============================================================
+    // 🩸 التبرع بالدم
+    // ============================================================
+
+    match /blood_donors/{id} {
+      allow read: if signedIn();
+      allow create: if signedIn() && newOwner('userId');
+      allow update, delete: if admin() || owner('userId');
+    }
+
+    match /blood_requests/{id} {
+      allow read: if signedIn();
+      allow create: if signedIn() && newOwner('userId');
+      allow update, delete: if admin() || owner('userId');
+    }
+
+    match /blood_banks/{id} {
+      allow read: if true;
+      allow write: if admin();
+    }
+
+    match /donation_history/{id} {
+      allow read: if admin() || owner('userId');
+      allow write: if false;
+    }
+
+    // ============================================================
+    // 🏥 التأمين الصحي
+    // ============================================================
+
+    match /insurance_plans/{id} {
+      allow read: if true;
+      allow write: if admin();
+    }
+
+    match /insurance_providers/{id} {
+      allow read: if true;
+      allow write: if admin();
+    }
+
+    match /insurance_claims/{id} {
+      allow read: if admin() || owner('userId');
+      allow create: if signedIn() && newOwner('userId');
+      allow update, delete: if admin();
+    }
+
+    match /insurance_policies/{id} {
+      allow read: if admin() || owner('userId');
+      allow write: if admin();
+    }
+
+    // ============================================================
+    // 🌤️ الطقس والصحة
+    // ============================================================
+
+    match /weather_data/{id} {
+      allow read: if true;
+      allow write: if admin();
+    }
+
+    match /health_alerts/{id} {
+      allow read: if signedIn();
+      allow write: if admin();
+    }
+
+    match /air_quality/{id} {
+      allow read: if true;
+      allow write: if admin();
+    }
+
+    match /pollution_data/{id} {
+      allow read: if true;
+      allow write: if admin();
+    }
+
+    // ============================================================
+    // 🤖 الذكاء الاصطناعي
+    // ============================================================
+
+    match /ai_recommendations/{id} {
+      allow read: if admin() || owner('userId');
+      allow write: if false;
+    }
+
+    match /health_insights/{id} {
+      allow read: if admin() || owner('userId');
+      allow write: if false;
+    }
+
+    match /symptom_checker/{id} {
+      allow read: if admin() || owner('userId');
+      allow create: if signedIn() && newOwner('userId');
+      allow update, delete: if owner('userId') || admin();
+    }
+
+    match /symptom_history/{id} {
+      allow read: if admin() || owner('userId');
+      allow write: if signedIn() && (owner('userId') || newOwner('userId'));
+    }
+
+    match /diagnoses/{id} {
+      allow read: if admin() || owner('userId');
+      allow write: if false;
+    }
+
+    // ============================================================
+    // 📊 التحليلات والإعدادات
+    // ============================================================
+
+    match /analytics/{id} {
+      allow read: if admin() || owner('userId');
+      allow write: if false;
+    }
+
+    match /activity_logs/{id} {
+      allow read: if admin() || owner('userId');
+      allow write: if false;
+    }
+
+    match /usage_stats/{id} {
+      allow read: if admin() || owner('userId');
+      allow write: if false;
+    }
+
+    match /app_settings/{id} {
+      allow read: if true;
+      allow write: if admin();
+    }
+
+    // ============================================================
+    // 📍 المواقع والخدمات
+    // ============================================================
+
+    match /regions/{id} {
+      allow read: if true;
+      allow write: if admin();
+    }
+
+    match /cities/{id} {
+      allow read: if true;
+      allow write: if admin();
+    }
+
+    match /specialties/{id} {
+      allow read: if true;
+      allow write: if admin();
+    }
+
+    match /locations/{id} {
+      allow read: if true;
+      allow write: if admin();
+    }
+
+    match /nearby_services/{id} {
+      allow read: if true;
+      allow write: if admin();
+    }
+
+    match /poi/{id} {
+      allow read: if true;
+      allow write: if admin();
+    }
+
+    // ============================================================
+    // 🔐 الجلسات والمصادقة
+    // ============================================================
+
+    match /sessions/{id} {
+      allow read, write: if false;
+    }
+
+    match /login_attempts/{id} {
+      allow read, write: if false;
+    }
+
+    match /password_resets/{id} {
+      allow read, write: if false;
+    }
+
+    // ============================================================
+    // 🛒 السلة
+    // ============================================================
+
+    match /cart_items/{id} {
+      allow read: if admin() || owner('userId');
+      allow write: if signedIn() && (owner('userId') || newOwner('userId'));
+    }
+
+    // ============================================================
+    // ⭐ المفضلة (مكرر للتأكيد)
+    // ============================================================
+
+    match /favorite_doctors/{id} {
+      allow read, write: if admin() || owner('userId') || newOwner('userId');
+    }
+
+    match /favorite_hospitals/{id} {
+      allow read, write: if admin() || owner('userId') || newOwner('userId');
+    }
+
+    match /favorite_products/{id} {
+      allow read, write: if admin() || owner('userId') || newOwner('userId');
+    }
+
+    match /favorite_articles/{id} {
+      allow read, write: if admin() || owner('userId') || newOwner('userId');
+    }
+
+    // ============================================================
+    // 👥 الأدوار والصلاحيات
+    // ============================================================
+
+    match /roles/{id} {
+      allow read: if admin() || self(id);
+      allow write: if admin();
+    }
+
+    match /user_permissions/{id} {
+      allow read: if admin() || self(id);
+      allow write: if admin();
+    }
+
+    // ============================================================
+    // 🛡️ الحماية الافتراضية
+    // ============================================================
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
   }
 }
