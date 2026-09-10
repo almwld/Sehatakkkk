@@ -157,14 +157,16 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
       } catch (e) { debugPrint('❌ FCM refresh sync error: $e'); }
     });
 
-    // Auth state is the fast navigation signal. Firebase Auth changes locally
-    // immediately after sign-in, so do not wait for the users document.
     _authNavigationSubscription = FirebaseAuth.instance.authStateChanges().listen((user) {
       if (!_authStatePrimed) {
         _authStatePrimed = true;
+        if (user != null) unawaited(_syncFcmToken());
         return;
       }
-      if (user != null) unawaited(_navigateAfterSignInFast(user));
+      if (user != null) {
+        unawaited(_syncFcmToken());
+        unawaited(_navigateAfterSignInFast(user));
+      }
     });
   }
 
@@ -174,16 +176,10 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
     try {
       final nav = navigatorKey.currentState;
       if (nav == null) return;
-
-      // Normal users go to Home immediately. The role lookup is deliberately
-      // moved off the critical navigation path.
       nav.pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const HomeScreen()),
         (route) => false,
       );
-
-      // Keep admin/superAdmin routing correct without making ordinary users
-      // wait for Firestore. A slow/offline Firestore therefore cannot block login.
       try {
         final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get().timeout(const Duration(seconds: 2));
         final role = doc.data()?['role']?.toString();
@@ -196,9 +192,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
             );
           }
         }
-      } catch (e) {
-        debugPrint('⚡ Deferred role lookup skipped: $e');
-      }
+      } catch (e) { debugPrint('⚡ Deferred role lookup skipped: $e'); }
     } finally {
       _fastNavigationInProgress = false;
     }
@@ -266,7 +260,9 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
           callId: callId,
           isVideo: message.data['isVideo']?.toString() == 'true' || message.data['callType']?.toString() == 'video',
         );
-        if (mounted) await _callService.handleIncomingCall(context, message);
+        // Foreground Firestore CallSoundCoordinator is the single owner of
+        // the incoming-call UI. Do not push IncomingCallScreen here as well,
+        // otherwise the same call can stack two acceptance screens.
       }
       return;
     }
