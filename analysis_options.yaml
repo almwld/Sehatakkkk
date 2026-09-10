@@ -1,0 +1,8 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - backups/**
+    - "**/*.backup*"
+    - add_data_to_firestore.dart
+    - add_doctors_to_firestore.dart
