@@ -19,50 +19,16 @@ class CustomBottomNavigationBar extends StatelessWidget {
     required this.onAuthRequired,
   });
 
-  // ✅ ارتفاع الشريط 60
-  static const double _barHeight = 60.0;
+  static const double _barHeight = 65.0;
 
-  // ✅ الأيقونات من Material Icons (نفس السابقة)
   static const List<NavItem> _navItems = [
-    NavItem(
-      index: 0,
-      icon: Icons.home_rounded,
-      label: 'الرئيسية',
-    ),
-    NavItem(
-      index: 1,
-      icon: Icons.person_search_rounded,
-      label: 'الأطباء',
-    ),
-    NavItem(
-      index: 2,
-      icon: Icons.local_pharmacy_rounded,
-      label: 'الصيدلية',
-    ),
-    NavItem(
-      index: 3,
-      icon: Icons.chat_rounded,
-      label: 'الدردشة',
-      isProtected: true,
-      isSpecial: true,
-    ),
-    NavItem(
-      index: 4,
-      icon: Icons.science_rounded,
-      label: 'مختبرات',
-      isProtected: true,
-    ),
-    NavItem(
-      index: 5,
-      icon: Icons.folder_rounded,
-      label: 'صحتي',
-      isProtected: true,
-    ),
-    NavItem(
-      index: 6,
-      icon: Icons.grid_view_rounded,
-      label: 'المزيد',
-    ),
+    NavItem(index: 0, icon: Icons.home_rounded, label: 'الرئيسية'),
+    NavItem(index: 1, icon: Icons.person_search_rounded, label: 'الأطباء'),
+    NavItem(index: 2, icon: Icons.local_pharmacy_rounded, label: 'الصيدلية'),
+    NavItem(index: 3, icon: Icons.chat_rounded, label: 'الدردشة', isProtected: true, isSpecial: true),
+    NavItem(index: 4, icon: Icons.science_rounded, label: 'مختبرات', isProtected: true),
+    NavItem(index: 5, icon: Icons.folder_rounded, label: 'صحتي', isProtected: true),
+    NavItem(index: 6, icon: Icons.grid_view_rounded, label: 'المزيد'),
   ];
 
   @override
@@ -73,168 +39,156 @@ class CustomBottomNavigationBar extends StatelessWidget {
 
     return Material(
       color: Colors.transparent,
+      clipBehavior: Clip.none,
       child: Container(
         height: _barHeight + bottomPadding,
         padding: EdgeInsets.only(bottom: bottomPadding > 0 ? 0 : 4),
         clipBehavior: Clip.none,
         decoration: BoxDecoration(
           color: backgroundColor,
-          borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(20),
-          ),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.08),
-              blurRadius: 12,
+              blurRadius: 16,
               offset: const Offset(0, -4),
-              spreadRadius: 1,
             ),
           ],
         ),
         child: SafeArea(
           top: false,
           bottom: true,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: _navItems.map((item) {
-              if (item.isSpecial) {
-                return _buildSpecialChatButton(item, isDark);
-              }
-              return _buildNavItem(item, isDark);
-            }).toList(),
+          child: ClipRect(
+            clipBehavior: Clip.none,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: _navItems.map((item) {
+                if (item.isSpecial) return _buildSpecialChatButton(item, isDark);
+                return _buildNavItem(item, isDark);
+              }).toList(),
+            ),
           ),
         ),
       ),
     );
   }
 
-  // 🔘 الأيقونات العادية
   Widget _buildNavItem(NavItem item, bool isDark) {
     final isSelected = currentIndex == item.index;
-    final inactiveColor = isDark ? Colors.grey.shade400 : Colors.grey.shade500;
+    final color = isSelected
+        ? AppColors.primary
+        : (isDark ? Colors.grey.shade400 : Colors.grey.shade500);
 
-    return GestureDetector(
-      onTap: () => _handleTap(item),
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 48,
-        height: 56,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              item.icon,
-              color: isSelected ? AppColors.primary : inactiveColor,
-              size: isSelected ? 26 : 24,
-            ),
-            const SizedBox(height: 3),
-            Text(
-              item.label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 9.5,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected ? AppColors.primary : inactiveColor,
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => _handleTap(item),
+        behavior: HitTestBehavior.opaque,
+        child: SizedBox(
+          height: 65,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(item.icon, color: color, size: 22),
+              const SizedBox(height: 3),
+              Text(
+                item.label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 9,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  color: color,
+                ),
               ),
-            ),
-            const SizedBox(height: 3),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              curve: Curves.easeOut,
-              width: isSelected ? 20 : 0,
-              height: 3,
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(3),
+              const SizedBox(height: 2),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                width: isSelected ? 12 : 0,
+                height: 2,
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  // 💬 زر الدردشة المميز - يخرج من الشريط باستخدام Stack + Positioned
   Widget _buildSpecialChatButton(NavItem item, bool isDark) {
     final isSelected = currentIndex == item.index;
-    final inactiveColor = isDark ? Colors.grey.shade400 : Colors.grey.shade500;
+    final inactiveColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
 
-    return GestureDetector(
-      onTap: () => _handleTap(item),
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 60,
-        height: 56,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            // ✅ الزر يخرج للأعلى باستخدام Positioned
-            Positioned(
-              top: -22,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
-                  curve: Curves.easeOut,
-                  width: 52,
-                  height: 52,
-                  decoration: BoxDecoration(
-                    gradient: isSelected
-                        ? const LinearGradient(
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => _handleTap(item),
+        behavior: HitTestBehavior.opaque,
+        child: SizedBox(
+          height: 65,
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.center,
+            children: [
+              OverflowBox(
+                minWidth: 0,
+                maxWidth: double.infinity,
+                minHeight: 0,
+                maxHeight: 120,
+                alignment: Alignment.topCenter,
+                child: Transform.translate(
+                  offset: const Offset(0, -18),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 52,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
                             colors: [AppColors.primary, AppColors.primaryDark],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
-                          )
-                        : LinearGradient(
-                            colors: [
-                              AppColors.primary.withOpacity(0.5),
-                              AppColors.primaryDark.withOpacity(0.5),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
                           ),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withOpacity(
-                          isSelected ? 0.4 : 0.15,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withOpacity(0.45),
+                              blurRadius: 10,
+                              spreadRadius: 2,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                          border: Border.all(
+                            color: isDark ? const Color(0xFF0B1121) : Colors.white,
+                            width: 3,
+                          ),
                         ),
-                        blurRadius: isSelected ? 20 : 12,
-                        offset: const Offset(0, 4),
-                        spreadRadius: isSelected ? 2 : 0,
+                        child: const Icon(
+                          Icons.chat_rounded,
+                          color: Colors.white,
+                          size: 26,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        item.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 9,
+                          color: isSelected ? AppColors.primary : inactiveColor,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                        ),
                       ),
                     ],
                   ),
-                  child: Icon(
-                    item.icon,
-                    color: Colors.white,
-                    size: 28,
-                  ),
                 ),
               ),
-            ),
-            // ✅ النص في الأسفل
-            Positioned(
-              bottom: 2,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: Text(
-                  item.label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 9.5,
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                    color: isSelected ? AppColors.primary : inactiveColor,
-                  ),
-                ),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
