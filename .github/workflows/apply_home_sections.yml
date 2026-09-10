@@ -1,0 +1,83 @@
+name: Apply Home Local Section Icons
+on:
+  push:
+    branches: [master]
+permissions:
+  contents: write
+jobs:
+  apply:
+    if: ${{ !startsWith(github.event.head_commit.message, 'refactor(home): apply local section icons') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
+      - name: Patch HomeTab sections
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          p = Path('lib/presentation/screens/home/tabs/home_tab.dart')
+          s = p.read_text(encoding='utf-8')
+
+          def bounds(src, start, end):
+              a = src.index('Widget ' + start)
+              b = src.index('Widget ' + end, a)
+              return a, b
+
+          def replace_icons(src, asset, size=30):
+              pat = re.compile(r'(?:const\s+)?Icon\s*\(')
+              out=[]; pos=0
+              while True:
+                  m=pat.search(src,pos)
+                  if not m:
+                      out.append(src[pos:]); break
+                  out.append(src[pos:m.start()])
+                  i=m.end()
+                  while i<len(src) and src[i].isspace(): i+=1
+                  if not src.startswith('Icons.',i):
+                      out.append(src[m.start():m.end()]); pos=m.end(); continue
+                  depth=1; j=i; quote=None; esc=False
+                  while j<len(src) and depth:
+                      c=src[j]
+                      if quote:
+                          if esc: esc=False
+                          elif c=='\\': esc=True
+                          elif c==quote: quote=None
+                      else:
+                          if c in "'\"": quote=c
+                          elif c=='(': depth+=1
+                          elif c==')': depth-=1
+                      j+=1
+                  if depth: raise RuntimeError('Unbalanced Icon call')
+                  out.append(f"Image.asset('{asset}', width: {size}, height: {size}, fit: BoxFit.contain)")
+                  pos=j
+              return ''.join(out)
+
+          for start,end,asset in [
+              ('_tips(', '_discover(', 'assets/images/services/health_tips.png'),
+              ('_discover(', '_weather(', 'assets/images/services/medical_articles.png'),
+              ('_weather(', '_community(', 'assets/svg/home_weather.svg'),
+          ][::-1]:
+              a,b=bounds(s,start,end)
+              s=s[:a]+replace_icons(s[a:b],asset)+s[b:]
+
+          for start,end,_ in [
+              ('_tips(', '_discover(', ''),
+              ('_discover(', '_weather(', ''),
+              ('_weather(', '_community(', ''),
+          ]:
+              a,b=bounds(s,start,end)
+              if 'Icons.' in s[a:b]: raise RuntimeError('Material icon remains in '+start)
+          p.write_text(s,encoding='utf-8')
+      - name: Format, verify and commit
+        run: |
+          dart format lib/presentation/screens/home/tabs/home_tab.dart
+          git diff --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add lib/presentation/screens/home/tabs/home_tab.dart
+          git rm .github/workflows/apply_home_sections.yml
+          git commit -m 'refactor(home): apply local section icons'
+          git push origin HEAD:master
