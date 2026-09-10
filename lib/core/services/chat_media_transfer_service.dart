@@ -14,9 +14,10 @@ import 'nextcloud_service.dart';
 
 /// Persistent media outbox for chat attachments.
 ///
-/// The chat UI can display the local file immediately. This queue survives
-/// widget rebuilds and app restarts, then uploads/verifies/sends when a network
-/// connection is available. Firestore remains the source of truth after send.
+/// The chat UI can display the persistent local file immediately. This queue
+/// survives widget rebuilds and app restarts, then uploads/verifies/sends when
+/// a network connection is available. Firestore remains the source of truth
+/// after send.
 class ChatMediaTransferService {
   ChatMediaTransferService._();
   static final ChatMediaTransferService instance = ChatMediaTransferService._();
@@ -110,6 +111,15 @@ class ChatMediaTransferService {
     });
     unawaited(processPending());
     return id;
+  }
+
+  /// Returns the durable local representation of a queued item.
+  /// This is intentionally separate from the source picker/recorder file:
+  /// callers can safely use it even after the original temporary file is gone.
+  Future<Map<String, dynamic>?> getById(String id) async {
+    final db = await _database;
+    final rows = await db.query('media_outbox', where: 'id = ?', whereArgs: [id], limit: 1);
+    return rows.isEmpty ? null : rows.first;
   }
 
   Future<List<Map<String, dynamic>>> pendingForChat(String chatId) async {
