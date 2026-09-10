@@ -13,6 +13,8 @@ import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/pharmacy/product_model.dart';
 import 'package:sehatak/core/services/pharmacy_service.dart';
 import 'package:sehatak/presentation/screens/home/widgets/banner_carousel.dart';
+import 'package:sehatak/presentation/screens/home/widgets/quick_services_widget.dart';
+import 'package:sehatak/presentation/widgets/home/home_health_widgets.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 import 'package:sehatak/presentation/widgets/home/featured_facilities_grid.dart';
 
@@ -299,168 +301,18 @@ class _HomeTabState extends State<HomeTab>
     );
   }
 
-  Widget _quickServices(bool dark) {
-    const items = [
-      {'icon': Icons.local_pharmacy_outlined, 'name': 'الصيدلية', 'route': AppRouter.pharmacy},
-      {'icon': Icons.emergency_outlined, 'name': 'الطوارئ', 'route': AppRouter.emergency},
-      {'icon': Icons.home_work_outlined, 'name': 'خدمات منزلية', 'route': AppRouter.services},
-      {'icon': Icons.bloodtype_outlined, 'name': 'تبرع بالدم', 'route': AppRouter.bloodDonation},
-      {'icon': Icons.medical_services_outlined, 'name': 'الأطباء', 'route': AppRouter.doctors},
-      {'icon': Icons.biotech_outlined, 'name': 'المختبرات', 'route': AppRouter.labs},
-      {'icon': Icons.favorite_outline, 'name': 'صحتي', 'route': AppRouter.dashboard},
-      {'icon': Icons.calendar_month_outlined, 'name': 'المواعيد', 'route': AppRouter.appointments},
-      {'icon': Icons.account_balance_wallet_outlined, 'name': 'المحفظة', 'route': AppRouter.wallet},
-      {'icon': Icons.chat_bubble_outline, 'name': 'استشارة', 'route': AppRouter.consultation},
-      {'icon': Icons.location_on_outlined, 'name': 'بالقرب منك', 'route': AppRouter.map},
-    ];
-
-    return _section(
-      title: 'الخدمات السريعة',
-      dark: dark,
-      child: SizedBox(
-        height: 96,
-        child: ListView.separated(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          scrollDirection: Axis.horizontal,
-          itemCount: items.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 10),
-          itemBuilder: (_, index) {
-            final item = items[index];
-            return InkWell(
-              onTap: () => _go(item['route']! as String),
-              borderRadius: BorderRadius.circular(17),
-              child: Container(
-                width: 78,
-                decoration: BoxDecoration(
-                  color: dark ? _darkCard : Colors.white,
-                  borderRadius: BorderRadius.circular(17),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(.10),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Icon(item['icon']! as IconData, color: AppColors.primary, size: 23),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      item['name']! as String,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: dark ? Colors.white : _text),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
+  Widget _quickServices(bool dark) => QuickServicesWidget(
+        isDark: dark,
+        onNavigate: (screen) => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => screen),
         ),
-      ),
-    );
-  }
+      );
 
-  Widget _healthSummary(HomeState state, bool dark) {
-    final score = state.healthScore.round().clamp(0, 100);
-    final stats = <Map<String, dynamic>>[
-      {'name': 'السعرات', 'value': state.calories, 'unit': 'kcal', 'icon': Icons.local_fire_department_outlined},
-      {'name': 'الخطوات', 'value': state.steps, 'unit': 'خطوة', 'icon': Icons.directions_walk_outlined},
-      {'name': 'النوم', 'value': state.sleep, 'unit': 'ساعة', 'icon': Icons.bedtime_outlined},
-      {'name': 'النبض', 'value': state.heartRate, 'unit': 'bpm', 'icon': Icons.favorite_outline},
-    ];
-
-    return _section(
-      title: 'ملخصك الصحي',
-      dark: dark,
-      more: () => _go(AppRouter.dashboard),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Column(
-          children: [
-            InkWell(
-              onTap: () => _go(AppRouter.dashboard),
-              borderRadius: BorderRadius.circular(22),
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(color: dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(22)),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 88,
-                      height: 88,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          CircularProgressIndicator(
-                            value: score / 100,
-                            strokeWidth: 8,
-                            backgroundColor: AppColors.primary.withOpacity(.10),
-                            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
-                          ),
-                          Text('$score', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('مؤشر صحتك اليوم', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)),
-                          const SizedBox(height: 5),
-                          Text(
-                            score == 0 ? 'أضف قياساتك الصحية لاحتساب المؤشر.' : 'تابع نشاطك ونومك ومؤشراتك الحيوية باستمرار.',
-                            style: TextStyle(fontSize: 11.5, height: 1.4, color: dark ? Colors.white60 : _muted),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                for (final item in stats)
-                  Expanded(
-                    child: InkWell(
-                      onTap: () => _go(AppRouter.dashboard),
-                      borderRadius: BorderRadius.circular(13),
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 3),
-                        padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 4),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(.06),
-                          borderRadius: BorderRadius.circular(13),
-                        ),
-                        child: Column(
-                          children: [
-                            Icon(item['icon'] as IconData, color: AppColors.primary, size: 18),
-                            const SizedBox(height: 4),
-                            Text(item['name'] as String, style: TextStyle(fontSize: 8.5, color: dark ? Colors.white60 : _muted)),
-                            const SizedBox(height: 2),
-                            Text(
-                              '${_number(item['value'] as double)} ${item['unit']}',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget _healthSummary(HomeState state, bool dark) => HomeHealthWidgets(
+        state: state,
+        isDark: dark,
+        onNavigate: _go,
+      );
 
   Widget _doctors(HomeState state, bool dark) {
     final doctors = state.doctors.take(6).toList();
