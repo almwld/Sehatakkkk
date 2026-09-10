@@ -1,9 +1,6 @@
 import 'package:audioplayers/audioplayers.dart';
 
 /// Single source of truth for in-app audio effects and call tones.
-///
-/// Call tones and short UI sounds use separate players so a message/feedback
-/// sound can never interrupt a call ringtone/ringback, and vice versa.
 class SoundManager {
   static final SoundManager _instance = SoundManager._internal();
   factory SoundManager() => _instance;
@@ -64,14 +61,18 @@ class SoundManager {
   Future<void> playError() => _playEffect('audio/error.mp3');
   Future<void> playSuccess() => _playEffect('audio/success.mp3');
 
-  Future<void> stopAll() async {
+  Future<void> stopCallAudio() async {
     try {
-      await Future.wait([_callPlayer.stop(), _effectPlayer.stop()]);
+      await _callPlayer.stop();
     } finally {
       _callPlaying = false;
-      _effectPlaying = false;
-      print('🔇 All app audio stopped');
     }
+  }
+
+  Future<void> stopAll() async {
+    await Future.wait([stopCallAudio(), _effectPlayer.stop()]);
+    _effectPlaying = false;
+    print('🔇 All app audio stopped');
   }
 
   Future<void> stop() => stopAll();
