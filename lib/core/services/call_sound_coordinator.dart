@@ -6,10 +6,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'sound_manager.dart';
 
 /// Owns looping call audio while the app is in the foreground.
-///
-/// Audio is started only for a recent, valid call document involving the
-/// authenticated user. Stale Firestore documents and missing timestamps never
-/// trigger sound on app launch.
 class CallSoundCoordinator {
   CallSoundCoordinator._();
   static final CallSoundCoordinator instance = CallSoundCoordinator._();
@@ -32,7 +28,7 @@ class CallSoundCoordinator {
     _callsSubscription?.cancel();
     _callsSubscription = null;
     _activeCallId = null;
-    unawaited(_sounds.stopAll());
+    unawaited(_sounds.stopCallAudio());
 
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -43,13 +39,16 @@ class CallSoundCoordinator {
         .snapshots()
         .listen(_onCallsChanged, onError: (Object error, StackTrace stack) {
       _activeCallId = null;
-      unawaited(_sounds.stopAll());
+      unawaited(_sounds.stopCallAudio());
     });
   }
 
   void _onCallsChanged(QuerySnapshot<Map<String, dynamic>> snapshot) {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+    if (user == null) {
+      unawaited(_sounds.stopCallAudio());
+      return;
+    }
 
     QueryDocumentSnapshot<Map<String, dynamic>>? active;
     DateTime? newest;
@@ -72,10 +71,8 @@ class CallSoundCoordinator {
     }
 
     if (active == null) {
-      if (_activeCallId != null) {
-        _activeCallId = null;
-        unawaited(_sounds.stopAll());
-      }
+      _activeCallId = null;
+      unawaited(_sounds.stopCallAudio());
       return;
     }
 
@@ -87,10 +84,8 @@ class CallSoundCoordinator {
     final isOutgoing = callerId == user.uid && receiverId != user.uid;
 
     if (!isIncoming && !isOutgoing) {
-      if (_activeCallId != null) {
-        _activeCallId = null;
-        unawaited(_sounds.stopAll());
-      }
+      _activeCallId = null;
+      unawaited(_sounds.stopCallAudio());
       return;
     }
 
@@ -101,6 +96,16 @@ class CallSoundCoordinator {
       (isIncoming ? _sounds.playCallRingtone() : _sounds.playRingback())
           .catchError((_) {}),
     );
+  }
+
+  /// Stops only the looping call audio immediately. The Firestore listener
+  /// remains alive so the next call can still be detected without restarting
+  /// the notification subsystem.
+  Future<void> stopForCall(String? callId) async {
+    if (callId == null || _activeCallId == null || callId == _activeCallId) {
+      _activeCallId = null;
+      await _sounds.stopCallAudio();
+    }
   }
 
   Future<void> dispose() async {
