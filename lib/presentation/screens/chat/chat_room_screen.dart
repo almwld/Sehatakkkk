@@ -561,9 +561,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
 
     final indices = <int>[];
     for (int i = 0; i < _messages.length; i++) {
-      if (_messages[i]
-          .text
-          .toLowerCase()
+      if ((_messages[i]
+          .text ?? '').toLowerCase()
           .contains(_searchQuery.toLowerCase())) {
         indices.add(i);
       }
@@ -1338,7 +1337,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
     setState(() {
       _isEditing = true;
       _editingMessage = message;
-      _textController.text = message.text;
+      _textController.text = message.text ?? '';
       _focusNode.requestFocus();
     });
   }
