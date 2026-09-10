@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -12,17 +11,194 @@ import 'package:sehatak/core/services/chat_service.dart';
 import 'package:sehatak/core/services/nextcloud_service.dart';
 import 'package:sehatak/core/services/reliable_message_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
-class ChatInputBar extends StatefulWidget{final String chatId;final Function(String) onSendMessage;final Function(String)? onSendImage;final VoidCallback? onShareLocation;const ChatInputBar({super.key,required this.chatId,required this.onSendMessage,this.onSendImage,this.onShareLocation});@override State<ChatInputBar> createState()=>_ChatInputBarState();}
-class _ChatInputBarState extends State<ChatInputBar>{final c=TextEditingController(),f=FocusNode();final p=ImagePicker(),r=AudioRecorder(),auth=FirebaseAuth.instance,n=NextcloudService(),chat=ChatService();Timer? timer;Duration d=Duration.zero;String? path;bool recording=false,sending=false,menu=false;bool get hasText=>c.text.trim().isNotEmpty;@override void initState(){super.initState();c.addListener(()=>mounted?setState((){}):null);}@override void dispose(){timer?.cancel();c.dispose();f.dispose();r.dispose();super.dispose();}
-Future<void> textSend()async{final t=c.text.trim();if(t.isEmpty||sending)return;setState(()=>sending=true);try{await ReliableMessageService.sendText(chatId:widget.chatId,text:t);widget.onSendMessage(t);c.clear();}catch(e){ToastService.showError('تعذر إرسال الرسالة.');debugPrint('$e');}finally{if(mounted)setState(()=>sending=false);}}
-Future<String?> upload(File file,String folder)async{try{await n.loadConfig();final x=await n.uploadFile(file:file,path:'chats/${widget.chatId}/$folder');if(!x.success)throw StateError(x.error??'upload failed');return x.url;}catch(e){debugPrint('Nextcloud upload: $e');return null;}}
-Future<void> image(ImageSource s)async{final x=await p.pickImage(source:s,imageQuality:88);if(x!=null)await media(File(x.path),'image','images','📷 صورة');}
-Future<void> video()async{final x=await p.pickVideo(source:ImageSource.gallery,maxDuration:const Duration(minutes:10));if(x!=null)await media(File(x.path),'video','videos','🎬 فيديو');}
-Future<void> file()async{final x=await FilePicker.platform.pickFiles(withData:false);final q=x?.files.single;if(q?.path!=null)await media(File(q!.path!),'file','files','📎 ${q.name}',name:q.name,size:q.size.toString(),mime:q.extension==null?null:'application/${q.extension}');}
-Future<void> media(File file,String type,String folder,String label,{String? name,String? size,String? mime})async{final u=auth.currentUser;if(u==null||sending)return;setState((){sending=true;menu=false;});try{final url=await upload(file,folder);if(url==null)throw StateError('upload failed');final chatRef=FirebaseFirestore.instance.collection('chats').doc(widget.chatId);final snap=await chatRef.get();final ids=List<String>.from(snap.data()?['participants']??const[]);final ref=chatRef.collection('messages').doc();final b=FirebaseFirestore.instance.batch();b.set(ref,{'chatId':widget.chatId,'senderId':u.uid,'senderName':u.displayName??'مستخدم','senderPhotoUrl':u.photoURL,'text':label,'type':type,'imageUrl':type=='image'?url:null,'videoUrl':type=='video'?url:null,'fileUrl':type=='file'?url:null,'fileName':name,'fileSize':size,'fileMimeType':mime,'timestamp':FieldValue.serverTimestamp(),'isRead':false,'isDelivered':true,'deliveredAt':FieldValue.serverTimestamp(),'isDeleted':false,'isEdited':false,'reactions':<String,dynamic>{}});final update=<String,dynamic>{'lastMessage':label,'lastMessageTime':FieldValue.serverTimestamp(),'lastMessageSenderId':u.uid,'updatedAt':FieldValue.serverTimestamp()};for(final id in ids){if(id!=u.uid)update['unreadCount.$id']=FieldValue.increment(1);}b.update(chatRef,update);await b.commit();if(type=='image')widget.onSendImage?.call(url);}catch(e){ToastService.showError('تعذر إرسال الوسائط. تحقق من Nextcloud.');debugPrint('$e');}finally{if(mounted)setState(()=>sending=false);}}
-Future<void> start()async{if(recording||sending||hasText)return;if(!await r.hasPermission()){ToastService.showError('يلزم السماح بالوصول إلى الميكروفون.');return;}final dir=await getTemporaryDirectory();final x='${dir.path}/chat_${DateTime.now().millisecondsSinceEpoch}.m4a';await r.start(const RecordConfig(encoder:AudioEncoder.aacLc),path:x);d=Duration.zero;timer=Timer.periodic(const Duration(seconds:1),(_){if(mounted)setState(()=>d+=const Duration(seconds:1));});setState((){recording=true;path=x;});}
-Future<void> sendAudio()async{if(!recording||sending)return;timer?.cancel();final x=path;path=null;await r.stop();if(mounted)setState(()=>recording=false);if(x==null)return;final file=File(x);try{if(!await file.exists()||await file.length()<1000)throw StateError('short');final url=await upload(file,'audio');if(url==null)throw StateError('upload');await chat.sendMessage(chatId:widget.chatId,text:'🎵 رسالة صوتية',audioUrl:url);}catch(e){ToastService.showError(e.toString().contains('short')?'التسجيل قصير جدًا.':'تعذر إرسال التسجيل الصوتي.');}finally{if(await file.exists())await file.delete();}}
-Future<void> cancelAudio()async{timer?.cancel();final x=path;path=null;await r.stop();if(x!=null){final file=File(x);if(await file.exists())await file.delete();}if(mounted)setState(()=>recording=false);}
-@override Widget build(BuildContext context){final dark=Theme.of(context).brightness==Brightness.dark;if(recording)return bar(dark);return Column(mainAxisSize:MainAxisSize.min,children:[if(menu)mediaMenu(dark),Material(color:dark?const Color(0xFF121A29):Colors.white,child:SafeArea(top:false,child:Padding(padding:const EdgeInsets.fromLTRB(8,6,8,6),child:Row(crossAxisAlignment:CrossAxisAlignment.end,children:[IconButton(onPressed:()=>setState(()=>menu=!menu),icon:const Icon(Icons.add_circle_outline)),Expanded(child:Container(constraints:const BoxConstraints(minHeight:46,maxHeight:130),decoration:BoxDecoration(color:dark?const Color(0xFF26344D):const Color(0xFFF1F4F5),borderRadius:BorderRadius.circular(24)),child:TextField(controller:c,focusNode:f,minLines:1,maxLines:5,textDirection:TextDirection.rtl,keyboardType:TextInputType.multiline,decoration:const InputDecoration(hintText:'اكتب رسالة...',border:InputBorder.none,contentPadding:EdgeInsets.symmetric(horizontal:16,vertical:11)))),const SizedBox(width:5),GestureDetector(onTap:hasText?textSend:start,child:CircleAvatar(radius:23,backgroundColor:AppColors.primary,child:Icon(hasText?Icons.send_rounded:Icons.mic_rounded,color:Colors.white,size:21)))]))))]);}
-Widget bar(bool dark)=>Material(color:dark?const Color(0xFF121A29):Colors.white,child:SafeArea(top:false,child:Padding(padding:const EdgeInsets.fromLTRB(8,6,8,6),child:Row(children:[IconButton(onPressed:cancelAudio,tooltip:'حذف',icon:const Icon(Icons.delete_outline,color:Colors.red)),Expanded(child:Container(height:46,padding:const EdgeInsets.symmetric(horizontal:14),decoration:BoxDecoration(color:dark?const Color(0xFF26344D):const Color(0xFFF1F4F5),borderRadius:BorderRadius.circular(23)),child:Row(children:[const Icon(Icons.mic,color:Colors.red),const SizedBox(width:8),Text('${d.inMinutes.toString().padLeft(2,'0')}:${(d.inSeconds%60).toString().padLeft(2,'0')}'),const SizedBox(width:10),const Expanded(child:LinearProgressIndicator(minHeight:3))]))),IconButton(onPressed:sendAudio,tooltip:'إرسال التسجيل',icon:const Icon(Icons.send_rounded,color:AppColors.primary,size:28))])));
-Widget mediaMenu(bool dark)=>Container(padding:const EdgeInsets.all(10),color:dark?const Color(0xFF121A29):Colors.white,child:Row(mainAxisAlignment:MainAxisAlignment.spaceAround,children:[item(Icons.camera_alt,'كاميرا',()=>image(ImageSource.camera)),item(Icons.photo,'صورة',()=>image(ImageSource.gallery)),item(Icons.video_library,'فيديو',video),item(Icons.attach_file,'ملف',file)]));Widget item(IconData i,String t,VoidCallback f)=>InkWell(onTap:f,child:Padding(padding:const EdgeInsets.all(6),child:Column(children:[CircleAvatar(backgroundColor:AppColors.primary.withOpacity(.1),child:Icon(i,color:AppColors.primary)),const SizedBox(height:3),Text(t,style:const TextStyle(fontSize:10))])));}
+
+class ChatInputBar extends StatefulWidget {
+  final String chatId;
+  final Function(String) onSendMessage;
+  final Function(String)? onSendImage;
+  final VoidCallback? onShareLocation;
+  const ChatInputBar({super.key, required this.chatId, required this.onSendMessage, this.onSendImage, this.onShareLocation});
+  @override State<ChatInputBar> createState() => _ChatInputBarState();
+}
+
+class _ChatInputBarState extends State<ChatInputBar> {
+  final _controller = TextEditingController();
+  final _focus = FocusNode();
+  final _picker = ImagePicker();
+  final _recorder = AudioRecorder();
+  final _auth = FirebaseAuth.instance;
+  final _nextcloud = NextcloudService();
+  final _chat = ChatService();
+  Timer? _timer;
+  Duration _duration = Duration.zero;
+  String? _recordPath;
+  bool _recording = false;
+  bool _paused = false;
+  bool _sending = false;
+  bool _attachments = false;
+
+  bool get _hasText => _controller.text.trim().isNotEmpty;
+  bool get _hasRecording => _recordPath != null;
+
+  @override
+  void initState() { super.initState(); _controller.addListener(_onTextChanged); }
+  void _onTextChanged() { if (mounted) setState(() {}); }
+  @override
+  void dispose() { _timer?.cancel(); _controller.dispose(); _focus.dispose(); _recorder.dispose(); super.dispose(); }
+
+  Future<void> _sendText() async {
+    final text = _controller.text.trim();
+    if (text.isEmpty || _sending || _recording || _hasRecording) return;
+    setState(() => _sending = true);
+    try {
+      await ReliableMessageService.sendText(chatId: widget.chatId, text: text);
+      widget.onSendMessage(text);
+      _controller.clear();
+    } catch (e) {
+      debugPrint('chat text send: $e');
+      ToastService.showError('تعذر إرسال الرسالة. تحقق من الاتصال.');
+    } finally { if (mounted) setState(() => _sending = false); }
+  }
+
+  Future<String> _upload(File file, String folder) async {
+    await _nextcloud.loadConfig();
+    final result = await _nextcloud.uploadFile(file: file, path: 'chats/${widget.chatId}/$folder');
+    if (!result.success || result.url == null || result.url!.isEmpty) throw StateError(result.error ?? 'Nextcloud upload failed');
+    return result.url!;
+  }
+
+  Future<void> _sendMedia(File file, {required String type, required String folder, required String preview, String? name, String? size, String? mime}) async {
+    if (_sending || _auth.currentUser == null) return;
+    setState(() { _sending = true; _attachments = false; });
+    try {
+      final url = await _upload(file, folder);
+      await _chat.sendMessage(chatId: widget.chatId, text: preview, imageUrl: type == 'image' ? url : null, videoUrl: type == 'video' ? url : null, fileUrl: type == 'file' ? url : null, fileName: name, fileSize: size, fileMimeType: mime);
+      if (type == 'image') widget.onSendImage?.call(url);
+    } catch (e) {
+      debugPrint('chat media send: $e');
+      ToastService.showError('تعذر إرسال الوسائط. تحقق من اتصال Nextcloud.');
+    } finally { if (mounted) setState(() => _sending = false); }
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final x = await _picker.pickImage(source: source, imageQuality: 90);
+    if (x != null) await _sendMedia(File(x.path), type: 'image', folder: 'images', preview: '📷 صورة');
+  }
+
+  Future<void> _pickVideo() async {
+    final x = await _picker.pickVideo(source: ImageSource.gallery, maxDuration: const Duration(minutes: 10));
+    if (x != null) await _sendMedia(File(x.path), type: 'video', folder: 'videos', preview: '🎬 فيديو');
+  }
+
+  Future<void> _pickFile() async {
+    final result = await FilePicker.platform.pickFiles(withData: false);
+    final file = result?.files.single;
+    if (file?.path == null) return;
+    await _sendMedia(File(file!.path!), type: 'file', folder: 'files', preview: '📎 ${file.name}', name: file.name, size: _formatBytes(file.size), mime: file.extension == null ? null : 'application/${file.extension}');
+  }
+
+  String _formatBytes(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    if (bytes < 1024 * 1024 * 1024) return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
+  }
+
+  Future<void> _startRecording() async {
+    if (_sending || _recording || _hasRecording || _hasText) return;
+    if (!await _recorder.hasPermission()) { ToastService.showError('يلزم السماح بالوصول إلى الميكروفون.'); return; }
+    final dir = await getTemporaryDirectory();
+    final filePath = '${dir.path}/sehatak_chat_${DateTime.now().millisecondsSinceEpoch}.m4a';
+    try {
+      await _recorder.start(const RecordConfig(encoder: AudioEncoder.aacLc), path: filePath);
+      _duration = Duration.zero;
+      _timer?.cancel();
+      _timer = Timer.periodic(const Duration(seconds: 1), (_) { if (mounted && _recording && !_paused) setState(() => _duration += const Duration(seconds: 1)); });
+      setState(() { _recording = true; _paused = false; _recordPath = filePath; });
+    } catch (e) { debugPrint('record start: $e'); ToastService.showError('تعذر بدء التسجيل الصوتي.'); }
+  }
+
+  Future<void> _stopRecording() async {
+    if (!_recording) return;
+    _timer?.cancel();
+    try { await _recorder.stop(); } catch (e) { debugPrint('record stop: $e'); }
+    if (mounted) setState(() { _recording = false; _paused = false; });
+  }
+
+  Future<void> _togglePause() async {
+    if (!_recording) return;
+    try {
+      if (_paused) { await _recorder.resume(); } else { await _recorder.pause(); }
+      if (mounted) setState(() => _paused = !_paused);
+    } catch (e) { debugPrint('record pause/resume: $e'); }
+  }
+
+  Future<void> _deleteRecording() async {
+    _timer?.cancel();
+    try { await _recorder.stop(); } catch (_) {}
+    final p = _recordPath;
+    _recordPath = null;
+    if (p != null) { final f = File(p); if (await f.exists()) await f.delete(); }
+    if (mounted) setState(() { _recording = false; _paused = false; _duration = Duration.zero; });
+  }
+
+  Future<void> _sendRecording() async {
+    if (_sending || _recordPath == null) return;
+    if (_recording) await _stopRecording();
+    final p = _recordPath;
+    if (p == null) return;
+    final file = File(p);
+    if (!await file.exists() || await file.length() < 1000) { await _deleteRecording(); ToastService.showError('التسجيل قصير جدًا.'); return; }
+    setState(() => _sending = true);
+    try {
+      final url = await _upload(file, 'audio');
+      await _chat.sendMessage(chatId: widget.chatId, text: '🎤 رسالة صوتية', audioUrl: url, audioDuration: _duration.inSeconds.toString());
+      _recordPath = null;
+      _duration = Duration.zero;
+    } catch (e) {
+      debugPrint('audio send: $e');
+      ToastService.showError('تعذر إرسال التسجيل الصوتي. يمكنك المحاولة مرة أخرى.');
+    } finally {
+      if (await file.exists() && _recordPath == null) await file.delete();
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    if (_recording || _hasRecording) return _voiceBar(dark);
+    return Column(mainAxisSize: MainAxisSize.min, children: [
+      if (_attachments) _mediaMenu(dark),
+      Material(color: dark ? const Color(0xFF121A29) : Colors.white, child: SafeArea(top: false, child: Padding(
+        padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+          IconButton(onPressed: _sending ? null : () => setState(() => _attachments = !_attachments), icon: const Icon(Icons.add_circle_outline)),
+          Expanded(child: Container(constraints: const BoxConstraints(minHeight: 46, maxHeight: 130), decoration: BoxDecoration(color: dark ? const Color(0xFF26344D) : const Color(0xFFF1F4F5), borderRadius: BorderRadius.circular(24)), child: TextField(controller: _controller, focusNode: _focus, minLines: 1, maxLines: 5, textDirection: TextDirection.rtl, keyboardType: TextInputType.multiline, decoration: const InputDecoration(hintText: 'اكتب رسالة...', border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 11)))),
+          const SizedBox(width: 5),
+          GestureDetector(onTap: _hasText ? _sendText : _startRecording, child: CircleAvatar(radius: 23, backgroundColor: _sending ? Colors.grey : AppColors.primary, child: Icon(_hasText ? Icons.send_rounded : Icons.mic_rounded, color: Colors.white, size: 21))),
+        ]),
+      )))
+    ]);
+  }
+
+  Widget _voiceBar(bool dark) => Material(color: dark ? const Color(0xFF121A29) : Colors.white, child: SafeArea(top: false, child: Padding(
+    padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
+    child: Row(children: [
+      IconButton(onPressed: _sending ? null : _deleteRecording, tooltip: 'حذف التسجيل', icon: const Icon(Icons.delete_outline, color: Colors.red)),
+      IconButton(onPressed: _sending || !_recording ? null : _togglePause, tooltip: _paused ? 'متابعة' : 'إيقاف مؤقت', icon: Icon(_paused ? Icons.play_arrow : Icons.pause, color: AppColors.primary)),
+      Expanded(child: Container(height: 46, padding: const EdgeInsets.symmetric(horizontal: 12), decoration: BoxDecoration(color: dark ? const Color(0xFF26344D) : const Color(0xFFF1F4F5), borderRadius: BorderRadius.circular(23)), child: Row(children: [Icon(_recording ? Icons.mic : Icons.mic_none, color: _recording ? Colors.red : AppColors.primary), const SizedBox(width: 8), Text('${_duration.inMinutes.toString().padLeft(2, '0')}:${(_duration.inSeconds % 60).toString().padLeft(2, '0')}'), const SizedBox(width: 10), const Expanded(child: LinearProgressIndicator(minHeight: 3))]))),
+      IconButton(onPressed: _sending ? null : (_recording ? _stopRecording : _sendRecording), tooltip: _recording ? 'إنهاء التسجيل' : 'إرسال التسجيل', icon: Icon(_recording ? Icons.stop_circle_outlined : Icons.send_rounded, color: AppColors.primary, size: 29)),
+      if (!_recording) IconButton(onPressed: _sending ? null : _sendRecording, tooltip: 'إرسال التسجيل', icon: const Icon(Icons.send_rounded, color: AppColors.primary, size: 25)),
+    ]),
+  )));
+
+  Widget _mediaMenu(bool dark) => Container(padding: const EdgeInsets.all(10), color: dark ? const Color(0xFF121A29) : Colors.white, child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
+    _mediaItem(Icons.camera_alt, 'كاميرا', () => _pickImage(ImageSource.camera)),
+    _mediaItem(Icons.photo, 'صورة', () => _pickImage(ImageSource.gallery)),
+    _mediaItem(Icons.video_library, 'فيديو', _pickVideo),
+    _mediaItem(Icons.attach_file, 'ملف', _pickFile),
+  ]));
+
+  Widget _mediaItem(IconData icon, String label, VoidCallback action) => InkWell(onTap: action, child: Padding(padding: const EdgeInsets.all(6), child: Column(children: [CircleAvatar(backgroundColor: AppColors.primary.withOpacity(.1), child: Icon(icon, color: AppColors.primary)), const SizedBox(height: 3), Text(label, style: const TextStyle(fontSize: 10))])));
+}
