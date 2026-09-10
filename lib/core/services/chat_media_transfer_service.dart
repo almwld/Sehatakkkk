@@ -5,12 +5,33 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:workmanager/workmanager.dart';
 
+import '../../firebase_options.dart';
 import 'chat_service.dart';
 import 'nextcloud_service.dart';
+
+const String chatMediaTransferTask = 'sehatak.chat.media.transfer';
+
+@pragma('vm:entry-point')
+void chatMediaTransferCallbackDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    WidgetsFlutterBinding.ensureInitialized();
+    try {
+      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+      final service = ChatMediaTransferService.instance;
+      await service.initialize(startBackgroundWorker: false);
+      await service.processPending();
+      return true;
+    } catch (_) {
+      return false;
+    }
+  });
+}
 
 /// Persistent media outbox for chat attachments.
 ///
@@ -25,6 +46,7 @@ class ChatMediaTransferService {
   Database? _db;
   StreamSubscription<dynamic>? _connectivitySub;
   bool _processing = false;
+  bool _workerInitialized = false;
 
   Future<Database> get _database async {
     if (_db != null) return _db!;
@@ -62,11 +84,52 @@ class ChatMediaTransferService {
     return _db!;
   }
 
-  Future<void> initialize() async {
+  Future<void> initialize({bool startBackgroundWorker = true}) async {
     await _database;
     await _connectivitySub?.cancel();
-    _connectivitySub = Connectivity().onConnectivityChanged.listen((_) => processPending());
+    _connectivitySub = Connectivity().onConnectivityChanged.listen((_) {
+      unawaited(processPending());
+      unawaited(_scheduleOneOffWorker());
+    });
+
+    if (startBackgroundWorker) {
+      await _initializeBackgroundWorker();
+    }
     unawaited(processPending());
+  }
+
+  Future<void> _initializeBackgroundWorker() async {
+    if (_workerInitialized) return;
+    try {
+      await Workmanager().initialize(
+        chatMediaTransferCallbackDispatcher,
+        isInDebugMode: false,
+      );
+      _workerInitialized = true;
+      await Workmanager().registerPeriodicTask(
+        'sehatak-chat-media-periodic',
+        chatMediaTransferTask,
+        frequency: const Duration(minutes: 15),
+        constraints: Constraints(networkType: NetworkType.connected),
+        existingWorkPolicy: ExistingPeriodicWorkPolicy.keep,
+      );
+      await _scheduleOneOffWorker();
+    } catch (_) {
+      // The foreground connectivity/resume path remains functional even when
+      // the OS background scheduler is unavailable on a particular device.
+    }
+  }
+
+  Future<void> _scheduleOneOffWorker() async {
+    if (!_workerInitialized) return;
+    try {
+      await Workmanager().registerOneOffTask(
+        'sehatak-chat-media-${DateTime.now().microsecondsSinceEpoch}',
+        chatMediaTransferTask,
+        constraints: Constraints(networkType: NetworkType.connected),
+        existingWorkPolicy: ExistingWorkPolicy.appendOrReplace,
+      );
+    } catch (_) {}
   }
 
   Future<String> enqueue({
@@ -110,12 +173,10 @@ class ChatMediaTransferService {
       'updated_at': now,
     });
     unawaited(processPending());
+    unawaited(_scheduleOneOffWorker());
     return id;
   }
 
-  /// Returns the durable local representation of a queued item.
-  /// This is intentionally separate from the source picker/recorder file:
-  /// callers can safely use it even after the original temporary file is gone.
   Future<Map<String, dynamic>?> getById(String id) async {
     final db = await _database;
     final rows = await db.query('media_outbox', where: 'id = ?', whereArgs: [id], limit: 1);
@@ -214,16 +275,9 @@ class ChatMediaTransferService {
     }, where: 'id = ?', whereArgs: [id]);
 
     var url = upload.url;
-    if (url == null || url.isEmpty) {
-      url = await _retryShare(nextcloud, upload.path!);
-    }
-    if (url == null || url.isEmpty) {
-      throw StateError('تم رفع الملف، لكن رابط المشاركة لم يصبح جاهزًا بعد');
-    }
-
-    if (!await nextcloud.verifyPublicUrl(url)) {
-      throw StateError('تم إنشاء الرابط لكنه لم يجتز فحص الوصول');
-    }
+    if (url == null || url.isEmpty) url = await _retryShare(nextcloud, upload.path!);
+    if (url == null || url.isEmpty) throw StateError('تم رفع الملف، لكن رابط المشاركة لم يصبح جاهزًا بعد');
+    if (!await nextcloud.verifyPublicUrl(url)) throw StateError('تم إنشاء الرابط لكنه لم يجتز فحص الوصول');
 
     await db.update('media_outbox', {
       'status': 'link_ready',
@@ -278,6 +332,7 @@ class ChatMediaTransferService {
       'updated_at': DateTime.now().millisecondsSinceEpoch,
     }, where: 'id = ?', whereArgs: [id]);
     await processPending();
+    unawaited(_scheduleOneOffWorker());
   }
 
   Future<void> dispose() async {
