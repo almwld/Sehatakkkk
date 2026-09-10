@@ -1,24 +1,24 @@
-import 'dart:async';
+// ============================================================
+// 📞 شاشة المكالمات المتكاملة
+// ============================================================
+// LiveKit + Connectivity + Permissions + SoundManager
+// ============================================================
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:livekit_client/livekit_client.dart';
 import 'package:permission_handler/permission_handler.dart';
-
-import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/models/call_model.dart';
-import 'package:sehatak/core/services/call_service.dart';
+import 'package:livekit_client/livekit_client.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:sehatak/core/services/livekit_service.dart';
 import 'package:sehatak/core/services/sound_manager.dart';
 import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/core/constants/app_colors.dart';
 
 class CallScreen extends StatefulWidget {
   final String chatId;
   final String doctorName;
   final String doctorId;
   final bool isVideo;
-  final String? callId;
+  final String? doctorImage;
   final bool isOutgoing;
 
   const CallScreen({
@@ -27,8 +27,8 @@ class CallScreen extends StatefulWidget {
     required this.doctorName,
     required this.doctorId,
     this.isVideo = true,
-    this.callId,
-    this.isOutgoing = false,
+    this.doctorImage,
+    this.isOutgoing = true,
   });
 
   @override
@@ -36,399 +36,650 @@ class CallScreen extends StatefulWidget {
 }
 
 class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
+  // ═══ الخدمات ═══
   final LiveKitService _liveKit = LiveKitService();
-  final CallService _callService = CallService();
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final Connectivity _connectivity = Connectivity();
 
-  Timer? _durationTimer;
-  StreamSubscription<CallModel?>? _callSubscription;
-  Room? _room;
-  String? _activeCallId;
-  String? _resolvedChatId;
+  // ═══ حالة المكالمة ═══
+  bool _isMuted = false;
+  bool _isCameraOn = true;
+  bool _isSpeakerOn = false;
+  int _callDuration = 0;
+  bool _isConnecting = true;
+  String _errorMessage = '';
+  bool _hasCameraPermission = false;
+  bool _isConnected = false;
+  bool _isFrontCamera = true;
 
-  int _duration = 0;
-  bool _connecting = true;
-  bool _muted = false;
-  bool _cameraOn = true;
-  bool _speakerOn = false;
-  bool _connected = false;
-  bool _ending = false;
-  String _error = '';
+  // ═══ الفيديو ═══
+  VideoTrack? _remoteVideoTrack;
+  VideoTrack? _localVideoTrack;
+  bool _isRemoteVideoReady = false;
+
+  // ═══ Timer ═══
+  bool _timerActive = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _startCall();
+    _initialize();
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    _durationTimer?.cancel();
-    _callSubscription?.cancel();
     SoundManager().stopAll();
     _liveKit.endCall();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
-  Future<String> _resolveChatId() async {
-    if (widget.chatId.trim().isNotEmpty && !widget.chatId.startsWith('call_')) {
-      return widget.chatId.trim();
-    }
-    if (widget.callId?.trim().isNotEmpty == true) {
-      final chatId = await _callService.resolveChatId(widget.callId!.trim());
-      if (chatId?.trim().isNotEmpty == true) return chatId!.trim();
-    }
+  // ============================================================
+  // 🚀 التهيئة
+  // ============================================================
 
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) throw Exception('يجب تسجيل الدخول');
-    final snapshot = await _firestore
-        .collection('chats')
-        .where('participants', arrayContains: user.uid)
-        .limit(100)
-        .get();
-    for (final doc in snapshot.docs) {
-      final raw = doc.data()['participants'];
-      final participants = raw is Iterable
-          ? raw.map((e) => e.toString()).toList()
-          : const <String>[];
-      if (participants.contains(widget.doctorId) && doc.data()['isGroup'] != true) {
-        return doc.id;
-      }
+  Future<void> _initialize() async {
+    await _checkConnectivity();
+    if (_isConnected) {
+      await _checkPermissions();
     }
-    throw Exception('تعذر العثور على المحادثة المرتبطة بالمكالمة');
   }
 
-  Future<void> _startCall() async {
+  // ============================================================
+  // 🌐 التحقق من الإنترنت
+  // ============================================================
+
+  Future<void> _checkConnectivity() async {
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) throw Exception('يجب تسجيل الدخول');
-
-      if (!(await Permission.microphone.request()).isGranted) {
-        throw Exception('إذن الميكروفون مطلوب');
-      }
-      if (widget.isVideo && !(await Permission.camera.request()).isGranted) {
-        throw Exception('إذن الكاميرا مطلوب');
-      }
-
-      _resolvedChatId = await _resolveChatId();
-      final outgoing = widget.isOutgoing || widget.callId?.trim().isNotEmpty != true;
-
-      if (outgoing) {
-        if (widget.callId?.trim().isNotEmpty == true) {
-          _activeCallId = widget.callId!.trim();
-        } else {
-          final call = await _callService.initiateCall(
-            receiverId: widget.doctorId,
-            receiverName: widget.doctorName,
-            type: widget.isVideo ? CallType.video : CallType.audio,
-            chatId: _resolvedChatId!,
-          );
-          _activeCallId = call?.id;
-        }
+      final result = await _connectivity.checkConnectivity();
+      if (result == ConnectivityResult.none) {
+        setState(() {
+          _isConnecting = false;
+          _errorMessage = '⚠️ لا يوجد اتصال بالإنترنت. يرجى التحقق من الشبكة والمحاولة مرة أخرى.';
+        });
+        _showNoInternetDialog();
       } else {
-        _activeCallId = widget.callId!.trim();
-        await _callService.acceptCall(_activeCallId!);
+        setState(() => _isConnected = true);
       }
-
-      if (_activeCallId == null || _activeCallId!.isEmpty) {
-        throw Exception('تعذر إنشاء المكالمة');
-      }
-
-      _room = await _liveKit.connectRoom(
-        roomName: 'call_$_activeCallId',
-        participantName: user.displayName ?? 'مستخدم',
-      );
-      if (widget.isVideo) {
-        await _liveKit.enableCamera();
-        _cameraOn = _liveKit.isCameraEnabled;
-      } else {
-        _cameraOn = false;
-      }
-
-      if (!mounted) return;
+    } catch (e) {
       setState(() {
-        _connecting = false;
-        _connected = true;
-        _error = '';
+        _isConnecting = false;
+        _errorMessage = 'فشل التحقق من الاتصال: $e';
       });
-      _startTimer();
-      _listenToCall();
-    } catch (e) {
-      debugPrint('Call start error: $e');
-      SoundManager().stopAll();
-      if (!mounted) return;
-      setState(() {
-        _connecting = false;
-        _connected = false;
-        _error = _cleanError(e);
-      });
-      ToastService.showError('❌ فشل الاتصال: $_error');
     }
   }
 
-  String _cleanError(Object error) {
-    final text = error.toString();
-    return text.startsWith('Exception: ') ? text.substring(11) : text;
-  }
-
-  void _listenToCall() {
-    final id = _activeCallId;
-    if (id == null || id.isEmpty) return;
-    _callSubscription?.cancel();
-    _callSubscription = _callService.streamCall(id).listen((call) {
-      if (!mounted || call == null || _ending) return;
-      if (call.status == CallStatus.cancelled ||
-          call.status == CallStatus.rejected ||
-          call.status == CallStatus.missed ||
-          call.status == CallStatus.ended) {
-        _finishRemote();
-      }
-    });
-  }
-
-  void _startTimer() {
-    _durationTimer?.cancel();
-    _durationTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted && _connected) setState(() => _duration++);
-    });
-  }
-
-  Future<void> _toggleMute() async {
-    final enabled = await _liveKit.toggleMicrophone();
-    if (mounted) setState(() => _muted = !enabled);
-  }
-
-  Future<void> _toggleCamera() async {
-    if (!widget.isVideo) return;
-    final enabled = await _liveKit.toggleCamera();
-    if (mounted) setState(() => _cameraOn = enabled);
-  }
-
-  Future<void> _switchCamera() async {
-    if (!widget.isVideo || !_cameraOn) return;
-    final participant = _room?.localParticipant;
-    if (participant == null) return;
-    LocalVideoTrack? track;
-    for (final publication in participant.trackPublications.values) {
-      if (publication.track is LocalVideoTrack) {
-        track = publication.track as LocalVideoTrack;
-        break;
-      }
-    }
-    if (track == null) return;
-
-    try {
-      final devices = await Hardware.instance.videoInputs();
-      if (devices.length < 2) {
-        ToastService.showInfo('لا توجد كاميرا أخرى متاحة');
-        return;
-      }
-      final current = Hardware.instance.selectedVideoInput?.deviceId;
-      final target = devices.firstWhere(
-        (device) => device.deviceId != current,
-        orElse: () => devices.first,
-      );
-      await track.switchCamera(target.deviceId);
-      Hardware.instance.selectedVideoInput = target;
-      if (mounted) setState(() {});
-    } catch (e) {
-      debugPrint('Switch camera error: $e');
-      ToastService.showError('تعذر تبديل الكاميرا');
-    }
-  }
-
-  void _toggleSpeaker() {
-    _speakerOn = !_speakerOn;
-    _liveKit.setSpeakerphone(_speakerOn);
-    setState(() {});
-  }
-
-  LocalVideoTrack? _localTrack() {
-    final participant = _room?.localParticipant;
-    if (participant == null) return null;
-    for (final publication in participant.trackPublications.values) {
-      if (publication.track is LocalVideoTrack) return publication.track as LocalVideoTrack;
-    }
-    return null;
-  }
-
-  RemoteVideoTrack? _remoteTrack() {
-    final room = _room;
-    if (room == null) return null;
-    for (final participant in room.participants.values) {
-      for (final publication in participant.trackPublications.values) {
-        if (publication.track is RemoteVideoTrack) {
-          return publication.track as RemoteVideoTrack;
-        }
-      }
-    }
-    return null;
-  }
-
-  Future<void> _finishRemote() async {
-    if (_ending) return;
-    _ending = true;
-    _durationTimer?.cancel();
-    await _liveKit.endCall();
-    if (mounted) Navigator.of(context).pop();
-  }
-
-  Future<void> _endCall() async {
-    if (_ending) return;
-    _ending = true;
-    _durationTimer?.cancel();
-    SoundManager().stopAll();
-    final id = _activeCallId;
-    try {
-      if (id != null && id.isNotEmpty) {
-        if (_connected) {
-          await _callService.endCall(id, durationSeconds: _duration);
-        } else {
-          await _callService.cancelCall(id);
-        }
-      }
-    } catch (e) {
-      debugPrint('Call end error: $e');
-    } finally {
-      await _liveKit.endCall();
-      if (mounted) Navigator.of(context).pop();
-    }
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.detached) _durationTimer?.cancel();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final remote = _remoteTrack();
-    final local = _localTrack();
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: widget.isVideo && remote != null
-                  ? VideoTrackRenderer(remote)
-                  : _audioSurface(),
-            ),
-            if (widget.isVideo && local != null && _cameraOn && _error.isEmpty)
-              Positioned(
-                top: 70,
-                right: 16,
-                width: 120,
-                height: 170,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: VideoTrackRenderer(local),
-                ),
-              ),
-            if (_error.isEmpty) _topBar(),
-            if (_error.isNotEmpty) Positioned.fill(child: _errorSurface()),
-            if (_error.isEmpty)
-              Positioned(left: 0, right: 0, bottom: 18, child: _controls()),
-          ],
-        ),
+  void _showNoInternetDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        title: const Text('⚠️ لا يوجد إنترنت'),
+        content: const Text('يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pop(context);
+            },
+            child: const Text('رجوع'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _initialize();
+            },
+            child: const Text('إعادة المحاولة'),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _audioSurface() => Container(
-        color: const Color(0xFF0B1121),
-        alignment: Alignment.center,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircleAvatar(
-              radius: 62,
-              backgroundColor: AppColors.primary.withOpacity(.18),
-              child: const Icon(Icons.person_rounded, color: Colors.white, size: 62),
-            ),
-            const SizedBox(height: 20),
-            Text(widget.doctorName, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Text(
-              _connecting ? 'جاري الاتصال...' : (_connected ? 'مكالمة متصلة' : 'بانتظار الاتصال'),
-              style: const TextStyle(color: Colors.white70, fontSize: 14),
-            ),
-          ],
-        ),
+  // ============================================================
+  // 🔐 التحقق من الأذونات
+  // ============================================================
+
+  Future<void> _checkPermissions() async {
+    try {
+      if (widget.isVideo) {
+        final cameraStatus = await Permission.camera.request();
+        setState(() => _hasCameraPermission = cameraStatus.isGranted);
+        if (!_hasCameraPermission) {
+          setState(() {
+            _isConnecting = false;
+            _errorMessage = 'يرجى منح إذن الكاميرا';
+          });
+          return;
+        }
+      }
+
+      final micStatus = await Permission.microphone.request();
+      if (!micStatus.isGranted) {
+        setState(() {
+          _isConnecting = false;
+          _errorMessage = 'يرجى منح إذن الميكروفون';
+        });
+        return;
+      }
+
+      await _startCall();
+    } catch (e) {
+      setState(() {
+        _isConnecting = false;
+        _errorMessage = 'فشل التحقق من الأذونات: $e';
+      });
+    }
+  }
+
+  // ============================================================
+  // 📞 بدء المكالمة
+  // ============================================================
+
+  Future<void> _startCall() async {
+    try {
+      if (!_isConnected) {
+        setState(() {
+          _isConnecting = false;
+          _errorMessage = '⚠️ لا يوجد اتصال بالإنترنت';
+        });
+        return;
+      }
+
+      // ✅ تشغيل رنين الاتصال
+      SoundManager().playCallRingtone();
+
+      // ✅ الاتصال بـ LiveKit
+      await _liveKit.startCall(
+        roomName: widget.chatId,
+        callerName: widget.doctorName,
+        isVideo: widget.isVideo && _hasCameraPermission,
       );
 
-  Widget _errorSurface() => Container(
-        color: const Color(0xFF0B1121),
-        alignment: Alignment.center,
-        padding: const EdgeInsets.all(28),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 64),
-            const SizedBox(height: 16),
-            const Text('تعذر الاتصال', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 10),
-            Text(_error, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70)),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(onPressed: _ending ? null : _endCall, icon: const Icon(Icons.arrow_back), label: const Text('رجوع')),
-          ],
-        ),
-      );
+      // ✅ إيقاف الرنين
+      SoundManager().stopAll();
 
-  Widget _topBar() => Positioned(
-        top: 0,
-        left: 0,
-        right: 0,
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(8, 8, 12, 20),
-          decoration: BoxDecoration(color: Colors.black.withOpacity(.38)),
-          child: Row(
-            children: [
-              IconButton(onPressed: _endCall, icon: const Icon(Icons.close_rounded, color: Colors.white)),
-              const Spacer(),
-              Text(_formatDuration(_duration), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              const SizedBox(width: 10),
-              Text(_connected ? 'متصل' : 'جاري الاتصال', style: const TextStyle(color: Colors.white70, fontSize: 11)),
-            ],
-          ),
-        ),
-      );
+      // ✅ التعامل مع المشاركين
+      final room = _liveKit.room;
+      if (room != null) {
+        final localParticipant = room.localParticipant;
+        if (localParticipant != null) {
+          _handleParticipant(localParticipant);
+        }
 
-  Widget _controls() => Container(
-        margin: const EdgeInsets.symmetric(horizontal: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-        decoration: BoxDecoration(color: Colors.black.withOpacity(.72), borderRadius: BorderRadius.circular(28)),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _control(Icons.mic_off_rounded, _muted ? 'إلغاء الكتم' : 'كتم', _toggleMute),
-            if (widget.isVideo) _control(_cameraOn ? Icons.videocam_rounded : Icons.videocam_off_rounded, _cameraOn ? 'كاميرا' : 'تشغيل', _toggleCamera),
-            if (widget.isVideo) _control(Icons.flip_camera_ios_rounded, 'تبديل', _switchCamera),
-            _control(_speakerOn ? Icons.volume_up_rounded : Icons.volume_down_rounded, 'مكبر', _toggleSpeaker),
-            _control(Icons.call_end_rounded, 'إنهاء', _endCall, color: Colors.red),
-          ],
-        ),
-      );
+        for (final participant in room.participants.values) {
+          if (participant is! LocalParticipant) {
+            _handleParticipant(participant);
+          }
+        }
 
-  Widget _control(IconData icon, String label, VoidCallback onTap, {Color color = Colors.white24}) => Column(
-        mainAxisSize: MainAxisSize.min,
+        room.events.on<ParticipantConnectedEvent>((event) {
+          _handleParticipant(event.participant);
+          debugPrint('✅ Participant connected: ${event.participant.identity}');
+        });
+
+        room.events.on<TrackSubscribedEvent>((event) {
+          _handleParticipant(event.participant);
+        });
+
+        room.events.on<TrackPublishedEvent>((event) {
+          _handleParticipant(event.participant);
+        });
+      }
+
+      if (mounted) {
+        setState(() {
+          _isConnecting = false;
+        });
+        _startTimer();
+      }
+    } catch (e) {
+      SoundManager().stopAll();
+      if (mounted) {
+        setState(() {
+          _isConnecting = false;
+          _errorMessage = 'فشل الاتصال: $e';
+        });
+        ToastService.showError('❌ ${_errorMessage}');
+        Future.delayed(const Duration(seconds: 3), () {
+          if (mounted) Navigator.pop(context);
+        });
+      }
+    }
+  }
+
+  // ============================================================
+  // 📹 التعامل مع المشاركين
+  // ============================================================
+
+  void _handleParticipant(Participant participant) {
+    try {
+      for (final track in participant.videoTracks) {
+        if (track.track != null && track.track is VideoTrack) {
+          final videoTrack = track.track as VideoTrack;
+          if (!mounted) return;
+          setState(() {
+            if (participant is LocalParticipant) {
+              _localVideoTrack = videoTrack;
+              debugPrint('✅ Local video track found');
+            } else {
+              _remoteVideoTrack = videoTrack;
+              _isRemoteVideoReady = true;
+              debugPrint('✅ Remote video track found');
+            }
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ Error handling video tracks: $e');
+    }
+  }
+
+  // ============================================================
+  // ⏱️ مؤقت المكالمة
+  // ============================================================
+
+  void _startTimer() {
+    if (_timerActive) return;
+    _timerActive = true;
+    Future.delayed(const Duration(seconds: 1), () {
+      if (!mounted) {
+        _timerActive = false;
+        return;
+      }
+      setState(() => _callDuration++);
+      _startTimer();
+    });
+  }
+
+  // ============================================================
+  // 🎛️ التحكم في المكالمة
+  // ============================================================
+
+  Future<void> _toggleCamera() async {
+    try {
+      final newState = await _liveKit.toggleCamera();
+      if (mounted) setState(() => _isCameraOn = newState);
+    } catch (e) {
+      ToastService.showError('❌ فشل تبديل الكاميرا: $e');
+    }
+  }
+
+  Future<void> _switchCamera() async {
+    try {
+      await _liveKit.switchCamera();
+      if (mounted) setState(() => _isFrontCamera = !_isFrontCamera);
+      ToastService.showInfo('📷 تم تبديل الكاميرا');
+    } catch (e) {
+      ToastService.showError('❌ فشل تبديل الكاميرا: $e');
+    }
+  }
+
+  void _toggleMute() {
+    setState(() {
+      _isMuted = !_isMuted;
+      _liveKit.room?.localParticipant?.setMicrophoneEnabled(!_isMuted);
+    });
+  }
+
+  void _toggleSpeaker() {
+    setState(() => _isSpeakerOn = !_isSpeakerOn);
+    try {
+      _liveKit.setSpeakerphone(_isSpeakerOn);
+    } catch (e) {
+      debugPrint('❌ Error setting speaker: $e');
+    }
+  }
+
+  void _endCall() {
+    SoundManager().stopAll();
+    SoundManager().playCallEnd();
+    _liveKit.endCall();
+    Navigator.pop(context);
+  }
+
+  // ============================================================
+  // 🏗️ واجهة المستخدم
+  // ============================================================
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
         children: [
-          GestureDetector(
-            onTap: onTap,
-            child: Container(
-              width: color == Colors.red ? 58 : 52,
-              height: color == Colors.red ? 58 : 52,
-              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-              child: Icon(icon, color: Colors.white),
+          // ═══ فيديو الطرف الآخر (ملء الشاشة) ═══
+          Container(
+            color: Colors.black87,
+            child: _isRemoteVideoReady && _remoteVideoTrack != null
+                ? VideoTrackRenderer(_remoteVideoTrack!)
+                : _buildConnectingScreen(),
+          ),
+
+          // ═══ فيديو المستخدم (Picture-in-Picture) ═══
+          if (widget.isVideo &&
+              _hasCameraPermission &&
+              _localVideoTrack != null &&
+              _errorMessage.isEmpty)
+            Positioned(
+              top: 60,
+              right: 20,
+              child: GestureDetector(
+                onTap: _switchCamera,
+                child: Container(
+                  width: 120,
+                  height: 180,
+                  decoration: BoxDecoration(
+                    color: Colors.black,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white, width: 2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.5),
+                        blurRadius: 10,
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: VideoTrackRenderer(_localVideoTrack!),
+                  ),
+                ),
+              ),
+            ),
+
+          // ═══ مكان فيديو المستخدم (إذا لم يعمل) ═══
+          if (widget.isVideo &&
+              _hasCameraPermission &&
+              _localVideoTrack == null &&
+              _errorMessage.isEmpty)
+            Positioned(
+              top: 60,
+              right: 20,
+              child: Container(
+                width: 120,
+                height: 180,
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.videocam_off_rounded,
+                    color: Colors.white54,
+                    size: 40,
+                  ),
+                ),
+              ),
+            ),
+
+          // ═══ معلومات الطبيب ═══
+          if (_errorMessage.isEmpty)
+            Positioned(
+              top: 80,
+              left: 0,
+              right: 0,
+              child: Column(
+                children: [
+                  // ✅ صورة الطبيب (للمكالمات الصوتية)
+                  if (!widget.isVideo || !_isRemoteVideoReady)
+                    CircleAvatar(
+                      radius: 50,
+                      backgroundColor: Colors.grey[800],
+                      backgroundImage: widget.doctorImage != null
+                          ? NetworkImage(widget.doctorImage!)
+                          : null,
+                      child: widget.doctorImage == null
+                          ? Text(
+                              widget.doctorName.isNotEmpty
+                                  ? widget.doctorName[0].toUpperCase()
+                                  : 'ط',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 40,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            )
+                          : null,
+                    ),
+                  const SizedBox(height: 16),
+                  Text(
+                    widget.doctorName,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // ✅ حالة المكالمة
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _isConnected
+                          ? Colors.green.withOpacity(0.2)
+                          : Colors.orange.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      _callDuration == 0
+                          ? 'جاري الاتصال...'
+                          : _formatDuration(_callDuration),
+                      style: TextStyle(
+                        color: _isConnected ? Colors.green : Colors.orange,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          // ═══ أزرار التحكم ═══
+          if (_errorMessage.isEmpty)
+            Positioned(
+              bottom: 40,
+              left: 0,
+              right: 0,
+              child: Column(
+                children: [
+                  // ✅ مؤقت المكالمة
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      _formatDuration(_callDuration),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // ✅ صف الأزرار
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      // ═══ زر كتم الصوت (تركواز) ═══
+                      _callButton(
+                        icon: _isMuted
+                            ? Icons.mic_off_rounded
+                            : Icons.mic_rounded,
+                        color: _isMuted
+                            ? Colors.red
+                            : const Color(0xFF00BCD4), // 🔵 تركواز
+                        label: _isMuted ? 'إلغاء الكتم' : 'كتم',
+                        onTap: _toggleMute,
+                      ),
+
+                      // ═══ زر الكاميرا (تركواز) - للفيديو فقط ═══
+                      if (widget.isVideo && _hasCameraPermission)
+                        _callButton(
+                          icon: _isCameraOn
+                              ? Icons.videocam_rounded
+                              : Icons.videocam_off_rounded,
+                          color: _isCameraOn
+                              ? const Color(0xFF00BCD4) // 🔵 تركواز
+                              : Colors.red,
+                          label: _isCameraOn ? 'كاميرا' : 'إيقاف',
+                          onTap: _toggleCamera,
+                        ),
+
+                      // ═══ زر إنهاء المكالمة (أحمر) ═══
+                      _callButton(
+                        icon: Icons.call_end_rounded,
+                        color: Colors.red, // 🔴 أحمر
+                        size: 65,
+                        label: 'إنهاء',
+                        onTap: _endCall,
+                      ),
+
+                      // ═══ زر مكبر الصوت (رمادي) ═══
+                      _callButton(
+                        icon: _isSpeakerOn
+                            ? Icons.volume_up_rounded
+                            : Icons.volume_off_rounded,
+                        color: _isSpeakerOn
+                            ? const Color(0xFF00BCD4) // 🔵 تركواز عند التفعيل
+                            : Colors.grey, // ⚪ رمادي
+                        label: _isSpeakerOn ? 'مكبر' : 'سماعة',
+                        onTap: _toggleSpeaker,
+                      ),
+
+                      // ═══ زر تبديل الكاميرا (رمادي) - للفيديو فقط ═══
+                      if (widget.isVideo && _hasCameraPermission)
+                        _callButton(
+                          icon: Icons.switch_camera_rounded,
+                          color: Colors.grey, // ⚪ رمادي
+                          label: 'تبديل',
+                          onTap: _switchCamera,
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // 🎨 عناصر الواجهة
+  // ============================================================
+
+  Widget _buildConnectingScreen() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (_errorMessage.isNotEmpty)
+            const Icon(
+              Icons.error_outline_rounded,
+              color: Colors.red,
+              size: 60,
+            )
+          else
+            const SizedBox(
+              width: 60,
+              height: 60,
+              child: CircularProgressIndicator(
+                color: Colors.white,
+                strokeWidth: 3,
+              ),
+            ),
+          const SizedBox(height: 20),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+              _errorMessage.isNotEmpty
+                  ? _errorMessage
+                  : 'جاري الاتصال...',
+              style: TextStyle(
+                color: _errorMessage.isNotEmpty ? Colors.red : Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
             ),
           ),
-          const SizedBox(height: 5),
-          Text(label, style: const TextStyle(color: Colors.white70, fontSize: 10)),
+          if (_isConnecting && _errorMessage.isEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              'يرجى الانتظار',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.6),
+                fontSize: 14,
+              ),
+            ),
+          ],
         ],
-      );
+      ),
+    );
+  }
 
-  String _formatDuration(int seconds) =>
-      '${(seconds ~/ 60).toString().padLeft(2, '0')}:${(seconds % 60).toString().padLeft(2, '0')}';
+  Widget _callButton({
+    required IconData icon,
+    required Color color,
+    required String label,
+    double size = 55,
+    required VoidCallback onTap,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.2),
+              shape: BoxShape.circle,
+              border: Border.all(color: color, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withOpacity(0.3),
+                  blurRadius: 8,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: Icon(
+              icon,
+              color: color,
+              size: size * 0.5,
+            ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white70,
+            fontSize: 11,
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _formatDuration(int seconds) {
+    final minutes = seconds ~/ 60;
+    final remainingSeconds = seconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
+  }
 }
