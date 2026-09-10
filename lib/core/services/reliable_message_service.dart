@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'chat_reply_context.dart';
 
-/// مسار إرسال النصوص الموثوق: رسالة + تحديث المحادثة + عداد غير المقروء
-/// في Batch واحد بدون تكرار كتابة نفس مستند chat.
+/// Reliable text path: message + chat preview + unread counter in one batch.
 class ReliableMessageService {
   ReliableMessageService._();
 
@@ -26,6 +26,26 @@ class ReliableMessageService {
     final participants = List<String>.from(chat['participants'] ?? const <String>[]);
     if (!participants.contains(user.uid)) throw Exception('ليس لديك صلاحية لهذه المحادثة');
 
+    final reply = replyToId == null || replyToId.isEmpty
+        ? ChatReplyContext.instance.forChat(chatId)
+        : null;
+    final effectiveReplyId = replyToId ?? reply?.id;
+    Map<String, dynamic>? replyPreview;
+    final targetId = effectiveReplyId;
+    if (targetId != null && targetId.isNotEmpty) {
+      final target = await chatRef.collection('messages').doc(targetId).get();
+      if (target.exists) {
+        final d = target.data() ?? <String, dynamic>{};
+        replyPreview = {
+          'id': target.id,
+          'senderId': d['senderId']?.toString() ?? '',
+          'senderName': d['senderName']?.toString() ?? 'مستخدم',
+          'text': d['text']?.toString() ?? _attachmentPreview(d),
+          'type': d['type']?.toString() ?? 'text',
+        };
+      }
+    }
+
     final messageRef = chatRef.collection('messages').doc();
     final batch = _db.batch();
     batch.set(messageRef, {
@@ -41,7 +61,8 @@ class ReliableMessageService {
       'deliveredAt': FieldValue.serverTimestamp(),
       'isDeleted': false,
       'isEdited': false,
-      'replyToId': replyToId,
+      'replyToId': effectiveReplyId,
+      'replyPreview': replyPreview,
       'reactions': <String, dynamic>{},
     });
     final chatUpdate = <String, dynamic>{
@@ -57,6 +78,18 @@ class ReliableMessageService {
     }
     batch.update(chatRef, chatUpdate);
     await batch.commit();
+    if (effectiveReplyId != null) ChatReplyContext.instance.clear(chatId);
     return messageRef.id;
+  }
+
+  static String _attachmentPreview(Map<String, dynamic> d) {
+    switch (d['type']?.toString()) {
+      case 'image': return '📷 صورة';
+      case 'video': return '🎬 فيديو';
+      case 'audio': return '🎤 رسالة صوتية';
+      case 'file': return '📎 ملف';
+      case 'location': return '📍 موقع';
+      default: return 'مرفق';
+    }
   }
 }
