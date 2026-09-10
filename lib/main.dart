@@ -21,6 +21,7 @@ import 'core/providers/cart_provider.dart';
 import 'core/themes/theme_manager.dart';
 import 'core/services/cache_service.dart';
 import 'core/services/notification_service.dart';
+import 'core/services/fcm_token_service.dart';
 import 'core/services/call_service.dart';
 import 'core/services/chat_media_transfer_service.dart';
 import 'core/services/toast_service.dart';
@@ -53,17 +54,6 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   }
 }
 
-Future<void> _syncFcmToken() async {
-  final user = FirebaseAuth.instance.currentUser;
-  if (user == null) return;
-  try {
-    final token = await FirebaseMessaging.instance.getToken();
-    if (token == null || token.isEmpty) return;
-    await FirebaseFirestore.instance.collection('users').doc(user.uid).set(
-      {'fcmToken': token, 'lastTokenUpdate': FieldValue.serverTimestamp()}, SetOptions(merge: true));
-  } catch (e) { debugPrint('❌ FCM token sync error: $e'); }
-}
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
@@ -76,12 +66,14 @@ Future<void> main() async {
     runApp(const _StartupErrorApp());
     return;
   }
+
+  // Register the background callback before runApp, but deliberately defer
+  // permission prompts/token synchronization until the UI is running.
   try {
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-    final fcm = FirebaseMessaging.instance;
-    await fcm.requestPermission(alert: true, badge: true, sound: true);
-    unawaited(_syncFcmToken());
-  } catch (e) { debugPrint('❌ FCM initialization error: $e'); }
+  } catch (e) {
+    debugPrint('❌ FCM background handler registration error: $e');
+  }
 
   await CacheService.init();
   await ChatMediaTransferService.instance.initialize();
@@ -123,11 +115,12 @@ class SehatakApp extends StatefulWidget {
 class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
   final CallService _callService = CallService();
   final NotificationService _notificationService = NotificationService();
-  StreamSubscription<String>? _tokenSubscription;
+  final FcmTokenService _fcmTokenService = FcmTokenService.instance;
   StreamSubscription<User?>? _authNavigationSubscription;
   bool _launchPayloadHandled = false;
   bool _authStatePrimed = false;
   bool _fastNavigationInProgress = false;
+  bool _fcmStarted = false;
 
   @override
   void initState() {
@@ -141,33 +134,43 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
         WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _handleMessageOpened(message); });
       }
     });
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!mounted || _launchPayloadHandled) return;
-      final payload = await _notificationService.getLaunchPayload();
-      if (!mounted || payload == null || payload.isEmpty) return;
-      _launchPayloadHandled = true;
-      await _handleLocalNotificationTap(payload);
-    });
-    _tokenSubscription = FirebaseMessaging.instance.onTokenRefresh.listen((token) async {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null || token.isEmpty) return;
-      try {
-        await FirebaseFirestore.instance.collection('users').doc(user.uid).set(
-          {'fcmToken': token, 'lastTokenUpdate': FieldValue.serverTimestamp()}, SetOptions(merge: true));
-      } catch (e) { debugPrint('❌ FCM refresh sync error: $e'); }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(_initializeFcmAfterRunApp());
+      if (_launchPayloadHandled) return;
+      unawaited(_loadLaunchPayload());
     });
 
     _authNavigationSubscription = FirebaseAuth.instance.authStateChanges().listen((user) {
       if (!_authStatePrimed) {
         _authStatePrimed = true;
-        if (user != null) unawaited(_syncFcmToken());
+        if (user != null) unawaited(_fcmTokenService.syncCurrentToken());
         return;
       }
       if (user != null) {
-        unawaited(_syncFcmToken());
+        unawaited(_fcmTokenService.syncCurrentToken());
         unawaited(_navigateAfterSignInFast(user));
       }
     });
+  }
+
+  Future<void> _initializeFcmAfterRunApp() async {
+    if (_fcmStarted) return;
+    _fcmStarted = true;
+    try {
+      final settings = await FirebaseMessaging.instance.requestPermission(alert: true, badge: true, sound: true);
+      debugPrint('🔔 FCM permission: ${settings.authorizationStatus}');
+    } catch (e) {
+      debugPrint('❌ FCM permission error: $e');
+    }
+    await _fcmTokenService.start();
+  }
+
+  Future<void> _loadLaunchPayload() async {
+    final payload = await _notificationService.getLaunchPayload();
+    if (!mounted || payload == null || payload.isEmpty || _launchPayloadHandled) return;
+    _launchPayloadHandled = true;
+    await _handleLocalNotificationTap(payload);
   }
 
   Future<void> _navigateAfterSignInFast(User user) async {
@@ -176,20 +179,14 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
     try {
       final nav = navigatorKey.currentState;
       if (nav == null) return;
-      nav.pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-        (route) => false,
-      );
+      nav.pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const HomeScreen()), (route) => false);
       try {
         final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get().timeout(const Duration(seconds: 2));
         final role = doc.data()?['role']?.toString();
         if (mounted && (role == 'admin' || role == 'superAdmin')) {
           final current = navigatorKey.currentState;
           if (current != null) {
-            current.pushAndRemoveUntil(
-              MaterialPageRoute(builder: (_) => const PlatformDashboard()),
-              (route) => false,
-            );
+            current.pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const PlatformDashboard()), (route) => false);
           }
         }
       } catch (e) { debugPrint('⚡ Deferred role lookup skipped: $e'); }
@@ -201,7 +198,6 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
   @override
   void dispose() {
     _notificationService.setNotificationTapHandler(null);
-    _tokenSubscription?.cancel();
     _authNavigationSubscription?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -215,7 +211,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
       if (user != null) {
         unawaited(FirebaseFirestore.instance.collection('users').doc(user.uid).set(
           {'isOnline': true, 'lastSeen': FieldValue.serverTimestamp()}, SetOptions(merge: true)));
-        unawaited(_syncFcmToken());
+        unawaited(_fcmTokenService.syncCurrentToken());
       }
       unawaited(ChatMediaTransferService.instance.processPending());
     }
@@ -242,13 +238,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
     if (otherId.isEmpty) return;
     final details = data['participantDetails'] is Map ? Map<String, dynamic>.from(data['participantDetails']) : <String, dynamic>{};
     final other = details[otherId] is Map ? Map<String, dynamic>.from(details[otherId]) : <String, dynamic>{};
-    nav.push(MaterialPageRoute(builder: (_) => ChatRoomScreen(
-      chatId: chatId,
-      otherUserId: otherId,
-      otherUserName: other['name']?.toString() ?? 'محادثة',
-      otherUserImage: other['photoUrl']?.toString(),
-      isGroup: data['isGroup'] == true,
-    )));
+    nav.push(MaterialPageRoute(builder: (_) => ChatRoomScreen(chatId: chatId, otherUserId: otherId, otherUserName: other['name']?.toString() ?? 'محادثة', otherUserImage: other['photoUrl']?.toString(), isGroup: data['isGroup'] == true)));
   }
 
   Future<void> _handleMessage(RemoteMessage message) async {
@@ -260,9 +250,6 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
           callId: callId,
           isVideo: message.data['isVideo']?.toString() == 'true' || message.data['callType']?.toString() == 'video',
         );
-        // Foreground Firestore CallSoundCoordinator is the single owner of
-        // the incoming-call UI. Do not push IncomingCallScreen here as well,
-        // otherwise the same call can stack two acceptance screens.
       }
       return;
     }
@@ -307,13 +294,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
       otherImage = d['photoUrl']?.toString();
     }
     if (otherId.isEmpty) return;
-    nav.push(MaterialPageRoute(builder: (_) => ChatRoomScreen(
-      chatId: chatId,
-      otherUserId: otherId,
-      otherUserName: otherName,
-      otherUserImage: otherImage,
-      isGroup: isGroup,
-    )));
+    nav.push(MaterialPageRoute(builder: (_) => ChatRoomScreen(chatId: chatId, otherUserId: otherId, otherUserName: otherName, otherUserImage: otherImage, isGroup: isGroup)));
   }
 
   @override
