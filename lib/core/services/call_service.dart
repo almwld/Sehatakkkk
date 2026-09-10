@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -98,9 +99,7 @@ class CallService {
     });
     _inCall = active;
     _current = active ? id : null;
-    if (!active) {
-      unawaited(CallSoundCoordinator.instance.stopForCall(id));
-    }
+    if (!active) unawaited(CallSoundCoordinator.instance.stopForCall(id));
     return c;
   }
 
