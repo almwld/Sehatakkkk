@@ -20,14 +20,21 @@ class ChatService {
   }
 
   Stream<List<ChatModel>> streamChats({int limit=50}) => _firestore.collection('chats').where('participants',arrayContains:_uid()).limit(limit).snapshots().map((s){
-    final list=s.docs.map((d)=>ChatModel.fromFirestore(d.id,d.data())).toList();
+    final uid = currentUserId;
+    final list=s.docs.map((d)=>ChatModel.fromFirestore(d.id,d.data())).where((c){
+      if (uid == null) return true;
+      final data = s.docs.firstWhere((d) => d.id == c.id).data();
+      final deletedFor = data['deletedFor'];
+      return deletedFor is! Map || deletedFor[uid] != true;
+    }).toList();
     list.sort((a,b)=>(b.updatedAt??Timestamp(0,0)).compareTo(a.updatedAt??Timestamp(0,0))); return list;
   });
 
   Future<List<ChatModel>> getMoreChats({required int limit, DocumentSnapshot? startAfter}) async {
     Query<Map<String,dynamic>> q=_firestore.collection('chats').where('participants',arrayContains:_uid()).limit(limit);
     if(startAfter!=null) q=q.startAfterDocument(startAfter); final s=await q.get();
-    return s.docs.map((d)=>ChatModel.fromFirestore(d.id,d.data())).toList();
+    final uid = currentUserId;
+    return s.docs.where((d){final deletedFor=d.data()['deletedFor']; return uid==null || deletedFor is! Map || deletedFor[uid]!=true;}).map((d)=>ChatModel.fromFirestore(d.id,d.data())).toList();
   }
 
   Future<String> createChat({required String doctorId,required String doctorName,required String patientName,String? doctorImage,String? patientImage,String? idempotencyKey}) async {
@@ -35,7 +42,7 @@ class ChatService {
     final existing=await _firestore.collection('chats').where('participants',arrayContains:id).get();
     for(final d in existing.docs){final p=List<String>.from(d.data()['participants']??const []);if(p.length==2&&p.contains(doctorId)&&d.data()['isGroup']!=true)return d.id;}
     final ref=_firestore.collection('chats').doc();
-    await ref.set({'participants':[id,doctorId],'participantDetails':{id:{'name':patientName,'photoUrl':patientImage},doctorId:{'name':doctorName,'photoUrl':doctorImage}},'lastMessage':'','lastMessageTime':null,'lastMessageSenderId':null,'unreadCount':{id:0,doctorId:0},'isGroup':false,'isArchived':false,'isPinned':false,'isMuted':false,'createdAt':FieldValue.serverTimestamp(),'updatedAt':FieldValue.serverTimestamp(),if(idempotencyKey?.isNotEmpty==true)'idempotencyKey':idempotencyKey});
+    await ref.set({'participants':[id,doctorId],'participantDetails':{id:{'name':patientName,'photoUrl':patientImage},doctorId:{'name':doctorName,'photoUrl':doctorImage}},'lastMessage':'','lastMessageTime':null,'lastMessageSenderId':null,'unreadCount':{id:0,doctorId:0},'isGroup':false,'isArchived':false,'isPinned':false,'isMuted':false,'pinnedFor':{id:false,doctorId:false},'mutedFor':{id:false,doctorId:false},'createdAt':FieldValue.serverTimestamp(),'updatedAt':FieldValue.serverTimestamp(),if(idempotencyKey?.isNotEmpty==true)'idempotencyKey':idempotencyKey});
     return ref.id;
   }
 
@@ -64,10 +71,11 @@ class ChatService {
   Stream<MessagePaginationResult> streamMessages(String chatId,{int limit=30}){_uid();return _chatRef(chatId).collection('messages').orderBy('timestamp',descending:true).limit(limit).snapshots().map((s)=>MessagePaginationResult(messages:s.docs.map((d)=>MessageModel.fromFirestore(d.id,d.data())).toList(),lastDocument:s.docs.isNotEmpty?s.docs.last:null,hasMore:s.docs.length>=limit));}
   Future<MessagePaginationResult> getMoreMessages({required String chatId,required int limit,DocumentSnapshot? startAfter}) async{await _authorizedChat(chatId);Query<Map<String,dynamic>> q=_chatRef(chatId).collection('messages').orderBy('timestamp',descending:true).limit(limit);if(startAfter!=null)q=q.startAfterDocument(startAfter);final s=await q.get();return MessagePaginationResult(messages:s.docs.map((d)=>MessageModel.fromFirestore(d.id,d.data())).toList(),lastDocument:s.docs.isNotEmpty?s.docs.last:null,hasMore:s.docs.length>=limit);}
   Future<void> archiveChat(String chatId,bool archived)async{await _authorizedChat(chatId);await _chatRef(chatId).update({'isArchived':archived,'updatedAt':FieldValue.serverTimestamp()});}
-  Future<void> pinChat(String chatId,bool pinned)async{await _authorizedChat(chatId);await _chatRef(chatId).update({'isPinned':pinned,'updatedAt':FieldValue.serverTimestamp()});}
-  Future<void> muteChat(String chatId,bool muted)async{await _authorizedChat(chatId);await _chatRef(chatId).update({'isMuted':muted,'updatedAt':FieldValue.serverTimestamp()});}
+  Future<void> pinChat(String chatId,bool pinned)async{final id=_uid();await _authorizedChat(chatId);await _chatRef(chatId).update({'pinnedFor.$id':pinned,'isPinned':pinned,'updatedAt':FieldValue.serverTimestamp()});}
+  Future<void> muteChat(String chatId,bool muted)async{final id=_uid();await _authorizedChat(chatId);await _chatRef(chatId).update({'mutedFor.$id':muted,'isMuted':muted,'updatedAt':FieldValue.serverTimestamp()});}
   Future<void> deleteChat(String chatId)async{await _authorizedChat(chatId);await _chatRef(chatId).update({'deletedFor.${_uid()}':true,'updatedAt':FieldValue.serverTimestamp()});}
   Future<void> deleteMessage(String chatId,String messageId)async{final id=_uid();await _authorizedChat(chatId);final ref=_chatRef(chatId).collection('messages').doc(messageId);final d=await ref.get();if(!d.exists||d.data()?['senderId']!=id)throw Exception('لا يمكن حذف الرسالة');await ref.update({'isDeleted':true,'type':'deleted','text':'تم حذف هذه الرسالة','deletedAt':FieldValue.serverTimestamp()});}
+  Future<void> deleteMessageForMe(String chatId,String messageId)async{final id=_uid();await _authorizedChat(chatId);await _chatRef(chatId).collection('messages').doc(messageId).update({'deletedFor.$id':true});}
   Future<void> addReaction(String chatId,String messageId,String reaction)async{final id=_uid();await _authorizedChat(chatId);if(reaction.trim().isEmpty)return;await _chatRef(chatId).collection('messages').doc(messageId).update({'reactions.$id':reaction.trim()});}
   Future<void> markAsRead(String chatId)async{final id=_uid();await _authorizedChat(chatId);final s=await _chatRef(chatId).collection('messages').where('senderId',isNotEqualTo:id).where('isRead',isEqualTo:false).limit(100).get();final b=_firestore.batch();for(final d in s.docs)b.update(d.reference,{'isRead':true,'readAt':FieldValue.serverTimestamp()});b.update(_chatRef(chatId),{'unreadCount.$id':0});await b.commit();}
 }
