@@ -1406,7 +1406,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
   Widget _buildMainScreen(bool isDark) {
     return Stack(
       children: [
-        _buildBackground(isDark),
+        const SizedBox.shrink(),
         Column(
           children: [
             _buildCustomAppBar(isDark),
