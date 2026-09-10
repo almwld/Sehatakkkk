@@ -185,7 +185,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
     final senderName = message.data['senderName']?.toString() ?? 'محادثة';
     final nav = navigatorKey.currentState;
     if (nav == null) return;
-    nav.push(MaterialPageRoute(builder: (_) => ChatRoomScreen(chatId: chatId, otherUserId: senderId, otherUserName: senderName, isGroup: false));
+    nav.push(MaterialPageRoute(builder: (_) => ChatRoomScreen(chatId: chatId, otherUserId: senderId, otherUserName: senderName, isGroup: false)));
   }
 
   @override
