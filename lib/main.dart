@@ -38,15 +38,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   final notificationService = NotificationService();
   await notificationService.initialize(startCallCoordinator: false);
-  final type = message.data['type']?.toString();
-  if (type == 'incoming_call') {
-    final callId = (message.data['callId'] ?? message.data['id'])?.toString();
-    if (callId != null && callId.isNotEmpty) {
-      await notificationService.showIncomingCallNotification(callerName: message.data['callerName']?.toString() ?? message.notification?.title ?? 'مكالمة واردة', callId: callId, isVideo: message.data['isVideo']?.toString() == 'true' || message.data['callType']?.toString() == 'video');
-    }
-    return;
-  }
-  await notificationService.showMessageNotification(title: message.notification?.title ?? message.data['senderName']?.toString() ?? 'رسالة جديدة', body: message.notification?.body ?? message.data['body']?.toString() ?? 'لديك رسالة جديدة في الدردشة', payload: message.data['chatId']?.toString());
+  // FCM notification messages are displayed by Android/iOS while the app is
+  // backgrounded. Do not create a second local notification here.
 }
 
 Future<void> _syncFcmToken() async {
@@ -101,16 +94,12 @@ Future<void> main() async {
 class _StartupErrorApp extends StatelessWidget {
   const _StartupErrorApp();
   @override
-  Widget build(BuildContext context) => const MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: Scaffold(body: Center(child: Text('تعذر تشغيل التطبيق بسبب خطأ في تهيئة الخدمات الأساسية.'))),
-      );
+  Widget build(BuildContext context) => const MaterialApp(debugShowCheckedModeBanner: false, home: Scaffold(body: Center(child: Text('تعذر تشغيل التطبيق بسبب خطأ في تهيئة الخدمات الأساسية.'))));
 }
 
 class SehatakApp extends StatefulWidget {
   const SehatakApp({super.key});
-  @override
-  State<SehatakApp> createState() => _SehatakAppState();
+  @override State<SehatakApp> createState() => _SehatakAppState();
 }
 
 class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
@@ -122,26 +111,23 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _notificationService.setNotificationTapHandler(_handleLocalNotificationTap);
     FirebaseMessaging.onMessage.listen(_handleMessage);
     FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpened);
     FirebaseMessaging.instance.getInitialMessage().then((message) {
-      if (message != null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) _handleMessageOpened(message);
-        });
-      }
+      if (message != null) WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _handleMessageOpened(message); });
     });
     _tokenSubscription = FirebaseMessaging.instance.onTokenRefresh.listen((token) async {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null || token.isEmpty) return;
-      try {
-        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({'fcmToken': token, 'lastTokenUpdate': FieldValue.serverTimestamp()}, SetOptions(merge: true));
-      } catch (e) { debugPrint('❌ FCM refresh sync error: $e'); }
+      try { await FirebaseFirestore.instance.collection('users').doc(user.uid).set({'fcmToken': token, 'lastTokenUpdate': FieldValue.serverTimestamp()}, SetOptions(merge: true)); }
+      catch (e) { debugPrint('❌ FCM refresh sync error: $e'); }
     });
   }
 
   @override
   void dispose() {
+    _notificationService.setNotificationTapHandler(null);
     _tokenSubscription?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -149,7 +135,6 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed && mounted) {
       Provider.of<UserProvider>(context, listen: false).loadUserSafely();
       final user = FirebaseAuth.instance.currentUser;
@@ -160,13 +145,37 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
     }
   }
 
+  Future<void> _handleLocalNotificationTap(String? payload) async {
+    if (!mounted || payload == null || payload.isEmpty) return;
+    final nav = navigatorKey.currentState;
+    if (nav == null) return;
+    if (payload.startsWith('incoming_call:')) {
+      final callId = payload.substring('incoming_call:'.length);
+      if (callId.isEmpty) return;
+      await _notificationService.cancelIncomingCallNotification(callId);
+      if (mounted) await _callService.handleIncomingCallById(context, callId);
+      return;
+    }
+    final chatId = payload;
+    final chat = await FirebaseFirestore.instance.collection('chats').doc(chatId).get();
+    if (!chat.exists || !mounted) return;
+    final data = chat.data() ?? {};
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    final participants = List<String>.from(data['participants'] ?? const <String>[]);
+    final otherId = participants.firstWhere((id) => id != uid, orElse: () => '');
+    if (otherId.isEmpty) return;
+    final details = data['participantDetails'] is Map ? Map<String, dynamic>.from(data['participantDetails']) : <String, dynamic>{};
+    final other = details[otherId] is Map ? Map<String, dynamic>.from(details[otherId]) : <String, dynamic>{};
+    nav.push(MaterialPageRoute(builder: (_) => ChatRoomScreen(chatId: chatId, otherUserId: otherId, otherUserName: other['name']?.toString() ?? 'محادثة', otherUserImage: other['photoUrl']?.toString(), isGroup: data['isGroup'] == true)));
+  }
+
   Future<void> _handleMessage(RemoteMessage message) async {
     if (message.data['type'] == 'incoming_call') {
       final callId = (message.data['callId'] ?? message.data['id'])?.toString();
       if (callId != null && callId.isNotEmpty) {
         await _notificationService.showIncomingCallNotification(callerName: message.data['callerName']?.toString() ?? message.notification?.title ?? 'مكالمة واردة', callId: callId, isVideo: message.data['isVideo']?.toString() == 'true' || message.data['callType']?.toString() == 'video');
+        if (mounted) await _callService.handleIncomingCall(context, message);
       }
-      if (mounted) await _callService.handleIncomingCall(context, message);
       return;
     }
     await _notificationService.showMessageNotification(title: message.notification?.title ?? message.data['senderName']?.toString() ?? 'رسالة جديدة', body: message.notification?.body ?? message.data['body']?.toString() ?? 'لديك رسالة جديدة في الدردشة', payload: message.data['chatId']?.toString());
@@ -175,41 +184,37 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
   Future<void> _handleMessageOpened(RemoteMessage message) async {
     if (message.data['type'] == 'incoming_call') {
       final callId = (message.data['callId'] ?? message.data['id'])?.toString();
-      if (callId != null && callId.isNotEmpty) await _notificationService.cancelIncomingCallNotification(callId);
-      if (mounted) await _callService.handleIncomingCall(context, message);
+      if (callId != null && callId.isNotEmpty) { await _notificationService.cancelIncomingCallNotification(callId); if (mounted) await _callService.handleIncomingCall(context, message); }
       return;
     }
     final chatId = message.data['chatId']?.toString();
     if (chatId == null || chatId.isEmpty) return;
-    final senderId = message.data['senderId']?.toString() ?? '';
-    final senderName = message.data['senderName']?.toString() ?? 'محادثة';
+    await _openChatFromNotification(chatId, message.data['senderId']?.toString(), message.data['senderName']?.toString());
+  }
+
+  Future<void> _openChatFromNotification(String chatId, String? senderId, String? senderName) async {
     final nav = navigatorKey.currentState;
     if (nav == null) return;
-    nav.push(MaterialPageRoute(builder: (_) => ChatRoomScreen(chatId: chatId, otherUserId: senderId, otherUserName: senderName, isGroup: false)));
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    var otherId = senderId ?? '';
+    var otherName = senderName ?? 'محادثة';
+    String? otherImage;
+    bool isGroup = false;
+    final chat = await FirebaseFirestore.instance.collection('chats').doc(chatId).get();
+    if (chat.exists) {
+      final data = chat.data() ?? {};
+      isGroup = data['isGroup'] == true;
+      final participants = List<String>.from(data['participants'] ?? const <String>[]);
+      if (otherId.isEmpty) otherId = participants.firstWhere((id) => id != uid, orElse: () => '');
+      final details = data['participantDetails'] is Map ? Map<String, dynamic>.from(data['participantDetails']) : <String, dynamic>{};
+      final d = details[otherId] is Map ? Map<String, dynamic>.from(details[otherId]) : <String, dynamic>{};
+      otherName = d['name']?.toString() ?? otherName;
+      otherImage = d['photoUrl']?.toString();
+    }
+    if (otherId.isEmpty) return;
+    nav.push(MaterialPageRoute(builder: (_) => ChatRoomScreen(chatId: chatId, otherUserId: otherId, otherUserName: otherName, otherUserImage: otherImage, isGroup: isGroup)));
   }
 
   @override
-  Widget build(BuildContext context) => BlocBuilder<ThemeBloc, ThemeState>(
-        builder: (context, themeState) => Consumer<FontSizeProvider>(
-          builder: (context, fontProvider, child) => MaterialApp.router(
-            title: 'صحتك - Sehatak',
-            debugShowCheckedModeBanner: false,
-            locale: const Locale('ar', 'SA'),
-            theme: ThemeManager.lightTheme,
-            darkTheme: ThemeManager.darkTheme,
-            themeMode: themeState.themeMode,
-            localizationsDelegates: const [
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            supportedLocales: const [Locale('ar', 'SA'), Locale('en', 'US')],
-            builder: (context, child) => MediaQuery(
-              data: MediaQuery.of(context).copyWith(textScaleFactor: fontProvider.fontScale),
-              child: Directionality(textDirection: TextDirection.rtl, child: child!),
-            ),
-            routerConfig: AppRouter.router,
-          ),
-        ),
-      );
+  Widget build(BuildContext context) => BlocBuilder<ThemeBloc, ThemeState>(builder: (context, themeState) => Consumer<FontSizeProvider>(builder: (context, fontProvider, child) => MaterialApp.router(title: 'صحتك - Sehatak', debugShowCheckedModeBanner: false, locale: const Locale('ar', 'SA'), theme: ThemeManager.lightTheme, darkTheme: ThemeManager.darkTheme, themeMode: themeState.themeMode, localizationsDelegates: const [GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate], supportedLocales: const [Locale('ar', 'SA'), Locale('en', 'US')], builder: (context, child) => MediaQuery(data: MediaQuery.of(context).copyWith(textScaleFactor: fontProvider.fontScale), child: Directionality(textDirection: TextDirection.rtl, child: child!)), routerConfig: AppRouter.router)));
 }
