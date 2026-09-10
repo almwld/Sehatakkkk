@@ -1,34 +1,17 @@
-import 'package:sehatak/core/models/user_model.dart';
+import 'package:sehatak/core/constants/roles.dart';
 
 class AppRoles {
   static const List<String> allRoles = [
-    'user',
-    'doctor',
-    'nurse',
-    'midwife',
-    'physiotherapist',
-    'pharmacist',
-    'lab',
-    'paramedic',
-    'delivery',
-    'service',
-    'veterinarian',
-    'admin',
+    'user', 'doctor', 'nurse', 'midwife', 'physiotherapist', 'pharmacist',
+    'lab', 'paramedic', 'delivery', 'service', 'veterinarian', 'admin',
   ];
 
-  static const List<String> rolesNeedingVerification = [
-    'doctor',
-    'pharmacist',
-    'lab',
-  ];
+  static const List<String> rolesNeedingVerification = ['doctor', 'pharmacist', 'lab'];
 
-  static bool needsVerification(String role) {
-    return rolesNeedingVerification.contains(role);
-  }
+  static bool needsVerification(String role) => rolesNeedingVerification.contains(role);
 
   static String getRoleName(String role) {
     switch (role) {
-      case 'user': return 'مستخدم';
       case 'doctor': return 'طبيب';
       case 'nurse': return 'ممرض';
       case 'midwife': return 'قابلة وتوليد';
@@ -59,4 +42,3 @@ class AppRoles {
     }
   }
 }
-
