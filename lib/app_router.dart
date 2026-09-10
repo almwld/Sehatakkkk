@@ -13,6 +13,7 @@ import 'package:sehatak/presentation/screens/doctor/doctor_details_screen.dart';
 import 'package:sehatak/presentation/screens/doctor/doctors_list_screen.dart';
 import 'package:sehatak/presentation/screens/emergencies/emergency_numbers.dart';
 import 'package:sehatak/presentation/screens/home/home_screen.dart';
+import 'package:sehatak/presentation/screens/hospital/hospital_screen.dart';
 import 'package:sehatak/presentation/screens/lab/labs_list_screen.dart';
 import 'package:sehatak/presentation/screens/map/interactive_map_screen.dart';
 import 'package:sehatak/presentation/screens/more/more_screen.dart';
@@ -39,6 +40,7 @@ class AppRouter {
   static const String doctorDetails = '/doctor/:id';
   static const String pharmacy = '/pharmacy';
   static const String labs = '/labs';
+  static const String hospitals = '/hospitals';
   static const String chat = '/chat';
   static const String more = '/more';
   static const String dashboard = '/dashboard';
@@ -79,22 +81,33 @@ class AppRouter {
         ),
       ),
       GoRoute(path: pharmacy, builder: (_, __) => const PharmacyScreen()),
-      GoRoute(path: pharmacyDashboard, builder: (_, __) => const PharmacyDashboard()),
-      GoRoute(path: marketplaceAdmin, builder: (_, __) => const MarketplaceAdminDashboard()),
+      GoRoute(
+          path: pharmacyDashboard,
+          builder: (_, __) => const PharmacyDashboard()),
+      GoRoute(
+          path: marketplaceAdmin,
+          builder: (_, __) => const MarketplaceAdminDashboard()),
       GoRoute(path: labs, builder: (_, __) => const LabsListScreen()),
+      GoRoute(path: hospitals, builder: (_, __) => const HospitalScreen()),
       GoRoute(path: chat, builder: (_, __) => const ChatScreen()),
       GoRoute(path: more, builder: (_, __) => const MoreScreen()),
-      GoRoute(path: dashboard, builder: (_, __) => const RoleBasedDashboardScreen()),
+      GoRoute(
+          path: dashboard,
+          builder: (_, __) => const RoleBasedDashboardScreen()),
       GoRoute(path: profile, builder: (_, __) => const PatientProfile()),
-      GoRoute(path: appointments, builder: (_, __) => const PatientAppointments()),
-      GoRoute(path: notifications, builder: (_, __) => const NotificationsScreen()),
+      GoRoute(
+          path: appointments, builder: (_, __) => const PatientAppointments()),
+      GoRoute(
+          path: notifications, builder: (_, __) => const NotificationsScreen()),
       GoRoute(path: cart, builder: (_, __) => const CartScreen()),
       GoRoute(path: wallet, builder: (_, __) => const WalletScreen()),
       GoRoute(path: map, builder: (_, __) => const InteractiveMapScreen()),
-      GoRoute(path: consultation, builder: (_, __) => const ConsultationScreen()),
+      GoRoute(
+          path: consultation, builder: (_, __) => const ConsultationScreen()),
       GoRoute(path: services, builder: (_, __) => const ServicesScreen()),
       GoRoute(path: emergency, builder: (_, __) => const EmergencyNumbers()),
-      GoRoute(path: bloodDonation, builder: (_, __) => const BloodDonationScreen()),
+      GoRoute(
+          path: bloodDonation, builder: (_, __) => const BloodDonationScreen()),
       GoRoute(path: settings, builder: (_, __) => const SettingsScreen()),
       GoRoute(
         path: search,
@@ -111,43 +124,71 @@ class AppRouter {
     final name = routeSettings.name ?? home;
     switch (name) {
       case splash:
-        return MaterialPageRoute(builder: (_) => const SplashScreen(), settings: routeSettings);
+        return MaterialPageRoute(
+            builder: (_) => const SplashScreen(), settings: routeSettings);
       case home:
-        return MaterialPageRoute(builder: (_) => const HomeScreen(), settings: routeSettings);
+        return MaterialPageRoute(
+            builder: (_) => const HomeScreen(), settings: routeSettings);
       case auth:
-        return MaterialPageRoute(builder: (_) => const AuthScreen(), settings: routeSettings);
+        return MaterialPageRoute(
+            builder: (_) => const AuthScreen(), settings: routeSettings);
       case doctors:
-        return MaterialPageRoute(builder: (_) => const DoctorsListScreen(), settings: routeSettings);
+        return MaterialPageRoute(
+            builder: (_) => const DoctorsListScreen(), settings: routeSettings);
       case pharmacy:
-        return MaterialPageRoute(builder: (_) => const PharmacyScreen(), settings: routeSettings);
+        return MaterialPageRoute(
+            builder: (_) => const PharmacyScreen(), settings: routeSettings);
       case labs:
-        return MaterialPageRoute(builder: (_) => const LabsListScreen(), settings: routeSettings);
+        return MaterialPageRoute(
+            builder: (_) => const LabsListScreen(), settings: routeSettings);
+      case hospitals:
+        return MaterialPageRoute(
+            builder: (_) => const HospitalScreen(), settings: routeSettings);
       case chat:
-        return MaterialPageRoute(builder: (_) => const ChatScreen(), settings: routeSettings);
+        return MaterialPageRoute(
+            builder: (_) => const ChatScreen(), settings: routeSettings);
       case more:
-        return MaterialPageRoute(builder: (_) => const MoreScreen(), settings: routeSettings);
+        return MaterialPageRoute(
+            builder: (_) => const MoreScreen(), settings: routeSettings);
       case dashboard:
-        return MaterialPageRoute(builder: (_) => const RoleBasedDashboardScreen(), settings: routeSettings);
+        return MaterialPageRoute(
+            builder: (_) => const RoleBasedDashboardScreen(),
+            settings: routeSettings);
       case profile:
-        return MaterialPageRoute(builder: (_) => const PatientProfile(), settings: routeSettings);
+        return MaterialPageRoute(
+            builder: (_) => const PatientProfile(), settings: routeSettings);
       case appointments:
-        return MaterialPageRoute(builder: (_) => const PatientAppointments(), settings: routeSettings);
+        return MaterialPageRoute(
+            builder: (_) => const PatientAppointments(),
+            settings: routeSettings);
       case notifications:
-        return MaterialPageRoute(builder: (_) => const NotificationsScreen(), settings: routeSettings);
+        return MaterialPageRoute(
+            builder: (_) => const NotificationsScreen(),
+            settings: routeSettings);
       case cart:
-        return MaterialPageRoute(builder: (_) => const CartScreen(), settings: routeSettings);
+        return MaterialPageRoute(
+            builder: (_) => const CartScreen(), settings: routeSettings);
       case map:
-        return MaterialPageRoute(builder: (_) => const InteractiveMapScreen(), settings: routeSettings);
+        return MaterialPageRoute(
+            builder: (_) => const InteractiveMapScreen(),
+            settings: routeSettings);
       case consultation:
-        return MaterialPageRoute(builder: (_) => const ConsultationScreen(), settings: routeSettings);
+        return MaterialPageRoute(
+            builder: (_) => const ConsultationScreen(),
+            settings: routeSettings);
       case services:
-        return MaterialPageRoute(builder: (_) => const ServicesScreen(), settings: routeSettings);
+        return MaterialPageRoute(
+            builder: (_) => const ServicesScreen(), settings: routeSettings);
       case emergency:
-        return MaterialPageRoute(builder: (_) => const EmergencyNumbers(), settings: routeSettings);
+        return MaterialPageRoute(
+            builder: (_) => const EmergencyNumbers(), settings: routeSettings);
       case bloodDonation:
-        return MaterialPageRoute(builder: (_) => const BloodDonationScreen(), settings: routeSettings);
+        return MaterialPageRoute(
+            builder: (_) => const BloodDonationScreen(),
+            settings: routeSettings);
       case settings:
-        return MaterialPageRoute(builder: (_) => const SettingsScreen(), settings: routeSettings);
+        return MaterialPageRoute(
+            builder: (_) => const SettingsScreen(), settings: routeSettings);
       case search:
         final args = routeSettings.arguments;
         final query = args is String ? args : null;
@@ -156,17 +197,23 @@ class AppRouter {
           settings: routeSettings,
         );
       case articles:
-        return MaterialPageRoute(builder: (_) => const ArticlesScreen(), settings: routeSettings);
+        return MaterialPageRoute(
+            builder: (_) => const ArticlesScreen(), settings: routeSettings);
       case community:
-        return MaterialPageRoute(builder: (_) => const CommunityScreen(), settings: routeSettings);
+        return MaterialPageRoute(
+            builder: (_) => const CommunityScreen(), settings: routeSettings);
       case pharmacyDashboard:
-        return MaterialPageRoute(builder: (_) => const PharmacyDashboard(), settings: routeSettings);
+        return MaterialPageRoute(
+            builder: (_) => const PharmacyDashboard(), settings: routeSettings);
       case marketplaceAdmin:
-        return MaterialPageRoute(builder: (_) => const MarketplaceAdminDashboard(), settings: routeSettings);
+        return MaterialPageRoute(
+            builder: (_) => const MarketplaceAdminDashboard(),
+            settings: routeSettings);
       default:
         if (name.startsWith('/doctor/')) {
           return MaterialPageRoute(
-            builder: (_) => DoctorDetailsScreen(doctorId: name.substring('/doctor/'.length)),
+            builder: (_) => DoctorDetailsScreen(
+                doctorId: name.substring('/doctor/'.length)),
             settings: routeSettings,
           );
         }

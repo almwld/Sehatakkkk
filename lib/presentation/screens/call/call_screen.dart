@@ -15,6 +15,7 @@ import 'package:sehatak/core/constants/app_colors.dart';
 
 class CallScreen extends StatefulWidget {
   final String chatId;
+  final String? callId;
   final String doctorName;
   final String doctorId;
   final bool isVideo;
@@ -24,6 +25,7 @@ class CallScreen extends StatefulWidget {
   const CallScreen({
     super.key,
     required this.chatId,
+    this.callId,
     required this.doctorName,
     required this.doctorId,
     this.isVideo = true,
@@ -95,7 +97,8 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
       if (result == ConnectivityResult.none) {
         setState(() {
           _isConnecting = false;
-          _errorMessage = '⚠️ لا يوجد اتصال بالإنترنت. يرجى التحقق من الشبكة والمحاولة مرة أخرى.';
+          _errorMessage =
+              '⚠️ لا يوجد اتصال بالإنترنت. يرجى التحقق من الشبكة والمحاولة مرة أخرى.';
         });
         _showNoInternetDialog();
       } else {
@@ -115,7 +118,8 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
       barrierDismissible: false,
       builder: (_) => AlertDialog(
         title: const Text('⚠️ لا يوجد إنترنت'),
-        content: const Text('يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.'),
+        content:
+            const Text('يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.'),
         actions: [
           TextButton(
             onPressed: () {
@@ -605,9 +609,7 @@ class _CallScreenState extends State<CallScreen> with WidgetsBindingObserver {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Text(
-              _errorMessage.isNotEmpty
-                  ? _errorMessage
-                  : 'جاري الاتصال...',
+              _errorMessage.isNotEmpty ? _errorMessage : 'جاري الاتصال...',
               style: TextStyle(
                 color: _errorMessage.isNotEmpty ? Colors.red : Colors.white,
                 fontSize: 18,

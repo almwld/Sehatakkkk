@@ -1,4 +1,3 @@
-cat > lib/presentation/screens/chat/chat_room_screen.dart << 'CHATROOMEOF'
 // ============================================================
 // 🌌 شاشة الدردشة - النموذج الموحد الشامل الكامل
 // ============================================================
@@ -189,10 +188,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
       _typingSubscription;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>?
       _userStatusSubscription;
-  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>?
-      _muteSubscription;
-  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>?
-      _pinSubscription;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _muteSubscription;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _pinSubscription;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>?
       _blockSubscription;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
@@ -564,7 +561,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
 
     final indices = <int>[];
     for (int i = 0; i < _messages.length; i++) {
-      if (_messages[i].text.toLowerCase().contains(_searchQuery.toLowerCase())) {
+      if (_messages[i]
+          .text
+          .toLowerCase()
+          .contains(_searchQuery.toLowerCase())) {
         indices.add(i);
       }
     }
@@ -912,7 +912,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
       _recordingAmplitude = 0;
     });
 
-    _recordingTimer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+    _recordingTimer =
+        Timer.periodic(const Duration(milliseconds: 100), (timer) {
       if (mounted) {
         setState(() {
           _recordingDuration += const Duration(milliseconds: 100);
@@ -930,7 +931,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
       _isRecording = false;
       _recordingAmplitude = 0;
     });
-    ToastService.showInfo('⏹️ تم إيقاف التسجيل (${_recordingDuration.inSeconds}s)');
+    ToastService.showInfo(
+        '⏹️ تم إيقاف التسجيل (${_recordingDuration.inSeconds}s)');
     // TODO: حفظ التسجيل في Firebase Storage
   }
 
@@ -1320,7 +1322,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
 
   void _forwardSelectedMessages() {
     if (_forwardMessages.isEmpty) return;
-    ToastService.showInfo('📤 جاري إعادة توجيه ${_forwardMessages.length} رسالة');
+    ToastService.showInfo(
+        '📤 جاري إعادة توجيه ${_forwardMessages.length} رسالة');
     setState(() {
       _isForwarding = false;
       _forwardMessages.clear();
@@ -1424,7 +1427,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
                   }
                 },
                 builder: (context, state) {
-                  if (state is MessagesLoading) return _buildLoadingState(isDark);
+                  if (state is MessagesLoading)
+                    return _buildLoadingState(isDark);
                   if (state is MessagesError) {
                     return _buildErrorState(isDark, state.message);
                   }
@@ -1591,8 +1595,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
                         color: isDark ? Colors.grey[800] : Colors.white,
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color:
-                              isDark ? Colors.grey[600]! : Colors.grey[300]!,
+                          color: isDark ? Colors.grey[600]! : Colors.grey[300]!,
                           width: 1,
                         ),
                       ),
@@ -1689,8 +1692,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
                           width: 6,
                           height: 6,
                           decoration: BoxDecoration(
-                            color:
-                                isDark ? Colors.grey[600] : Colors.grey[400],
+                            color: isDark ? Colors.grey[600] : Colors.grey[400],
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -1959,9 +1961,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
                             icon: Icon(
                               Icons.arrow_upward,
                               size: 16,
-                              color: isDark
-                                  ? Colors.grey[400]
-                                  : Colors.grey[600],
+                              color:
+                                  isDark ? Colors.grey[400] : Colors.grey[600],
                             ),
                             onPressed: _navigateToNextHighlight,
                           ),
@@ -1969,9 +1970,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
                             icon: Icon(
                               Icons.close,
                               size: 16,
-                              color: isDark
-                                  ? Colors.grey[400]
-                                  : Colors.grey[600],
+                              color:
+                                  isDark ? Colors.grey[400] : Colors.grey[600],
                             ),
                             onPressed: _toggleSearch,
                           ),
@@ -2211,66 +2211,69 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
         position: _slideAnimation,
         child: ScaleTransition(
           scale: _scaleAnimation,
-          child: ListView.builder(
-            controller: _scrollController,
-            reverse: true,
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            itemCount: messages.length + (state.isLoadingMore ? 1 : 0),
-            itemBuilder: (context, index) {
-              if (index == messages.length) {
-                return const Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Center(
-                    child: SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+          child: ChatBackground(
+            child: ListView.builder(
+              controller: _scrollController,
+              reverse: true,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              itemCount: messages.length + (state.isLoadingMore ? 1 : 0),
+              itemBuilder: (context, index) {
+                if (index == messages.length) {
+                  return const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Center(
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
                     ),
-                  ),
+                  );
+                }
+
+                final message = messages[index];
+                final isMe = message.senderId == _auth.currentUser?.uid;
+
+                final showDate = index == 0 ||
+                    (message.timestamp != null &&
+                        messages[index - 1].timestamp != null &&
+                        _isDifferentDay(
+                          message.timestamp!.toDate(),
+                          messages[index - 1].timestamp!.toDate(),
+                        ));
+
+                return Column(
+                  children: [
+                    if (showDate)
+                      _buildDateDivider(message.timestamp?.toDate(), isDark),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      child: MessageBubble(
+                        message: message.toFirestore(),
+                        isMe: isMe,
+                        onReply: () {
+                          setState(() {
+                            _isReplying = true;
+                            _replyMessage = message;
+                            _replyToMessageId = message.id;
+                          });
+                        },
+                        onDelete: () => _deleteMessage(message),
+                        onReaction: (emoji) {
+                          context.read<MessagesBloc>().add(
+                                AddReaction(
+                                  chatId: widget.chatId,
+                                  messageId: message.id,
+                                  emoji: emoji,
+                                ),
+                              );
+                        },
+                      ),
+                    ),
+                  ],
                 );
-              }
-
-              final message = messages[index];
-              final isMe = message.senderId == _auth.currentUser?.uid;
-
-              final showDate = index == 0 ||
-                  (message.timestamp != null &&
-                      messages[index - 1].timestamp != null &&
-                      _isDifferentDay(
-                        message.timestamp!,
-                        messages[index - 1].timestamp!,
-                      ));
-
-              return Column(
-                children: [
-                  if (showDate) _buildDateDivider(message.timestamp, isDark),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    child: MessageBubble(
-                      message: message.toFirestore(),
-                      isMe: isMe,
-                      onReply: () {
-                        setState(() {
-                          _isReplying = true;
-                          _replyMessage = message;
-                          _replyToMessageId = message.id;
-                        });
-                      },
-                      onDelete: () => _deleteMessage(message),
-                      onReaction: (emoji) {
-                        context.read<MessagesBloc>().add(
-                              AddReaction(
-                                chatId: widget.chatId,
-                                messageId: message.id,
-                                emoji: emoji,
-                              ),
-                            );
-                      },
-                    ),
-                  ),
-                ],
-              );
-            },
+              },
+            ),
           ),
         ),
       ),
@@ -2573,13 +2576,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
             icon: Icons.image,
             label: 'صورة',
             color: Colors.blue,
-            onTap: _sendImage,
+            onTap: () => _sendImage(null),
           ),
           _buildAttachmentItem(
             icon: Icons.video_library,
             label: 'فيديو',
             color: Colors.purple,
-            onTap: _sendImage,
+            onTap: () => _sendImage(null),
           ),
           _buildAttachmentItem(
             icon: Icons.insert_drive_file,
@@ -2721,8 +2724,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
                     value: _uploadProgress,
                     backgroundColor:
                         isDark ? Colors.grey[800] : Colors.grey[200],
-                    valueColor: const AlwaysStoppedAnimation<Color>(
-                        AppColors.primary),
+                    valueColor:
+                        const AlwaysStoppedAnimation<Color>(AppColors.primary),
                     minHeight: 4,
                   ),
                 ),
@@ -2983,4 +2986,3 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
     });
   }
 }
-CHATROOMEOF
