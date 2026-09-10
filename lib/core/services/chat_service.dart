@@ -53,13 +53,25 @@ class ChatService {
 
   Stream<MessagePaginationResult> streamMessages(String chatId,{int limit=30}) { _uid(); return _firestore.collection('chats').doc(chatId).collection('messages').orderBy('timestamp',descending:true).limit(limit).snapshots().map((s)=>MessagePaginationResult(messages:s.docs.map((d)=>MessageModel.fromFirestore(d.id,d.data())).toList(),lastDocument:s.docs.isNotEmpty?s.docs.last:null,hasMore:s.docs.length>=limit)); }
 
-  Future<List<MessageModel>> getMoreMessages({required String chatId,required int limit,DocumentSnapshot? startAfter}) async { _uid(); Query<Map<String,dynamic>> q=_firestore.collection('chats').doc(chatId).collection('messages').orderBy('timestamp',descending:true).limit(limit); if(startAfter!=null)q=q.startAfterDocument(startAfter); final s=await q.get(); return s.docs.map((d)=>MessageModel.fromFirestore(d.id,d.data())).toList(); }
+  Future<MessagePaginationResult> getMoreMessages({required String chatId,required int limit,DocumentSnapshot? startAfter}) async {
+    _uid();
+    Query<Map<String,dynamic>> q=_firestore.collection('chats').doc(chatId).collection('messages').orderBy('timestamp',descending:true).limit(limit);
+    if(startAfter!=null)q=q.startAfterDocument(startAfter);
+    final s=await q.get();
+    return MessagePaginationResult(messages:s.docs.map((d)=>MessageModel.fromFirestore(d.id,d.data())).toList(),lastDocument:s.docs.isNotEmpty?s.docs.last:null,hasMore:s.docs.length>=limit);
+  }
 
-  Future<void> archiveChat({required String chatId,required bool archived}) async { final id=_uid(); await _firestore.collection('chats').doc(chatId).update({'isArchived':archived,'updatedAt':FieldValue.serverTimestamp()}); }
-  Future<void> pinChat({required String chatId,required bool pinned}) async { _uid(); await _firestore.collection('chats').doc(chatId).update({'isPinned':pinned,'updatedAt':FieldValue.serverTimestamp()}); }
-  Future<void> muteChat({required String chatId,required bool muted}) async { _uid(); await _firestore.collection('chats').doc(chatId).update({'isMuted':muted,'updatedAt':FieldValue.serverTimestamp()}); }
-  Future<void> deleteMessage({required String chatId,required String messageId}) async { final id=_uid(); final ref=_firestore.collection('chats').doc(chatId).collection('messages').doc(messageId); final d=await ref.get(); if(!d.exists||d.data()?['senderId']!=id)throw Exception('لا يمكن حذف الرسالة'); await ref.update({'isDeleted':true,'type':'deleted','text':'تم حذف هذه الرسالة'}); }
-  Future<void> addReaction({required String chatId,required String messageId,required String reaction}) async { final id=_uid(); if(reaction.trim().isEmpty)return; await _firestore.collection('chats').doc(chatId).collection('messages').doc(messageId).update({'reactions.$id':reaction}); }
+  Future<void> archiveChat(String chatId, bool archived) async { _uid(); await _firestore.collection('chats').doc(chatId).update({'isArchived':archived,'updatedAt':FieldValue.serverTimestamp()}); }
+  Future<void> pinChat(String chatId, bool pinned) async { _uid(); await _firestore.collection('chats').doc(chatId).update({'isPinned':pinned,'updatedAt':FieldValue.serverTimestamp()}); }
+  Future<void> muteChat(String chatId, bool muted) async { _uid(); await _firestore.collection('chats').doc(chatId).update({'isMuted':muted,'updatedAt':FieldValue.serverTimestamp()}); }
+  Future<void> deleteMessage(String chatId, String messageId) async { final id=_uid(); final ref=_firestore.collection('chats').doc(chatId).collection('messages').doc(messageId); final d=await ref.get(); if(!d.exists||d.data()?['senderId']!=id)throw Exception('لا يمكن حذف الرسالة'); await ref.update({'isDeleted':true,'type':'deleted','text':'تم حذف هذه الرسالة'}); }
+  Future<void> addReaction(String chatId, String messageId, String reaction) async { final id=_uid(); if(reaction.trim().isEmpty)return; await _firestore.collection('chats').doc(chatId).collection('messages').doc(messageId).update({'reactions.$id':reaction}); }
   Future<void> markAsRead(String chatId) async { final id=_uid(); final chat=_firestore.collection('chats').doc(chatId); final s=await chat.collection('messages').where('senderId',isNotEqualTo:id).where('isRead',isEqualTo:false).limit(100).get(); final b=_firestore.batch(); for(final d in s.docs)b.update(d.reference,{'isRead':true,'readAt':FieldValue.serverTimestamp()}); b.update(chat,{'unreadCount.$id':0}); await b.commit(); }
 }
-class MessagePaginationResult { final List<MessageModel> messages; final DocumentSnapshot? lastDocument; final bool hasMore; MessagePaginationResult({required this.messages,this.lastDocument,required this.hasMore}); }
+
+class MessagePaginationResult {
+  final List<MessageModel> messages;
+  final DocumentSnapshot? lastDocument;
+  final bool hasMore;
+  MessagePaginationResult({required this.messages,this.lastDocument,required this.hasMore});
+}
