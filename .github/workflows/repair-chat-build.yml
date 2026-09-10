@@ -40,21 +40,19 @@ jobs:
           s = s.replace("with SingleTickerProviderStateMixin, WidgetsBindingObserver, TickerProviderStateMixin", "with WidgetsBindingObserver, TickerProviderStateMixin", 1)
           s = s.replace("final query = _searchQuery.toLowerCase();", "final query = (_searchQuery).toLowerCase();", 1)
           s = s.replace("final String text = message.text;", "final String text = message.text ?? '';", 1)
-          if "import 'package:sehatak/presentation/screens/chat/widgets/chat_background.dart';" not in s:
-              s = s.replace("import 'package:sehatak/presentation/screens/chat/widgets/message_bubble.dart';", "import 'package:sehatak/presentation/screens/chat/widgets/chat_background.dart';\nimport 'package:sehatak/presentation/screens/chat/widgets/message_bubble.dart';", 1)
-          marker = """          child: ListView.builder(\n            controller: _scrollController,"""
-          if 'ChatBackground(child: ListView.builder(' not in s and marker in s:
-              s = s.replace(marker, """          child: ChatBackground(\n            child: ListView.builder(\n              controller: _scrollController,""", 1)
-              tail = """          ),\n        ),\n      ),\n    );\n  }\n\n  bool _isDifferentDay"""
-              if tail not in s:
-                  raise SystemExit('ChatBackground closing anchor not found')
-              s = s.replace(tail, """            ),\n          ),\n        ),\n      ),\n    );\n  }\n\n  bool _isDifferentDay""", 1)
+
+          # The old gradient/background layer was covering the approved SVG wallpaper.
+          # Keep the existing ChatBackground as the single source of truth.
+          s = s.replace("        _buildBackground(isDark),", "        const SizedBox.shrink(),", 1)
+          s = s.replace("        _buildBackground(isDark),\n", "", 1)
+
           p.write_text(s, encoding='utf-8')
 
           p = Path('lib/presentation/screens/call/call_screen.dart')
           s = p.read_text(encoding='utf-8')
           if 'final String? callId;' not in s:
               s = s.replace('  final String chatId;\n', '  final String chatId;\n  final String? callId;\n', 1)
+          if '    this.callId,' not in s:
               s = s.replace('    required this.chatId,\n', '    required this.chatId,\n    this.callId,\n', 1)
           p.write_text(s, encoding='utf-8')
 
@@ -70,18 +68,24 @@ jobs:
               s = s.replace("      case labs:\n        return MaterialPageRoute(builder: (_) => const LabsListScreen(), settings: routeSettings);", "      case labs:\n        return MaterialPageRoute(builder: (_) => const LabsListScreen(), settings: routeSettings);\n      case hospitals:\n        return MaterialPageRoute(builder: (_) => const HospitalScreen(), settings: routeSettings);", 1)
           p.write_text(s, encoding='utf-8')
 
-      - name: Cleanup and format
+      - name: Verify source changes
         run: |
-          sed -i "1{/^cat > lib\/presentation\/screens\/chat\/chat_room_screen\.dart << 'CHATROOMEOF'$/d;}" lib/presentation/screens/chat/chat_room_screen.dart
-          sed -i "/^CHATROOMEOF$/d" lib/presentation/screens/chat/chat_room_screen.dart
-          dart format lib/presentation/screens/chat/chat_room_screen.dart lib/presentation/screens/call/call_screen.dart lib/app_router.dart
+          ! grep -q "^cat > lib/presentation/screens/chat/chat_room_screen.dart" lib/presentation/screens/chat/chat_room_screen.dart
+          ! grep -q "^CHATROOMEOF$" lib/presentation/screens/chat/chat_room_screen.dart
+          grep -q "sehatak_chat_wallpaper_light.svg" lib/presentation/screens/chat/widgets/chat_background.dart
+          grep -q "sehatak_chat_wallpaper_dark.svg" lib/presentation/screens/chat/widgets/chat_background.dart
+          grep -q "const SizedBox.shrink()," lib/presentation/screens/chat/chat_room_screen.dart
           git diff --check
+
+      - name: Format sources
+        run: |
+          dart format lib/presentation/screens/chat/chat_room_screen.dart lib/presentation/screens/call/call_screen.dart lib/app_router.dart
 
       - name: Commit repaired sources
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add lib/presentation/screens/chat/chat_room_screen.dart lib/presentation/screens/call/call_screen.dart lib/app_router.dart
-          if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'fix(chat): compile and apply approved wallpapers [repair-chat-build]'
+          if git diff --cached --quiet; then echo 'No source changes needed'; exit 0; fi
+          git commit -m 'fix(chat): show approved SVG wallpaper [repair-chat-build]'
           git push origin HEAD:feat/complete-sehatak-integration
