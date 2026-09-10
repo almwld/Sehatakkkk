@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/routes/payment_routes.dart';
 import 'package:sehatak/presentation/screens/articles/articles_screen.dart';
 import 'package:sehatak/presentation/screens/auth/auth_screen.dart';
@@ -64,7 +65,12 @@ class AppRouter {
     routes: [
       GoRoute(path: splash, builder: (_, __) => const SplashScreen()),
       GoRoute(path: home, builder: (_, __) => const HomeScreen()),
-      GoRoute(path: auth, builder: (_, __) => const AuthScreen()),
+      GoRoute(
+        path: auth,
+        redirect: (_, __) =>
+            FirebaseAuth.instance.currentUser != null ? home : null,
+        builder: (_, __) => const AuthScreen(),
+      ),
       GoRoute(path: doctors, builder: (_, __) => const DoctorsListScreen()),
       GoRoute(
         path: doctorDetails,
