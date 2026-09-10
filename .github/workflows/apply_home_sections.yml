@@ -14,8 +14,9 @@ jobs:
           ref: master
           fetch-depth: 0
       - name: Patch HomeTab sections
-        shell: python
+        shell: bash
         run: |
+          python3 <<'PY'
           from pathlib import Path
           import re
           p = Path('lib/presentation/screens/home/tabs/home_tab.dart')
@@ -55,26 +56,23 @@ jobs:
                   pos=j
               return ''.join(out)
 
-          for start,end,asset in [
+          replacements = [
               ('_tips(', '_discover(', 'assets/images/services/health_tips.png'),
               ('_discover(', '_weather(', 'assets/images/services/medical_articles.png'),
               ('_weather(', '_community(', 'assets/svg/home_weather.svg'),
-          ][::-1]:
+          ]
+          for start,end,asset in reversed(replacements):
               a,b=bounds(s,start,end)
               s=s[:a]+replace_icons(s[a:b],asset)+s[b:]
-
-          for start,end,_ in [
-              ('_tips(', '_discover(', ''),
-              ('_discover(', '_weather(', ''),
-              ('_weather(', '_community(', ''),
-          ]:
+          for start,end,_ in replacements:
               a,b=bounds(s,start,end)
               if 'Icons.' in s[a:b]: raise RuntimeError('Material icon remains in '+start)
           p.write_text(s,encoding='utf-8')
-      - name: Format, verify and commit
-        run: |
-          dart format lib/presentation/screens/home/tabs/home_tab.dart
+          PY
           git diff --check
+      - name: Commit result and remove temporary workflow
+        shell: bash
+        run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add lib/presentation/screens/home/tabs/home_tab.dart
