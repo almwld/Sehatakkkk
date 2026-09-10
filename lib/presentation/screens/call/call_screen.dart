@@ -139,8 +139,17 @@ class _CallScreenState extends State<CallScreen> {
             'connectedAt=${updated.connectedAt}',
           );
 
-          if (updated.status == CallStatus.connected && !_joined) {
-            unawaited(_join(updated, user));
+          // The server timestamp is authoritative. A first snapshot may arrive
+          // with a pending serverTimestamp, so update the timer when the real
+          // connectedAt value arrives instead of keeping a local start time.
+          if (updated.status == CallStatus.connected) {
+            final serverConnectedAt = updated.connectedAt?.toDate();
+            if (serverConnectedAt != null) {
+              _setConnectedAt(serverConnectedAt);
+            }
+            if (!_joined) {
+              unawaited(_join(updated, user));
+            }
             return;
           }
 
@@ -188,6 +197,26 @@ class _CallScreenState extends State<CallScreen> {
         status == CallStatus.ended;
   }
 
+  void _setConnectedAt(DateTime value) {
+    if (_connectedAt != null &&
+        _connectedAt!.difference(value).abs() < const Duration(seconds: 1)) {
+      return;
+    }
+    _connectedAt = value;
+    final elapsed = DateTime.now().difference(value).inSeconds;
+    _seconds = elapsed < 0 ? 0 : elapsed;
+    if (mounted) setState(() {});
+
+    if (_timer == null || !_timer!.isActive) {
+      _timer?.cancel();
+      _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        if (!mounted || _connectedAt == null) return;
+        final current = DateTime.now().difference(_connectedAt!).inSeconds;
+        setState(() => _seconds = current < 0 ? 0 : current);
+      });
+    }
+  }
+
   Future<void> _join(CallModel call, User user) async {
     if (_joined || _ending) return;
 
@@ -215,17 +244,10 @@ class _CallScreenState extends State<CallScreen> {
       _joined = true;
       _timeout?.cancel();
 
-      // connectedAt is the authoritative start of the billable/visible call
-      // duration. Fallback is only for an already-connected call where the
-      // server timestamp has not arrived yet.
-      _connectedAt = call.connectedAt?.toDate() ?? DateTime.now();
-      _seconds = DateTime.now().difference(_connectedAt!).inSeconds.clamp(0, 86400);
-      _timer?.cancel();
-      _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-        if (!mounted || _connectedAt == null) return;
-        final elapsed = DateTime.now().difference(_connectedAt!).inSeconds;
-        setState(() => _seconds = elapsed < 0 ? 0 : elapsed);
-      });
+      // connectedAt is the authoritative start of the visible/billable call
+      // duration. If the server timestamp has not arrived yet, use a temporary
+      // local value and immediately replace it when Firestore returns it.
+      _setConnectedAt(call.connectedAt?.toDate() ?? DateTime.now());
 
       _bind(_room!.localParticipant);
       for (final participant in _room!.remoteParticipants.values) {
@@ -246,8 +268,6 @@ class _CallScreenState extends State<CallScreen> {
         setState(() => _remoteTrack = null);
       });
 
-      // Incoming call starts in earpiece mode; the user can explicitly switch
-      // to loudspeaker. Keep the real native route synchronized.
       await _live.setSpeakerphone(_speaker);
 
       if (mounted) {
