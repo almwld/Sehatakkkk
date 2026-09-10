@@ -119,7 +119,6 @@ class ChatMediaTransferService {
         'sehatak-chat-media-${DateTime.now().microsecondsSinceEpoch}',
         chatMediaTransferTask,
         constraints: Constraints(networkType: NetworkType.connected),
-        existingWorkPolicy: ExistingWorkPolicy.appendOrReplace,
       );
     } catch (_) {}
   }
