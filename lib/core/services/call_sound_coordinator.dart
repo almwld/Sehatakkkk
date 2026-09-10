@@ -8,8 +8,8 @@ import '../../app_router.dart';
 import '../../presentation/screens/chat/incoming_call_screen.dart';
 import 'sound_manager.dart';
 
-/// Owns foreground call alert audio and routes incoming calls to the
-/// acceptance UI. It never joins LiveKit itself.
+/// Sole owner of foreground call alert audio and incoming-call routing.
+/// It never joins LiveKit and never owns call state transitions.
 class CallSoundCoordinator {
   CallSoundCoordinator._();
   static final CallSoundCoordinator instance = CallSoundCoordinator._();
@@ -20,6 +20,7 @@ class CallSoundCoordinator {
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _callsSubscription;
   final SoundManager _sounds = SoundManager();
   String? _activeCallId;
+  bool _incomingMuted = false;
 
   void start() {
     _authSubscription ??= FirebaseAuth.instance.authStateChanges().listen((_) {
@@ -32,6 +33,7 @@ class CallSoundCoordinator {
     _callsSubscription?.cancel();
     _callsSubscription = null;
     _activeCallId = null;
+    _incomingMuted = false;
     unawaited(_sounds.stopCallAudio());
 
     final user = FirebaseAuth.instance.currentUser;
@@ -56,18 +58,15 @@ class CallSoundCoordinator {
 
     QueryDocumentSnapshot<Map<String, dynamic>>? active;
     DateTime? newest;
-
     for (final doc in snapshot.docs) {
       final data = doc.data();
       final status = data['status']?.toString();
       if (status != 'calling' && status != 'ringing') continue;
-
       final startedAt = data['startedAt'];
       if (startedAt is! Timestamp) continue;
       final started = startedAt.toDate();
       final age = DateTime.now().difference(started);
       if (age.isNegative || age > _maxCallAge) continue;
-
       if (active == null || newest == null || started.isAfter(newest)) {
         active = doc;
         newest = started;
@@ -76,6 +75,7 @@ class CallSoundCoordinator {
 
     if (active == null) {
       _activeCallId = null;
+      _incomingMuted = false;
       unawaited(_sounds.stopCallAudio());
       return;
     }
@@ -86,46 +86,38 @@ class CallSoundCoordinator {
     final receiverId = data['receiverId']?.toString() ?? '';
     final isIncoming = receiverId == user.uid && callerId != user.uid;
     final isOutgoing = callerId == user.uid && receiverId != user.uid;
-
-    if (!isIncoming && !isOutgoing) {
-      _activeCallId = null;
-      unawaited(_sounds.stopCallAudio());
-      return;
-    }
+    if (!isIncoming && !isOutgoing) return;
 
     final isNewCall = _activeCallId != callId;
-    if (isNewCall) _activeCallId = callId;
-
-    unawaited(
-      (isIncoming ? _sounds.playCallRingtone() : _sounds.playRingback())
-          .catchError((_) {}),
-    );
-
-    // Critical rule: an incoming call is NOT a LiveKit connection. The
-    // receiver must see the existing IncomingCallScreen and explicitly press
-    // Accept. Only IncomingCallScreen.acceptCall() changes the call to
-    // connected and then opens CallScreen.
-    if (isIncoming && isNewCall) {
-      _showIncomingCall(data, callId);
+    if (isNewCall) {
+      _activeCallId = callId;
+      _incomingMuted = false;
     }
+
+    if (isIncoming) {
+      if (_incomingMuted) {
+        unawaited(_sounds.stopCallAudio());
+      } else {
+        unawaited(_sounds.playCallRingtone().catchError((_) {}));
+      }
+    } else {
+      unawaited(_sounds.playRingback().catchError((_) {}));
+    }
+
+    // Incoming calls only route to the acceptance UI. LiveKit is joined later
+    // by CallScreen after Firestore has reached `connected`.
+    if (isIncoming && isNewCall) _showIncomingCall(data, callId);
   }
 
   void _showIncomingCall(Map<String, dynamic> data, String callId) {
     final nav = navigatorKey.currentState;
-    if (nav == null) {
-      // The app may still be mounting. The FCM foreground/background handlers
-      // remain responsible for their notification path; no LiveKit join occurs.
-      return;
-    }
-
-    // Never stack duplicate incoming screens for the same call.
+    if (nav == null) return;
     final current = nav.context;
     final route = ModalRoute.of(current);
     if (route?.settings.name == 'incoming_call:$callId') return;
 
     final chatId = data['chatId']?.toString() ?? '';
     if (chatId.isEmpty) return;
-
     nav.push(MaterialPageRoute(
       settings: RouteSettings(name: 'incoming_call:$callId'),
       builder: (_) => IncomingCallScreen(
@@ -140,11 +132,19 @@ class CallSoundCoordinator {
     ));
   }
 
-  /// Stops only the looping call audio immediately. The Firestore listener
-  /// remains alive so the next call can still be detected.
+  Future<void> setIncomingMuted(bool muted) async {
+    _incomingMuted = muted;
+    if (muted) {
+      await _sounds.stopCallAudio();
+    } else if (_activeCallId != null) {
+      await _sounds.playCallRingtone();
+    }
+  }
+
   Future<void> stopForCall(String? callId) async {
     if (callId == null || _activeCallId == null || callId == _activeCallId) {
       _activeCallId = null;
+      _incomingMuted = false;
       await _sounds.stopCallAudio();
     }
   }
@@ -155,6 +155,7 @@ class CallSoundCoordinator {
     _authSubscription = null;
     _callsSubscription = null;
     _activeCallId = null;
+    _incomingMuted = false;
     await _sounds.stopAll();
   }
 }
