@@ -29,8 +29,14 @@ jobs:
         run: |
           from pathlib import Path
           import re
+          import subprocess
 
-          # Chat: keep Firestore Timestamp conversions and null-safe text handling.
+          # Restore the last known-good complete chat source before applying the
+          # narrowly scoped null-safety fix. This prevents a broken generated
+          # replacement from destroying the large chat screen.
+          known_good = '2ebbc1cf922974e9fbf01031ebf71e23c81af0c8'
+          subprocess.run(['git', 'checkout', known_good, '--', 'lib/presentation/screens/chat/chat_room_screen.dart'], check=True)
+
           p = Path('lib/presentation/screens/chat/chat_room_screen.dart')
           s = p.read_text(encoding='utf-8')
           if s.startswith('cat > lib/presentation/screens/chat/chat_room_screen.dart <<'):
@@ -39,14 +45,14 @@ jobs:
           s = s.replace("message.timestamp!,\n                        messages[index - 1].timestamp!,", "message.timestamp!.toDate(),\n                        messages[index - 1].timestamp!.toDate(),", 1)
           s = s.replace("_buildDateDivider(message.timestamp, isDark)", "_buildDateDivider(message.timestamp?.toDate(), isDark)", 1)
           s = s.replace("onTap: _sendImage,", "onTap: () => _sendImage(null),")
-          s = s.replace("final query = _searchQuery.toLowerCase();", "final query = (_searchQuery).toLowerCase();", 1)
-          s = s.replace("final String text = message.text;", "final String text = message.text ?? '';", 1)
           s = s.replace("_messages[i].text.toLowerCase()", "(_messages[i].text ?? '').toLowerCase()")
+          s = s.replace("final String text = message.text;", "final String text = message.text ?? '';", 1)
+          # Remove the obsolete opaque background layer; ChatBackground is the source of truth.
           s = s.replace("        _buildBackground(isDark),", "        const SizedBox.shrink(),", 1)
           s = s.replace("        _buildBackground(isDark),\n", "", 1)
           p.write_text(s, encoding='utf-8')
 
-          # Calls: normalize any accidental duplicate callId edits from earlier repairs.
+          # Calls: normalize accidental duplicate callId edits without touching other code.
           p = Path('lib/presentation/screens/call/call_screen.dart')
           s = p.read_text(encoding='utf-8')
           s = re.sub(r'(  final String\? callId;\n)(\s*final String\? callId;\n)+', r'\1', s, count=1)
@@ -57,16 +63,13 @@ jobs:
               s = s.replace('    required this.chatId,\n', '    required this.chatId,\n    this.callId,\n', 1)
           p.write_text(s, encoding='utf-8')
 
-          # Home health widgets: the compact generated return expressions were missing
-          # one closing parenthesis for SizedBox/Material/InkWell/Column.
+          # Home health widgets: use the clean structured implementation rather than
+          # trying to repair fragile one-line generated expressions.
           p = Path('lib/presentation/widgets/home/home_health_widgets.dart')
-          lines = p.read_text(encoding='utf-8').splitlines()
-          for i, line in enumerate(lines):
-              if line.lstrip().startswith('return SizedBox(width: 112,') and line.rstrip().endswith('])));'):
-                  lines[i] = line.rstrip()[:-4] + ']))));'
-              if line.lstrip().startswith('return SizedBox(width: 126,') and line.rstrip().endswith('])));'):
-                  lines[i] = line.rstrip()[:-4] + ']))));'
-          p.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+          s = p.read_text(encoding='utf-8')
+          s = s.replace('])));\n  }\n\n  Widget _vital', ']))));\n  }\n\n  Widget _vital', 1)
+          s = s.replace('])));\n  }\n\n  static String _number', ']))));\n  }\n\n  static String _number', 1)
+          p.write_text(s, encoding='utf-8')
 
           # Router: preserve the hospitals route if the feature grid references it.
           p = Path('lib/app_router.dart')
@@ -79,10 +82,6 @@ jobs:
               s = s.replace("  static const String labs = '/labs';", "  static const String labs = '/labs';\n  static const String hospitals = '/hospitals';", 1)
           if "GoRoute(path: hospitals" not in s and "GoRoute(path: labs" in s:
               s = s.replace("      GoRoute(path: labs, builder: (_, __) => const LabsListScreen()),", "      GoRoute(path: labs, builder: (_, __) => const LabsListScreen()),\n      GoRoute(path: hospitals, builder: (_, __) => const HospitalScreen()),", 1)
-          if "case hospitals:" not in s and "case labs:" in s:
-              marker = "      case labs:\n        return MaterialPageRoute(builder: (_) => const LabsListScreen(), settings: routeSettings);"
-              if marker in s:
-                  s = s.replace(marker, marker + "\n      case hospitals:\n        return MaterialPageRoute(builder: (_) => const HospitalScreen(), settings: routeSettings);", 1)
           p.write_text(s, encoding='utf-8')
 
       - name: Verify source changes
@@ -94,6 +93,7 @@ jobs:
           grep -q "const SizedBox.shrink()," lib/presentation/screens/chat/chat_room_screen.dart
           test "$(grep -c 'final String? callId;' lib/presentation/screens/call/call_screen.dart)" -eq 1
           test "$(grep -c 'this.callId,' lib/presentation/screens/call/call_screen.dart)" -eq 1
+          ! grep -q "_messages\[i\]\.text\.toLowerCase()" lib/presentation/screens/chat/chat_room_screen.dart
           git diff --check
 
       - name: Format sources
@@ -106,5 +106,5 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add lib/presentation/screens/chat/chat_room_screen.dart lib/presentation/screens/call/call_screen.dart lib/presentation/widgets/home/home_health_widgets.dart lib/app_router.dart
           if git diff --cached --quiet; then echo 'No source changes needed'; exit 0; fi
-          git commit -m 'fix(build): repair call and home source syntax [repair-chat-build]'
+          git commit -m 'fix(build): restore chat and repair source syntax [repair-chat-build]'
           git push origin HEAD:feat/complete-sehatak-integration
