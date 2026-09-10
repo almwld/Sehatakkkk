@@ -16,21 +16,18 @@ class ReliableMessageService {
   }) async {
     final user = _auth.currentUser;
     if (user == null) throw Exception('يجب تسجيل الدخول');
-
     final value = text.trim();
     if (value.isEmpty) throw Exception('نص الرسالة فارغ');
 
     final chatRef = _db.collection('chats').doc(chatId);
     final chatSnapshot = await chatRef.get();
     if (!chatSnapshot.exists) throw Exception('المحادثة غير موجودة');
-
     final chat = chatSnapshot.data() ?? <String, dynamic>{};
     final participants = List<String>.from(chat['participants'] ?? const <String>[]);
     if (!participants.contains(user.uid)) throw Exception('ليس لديك صلاحية لهذه المحادثة');
 
     final messageRef = chatRef.collection('messages').doc();
     final batch = _db.batch();
-
     batch.set(messageRef, {
       'chatId': chatId,
       'senderId': user.uid,
@@ -40,26 +37,24 @@ class ReliableMessageService {
       'type': 'text',
       'timestamp': FieldValue.serverTimestamp(),
       'isRead': false,
-      'isDelivered': false,
+      'isDelivered': true,
+      'deliveredAt': FieldValue.serverTimestamp(),
       'isDeleted': false,
       'isEdited': false,
       'replyToId': replyToId,
       'reactions': <String, dynamic>{},
     });
-
     final chatUpdate = <String, dynamic>{
       'lastMessage': value,
       'lastMessageTime': FieldValue.serverTimestamp(),
       'lastMessageSenderId': user.uid,
       'updatedAt': FieldValue.serverTimestamp(),
     };
-
     for (final participantId in participants) {
       if (participantId != user.uid && participantId.isNotEmpty) {
         chatUpdate['unreadCount.$participantId'] = FieldValue.increment(1);
       }
     }
-
     batch.update(chatRef, chatUpdate);
     await batch.commit();
     return messageRef.id;
