@@ -83,13 +83,14 @@ class CallService {
         final ref = _firestore.collection('calls').doc(id);
         final d = await tx.get(ref);
         if (!d.exists) return;
-        final s = CallStatus.values.firstWhere((x) => x.name == d.data()?['status'], orElse: () => CallStatus.calling);
-        if (!allowed.contains(s)) {
+        final currentStatus = CallStatus.values.firstWhere((x) => x.name == d.data()?['status'], orElse: () => CallStatus.calling);
+        if (!allowed.contains(currentStatus)) {
           if (ignore) return;
           throw Exception('لا يمكن تغيير حالة المكالمة الحالية');
         }
         final t = CallType.values.firstWhere((x) => x.name == d.data()?['callType'], orElse: () => CallType.audio);
-        c = _Ctx(d.data()?['chatId']?.toString() ?? '', t);
+        final rawChatId = d.data()?['chatId'];
+        c = _Ctx(rawChatId == null ? '' : rawChatId.toString(), t);
         tx.update(ref, data);
       });
       return null;
@@ -126,8 +127,11 @@ class CallService {
 
   Future<String?> resolveChatId(String id) async {
     final snapshot = await _retry(() => _firestore.collection('calls').doc(id).get());
+    if (!snapshot.exists) return null;
     final data = snapshot.data();
-    return snapshot.exists ? data?['chatId']?.toString() : null;
+    if (data == null) return null;
+    final chatId = data['chatId'];
+    return chatId == null ? null : chatId.toString();
   }
 
   Future<void> handleIncomingCallById(BuildContext context, String id) async {
