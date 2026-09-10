@@ -33,13 +33,14 @@ import 'package:sehatak/bloc/chat/chat_bloc.dart';
 import 'package:sehatak/bloc/messages/messages_bloc.dart';
 import 'package:sehatak/bloc/doctor_bloc/doctor_bloc.dart';
 import 'presentation/screens/chat/chat_room_screen.dart';
+import 'presentation/screens/home/home_screen.dart';
+import 'presentation/screens/platform/dashboard/platform_dashboard.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   final notificationService = NotificationService();
   await notificationService.initialize(startCallCoordinator: false);
-
   if (message.data['type'] == 'incoming_call' && message.notification == null) {
     final callId = (message.data['callId'] ?? message.data['id'])?.toString();
     if (callId != null && callId.isNotEmpty) {
@@ -59,19 +60,14 @@ Future<void> _syncFcmToken() async {
     final token = await FirebaseMessaging.instance.getToken();
     if (token == null || token.isEmpty) return;
     await FirebaseFirestore.instance.collection('users').doc(user.uid).set(
-      {'fcmToken': token, 'lastTokenUpdate': FieldValue.serverTimestamp()},
-      SetOptions(merge: true),
-    );
-  } catch (e) {
-    debugPrint('❌ FCM token sync error: $e');
-  }
+      {'fcmToken': token, 'lastTokenUpdate': FieldValue.serverTimestamp()}, SetOptions(merge: true));
+  } catch (e) { debugPrint('❌ FCM token sync error: $e'); }
 }
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   ToastService.setNavigatorKey(navigatorKey);
-
   try {
     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
     debugPrint('✅ Firebase initialized successfully');
@@ -80,15 +76,12 @@ Future<void> main() async {
     runApp(const _StartupErrorApp());
     return;
   }
-
   try {
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     final fcm = FirebaseMessaging.instance;
     await fcm.requestPermission(alert: true, badge: true, sound: true);
-    await _syncFcmToken();
-  } catch (e) {
-    debugPrint('❌ FCM initialization error: $e');
-  }
+    unawaited(_syncFcmToken());
+  } catch (e) { debugPrint('❌ FCM initialization error: $e'); }
 
   await CacheService.init();
   await ChatMediaTransferService.instance.initialize();
@@ -117,24 +110,24 @@ class _StartupErrorApp extends StatelessWidget {
   const _StartupErrorApp();
   @override
   Widget build(BuildContext context) => const MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: Scaffold(
-          body: Center(child: Text('تعذر تشغيل التطبيق بسبب خطأ في تهيئة الخدمات الأساسية.')),
-        ),
-      );
+    debugShowCheckedModeBanner: false,
+    home: Scaffold(body: Center(child: Text('تعذر تشغيل التطبيق بسبب خطأ في تهيئة الخدمات الأساسية.'))),
+  );
 }
 
 class SehatakApp extends StatefulWidget {
   const SehatakApp({super.key});
-  @override
-  State<SehatakApp> createState() => _SehatakAppState();
+  @override State<SehatakApp> createState() => _SehatakAppState();
 }
 
 class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
   final CallService _callService = CallService();
   final NotificationService _notificationService = NotificationService();
   StreamSubscription<String>? _tokenSubscription;
+  StreamSubscription<User?>? _authNavigationSubscription;
   bool _launchPayloadHandled = false;
+  bool _authStatePrimed = false;
+  bool _fastNavigationInProgress = false;
 
   @override
   void initState() {
@@ -145,9 +138,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
     FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpened);
     FirebaseMessaging.instance.getInitialMessage().then((message) {
       if (message != null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) _handleMessageOpened(message);
-        });
+        WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _handleMessageOpened(message); });
       }
     });
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -163,16 +154,61 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
       try {
         await FirebaseFirestore.instance.collection('users').doc(user.uid).set(
           {'fcmToken': token, 'lastTokenUpdate': FieldValue.serverTimestamp()}, SetOptions(merge: true));
-      } catch (e) {
-        debugPrint('❌ FCM refresh sync error: $e');
-      }
+      } catch (e) { debugPrint('❌ FCM refresh sync error: $e'); }
     });
+
+    // Auth state is the fast navigation signal. Firebase Auth changes locally
+    // immediately after sign-in, so do not wait for the users document.
+    _authNavigationSubscription = FirebaseAuth.instance.authStateChanges().listen((user) {
+      if (!_authStatePrimed) {
+        _authStatePrimed = true;
+        return;
+      }
+      if (user != null) unawaited(_navigateAfterSignInFast(user));
+    });
+  }
+
+  Future<void> _navigateAfterSignInFast(User user) async {
+    if (!mounted || _fastNavigationInProgress) return;
+    _fastNavigationInProgress = true;
+    try {
+      final nav = navigatorKey.currentState;
+      if (nav == null) return;
+
+      // Normal users go to Home immediately. The role lookup is deliberately
+      // moved off the critical navigation path.
+      nav.pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+        (route) => false,
+      );
+
+      // Keep admin/superAdmin routing correct without making ordinary users
+      // wait for Firestore. A slow/offline Firestore therefore cannot block login.
+      try {
+        final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get().timeout(const Duration(seconds: 2));
+        final role = doc.data()?['role']?.toString();
+        if (mounted && (role == 'admin' || role == 'superAdmin')) {
+          final current = navigatorKey.currentState;
+          if (current != null) {
+            current.pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const PlatformDashboard()),
+              (route) => false,
+            );
+          }
+        }
+      } catch (e) {
+        debugPrint('⚡ Deferred role lookup skipped: $e');
+      }
+    } finally {
+      _fastNavigationInProgress = false;
+    }
   }
 
   @override
   void dispose() {
     _notificationService.setNotificationTapHandler(null);
     _tokenSubscription?.cancel();
+    _authNavigationSubscription?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -183,9 +219,9 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
       Provider.of<UserProvider>(context, listen: false).loadUserSafely();
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        FirebaseFirestore.instance.collection('users').doc(user.uid).set(
-          {'isOnline': true, 'lastSeen': FieldValue.serverTimestamp()}, SetOptions(merge: true));
-        _syncFcmToken();
+        unawaited(FirebaseFirestore.instance.collection('users').doc(user.uid).set(
+          {'isOnline': true, 'lastSeen': FieldValue.serverTimestamp()}, SetOptions(merge: true)));
+        unawaited(_syncFcmToken());
       }
       unawaited(ChatMediaTransferService.instance.processPending());
     }
