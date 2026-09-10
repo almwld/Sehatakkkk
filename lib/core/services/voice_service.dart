@@ -1,13 +1,17 @@
 import 'dart:async';
 import 'dart:io';
+
+import 'package:audioplayers/audioplayers.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
-import 'package:audioplayers/audioplayers.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
+import 'nextcloud_service.dart';
+
+/// Records and plays chat voice messages.
+/// Chat media is stored in Nextcloud; Firestore stores only message metadata/URL.
 class VoiceService {
   static final VoiceService _instance = VoiceService._internal();
   factory VoiceService() => _instance;
@@ -15,170 +19,151 @@ class VoiceService {
 
   final AudioRecorder _recorder = AudioRecorder();
   final AudioPlayer _player = AudioPlayer();
-  final FirebaseStorage _storage = FirebaseStorage.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final NextcloudService _nextcloud = NextcloudService();
 
   String? _recordingPath;
   bool _isRecording = false;
   bool _isPlaying = false;
   Duration _recordingDuration = Duration.zero;
   Timer? _recordingTimer;
+  StreamSubscription<void>? _playerCompleteSubscription;
 
-  Future<bool> checkPermissions() async {
-    return await _recorder.hasPermission();
-  }
+  Future<bool> checkPermissions() => _recorder.hasPermission();
 
   Future<void> startRecording() async {
-    try {
-      if (!await checkPermissions()) {
-        throw Exception('لا توجد أذونات للتسجيل');
-      }
+    if (_isRecording) return;
+    if (!await checkPermissions()) throw Exception('لا توجد أذونات للتسجيل');
 
-      final tempDir = await getTemporaryDirectory();
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-      _recordingPath = '${tempDir.path}/voice_$timestamp.m4a';
+    final tempDir = await getTemporaryDirectory();
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    _recordingPath = '${tempDir.path}/voice_$timestamp.m4a';
 
-      await _recorder.start(
-        RecordConfig(
-          encoder: AudioEncoder.aacLc,
-          sampleRate: 44100,
-          bitRate: 128000,
-        ),
-        path: _recordingPath!,
-      );
+    await _recorder.start(
+      const RecordConfig(
+        encoder: AudioEncoder.aacLc,
+        sampleRate: 44100,
+        bitRate: 128000,
+      ),
+      path: _recordingPath!,
+    );
 
-      _isRecording = true;
-      _recordingDuration = Duration.zero;
-      
-      _recordingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        _recordingDuration += const Duration(seconds: 1);
-      });
-
-      print('✅ Recording started: $_recordingPath');
-    } catch (e) {
-      print('❌ Error starting recording: $e');
-      rethrow;
-    }
+    _isRecording = true;
+    _recordingDuration = Duration.zero;
+    _recordingTimer?.cancel();
+    _recordingTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      _recordingDuration += const Duration(seconds: 1);
+    });
   }
 
+  /// Stops recording, uploads to Nextcloud and creates the Firestore message.
+  /// Throws on upload failure so the UI can keep the recording available/retry.
   Future<String?> stopRecording({
     required String chatId,
     VoidCallback? onProgress,
   }) async {
+    if (!_isRecording && _recordingPath == null) return null;
+
+    _recordingTimer?.cancel();
+    _recordingTimer = null;
+    _isRecording = false;
+
+    final recordedPath = _recordingPath;
+    if (recordedPath == null) return null;
+
+    // Ensure the recorder has flushed the file before opening it.
     try {
-      _recordingTimer?.cancel();
-      _isRecording = false;
+      await _recorder.stop();
+    } catch (_) {}
 
-      if (_recordingPath == null) return null;
+    final file = File(recordedPath);
+    if (!await file.exists()) throw StateError('تعذر إنشاء ملف التسجيل الصوتي');
 
-      final path = _recordingPath!;
-      final file = File(path);
-      
-      if (!await file.exists()) {
-        return null;
-      }
+    final user = _auth.currentUser;
+    if (user == null) throw StateError('يجب تسجيل الدخول لإرسال رسالة صوتية');
 
-      final user = _auth.currentUser;
-      if (user == null) return null;
+    await _nextcloud.loadConfig();
+    final result = await _nextcloud.uploadFile(
+      file: file,
+      path: 'sehatak/chats/$chatId/audio',
+      fileName: 'voice_${DateTime.now().millisecondsSinceEpoch}.m4a',
+      onProgress: (sent, total) {
+        onProgress?.call();
+      },
+    );
 
-      final ref = _storage
-          .ref()
-          .child('chats/$chatId/audio/${DateTime.now().millisecondsSinceEpoch}.m4a');
-
-      final uploadTask = ref.putFile(file);
-
-      uploadTask.snapshotEvents.listen((snapshot) {
-        final progress = snapshot.bytesTransferred / snapshot.totalBytes;
-        if (onProgress != null) {
-          onProgress();
-        }
-        print('📤 Upload progress: ${(progress * 100).toStringAsFixed(0)}%');
-      });
-
-      final snapshot = await uploadTask.whenComplete(() {});
-      final downloadUrl = await snapshot.ref.getDownloadURL();
-
-      await _saveVoiceMessage(
-        chatId: chatId,
-        url: downloadUrl,
-        duration: _recordingDuration,
-      );
-
-      await file.delete();
-
-      _recordingPath = null;
-      _recordingDuration = Duration.zero;
-
-      return downloadUrl;
-    } catch (e) {
-      print('❌ Error stopping recording: $e');
-      return null;
+    if (!result.success || result.url == null || result.url!.isEmpty) {
+      throw StateError(result.error ?? 'فشل رفع التسجيل الصوتي إلى Nextcloud');
     }
+
+    final messageRef = _firestore
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .doc();
+
+    final now = FieldValue.serverTimestamp();
+    await messageRef.set({
+      'text': '🎤 رسالة صوتية',
+      'senderId': user.uid,
+      'senderName': user.displayName ?? 'مستخدم',
+      'timestamp': now,
+      'type': 'audio',
+      'audioUrl': result.url,
+      'mediaUrl': result.url,
+      'fileName': result.fileName,
+      'duration': _recordingDuration.inSeconds,
+      'isRead': false,
+      'readAt': null,
+    });
+
+    await _firestore.collection('chats').doc(chatId).update({
+      'lastMessage': '🎤 رسالة صوتية',
+      'lastMessageTime': now,
+      'updatedAt': now,
+    });
+
+    try {
+      await file.delete();
+    } catch (_) {}
+
+    _recordingPath = null;
+    _recordingDuration = Duration.zero;
+    return result.url;
   }
 
   Future<void> cancelRecording() async {
     _recordingTimer?.cancel();
+    _recordingTimer = null;
     _isRecording = false;
-    
-    if (_recordingPath != null) {
-      final file = File(_recordingPath!);
-      if (await file.exists()) {
-        await file.delete();
-      }
-      _recordingPath = null;
-    }
+    try {
+      await _recorder.stop();
+    } catch (_) {}
+
+    final path = _recordingPath;
+    _recordingPath = null;
     _recordingDuration = Duration.zero;
-    await _recorder.stop();
-    print('✅ Recording cancelled');
-  }
-
-  Future<void> _saveVoiceMessage({
-    required String chatId,
-    required String url,
-    required Duration duration,
-  }) async {
-    final user = _auth.currentUser;
-    if (user == null) return;
-
-    final messageData = {
-      'text': '🎤 رسالة صوتية',
-      'senderId': user.uid,
-      'senderName': user.displayName ?? 'مستخدم',
-      'timestamp': FieldValue.serverTimestamp(),
-      'type': 'audio',
-      'audioUrl': url,
-      'duration': duration.inSeconds,
-      'isRead': false,
-    };
-
-    await _firestore
-        .collection('chats')
-        .doc(chatId)
-        .collection('messages')
-        .add(messageData);
-
-    await _firestore.collection('chats').doc(chatId).update({
-      'lastMessage': '🎤 رسالة صوتية',
-      'lastMessageTime': FieldValue.serverTimestamp(),
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
+    if (path != null) {
+      final file = File(path);
+      if (await file.exists()) {
+        try { await file.delete(); } catch (_) {}
+      }
+    }
   }
 
   Future<void> playAudio(String url, VoidCallback onComplete) async {
+    await _playerCompleteSubscription?.cancel();
     try {
       _isPlaying = true;
-      
-      final source = UrlSource(url);
-      await _player.play(source);
-      
-      _player.onPlayerComplete.listen((event) {
+      _playerCompleteSubscription = _player.onPlayerComplete.listen((_) {
         _isPlaying = false;
         onComplete();
       });
-    } catch (e) {
-      print('❌ Error playing audio: $e');
+      await _player.play(UrlSource(url));
+    } catch (_) {
       _isPlaying = false;
+      rethrow;
     }
   }
 
@@ -191,9 +176,10 @@ class VoiceService {
   bool get isRecording => _isRecording;
   bool get isPlaying => _isPlaying;
 
-  void dispose() {
+  Future<void> dispose() async {
     _recordingTimer?.cancel();
-    _player.dispose();
+    await _playerCompleteSubscription?.cancel();
+    await _player.dispose();
     _recorder.dispose();
   }
 }
