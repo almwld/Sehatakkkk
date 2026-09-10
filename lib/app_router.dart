@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -42,7 +43,6 @@ class AppRouter {
     redirect: (_, state) {
       final loggedIn = FirebaseAuth.instance.currentUser != null;
       if (state.matchedLocation == auth && loggedIn) return home;
-      if (state.matchedLocation == splash) return null;
       return null;
     },
     routes: [
@@ -78,9 +78,7 @@ class AppRouter {
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     final name=settings.name??home;
-    if(name==auth && FirebaseAuth.instance.currentUser!=null) {
-      return MaterialPageRoute(builder:(_)=>const HomeScreen(),settings:settings);
-    }
+    if(name==auth && FirebaseAuth.instance.currentUser!=null) return MaterialPageRoute(builder:(_)=>const HomeScreen(),settings:settings);
     switch(name) {
       case splash:return MaterialPageRoute(builder:(_)=>const SplashScreen(),settings:settings);
       case home:return MaterialPageRoute(builder:(_)=>const HomeScreen(),settings:settings);
