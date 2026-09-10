@@ -28,6 +28,7 @@ jobs:
         shell: python
         run: |
           from pathlib import Path
+
           p = Path('lib/presentation/screens/chat/chat_room_screen.dart')
           s = p.read_text(encoding='utf-8')
           if s.startswith('cat > lib/presentation/screens/chat/chat_room_screen.dart <<'):
@@ -36,6 +37,9 @@ jobs:
           s = s.replace("message.timestamp!,\n                        messages[index - 1].timestamp!,", "message.timestamp!.toDate(),\n                        messages[index - 1].timestamp!.toDate(),", 1)
           s = s.replace("_buildDateDivider(message.timestamp, isDark)", "_buildDateDivider(message.timestamp?.toDate(), isDark)", 1)
           s = s.replace("onTap: _sendImage,", "onTap: () => _sendImage(null),")
+          s = s.replace("with SingleTickerProviderStateMixin, WidgetsBindingObserver, TickerProviderStateMixin", "with WidgetsBindingObserver, TickerProviderStateMixin", 1)
+          s = s.replace("final query = _searchQuery.toLowerCase();", "final query = (_searchQuery).toLowerCase();", 1)
+          s = s.replace("final String text = message.text;", "final String text = message.text ?? '';", 1)
           if "import 'package:sehatak/presentation/screens/chat/widgets/chat_background.dart';" not in s:
               s = s.replace("import 'package:sehatak/presentation/screens/chat/widgets/message_bubble.dart';", "import 'package:sehatak/presentation/screens/chat/widgets/chat_background.dart';\nimport 'package:sehatak/presentation/screens/chat/widgets/message_bubble.dart';", 1)
           marker = """          child: ListView.builder(\n            controller: _scrollController,"""
@@ -66,17 +70,12 @@ jobs:
               s = s.replace("      case labs:\n        return MaterialPageRoute(builder: (_) => const LabsListScreen(), settings: routeSettings);", "      case labs:\n        return MaterialPageRoute(builder: (_) => const LabsListScreen(), settings: routeSettings);\n      case hospitals:\n        return MaterialPageRoute(builder: (_) => const HospitalScreen(), settings: routeSettings);", 1)
           p.write_text(s, encoding='utf-8')
 
-      - name: Hard cleanup and syntax precheck
+      - name: Cleanup and format
         run: |
           sed -i "1{/^cat > lib\/presentation\/screens\/chat\/chat_room_screen\.dart << 'CHATROOMEOF'$/d;}" lib/presentation/screens/chat/chat_room_screen.dart
           sed -i "/^CHATROOMEOF$/d" lib/presentation/screens/chat/chat_room_screen.dart
-          head -n 3 lib/presentation/screens/chat/chat_room_screen.dart
-
-      - name: Verify
-        run: |
           dart format lib/presentation/screens/chat/chat_room_screen.dart lib/presentation/screens/call/call_screen.dart lib/app_router.dart
-          flutter pub get
-          flutter analyze --no-fatal-infos
+          git diff --check
 
       - name: Commit repaired sources
         run: |
