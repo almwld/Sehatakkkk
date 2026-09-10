@@ -35,6 +35,42 @@ jobs:
           channel: stable
           cache: true
 
+      - name: 🔧 Repair source integration before build
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          chat = Path('lib/presentation/screens/chat/chat_room_screen.dart')
+          text = chat.read_text(encoding='utf-8')
+          lines = text.splitlines()
+          if lines and lines[0].startswith('cat > lib/presentation/screens/chat/chat_room_screen.dart'):
+              lines = lines[1:]
+          if lines and lines[-1].strip() == 'CHATROOMEOF':
+              lines = lines[:-1]
+          text = '\n'.join(lines) + '\n'
+          text = text.replace("_messages[i].text.toLowerCase()", "(_messages[i].text ?? '').toLowerCase()")
+          text = text.replace('_textController.text = message.text;', "_textController.text = message.text ?? '';")
+          text = text.replace('message.timestamp!,\n                        messages[index - 1].timestamp!,', 'message.timestamp!.toDate(),\n                        messages[index - 1].timestamp!.toDate(),')
+          text = text.replace('_buildDateDivider(message.timestamp, isDark)', '_buildDateDivider(message.timestamp?.toDate(), isDark)')
+          text = text.replace('onTap: _sendImage,', 'onTap: () => _sendImage(null),')
+          text = text.replace("      body: _isBlockedByUser\n          ? _buildBlockedScreen(isDark)\n          : _buildMainScreen(isDark),", "      body: ChatBackground(\n        child: _isBlockedByUser\n            ? _buildBlockedScreen(isDark)\n            : _buildMainScreen(isDark),\n      ),")
+          text = text.replace('        _buildBackground(isDark),', '        const SizedBox.shrink(),')
+          chat.write_text(text, encoding='utf-8')
+
+          call = Path('lib/presentation/screens/call/call_screen.dart')
+          c = call.read_text(encoding='utf-8')
+          c = c.replace("  final String chatId;\n", "  final String chatId;\n  final String? callId;\n", 1)
+          c = c.replace("    required this.chatId,\n", "    required this.chatId,\n    this.callId,\n", 1)
+          call.write_text(c, encoding='utf-8')
+          PY
+
+      - name: 🔎 Validate repaired Dart sources
+        run: |
+          ! grep -q "^cat > lib/presentation/screens/chat/chat_room_screen.dart" lib/presentation/screens/chat/chat_room_screen.dart
+          ! grep -q "^CHATROOMEOF$" lib/presentation/screens/chat/chat_room_screen.dart
+          grep -q "sehatak_chat_wallpaper_light.svg" lib/presentation/screens/chat/widgets/chat_background.dart
+          grep -q "sehatak_chat_wallpaper_dark.svg" lib/presentation/screens/chat/widgets/chat_background.dart
+
       - name: 🔑 Prepare Firebase Android config
         run: |
           cat > android/app/google-services.json <<'JSONEOF'
