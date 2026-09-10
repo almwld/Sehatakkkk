@@ -76,8 +76,7 @@ class ChatRoomScreen extends StatefulWidget {
 class _ChatRoomScreenState extends State<ChatRoomScreen>
     with
         SingleTickerProviderStateMixin,
-        WidgetsBindingObserver,
-        TickerProviderStateMixin {
+        WidgetsBindingObserver {
   // ============================================================
   // 🔥 القسم 1: الخدمات والمتغيرات الأساسية
   // ============================================================
