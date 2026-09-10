@@ -103,9 +103,6 @@ class _ChatInputBarState extends State<ChatInputBar> {
       mimeType: mime,
       audioDuration: audioDuration,
     );
-
-    // Always render the durable outbox copy, never the recorder's temporary
-    // path. The original source may be deleted immediately after enqueue.
     final job = await ChatMediaTransferService.instance.getById(id);
     final localPath = job?['local_path']?.toString() ?? file.path;
     widget.onLocalMedia?.call({
@@ -160,7 +157,9 @@ class _ChatInputBarState extends State<ChatInputBar> {
 
   Future<void> _pickImage(ImageSource source) async {
     final x = await _picker.pickImage(source: source, imageQuality: 90);
-    if (x != null) await _sendMedia(File(x.path), type: 'image', folder: 'images', preview: '📷 صورة');
+    if (x != null) {
+      await _sendMedia(File(x.path), type: 'image', folder: 'images', preview: '📷 صورة');
+    }
   }
 
   Future<void> _pickVideo() async {
@@ -179,8 +178,23 @@ class _ChatInputBarState extends State<ChatInputBar> {
       preview: '📎 ${picked.name}',
       name: picked.name,
       size: _formatBytes(picked.size),
-      mime: picked.extension == null ? null : 'application/${picked.extension}',
+      mime: picked.extension == null ? null : _guessMime(picked.extension!),
     );
+  }
+
+  String _guessMime(String extension) {
+    switch (extension.toLowerCase()) {
+      case 'pdf': return 'application/pdf';
+      case 'doc': return 'application/msword';
+      case 'docx': return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      case 'xls': return 'application/vnd.ms-excel';
+      case 'xlsx': return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      case 'ppt': return 'application/vnd.ms-powerpoint';
+      case 'pptx': return 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+      case 'zip': return 'application/zip';
+      case 'txt': return 'text/plain';
+      default: return 'application/octet-stream';
+    }
   }
 
   String _formatBytes(int bytes) {
@@ -219,11 +233,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
   Future<void> _stopRecording() async {
     if (!_recording) return;
     _timer?.cancel();
-    try {
-      await _recorder.stop();
-    } catch (e) {
-      debugPrint('record stop: $e');
-    }
+    try { await _recorder.stop(); } catch (e) { debugPrint('record stop: $e'); }
     if (mounted) setState(() { _recording = false; _paused = false; });
   }
 
@@ -374,6 +384,10 @@ class _ChatInputBarState extends State<ChatInputBar> {
         _mediaItem(Icons.photo, 'صورة', () => _pickImage(ImageSource.gallery)),
         _mediaItem(Icons.video_library, 'فيديو', _pickVideo),
         _mediaItem(Icons.attach_file, 'ملف', _pickFile),
+        _mediaItem(Icons.location_on_outlined, 'موقعي', () {
+          setState(() => _attachments = false);
+          widget.onShareLocation?.call();
+        }),
       ],
     ),
   );
