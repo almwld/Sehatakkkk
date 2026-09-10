@@ -38,9 +38,23 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   final notificationService = NotificationService();
   await notificationService.initialize(startCallCoordinator: false);
-  // Notification payloads are rendered by Android in the background.
-  // For data-only call payloads, the foreground/background coordinator may
-  // create the local full-screen notification through the normal app flow.
+
+  // Android automatically renders FCM messages that contain a notification
+  // payload. Creating another local notification in that case would duplicate
+  // the alert. Data-only incoming-call messages, however, need our local
+  // maximum-priority/full-screen call notification so the call can appear over
+  // the lock screen and other apps.
+  if (message.data['type'] == 'incoming_call' && message.notification == null) {
+    final callId = (message.data['callId'] ?? message.data['id'])?.toString();
+    if (callId != null && callId.isNotEmpty) {
+      await notificationService.showIncomingCallNotification(
+        callerName: message.data['callerName']?.toString() ?? 'مكالمة واردة',
+        callId: callId,
+        isVideo: message.data['isVideo']?.toString() == 'true' ||
+            message.data['callType']?.toString() == 'video',
+      );
+    }
+  }
 }
 
 Future<void> _syncFcmToken() async {
@@ -151,9 +165,6 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
       }
     });
 
-    // A full-screen local call notification can launch the app from a fully
-    // terminated state. FlutterLocalNotifications exposes that launch payload
-    // separately from Firebase's initial message.
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted || _launchPayloadHandled) return;
       final payload = await _notificationService.getLaunchPayload();
@@ -208,9 +219,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
       final callId = payload.substring('incoming_call:'.length);
       if (callId.isEmpty) return;
       await _notificationService.cancelIncomingCallNotification(callId);
-      if (mounted) {
-        await _callService.handleIncomingCallById(context, callId);
-      }
+      if (mounted) await _callService.handleIncomingCallById(context, callId);
       return;
     }
 
