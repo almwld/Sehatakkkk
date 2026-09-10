@@ -51,17 +51,18 @@ jobs:
               text,
               count=1,
           )
-          text, n2 = text.replace(
+
+          n2 = text.count('_textController.text = message.text;')
+          if n1 != 1:
+              raise SystemExit(f'Expected exactly one search nullability repair, got {n1}')
+          if n2 != 1:
+              raise SystemExit(f'Expected exactly one edit-message nullability repair, got {n2}')
+
+          text = text.replace(
               '_textController.text = message.text;',
               "_textController.text = message.text ?? '';",
               1,
-          ), None
-
-          if n1 != 1:
-              raise SystemExit(f'Expected exactly one search nullability repair, got {n1}')
-          if n2 is None:
-              raise SystemExit('Expected exactly one edit-message nullability repair')
-
+          )
           path.write_text(text, encoding='utf-8')
           PY
 
