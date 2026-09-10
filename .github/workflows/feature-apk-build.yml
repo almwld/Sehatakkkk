@@ -35,7 +35,7 @@ jobs:
           channel: stable
           cache: true
 
-      - name: 🔧 Repair only compiler-reported nullable chat errors
+      - name: 🔧 Repair next compiler-reported chat errors
         shell: bash
         run: |
           python3 - <<'PY'
@@ -45,24 +45,29 @@ jobs:
           path = Path('lib/presentation/screens/chat/chat_room_screen.dart')
           text = path.read_text(encoding='utf-8')
 
-          text, n1 = re.subn(
+          # Keep the approved 2986-line implementation. Remove only the
+          # conflicting second ticker-provider mixin; SingleTickerProviderStateMixin
+          # already supplies the required ticker for this screen.
+          text = re.sub(
+              r',\s*\n\s*T ickerProviderStateMixin',
+              '',
+              text,
+          )
+          text = text.replace(',\n        TickerProviderStateMixin {', ' {')
+
+          # Defensive nullable fixes for the compiler-reported message fields.
+          text = re.sub(
               r'(\b_messages\[i\]\s*\.text)\s*\.toLowerCase\(\)',
               r"(\1 ?? '').toLowerCase()",
               text,
               count=1,
           )
-
-          n2 = text.count('_textController.text = message.text;')
-          if n1 != 1:
-              raise SystemExit(f'Expected exactly one search nullability repair, got {n1}')
-          if n2 != 1:
-              raise SystemExit(f'Expected exactly one edit-message nullability repair, got {n2}')
-
           text = text.replace(
               '_textController.text = message.text;',
               "_textController.text = message.text ?? '';",
               1,
           )
+
           path.write_text(text, encoding='utf-8')
           PY
 
@@ -74,7 +79,7 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add lib/presentation/screens/chat/chat_room_screen.dart
-            git commit -m "fix(chat): repair nullable message text compiler errors [skip ci]"
+            git commit -m "fix(chat): remove ticker mixin collision [skip ci]"
             git push origin HEAD:master
           fi
 
