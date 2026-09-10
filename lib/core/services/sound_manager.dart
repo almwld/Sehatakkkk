@@ -1,159 +1,97 @@
 import 'package:audioplayers/audioplayers.dart';
 
+/// Single source of truth for in-app audio effects and call tones.
+///
+/// Call tones and short UI sounds use separate players so a message/feedback
+/// sound can never interrupt a call ringtone/ringback, and vice versa.
 class SoundManager {
   static final SoundManager _instance = SoundManager._internal();
   factory SoundManager() => _instance;
   SoundManager._internal();
 
-  final AudioPlayer _player = AudioPlayer();
-  bool _isPlaying = false;
+  final AudioPlayer _callPlayer = AudioPlayer();
+  final AudioPlayer _effectPlayer = AudioPlayer();
+  bool _callPlaying = false;
+  bool _effectPlaying = false;
 
-  // 🎵 تشغيل نغمة رنين المكالمة
+  Future<void> _playEffect(String asset, {double volume = 1.0}) async {
+    try {
+      await _effectPlayer.stop();
+      await _effectPlayer.setReleaseMode(ReleaseMode.release);
+      await _effectPlayer.setVolume(volume.clamp(0.0, 1.0));
+      _effectPlaying = true;
+      await _effectPlayer.play(AssetSource(asset));
+    } catch (e) {
+      _effectPlaying = false;
+      print('⚠️ Audio effect error ($asset): $e');
+    }
+  }
+
   Future<void> playCallRingtone() async {
     try {
-      await _player.play(AssetSource('audio/call_ringtone.mp3'));
-      await _player.setReleaseMode(ReleaseMode.loop);
-      _isPlaying = true;
-      print('🔔 Ringtone playing');
+      await _callPlayer.stop();
+      await _callPlayer.setReleaseMode(ReleaseMode.loop);
+      await _callPlayer.setVolume(1.0);
+      _callPlaying = true;
+      await _callPlayer.play(AssetSource('audio/call_ringtone.mp3'));
+      print('🔔 Incoming call ringtone playing');
     } catch (e) {
-      print('⚠️ Ringtone error: $e');
-      // ✅ استخدام نغمة بديلة
-      try {
-        await _player.play(AssetSource('audio/notification.mp3'));
-        await _player.setReleaseMode(ReleaseMode.loop);
-        _isPlaying = true;
-      } catch (_) {}
+      _callPlaying = false;
+      print('⚠️ Call ringtone error: $e');
     }
   }
 
-  // 🎵 تشغيل صوت إرسال رسالة
-  Future<void> playMessageSent() async {
-    try {
-      await _player.play(AssetSource('audio/message_sent.mp3'));
-      _isPlaying = true;
-    } catch (e) {
-      print('⚠️ Message sent sound error: $e');
-    }
-  }
-
-  // 🎵 تشغيل صوت استلام رسالة
-  Future<void> playMessageReceived() async {
-    try {
-      await _player.play(AssetSource('audio/message_received.mp3'));
-      _isPlaying = true;
-    } catch (e) {
-      print('⚠️ Message received sound error: $e');
-    }
-  }
-
-  // 🎵 تشغيل نغمة إشعار
-  Future<void> playNotification() async {
-    try {
-      await _player.play(AssetSource('audio/notification.mp3'));
-      _isPlaying = true;
-    } catch (e) {
-      print('⚠️ Notification sound error: $e');
-    }
-  }
-
-  // 🎵 تشغيل تنبيه الدواء
-  Future<void> playMedicationReminder() async {
-    try {
-      await _player.play(AssetSource('audio/medication_reminder.mp3'));
-      _isPlaying = true;
-    } catch (e) {
-      print('⚠️ Medication reminder sound error: $e');
-    }
-  }
-
-  // 🎵 تشغيل صوت بدء المكالمة
-  Future<void> playCallStart() async {
-    try {
-      await _player.play(AssetSource('audio/call_start.mp3'));
-      _isPlaying = true;
-    } catch (e) {
-      print('⚠️ Call start sound error: $e');
-    }
-  }
-
-  // 🎵 تشغيل صوت إنهاء المكالمة
-  Future<void> playCallEnd() async {
-    try {
-      await _player.play(AssetSource('audio/call_end.mp3'));
-      _isPlaying = true;
-    } catch (e) {
-      print('⚠️ Call end sound error: $e');
-    }
-  }
-
-  // 🎵 تشغيل نغمة انتظار
   Future<void> playRingback() async {
     try {
-      await _player.play(AssetSource('audio/ringback.mp3'));
-      await _player.setReleaseMode(ReleaseMode.loop);
-      _isPlaying = true;
+      await _callPlayer.stop();
+      await _callPlayer.setReleaseMode(ReleaseMode.loop);
+      await _callPlayer.setVolume(1.0);
+      _callPlaying = true;
+      await _callPlayer.play(AssetSource('audio/ringback.mp3'));
+      print('📞 Outgoing ringback playing');
     } catch (e) {
-      print('⚠️ Ringback sound error: $e');
+      _callPlaying = false;
+      print('⚠️ Ringback error: $e');
     }
   }
 
-  // 🎵 تشغيل صوت الخطأ
-  Future<void> playError() async {
-    try {
-      await _player.play(AssetSource('audio/error.mp3'));
-      _isPlaying = true;
-    } catch (e) {
-      print('⚠️ Error sound error: $e');
-    }
-  }
+  Future<void> playMessageSent() => _playEffect('audio/message_sent.mp3');
+  Future<void> playMessageReceived() => _playEffect('audio/message_received.mp3');
+  Future<void> playNotification() => _playEffect('audio/notification.mp3');
+  Future<void> playMedicationReminder() => _playEffect('audio/medication_reminder.mp3', volume: 0.8);
+  Future<void> playCallStart() => _playEffect('audio/call_start.mp3');
+  Future<void> playCallEnd() => _playEffect('audio/call_end.mp3');
+  Future<void> playError() => _playEffect('audio/error.mp3');
+  Future<void> playSuccess() => _playEffect('audio/success.mp3');
 
-  // 🎵 تشغيل صوت النجاح
-  Future<void> playSuccess() async {
-    try {
-      await _player.play(AssetSource('audio/success.mp3'));
-      _isPlaying = true;
-    } catch (e) {
-      print('⚠️ Success sound error: $e');
-    }
-  }
-
-  // 🎵 إيقاف جميع النغمات
   Future<void> stopAll() async {
     try {
-      await _player.stop();
-      _isPlaying = false;
-      print('🔇 All sounds stopped');
-    } catch (e) {
-      print('⚠️ Stop all sounds error: $e');
+      await Future.wait([_callPlayer.stop(), _effectPlayer.stop()]);
+    } finally {
+      _callPlaying = false;
+      _effectPlaying = false;
+      print('🔇 All app audio stopped');
     }
   }
 
-  // 🎵 إيقاف النغمة الحالية
-  Future<void> stop() async {
-    try {
-      await _player.stop();
-      _isPlaying = false;
-    } catch (e) {
-      print('⚠️ Stop sound error: $e');
-    }
-  }
+  Future<void> stop() => stopAll();
 
-  // 🎵 ضبط مستوى الصوت
   Future<void> setVolume(double volume) async {
-    try {
-      await _player.setVolume(volume.clamp(0.0, 1.0));
-    } catch (e) {
-      print('⚠️ Set volume error: $e');
-    }
+    final value = volume.clamp(0.0, 1.0);
+    await Future.wait([
+      _callPlayer.setVolume(value),
+      _effectPlayer.setVolume(value),
+    ]);
   }
 
-  // 🎵 التحقق من حالة التشغيل
-  bool get isPlaying => _isPlaying;
+  bool get isPlaying => _callPlaying || _effectPlaying;
 
-  // 🎵 التخلص من الموارد
   void dispose() {
-    _player.stop();
-    _player.dispose();
-    _isPlaying = false;
+    _callPlayer.stop();
+    _effectPlayer.stop();
+    _callPlayer.dispose();
+    _effectPlayer.dispose();
+    _callPlaying = false;
+    _effectPlaying = false;
   }
 }
