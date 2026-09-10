@@ -1,0 +1,89 @@
+name: 🔧 Repair Chat Build Sources
+
+on:
+  push:
+    branches:
+      - feat/complete-sehatak-integration
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: !contains(github.event.head_commit.message, '[repair-chat-build]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/complete-sehatak-integration
+          fetch-depth: 0
+
+      - name: Patch Flutter sources
+        shell: python
+        run: |
+          from pathlib import Path
+
+          # 1) Chat room: Timestamp -> DateTime at UI boundary, image callback signature, approved SVG wallpaper.
+          p = Path('lib/presentation/screens/chat/chat_room_screen.dart')
+          s = p.read_text(encoding='utf-8')
+
+          if "import 'package:flutter_svg/flutter_svg.dart';" not in s:
+              s = s.replace("import 'package:flutter/material.dart';", "import 'package:flutter/material.dart';\nimport 'package:flutter_svg/flutter_svg.dart';", 1)
+
+          s = s.replace("message.timestamp!,\n                        messages[index - 1].timestamp!,", "message.timestamp!.toDate(),\n                        messages[index - 1].timestamp!.toDate(),", 1)
+          s = s.replace("_buildDateDivider(message.timestamp, isDark)", "_buildDateDivider(message.timestamp?.toDate(), isDark)", 1)
+          s = s.replace("onTap: _sendImage,", "onTap: () => _sendImage(null),")
+
+          old = """          child: ListView.builder(\n            controller: _scrollController,"""
+          new = """          child: Stack(\n            children: [\n              Positioned.fill(\n                child: IgnorePointer(\n                  child: SvgPicture.asset(\n                    isDark\n                        ? 'assets/images/sehatak_chat_wallpaper_dark.svg'\n                        : 'assets/images/sehatak_chat_wallpaper_light.svg',\n                    fit: BoxFit.cover,\n                  ),\n                ),\n              ),\n              ListView.builder(\n                controller: _scrollController,"""
+          if old in s and "sehatak_chat_wallpaper_dark.svg" not in s:
+              s = s.replace(old, new, 1)
+              tail = """          ),\n        ),\n      ),\n    );\n  }\n\n  bool _isDifferentDay"""
+              replacement = """              ),\n            ],\n          ),\n        ),\n      ),\n    );\n  }\n\n  bool _isDifferentDay"""
+              if tail not in s:
+                  raise SystemExit('Chat room Stack closing pattern not found')
+              s = s.replace(tail, replacement, 1)
+
+          p.write_text(s, encoding='utf-8')
+
+          # 2) Call screen: callers already pass callId; make the parameter part of the canonical widget API.
+          p = Path('lib/presentation/screens/call/call_screen.dart')
+          s = p.read_text(encoding='utf-8')
+          s = s.replace("  final String chatId;\n", "  final String chatId;\n  final String? callId;\n", 1)
+          s = s.replace("    required this.chatId,\n", "    required this.chatId,\n    this.callId,\n", 1)
+          p.write_text(s, encoding='utf-8')
+
+          # 3) Router: add the actual hospital list route used by FeaturedFacilitiesGrid.
+          p = Path('lib/app_router.dart')
+          s = p.read_text(encoding='utf-8')
+          if "hospital_screen.dart" not in s:
+              s = s.replace("import 'package:sehatak/presentation/screens/home/home_screen.dart';", "import 'package:sehatak/presentation/screens/home/home_screen.dart';\nimport 'package:sehatak/presentation/screens/hospital/hospital_screen.dart';", 1)
+          if "static const String hospitals = '/hospitals';" not in s:
+              s = s.replace("  static const String labs = '/labs';", "  static const String labs = '/labs';\n  static const String hospitals = '/hospitals';", 1)
+          if "GoRoute(path: hospitals" not in s:
+              s = s.replace("      GoRoute(path: labs, builder: (_, __) => const LabsListScreen()),", "      GoRoute(path: labs, builder: (_, __) => const LabsListScreen()),\n      GoRoute(path: hospitals, builder: (_, __) => const HospitalScreen()),", 1)
+          if "case hospitals:" not in s:
+              s = s.replace("      case labs:\n        return MaterialPageRoute(builder: (_) => const LabsListScreen(), settings: routeSettings);", "      case labs:\n        return MaterialPageRoute(builder: (_) => const LabsListScreen(), settings: routeSettings);\n      case hospitals:\n        return MaterialPageRoute(builder: (_) => const HospitalScreen(), settings: routeSettings);", 1)
+          p.write_text(s, encoding='utf-8')
+
+          # 4) Ensure no stale duplicate direct callback remains in chat room.
+          p = Path('lib/presentation/screens/chat/chat_room_screen.dart')
+          s = p.read_text(encoding='utf-8')
+          if 'onTap: _sendImage,' in s:
+              raise SystemExit('Stale _sendImage callback remains')
+          p.write_text(s, encoding='utf-8')
+
+      - name: Format and analyze
+        run: |
+          dart format lib/presentation/screens/chat/chat_room_screen.dart lib/presentation/screens/call/call_screen.dart lib/app_router.dart
+          flutter pub get
+          flutter analyze --no-fatal-infos
+
+      - name: Commit repaired sources to feature branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lib/presentation/screens/chat/chat_room_screen.dart lib/presentation/screens/call/call_screen.dart lib/app_router.dart
+          git diff --cached --quiet && echo 'No source changes needed' && exit 0
+          git commit -m 'fix(chat): compile and apply approved wallpapers [repair-chat-build]'
+          git push origin HEAD:feat/complete-sehatak-integration
