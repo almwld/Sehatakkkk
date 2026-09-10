@@ -7,6 +7,8 @@ import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// Android foreground service used for continuous step tracking.
+/// SharedPreferences is the single local source of truth for the tracker.
 class BackgroundService {
   static final FlutterBackgroundService _service = FlutterBackgroundService();
   static bool _configured = false;
@@ -39,7 +41,9 @@ class BackgroundService {
   }
 
   static Future<void> stopStepTracking() async {
-    if (await _service.isRunning()) _service.invoke('stopStepTracking');
+    if (await _service.isRunning()) {
+      _service.invoke('stopStepTracking');
+    }
   }
 
   @pragma('vm:entry-point')
@@ -57,15 +61,20 @@ class BackgroundService {
       await prefs.setInt('steps.today.count', 0);
       await prefs.setDouble('steps.today.distance', 0);
       await prefs.setDouble('steps.today.calories', 0);
+      await prefs.setDouble('steps.today.speed', 0);
     }
 
     final samples = <double>[];
+    final recentStepTimes = <DateTime>[];
     DateTime? lastStep;
     var lastPersist = DateTime.now();
 
     if (service is AndroidServiceInstance) {
       service.setAsForegroundService();
-      service.setForegroundNotificationInfo(title: 'صحتك • تتبع الخطوات', content: '$steps من $goal خطوة');
+      service.setForegroundNotificationInfo(
+        title: 'صحتك • تتبع الخطوات',
+        content: '$steps من $goal خطوة',
+      );
     }
     service.on('stopStepTracking').listen((_) => service.stopSelf());
 
@@ -81,26 +90,55 @@ class BackgroundService {
       final now = DateTime.now();
       final enoughTime = lastStep == null || now.difference(lastStep!).inMilliseconds >= 300;
 
+      // Local peak detection with a short refractory period to avoid double-counting.
       if (b > a && b >= c && b > 11.0 && enoughTime) {
         if (_dateKey(now) != date) {
           date = _dateKey(now);
           steps = 0;
+          recentStepTimes.clear();
           await prefs.setString('steps.today.date', date);
+          await prefs.setInt('steps.today.count', 0);
+          await prefs.setDouble('steps.today.distance', 0);
+          await prefs.setDouble('steps.today.calories', 0);
+          await prefs.setDouble('steps.today.speed', 0);
         }
+
         steps++;
         lastStep = now;
+        recentStepTimes.add(now);
+        while (recentStepTimes.isNotEmpty && now.difference(recentStepTimes.first).inSeconds > 30) {
+          recentStepTimes.removeAt(0);
+        }
+
+        // Estimate walking speed from recent cadence, rather than leaving speed at zero.
+        double speedKmh = 0;
+        if (recentStepTimes.length >= 2) {
+          final elapsedSeconds = now.difference(recentStepTimes.first).inMilliseconds / 1000.0;
+          if (elapsedSeconds > 0) {
+            final cadence = (recentStepTimes.length - 1) * 60.0 / elapsedSeconds;
+            speedKmh = (cadence * 0.00076 * 60.0).clamp(0.0, 12.0).toDouble();
+          }
+        }
+
         await prefs.setInt('steps.today.count', steps);
         await prefs.setDouble('steps.today.distance', steps * 0.00076);
         await prefs.setDouble('steps.today.calories', steps * 0.04);
+        await prefs.setDouble('steps.today.speed', speedKmh);
         await _saveHistory(prefs, date, steps);
+
         if (service is AndroidServiceInstance) {
-          service.setForegroundNotificationInfo(title: 'صحتك • تتبع الخطوات', content: '$steps من $goal خطوة');
+          service.setForegroundNotificationInfo(
+            title: 'صحتك • تتبع الخطوات',
+            content: '$steps من $goal خطوة',
+          );
         }
       }
 
       if (now.difference(lastPersist).inSeconds >= 30) {
         lastPersist = now;
         await prefs.setInt('steps.today.count', steps);
+        await prefs.setDouble('steps.today.distance', steps * 0.00076);
+        await prefs.setDouble('steps.today.calories', steps * 0.04);
         await _saveHistory(prefs, date, steps);
       }
     });
