@@ -37,7 +37,7 @@ import 'presentation/screens/chat/chat_room_screen.dart';
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   final notificationService = NotificationService();
-  await notificationService.initialize();
+  await notificationService.initialize(startCallCoordinator: false);
   final type = message.data['type']?.toString();
   if (type == 'incoming_call') {
     final callId = (message.data['callId'] ?? message.data['id'])?.toString();
@@ -185,7 +185,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
     final senderName = message.data['senderName']?.toString() ?? 'محادثة';
     final nav = navigatorKey.currentState;
     if (nav == null) return;
-    nav.push(MaterialPageRoute(builder: (_) => ChatRoomScreen(chatId: chatId, otherUserId: senderId, otherUserName: senderName, isGroup: false)));
+    nav.push(MaterialPageRoute(builder: (_) => ChatRoomScreen(chatId: chatId, otherUserId: senderId, otherUserName: senderName, isGroup: false));
   }
 
   @override
