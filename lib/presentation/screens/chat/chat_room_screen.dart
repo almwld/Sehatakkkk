@@ -1,24 +1,34 @@
+cat > lib/presentation/screens/chat/chat_room_screen.dart << 'CHATROOMEOF'
 // ============================================================
-// 🌌 شاشة الدردشة - النموذج العالمي المتكامل
+// 🌌 شاشة الدردشة - النموذج الموحد الشامل الكامل
 // ============================================================
+// دمج: v_b5eae300_27k + v_fd0e2518_41k + v_ff1047a4_85k
 // مستوحاة من: WhatsApp + Telegram + iMessage + Signal + Discord
 // ============================================================
 
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:image_picker/image_picker.dart';
+
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/message_model.dart';
 import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/core/services/location_service.dart';
 import 'package:sehatak/bloc/messages/messages_bloc.dart';
-import 'package:sehatak/presentation/screens/call/call_screen.dart';
+import 'package:sehatak/presentation/screens/chat/widgets/chat_background.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/message_bubble.dart';
 import 'package:sehatak/presentation/screens/chat/widgets/chat_input_bar.dart';
+import 'package:sehatak/presentation/screens/chat/widgets/typing_indicator.dart';
+import 'package:sehatak/presentation/screens/call/call_screen.dart';
+import 'package:sehatak/presentation/screens/patient/patient_profile.dart';
 
 // ============================================================
 // 📦 النماذج المساعدة
@@ -46,6 +56,7 @@ class ChatRoomScreen extends StatefulWidget {
   final String otherUserName;
   final String? otherUserImage;
   final bool isGroup;
+  final String? groupImage;
   final String? lastMessage;
 
   const ChatRoomScreen({
@@ -55,6 +66,7 @@ class ChatRoomScreen extends StatefulWidget {
     required this.otherUserName,
     this.otherUserImage,
     this.isGroup = false,
+    this.groupImage,
     this.lastMessage,
   });
 
@@ -63,7 +75,10 @@ class ChatRoomScreen extends StatefulWidget {
 }
 
 class _ChatRoomScreenState extends State<ChatRoomScreen>
-    with SingleTickerProviderStateMixin, WidgetsBindingObserver, TickerProviderStateMixin {
+    with
+        SingleTickerProviderStateMixin,
+        WidgetsBindingObserver,
+        TickerProviderStateMixin {
   // ============================================================
   // 🔥 القسم 1: الخدمات والمتغيرات الأساسية
   // ============================================================
@@ -72,9 +87,14 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
   final ScrollController _scrollController = ScrollController();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final ImagePicker _picker = ImagePicker();
+  final LocationService _locationService = LocationService();
+  final FocusNode _focusNode = FocusNode();
+
+  // ✅ قائمة الرسائل
   final List<MessageModel> _messages = [];
   final List<MessageReaction> _messageReactions = [];
-  final FocusNode _focusNode = FocusNode();
+  List<File> _selectedFiles = [];
 
   // ============================================================
   // 🎯 القسم 2: حالة الشاشة
@@ -116,7 +136,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
   double _recordingAmplitude = 0;
 
   // ═══ حالة الملفات ═══
-  List<File> _selectedFiles = [];
   bool _isUploadingFiles = false;
   double _uploadProgress = 0;
 
@@ -145,6 +164,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
   int _subscribersCount = 0;
   bool _isSubscribed = false;
 
+  // ═══ للتوافق مع النسخة القديمة ═══
+  String? _replyToMessageId;
+
   // ============================================================
   // 🎬 القسم 3: التحكمات والأنيميشن
   // ============================================================
@@ -163,13 +185,20 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
   // 🔌 القسم 4: الاتصالات (Streams)
   // ============================================================
 
-  StreamSubscription? _typingSubscription;
-  StreamSubscription? _userStatusSubscription;
-  StreamSubscription? _muteSubscription;
-  StreamSubscription? _pinSubscription;
-  StreamSubscription? _blockSubscription;
-  StreamSubscription? _reactionsSubscription;
-  StreamSubscription? _encryptionSubscription;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>?
+      _typingSubscription;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>?
+      _userStatusSubscription;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>?
+      _muteSubscription;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>?
+      _pinSubscription;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>?
+      _blockSubscription;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+      _reactionsSubscription;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>?
+      _encryptionSubscription;
 
   // ============================================================
   // 🔄 القسم 5: دورة الحياة
@@ -180,27 +209,21 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    // ═══ تهيئة التحكمات ═══
     _initializeAnimations();
-
-    // ═══ تحميل البيانات ═══
     _loadMessages();
     _loadEncryptionStatus();
     _loadBlockStatus();
     _loadChatSettings();
 
-    // ═══ الاستماع للحالة ═══
     _listenToTyping();
     _checkUserStatus();
     _listenToReactions();
+    _listenToPin();
+    _listenToBlock();
+    _listenToEncryption();
 
-    // ═══ مستمع التمرير ═══
     _scrollController.addListener(_onScroll);
-
-    // ═══ تتبع القراءة ═══
     _markMessagesAsRead();
-
-    // ═══ Focus management ═══
     _focusNode.addListener(_onFocusChange);
   }
 
@@ -214,6 +237,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
     _focusNode.dispose();
     _recordingTimer?.cancel();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _markMessagesAsRead();
+    }
   }
 
   // ============================================================
@@ -287,7 +317,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
   void _loadEncryptionStatus() async {
     try {
       final doc = await _firestore.collection('chats').doc(widget.chatId).get();
-      if (doc.exists) {
+      if (doc.exists && mounted) {
         setState(() {
           _isEncrypted = doc.data()?['isEncrypted'] ?? true;
         });
@@ -309,9 +339,11 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
           .doc(widget.otherUserId)
           .get();
 
-      setState(() {
-        _isBlockedByUser = doc.exists;
-      });
+      if (mounted) {
+        setState(() {
+          _isBlockedByUser = doc.exists;
+        });
+      }
     } catch (e) {
       debugPrint('Error loading block status: $e');
     }
@@ -320,7 +352,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
   void _loadChatSettings() async {
     try {
       final doc = await _firestore.collection('chats').doc(widget.chatId).get();
-      if (doc.exists) {
+      if (doc.exists && mounted) {
         final data = doc.data();
         setState(() {
           _isMuted = data?['isMuted'] ?? false;
@@ -411,6 +443,51 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
     });
   }
 
+  void _listenToPin() {
+    _pinSubscription = _firestore
+        .collection('chats')
+        .doc(widget.chatId)
+        .snapshots()
+        .listen((snapshot) {
+      if (!mounted || !snapshot.exists) return;
+      if (mounted) {
+        setState(() {
+          _isPinned = snapshot.data()?['isPinned'] == true;
+        });
+      }
+    });
+  }
+
+  void _listenToBlock() {
+    _blockSubscription = _firestore
+        .collection('chats')
+        .doc(widget.chatId)
+        .snapshots()
+        .listen((snapshot) {
+      if (!mounted || !snapshot.exists) return;
+      if (mounted) {
+        setState(() {
+          _isBlocked = snapshot.data()?['isBlocked'] == true;
+        });
+      }
+    });
+  }
+
+  void _listenToEncryption() {
+    _encryptionSubscription = _firestore
+        .collection('chats')
+        .doc(widget.chatId)
+        .snapshots()
+        .listen((snapshot) {
+      if (!mounted || !snapshot.exists) return;
+      if (mounted) {
+        setState(() {
+          _isEncrypted = snapshot.data()?['isEncrypted'] ?? true;
+        });
+      }
+    });
+  }
+
   // ============================================================
   // 📜 القسم 9: التمرير والتحميل
   // ============================================================
@@ -425,7 +502,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
       _appBarOpacity = min(1, max(0, -position.pixels / 150));
     });
 
-    if (position.pixels >= position.maxScrollExtent * 0.7) {
+    if (position.pixels >= position.maxScrollExtent * 0.8) {
       _loadMoreMessages();
     }
 
@@ -438,14 +515,17 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
     if (_isLoadingMore) return;
     final bloc = context.read<MessagesBloc>();
     final state = bloc.state;
-    if (state is! MessagesLoaded || !state.hasMore || state.isLoadingMore) return;
+    if (state is! MessagesLoaded || !state.hasMore || state.isLoadingMore) {
+      return;
+    }
 
     _isLoadingMore = true;
     bloc.add(LoadMoreMessages(chatId: widget.chatId, limit: 30));
   }
 
   void _scrollToBottom({bool animated = true}) {
-    if (_scrollController.hasClients) {
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (!mounted || !_scrollController.hasClients) return;
       if (animated) {
         _scrollController.animateTo(
           0,
@@ -455,7 +535,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
       } else {
         _scrollController.jumpTo(0);
       }
-    }
+    });
   }
 
   // ============================================================
@@ -499,10 +579,46 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
   void _navigateToNextHighlight() {
     if (_highlightedIndices.isEmpty) return;
     setState(() {
-      _currentHighlightIndex = (_currentHighlightIndex + 1) % _highlightedIndices.length;
+      _currentHighlightIndex =
+          (_currentHighlightIndex + 1) % _highlightedIndices.length;
     });
-    // التمرير إلى الرسالة المميزة
-    // (سيتم تنفيذها في الـ ListView)
+  }
+
+  void _searchInChat() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Image.asset(
+              'assets/images/icons/search/Search_button.png',
+              width: 24,
+              height: 24,
+              errorBuilder: (_, __, ___) => const Icon(Icons.search),
+            ),
+            const SizedBox(width: 8),
+            const Text('بحث في المحادثة'),
+          ],
+        ),
+        content: TextField(
+          decoration: const InputDecoration(
+            hintText: 'اكتب كلمة البحث...',
+            prefixIcon: Icon(Icons.search),
+            border: OutlineInputBorder(),
+          ),
+          onSubmitted: (value) {
+            Navigator.pop(context);
+            ToastService.showInfo('🔍 جاري البحث عن: $value');
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('إلغاء'),
+          ),
+        ],
+      ),
+    );
   }
 
   // ============================================================
@@ -517,57 +633,271 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
       _showEmojiPicker = false;
       _showAttachmentMenu = false;
       _showReactionPicker = false;
+      _isReplying = false;
     });
 
     context.read<MessagesBloc>().add(
           SendMessage(
             chatId: widget.chatId,
             text: text.trim(),
-            replyToId: _replyMessage?.id,
+            replyToId: _replyMessage?.id ?? _replyToMessageId,
             idempotencyKey: '${DateTime.now().millisecondsSinceEpoch}',
           ),
         );
 
     setState(() {
-      _isReplying = false;
       _replyMessage = null;
+      _replyToMessageId = null;
     });
 
     _scrollToBottom();
   }
 
-  void _sendImage(String path) {
-    // TODO: تنفيذ إرسال الصورة
-    ToastService.showInfo('📷 جاري إرسال الصورة...');
-    setState(() => _showAttachmentMenu = false);
-  }
+  // ============================================================
+  // 📷 القسم 12: إرسال الصور
+  // ============================================================
 
-  void _sendFile() {
-    // TODO: تنفيذ إرسال الملف
-    ToastService.showInfo('📁 جاري إرسال الملف...');
-    setState(() => _showAttachmentMenu = false);
-  }
+  Future<void> _sendImage(dynamic imagePath) async {
+    try {
+      XFile? image;
+      if (imagePath is XFile) {
+        image = imagePath;
+      } else if (imagePath is String && imagePath.isNotEmpty) {
+        image = XFile(imagePath);
+      } else {
+        image = await _picker.pickImage(
+          source: ImageSource.gallery,
+          imageQuality: 70,
+        );
+      }
 
-  void _sendContact() {
-    // TODO: تنفيذ إرسال جهة الاتصال
-    ToastService.showInfo('👤 جاري إرسال جهة الاتصال...');
-    setState(() => _showAttachmentMenu = false);
-  }
+      if (image == null) return;
+      final user = _auth.currentUser;
+      if (user == null) return;
 
-  void _sendLocation() {
-    // TODO: تنفيذ مشاركة الموقع
-    ToastService.showInfo('📍 جاري مشاركة الموقع...');
-    setState(() => _showAttachmentMenu = false);
-  }
+      setState(() => _showAttachmentMenu = false);
 
-  void _sendPoll() {
-    // TODO: تنفيذ إنشاء استطلاع رأي
-    ToastService.showInfo('📊 جاري إنشاء استطلاع الرأي...');
-    setState(() => _showAttachmentMenu = false);
+      final file = File(image.path);
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final ref = FirebaseStorage.instance
+          .ref()
+          .child('chats/${widget.chatId}/images/$fileName');
+
+      setState(() {
+        _isUploadingFiles = true;
+        _uploadProgress = 0;
+      });
+
+      final uploadTask = ref.putFile(file);
+
+      uploadTask.snapshotEvents.listen((snapshot) {
+        if (snapshot.totalBytes > 0 && mounted) {
+          setState(() {
+            _uploadProgress = snapshot.bytesTransferred / snapshot.totalBytes;
+          });
+        }
+      });
+
+      await uploadTask;
+      final imageUrl = await ref.getDownloadURL();
+
+      await _firestore
+          .collection('chats')
+          .doc(widget.chatId)
+          .collection('messages')
+          .add({
+        'chatId': widget.chatId,
+        'senderId': user.uid,
+        'senderName': user.displayName ?? 'مستخدم',
+        'senderPhotoUrl': user.photoURL,
+        'text': '📷 صورة',
+        'imageUrl': imageUrl,
+        'timestamp': FieldValue.serverTimestamp(),
+        'type': 'image',
+        'isRead': false,
+        'isDelivered': false,
+        'isDeleted': false,
+        'isEdited': false,
+        'reactions': {},
+      });
+
+      await _firestore.collection('chats').doc(widget.chatId).update({
+        'lastMessage': '📷 صورة',
+        'lastMessageTime': FieldValue.serverTimestamp(),
+        'lastMessageSenderId': user.uid,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      if (!mounted) return;
+      setState(() {
+        _isUploadingFiles = false;
+        _uploadProgress = 0;
+      });
+      ToastService.showSuccess('✅ تم إرسال الصورة');
+      _scrollToBottom();
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isUploadingFiles = false;
+          _uploadProgress = 0;
+        });
+      }
+      ToastService.showError('❌ فشل إرسال الصورة: $e');
+    }
   }
 
   // ============================================================
-  // 🎤 القسم 12: التسجيل الصوتي
+  // 📁 القسم 13: إرسال الملفات
+  // ============================================================
+
+  void _sendFile() {
+    ToastService.showInfo('📁 جاري إرسال الملف...');
+    setState(() => _showAttachmentMenu = false);
+    // TODO: تنفيذ إرسال الملفات عبر file_picker
+  }
+
+  // ============================================================
+  // 👤 القسم 14: إرسال جهة الاتصال
+  // ============================================================
+
+  void _sendContact() {
+    ToastService.showInfo('👤 جاري إرسال جهة الاتصال...');
+    setState(() => _showAttachmentMenu = false);
+    // TODO: تنفيذ إرسال جهة الاتصال
+  }
+
+  // ============================================================
+  // 📊 القسم 15: إنشاء استطلاع
+  // ============================================================
+
+  void _sendPoll() {
+    ToastService.showInfo('📊 جاري إنشاء استطلاع الرأي...');
+    setState(() => _showAttachmentMenu = false);
+
+    // ✅ نافذة إنشاء استطلاع
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('📊 إنشاء استطلاع'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              decoration: const InputDecoration(
+                labelText: 'السؤال',
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (value) => _pollQuestion = value,
+            ),
+            const SizedBox(height: 12),
+            ...List.generate(_pollOptions.length, (index) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: TextField(
+                  decoration: InputDecoration(
+                    labelText: 'الخيار ${index + 1}',
+                    border: const OutlineInputBorder(),
+                  ),
+                  onChanged: (value) => _pollOptions[index] = value,
+                ),
+              );
+            }),
+            TextButton.icon(
+              onPressed: () {
+                setState(() {
+                  _pollOptions.add('');
+                });
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('إضافة خيار'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('إلغاء'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              // TODO: إرسال الاستطلاع
+              ToastService.showInfo('📊 تم إنشاء الاستطلاع');
+            },
+            child: const Text('إنشاء'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // 📍 القسم 16: مشاركة الموقع
+  // ============================================================
+
+  Future<void> _shareLocation() async {
+    try {
+      setState(() => _showAttachmentMenu = false);
+
+      final position = await _locationService.getCurrentLocation();
+      if (position == null) {
+        ToastService.showError('❌ لا يمكن الحصول على الموقع');
+        return;
+      }
+
+      final address = await _locationService.getAddressFromLocation(
+        latitude: position.latitude,
+        longitude: position.longitude,
+      );
+
+      final user = _auth.currentUser;
+      if (user == null) return;
+
+      final locationUrl =
+          'https://www.google.com/maps/search/?api=1&query=${position.latitude},${position.longitude}';
+
+      await _firestore
+          .collection('chats')
+          .doc(widget.chatId)
+          .collection('messages')
+          .add({
+        'chatId': widget.chatId,
+        'senderId': user.uid,
+        'senderName': user.displayName ?? 'مستخدم',
+        'senderPhotoUrl': user.photoURL,
+        'text': '📍 $address',
+        'timestamp': FieldValue.serverTimestamp(),
+        'type': 'location',
+        'locationUrl': locationUrl,
+        'locationLat': position.latitude,
+        'locationLng': position.longitude,
+        'locationAddress': address,
+        'latitude': position.latitude,
+        'longitude': position.longitude,
+        'address': address,
+        'isRead': false,
+        'isDelivered': false,
+        'isDeleted': false,
+        'reactions': {},
+      });
+
+      await _firestore.collection('chats').doc(widget.chatId).update({
+        'lastMessage': '📍 تم مشاركة موقع',
+        'lastMessageTime': FieldValue.serverTimestamp(),
+        'lastMessageSenderId': user.uid,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      if (!mounted) return;
+      ToastService.showSuccess('✅ تم مشاركة الموقع');
+      _scrollToBottom();
+    } catch (e) {
+      ToastService.showError('❌ فشل مشاركة الموقع: $e');
+    }
+  }
+
+  // ============================================================
+  // 🎤 القسم 17: التسجيل الصوتي
   // ============================================================
 
   void _startRecording() {
@@ -605,10 +935,49 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
   }
 
   // ============================================================
-  // 🎬 القسم 13: المكالمات
+  // 📞 القسم 18: المكالمات
   // ============================================================
 
+  Future<void> _saveCallMessage(bool isVideo) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return;
+      final message = isVideo ? '📹 مكالمة فيديو' : '📞 مكالمة صوتية';
+
+      await _firestore
+          .collection('chats')
+          .doc(widget.chatId)
+          .collection('messages')
+          .add({
+        'chatId': widget.chatId,
+        'senderId': user.uid,
+        'senderName': user.displayName ?? 'مستخدم',
+        'senderPhotoUrl': user.photoURL,
+        'text': message,
+        'timestamp': FieldValue.serverTimestamp(),
+        'type': 'system',
+        'callType': isVideo ? 'video' : 'audio',
+        'metadata': {'callType': isVideo ? 'video' : 'audio'},
+        'isRead': false,
+        'isDelivered': false,
+        'isDeleted': false,
+        'isEdited': false,
+        'reactions': {},
+      });
+
+      await _firestore.collection('chats').doc(widget.chatId).update({
+        'lastMessage': message,
+        'lastMessageTime': FieldValue.serverTimestamp(),
+        'lastMessageSenderId': user.uid,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      debugPrint('❌ فشل حفظ رسالة النظام: $e');
+    }
+  }
+
   void _startCall(bool isVideo) {
+    _saveCallMessage(isVideo);
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -617,66 +986,87 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
           doctorName: widget.otherUserName,
           doctorId: widget.otherUserId,
           isVideo: isVideo,
-          doctorImage: widget.otherUserImage,
+          doctorImage: widget.otherUserImage ?? widget.groupImage,
+          isOutgoing: true,
         ),
       ),
     );
   }
 
   // ============================================================
-  // 🔧 القسم 14: إعدادات المحادثة
+  // 👤 القسم 19: معلومات جهة الاتصال
   // ============================================================
 
-  void _toggleMute() async {
+  void _showContactInfo() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => PatientProfile()),
+    );
+  }
+
+  void _showUserProfile() {
+    ToastService.showInfo('👤 عرض ملف ${widget.otherUserName}');
+  }
+
+  // ============================================================
+  // 🔧 القسم 20: إعدادات المحادثة
+  // ============================================================
+
+  Future<void> _toggleMute() async {
+    final newMute = !_isMuted;
     try {
-      final newMute = !_isMuted;
       await _firestore.collection('chats').doc(widget.chatId).update({
         'isMuted': newMute,
       });
+      if (!mounted) return;
       setState(() => _isMuted = newMute);
-      ToastService.showInfo(newMute ? '🔇 تم كتم الإشعارات' : '🔊 تم إلغاء كتم الإشعارات');
+      ToastService.showSuccess(
+        newMute ? '🔇 تم كتم الإشعارات' : '🔊 تم إلغاء كتم الإشعارات',
+      );
     } catch (e) {
-      ToastService.showError('❌ فشل تغيير حالة الكتم');
+      ToastService.showError('❌ فشل تغيير حالة الكتم: $e');
     }
   }
 
-  void _togglePin() async {
+  Future<void> _togglePin() async {
     try {
       final newPin = !_isPinned;
       await _firestore.collection('chats').doc(widget.chatId).update({
         'isPinned': newPin,
       });
       setState(() => _isPinned = newPin);
-      ToastService.showInfo(newPin ? '📌 تم تثبيت المحادثة' : '📌 تم إلغاء تثبيت المحادثة');
+      ToastService.showSuccess(
+        newPin ? '📌 تم تثبيت المحادثة' : '📌 تم إلغاء التثبيت',
+      );
     } catch (e) {
       ToastService.showError('❌ فشل تغيير حالة التثبيت');
     }
   }
 
-  void _archiveChat() async {
+  Future<void> _archiveChat() async {
     try {
       final newArchive = !_isArchived;
       await _firestore.collection('chats').doc(widget.chatId).update({
         'isArchived': newArchive,
       });
       setState(() => _isArchived = newArchive);
-      ToastService.showInfo(newArchive ? '📦 تم أرشفة المحادثة' : '📦 تم إلغاء أرشفة المحادثة');
-      if (newArchive) {
-        Navigator.pop(context);
-      }
+      ToastService.showSuccess(
+        newArchive ? '📦 تم أرشفة المحادثة' : '📦 تم إلغاء الأرشفة',
+      );
+      if (newArchive && mounted) Navigator.pop(context);
     } catch (e) {
-      ToastService.showError('❌ فشل أرشفة المحادثة');
+      ToastService.showError('❌ فشل الأرشفة');
     }
   }
 
-  void _markAsSpam() async {
+  Future<void> _markAsSpam() async {
     try {
       await _firestore.collection('chats').doc(widget.chatId).update({
         'isSpam': true,
       });
       setState(() => _isSpam = true);
-      ToastService.showInfo('🚫 تم وضع علامة Spam');
-      Navigator.pop(context);
+      ToastService.showSuccess('🚫 تم وضع علامة Spam');
+      if (mounted) Navigator.pop(context);
     } catch (e) {
       ToastService.showError('❌ فشل وضع علامة Spam');
     }
@@ -687,7 +1077,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('🚫 حظر المستخدم'),
-        content: const Text('هل أنت متأكد من حظر هذا المستخدم؟ لن تتمكن من استقبال رسائله بعد الآن.'),
+        content: const Text('هل أنت متأكد من حظر هذا المستخدم؟'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -709,10 +1099,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
                   'blockedBy': uid,
                 });
                 setState(() => _isBlockedByUser = true);
-                ToastService.showInfo('🚫 تم حظر المستخدم');
-                Navigator.pop(context);
+                ToastService.showSuccess('🚫 تم حظر المستخدم');
               } catch (e) {
-                ToastService.showError('❌ فشل حظر المستخدم');
+                ToastService.showError('❌ فشل الحظر');
               }
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -723,7 +1112,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
     );
   }
 
-  void _unblockUser() async {
+  Future<void> _unblockUser() async {
     try {
       final uid = _auth.currentUser?.uid;
       if (uid == null) return;
@@ -734,9 +1123,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
           .doc(widget.otherUserId)
           .delete();
       setState(() => _isBlockedByUser = false);
-      ToastService.showInfo('✅ تم إلغاء حظر المستخدم');
+      ToastService.showSuccess('✅ تم إلغاء الحظر');
     } catch (e) {
-      ToastService.showError('❌ فشل إلغاء حظر المستخدم');
+      ToastService.showError('❌ فشل إلغاء الحظر');
     }
   }
 
@@ -745,7 +1134,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('📝 إبلاغ عن المستخدم'),
-        content: const Text('هل أنت متأكد من رغبتك في إبلاغ عن هذا المستخدم؟ سيتم مراجعة البلاغ من قبل فريق الدعم.'),
+        content: const Text('سيتم مراجعة البلاغ من قبل فريق الدعم.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -754,7 +1143,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              ToastService.showInfo('📝 تم إرسال البلاغ بنجاح');
+              ToastService.showSuccess('📝 تم إرسال البلاغ بنجاح');
             },
             style: TextButton.styleFrom(foregroundColor: Colors.orange),
             child: const Text('إبلاغ'),
@@ -765,46 +1154,52 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
   }
 
   // ============================================================
-  // 🗑️ القسم 15: حذف ومسح
+  // 🗑️ القسم 21: حذف ومسح
   // ============================================================
 
   void _clearChat() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('🗑️ مسح المحادثة'),
-        content: const Text('هل أنت متأكد من مسح جميع رسائل هذه المحادثة؟ هذا الإجراء لا يمكن التراجع عنه.'),
+      builder: (dialogContext) => AlertDialog(
+        title: Row(
+          children: const [
+            Icon(Icons.delete_sweep, color: Colors.red),
+            SizedBox(width: 8),
+            Text('🗑️ مسح المحادثة'),
+          ],
+        ),
+        content: const Text('هل أنت متأكد من مسح جميع رسائل هذه المحادثة؟'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('إلغاء'),
           ),
           TextButton(
             onPressed: () async {
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
               try {
                 final snapshot = await _firestore
                     .collection('chats')
                     .doc(widget.chatId)
                     .collection('messages')
                     .get();
+                final docs = snapshot.docs;
 
-                final batch = _firestore.batch();
-                for (final doc in snapshot.docs) {
-                  batch.delete(doc.reference);
+                for (int start = 0; start < docs.length; start += 450) {
+                  final end =
+                      (start + 450 < docs.length) ? start + 450 : docs.length;
+                  final batch = _firestore.batch();
+                  for (int i = start; i < end; i++) {
+                    batch.delete(docs[i].reference);
+                  }
+                  await batch.commit();
                 }
-                await batch.commit();
 
-                await _firestore.collection('chats').doc(widget.chatId).update({
-                  'lastMessage': '',
-                  'lastMessageTime': null,
-                  'lastMessageSenderId': null,
-                  'updatedAt': FieldValue.serverTimestamp(),
-                });
-
-                ToastService.showInfo('🗑️ تم مسح جميع الرسائل');
+                if (!mounted) return;
+                ToastService.showSuccess('🗑️ تم مسح جميع الرسائل');
               } catch (e) {
-                ToastService.showError('❌ فشل مسح المحادثة');
+                if (!mounted) return;
+                ToastService.showError('❌ فشل مسح المحادثة: $e');
               }
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -845,15 +1240,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
   }
 
   // ============================================================
-  // 📋 القسم 16: التحديد المتعدد
+  // 📋 القسم 22: التحديد المتعدد
   // ============================================================
 
   void _toggleMultiSelect() {
     setState(() {
       _isMultiSelect = !_isMultiSelect;
-      if (!_isMultiSelect) {
-        _selectedMessages.clear();
-      }
+      if (!_isMultiSelect) _selectedMessages.clear();
     });
   }
 
@@ -894,7 +1287,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
                 _selectedMessages.clear();
                 _isMultiSelect = false;
               });
-              ToastService.showInfo('🗑️ تم حذف الرسائل المحددة');
+              ToastService.showSuccess('🗑️ تم حذف الرسائل المحددة');
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('حذف'),
@@ -905,15 +1298,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
   }
 
   // ============================================================
-  // 📤 القسم 17: إعادة التوجيه
+  // 📤 القسم 23: إعادة التوجيه
   // ============================================================
 
   void _toggleForwardMode() {
     setState(() {
       _isForwarding = !_isForwarding;
-      if (!_isForwarding) {
-        _forwardMessages.clear();
-      }
+      if (!_isForwarding) _forwardMessages.clear();
     });
   }
 
@@ -929,7 +1320,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
 
   void _forwardSelectedMessages() {
     if (_forwardMessages.isEmpty) return;
-    // TODO: تنفيذ إعادة التوجيه
     ToastService.showInfo('📤 جاري إعادة توجيه ${_forwardMessages.length} رسالة');
     setState(() {
       _isForwarding = false;
@@ -938,7 +1328,64 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
   }
 
   // ============================================================
-  // 🎨 القسم 18: واجهة المستخدم - الجزء الرئيسي
+  // ✏️ القسم 24: تحرير الرسائل
+  // ============================================================
+
+  void _editMessage(MessageModel message) {
+    setState(() {
+      _isEditing = true;
+      _editingMessage = message;
+      _textController.text = message.text;
+      _focusNode.requestFocus();
+    });
+  }
+
+  void _cancelEditing() {
+    setState(() {
+      _isEditing = false;
+      _editingMessage = null;
+      _textController.clear();
+    });
+  }
+
+  // ============================================================
+  // ⚡ القسم 25: قراءة الرسائل
+  // ============================================================
+
+  void _markMessagesAsRead() async {
+    try {
+      final uid = _auth.currentUser?.uid;
+      if (uid == null) return;
+
+      final snapshot = await _firestore
+          .collection('chats')
+          .doc(widget.chatId)
+          .collection('messages')
+          .where('isRead', isEqualTo: false)
+          .where('senderId', isNotEqualTo: uid)
+          .get();
+
+      if (snapshot.docs.isEmpty) return;
+
+      final batch = _firestore.batch();
+      for (final doc in snapshot.docs) {
+        batch.update(doc.reference, {
+          'isRead': true,
+          'readAt': FieldValue.serverTimestamp(),
+        });
+      }
+      await batch.commit();
+
+      await _firestore.collection('chats').doc(widget.chatId).update({
+        'unreadCount.${widget.otherUserId}': 0,
+      });
+    } catch (e) {
+      debugPrint('Error marking messages as read: $e');
+    }
+  }
+
+  // ============================================================
+  // 🏗️ القسم 26: Build
   // ============================================================
 
   @override
@@ -956,70 +1403,44 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
   Widget _buildMainScreen(bool isDark) {
     return Stack(
       children: [
-        // ═══ خلفية الشاشة ═══
         _buildBackground(isDark),
-
-        // ═══ المحتوى الرئيسي ═══
         Column(
           children: [
-            // ═══ AppBar مخصص ═══
             _buildCustomAppBar(isDark),
-
-            // ═══ شريط البحث ═══
             if (_showSearchBar) _buildSearchBar(isDark),
-
-            // ═══ شريط التحديد المتعدد ═══
             if (_isMultiSelect) _buildMultiSelectBar(isDark),
-
-            // ═══ شريط إعادة التوجيه ═══
             if (_isForwarding) _buildForwardBar(isDark),
-
-            // ═══ شريط الرد ═══
-            if (_isReplying && _replyMessage != null)
-              _buildReplyBanner(isDark),
-
-            // ═══ مؤشر الكتابة ═══
-            if (_typingUsers.isNotEmpty)
-              _buildTypingIndicator(isDark),
-
-            // ═══ قائمة الرسائل ═══
+            if (_isReplying && _replyMessage != null) _buildReplyBanner(isDark),
+            if (_typingUsers.isNotEmpty) _buildTypingIndicator(isDark),
             Expanded(
               child: BlocConsumer<MessagesBloc, MessagesState>(
                 listener: (context, state) {
                   if (state is MessagesLoaded) {
                     _isLoadingMore = false;
+                    if (mounted) {
+                      _messages.clear();
+                      _messages.addAll(state.messages);
+                    }
                   }
                 },
                 builder: (context, state) {
-                  if (state is MessagesLoading) {
-                    return _buildLoadingState(isDark);
-                  }
+                  if (state is MessagesLoading) return _buildLoadingState(isDark);
                   if (state is MessagesError) {
                     return _buildErrorState(isDark, state.message);
                   }
                   if (state is MessagesLoaded) {
-                    if (state.messages.isEmpty) {
-                      return _buildEmptyState(isDark);
-                    }
+                    if (state.messages.isEmpty) return _buildEmptyState(isDark);
                     return _buildMessagesList(state, isDark);
                   }
                   return const SizedBox.shrink();
                 },
               ),
             ),
-
-            // ═══ شريط الإدخال المتقدم ═══
-            if (!_isBlockedByUser)
-              _buildAdvancedInputBar(isDark),
+            if (!_isBlockedByUser) _buildAdvancedInputBar(isDark),
           ],
         ),
-
-        // ═══ زر التمرير للأسفل ═══
         if (_showScrollToBottom) _buildScrollToBottomButton(),
-
-        // ═══ لوحة تفاعلات الرسائل ═══
-        if (_showReactionPicker)
-          _buildReactionPicker(isDark),
+        if (_showReactionPicker) _buildReactionPicker(isDark),
       ],
     );
   }
@@ -1066,7 +1487,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
   }
 
   // ============================================================
-  // 🎨 القسم 19: واجهة المستخدم - العناصر
+  // 🎨 القسم 27: عناصر الواجهة
   // ============================================================
 
   Widget _buildBackground(bool isDark) {
@@ -1093,212 +1514,201 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
   }
 
   Widget _buildCustomAppBar(bool isDark) {
-    return AnimatedOpacity(
-      opacity: 1,
-      duration: const Duration(milliseconds: 200),
-      child: Container(
-        padding: const EdgeInsets.only(top: 40, bottom: 8, left: 4, right: 4),
-        decoration: BoxDecoration(
-          color: isDark
-              ? Colors.black.withOpacity(0.95)
-              : Colors.white.withOpacity(0.95),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(_appBarOpacity * 0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+    return Container(
+      padding: const EdgeInsets.only(top: 40, bottom: 8, left: 4, right: 4),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.black.withOpacity(0.95)
+            : Colors.white.withOpacity(0.95),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(_appBarOpacity * 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios_new,
+              color: isDark ? Colors.white : Colors.black87,
+              size: 20,
             ),
-          ],
-        ),
-        child: Row(
-          children: [
-            // ═══ زر الرجوع ═══
-            IconButton(
-              icon: Icon(
-                Icons.arrow_back_ios_new,
-                color: isDark ? Colors.white : Colors.black87,
-                size: 20,
-              ),
-              onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(context),
+          ),
+          const SizedBox(width: 2),
+          GestureDetector(
+            onTap: _showUserProfile,
+            child: Stack(
+              children: [
+                CircleAvatar(
+                  radius: 22,
+                  backgroundImage:
+                      (widget.otherUserImage ?? widget.groupImage) != null
+                          ? CachedNetworkImageProvider(
+                              widget.otherUserImage ?? widget.groupImage!)
+                          : null,
+                  backgroundColor: AppColors.primary.withOpacity(0.1),
+                  child: (widget.otherUserImage ?? widget.groupImage) == null
+                      ? Text(
+                          widget.otherUserName.isNotEmpty
+                              ? widget.otherUserName[0].toUpperCase()
+                              : 'م',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
+                      : null,
+                ),
+                if (_isOnline && !widget.isGroup)
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      width: 14,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        color: Colors.green,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isDark ? Colors.black : Colors.white,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                  ),
+                if (_isEncrypted)
+                  Positioned(
+                    top: -2,
+                    right: -2,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.grey[800] : Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color:
+                              isDark ? Colors.grey[600]! : Colors.grey[300]!,
+                          width: 1,
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.lock_outline,
+                        size: 10,
+                        color: Colors.green,
+                      ),
+                    ),
+                  ),
+              ],
             ),
-            const SizedBox(width: 2),
-
-            // ═══ صورة المستخدم ═══
-            GestureDetector(
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: GestureDetector(
               onTap: _showUserProfile,
-              child: Hero(
-                tag: 'avatar_${widget.otherUserId}',
-                child: Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 22,
-                      backgroundImage: widget.otherUserImage != null
-                          ? CachedNetworkImageProvider(widget.otherUserImage!)
-                          : null,
-                      backgroundColor: AppColors.primary.withOpacity(0.1),
-                      child: widget.otherUserImage == null
-                          ? Text(
-                              widget.otherUserName.isNotEmpty
-                                  ? widget.otherUserName[0].toUpperCase()
-                                  : 'م',
-                              style: TextStyle(
-                                color: AppColors.primary,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            )
-                          : null,
-                    ),
-                    if (_isOnline && !widget.isGroup)
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: Container(
-                          width: 14,
-                          height: 14,
-                          decoration: BoxDecoration(
-                            color: Colors.green,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: isDark ? Colors.black : Colors.white,
-                              width: 2,
-                            ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          widget.isGroup ? 'المجموعة' : widget.otherUserName,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.white : Colors.black87,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                    if (_isEncrypted)
-                      Positioned(
-                        top: -2,
-                        right: -2,
-                        child: Container(
-                          padding: const EdgeInsets.all(2),
-                          decoration: BoxDecoration(
-                            color: isDark ? Colors.grey[800] : Colors.white,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: isDark ? Colors.grey[600]! : Colors.grey[300]!,
-                              width: 1,
-                            ),
+                      if (_isPinned)
+                        const Padding(
+                          padding: EdgeInsets.only(left: 4),
+                          child: Icon(
+                            Icons.push_pin,
+                            size: 14,
+                            color: AppColors.primary,
                           ),
-                          child: const Icon(
-                            Icons.lock_outline,
-                            size: 10,
+                        ),
+                      if (_isMuted)
+                        const Padding(
+                          padding: EdgeInsets.only(left: 4),
+                          child: Icon(
+                            Icons.volume_off,
+                            size: 14,
+                            color: Colors.grey,
+                          ),
+                        ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      if (_typingUsers.isNotEmpty)
+                        Text(
+                          'يكتب...',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        )
+                      else if (_isOnline && !widget.isGroup)
+                        Text(
+                          'متصل الآن',
+                          style: TextStyle(
+                            fontSize: 11,
                             color: Colors.green,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        )
+                      else if (!widget.isGroup && _lastSeen != null)
+                        Text(
+                          'آخر ظهور: ${_formatLastSeen()}',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDark ? Colors.grey[500] : Colors.grey[400],
+                          ),
+                        )
+                      else
+                        Text(
+                          'غير متصل',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDark ? Colors.grey[500] : Colors.grey[400],
                           ),
                         ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-
-            // ═══ الاسم والحالة ═══
-            Expanded(
-              child: GestureDetector(
-                onTap: _showUserProfile,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            widget.isGroup ? 'المجموعة' : widget.otherUserName,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: isDark ? Colors.white : Colors.black87,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                      const SizedBox(width: 4),
+                      if (_typingUsers.isEmpty && !_isOnline && !widget.isGroup)
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color:
+                                isDark ? Colors.grey[600] : Colors.grey[400],
+                            shape: BoxShape.circle,
                           ),
                         ),
-                        if (_isPinned)
-                          const Padding(
-                            padding: EdgeInsets.only(left: 4),
-                            child: Icon(
-                              Icons.push_pin,
-                              size: 14,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                        if (_isMuted)
-                          const Padding(
-                            padding: EdgeInsets.only(left: 4),
-                            child: Icon(
-                              Icons.volume_off,
-                              size: 14,
-                              color: Colors.grey,
-                            ),
-                          ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        if (_typingUsers.isNotEmpty)
-                          Text(
-                            'يكتب...',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          )
-                        else if (_isOnline && !widget.isGroup)
-                          Text(
-                            'متصل الآن',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.green,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          )
-                        else if (!widget.isGroup && _lastSeen != null)
-                          Text(
-                            'آخر ظهور: ${_formatLastSeen()}',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: isDark ? Colors.grey[500] : Colors.grey[400],
-                            ),
-                          )
-                        else
-                          Text(
-                            'غير متصل',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: isDark ? Colors.grey[500] : Colors.grey[400],
-                            ),
-                          ),
-                        const SizedBox(width: 4),
-                        if (!_typingUsers.isNotEmpty && !_isOnline && !widget.isGroup)
-                          Container(
-                            width: 6,
-                            height: 6,
-                            decoration: BoxDecoration(
-                              color: isDark ? Colors.grey[600] : Colors.grey[400],
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+                ],
               ),
             ),
-
-            // ═══ أزرار التحكم ═══
-            // 🔍 بحث
-            IconButton(
-              icon: Icon(
-                Icons.search,
-                color: isDark ? Colors.white : Colors.black87,
-                size: 20,
-              ),
-              onPressed: _toggleSearch,
+          ),
+          IconButton(
+            icon: Icon(
+              Icons.search,
+              color: isDark ? Colors.white : Colors.black87,
+              size: 20,
             ),
-
-            // 📞 مكالمة
+            onPressed: _toggleSearch,
+          ),
+          if (!widget.isGroup)
             IconButton(
               icon: Icon(
                 Icons.phone,
@@ -1307,8 +1717,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
               ),
               onPressed: () => _startCall(false),
             ),
-
-            // 📹 فيديو
+          if (!widget.isGroup)
             IconButton(
               icon: Icon(
                 Icons.videocam,
@@ -1317,180 +1726,180 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
               ),
               onPressed: () => _startCall(true),
             ),
-
-            // ⚙️ قائمة الخيارات
-            PopupMenuButton<String>(
-              icon: Icon(
-                Icons.more_vert,
-                color: isDark ? Colors.white : Colors.black87,
-                size: 20,
-              ),
-              offset: const Offset(0, 40),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              onSelected: (value) {
-                switch (value) {
-                  case 'pin':
-                    _togglePin();
-                    break;
-                  case 'mute':
-                    _toggleMute();
-                    break;
-                  case 'archive':
-                    _archiveChat();
-                    break;
-                  case 'multi_select':
-                    _toggleMultiSelect();
-                    break;
-                  case 'forward':
-                    _toggleForwardMode();
-                    break;
-                  case 'clear':
-                    _clearChat();
-                    break;
-                  case 'spam':
-                    _markAsSpam();
-                    break;
-                  case 'block':
-                    _blockUser();
-                    break;
-                  case 'report':
-                    _reportUser();
-                    break;
-                }
-              },
-              itemBuilder: (context) => [
-                // ═══ القسم الأول: إعدادات المحادثة ═══
-                PopupMenuItem(
-                  value: 'pin',
-                  child: Row(
-                    children: [
-                      Icon(
-                        _isPinned ? Icons.push_pin : Icons.push_pin_outlined,
-                        size: 18,
+          PopupMenuButton<String>(
+            icon: Icon(
+              Icons.more_vert,
+              color: isDark ? Colors.white : Colors.black87,
+              size: 20,
+            ),
+            offset: const Offset(0, 40),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            onSelected: (value) {
+              switch (value) {
+                case 'pin':
+                  _togglePin();
+                  break;
+                case 'mute':
+                  _toggleMute();
+                  break;
+                case 'archive':
+                  _archiveChat();
+                  break;
+                case 'multi_select':
+                  _toggleMultiSelect();
+                  break;
+                case 'forward':
+                  _toggleForwardMode();
+                  break;
+                case 'clear':
+                  _clearChat();
+                  break;
+                case 'spam':
+                  _markAsSpam();
+                  break;
+                case 'block':
+                  _blockUser();
+                  break;
+                case 'report':
+                  _reportUser();
+                  break;
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'pin',
+                child: Row(
+                  children: [
+                    Icon(
+                      _isPinned ? Icons.push_pin : Icons.push_pin_outlined,
+                      size: 18,
+                      color: _isPinned ? AppColors.primary : null,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      _isPinned ? 'إلغاء التثبيت' : 'تثبيت',
+                      style: TextStyle(
+                        fontSize: 13,
                         color: _isPinned ? AppColors.primary : null,
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        _isPinned ? 'إلغاء التثبيت' : 'تثبيت',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: _isPinned ? AppColors.primary : null,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                PopupMenuItem(
-                  value: 'mute',
-                  child: Row(
-                    children: [
-                      Icon(
-                        _isMuted ? Icons.volume_up : Icons.volume_off,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        _isMuted ? 'إلغاء الكتم' : 'كتم الإشعارات',
-                        style: const TextStyle(fontSize: 13),
-                      ),
-                    ],
-                  ),
+              ),
+              PopupMenuItem(
+                value: 'mute',
+                child: Row(
+                  children: [
+                    Icon(
+                      _isMuted ? Icons.volume_up : Icons.volume_off,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      _isMuted ? 'إلغاء الكتم' : 'كتم الإشعارات',
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                  ],
                 ),
-                PopupMenuItem(
-                  value: 'archive',
-                  child: Row(
-                    children: [
-                      Icon(
-                        _isArchived ? Icons.unarchive : Icons.archive,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        _isArchived ? 'إلغاء الأرشفة' : 'أرشفة',
-                        style: const TextStyle(fontSize: 13),
-                      ),
-                    ],
-                  ),
+              ),
+              PopupMenuItem(
+                value: 'archive',
+                child: Row(
+                  children: [
+                    Icon(
+                      _isArchived ? Icons.unarchive : Icons.archive,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      _isArchived ? 'إلغاء الأرشفة' : 'أرشفة',
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                  ],
                 ),
-                const PopupMenuDivider(),
-
-                // ═══ القسم الثاني: إدارة الرسائل ═══
-                PopupMenuItem(
-                  value: 'multi_select',
-                  child: Row(
-                    children: [
-                      const Icon(Icons.checklist, size: 18),
-                      const SizedBox(width: 8),
-                      const Text('تحديد متعدد', style: TextStyle(fontSize: 13)),
-                    ],
-                  ),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem(
+                value: 'multi_select',
+                child: Row(
+                  children: [
+                    Icon(Icons.checklist, size: 18),
+                    SizedBox(width: 8),
+                    Text('تحديد متعدد', style: TextStyle(fontSize: 13)),
+                  ],
                 ),
-                PopupMenuItem(
-                  value: 'forward',
-                  child: Row(
-                    children: [
-                      const Icon(Icons.forward, size: 18),
-                      const SizedBox(width: 8),
-                      const Text('إعادة توجيه', style: TextStyle(fontSize: 13)),
-                    ],
-                  ),
+              ),
+              const PopupMenuItem(
+                value: 'forward',
+                child: Row(
+                  children: [
+                    Icon(Icons.forward, size: 18),
+                    SizedBox(width: 8),
+                    Text('إعادة توجيه', style: TextStyle(fontSize: 13)),
+                  ],
                 ),
-                const PopupMenuDivider(),
-
-                // ═══ القسم الثالث: حذف وإبلاغ ═══
-                PopupMenuItem(
-                  value: 'clear',
-                  child: Row(
-                    children: [
-                      const Icon(Icons.delete_sweep, size: 18, color: Colors.red),
-                      const SizedBox(width: 8),
-                      const Text('مسح المحادثة', style: TextStyle(fontSize: 13, color: Colors.red)),
-                    ],
-                  ),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem(
+                value: 'clear',
+                child: Row(
+                  children: [
+                    Icon(Icons.delete_sweep, size: 18, color: Colors.red),
+                    SizedBox(width: 8),
+                    Text(
+                      'مسح المحادثة',
+                      style: TextStyle(fontSize: 13, color: Colors.red),
+                    ),
+                  ],
                 ),
-                PopupMenuItem(
-                  value: 'spam',
-                  child: Row(
-                    children: [
-                      const Icon(Icons.report_off, size: 18, color: Colors.orange),
-                      const SizedBox(width: 8),
-                      const Text('تبليغ كـ Spam', style: TextStyle(fontSize: 13, color: Colors.orange)),
-                    ],
-                  ),
+              ),
+              const PopupMenuItem(
+                value: 'spam',
+                child: Row(
+                  children: [
+                    Icon(Icons.report_off, size: 18, color: Colors.orange),
+                    SizedBox(width: 8),
+                    Text(
+                      'تبليغ كـ Spam',
+                      style: TextStyle(fontSize: 13, color: Colors.orange),
+                    ),
+                  ],
                 ),
-                PopupMenuItem(
-                  value: 'block',
-                  child: Row(
-                    children: [
-                      const Icon(Icons.block, size: 18, color: Colors.red),
-                      const SizedBox(width: 8),
-                      const Text('حظر', style: TextStyle(fontSize: 13, color: Colors.red)),
-                    ],
-                  ),
+              ),
+              const PopupMenuItem(
+                value: 'block',
+                child: Row(
+                  children: [
+                    Icon(Icons.block, size: 18, color: Colors.red),
+                    SizedBox(width: 8),
+                    Text(
+                      'حظر',
+                      style: TextStyle(fontSize: 13, color: Colors.red),
+                    ),
+                  ],
                 ),
-                PopupMenuItem(
-                  value: 'report',
-                  child: Row(
-                    children: [
-                      const Icon(Icons.report, size: 18, color: Colors.orange),
-                      const SizedBox(width: 8),
-                      const Text('إبلاغ', style: TextStyle(fontSize: 13, color: Colors.orange)),
-                    ],
-                  ),
+              ),
+              const PopupMenuItem(
+                value: 'report',
+                child: Row(
+                  children: [
+                    Icon(Icons.report, size: 18, color: Colors.orange),
+                    SizedBox(width: 8),
+                    Text(
+                      'إبلاغ',
+                      style: TextStyle(fontSize: 13, color: Colors.orange),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
-
-  // ============================================================
-  // 📝 القسم 20: عناصر إضافية
-  // ============================================================
 
   String _formatLastSeen() {
     if (_lastSeen == null) return 'غير معروف';
@@ -1506,11 +1915,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
     } catch (e) {
       return 'غير معروف';
     }
-  }
-
-  void _showUserProfile() {
-    // TODO: عرض ملف المستخدم
-    ToastService.showInfo('👤 عرض ملف ${widget.otherUserName}');
   }
 
   Widget _buildSearchBar(bool isDark) {
@@ -1546,14 +1950,18 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
                               '${_currentHighlightIndex + 1}/${_highlightedIndices.length}',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: isDark ? Colors.grey[400] : Colors.grey[600],
+                                color: isDark
+                                    ? Colors.grey[400]
+                                    : Colors.grey[600],
                               ),
                             ),
                           IconButton(
                             icon: Icon(
                               Icons.arrow_upward,
                               size: 16,
-                              color: isDark ? Colors.grey[400] : Colors.grey[600],
+                              color: isDark
+                                  ? Colors.grey[400]
+                                  : Colors.grey[600],
                             ),
                             onPressed: _navigateToNextHighlight,
                           ),
@@ -1561,7 +1969,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
                             icon: Icon(
                               Icons.close,
                               size: 16,
-                              color: isDark ? Colors.grey[400] : Colors.grey[600],
+                              color: isDark
+                                  ? Colors.grey[400]
+                                  : Colors.grey[600],
                             ),
                             onPressed: _toggleSearch,
                           ),
@@ -1609,14 +2019,17 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
           const Spacer(),
           IconButton(
             icon: const Icon(Icons.delete, color: Colors.red),
-            onPressed: _selectedMessages.isEmpty ? null : _deleteSelectedMessages,
+            onPressed:
+                _selectedMessages.isEmpty ? null : _deleteSelectedMessages,
           ),
           IconButton(
             icon: const Icon(Icons.forward, color: AppColors.primary),
-            onPressed: _selectedMessages.isEmpty ? null : () {
-              // TODO: إعادة توجيه
-              ToastService.showInfo('📤 جاري إعادة توجيه ${_selectedMessages.length} رسالة');
-            },
+            onPressed: _selectedMessages.isEmpty
+                ? null
+                : () {
+                    ToastService.showInfo(
+                        '📤 جاري إعادة توجيه ${_selectedMessages.length} رسالة');
+                  },
           ),
           IconButton(
             icon: const Icon(Icons.close, color: Colors.grey),
@@ -1646,7 +2059,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
           const Spacer(),
           IconButton(
             icon: const Icon(Icons.send, color: Colors.blue),
-            onPressed: _forwardMessages.isEmpty ? null : _forwardSelectedMessages,
+            onPressed:
+                _forwardMessages.isEmpty ? null : _forwardSelectedMessages,
           ),
           IconButton(
             icon: const Icon(Icons.close, color: Colors.grey),
@@ -1707,9 +2121,14 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
               setState(() {
                 _isReplying = false;
                 _replyMessage = null;
+                _replyToMessageId = null;
               });
             },
-            child: Icon(Icons.close, size: 14, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+            child: Icon(
+              Icons.close,
+              size: 14,
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
+            ),
           ),
         ],
       ),
@@ -1725,7 +2144,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
             radius: 10,
             backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200],
             child: Text(
-              _typingUsers.first.isNotEmpty ? _typingUsers.first[0].toUpperCase() : 'م',
+              _typingUsers.first.isNotEmpty
+                  ? _typingUsers.first[0].toUpperCase()
+                  : 'م',
               style: TextStyle(
                 fontSize: 8,
                 color: isDark ? Colors.white70 : Colors.black87,
@@ -1766,7 +2187,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
             child: Transform.translate(
               offset: Offset(
                 0,
-                -3 * sin(index * 1.5 + DateTime.now().millisecondsSinceEpoch / 500),
+                -3 *
+                    sin(index * 1.5 +
+                        DateTime.now().millisecondsSinceEpoch / 500),
               ),
             ),
           );
@@ -1776,7 +2199,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
   }
 
   // ============================================================
-  // 📝 القسم 21: قائمة الرسائل
+  // 📝 القسم 28: قائمة الرسائل
   // ============================================================
 
   Widget _buildMessagesList(MessagesLoaded state, bool isDark) {
@@ -1818,10 +2241,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
                         messages[index - 1].timestamp!,
                       ));
 
-              // ═══ التحقق من التميز في البحث ═══
-              final isHighlighted = _searchQuery.isNotEmpty &&
-                  message.text.toLowerCase().contains(_searchQuery.toLowerCase());
-
               return Column(
                 children: [
                   if (showDate) _buildDateDivider(message.timestamp, isDark),
@@ -1830,11 +2249,11 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
                     child: MessageBubble(
                       message: message.toFirestore(),
                       isMe: isMe,
-                      isHighlighted: isHighlighted,
                       onReply: () {
                         setState(() {
                           _isReplying = true;
                           _replyMessage = message;
+                          _replyToMessageId = message.id;
                         });
                       },
                       onDelete: () => _deleteMessage(message),
@@ -1846,23 +2265,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
                                 emoji: emoji,
                               ),
                             );
-                      },
-                      onLongPress: () {
-                        if (_isMultiSelect) {
-                          _selectMessage(message);
-                        } else {
-                          setState(() {
-                            _showReactionPicker = true;
-                            _reactionMessageId = message.id;
-                          });
-                        }
-                      },
-                      onTap: () {
-                        if (_isMultiSelect) {
-                          _selectMessage(message);
-                        } else if (_isForwarding) {
-                          _selectMessageForForward(message);
-                        }
                       },
                     ),
                   ),
@@ -1893,8 +2295,15 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
     } else if (difference == 1) {
       label = 'أمس';
     } else if (difference < 7) {
-      label = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']
-          [date.weekday % 7];
+      label = [
+        'الأحد',
+        'الإثنين',
+        'الثلاثاء',
+        'الأربعاء',
+        'الخميس',
+        'الجمعة',
+        'السبت'
+      ][date.weekday % 7];
     } else {
       label = '${date.day}/${date.month}/${date.year}';
     }
@@ -1923,7 +2332,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
   }
 
   // ============================================================
-  // 🎨 القسم 22: حالات الشاشة
+  // 🎨 القسم 29: حالات الشاشة
   // ============================================================
 
   Widget _buildLoadingState(bool isDark) {
@@ -2060,17 +2469,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
   }
 
   // ============================================================
-  // 🎛️ القسم 23: شريط الإدخال المتقدم
+  // 🎛️ القسم 30: شريط الإدخال المتقدم
   // ============================================================
 
   Widget _buildAdvancedInputBar(bool isDark) {
     return Column(
       children: [
-        // ═══ قائمة المرفقات المنبثقة ═══
-        if (_showAttachmentMenu)
-          _buildAttachmentMenu(isDark),
-
-        // ═══ شريط الإدخال الرئيسي ═══
+        if (_showAttachmentMenu) _buildAttachmentMenu(isDark),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
@@ -2085,7 +2490,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
           ),
           child: Row(
             children: [
-              // ═══ زر الإيموجي ═══
               IconButton(
                 icon: Icon(
                   _showEmojiPicker ? Icons.keyboard : Icons.emoji_emotions,
@@ -2094,8 +2498,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
                 ),
                 onPressed: _toggleEmojiPicker,
               ),
-
-              // ═══ زر المرفقات ═══
               IconButton(
                 icon: Icon(
                   Icons.attach_file,
@@ -2104,8 +2506,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
                 ),
                 onPressed: _toggleAttachmentMenu,
               ),
-
-              // ═══ حقل النص ═══
               Expanded(
                 child: TextField(
                   controller: _textController,
@@ -2125,46 +2525,31 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
                     color: isDark ? Colors.white : Colors.black87,
                     fontSize: 15,
                   ),
-                  onSubmitted: (text) {
-                    _sendMessage(text);
-                  },
+                  onSubmitted: (text) => _sendMessage(text),
                 ),
               ),
-
-              // ═══ زر التسجيل الصوتي أو الإرسال ═══
               if (_textController.text.isEmpty)
                 IconButton(
                   icon: Icon(
                     _isRecording ? Icons.stop : Icons.mic,
-                    color: _isRecording ? Colors.red : (isDark ? Colors.white : Colors.grey[700]),
+                    color: _isRecording
+                        ? Colors.red
+                        : (isDark ? Colors.white : Colors.grey[700]),
                     size: 24,
                   ),
                   onPressed: _startRecording,
                 )
               else
                 IconButton(
-                  icon: Icon(
-                    Icons.send,
-                    color: AppColors.primary,
-                    size: 24,
-                  ),
+                  icon: Icon(Icons.send, color: AppColors.primary, size: 24),
                   onPressed: () => _sendMessage(_textController.text),
                 ),
             ],
           ),
         ),
-
-        // ═══ مؤقت التسجيل ═══
-        if (_isRecording)
-          _buildRecordingIndicator(isDark),
-
-        // ═══ لوحة الإيموجي ═══
-        if (_showEmojiPicker)
-          _buildEmojiPicker(isDark),
-
-        // ═══ مؤشر تحميل الملفات ═══
-        if (_isUploadingFiles)
-          _buildUploadProgress(isDark),
+        if (_isRecording) _buildRecordingIndicator(isDark),
+        if (_showEmojiPicker) _buildEmojiPicker(isDark),
+        if (_isUploadingFiles) _buildUploadProgress(isDark),
       ],
     );
   }
@@ -2212,7 +2597,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
             icon: Icons.location_on,
             label: 'موقع',
             color: Colors.red,
-            onTap: _sendLocation,
+            onTap: _shareLocation,
           ),
           _buildAttachmentItem(
             icon: Icons.poll,
@@ -2280,13 +2665,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
             ),
           ),
           const Spacer(),
-          // ═══ مؤشر الصوت ═══
           Container(
             width: 100,
             height: 20,
             child: Row(
               children: List.generate(20, (index) {
-                final height = 4 + 16 * (_recordingAmplitude * (1 - index / 20));
+                final height =
+                    4 + 16 * (_recordingAmplitude * (1 - index / 20));
                 return Expanded(
                   child: Container(
                     height: height,
@@ -2334,8 +2719,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
                   borderRadius: BorderRadius.circular(4),
                   child: LinearProgressIndicator(
                     value: _uploadProgress,
-                    backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200],
-                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                    backgroundColor:
+                        isDark ? Colors.grey[800] : Colors.grey[200],
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                        AppColors.primary),
                     minHeight: 4,
                   ),
                 ),
@@ -2356,14 +2743,86 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
 
   Widget _buildEmojiPicker(bool isDark) {
     final emojis = [
-      '😊', '😂', '🤣', '❤️', '😍', '🥰', '😘', '😗', '😙', '😚',
-      '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🥸',
-      '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️',
-      '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡',
-      '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓',
-      '🤗', '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬', '🙄',
-      '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵',
-      '🤐', '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠',
+      '😊',
+      '😂',
+      '🤣',
+      '❤️',
+      '😍',
+      '🥰',
+      '😘',
+      '😗',
+      '😙',
+      '😚',
+      '😋',
+      '😛',
+      '😝',
+      '😜',
+      '🤪',
+      '🤨',
+      '🧐',
+      '🤓',
+      '😎',
+      '🥸',
+      '🤩',
+      '🥳',
+      '😏',
+      '😒',
+      '😞',
+      '😔',
+      '😟',
+      '😕',
+      '🙁',
+      '☹️',
+      '😣',
+      '😖',
+      '😫',
+      '😩',
+      '🥺',
+      '😢',
+      '😭',
+      '😤',
+      '😠',
+      '😡',
+      '🤬',
+      '🤯',
+      '😳',
+      '🥵',
+      '🥶',
+      '😱',
+      '😨',
+      '😰',
+      '😥',
+      '😓',
+      '🤗',
+      '🤔',
+      '🤭',
+      '🤫',
+      '🤥',
+      '😶',
+      '😐',
+      '😑',
+      '😬',
+      '🙄',
+      '😯',
+      '😦',
+      '😧',
+      '😮',
+      '😲',
+      '🥱',
+      '😴',
+      '🤤',
+      '😪',
+      '😵',
+      '🤐',
+      '🥴',
+      '🤢',
+      '🤮',
+      '🤧',
+      '😷',
+      '🤒',
+      '🤕',
+      '🤑',
+      '🤠',
     ];
 
     return Container(
@@ -2411,7 +2870,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
   }
 
   // ============================================================
-  // 📌 القسم 24: تفاعلات الرسائل
+  // 📌 القسم 31: تفاعلات الرسائل
   // ============================================================
 
   Widget _buildReactionPicker(bool isDark) {
@@ -2468,7 +2927,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
   }
 
   // ============================================================
-  // ⬇️ القسم 25: زر التمرير للأسفل
+  // ⬇️ القسم 32: زر التمرير للأسفل
   // ============================================================
 
   Widget _buildScrollToBottomButton() {
@@ -2503,7 +2962,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
   }
 
   // ============================================================
-  // 🔧 القسم 26: دوال التحكم في الإيموجي والمرفقات
+  // 🔧 القسم 33: دوال التحكم
   // ============================================================
 
   void _toggleEmojiPicker() {
@@ -2511,9 +2970,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
       _showEmojiPicker = !_showEmojiPicker;
       _showAttachmentMenu = false;
       _showReactionPicker = false;
-      if (_showEmojiPicker) {
-        _focusNode.unfocus();
-      }
+      if (_showEmojiPicker) _focusNode.unfocus();
     });
   }
 
@@ -2522,66 +2979,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen>
       _showAttachmentMenu = !_showAttachmentMenu;
       _showEmojiPicker = false;
       _showReactionPicker = false;
-      if (_showAttachmentMenu) {
-        _focusNode.unfocus();
-      }
+      if (_showAttachmentMenu) _focusNode.unfocus();
     });
-  }
-
-  // ============================================================
-  // 📨 القسم 27: دوال إضافية للرسائل
-  // ============================================================
-
-  void _editMessage(MessageModel message) {
-    setState(() {
-      _isEditing = true;
-      _editingMessage = message;
-      _textController.text = message.text;
-      _focusNode.requestFocus();
-    });
-  }
-
-  void _cancelEditing() {
-    setState(() {
-      _isEditing = false;
-      _editingMessage = null;
-      _textController.clear();
-    });
-  }
-
-  // ============================================================
-  // ⚡ القسم 28: قراءة الرسائل
-  // ============================================================
-
-  void _markMessagesAsRead() async {
-    try {
-      final uid = _auth.currentUser?.uid;
-      if (uid == null) return;
-
-      final snapshot = await _firestore
-          .collection('chats')
-          .doc(widget.chatId)
-          .collection('messages')
-          .where('isRead', isEqualTo: false)
-          .where('senderId', isNotEqualTo: uid)
-          .get();
-
-      if (snapshot.docs.isEmpty) return;
-
-      final batch = _firestore.batch();
-      for (final doc in snapshot.docs) {
-        batch.update(doc.reference, {
-          'isRead': true,
-          'readAt': FieldValue.serverTimestamp(),
-        });
-      }
-      await batch.commit();
-
-      await _firestore.collection('chats').doc(widget.chatId).update({
-        'unreadCount.${widget.otherUserId}': 0,
-      });
-    } catch (e) {
-      debugPrint('Error marking messages as read: $e');
-    }
   }
 }
+CHATROOMEOF
