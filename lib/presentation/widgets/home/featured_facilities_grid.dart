@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-
 import 'package:sehatak/app_router.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/presentation/screens/hospital/hospital_details_screen.dart';
+import 'package:sehatak/presentation/screens/hospital/hospital_screen.dart';
 import 'package:sehatak/presentation/screens/lab/lab_detail_screen.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 
-/// العرض الموحد للمرافق المميزة داخل الصفحة الرئيسية.
-/// البيانات تأتي من HomeState عبر [items] ولا توجد بيانات منشآت ثابتة هنا.
 class FeaturedFacilitiesGrid extends StatelessWidget {
   final String title;
   final List<Map<String, dynamic>> items;
@@ -17,9 +15,13 @@ class FeaturedFacilitiesGrid extends StatelessWidget {
 
   const FeaturedFacilitiesGrid({super.key, required this.title, required this.items, required this.isHospital, required this.isDark, this.onSeeAll});
 
-  void _seeAll() {
-    if (onSeeAll != null) return onSeeAll!();
-    AppRouter.router.push(isHospital ? AppRouter.hospitals : AppRouter.labs);
+  void _seeAll(BuildContext context) {
+    if (onSeeAll != null) { onSeeAll!(); return; }
+    if (isHospital) {
+      Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HospitalScreen()));
+    } else {
+      AppRouter.router.push(AppRouter.labs);
+    }
   }
 
   @override
@@ -30,17 +32,11 @@ class FeaturedFacilitiesGrid extends StatelessWidget {
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Row(children: [
           Expanded(child: Text(title, style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 17, fontWeight: FontWeight.w900))),
-          TextButton(onPressed: _seeAll, child: const Text('عرض الكل', style: TextStyle(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.w700))),
+          TextButton(onPressed: () => _seeAll(context), child: const Text('عرض الكل', style: TextStyle(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.w700))),
         ])),
         const SizedBox(height: 8),
-        SizedBox(height: 200, child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          itemCount: items.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 12),
-          itemBuilder: (_, index) => SizedBox(width: 170, child: _FacilityCard(item: items[index], isHospital: isHospital, isDark: isDark)),
-        )),
-      ],
+        SizedBox(height: 200, child: ListView.separated(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 16), itemCount: items.length, separatorBuilder: (_, __) => const SizedBox(width: 12), itemBuilder: (_, index) => SizedBox(width: 170, child: _FacilityCard(item: items[index], isHospital: isHospital, isDark: isDark)))),
+      ]),
     );
   }
 }
@@ -51,16 +47,8 @@ class _FacilityCard extends StatelessWidget {
   final bool isDark;
   const _FacilityCard({required this.item, required this.isHospital, required this.isDark});
 
-  String _string(String key, [String fallback = '']) {
-    final value = item[key]?.toString().trim();
-    return value == null || value.isEmpty ? fallback : value;
-  }
-
-  double? _rating() {
-    final value = item['rating'];
-    if (value is num) return value.toDouble();
-    return double.tryParse(value?.toString() ?? '');
-  }
+  String _string(String key, [String fallback = '']) { final value = item[key]?.toString().trim(); return value == null || value.isEmpty ? fallback : value; }
+  double? _rating() { final value = item['rating']; return value is num ? value.toDouble() : double.tryParse(value?.toString() ?? ''); }
 
   void _open(BuildContext context) {
     final id = _string('id');
@@ -89,9 +77,7 @@ class _FacilityCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(onTap: id.isEmpty ? null : () => _open(context), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         SizedBox(height: 110, width: double.infinity, child: Stack(children: [
-          Positioned.fill(child: image.isEmpty
-              ? Container(color: AppColors.primary.withOpacity(.08), alignment: Alignment.center, child: Icon(isHospital ? Icons.local_hospital_outlined : Icons.biotech_outlined, color: AppColors.primary, size: 38))
-              : Hero(tag: '${isHospital ? 'hospital' : 'lab'}_$id', child: AppImage(imageUrl: image, width: double.infinity, height: 110, fit: BoxFit.cover))),
+          Positioned.fill(child: image.isEmpty ? Container(color: AppColors.primary.withOpacity(.08), alignment: Alignment.center, child: Icon(isHospital ? Icons.local_hospital_outlined : Icons.biotech_outlined, color: AppColors.primary, size: 38)) : Hero(tag: '${isHospital ? 'hospital' : 'lab'}_$id', child: AppImage(imageUrl: image, width: double.infinity, height: 110, fit: BoxFit.cover))),
           if (rating != null) Positioned(top: 8, right: 8, child: Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3), decoration: BoxDecoration(color: Colors.black.withOpacity(.7), borderRadius: BorderRadius.circular(8)), child: Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.star, color: Colors.amber, size: 10), const SizedBox(width: 2), Text(rating.toStringAsFixed(1), style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold))]))),
           if (isHospital && hasOpenField) Positioned(bottom: 8, left: 8, child: Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3), decoration: BoxDecoration(color: isOpen ? Colors.green.withOpacity(.9) : Colors.red.withOpacity(.9), borderRadius: BorderRadius.circular(8)), child: Text(isOpen ? 'مفتوح' : 'مغلق', style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.w700)))),
           if (!isHospital && homeService) Positioned(top: 8, left: 8, child: Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3), decoration: BoxDecoration(color: Colors.black.withOpacity(.65), borderRadius: BorderRadius.circular(8)), child: const Text('خدمة منزلية', style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.w700)))),
