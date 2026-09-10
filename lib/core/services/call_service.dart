@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/models/call_model.dart';
 import 'package:sehatak/core/services/chat_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/core/services/call_sound_coordinator.dart';
 import 'package:sehatak/presentation/screens/chat/incoming_call_screen.dart';
 
 class CallService {
@@ -97,31 +98,39 @@ class CallService {
     });
     _inCall = active;
     _current = active ? id : null;
+    if (!active) {
+      unawaited(CallSoundCoordinator.instance.stopForCall(id));
+    }
     return c;
   }
 
   Future<void> acceptCall(String id) async {
     final c = await _state(id, allowed: const [CallStatus.calling, CallStatus.ringing], data: {'status': CallStatus.connected.name, 'isAnswered': true, 'connectedAt': FieldValue.serverTimestamp()}, active: true);
+    await CallSoundCoordinator.instance.stopForCall(id);
     if (c != null) await _timeline(chatId: c.chatId, callId: id, text: c.type == CallType.video ? '📹 تم الاتصال بالفيديو' : '📞 تم الاتصال', status: CallStatus.connected.name, type: c.type);
   }
 
   Future<void> rejectCall(String id) async {
     final c = await _state(id, allowed: const [CallStatus.calling, CallStatus.ringing], data: {'status': CallStatus.rejected.name, 'endedAt': FieldValue.serverTimestamp()}, active: false);
+    await CallSoundCoordinator.instance.stopForCall(id);
     if (c != null) await _timeline(chatId: c.chatId, callId: id, text: '📵 تم رفض المكالمة', status: CallStatus.rejected.name, type: c.type);
   }
 
   Future<void> cancelCall(String id) async {
     final c = await _state(id, allowed: const [CallStatus.calling, CallStatus.ringing], data: {'status': CallStatus.cancelled.name, 'endedAt': FieldValue.serverTimestamp()}, active: false);
+    await CallSoundCoordinator.instance.stopForCall(id);
     if (c != null) await _timeline(chatId: c.chatId, callId: id, text: '📞 تم إلغاء المكالمة', status: CallStatus.cancelled.name, type: c.type);
   }
 
   Future<void> endCall(String id, {int? durationSeconds}) async {
     final c = await _state(id, allowed: const [CallStatus.calling, CallStatus.ringing, CallStatus.connected], data: {'status': CallStatus.ended.name, 'endedAt': FieldValue.serverTimestamp(), 'durationSeconds': durationSeconds}, active: false);
+    await CallSoundCoordinator.instance.stopForCall(id);
     if (c != null) await _timeline(chatId: c.chatId, callId: id, text: durationSeconds != null && durationSeconds > 0 ? '📞 انتهت المكالمة • ${durationSeconds}s' : '📞 انتهت المكالمة', status: CallStatus.ended.name, type: c.type);
   }
 
   Future<void> missCall(String id) async {
     final c = await _state(id, allowed: const [CallStatus.calling, CallStatus.ringing], data: {'status': CallStatus.missed.name, 'endedAt': FieldValue.serverTimestamp()}, active: false, ignore: true);
+    await CallSoundCoordinator.instance.stopForCall(id);
     if (c != null) await _timeline(chatId: c.chatId, callId: id, text: '📵 مكالمة فائتة', status: CallStatus.missed.name, type: c.type);
   }
 
