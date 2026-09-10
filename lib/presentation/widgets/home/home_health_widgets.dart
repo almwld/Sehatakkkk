@@ -57,13 +57,61 @@ class HomeHealthWidgets extends StatelessWidget {
   Widget _stat(Map<String, dynamic> item) {
     final color = item['color'] as Color;
     final value = (item['value'] as num).toDouble();
-    return SizedBox(width: 112, child: Material(color: color.withOpacity(.08), borderRadius: BorderRadius.circular(10), child: InkWell(onTap: () => onNavigate(AppRouter.dashboard), borderRadius: BorderRadius.circular(10), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Image.asset(item['icon'] as String, width: 23, height: 23, errorBuilder: (_, __, ___) => Icon(Icons.insights_outlined, color: color, size: 22)), const SizedBox(height: 2), Text(_number(value), style: TextStyle(color: color, fontSize: 13, fontWeight: FontWeight.bold)), Text(item['name'] as String, style: TextStyle(color: color.withOpacity(.8), fontSize: 9))])));
+    return SizedBox(
+      width: 112,
+      child: Material(
+        color: color.withOpacity(.08),
+        borderRadius: BorderRadius.circular(10),
+        child: InkWell(
+          onTap: () => onNavigate(AppRouter.dashboard),
+          borderRadius: BorderRadius.circular(10),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(item['icon'] as String, width: 23, height: 23, errorBuilder: (_, __, ___) => Icon(Icons.insights_outlined, color: color, size: 22)),
+              const SizedBox(height: 2),
+              Text(_number(value), style: TextStyle(color: color, fontSize: 13, fontWeight: FontWeight.bold)),
+              Text(item['name'] as String, style: TextStyle(color: color.withOpacity(.8), fontSize: 9)),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _vital(Map<String, dynamic> item) {
     final color = item['color'] as Color;
     final progress = ((item['value'] as num).toDouble() / (item['max'] as num).toDouble()).clamp(0.0, 1.0);
-    return SizedBox(width: 126, child: Material(color: isDark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(16), child: InkWell(onTap: () => onNavigate(AppRouter.dashboard), borderRadius: BorderRadius.circular(16), child: Column(children: [const SizedBox(height: 8), SizedBox(width: 76, height: 76, child: Stack(alignment: Alignment.center, children: [CustomPaint(size: const Size.square(76), painter: _VitalPainter(progress, color)), Image.asset(item['icon'] as String, width: 25, height: 25, errorBuilder: (_, __, ___) => Icon(Icons.favorite_outline, color: color, size: 25)), Positioned(bottom: 0, child: Text('${(progress * 100).toInt()}%', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: color))])), const SizedBox(height: 4), Text(item['label'] as String, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: isDark ? Colors.grey[400] : Colors.grey[600]))])));
+    return SizedBox(
+      width: 126,
+      child: Material(
+        color: isDark ? const Color(0xFF1A2540) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: () => onNavigate(AppRouter.dashboard),
+          borderRadius: BorderRadius.circular(16),
+          child: Column(
+            children: [
+              const SizedBox(height: 8),
+              SizedBox(
+                width: 76,
+                height: 76,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    CustomPaint(size: const Size.square(76), painter: _VitalPainter(progress, color)),
+                    Image.asset(item['icon'] as String, width: 25, height: 25, errorBuilder: (_, __, ___) => Icon(Icons.favorite_outline, color: color, size: 25)),
+                    Positioned(bottom: 0, child: Text('${(progress * 100).toInt()}%', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: color))),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(item['label'] as String, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: isDark ? Colors.grey[400] : Colors.grey[600])),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   static String _number(double v) => v == v.roundToDouble() ? v.toInt().toString() : v.toStringAsFixed(1);
