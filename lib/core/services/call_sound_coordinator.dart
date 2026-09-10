@@ -5,7 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import 'sound_manager.dart';
 
-/// Owns looping call audio while the app is in the foreground.
+/// Owns foreground call alert audio and guarantees that an incoming call is
+/// routed to the acceptance UI before any LiveKit session can start.
 class CallSoundCoordinator {
   CallSoundCoordinator._();
   static final CallSoundCoordinator instance = CallSoundCoordinator._();
@@ -16,6 +17,14 @@ class CallSoundCoordinator {
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _callsSubscription;
   final SoundManager _sounds = SoundManager();
   String? _activeCallId;
+  Future<void> Function(String callId)? _incomingCallHandler;
+
+  /// Registers the single UI entry point for incoming calls.
+  /// The callback is intentionally separate from audio so the coordinator
+  /// remains usable during startup/background notification handling.
+  void setIncomingCallHandler(Future<void> Function(String callId)? handler) {
+    _incomingCallHandler = handler;
+  }
 
   void start() {
     _authSubscription ??= FirebaseAuth.instance.authStateChanges().listen((_) {
@@ -89,13 +98,27 @@ class CallSoundCoordinator {
       return;
     }
 
-    if (_activeCallId == callId) return;
+    // This guard is the important part: a Firestore snapshot can fire many
+    // times, but one call must produce one incoming screen only.
+    final isNewCall = _activeCallId != callId;
+    if (isNewCall) {
+      _activeCallId = callId;
+    }
 
-    _activeCallId = callId;
     unawaited(
       (isIncoming ? _sounds.playCallRingtone() : _sounds.playRingback())
           .catchError((_) {}),
     );
+
+    // Do not join LiveKit here. Incoming calls must first reach
+    // IncomingCallScreen; that screen alone calls acceptCall(), after which
+    // CallScreen is allowed to join the LiveKit room.
+    if (isIncoming && isNewCall) {
+      final handler = _incomingCallHandler;
+      if (handler != null) {
+        unawaited(handler(callId).catchError((_) {}));
+      }
+    }
   }
 
   /// Stops only the looping call audio immediately. The Firestore listener
@@ -114,6 +137,7 @@ class CallSoundCoordinator {
     _authSubscription = null;
     _callsSubscription = null;
     _activeCallId = null;
+    _incomingCallHandler = null;
     await _sounds.stopAll();
   }
 }
