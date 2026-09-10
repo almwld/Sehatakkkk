@@ -147,6 +147,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         child: Scaffold(
           backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
           body: Stack(
+            clipBehavior: Clip.none,
             children: [
               NotificationListener<ScrollNotification>(
                 onNotification: _handleScrollNotification,
@@ -199,12 +200,10 @@ class _AnimatedBottomNavigationBar extends StatelessWidget {
         child: AnimatedOpacity(
           duration: const Duration(milliseconds: 160),
           opacity: visible ? 1 : 0,
-          child: ClipRect(
-            child: Align(
-              alignment: Alignment.topCenter,
-              heightFactor: visible ? 1 : 0,
-              child: child,
-            ),
+          child: Align(
+            alignment: Alignment.topCenter,
+            heightFactor: visible ? 1 : 0,
+            child: child,
           ),
         ),
       );
