@@ -5,14 +5,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import 'sound_manager.dart';
 
-/// Keeps foreground call sounds synchronized with the canonical calls state.
+/// Owns looping call audio while the app is in the foreground.
 ///
-/// This is intentionally independent from the call UI so audio starts as soon
-/// as the call document enters `calling`/`ringing` and stops on every terminal
-/// or connected state.
+/// Audio is started only for a recent, valid call document involving the
+/// authenticated user. Stale Firestore documents and missing timestamps never
+/// trigger sound on app launch.
 class CallSoundCoordinator {
   CallSoundCoordinator._();
   static final CallSoundCoordinator instance = CallSoundCoordinator._();
+
+  static const Duration _maxCallAge = Duration(seconds: 90);
 
   StreamSubscription<User?>? _authSubscription;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _callsSubscription;
@@ -40,8 +42,6 @@ class CallSoundCoordinator {
         .where('participants', arrayContains: user.uid)
         .snapshots()
         .listen(_onCallsChanged, onError: (Object error, StackTrace stack) {
-      // A transient Firestore outage must never crash the app or leave a
-      // ringtone playing forever.
       _activeCallId = null;
       unawaited(_sounds.stopAll());
     });
@@ -60,9 +60,12 @@ class CallSoundCoordinator {
       if (status != 'calling' && status != 'ringing') continue;
 
       final startedAt = data['startedAt'];
-      DateTime? started;
-      if (startedAt is Timestamp) started = startedAt.toDate();
-      if (active == null || (started != null && (newest == null || started.isAfter(newest!)))) {
+      if (startedAt is! Timestamp) continue;
+      final started = startedAt.toDate();
+      final age = DateTime.now().difference(started);
+      if (age.isNegative || age > _maxCallAge) continue;
+
+      if (active == null || newest == null || started.isAfter(newest)) {
         active = doc;
         newest = started;
       }
@@ -81,9 +84,16 @@ class CallSoundCoordinator {
     final callerId = data['callerId']?.toString() ?? '';
     final receiverId = data['receiverId']?.toString() ?? '';
     final isIncoming = receiverId == user.uid && callerId != user.uid;
-    final isOutgoing = callerId == user.uid;
+    final isOutgoing = callerId == user.uid && receiverId != user.uid;
 
-    if (!isIncoming && !isOutgoing) return;
+    if (!isIncoming && !isOutgoing) {
+      if (_activeCallId != null) {
+        _activeCallId = null;
+        unawaited(_sounds.stopAll());
+      }
+      return;
+    }
+
     if (_activeCallId == callId) return;
 
     _activeCallId = callId;
