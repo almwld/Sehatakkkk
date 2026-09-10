@@ -4,9 +4,8 @@ import 'call_sound_coordinator.dart';
 
 /// Central notification and notification-sound service.
 ///
-/// The MP3 files are already bundled under assets/audio and the two Android
-/// notification sounds are also present in android/app/src/main/res/raw so
-/// Android can use them as true notification-channel sounds.
+/// Notification sounds are owned by the OS notification system. Foreground
+/// call tones are owned by CallSoundCoordinator only.
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
@@ -38,7 +37,7 @@ class NotificationService {
     sound: RawResourceAndroidNotificationSound('call_ringtone'),
   );
 
-  Future<void> initialize() async {
+  Future<void> initialize({bool startCallCoordinator = true}) async {
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
@@ -62,9 +61,9 @@ class NotificationService {
         IOSFlutterLocalNotificationsPlugin>();
     await ios?.requestPermissions(alert: true, badge: true, sound: true);
 
-    // Foreground calls get a real looping ringtone/ringback driven by the
-    // canonical Firestore `calls` state, independently of the call UI.
-    CallSoundCoordinator.instance.start();
+    if (startCallCoordinator) {
+      CallSoundCoordinator.instance.start();
+    }
   }
 
   Future<void> showMessageNotification({
