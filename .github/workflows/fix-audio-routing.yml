@@ -1,0 +1,211 @@
+name: Fix audio routing
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Patch audio ownership and lifecycle
+        shell: bash
+        run: |
+          set -e
+          python3 <<'PY'
+          from pathlib import Path
+
+          # 1) Make SoundManager deterministic: call audio has its own player,
+          # short effects use a separate player, and ringtone errors never fall
+          # back to another unrelated sound.
+          p = Path('lib/core/services/sound_manager.dart')
+          p.write_text(r'''import 'package:audioplayers/audioplayers.dart';
+
+/// Single source of truth for in-app audio effects and call tones.
+///
+/// Call tones and short UI sounds use separate players so a message/feedback
+/// sound can never interrupt a call ringtone/ringback, and vice versa.
+class SoundManager {
+  static final SoundManager _instance = SoundManager._internal();
+  factory SoundManager() => _instance;
+  SoundManager._internal();
+
+  final AudioPlayer _callPlayer = AudioPlayer();
+  final AudioPlayer _effectPlayer = AudioPlayer();
+  bool _callPlaying = false;
+  bool _effectPlaying = false;
+
+  Future<void> _playEffect(String asset, {double volume = 1.0}) async {
+    try {
+      await _effectPlayer.stop();
+      await _effectPlayer.setReleaseMode(ReleaseMode.release);
+      await _effectPlayer.setVolume(volume.clamp(0.0, 1.0));
+      _effectPlaying = true;
+      await _effectPlayer.play(AssetSource(asset));
+    } catch (e) {
+      _effectPlaying = false;
+      print('⚠️ Audio effect error ($asset): $e');
+    }
+  }
+
+  Future<void> playCallRingtone() async {
+    try {
+      await _callPlayer.stop();
+      await _callPlayer.setReleaseMode(ReleaseMode.loop);
+      await _callPlayer.setVolume(1.0);
+      _callPlaying = true;
+      await _callPlayer.play(AssetSource('audio/call_ringtone.mp3'));
+      print('🔔 Incoming call ringtone playing');
+    } catch (e) {
+      _callPlaying = false;
+      print('⚠️ Call ringtone error: $e');
+    }
+  }
+
+  Future<void> playRingback() async {
+    try {
+      await _callPlayer.stop();
+      await _callPlayer.setReleaseMode(ReleaseMode.loop);
+      await _callPlayer.setVolume(1.0);
+      _callPlaying = true;
+      await _callPlayer.play(AssetSource('audio/ringback.mp3'));
+      print('📞 Outgoing ringback playing');
+    } catch (e) {
+      _callPlaying = false;
+      print('⚠️ Ringback error: $e');
+    }
+  }
+
+  Future<void> playMessageSent() => _playEffect('audio/message_sent.mp3');
+  Future<void> playMessageReceived() => _playEffect('audio/message_received.mp3');
+  Future<void> playNotification() => _playEffect('audio/notification.mp3');
+  Future<void> playMedicationReminder() => _playEffect('audio/medication_reminder.mp3', volume: 0.8);
+  Future<void> playCallStart() => _playEffect('audio/call_start.mp3');
+  Future<void> playCallEnd() => _playEffect('audio/call_end.mp3');
+  Future<void> playError() => _playEffect('audio/error.mp3');
+  Future<void> playSuccess() => _playEffect('audio/success.mp3');
+
+  Future<void> stopAll() async {
+    try {
+      await Future.wait([_callPlayer.stop(), _effectPlayer.stop()]);
+    } finally {
+      _callPlaying = false;
+      _effectPlaying = false;
+      print('🔇 All app audio stopped');
+    }
+  }
+
+  Future<void> stop() async {
+    await stopAll();
+  }
+
+  Future<void> setVolume(double volume) async {
+    final value = volume.clamp(0.0, 1.0);
+    await Future.wait([
+      _callPlayer.setVolume(value),
+      _effectPlayer.setVolume(value),
+    ]);
+  }
+
+  bool get isPlaying => _callPlaying || _effectPlaying;
+
+  void dispose() {
+    _callPlayer.stop();
+    _effectPlayer.stop();
+    _callPlayer.dispose();
+    _effectPlayer.dispose();
+    _callPlaying = false;
+    _effectPlaying = false;
+  }
+}
+''', encoding='utf-8')
+
+          # 2) Background FCM must NEVER start the foreground Firestore call
+          # listener. OS notification sound is sufficient there.
+          p = Path('lib/core/services/notification_service.dart')
+          s = p.read_text(encoding='utf-8')
+          s = s.replace('Future<void> initialize() async {', 'Future<void> initialize({bool startCallCoordinator = true}) async {', 1)
+          s = s.replace('    // Foreground calls get a real looping ringtone/ringback driven by the\n    // canonical Firestore `calls` state, independently of the call UI.\n    CallSoundCoordinator.instance.start();', '    // Only the foreground application owns the Firestore call-sound listener.\n    // Background FCM isolates must not start local AudioPlayer playback.\n    if (startCallCoordinator) {\n      CallSoundCoordinator.instance.start();\n    }', 1)
+          p.write_text(s, encoding='utf-8')
+
+          p = Path('lib/main.dart')
+          s = p.read_text(encoding='utf-8')
+          old = '  final notificationService = NotificationService();\n  await notificationService.initialize();\n  final type = message.data[\'type\']?.toString();'
+          new = '  final notificationService = NotificationService();\n  await notificationService.initialize(startCallCoordinator: false);\n  final type = message.data[\'type\']?.toString();'
+          if old not in s:
+              raise SystemExit('background notification initialization block not found')
+          s = s.replace(old, new, 1)
+          p.write_text(s, encoding='utf-8')
+
+          # 3) The incoming-call screen must not start a second ringtone. The
+          # coordinator owns ringtone start/stop from the canonical call state.
+          p = Path('lib/presentation/screens/chat/incoming_call_screen.dart')
+          s = p.read_text(encoding='utf-8')
+          s = s.replace("import 'package:sehatak/core/services/sound_manager.dart';\n", '', 1)
+          s = s.replace('    SoundManager().playCallRingtone();\n', '', 1)
+          # Mute/unmute is still intentionally local to the incoming-call UI.
+          s = s.replace("    if (_isMuted) {\n      SoundManager().stopAll();\n    } else {\n      SoundManager().playCallRingtone();\n    }", "    if (_isMuted) {\n      // The coordinator is stopped below through the shared sound manager.\n      // Keep this action event-driven: mute only exists on an active call UI.\n      // No sound is produced by merely opening another screen.\n      // The incoming-call coordinator will resume the ringtone when unmuted.\n    }")
+          # Re-add a narrow import because the mute handler needs the manager.
+          marker = "import 'package:sehatak/core/services/call_service.dart';\n"
+          if marker in s and "core/services/sound_manager.dart" not in s:
+              s = s.replace(marker, marker + "import 'package:sehatak/core/services/sound_manager.dart';\n", 1)
+          # The prior replacement intentionally leaves mute state only; restore
+          # the actual event-driven controls explicitly.
+          s = s.replace("    if (_isMuted) {\n      // The coordinator is stopped below through the shared sound manager.\n      // Keep this action event-driven: mute only exists on an active call UI.\n      // No sound is produced by merely opening another screen.\n      // The incoming-call coordinator will resume the ringtone when unmuted.\n    }", "    if (_isMuted) {\n      SoundManager().stopAll();\n    } else {\n      SoundManager().playCallRingtone();\n    }")
+          p.write_text(s, encoding='utf-8')
+
+          # 4) CallScreen must not invent a ringtone on every call-screen open;
+          # the call coordinator owns call/ringback audio. Keep call-end sound.
+          p = Path('lib/presentation/screens/call/call_screen.dart')
+          s = p.read_text(encoding='utf-8')
+          s = s.replace("import 'package:sehatak/core/services/sound_manager.dart';\n", '', 1)
+          s = s.replace('      // ✅ تشغيل رنين الاتصال\n      SoundManager().playCallRingtone();\n\n', '', 1)
+          s = s.replace('      // ✅ إيقاف الرنين\n      SoundManager().stopAll();\n\n', '', 1)
+          # We still need SoundManager for lifecycle stop and call-end effect.
+          marker = "import 'package:sehatak/core/services/livekit_service.dart';\n"
+          if marker in s and "core/services/sound_manager.dart" not in s:
+              s = s.replace(marker, marker + "import 'package:sehatak/core/services/sound_manager.dart';\n", 1)
+          p.write_text(s, encoding='utf-8')
+
+          # 5) Guard against stale Firestore call documents producing audio
+          # immediately after app launch. Only calls with a real startedAt and
+          # age <= 90 seconds can start a looping call tone.
+          p = Path('lib/core/services/call_sound_coordinator.dart')
+          s = p.read_text(encoding='utf-8')
+          needle = "      final startedAt = data['startedAt'];\n      DateTime? started;\n      if (startedAt is Timestamp) started = startedAt.toDate();"
+          repl = "      final startedAt = data['startedAt'];\n      DateTime? started;\n      if (startedAt is Timestamp) started = startedAt.toDate();\n      if (started == null) continue;\n      final age = DateTime.now().difference(started);\n      if (age.isNegative || age > const Duration(seconds: 90)) continue;"
+          if needle not in s:
+              raise SystemExit('call coordinator startedAt block not found')
+          s = s.replace(needle, repl, 1)
+          p.write_text(s, encoding='utf-8')
+
+          # No formatting errors and no accidental workflow leftovers in the
+          # application source.
+          for path in [
+              'lib/core/services/sound_manager.dart',
+              'lib/core/services/notification_service.dart',
+              'lib/main.dart',
+              'lib/presentation/screens/chat/incoming_call_screen.dart',
+              'lib/presentation/screens/call/call_screen.dart',
+              'lib/core/services/call_sound_coordinator.dart',
+          ]:
+              text = Path(path).read_text(encoding='utf-8')
+              if '<<<<<<<' in text or '>>>>>>>' in text:
+                  raise SystemExit(f'conflict marker in {path}')
+          PY
+          git diff --check
+          git status --short
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lib/core/services/sound_manager.dart lib/core/services/notification_service.dart lib/main.dart lib/presentation/screens/chat/incoming_call_screen.dart lib/presentation/screens/call/call_screen.dart lib/core/services/call_sound_coordinator.dart
+          git commit -m 'fix(audio): restore event-driven sound routing'
+          git rm .github/workflows/fix-audio-routing.yml
+          git commit -m 'chore(ci): remove temporary audio patcher'
+          git push origin HEAD:master
