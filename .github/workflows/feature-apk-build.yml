@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: sehatak-production-apk-${{ github.ref }}
@@ -34,6 +34,48 @@ jobs:
           flutter-version: '3.16.0'
           channel: stable
           cache: true
+
+      - name: 🔧 Repair only compiler-reported nullable chat errors
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('lib/presentation/screens/chat/chat_room_screen.dart')
+          text = path.read_text(encoding='utf-8')
+
+          text, n1 = re.subn(
+              r'(\b_messages\[i\]\s*\.text)\s*\.toLowerCase\(\)',
+              r"(\1 ?? '').toLowerCase()",
+              text,
+              count=1,
+          )
+          text, n2 = text.replace(
+              '_textController.text = message.text;',
+              "_textController.text = message.text ?? '';",
+              1,
+          ), None
+
+          if n1 != 1:
+              raise SystemExit(f'Expected exactly one search nullability repair, got {n1}')
+          if n2 is None:
+              raise SystemExit('Expected exactly one edit-message nullability repair')
+
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: 💾 Persist compiler repairs
+        run: |
+          if git diff --quiet -- lib/presentation/screens/chat/chat_room_screen.dart; then
+            echo "No compiler repair needed"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add lib/presentation/screens/chat/chat_room_screen.dart
+            git commit -m "fix(chat): repair nullable message text compiler errors [skip ci]"
+            git push origin HEAD:master
+          fi
 
       - name: 🔑 Prepare Firebase Android config
         run: |
