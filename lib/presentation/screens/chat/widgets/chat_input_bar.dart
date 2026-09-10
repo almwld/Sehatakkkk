@@ -104,8 +104,10 @@ class _ChatInputBarState extends State<ChatInputBar> {
       audioDuration: audioDuration,
     );
 
-    // The original local file is shown immediately. The persistent outbox owns
-    // its copied version and will continue after the widget/app is rebuilt.
+    // Always render the durable outbox copy, never the recorder's temporary
+    // path. The original source may be deleted immediately after enqueue.
+    final job = await ChatMediaTransferService.instance.getById(id);
+    final localPath = job?['local_path']?.toString() ?? file.path;
     widget.onLocalMedia?.call({
       'id': id,
       'chatId': widget.chatId,
@@ -113,22 +115,24 @@ class _ChatInputBarState extends State<ChatInputBar> {
       'senderName': 'مستخدم',
       'type': type,
       'text': preview,
-      'imageUrl': type == 'image' ? file.path : null,
-      'videoUrl': type == 'video' ? file.path : null,
-      'audioUrl': type == 'audio' ? file.path : null,
-      'fileUrl': type == 'file' ? file.path : null,
-      'fileName': name ?? file.path.split(Platform.pathSeparator).last,
+      'imageUrl': type == 'image' ? localPath : null,
+      'videoUrl': type == 'video' ? localPath : null,
+      'audioUrl': type == 'audio' ? localPath : null,
+      'fileUrl': type == 'file' ? localPath : null,
+      'fileName': name ?? pBasename(localPath),
       'fileSize': size,
       'fileMimeType': mime,
       'audioDuration': audioDuration,
       'isLocal': true,
       'isSending': true,
       'isUploading': true,
-      'uploadProgress': 0.0,
+      'uploadProgress': (job?['progress'] as num?)?.toDouble() ?? 0.0,
       'outboxId': id,
       'timestamp': DateTime.now().toIso8601String(),
     });
   }
+
+  String pBasename(String path) => path.split(Platform.pathSeparator).last;
 
   Future<void> _sendMedia(
     File file, {
