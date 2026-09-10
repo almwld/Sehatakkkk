@@ -106,7 +106,6 @@ class ChatMediaTransferService {
         chatMediaTransferTask,
         frequency: const Duration(minutes: 15),
         constraints: Constraints(networkType: NetworkType.connected),
-        existingWorkPolicy: ExistingPeriodicWorkPolicy.keep,
       );
       await _scheduleOneOffWorker();
     } catch (_) {}
