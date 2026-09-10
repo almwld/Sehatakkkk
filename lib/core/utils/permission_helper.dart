@@ -2,116 +2,58 @@
 // 🔐 مساعد الصلاحيات
 // ============================================================
 
-import 'package:permission_handler/permission_handler.dart';
+import 'package:permission_handler/permission_handler.dart' as ph;
 
 class PermissionHelper {
-  // ============================================================
-  // 📷 صلاحيات الكاميرا
-  // ============================================================
+  static Future<bool> requestCameraPermission() async =>
+      (await ph.Permission.camera.request()).isGranted;
 
-  static Future<bool> requestCameraPermission() async {
-    final status = await Permission.camera.request();
-    return status.isGranted;
-  }
+  static Future<bool> checkCameraPermission() async =>
+      (await ph.Permission.camera.status).isGranted;
 
-  static Future<bool> checkCameraPermission() async {
-    final status = await Permission.camera.status;
-    return status.isGranted;
-  }
+  static Future<bool> requestMicrophonePermission() async =>
+      (await ph.Permission.microphone.request()).isGranted;
 
-  // ============================================================
-  // 🎤 صلاحيات الميكروفون
-  // ============================================================
+  static Future<bool> checkMicrophonePermission() async =>
+      (await ph.Permission.microphone.status).isGranted;
 
-  static Future<bool> requestMicrophonePermission() async {
-    final status = await Permission.microphone.request();
-    return status.isGranted;
-  }
+  static Future<bool> requestStoragePermission() async =>
+      (await ph.Permission.storage.request()).isGranted;
 
-  static Future<bool> checkMicrophonePermission() async {
-    final status = await Permission.microphone.status;
-    return status.isGranted;
-  }
+  static Future<bool> checkStoragePermission() async =>
+      (await ph.Permission.storage.status).isGranted;
 
-  // ============================================================
-  // 📁 صلاحيات التخزين
-  // ============================================================
+  static Future<bool> requestLocationPermission() async =>
+      (await ph.Permission.location.request()).isGranted;
 
-  static Future<bool> requestStoragePermission() async {
-    final status = await Permission.storage.request();
-    return status.isGranted;
-  }
+  static Future<bool> checkLocationPermission() async =>
+      (await ph.Permission.location.status).isGranted;
 
-  static Future<bool> checkStoragePermission() async {
-    final status = await Permission.storage.status;
-    return status.isGranted;
-  }
+  static Future<bool> requestNotificationPermission() async =>
+      (await ph.Permission.notification.request()).isGranted;
 
-  // ============================================================
-  // 📍 صلاحيات الموقع
-  // ============================================================
+  static Future<bool> checkNotificationPermission() async =>
+      (await ph.Permission.notification.status).isGranted;
 
-  static Future<bool> requestLocationPermission() async {
-    final status = await Permission.location.request();
-    return status.isGranted;
-  }
+  static Future<bool> requestPhonePermission() async =>
+      (await ph.Permission.phone.request()).isGranted;
 
-  static Future<bool> checkLocationPermission() async {
-    final status = await Permission.location.status;
-    return status.isGranted;
-  }
+  static Future<bool> checkPhonePermission() async =>
+      (await ph.Permission.phone.status).isGranted;
 
-  // ============================================================
-  // 📱 صلاحيات الإشعارات
-  // ============================================================
+  static Future<Map<ph.Permission, ph.PermissionStatus>> requestPermissions(
+    List<ph.Permission> permissions,
+  ) => permissions.request();
 
-  static Future<bool> requestNotificationPermission() async {
-    final status = await Permission.notification.request();
-    return status.isGranted;
-  }
-
-  static Future<bool> checkNotificationPermission() async {
-    final status = await Permission.notification.status;
-    return status.isGranted;
-  }
-
-  // ============================================================
-  // 📞 صلاحيات الاتصال
-  // ============================================================
-
-  static Future<bool> requestPhonePermission() async {
-    final status = await Permission.phone.request();
-    return status.isGranted;
-  }
-
-  static Future<bool> checkPhonePermission() async {
-    final status = await Permission.phone.status;
-    return status.isGranted;
-  }
-
-  // ============================================================
-  // 🔄 صلاحيات متعددة
-  // ============================================================
-
-  static Future<Map<Permission, PermissionStatus>> requestPermissions(
-    List<Permission> permissions,
+  static Future<Map<ph.Permission, ph.PermissionStatus>> checkPermissions(
+    List<ph.Permission> permissions,
   ) async {
-    return await permissions.request();
-  }
-
-  static Future<Map<Permission, PermissionStatus>> checkPermissions(
-    List<Permission> permissions,
-  ) async {
-    final result = <Permission, PermissionStatus>{};
+    final result = <ph.Permission, ph.PermissionStatus>{};
     for (final permission in permissions) {
       result[permission] = await permission.status;
     }
     return result;
   }
-
-  // ============================================================
-  // 🎯 صلاحيات الدردشة
-  // ============================================================
 
   static Future<bool> requestChatPermissions() async {
     final camera = await requestCameraPermission();
@@ -127,36 +69,25 @@ class PermissionHelper {
     return camera && microphone && storage;
   }
 
-  // ============================================================
-  // 🛠️ عرض حالة الصلاحيات
-  // ============================================================
-
-  static String getPermissionStatusText(PermissionStatus status) {
+  static String getPermissionStatusText(ph.PermissionStatus status) {
     switch (status) {
-      case PermissionStatus.granted:
+      case ph.PermissionStatus.granted:
         return 'ممنوحة ✅';
-      case PermissionStatus.denied:
+      case ph.PermissionStatus.denied:
         return 'مرفوضة ❌';
-      case PermissionStatus.restricted:
+      case ph.PermissionStatus.restricted:
         return 'مقيدة ⚠️';
-      case PermissionStatus.permanentlyDenied:
+      case ph.PermissionStatus.permanentlyDenied:
         return 'مرفوضة نهائياً 🚫';
-      case PermissionStatus.limited:
+      case ph.PermissionStatus.limited:
         return 'محدودة 📌';
       default:
         return 'غير معروفة ❓';
     }
   }
 
-  static bool isPermissionGranted(PermissionStatus status) {
-    return status == PermissionStatus.granted || status == PermissionStatus.limited;
-  }
+  static bool isPermissionGranted(ph.PermissionStatus status) =>
+      status == ph.PermissionStatus.granted || status == ph.PermissionStatus.limited;
 
-  // ============================================================
-  // 🔄 فتح إعدادات التطبيق
-  // ============================================================
-
-  static Future<void> openAppSettings() async {
-    await openAppSettings();
-  }
+  static Future<bool> openAppSettings() => ph.openAppSettings();
 }
