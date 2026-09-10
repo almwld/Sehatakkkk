@@ -67,7 +67,7 @@ jobs:
       - name: 📦 Install dependencies
         run: flutter pub get
 
-      # Intentionally no flutter analyze: the release compiler is the production gate.
+      # No flutter analyze: the production release compiler is the build gate.
       - name: 🔨 Build split release APKs
         run: flutter build apk --release --split-per-abi --no-shrink
 
