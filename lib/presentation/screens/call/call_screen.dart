@@ -9,7 +9,6 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:sehatak/core/models/call_model.dart';
 import 'package:sehatak/core/services/call_service.dart';
 import 'package:sehatak/core/services/livekit_service.dart';
-import 'package:sehatak/core/services/sound_manager.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 
 class CallScreen extends StatefulWidget {
@@ -134,6 +133,12 @@ class _CallScreenState extends State<CallScreen> {
 
   Future<void> _join(CallModel call, User user) async {
     if (_joined || _ending) return;
+    // Defense in depth: this method is only allowed to execute after the
+    // server-side lifecycle reaches connected. Never join while ringing.
+    if (call.status != CallStatus.connected) {
+      debugPrint('CALL JOIN BLOCKED id=${call.id} status=${call.status}');
+      return;
+    }
     try {
       if (widget.isVideo) {
         final camera = await Permission.camera.request();
@@ -147,7 +152,6 @@ class _CallScreenState extends State<CallScreen> {
       _timeout?.cancel();
       _setConnectedAt(call.connectedAt?.toDate() ?? DateTime.now());
       _bind(_room!.localParticipant);
-      // livekit_client 1.5.6 exposes existing remote participants as `participants`.
       for (final participant in _room!.participants.values) { _bind(participant); }
       _room!.events.on<ParticipantConnectedEvent>((event) => _bind(event.participant));
       _room!.events.on<TrackSubscribedEvent>((event) => _bind(event.participant));
@@ -165,9 +169,7 @@ class _CallScreenState extends State<CallScreen> {
     if (participant == null) return;
     for (final publication in participant.videoTracks) {
       final track = publication.track;
-      if (track is VideoTrack && mounted) {
-        setState(() { if (participant is LocalParticipant) { _localTrack = track; } else { _remoteTrack = track; } });
-      }
+      if (track is VideoTrack && mounted) setState(() { if (participant is LocalParticipant) { _localTrack = track; } else { _remoteTrack = track; } });
     }
   }
 
@@ -177,7 +179,6 @@ class _CallScreenState extends State<CallScreen> {
     _timeout?.cancel(); _timer?.cancel();
     await _callSubscription?.cancel();
     _callSubscription = null;
-    SoundManager().stopAll();
     await _live.endCall();
     if (mounted) Navigator.of(context).pop();
   }
@@ -188,7 +189,6 @@ class _CallScreenState extends State<CallScreen> {
     _timeout?.cancel(); _timer?.cancel();
     await _callSubscription?.cancel();
     _callSubscription = null;
-    SoundManager().stopAll();
     try { if (_callId != null) await _calls.endCall(_callId!, durationSeconds: _joined ? _seconds : 0); } catch (e) { debugPrint('CALL END FIRESTORE ERROR: $e'); }
     await _live.endCall();
     if (mounted) Navigator.of(context).pop();
@@ -202,7 +202,6 @@ class _CallScreenState extends State<CallScreen> {
   @override
   void dispose() {
     _timeout?.cancel(); _timer?.cancel(); _callSubscription?.cancel(); _connectivitySubscription?.cancel();
-    SoundManager().stopAll();
     if (_joined) unawaited(_live.endCall());
     super.dispose();
   }
@@ -210,39 +209,27 @@ class _CallScreenState extends State<CallScreen> {
   @override
   Widget build(BuildContext context) {
     final status = _error != null ? _error! : !_networkAvailable ? 'لا يوجد اتصال بالإنترنت' : _connecting ? (widget.isOutgoing ? 'جاري تجهيز المكالمة...' : 'جاري الاتصال...') : !_joined ? 'في انتظار قبول المكالمة...' : _fmt(_seconds);
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: SafeArea(child: Stack(children: [
-        Positioned.fill(child: widget.isVideo && _remoteTrack != null ? VideoTrackRenderer(_remoteTrack!) : _waitingView(status)),
-        if (widget.isVideo && _localTrack != null) PositionedDirectional(top: 18, end: 18, child: Container(width: 120, height: 180, decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(14), border: Border.all(color: Colors.white24), boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 12)]), clipBehavior: Clip.antiAlias, child: VideoTrackRenderer(_localTrack!))),
-        if (_joined && _remoteTrack != null) Positioned(top: 18, left: 18, child: _statusChip(_fmt(_seconds))),
-        if (_error == null) Positioned(bottom: 24, left: 0, right: 0, child: _controls()),
-      ])),
-    );
+    return Scaffold(backgroundColor: Colors.black, body: SafeArea(child: Stack(children: [
+      Positioned.fill(child: widget.isVideo && _remoteTrack != null ? VideoTrackRenderer(_remoteTrack!) : _waitingView(status)),
+      if (widget.isVideo && _localTrack != null) PositionedDirectional(top: 18, end: 18, child: Container(width: 120, height: 180, decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(14), border: Border.all(color: Colors.white24), boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 12)]), clipBehavior: Clip.antiAlias, child: VideoTrackRenderer(_localTrack!))),
+      if (_joined && _remoteTrack != null) Positioned(top: 18, left: 18, child: _statusChip(_fmt(_seconds))),
+      if (_error == null) Positioned(bottom: 24, left: 0, right: 0, child: _controls()),
+    ])));
   }
 
   Widget _waitingView(String status) => Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
     CircleAvatar(radius: 58, backgroundImage: widget.doctorImage?.trim().isNotEmpty == true ? NetworkImage(widget.doctorImage!.trim()) : null, backgroundColor: const Color(0xFF263238), child: widget.doctorImage?.trim().isNotEmpty == true ? null : const Icon(Icons.person, color: Colors.white, size: 50)),
-    const SizedBox(height: 18),
-    Text(widget.doctorName, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
-    const SizedBox(height: 8),
-    Text(widget.isVideo ? 'مكالمة فيديو' : 'مكالمة صوتية', style: const TextStyle(color: Colors.white60, fontSize: 14)),
-    const SizedBox(height: 10),
+    const SizedBox(height: 18), Text(widget.doctorName, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+    const SizedBox(height: 8), Text(widget.isVideo ? 'مكالمة فيديو' : 'مكالمة صوتية', style: const TextStyle(color: Colors.white60, fontSize: 14)), const SizedBox(height: 10),
     Text(status, textAlign: TextAlign.center, style: TextStyle(color: _error != null ? Colors.redAccent : Colors.white70, fontSize: 14)),
     if (_joined) ...[const SizedBox(height: 8), Text(_fmt(_seconds), style: const TextStyle(color: Colors.white, fontSize: 18))],
   ]));
 
   Widget _statusChip(String text) => Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7), decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(18), border: Border.all(color: Colors.white12)), child: Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.circle, color: Colors.greenAccent, size: 8), const SizedBox(width: 7), Text(text, style: const TextStyle(color: Colors.white, fontSize: 13))]));
-
   Widget _controls() => Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-    _btn(_muted ? Icons.mic_off : Icons.mic, _mute),
-    if (widget.isVideo) _btn(_cameraEnabled ? Icons.videocam : Icons.videocam_off, _toggleCamera),
-    _btn(_speaker ? Icons.volume_up : Icons.volume_down, _toggleSpeaker),
-    if (widget.isVideo) _btn(Icons.flip_camera_android, _switchCamera),
-    _btn(Icons.call_end, _end, red: true),
+    _btn(_muted ? Icons.mic_off : Icons.mic, _mute), if (widget.isVideo) _btn(_cameraEnabled ? Icons.videocam : Icons.videocam_off, _toggleCamera),
+    _btn(_speaker ? Icons.volume_up : Icons.volume_down, _toggleSpeaker), if (widget.isVideo) _btn(Icons.flip_camera_android, _switchCamera), _btn(Icons.call_end, _end, red: true),
   ]);
-
   Widget _btn(IconData icon, Future<void> Function() onPressed, {bool red = false}) => Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: FloatingActionButton(heroTag: '${icon.codePoint}_${red ? 'red' : 'normal'}', mini: true, backgroundColor: red ? Colors.red : Colors.white12, onPressed: () => unawaited(onPressed()), child: Icon(icon, color: Colors.white)));
-
   String _fmt(int seconds) { final minutes = seconds ~/ 60; final remaining = seconds % 60; return '${minutes.toString().padLeft(2, '0')}:${remaining.toString().padLeft(2, '0')}'; }
 }
