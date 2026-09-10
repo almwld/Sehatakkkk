@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/widgets.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
@@ -91,20 +92,14 @@ class ChatMediaTransferService {
       unawaited(processPending());
       unawaited(_scheduleOneOffWorker());
     });
-
-    if (startBackgroundWorker) {
-      await _initializeBackgroundWorker();
-    }
+    if (startBackgroundWorker) await _initializeBackgroundWorker();
     unawaited(processPending());
   }
 
   Future<void> _initializeBackgroundWorker() async {
     if (_workerInitialized) return;
     try {
-      await Workmanager().initialize(
-        chatMediaTransferCallbackDispatcher,
-        isInDebugMode: false,
-      );
+      await Workmanager().initialize(chatMediaTransferCallbackDispatcher, isInDebugMode: false);
       _workerInitialized = true;
       await Workmanager().registerPeriodicTask(
         'sehatak-chat-media-periodic',
@@ -114,10 +109,7 @@ class ChatMediaTransferService {
         existingWorkPolicy: ExistingPeriodicWorkPolicy.keep,
       );
       await _scheduleOneOffWorker();
-    } catch (_) {
-      // The foreground connectivity/resume path remains functional even when
-      // the OS background scheduler is unavailable on a particular device.
-    }
+    } catch (_) {}
   }
 
   Future<void> _scheduleOneOffWorker() async {
@@ -148,11 +140,9 @@ class ChatMediaTransferService {
     final dir = await getApplicationDocumentsDirectory();
     final mediaDir = Directory(p.join(dir.path, 'sehatak_chat_media', chatId));
     await mediaDir.create(recursive: true);
-    final safeName = (fileName?.trim().isNotEmpty == true ? fileName!.trim() : p.basename(sourceFile.path))
-        .replaceAll(RegExp(r'[/\\]'), '_');
+    final safeName = (fileName?.trim().isNotEmpty == true ? fileName!.trim() : p.basename(sourceFile.path)).replaceAll(RegExp(r'[/\\]'), '_');
     final local = File(p.join(mediaDir.path, '${id}_$safeName'));
     await sourceFile.copy(local.path);
-
     final now = DateTime.now().millisecondsSinceEpoch;
     final db = await _database;
     await db.insert('media_outbox', {
@@ -185,12 +175,7 @@ class ChatMediaTransferService {
 
   Future<List<Map<String, dynamic>>> pendingForChat(String chatId) async {
     final db = await _database;
-    return db.query(
-      'media_outbox',
-      where: 'chat_id = ? AND status != ?',
-      whereArgs: [chatId, 'sent'],
-      orderBy: 'created_at ASC',
-    );
+    return db.query('media_outbox', where: 'chat_id = ? AND status != ?', whereArgs: [chatId, 'sent'], orderBy: 'created_at ASC');
   }
 
   Future<void> processPending() async {
@@ -200,28 +185,17 @@ class ChatMediaTransferService {
       final connectivity = await Connectivity().checkConnectivity();
       if (_isOffline(connectivity)) return;
       final db = await _database;
-      final jobs = await db.query(
-        'media_outbox',
-        where: 'status != ?',
-        whereArgs: ['sent'],
-        orderBy: 'created_at ASC',
-        limit: 3,
-      );
+      final jobs = await db.query('media_outbox', where: 'status != ?', whereArgs: ['sent'], orderBy: 'created_at ASC', limit: 3);
       for (final job in jobs) {
         try {
           await _process(job);
         } catch (e) {
-          await db.update(
-            'media_outbox',
-            {
-              'status': 'retry',
-              'error': e.toString(),
-              'attempts': (job['attempts'] as int? ?? 0) + 1,
-              'updated_at': DateTime.now().millisecondsSinceEpoch,
-            },
-            where: 'id = ?',
-            whereArgs: [job['id']],
-          );
+          await db.update('media_outbox', {
+            'status': 'retry',
+            'error': e.toString(),
+            'attempts': (job['attempts'] as int? ?? 0) + 1,
+            'updated_at': DateTime.now().millisecondsSinceEpoch,
+          }, where: 'id = ?', whereArgs: [job['id']]);
         }
       }
     } finally {
@@ -239,11 +213,7 @@ class ChatMediaTransferService {
     final id = job['id'].toString();
     final file = File(job['local_path'].toString());
     if (!await file.exists()) throw StateError('النسخة المحلية للملف لم تعد موجودة');
-
-    await db.update('media_outbox', {
-      'status': 'uploading',
-      'updated_at': DateTime.now().millisecondsSinceEpoch,
-    }, where: 'id = ?', whereArgs: [id]);
+    await db.update('media_outbox', {'status': 'uploading', 'updated_at': DateTime.now().millisecondsSinceEpoch}, where: 'id = ?', whereArgs: [id]);
 
     final nextcloud = NextcloudService();
     await nextcloud.loadConfig();
@@ -253,17 +223,11 @@ class ChatMediaTransferService {
       fileName: job['file_name']?.toString(),
       onProgress: (sent, total) {
         if (total <= 0) return;
-        unawaited(db.update('media_outbox', {
-          'progress': sent / total,
-          'updated_at': DateTime.now().millisecondsSinceEpoch,
-        }, where: 'id = ?', whereArgs: [id]));
+        unawaited(db.update('media_outbox', {'progress': sent / total, 'updated_at': DateTime.now().millisecondsSinceEpoch}, where: 'id = ?', whereArgs: [id]));
       },
       createShare: true,
     );
-
-    if (!upload.success || upload.path == null) {
-      throw StateError(upload.error ?? 'تعذر رفع الوسائط');
-    }
+    if (!upload.success || upload.path == null) throw StateError(upload.error ?? 'تعذر رفع الوسائط');
 
     await db.update('media_outbox', {
       'status': 'uploaded',
@@ -279,20 +243,12 @@ class ChatMediaTransferService {
     if (url == null || url.isEmpty) throw StateError('تم رفع الملف، لكن رابط المشاركة لم يصبح جاهزًا بعد');
     if (!await nextcloud.verifyPublicUrl(url)) throw StateError('تم إنشاء الرابط لكنه لم يجتز فحص الوصول');
 
-    await db.update('media_outbox', {
-      'status': 'link_ready',
-      'remote_url': url,
-      'updated_at': DateTime.now().millisecondsSinceEpoch,
-    }, where: 'id = ?', whereArgs: [id]);
-
+    await db.update('media_outbox', {'status': 'link_ready', 'remote_url': url, 'updated_at': DateTime.now().millisecondsSinceEpoch}, where: 'id = ?', whereArgs: [id]);
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) throw StateError('المستخدم غير مسجل الدخول');
-    final chatId = job['chat_id'].toString();
-    final key = 'media_$id';
-    final chat = ChatService();
     final type = job['type'].toString();
-    await chat.sendMessage(
-      chatId: chatId,
+    await ChatService().sendMessage(
+      chatId: job['chat_id'].toString(),
       text: job['preview'].toString(),
       imageUrl: type == 'image' ? url : null,
       videoUrl: type == 'video' ? url : null,
@@ -302,17 +258,10 @@ class ChatMediaTransferService {
       fileSize: job['file_size']?.toString(),
       fileMimeType: job['mime_type']?.toString(),
       audioDuration: job['audio_duration']?.toString(),
-      idempotencyKey: key,
+      idempotencyKey: 'media_$id',
     );
-
-    await db.update('media_outbox', {
-      'status': 'sent',
-      'remote_url': url,
-      'updated_at': DateTime.now().millisecondsSinceEpoch,
-    }, where: 'id = ?', whereArgs: [id]);
-    try {
-      await file.delete();
-    } catch (_) {}
+    await db.update('media_outbox', {'status': 'sent', 'remote_url': url, 'updated_at': DateTime.now().millisecondsSinceEpoch}, where: 'id = ?', whereArgs: [id]);
+    try { await file.delete(); } catch (_) {}
   }
 
   Future<String?> _retryShare(NextcloudService service, String remotePath) async {
@@ -326,11 +275,7 @@ class ChatMediaTransferService {
 
   Future<void> retry(String id) async {
     final db = await _database;
-    await db.update('media_outbox', {
-      'status': 'queued',
-      'error': null,
-      'updated_at': DateTime.now().millisecondsSinceEpoch,
-    }, where: 'id = ?', whereArgs: [id]);
+    await db.update('media_outbox', {'status': 'queued', 'error': null, 'updated_at': DateTime.now().millisecondsSinceEpoch}, where: 'id = ?', whereArgs: [id]);
     await processPending();
     unawaited(_scheduleOneOffWorker());
   }
