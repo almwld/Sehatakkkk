@@ -44,6 +44,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _messagesSub;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _chatSub;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _userSub;
+  Timer? _pendingRefreshTimer;
   List<MessageModel> _messages = [];
   final List<Map<String, dynamic>> _localMedia = [];
   bool _loading = true;
@@ -51,14 +52,23 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   bool _muted = false;
   bool _pinned = false;
 
-  CollectionReference<Map<String, dynamic>> get _messagesRef => _firestore.collection('chats').doc(widget.chatId).collection('messages');
+  CollectionReference<Map<String, dynamic>> get _messagesRef =>
+      _firestore.collection('chats').doc(widget.chatId).collection('messages');
 
   @override
   void initState() {
     super.initState();
     _listen();
     _loadPendingMedia();
+    _startPendingRefresh();
     _markRead();
+  }
+
+  void _startPendingRefresh() {
+    _pendingRefreshTimer?.cancel();
+    _pendingRefreshTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) unawaited(_loadPendingMedia());
+    });
   }
 
   Future<void> _loadPendingMedia() async {
@@ -68,7 +78,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       setState(() {
         _localMedia
           ..clear()
-          ..addAll(jobs.map((j) => _pendingMap(j)));
+          ..addAll(jobs.map(_pendingMap));
       });
     } catch (e) {
       debugPrint('pending media load: $e');
@@ -78,6 +88,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   Map<String, dynamic> _pendingMap(Map<String, dynamic> job) {
     final type = job['type']?.toString() ?? 'file';
     final local = job['local_path']?.toString() ?? '';
+    final status = job['status']?.toString() ?? 'queued';
+    final progress = (job['progress'] as num?)?.toDouble() ?? 0.0;
     return {
       'id': job['id'],
       'chatId': widget.chatId,
@@ -94,12 +106,16 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       'fileMimeType': job['mime_type'],
       'audioDuration': job['audio_duration'],
       'isLocal': true,
-      'isSending': job['status'] != 'retry',
-      'isUploading': job['status'] == 'uploading' || job['status'] == 'queued' || job['status'] == 'retry',
-      'hasError': job['status'] == 'retry',
-      'uploadProgress': (job['progress'] as num?)?.toDouble() ?? 0.0,
+      'isSending': status != 'retry',
+      'isUploading': status == 'uploading' || status == 'queued' || status == 'retry',
+      'hasError': status == 'retry',
+      'uploadProgress': progress,
       'outboxId': job['id'],
-      'onRetry': () => ChatMediaTransferService.instance.retry(job['id'].toString()),
+      'timestamp': job['created_at'] ?? DateTime.now().toIso8601String(),
+      'onRetry': () async {
+        await ChatMediaTransferService.instance.retry(job['id'].toString());
+        if (mounted) await _loadPendingMedia();
+      },
     };
   }
 
@@ -109,12 +125,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       _localMedia.removeWhere((m) => m['outboxId'] == media['outboxId']);
       _localMedia.add(media);
     });
-    unawaited(_refreshPendingSoon());
-  }
-
-  Future<void> _refreshPendingSoon() async {
-    await Future<void>.delayed(const Duration(milliseconds: 800));
-    if (mounted) await _loadPendingMedia();
+    unawaited(_loadPendingMedia());
   }
 
   void _listen() {
@@ -146,8 +157,23 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     });
   }
 
+  DateTime _messageTime(dynamic value) {
+    if (value is Timestamp) return value.toDate();
+    if (value is DateTime) return value;
+    if (value is num) {
+      final n = value.toInt();
+      return DateTime.fromMillisecondsSinceEpoch(n > 100000000000 ? n : n * 1000);
+    }
+    if (value is String) return DateTime.tryParse(value) ?? DateTime.fromMillisecondsSinceEpoch(0);
+    return DateTime.fromMillisecondsSinceEpoch(0);
+  }
+
   Future<void> _markRead() async {
-    try { await _chat.markAsRead(widget.chatId); } catch (error) { debugPrint('mark read: $error'); }
+    try {
+      await _chat.markAsRead(widget.chatId);
+    } catch (error) {
+      debugPrint('mark read: $error');
+    }
   }
 
   void _call(bool video) {
@@ -169,11 +195,25 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     )));
   }
 
-  Future<void> _toggleMute() async { try { await _chat.muteChat(widget.chatId, !_muted); } catch (e) { debugPrint('mute chat: $e'); } }
-  Future<void> _togglePin() async { try { await _chat.pinChat(widget.chatId, !_pinned); } catch (e) { debugPrint('pin chat: $e'); } }
+  Future<void> _toggleMute() async {
+    try {
+      await _chat.muteChat(widget.chatId, !_muted);
+    } catch (e) {
+      debugPrint('mute chat: $e');
+    }
+  }
+
+  Future<void> _togglePin() async {
+    try {
+      await _chat.pinChat(widget.chatId, !_pinned);
+    } catch (e) {
+      debugPrint('pin chat: $e');
+    }
+  }
 
   @override
   void dispose() {
+    _pendingRefreshTimer?.cancel();
     _messagesSub?.cancel();
     _chatSub?.cancel();
     _userSub?.cancel();
@@ -188,11 +228,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       ..._localMedia,
       ..._messages.map((m) => m.toFirestore()..['id'] = m.id),
     ];
-    all.sort((a, b) {
-      final at = DateTime.tryParse(a['timestamp']?.toString() ?? '') ?? DateTime.fromMillisecondsSinceEpoch(0);
-      final bt = DateTime.tryParse(b['timestamp']?.toString() ?? '') ?? DateTime.fromMillisecondsSinceEpoch(0);
-      return bt.compareTo(at);
-    });
+    all.sort((a, b) => _messageTime(b['timestamp']).compareTo(_messageTime(a['timestamp'])));
 
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF2F5F6),
@@ -204,7 +240,12 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         title: InkWell(
           onTap: _profile,
           child: Row(children: [
-            CircleAvatar(radius: 21, backgroundColor: AppColors.primary.withOpacity(.12), backgroundImage: image != null ? CachedNetworkImageProvider(image) : null, child: image == null ? Text(widget.otherUserName.isEmpty ? 'م' : widget.otherUserName.characters.first) : null),
+            CircleAvatar(
+              radius: 21,
+              backgroundColor: AppColors.primary.withOpacity(.12),
+              backgroundImage: image != null ? CachedNetworkImageProvider(image) : null,
+              child: image == null ? Text(widget.otherUserName.isEmpty ? 'م' : widget.otherUserName.characters.first) : null,
+            ),
             const SizedBox(width: 10),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(widget.isGroup ? 'المجموعة' : widget.otherUserName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
@@ -216,7 +257,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           if (!widget.isGroup) IconButton(onPressed: () => _call(false), icon: const Icon(Icons.call_rounded)),
           if (!widget.isGroup) IconButton(onPressed: () => _call(true), icon: const Icon(Icons.videocam_rounded)),
           PopupMenuButton<String>(
-            onSelected: (value) { if (value == 'mute') _toggleMute(); if (value == 'pin') _togglePin(); },
+            onSelected: (value) {
+              if (value == 'mute') _toggleMute();
+              if (value == 'pin') _togglePin();
+            },
             itemBuilder: (_) => [
               PopupMenuItem(value: 'mute', child: Text(_muted ? 'إلغاء كتم الإشعارات' : 'كتم الإشعارات')),
               PopupMenuItem(value: 'pin', child: Text(_pinned ? 'إلغاء تثبيت المحادثة' : 'تثبيت المحادثة')),
