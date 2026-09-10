@@ -113,7 +113,6 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/images/search/
     - assets/images/ui/
     - assets/animations/
     - assets/audio/
