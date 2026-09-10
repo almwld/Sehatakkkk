@@ -16,7 +16,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-
     steps:
     - name: 📥 Checkout code
       uses: actions/checkout@v4
@@ -64,17 +63,41 @@ jobs:
                 pos=j
             return ''.join(out)
 
-        replacements = [
+        for start,end,asset in [
             ('_tips(', '_discover(', 'assets/images/services/health_tips.png'),
-            ('_discover(', '_weather(', 'assets/images/services/medical_articles.png'),
             ('_weather(', '_community(', 'assets/svg/home_weather.svg'),
-        ]
-        for start,end,asset in reversed(replacements):
+        ][::-1]:
             a,b=bounds(s,start,end)
             s=s[:a]+replace_icons(s[a:b],asset)+s[b:]
-        for start,end,_ in replacements:
+
+        a,b=bounds(s,'_discover(','_weather(')
+        d=s[a:b]
+        d=re.sub(
+            r"const items = \[.*?\n    \];",
+            """const items = [
+      {'name': 'حجز موعد', 'icon': 'assets/images/services/calendar_booking.png', 'route': AppRouter.appointments},
+      {'name': 'طوارئ', 'icon': 'assets/images/services/emergency.png', 'route': AppRouter.emergency},
+      {'name': 'خريطة', 'icon': 'assets/images/services/map_location.png', 'route': AppRouter.map},
+      {'name': 'باقات', 'icon': 'assets/images/services/health_insurance.png', 'route': AppRouter.services},
+    ];""",
+            d,
+            count=1,
+            flags=re.S,
+        )
+        d=d.replace(
+            "Icon(item['icon']! as IconData, color: AppColors.primary, size: 27)",
+            "Image.asset(item['icon']! as String, width: 27, height: 27, fit: BoxFit.contain)",
+        )
+        s=s[:a]+d+s[b:]
+
+        for start,end in [
+            ('_tips(', '_discover('),
+            ('_discover(', '_weather('),
+            ('_weather(', '_community('),
+        ]:
             a,b=bounds(s,start,end)
-            if 'Icons.' in s[a:b]: raise RuntimeError('Material icon remains in '+start)
+            if 'Icons.' in s[a:b]:
+                raise RuntimeError('Material icon remains in '+start)
         p.write_text(s,encoding='utf-8')
         PY
         git diff --check
@@ -93,68 +116,37 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-
     - name: 💙 Setup Flutter
       uses: subosito/flutter-action@v2
       with:
         flutter-version: '3.16.0'
         channel: 'stable'
         cache: true
-
     - name: 🔑 Add google-services.json
       run: |
         cat > android/app/google-services.json << 'JSONEOF'
         {
-          "project_info": {
-            "project_number": "1053269106596",
-            "project_id": "sehatak-platform",
-            "storage_bucket": "sehatak-platform.firebasestorage.app"
-          },
-          "client": [
-            {
-              "client_info": {
-                "mobilesdk_app_id": "1:1053269106596:android:de2128024cd023a973ab31",
-                "android_client_info": {
-                  "package_name": "com.sehatak.app"
-                }
-              },
-              "oauth_client": [],
-              "api_key": [
-                {
-                  "current_key": "AIzaSyD_frsfhn0jde9cWVUW3hXjGcnMIQmY51k"
-                }
-              ],
-              "services": {
-                "appinvite_service": {
-                  "other_platform_oauth_client": []
-                }
-              }
-            }
-          ],
+          "project_info": {"project_number": "1053269106596", "project_id": "sehatak-platform", "storage_bucket": "sehatak-platform.firebasestorage.app"},
+          "client": [{"client_info": {"mobilesdk_app_id": "1:1053269106596:android:de2128024cd023a973ab31", "android_client_info": {"package_name": "com.sehatak.app"}}, "oauth_client": [], "api_key": [{"current_key": "AIzaSyD_frsfhn0jde9cWVUW3hXjGcnMIQmY51k"}], "services": {"appinvite_service": {"other_platform_oauth_client": []}}}],
           "configuration_version": "1"
         }
         JSONEOF
-
     - name: 📦 Install dependencies
       run: flutter pub get
-
     - name: 🔨 Build APK
       run: flutter build apk --release --split-per-abi --no-shrink
-
     - name: 📤 Upload arm64-v8a
       uses: actions/upload-artifact@v4
       with:
         name: app-arm64-v8a
         path: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
         retention-days: 30
-
     - name: 📤 Upload armeabi-v7a
       uses: actions/upload-artifact@v4
       with:
         name: app-armeabi-v7a
         path: build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
         retention-days: 30
-
     - name: 📤 Upload x86_64
       uses: actions/upload-artifact@v4
       with:
