@@ -10,104 +10,80 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.35.3'
-          channel: stable
-          cache: true
-      - name: Replace Material icon widgets with local assets
-        shell: bash
+          ref: master
+          fetch-depth: 0
+
+      - name: Replace only Home tips, discover and weather Material icons
+        shell: python
         run: |
-          python3 - <<'PY'
           from pathlib import Path
           import re
 
-          root = Path('lib')
-          mapping = {
-            'person':'assets/icons/core/home.svg', 'person_outline':'assets/icons/core/home.svg',
-            'local_hospital':'assets/icons/core/doctor.svg', 'local_hospital_outlined':'assets/icons/core/doctor.svg',
-            'medical_services':'assets/icons/services/medical.svg', 'medical_services_outlined':'assets/icons/services/medical.svg',
-            'local_pharmacy':'assets/icons/core/pharmacy.svg', 'local_pharmacy_outlined':'assets/icons/core/pharmacy.svg',
-            'science':'assets/icons/lab/microscope.svg', 'science_outlined':'assets/icons/lab/microscope.svg',
-            'emergency':'assets/icons/core/emergency.svg', 'health_and_safety':'assets/icons/core/emergency.svg',
-            'bloodtype':'assets/icons/core/blood_test.svg', 'vaccines':'assets/icons/mini_specialties/syringe.svg',
-            'fitness_center':'assets/icons/mini_specialties/bone.svg', 'favorite':'assets/icons/mini_specialties/heart.svg',
-            'favorite_border':'assets/icons/mini_specialties/heart.svg', 'monitor_heart':'assets/icons/mini_specialties/heart.svg',
-            'visibility':'assets/icons/mini_specialties/eye.svg', 'visibility_off':'assets/icons/mini_specialties/eye.svg',
-            'chat':'assets/icons/navigation/chat.svg', 'chat_bubble':'assets/icons/navigation/chat.svg',
-            'chat_bubble_outline':'assets/icons/navigation/chat.svg', 'video_call':'assets/icons/core/video_call.svg',
-            'call':'assets/icons/core/video_call.svg', 'phone':'assets/icons/core/video_call.svg',
-            'notifications':'assets/icons/core/notifications_active.svg', 'notifications_none':'assets/icons/core/notifications_active.svg',
-            'home':'assets/icons/core/home.svg', 'home_outlined':'assets/icons/core/home.svg',
-            'menu':'assets/icons/core/more_menu.svg', 'more_vert':'assets/icons/core/more_menu.svg',
-            'more_horiz':'assets/icons/core/more_menu.svg', 'search':'assets/icons/core/home.svg',
-            'shopping_cart':'assets/icons/core/pharmacy.svg', 'shopping_cart_outlined':'assets/icons/core/pharmacy.svg',
-            'shopping_bag':'assets/icons/core/pharmacy.svg', 'shopping_bag_outlined':'assets/icons/core/pharmacy.svg',
-            'location_on':'assets/icons/navigation/emergency.svg', 'place':'assets/icons/navigation/emergency.svg',
-            'map':'assets/icons/navigation/emergency.svg', 'calendar_today':'assets/icons/core/health_record.svg',
-            'event':'assets/icons/core/health_record.svg', 'access_time':'assets/icons/core/health_record.svg',
-            'schedule':'assets/icons/core/health_record.svg', 'settings':'assets/icons/core/more_menu.svg',
-            'person_add':'assets/icons/core/home.svg', 'edit':'assets/icons/core/more_menu.svg',
-            'delete':'assets/icons/core/emergency.svg', 'close':'assets/icons/core/more_menu.svg',
-            'check':'assets/icons/core/health_record.svg', 'check_circle':'assets/icons/core/health_record.svg',
-            'check_circle_outline':'assets/icons/core/health_record.svg', 'add':'assets/icons/core/more_menu.svg',
-            'remove':'assets/icons/core/more_menu.svg', 'arrow_back':'assets/icons/core/more_menu.svg',
-            'arrow_forward':'assets/icons/core/more_menu.svg', 'chevron_left':'assets/icons/core/more_menu.svg',
-            'chevron_right':'assets/icons/core/more_menu.svg', 'refresh':'assets/icons/core/health_record.svg',
-            'filter_list':'assets/icons/core/more_menu.svg', 'tune':'assets/icons/core/more_menu.svg',
-            'download':'assets/icons/core/health_record.svg', 'upload':'assets/icons/core/health_record.svg',
-            'share':'assets/icons/social/whatsapp.svg', 'send':'assets/icons/social/whatsapp.svg',
-            'email':'assets/icons/social/chat_modern.svg', 'lock':'assets/icons/core/health_record.svg',
-            'lock_outline':'assets/icons/core/health_record.svg', 'visibility_off_outlined':'assets/icons/mini_specialties/eye.svg',
-            'star':'assets/icons/offers/discount.svg', 'star_border':'assets/icons/offers/discount.svg',
-            'info':'assets/icons/core/health_record.svg', 'info_outline':'assets/icons/core/health_record.svg',
-            'warning':'assets/icons/core/emergency.svg', 'error':'assets/icons/core/emergency.svg',
-            'error_outline':'assets/icons/core/emergency.svg', 'help':'assets/icons/core/health_record.svg',
-            'help_outline':'assets/icons/core/health_record.svg', 'hourglass_empty':'assets/icons/core/health_record.svg',
-            'build':'assets/icons/core/more_menu.svg', 'pets':'assets/icons/mini_specialties/pediatrics.svg',
-            'admin_panel_settings':'assets/icons/core/more_menu.svg', 'delivery_dining':'assets/icons/core/health_record.svg',
-            'handyman':'assets/icons/core/more_menu.svg', 'pregnant_woman':'assets/icons/mini_specialties/pediatrics.svg',
-            'science_outlined':'assets/icons/lab/microscope.svg', 'dashboard':'assets/icons/core/health_record.svg',
-            'menu_book':'assets/icons/core/health_record.svg', 'article':'assets/icons/core/health_record.svg',
-            'play_arrow':'assets/icons/core/video_call.svg', 'pause':'assets/icons/core/video_call.svg',
-            'mic':'assets/icons/core/text_chat.svg', 'mic_none':'assets/icons/core/text_chat.svg',
-          }
-          changed=[]
-          pattern=re.compile(r'\bIcon\(\s*Icons\.([A-Za-z0-9_]+)')
-          for p in root.rglob('*.dart'):
-            if p.name in {'local_asset_icon.dart'}: continue
-            s=p.read_text()
-            if 'Icons.' not in s or not pattern.search(s): continue
-            original=s
-            def repl(m):
-              name=m.group(1)
-              path=mapping.get(name, 'assets/icons/core/more_menu.svg')
-              return f"LocalAssetIcon('{path}'"
-            s=pattern.sub(repl,s)
-            if s!=original:
-              if "import 'package:sehatak/presentation/widgets/common/local_asset_icon.dart';" not in s:
-                s="import 'package:sehatak/presentation/widgets/common/local_asset_icon.dart';\n"+s
-              p.write_text(s)
-              changed.append(str(p))
-          print('Changed', len(changed), 'files')
-          for x in changed: print(x)
-          PY
-      - name: Remove stale Material Icon usages in error placeholders
-        shell: bash
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p=Path('lib/presentation/widgets/common/local_asset_icon.dart')
-          s=p.read_text()
-          s=s.replace("import 'package:flutter/material.dart';\n", "import 'package:flutter/material.dart';\n")
-          p.write_text(s)
-          PY
+          path = Path('lib/presentation/screens/home/tabs/home_tab.dart')
+          text = path.read_text(encoding='utf-8')
+
+          def block(source, start, end):
+              s = source.index(f'Widget {start}')
+              e = source.index(f'Widget {end}', s)
+              return s, e
+
+          def replace_icons(source, asset, size=30):
+              pattern = re.compile(r'(?:const\s+)?Icon\s*\(')
+              out, pos = [], 0
+              while True:
+                  m = pattern.search(source, pos)
+                  if not m:
+                      out.append(source[pos:])
+                      break
+                  out.append(source[pos:m.start()])
+                  i = m.end()
+                  while i < len(source) and source[i].isspace():
+                      i += 1
+                  if not source.startswith('Icons.', i):
+                      out.append(source[m.start():m.end()])
+                      pos = m.end()
+                      continue
+                  depth, j, quote, escaped = 1, i, None, False
+                  while j < len(source) and depth:
+                      c = source[j]
+                      if quote:
+                          if escaped: escaped = False
+                          elif c == '\\': escaped = True
+                          elif c == quote: quote = None
+                      else:
+                          if c in "'\"": quote = c
+                          elif c == '(': depth += 1
+                          elif c == ')': depth -= 1
+                      j += 1
+                  if depth:
+                      raise RuntimeError('Unbalanced Icon(...)')
+                  out.append(f"Image.asset('{asset}', width: {size}, height: {size}, fit: BoxFit.contain)")
+                  pos = j
+              return ''.join(out)
+
+          replacements = [
+              ('_tips(', '_discover(', 'assets/images/services/health_tips.png'),
+              ('_discover(', '_weather(', 'assets/images/services/medical_articles.png'),
+              ('_weather(', '_community(', 'assets/svg/home_weather.svg'),
+          ]
+
+          for start, end, asset in reversed(replacements):
+              s, e = block(text, start, end)
+              text = text[:s] + replace_icons(text[s:e], asset) + text[e:]
+
+          for start, end, _ in replacements:
+              s, e = block(text, start, end)
+              if 'Icons.' in text[s:e]:
+                  raise RuntimeError(f'Material icon remains in {start}')
+
+          path.write_text(text, encoding='utf-8')
       - name: Format and commit
-        shell: bash
         run: |
-          dart format lib >/dev/null
-          git add lib
-          git rm -f .github/workflows/migrate-material-icons.yml
-          git diff --cached --quiet && exit 0
-          git commit -m 'refactor(ui): migrate material icons to local assets'
-          git push
+          dart format lib/presentation/screens/home/tabs/home_tab.dart
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add lib/presentation/screens/home/tabs/home_tab.dart
+          git rm .github/workflows/migrate-material-icons.yml
+          git commit -m 'refactor(ui): migrate material icons in home sections'
+          git push origin HEAD:master
