@@ -1,15 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
-
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Unified step-tracking data source.
-///
-/// Data is persisted in SharedPreferences. The sensor loop may run from the
-/// foreground UI or from the Android foreground-service isolate; both write to
-/// the same daily/weekly SharedPreferences records.
+/// Unified step-tracking data source. SharedPreferences is the single local source of truth.
 class StepTrackerService {
   static final StepTrackerService _instance = StepTrackerService._internal();
   factory StepTrackerService() => _instance;
@@ -21,14 +16,11 @@ class StepTrackerService {
 
   final StreamController<int> _stepController = StreamController<int>.broadcast();
   Stream<int> get stepStream => _stepController.stream;
-
   int _todaySteps = 0;
   double _distance = 0;
   double _calories = 0;
   double _speed = 0;
   int _stepGoal = defaultGoal;
-  DateTime? _walkStartTime;
-  DateTime? _lastStepTime;
 
   int get todaySteps => _todaySteps;
   double get distance => _distance;
@@ -43,23 +35,27 @@ class StepTrackerService {
 
   Future<void> loadFromPrefs(SharedPreferences prefs) async {
     final today = _dateKey(DateTime.now());
-    final storedDate = prefs.getString('steps.today.date');
-    if (storedDate != today) {
+    if (prefs.getString('steps.today.date') != today) {
       _todaySteps = 0;
       _distance = 0;
       _calories = 0;
       _speed = 0;
       await prefs.setString('steps.today.date', today);
+      await prefs.setInt('steps.today.count', 0);
+      await prefs.setDouble('steps.today.distance', 0);
+      await prefs.setDouble('steps.today.calories', 0);
+      await prefs.setDouble('steps.today.speed', 0);
       await _saveDay(prefs, today, 0);
     } else {
       _todaySteps = prefs.getInt('steps.today.count') ?? 0;
       _distance = prefs.getDouble('steps.today.distance') ?? _todaySteps * averageStepKm;
       _calories = prefs.getDouble('steps.today.calories') ?? _todaySteps * caloriesPerStep;
+      _speed = prefs.getDouble('steps.today.speed') ?? 0;
     }
     _stepGoal = prefs.getInt('steps.goal') ?? defaultGoal;
+    if (!_stepController.isClosed) _stepController.add(_todaySteps);
   }
 
-  /// Adds a step after the caller's motion algorithm has accepted it.
   Future<void> addStep({DateTime? timestamp, SharedPreferences? prefs}) async {
     final now = timestamp ?? DateTime.now();
     final store = prefs ?? await SharedPreferences.getInstance();
@@ -70,31 +66,16 @@ class StepTrackerService {
       _calories = 0;
       _speed = 0;
       await store.setString('steps.today.date', today);
+      await store.setDouble('steps.today.speed', 0);
     }
     _todaySteps++;
     _distance = _todaySteps * averageStepKm;
     _calories = _todaySteps * caloriesPerStep;
-    _lastStepTime = now;
     await store.setInt('steps.today.count', _todaySteps);
     await store.setDouble('steps.today.distance', _distance);
     await store.setDouble('steps.today.calories', _calories);
     await _saveDay(store, today, _todaySteps);
-    _stepController.add(_todaySteps);
-  }
-
-  void updateWalkingSpeed(double magnitude) {
-    final now = DateTime.now();
-    if (magnitude > 10.3 && _walkStartTime == null) {
-      _walkStartTime = now;
-      return;
-    }
-    if (magnitude <= 10.1 && _walkStartTime != null) {
-      final seconds = now.difference(_walkStartTime!).inMilliseconds / 1000;
-      if (seconds > 0) {
-        _speed = (_distance / (seconds / 3600)).clamp(0.0, 12.0).toDouble();
-      }
-      _walkStartTime = null;
-    }
+    if (!_stepController.isClosed) _stepController.add(_todaySteps);
   }
 
   Future<void> setStepGoal(int goal) async {
@@ -121,6 +102,7 @@ class StepTrackerService {
     await prefs.setInt('steps.today.count', _todaySteps);
     await prefs.setDouble('steps.today.distance', _distance);
     await prefs.setDouble('steps.today.calories', _calories);
+    await prefs.setDouble('steps.today.speed', _speed);
     await prefs.setInt('steps.goal', _stepGoal);
     await _saveDay(prefs, today, _todaySteps);
   }
@@ -130,8 +112,8 @@ class StepTrackerService {
     map[date] = steps;
     final cutoff = DateTime.now().subtract(const Duration(days: 90));
     map.removeWhere((key, value) {
-      final dateValue = DateTime.tryParse(key);
-      return dateValue != null && dateValue.isBefore(cutoff);
+      final parsed = DateTime.tryParse(key);
+      return parsed != null && parsed.isBefore(cutoff);
     });
     await prefs.setString('steps.history.v1', jsonEncode(map));
   }
@@ -160,6 +142,7 @@ class StepTrackerService {
   }
 
   Future<Map<String, dynamic>> getStatistics() async {
+    await loadToday();
     final weekly = await getWeeklySteps();
     final total = weekly.fold<int>(0, (sum, item) => sum + (item['steps'] as int));
     final best = weekly.isEmpty ? 0 : weekly.map((item) => item['steps'] as int).reduce(max);
@@ -170,12 +153,11 @@ class StepTrackerService {
       'today_steps': _todaySteps,
       'today_distance': _distance,
       'today_calories': _calories,
+      'today_speed': _speed,
       'step_goal': _stepGoal,
     };
   }
 
-  String _dateKey(DateTime date) =>
-      '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-
+  String _dateKey(DateTime date) => '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   void dispose() => _stepController.close();
 }
