@@ -13,6 +13,14 @@ class BackgroundService {
   static final FlutterBackgroundService _service = FlutterBackgroundService();
   static bool _configured = false;
 
+  static const _trackingEnabledKey = 'steps.tracking.enabled';
+  static const _stepsKey = 'steps.today.count';
+  static const _dateKeyName = 'steps.today.date';
+  static const _distanceKey = 'steps.today.distance';
+  static const _caloriesKey = 'steps.today.calories';
+  static const _speedKey = 'steps.today.speed';
+  static const _goalKey = 'steps.goal';
+
   static Future<void> initialize() async {
     if (_configured) return;
     _configured = true;
@@ -37,37 +45,61 @@ class BackgroundService {
 
   static Future<bool> startStepTracking() async {
     await initialize();
-    return _service.startService();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_trackingEnabledKey, true);
+    try {
+      return await _service.startService();
+    } catch (e) {
+      await prefs.setBool(_trackingEnabledKey, false);
+      debugPrint('Failed to start step tracking service: $e');
+      return false;
+    }
   }
 
   static Future<void> stopStepTracking() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_trackingEnabledKey, false);
     if (await _service.isRunning()) {
       _service.invoke('stopStepTracking');
     }
+  }
+
+  static Future<bool> isTrackingEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_trackingEnabledKey) ?? false;
   }
 
   @pragma('vm:entry-point')
   static void _onStart(ServiceInstance service) async {
     WidgetsFlutterBinding.ensureInitialized();
     final prefs = await SharedPreferences.getInstance();
-    var steps = prefs.getInt('steps.today.count') ?? 0;
-    var date = prefs.getString('steps.today.date') ?? _dateKey(DateTime.now());
-    final goal = prefs.getInt('steps.goal') ?? 10000;
+
+    // The boot receiver may start the service after a device restart. Do not
+    // track unless the user had previously enabled tracking.
+    if (!(prefs.getBool(_trackingEnabledKey) ?? false)) {
+      service.stopSelf();
+      return;
+    }
+
+    var steps = prefs.getInt(_stepsKey) ?? 0;
+    var date = prefs.getString(_dateKeyName) ?? _dateKey(DateTime.now());
+    final goal = prefs.getInt(_goalKey) ?? 10000;
 
     if (date != _dateKey(DateTime.now())) {
       date = _dateKey(DateTime.now());
       steps = 0;
-      await prefs.setString('steps.today.date', date);
-      await prefs.setInt('steps.today.count', 0);
-      await prefs.setDouble('steps.today.distance', 0);
-      await prefs.setDouble('steps.today.calories', 0);
-      await prefs.setDouble('steps.today.speed', 0);
+      await prefs.setString(_dateKeyName, date);
+      await prefs.setInt(_stepsKey, 0);
+      await prefs.setDouble(_distanceKey, 0);
+      await prefs.setDouble(_caloriesKey, 0);
+      await prefs.setDouble(_speedKey, 0);
     }
 
     final samples = <double>[];
     final recentStepTimes = <DateTime>[];
     DateTime? lastStep;
     var lastPersist = DateTime.now();
+    var processing = false;
 
     if (service is AndroidServiceInstance) {
       service.setAsForegroundService();
@@ -76,70 +108,84 @@ class BackgroundService {
         content: '$steps من $goal خطوة',
       );
     }
-    service.on('stopStepTracking').listen((_) => service.stopSelf());
+
+    service.on('stopStepTracking').listen((_) async {
+      await prefs.setBool(_trackingEnabledKey, false);
+      service.stopSelf();
+    });
 
     accelerometerEvents.listen((event) async {
-      final magnitude = sqrt(event.x * event.x + event.y * event.y + event.z * event.z);
-      samples.add(magnitude);
-      if (samples.length > 12) samples.removeAt(0);
-      if (samples.length < 3) return;
+      if (processing) return;
+      processing = true;
+      try {
+        final magnitude = sqrt(event.x * event.x + event.y * event.y + event.z * event.z);
+        samples.add(magnitude);
+        if (samples.length > 12) samples.removeAt(0);
+        if (samples.length < 3) return;
 
-      final a = samples[samples.length - 3];
-      final b = samples[samples.length - 2];
-      final c = samples[samples.length - 1];
-      final now = DateTime.now();
-      final enoughTime = lastStep == null || now.difference(lastStep!).inMilliseconds >= 300;
+        final a = samples[samples.length - 3];
+        final b = samples[samples.length - 2];
+        final c = samples[samples.length - 1];
+        final now = DateTime.now();
+        final enoughTime = lastStep == null || now.difference(lastStep!).inMilliseconds >= 300;
 
-      // Local peak detection with a short refractory period to avoid double-counting.
-      if (b > a && b >= c && b > 11.0 && enoughTime) {
-        if (_dateKey(now) != date) {
-          date = _dateKey(now);
-          steps = 0;
-          recentStepTimes.clear();
-          await prefs.setString('steps.today.date', date);
-          await prefs.setInt('steps.today.count', 0);
-          await prefs.setDouble('steps.today.distance', 0);
-          await prefs.setDouble('steps.today.calories', 0);
-          await prefs.setDouble('steps.today.speed', 0);
-        }
+        // Local peak detection with a short refractory period to reduce
+        // double-counting from a single footfall.
+        if (b > a && b >= c && b > 11.0 && enoughTime) {
+          if (_dateKey(now) != date) {
+            date = _dateKey(now);
+            steps = 0;
+            recentStepTimes.clear();
+            lastStep = null;
+            await prefs.setString(_dateKeyName, date);
+            await prefs.setInt(_stepsKey, 0);
+            await prefs.setDouble(_distanceKey, 0);
+            await prefs.setDouble(_caloriesKey, 0);
+            await prefs.setDouble(_speedKey, 0);
+          }
 
-        steps++;
-        lastStep = now;
-        recentStepTimes.add(now);
-        while (recentStepTimes.isNotEmpty && now.difference(recentStepTimes.first).inSeconds > 30) {
-          recentStepTimes.removeAt(0);
-        }
+          steps++;
+          lastStep = now;
+          recentStepTimes.add(now);
+          while (recentStepTimes.isNotEmpty &&
+              now.difference(recentStepTimes.first).inSeconds > 30) {
+            recentStepTimes.removeAt(0);
+          }
 
-        // Estimate walking speed from recent cadence, rather than leaving speed at zero.
-        double speedKmh = 0;
-        if (recentStepTimes.length >= 2) {
-          final elapsedSeconds = now.difference(recentStepTimes.first).inMilliseconds / 1000.0;
-          if (elapsedSeconds > 0) {
-            final cadence = (recentStepTimes.length - 1) * 60.0 / elapsedSeconds;
-            speedKmh = (cadence * 0.00076 * 60.0).clamp(0.0, 12.0).toDouble();
+          double speedKmh = 0;
+          if (recentStepTimes.length >= 2) {
+            final elapsedSeconds =
+                now.difference(recentStepTimes.first).inMilliseconds / 1000.0;
+            if (elapsedSeconds > 0) {
+              final cadence =
+                  (recentStepTimes.length - 1) * 60.0 / elapsedSeconds;
+              speedKmh = (cadence * 0.00076 * 60.0).clamp(0.0, 12.0).toDouble();
+            }
+          }
+
+          await prefs.setInt(_stepsKey, steps);
+          await prefs.setDouble(_distanceKey, steps * 0.00076);
+          await prefs.setDouble(_caloriesKey, steps * 0.04);
+          await prefs.setDouble(_speedKey, speedKmh);
+          await _saveHistory(prefs, date, steps);
+
+          if (service is AndroidServiceInstance) {
+            service.setForegroundNotificationInfo(
+              title: 'صحتك • تتبع الخطوات',
+              content: '$steps من $goal خطوة',
+            );
           }
         }
 
-        await prefs.setInt('steps.today.count', steps);
-        await prefs.setDouble('steps.today.distance', steps * 0.00076);
-        await prefs.setDouble('steps.today.calories', steps * 0.04);
-        await prefs.setDouble('steps.today.speed', speedKmh);
-        await _saveHistory(prefs, date, steps);
-
-        if (service is AndroidServiceInstance) {
-          service.setForegroundNotificationInfo(
-            title: 'صحتك • تتبع الخطوات',
-            content: '$steps من $goal خطوة',
-          );
+        if (now.difference(lastPersist).inSeconds >= 30) {
+          lastPersist = now;
+          await prefs.setInt(_stepsKey, steps);
+          await prefs.setDouble(_distanceKey, steps * 0.00076);
+          await prefs.setDouble(_caloriesKey, steps * 0.04);
+          await _saveHistory(prefs, date, steps);
         }
-      }
-
-      if (now.difference(lastPersist).inSeconds >= 30) {
-        lastPersist = now;
-        await prefs.setInt('steps.today.count', steps);
-        await prefs.setDouble('steps.today.distance', steps * 0.00076);
-        await prefs.setDouble('steps.today.calories', steps * 0.04);
-        await _saveHistory(prefs, date, steps);
+      } finally {
+        processing = false;
       }
     });
   }
