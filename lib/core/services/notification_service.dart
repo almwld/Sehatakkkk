@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'call_sound_coordinator.dart';
 
@@ -11,6 +13,8 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _notifications =
       FlutterLocalNotificationsPlugin();
   NotificationTapHandler? _tapHandler;
+  Future<void>? _initialization;
+  bool _initialized = false;
 
   static const messageChannelId = 'sehatak_messages_v2';
   static const callChannelId = 'sehatak_calls_v2';
@@ -37,47 +41,91 @@ class NotificationService {
     _tapHandler = handler;
   }
 
-  Future<void> initialize({bool startCallCoordinator = true}) async {
-    const settings = InitializationSettings(
-      android: AndroidInitializationSettings('@mipmap/ic_launcher'),
-      iOS: DarwinInitializationSettings(
-        requestAlertPermission: true,
-        requestBadgePermission: true,
-        requestSoundPermission: true,
-      ),
-    );
+  /// Initializes only the notification infrastructure needed to show a
+  /// notification. Permission dialogs are deliberately not awaited here:
+  /// Android may take an indeterminate amount of time to display/return from
+  /// the system permission UI and must never block app startup.
+  Future<void> initialize({bool startCallCoordinator = true}) {
+    final existing = _initialization;
+    if (existing != null) return existing;
 
-    await _notifications.initialize(
-      settings,
-      onDidReceiveNotificationResponse: (response) async {
-        final handler = _tapHandler;
-        if (handler != null) {
-          await handler(response.payload);
-        }
-      },
-    );
+    final future = _initializeCore(startCallCoordinator: startCallCoordinator);
+    _initialization = future;
+    return future;
+  }
 
-    final android = _notifications
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
-    await android?.createNotificationChannel(_messageChannel);
-    await android?.createNotificationChannel(_callChannel);
-    await android?.requestNotificationsPermission();
+  Future<void> _initializeCore({required bool startCallCoordinator}) async {
+    try {
+      const settings = InitializationSettings(
+        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+        iOS: DarwinInitializationSettings(
+          requestAlertPermission: false,
+          requestBadgePermission: false,
+          requestSoundPermission: false,
+        ),
+      );
 
-    final ios = _notifications
-        .resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin>();
-    await ios?.requestPermissions(alert: true, badge: true, sound: true);
+      await _notifications.initialize(
+        settings,
+        onDidReceiveNotificationResponse: (response) async {
+          final handler = _tapHandler;
+          if (handler != null) await handler(response.payload);
+        },
+      );
 
-    if (startCallCoordinator) {
-      CallSoundCoordinator.instance.start();
+      final android = _notifications.resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
+      await android?.createNotificationChannel(_messageChannel);
+      await android?.createNotificationChannel(_callChannel);
+
+      final ios = _notifications.resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin>();
+
+      _initialized = true;
+
+      // Permission is an app action, not an initialization prerequisite.
+      unawaited(Future<void>(() async {
+        try {
+          await android?.requestNotificationsPermission();
+        } catch (_) {}
+        try {
+          await ios?.requestPermissions(alert: true, badge: true, sound: true);
+        } catch (_) {}
+      }));
+
+      if (startCallCoordinator) {
+        CallSoundCoordinator.instance.start();
+      }
+    } catch (e) {
+      _initialization = null;
+      _initialized = false;
+      rethrow;
     }
   }
 
-  /// Returns the payload that launched the application from a notification.
-  /// This is important when Android starts the app through a full-screen call
-  /// notification while the process was completely terminated.
+  bool get isInitialized => _initialized;
+
+  Future<bool> requestNotificationPermission() async {
+    await initialize(startCallCoordinator: false);
+    try {
+      final android = _notifications.resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
+      final granted = await android?.requestNotificationsPermission();
+      final ios = _notifications.resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin>();
+      final iosGranted = await ios?.requestPermissions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+      return (granted ?? true) && (iosGranted ?? true);
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<String?> getLaunchPayload() async {
+    await initialize(startCallCoordinator: false);
     final details = await _notifications.getNotificationAppLaunchDetails();
     if (details?.didNotificationLaunchApp != true) return null;
     return details?.notificationResponse?.payload;
@@ -88,6 +136,7 @@ class NotificationService {
     required String body,
     String? payload,
   }) async {
+    await initialize(startCallCoordinator: false);
     final details = NotificationDetails(
       android: AndroidNotificationDetails(
         messageChannelId,
@@ -106,7 +155,6 @@ class NotificationService {
         presentSound: true,
       ),
     );
-
     await _notifications.show(
       _notificationId(),
       title,
@@ -116,15 +164,12 @@ class NotificationService {
     );
   }
 
-  /// Displays a real incoming-call style Android notification. When Android
-  /// permits full-screen intents, this launches MainActivity over the lock
-  /// screen/other apps. When the OS restricts full-screen intents, it safely
-  /// falls back to a maximum-priority heads-up notification.
   Future<void> showIncomingCallNotification({
     required String callerName,
     required String callId,
     required bool isVideo,
   }) async {
+    await initialize(startCallCoordinator: false);
     final details = NotificationDetails(
       android: AndroidNotificationDetails(
         callChannelId,
@@ -150,7 +195,6 @@ class NotificationService {
         presentSound: true,
       ),
     );
-
     await _notifications.show(
       _callNotificationId(callId),
       isVideo ? 'مكالمة فيديو واردة' : 'مكالمة صوتية واردة',
@@ -163,12 +207,13 @@ class NotificationService {
   Future<void> cancelIncomingCallNotification(String callId) =>
       _notifications.cancel(_callNotificationId(callId));
 
+  Future<void> cancelAllNotifications() => _notifications.cancelAll();
+
   Future<void> showNotification({
     required String title,
     required String body,
     String? payload,
-  }) =>
-      showMessageNotification(title: title, body: body, payload: payload);
+  }) => showMessageNotification(title: title, body: body, payload: payload);
 
   int _notificationId() =>
       DateTime.now().millisecondsSinceEpoch.remainder(2147483647);
