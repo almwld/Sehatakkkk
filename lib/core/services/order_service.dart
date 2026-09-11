@@ -9,32 +9,58 @@ class OrderService {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) throw Exception('يجب تسجيل الدخول أولاً');
-
       await _firestore.collection('orders').add(order.toJson());
     } catch (e) {
       throw Exception('فشل إنشاء الطلب: $e');
     }
   }
 
-  static Future<List<OrderModel>> getUserOrders() async {
+  static Future<List<OrderModel>> getUserOrders([String? userId]) async {
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return [];
-
+      final id = userId ?? FirebaseAuth.instance.currentUser?.uid;
+      if (id == null || id.isEmpty) return [];
       final snapshot = await _firestore
           .collection('orders')
-          .where('userId', isEqualTo: user.uid)
+          .where('userId', isEqualTo: id)
           .orderBy('createdAt', descending: true)
           .get();
-
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        data['id'] = doc.id;
-        return OrderModel.fromJson(data);
-      }).toList();
-    } catch (e) {
+      return snapshot.docs.map(_fromDocument).toList();
+    } catch (_) {
       return [];
     }
+  }
+
+  static Future<List<OrderModel>> getProviderOrders(String providerId) async {
+    if (providerId.isEmpty) return [];
+    try {
+      final snapshot = await _firestore
+          .collection('orders')
+          .where('providerId', isEqualTo: providerId)
+          .orderBy('createdAt', descending: true)
+          .get();
+      return snapshot.docs.map(_fromDocument).toList();
+    } catch (_) {
+      // Some legacy orders store providerId inside metadata.
+      try {
+        final snapshot = await _firestore
+            .collection('orders')
+            .orderBy('createdAt', descending: true)
+            .get();
+        return snapshot.docs
+            .where((doc) => doc.data()['metadata'] is Map &&
+                (doc.data()['metadata'] as Map)['providerId']?.toString() == providerId)
+            .map(_fromDocument)
+            .toList();
+      } catch (_) {
+        return [];
+      }
+    }
+  }
+
+  static OrderModel _fromDocument(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+    final data = Map<String, dynamic>.from(doc.data());
+    data['id'] = doc.id;
+    return OrderModel.fromJson(data);
   }
 
   static Future<void> updateOrderStatus(String orderId, String status) async {
