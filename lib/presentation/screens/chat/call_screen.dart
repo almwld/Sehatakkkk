@@ -5,7 +5,6 @@ import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/active_call_registry.dart';
 import 'package:sehatak/core/services/call_service.dart';
 import 'package:sehatak/core/services/livekit_service.dart';
-import 'package:sehatak/core/services/chat_service.dart';
 import 'package:sehatak/core/models/call_model.dart';
 
 class CallScreen extends StatefulWidget {
@@ -20,9 +19,9 @@ class _CallScreenState extends State<CallScreen> {
   final _auth = FirebaseAuth.instance;
   final _calls = CallService();
   final _liveKit = LiveKitService();
-  final _chat = ChatService();
   String? _callId;
-  bool _muted = false, _speaker = false, _camera = true, _connected = false;
+  StreamSubscription<CallModel?>? _callSubscription;
+  bool _muted = false, _speaker = false, _camera = true, _connected = false, _ending = false;
   int _seconds = 0;
   Timer? _timer;
 
@@ -54,27 +53,39 @@ class _CallScreenState extends State<CallScreen> {
         }
       }
 
+      final id = _callId!;
+      _callSubscription = _calls.streamCall(id).listen((call) {
+        if (!mounted || call == null || _ending) return;
+        if (call.status == CallStatus.ended ||
+            call.status == CallStatus.rejected ||
+            call.status == CallStatus.cancelled ||
+            call.status == CallStatus.missed ||
+            call.status == CallStatus.busy) {
+          unawaited(_finishRemote());
+        }
+      }, onError: (error) {
+        debugPrint('CALL SCREEN STREAM ERROR id=$id error=$error');
+      });
+
       await _liveKit.connectRoom(
-        roomName: 'call_$_callId',
+        roomName: 'call_$id',
         participantName: _auth.currentUser?.displayName ?? 'مستخدم',
       );
       if (widget.isVideo) await _liveKit.enableCamera();
 
-      // Local device guard: register immediately after LiveKit connects so a
-      // second incoming call cannot open another CallScreen during the small
-      // window before the Firestore snapshot reaches CallSoundCoordinator.
-      final connectedCallId = _callId;
-      if (connectedCallId != null && connectedCallId.isNotEmpty) {
-        ActiveCallRegistry.instance.register(connectedCallId);
-      }
+      // Register immediately after LiveKit connects. This closes the race
+      // where a second incoming call could arrive before Firestore updates.
+      ActiveCallRegistry.instance.register(id);
 
       if (!mounted) return;
       setState(() => _connected = true);
       _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-        if (mounted && _connected) setState(() => _seconds++);
+        if (mounted && _connected && !_ending) setState(() => _seconds++);
       });
     } catch (e) {
       ActiveCallRegistry.instance.unregister(_callId);
+      await _callSubscription?.cancel();
+      _callSubscription = null;
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('فشل الاتصال: $e')));
         Navigator.pop(context);
@@ -84,24 +95,45 @@ class _CallScreenState extends State<CallScreen> {
 
   String get _duration => '${(_seconds ~/ 60).toString().padLeft(2, '0')}:${(_seconds % 60).toString().padLeft(2, '0')}';
 
+  Future<void> _finishRemote() async {
+    if (_ending) return;
+    _ending = true;
+    _timer?.cancel();
+    await _callSubscription?.cancel();
+    _callSubscription = null;
+    ActiveCallRegistry.instance.unregister(_callId);
+    await _liveKit.endCall();
+    if (mounted) Navigator.pop(context);
+  }
+
   Future<void> _end() async {
+    if (_ending) return;
+    _ending = true;
     _timer?.cancel();
     final id = _callId;
+
+    // Release the local guard before any Firestore/network await so a queued
+    // incoming call can become eligible immediately after this call ends.
+    ActiveCallRegistry.instance.unregister(id);
+    await _callSubscription?.cancel();
+    _callSubscription = null;
+
     if (id != null && id.isNotEmpty) {
       try {
         await _calls.endCall(id, durationSeconds: _seconds);
       } catch (_) {}
     }
-    ActiveCallRegistry.instance.unregister(id);
     await _liveKit.endCall();
     if (mounted) Navigator.pop(context);
   }
 
   @override
   void dispose() {
+    _ending = true;
     _timer?.cancel();
+    _callSubscription?.cancel();
     ActiveCallRegistry.instance.unregister(_callId);
-    _liveKit.endCall();
+    unawaited(_liveKit.endCall());
     super.dispose();
   }
 
