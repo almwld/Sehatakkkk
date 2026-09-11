@@ -20,6 +20,7 @@ class CallSoundCoordinator {
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _callsSubscription;
   final SoundManager _sounds = SoundManager();
   String? _activeCallId;
+  String? _incomingUiCallId;
   bool _incomingMuted = false;
 
   void start() {
@@ -33,6 +34,7 @@ class CallSoundCoordinator {
     _callsSubscription?.cancel();
     _callsSubscription = null;
     _activeCallId = null;
+    _incomingUiCallId = null;
     _incomingMuted = false;
     unawaited(_sounds.stopCallAudio());
 
@@ -44,7 +46,9 @@ class CallSoundCoordinator {
         .where('participants', arrayContains: user.uid)
         .snapshots()
         .listen(_onCallsChanged, onError: (Object error, StackTrace stack) {
+      debugPrint('CallSoundCoordinator calls listener error: $error');
       _activeCallId = null;
+      _incomingUiCallId = null;
       unawaited(_sounds.stopCallAudio());
     });
   }
@@ -52,6 +56,7 @@ class CallSoundCoordinator {
   void _onCallsChanged(QuerySnapshot<Map<String, dynamic>> snapshot) {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
+      _incomingUiCallId = null;
       unawaited(_sounds.stopCallAudio());
       return;
     }
@@ -75,6 +80,7 @@ class CallSoundCoordinator {
 
     if (active == null) {
       _activeCallId = null;
+      _incomingUiCallId = null;
       _incomingMuted = false;
       unawaited(_sounds.stopCallAudio());
       return;
@@ -104,32 +110,59 @@ class CallSoundCoordinator {
       unawaited(_sounds.playRingback().catchError((_) {}));
     }
 
-    // Incoming calls only route to the acceptance UI. LiveKit is joined later
-    // by CallScreen after Firestore has reached `connected`.
-    if (isIncoming && isNewCall) _showIncomingCall(data, callId);
+    // The receiver may already be inside CallScreen (or any other route).
+    // Use a root modal route instead of pushing a normal page from the
+    // current route. This guarantees that the incoming UI is rendered above
+    // the active call without replacing or depending on CallScreen's context.
+    if (isIncoming && isNewCall) {
+      _showIncomingCall(data, callId);
+    }
   }
 
   void _showIncomingCall(Map<String, dynamic> data, String callId) {
     final nav = navigatorKey.currentState;
-    if (nav == null) return;
-    final current = nav.context;
-    final route = ModalRoute.of(current);
-    if (route?.settings.name == 'incoming_call:$callId') return;
+    if (nav == null || _incomingUiCallId == callId) return;
 
     final chatId = data['chatId']?.toString() ?? '';
-    if (chatId.isEmpty) return;
-    nav.push(MaterialPageRoute(
-      settings: RouteSettings(name: 'incoming_call:$callId'),
-      builder: (_) => IncomingCallScreen(
-        callId: callId,
-        callerName: data['callerName']?.toString() ?? 'مستخدم',
-        callerId: data['callerId']?.toString() ?? '',
-        callerImage: data['callerPhotoUrl']?.toString(),
-        isVideo: data['isVideoCall'] == true || data['callType']?.toString() == 'video',
-        chatId: chatId,
-        onCallAnswered: (_) {},
-      ),
-    ));
+    if (chatId.isEmpty) {
+      debugPrint('Incoming call $callId has no chatId; UI not shown');
+      return;
+    }
+
+    _incomingUiCallId = callId;
+    unawaited(
+      showGeneralDialog<void>(
+        context: nav.context,
+        useRootNavigator: true,
+        barrierDismissible: false,
+        barrierLabel: 'مكالمة واردة',
+        barrierColor: Colors.black.withOpacity(.72),
+        transitionDuration: const Duration(milliseconds: 220),
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return IncomingCallScreen(
+            callId: callId,
+            callerName: data['callerName']?.toString() ?? 'مستخدم',
+            callerId: data['callerId']?.toString() ?? '',
+            callerImage: data['callerPhotoUrl']?.toString(),
+            isVideo: data['isVideoCall'] == true || data['callType']?.toString() == 'video',
+            chatId: chatId,
+            onCallAnswered: (_) {},
+          );
+        },
+        transitionBuilder: (context, animation, secondaryAnimation, child) {
+          final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+          return FadeTransition(
+            opacity: curved,
+            child: ScaleTransition(
+              scale: Tween<double>(begin: .96, end: 1).animate(curved),
+              child: child,
+            ),
+          );
+        },
+      ).whenComplete(() {
+        if (_incomingUiCallId == callId) _incomingUiCallId = null;
+      }),
+    );
   }
 
   Future<void> setIncomingMuted(bool muted) async {
@@ -155,6 +188,7 @@ class CallSoundCoordinator {
     _authSubscription = null;
     _callsSubscription = null;
     _activeCallId = null;
+    _incomingUiCallId = null;
     _incomingMuted = false;
     await _sounds.stopAll();
   }
