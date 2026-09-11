@@ -22,7 +22,7 @@ void main() {
     expect(find.text('Test Child'), findsOneWidget);
   });
 
-  testWidgets('ChatBackground has decoration', (tester) async {
+  testWidgets('ChatBackground renders wallpaper layer', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
@@ -33,7 +33,9 @@ void main() {
       ),
     );
 
-    final container = tester.widget<Container>(find.byType(Container));
-    expect(container.decoration, isNotNull);
+    // ChatBackground now uses a Stack + IgnorePointer wallpaper layer
+    // instead of a Container decoration.
+    expect(find.byType(Stack), findsOneWidget);
+    expect(find.byType(IgnorePointer), findsOneWidget);
   });
 }
