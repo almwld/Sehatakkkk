@@ -10,8 +10,7 @@ class NotificationService {
   factory NotificationService() => _instance;
   NotificationService._internal();
 
-  final FlutterLocalNotificationsPlugin _notifications =
-      FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
   NotificationTapHandler? _tapHandler;
   Future<void>? _initialization;
   bool _initialized = false;
@@ -20,35 +19,22 @@ class NotificationService {
   static const callChannelId = 'sehatak_calls_v2';
 
   static const _messageChannel = AndroidNotificationChannel(
-    messageChannelId,
-    'صحتك - الرسائل',
-    description: 'إشعارات الرسائل الجديدة في الدردشة',
-    importance: Importance.high,
-    playSound: true,
-    sound: RawResourceAndroidNotificationSound('notification'),
+    messageChannelId, 'صحتك - الرسائل',
+    description: 'إشعارات الرسائل الجديدة في الدردشة', importance: Importance.high,
+    playSound: true, sound: RawResourceAndroidNotificationSound('notification'),
   );
 
   static const _callChannel = AndroidNotificationChannel(
-    callChannelId,
-    'صحتك - المكالمات',
-    description: 'إشعارات المكالمات الواردة',
-    importance: Importance.max,
-    playSound: true,
-    sound: RawResourceAndroidNotificationSound('call_ringtone'),
+    callChannelId, 'صحتك - المكالمات',
+    description: 'إشعارات المكالمات الواردة', importance: Importance.max,
+    playSound: true, sound: RawResourceAndroidNotificationSound('call_ringtone'),
   );
 
-  void setNotificationTapHandler(NotificationTapHandler? handler) {
-    _tapHandler = handler;
-  }
+  void setNotificationTapHandler(NotificationTapHandler? handler) => _tapHandler = handler;
 
-  /// Initializes only the notification infrastructure needed to show a
-  /// notification. Permission dialogs are deliberately not awaited here:
-  /// Android may take an indeterminate amount of time to display/return from
-  /// the system permission UI and must never block app startup.
   Future<void> initialize({bool startCallCoordinator = true}) {
     final existing = _initialization;
     if (existing != null) return existing;
-
     final future = _initializeCore(startCallCoordinator: startCallCoordinator);
     _initialization = future;
     return future;
@@ -58,44 +44,22 @@ class NotificationService {
     try {
       const settings = InitializationSettings(
         android: AndroidInitializationSettings('@mipmap/ic_launcher'),
-        iOS: DarwinInitializationSettings(
-          requestAlertPermission: false,
-          requestBadgePermission: false,
-          requestSoundPermission: false,
-        ),
+        iOS: DarwinInitializationSettings(requestAlertPermission: false, requestBadgePermission: false, requestSoundPermission: false),
       );
-
-      await _notifications.initialize(
-        settings,
-        onDidReceiveNotificationResponse: (response) async {
-          final handler = _tapHandler;
-          if (handler != null) await handler(response.payload);
-        },
-      );
-
-      final android = _notifications.resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>();
+      await _notifications.initialize(settings, onDidReceiveNotificationResponse: (response) async {
+        final handler = _tapHandler;
+        if (handler != null) await handler(response.payload);
+      });
+      final android = _notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
       await android?.createNotificationChannel(_messageChannel);
       await android?.createNotificationChannel(_callChannel);
-
-      final ios = _notifications.resolvePlatformSpecificImplementation<
-          IOSFlutterLocalNotificationsPlugin>();
-
+      final ios = _notifications.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
       _initialized = true;
-
-      // Permission is an app action, not an initialization prerequisite.
       unawaited(Future<void>(() async {
-        try {
-          await android?.requestNotificationsPermission();
-        } catch (_) {}
-        try {
-          await ios?.requestPermissions(alert: true, badge: true, sound: true);
-        } catch (_) {}
+        try { await android?.requestNotificationsPermission(); } catch (_) {}
+        try { await ios?.requestPermissions(alert: true, badge: true, sound: true); } catch (_) {}
       }));
-
-      if (startCallCoordinator) {
-        CallSoundCoordinator.instance.start();
-      }
+      if (startCallCoordinator) CallSoundCoordinator.instance.start();
     } catch (e) {
       _initialization = null;
       _initialized = false;
@@ -108,20 +72,12 @@ class NotificationService {
   Future<bool> requestNotificationPermission() async {
     await initialize(startCallCoordinator: false);
     try {
-      final android = _notifications.resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>();
+      final android = _notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
       final granted = await android?.requestNotificationsPermission();
-      final ios = _notifications.resolvePlatformSpecificImplementation<
-          IOSFlutterLocalNotificationsPlugin>();
-      final iosGranted = await ios?.requestPermissions(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
+      final ios = _notifications.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
+      final iosGranted = await ios?.requestPermissions(alert: true, badge: true, sound: true);
       return (granted ?? true) && (iosGranted ?? true);
-    } catch (_) {
-      return false;
-    }
+    } catch (_) { return false; }
   }
 
   Future<String?> getLaunchPayload() async {
@@ -131,93 +87,34 @@ class NotificationService {
     return details?.notificationResponse?.payload;
   }
 
-  Future<void> showMessageNotification({
-    required String title,
-    required String body,
-    String? payload,
-  }) async {
+  Future<void> showMessageNotification({required String title, required String body, String? payload}) async {
+    await initialize(startCallCoordinator: false);
+    const details = NotificationDetails(
+      android: AndroidNotificationDetails(messageChannelId, 'صحتك - الرسائل', channelDescription: 'إشعارات الرسائل الجديدة في الدردشة', importance: Importance.high, priority: Priority.high, playSound: true, sound: RawResourceAndroidNotificationSound('notification'), category: AndroidNotificationCategory.message, visibility: NotificationVisibility.public),
+      iOS: DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: true),
+    );
+    await _notifications.show(_notificationId(), title, body, details, payload: payload);
+  }
+
+  Future<void> showIncomingCallNotification({required String callerName, required String callId, required bool isVideo, bool silent = false}) async {
     await initialize(startCallCoordinator: false);
     final details = NotificationDetails(
       android: AndroidNotificationDetails(
-        messageChannelId,
-        'صحتك - الرسائل',
-        channelDescription: 'إشعارات الرسائل الجديدة في الدردشة',
-        importance: Importance.high,
-        priority: Priority.high,
-        playSound: true,
-        sound: const RawResourceAndroidNotificationSound('notification'),
-        category: AndroidNotificationCategory.message,
-        visibility: NotificationVisibility.public,
+        callChannelId, 'صحتك - المكالمات', channelDescription: 'إشعارات المكالمات الواردة',
+        importance: Importance.max, priority: Priority.max, playSound: !silent,
+        sound: silent ? null : const RawResourceAndroidNotificationSound('call_ringtone'),
+        category: AndroidNotificationCategory.call, visibility: NotificationVisibility.public,
+        fullScreenIntent: true, ongoing: true, autoCancel: false, onlyAlertOnce: true,
+        showWhen: true, timeoutAfter: 60000, ticker: 'مكالمة واردة من $callerName',
       ),
-      iOS: const DarwinNotificationDetails(
-        presentAlert: true,
-        presentBadge: true,
-        presentSound: true,
-      ),
+      iOS: DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: !silent),
     );
-    await _notifications.show(
-      _notificationId(),
-      title,
-      body,
-      details,
-      payload: payload,
-    );
+    await _notifications.show(_callNotificationId(callId), isVideo ? 'مكالمة فيديو واردة' : 'مكالمة صوتية واردة', callerName, details, payload: 'incoming_call:$callId');
   }
 
-  Future<void> showIncomingCallNotification({
-    required String callerName,
-    required String callId,
-    required bool isVideo,
-  }) async {
-    await initialize(startCallCoordinator: false);
-    final details = NotificationDetails(
-      android: AndroidNotificationDetails(
-        callChannelId,
-        'صحتك - المكالمات',
-        channelDescription: 'إشعارات المكالمات الواردة',
-        importance: Importance.max,
-        priority: Priority.max,
-        playSound: true,
-        sound: const RawResourceAndroidNotificationSound('call_ringtone'),
-        category: AndroidNotificationCategory.call,
-        visibility: NotificationVisibility.public,
-        fullScreenIntent: true,
-        ongoing: true,
-        autoCancel: false,
-        onlyAlertOnce: false,
-        showWhen: true,
-        timeoutAfter: 60000,
-        ticker: 'مكالمة واردة من $callerName',
-      ),
-      iOS: const DarwinNotificationDetails(
-        presentAlert: true,
-        presentBadge: true,
-        presentSound: true,
-      ),
-    );
-    await _notifications.show(
-      _callNotificationId(callId),
-      isVideo ? 'مكالمة فيديو واردة' : 'مكالمة صوتية واردة',
-      callerName,
-      details,
-      payload: 'incoming_call:$callId',
-    );
-  }
-
-  Future<void> cancelIncomingCallNotification(String callId) =>
-      _notifications.cancel(_callNotificationId(callId));
-
+  Future<void> cancelIncomingCallNotification(String callId) => _notifications.cancel(_callNotificationId(callId));
   Future<void> cancelAllNotifications() => _notifications.cancelAll();
-
-  Future<void> showNotification({
-    required String title,
-    required String body,
-    String? payload,
-  }) => showMessageNotification(title: title, body: body, payload: payload);
-
-  int _notificationId() =>
-      DateTime.now().millisecondsSinceEpoch.remainder(2147483647);
-
-  int _callNotificationId(String id) =>
-      1000000000 + id.hashCode.abs().remainder(1000000000);
+  Future<void> showNotification({required String title, required String body, String? payload}) => showMessageNotification(title: title, body: body, payload: payload);
+  int _notificationId() => DateTime.now().millisecondsSinceEpoch.remainder(2147483647);
+  int _callNotificationId(String id) => 1000000000 + id.hashCode.abs().remainder(1000000000);
 }
