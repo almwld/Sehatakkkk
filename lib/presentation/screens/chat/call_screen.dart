@@ -9,9 +9,9 @@ import 'package:sehatak/core/models/call_model.dart';
 
 class CallScreen extends StatefulWidget {
   final String chatId, doctorName, doctorId;
-  final bool isVideo;
+  final bool isVideo, isOutgoing;
   final String? doctorImage, callId;
-  const CallScreen({super.key, required this.chatId, required this.doctorName, required this.doctorId, this.isVideo = false, this.doctorImage, this.callId});
+  const CallScreen({super.key, required this.chatId, required this.doctorName, required this.doctorId, this.isVideo = false, this.isOutgoing = true, this.doctorImage, this.callId});
   @override State<CallScreen> createState() => _CallScreenState();
 }
 class _CallScreenState extends State<CallScreen> {
