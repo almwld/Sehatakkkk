@@ -7,8 +7,6 @@ environment:
   sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
-  flutter_svg: ^2.0.9
-  video_player: ^2.8.0
   flutter:
     sdk: flutter
   flutter_localizations:
@@ -104,11 +102,16 @@ dependencies:
   flutter_cache_manager: ^3.3.0
   flutter_staggered_animations: ^1.1.0
   rxdart: ^0.27.7
+  pedometer: ^4.0.1
+  translator: ^1.0.0
+  flutter_screenutil: ^5.9.3
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.1
+  bloc_test: ^9.1.7
+  simple_animations: ^5.0.2
 
 flutter:
   uses-material-design: true
