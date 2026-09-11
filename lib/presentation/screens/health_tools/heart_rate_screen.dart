@@ -36,7 +36,6 @@ class _HeartRateScreenState extends State<HeartRateScreen> {
             ]),
           ),
           const SizedBox(height: 16),
-          // نطاق التمرين
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6)]),
@@ -54,10 +53,9 @@ class _HeartRateScreenState extends State<HeartRateScreen> {
             ]),
           ),
           const SizedBox(height: 16),
-          // إعدادات
           _sliderSetting('العمر', _age.toDouble(), 1, 100, (v) => setState(() => _age = v.toInt())),
           _sliderSetting('معدل الراحة', _restingHR.toDouble(), 40, 100, (v) => setState(() => _restingHR = v.toInt())),
-          SwitchListTile(title: 'رياضي محترف', value: _isAthlete, activeColor: AppColors.primary, onChanged: (v) => setState(() => _isAthlete = v)),
+          SwitchListTile(title: const Text('رياضي محترف'), value: _isAthlete, activeColor: AppColors.primary, onChanged: (v) => setState(() => _isAthlete = v)),
         ]),
       ),
     );
