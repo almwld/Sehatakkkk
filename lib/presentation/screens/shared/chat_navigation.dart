@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/services/chat_service.dart';
 import 'package:sehatak/core/services/call_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/core/models/call_model.dart';
 import 'package:sehatak/presentation/screens/chat/chat_detail_screen.dart';
 import 'package:sehatak/presentation/screens/call/call_screen.dart';
 
@@ -14,10 +15,22 @@ class ChatNavigation {
     if (doctorId == user.uid) { ToastService.showError('لا يمكنك بدء محادثة مع نفسك'); return; }
     try {
       final patientName = user.displayName?.trim().isNotEmpty == true ? user.displayName!.trim() : 'المريض';
-      final chatId = await ChatService().createChat(doctorId: doctorId.trim(), doctorName: doctorName.trim().isNotEmpty ? doctorName.trim() : 'الطبيب', patientId: user.uid, patientName: patientName, doctorImage: doctorImage, patientImage: user.photoURL);
+      final chatId = await ChatService().createChat(
+        doctorId: doctorId.trim(),
+        doctorName: doctorName.trim().isNotEmpty ? doctorName.trim() : 'الطبيب',
+        patientName: patientName,
+        doctorImage: doctorImage,
+        patientImage: user.photoURL,
+      );
       if (!context.mounted) return;
       if (chatId.isEmpty) { ToastService.showError('تعذر إنشاء المحادثة'); return; }
-      Navigator.push(context, MaterialPageRoute(builder: (_) => ChatDetailScreen(chatId: chatId, userName: doctorName.trim().isNotEmpty ? doctorName.trim() : 'الطبيب', userId: doctorId.trim(), isDoctor: false)));
+      Navigator.push(context, MaterialPageRoute(builder: (_) => ChatDetailScreen(
+        chatId: chatId,
+        userName: doctorName.trim().isNotEmpty ? doctorName.trim() : 'الطبيب',
+        userId: doctorId.trim(),
+        isDoctor: false,
+        userImage: doctorImage,
+      )));
     } catch (e) { if (context.mounted) ToastService.showError('فشل فتح المحادثة: $e'); }
   }
 
