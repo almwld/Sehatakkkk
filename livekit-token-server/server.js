@@ -24,7 +24,7 @@ if (FIREBASE_SERVICE_ACCOUNT_JSON) {
     console.error('Invalid FIREBASE_SERVICE_ACCOUNT_JSON:', error.message);
   }
 } else {
-  console.warn('FIREBASE_SERVICE_ACCOUNT_JSON is not configured; /token will return 503 until configured.');
+  console.warn('FIREBASE_SERVICE_ACCOUNT_JSON is not configured; Firebase endpoints will be unavailable.');
 }
 
 if (!LIVEKIT_API_KEY || !LIVEKIT_API_SECRET) {
@@ -44,13 +44,11 @@ async function verifyFirebaseUser(req) {
     error.statusCode = 401;
     throw error;
   }
-
   if (!firebaseConfigured) {
     const error = new Error('Firebase authentication is not configured on the token server');
     error.statusCode = 503;
     throw error;
   }
-
   try {
     return await admin.auth().verifyIdToken(idToken);
   } catch (_) {
@@ -80,60 +78,102 @@ app.post('/token', async (req, res) => {
     if (!LIVEKIT_API_KEY || !LIVEKIT_API_SECRET) {
       return res.status(503).json({ success: false, message: 'LiveKit credentials are not configured' });
     }
-
     const decodedToken = await verifyFirebaseUser(req);
     const uid = decodedToken.uid;
     const body = req.body && typeof req.body === 'object' ? req.body : {};
     const roomName = String(body.roomName || body.room || '').trim();
     const participantName = String(body.participantName || decodedToken.name || 'مستخدم').trim();
-
-    if (!roomName) {
-      return res.status(400).json({ success: false, message: 'roomName is required' });
-    }
-    if (roomName.length > 128) {
-      return res.status(400).json({ success: false, message: 'roomName is too long' });
-    }
+    if (!roomName) return res.status(400).json({ success: false, message: 'roomName is required' });
+    if (roomName.length > 128) return res.status(400).json({ success: false, message: 'roomName is too long' });
 
     const token = new AccessToken(LIVEKIT_API_KEY, LIVEKIT_API_SECRET, {
       identity: uid,
       name: participantName.slice(0, 120),
       ttl: '1h',
     });
-
-    token.addGrant({
-      roomJoin: true,
-      room: roomName,
-      canPublish: true,
-      canSubscribe: true,
-      canPublishData: true,
-    });
-
+    token.addGrant({ roomJoin: true, room: roomName, canPublish: true, canSubscribe: true, canPublishData: true });
     const jwt = await token.toJwt();
-
-    return res.json({
-      success: true,
-      data: {
-        token: jwt,
-        url: LIVEKIT_URL,
-        roomName,
-        participantIdentity: uid,
-        participantName: participantName.slice(0, 120),
-      },
-    });
+    return res.json({ success: true, data: { token: jwt, url: LIVEKIT_URL, roomName, participantIdentity: uid, participantName: participantName.slice(0, 120) } });
   } catch (error) {
     const status = Number(error.statusCode) || 500;
     if (status >= 500) console.error('Token error:', error.message);
-    return res.status(status).json({
-      success: false,
-      message: error.message || 'Unable to create LiveKit token',
-    });
+    return res.status(status).json({ success: false, message: error.message || 'Unable to create LiveKit token' });
+  }
+});
+
+// Production incoming-call notification endpoint.
+// Flutter creates the canonical calls/{callId} document, then calls this endpoint.
+// Railway verifies the caller and sends FCM directly, so Firebase Cloud Functions/Blaze are not required.
+app.post('/call-notification', async (req, res) => {
+  try {
+    const decodedToken = await verifyFirebaseUser(req);
+    const body = req.body && typeof req.body === 'object' ? req.body : {};
+    const callId = String(body.callId || '').trim();
+    if (!callId) return res.status(400).json({ success: false, message: 'callId is required' });
+
+    const db = admin.firestore();
+    const callSnapshot = await db.collection('calls').doc(callId).get();
+    if (!callSnapshot.exists) return res.status(404).json({ success: false, message: 'Call not found' });
+
+    const call = callSnapshot.data() || {};
+    if (String(call.callerId || '') !== String(decodedToken.uid)) {
+      return res.status(403).json({ success: false, message: 'Caller is not authorized for this call' });
+    }
+    const status = String(call.status || '');
+    if (!['calling', 'ringing'].includes(status)) {
+      return res.status(409).json({ success: false, message: 'Call is no longer ringing', status });
+    }
+
+    const receiverId = String(call.receiverId || '').trim();
+    if (!receiverId || receiverId === decodedToken.uid) return res.status(400).json({ success: false, message: 'Invalid receiverId' });
+
+    const receiverSnapshot = await db.collection('users').doc(receiverId).get();
+    if (!receiverSnapshot.exists) return res.status(404).json({ success: false, message: 'Receiver not found' });
+    const receiver = receiverSnapshot.data() || {};
+    const fcmToken = typeof receiver.fcmToken === 'string' ? receiver.fcmToken.trim() : '';
+    if (!fcmToken) return res.status(200).json({ success: true, sent: false, reason: 'fcm_token_missing' });
+
+    const isVideo = call.isVideoCall === true || String(call.callType || '') === 'video';
+    const callerName = String(call.callerName || decodedToken.name || 'مستخدم');
+    const message = {
+      token: fcmToken,
+      data: {
+        type: 'incoming_call',
+        callId,
+        chatId: String(call.chatId || ''),
+        callerId: String(call.callerId || ''),
+        callerName,
+        callerPhotoUrl: String(call.callerPhotoUrl || ''),
+        isVideo: isVideo ? 'true' : 'false',
+      },
+      android: {
+        priority: 'high',
+        notification: {
+          channelId: 'call_channel',
+          sound: 'call_ringtone',
+        },
+      },
+    };
+
+    try {
+      const messageId = await admin.messaging().send(message);
+      return res.json({ success: true, sent: true, messageId, callId, receiverId });
+    } catch (error) {
+      console.error('Incoming call FCM error:', error.code || error.message || error);
+      if (['messaging/registration-token-not-registered', 'messaging/invalid-registration-token'].includes(error.code)) {
+        await db.collection('users').doc(receiverId).set({ fcmToken: null, lastTokenUpdate: null }, { merge: true });
+      }
+      return res.status(502).json({ success: false, sent: false, reason: error.code || 'fcm_send_failed' });
+    }
+  } catch (error) {
+    const status = Number(error.statusCode) || 500;
+    console.error('Call notification error:', error.message || error);
+    return res.status(status).json({ success: false, message: error.message || 'Unable to send incoming call notification' });
   }
 });
 
 app.use((error, _req, res, _next) => {
-  if (error instanceof SyntaxError) {
-    return res.status(400).json({ success: false, message: 'Invalid JSON body' });
-  }
+  if (error instanceof SyntaxError) return res.status(400).json({ success: false, message: 'Invalid JSON body' });
   console.error('Request error:', error);
   return res.status(500).json({ success: false, message: 'Internal server error' });
 });
