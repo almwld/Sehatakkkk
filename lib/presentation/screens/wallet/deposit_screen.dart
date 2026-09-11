@@ -8,8 +8,7 @@ import 'package:sehatak/core/services/wallet_service.dart';
 class DepositScreen extends StatefulWidget {
   final double? suggestedAmount;
   const DepositScreen({super.key, this.suggestedAmount});
-  @override
-  State<DepositScreen> createState() => _DepositScreenState();
+  @override State<DepositScreen> createState() => _DepositScreenState();
 }
 
 class _DepositScreenState extends State<DepositScreen> {
@@ -20,13 +19,7 @@ class _DepositScreenState extends State<DepositScreen> {
   String _selectedWallet = 'جيب';
   double _selectedAmount = 0;
   final _quickAmounts = <double>[1000, 2000, 5000, 10000, 20000, 50000];
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.suggestedAmount != null) { _selectedAmount = widget.suggestedAmount!; _amountController.text = _selectedAmount.toStringAsFixed(0); }
-  }
-
+  @override void initState() { super.initState(); if (widget.suggestedAmount != null) { _selectedAmount = widget.suggestedAmount!; _amountController.text = _selectedAmount.toStringAsFixed(0); } }
   Future<void> _processDeposit() async {
     final amount = double.tryParse(_amountController.text.trim()) ?? 0;
     final walletNumber = _walletNumberController.text.trim();
@@ -38,21 +31,12 @@ class _DepositScreenState extends State<DepositScreen> {
     try {
       final result = await _walletService.deposit(userId: user.uid, amount: amount, walletNumber: walletNumber, walletType: _selectedWallet);
       if (!mounted) return;
-      if (result['success'] == true) {
-        ToastService.showSuccess(context, '✅ تم شحن ${amount.toStringAsFixed(0)} ريال');
-        Navigator.pop(context, true);
-      } else {
-        ToastService.showError(context, '❌ فشل الشحن: ${result['error']}');
-      }
-    } catch (e) {
-      if (mounted) ToastService.showError(context, '❌ حدث خطأ: $e');
-    } finally {
-      if (mounted) setState(() => _isProcessing = false);
-    }
+      if (result['success'] == true) { ToastService.showSuccess(context, 'تم شحن ${amount.toStringAsFixed(0)} ريال'); Navigator.pop(context, true); }
+      else { ToastService.showError(context, 'فشل الشحن: ${result['error']}'); }
+    } catch (e) { if (mounted) ToastService.showError(context, 'حدث خطأ: $e'); }
+    finally { if (mounted) setState(() => _isProcessing = false); }
   }
-
-  @override
-  Widget build(BuildContext context) {
+  @override Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
@@ -73,10 +57,8 @@ class _DepositScreenState extends State<DepositScreen> {
         ]))),
         const SizedBox(height: 20),
         SizedBox(width: double.infinity, height: 54, child: ElevatedButton(onPressed: _isProcessing ? null : _processDeposit, child: _isProcessing ? const CircularProgressIndicator() : const Text('شحن المحفظة'))),
-      ]),
+      ])),
     );
   }
-
-  @override
-  void dispose() { _amountController.dispose(); _walletNumberController.dispose(); super.dispose(); }
+  @override void dispose() { _amountController.dispose(); _walletNumberController.dispose(); super.dispose(); }
 }
