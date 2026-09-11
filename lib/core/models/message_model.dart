@@ -5,7 +5,7 @@ enum MessageType { text, image, audio, video, file, location, contact, system, r
 
 class MessageModel extends Equatable {
   final String id, chatId, senderId, senderName;
-  final String? senderPhotoUrl, text;
+  final String? senderPhotoUrl, text, replyPreview;
   final MessageType type;
   final Timestamp? timestamp, readAt, deliveredAt;
   final bool isRead, isDelivered, isEdited, isDeleted, isPinned;
@@ -19,7 +19,7 @@ class MessageModel extends Equatable {
 
   const MessageModel({
     required this.id, required this.chatId, required this.senderId, required this.senderName,
-    this.senderPhotoUrl, this.text, this.type = MessageType.text, this.timestamp,
+    this.senderPhotoUrl, this.text, this.replyPreview, this.type = MessageType.text, this.timestamp,
     this.isRead = false, this.isDelivered = false, this.isEdited = false, this.isDeleted = false,
     this.replyToId, this.replyTo, this.reactions = const {}, this.deletedFor,
     this.attachments, this.metadata, this.imageUrl, this.audioUrl, this.fileUrl, this.videoUrl,
@@ -33,50 +33,32 @@ class MessageModel extends Equatable {
     Timestamp? ra = d['readAt'] is Timestamp ? d['readAt'] as Timestamp : null;
     Timestamp? da = d['deliveredAt'] is Timestamp ? d['deliveredAt'] as Timestamp : null;
     return MessageModel(
-      id: id,
-      chatId: d['chatId']?.toString() ?? '',
-      senderId: d['senderId']?.toString() ?? '',
-      senderName: d['senderName']?.toString() ?? '',
-      senderPhotoUrl: d['senderPhotoUrl']?.toString(), text: d['text']?.toString(),
-      type: MessageType.values.firstWhere((e) => e.name == d['type']?.toString(), orElse: () => MessageType.text),
-      timestamp: ts, isRead: d['isRead'] == true, isDelivered: d['isDelivered'] == true,
-      isEdited: d['isEdited'] == true, isDeleted: d['isDeleted'] == true,
+      id: id, chatId: d['chatId']?.toString() ?? '', senderId: d['senderId']?.toString() ?? '', senderName: d['senderName']?.toString() ?? '',
+      senderPhotoUrl: d['senderPhotoUrl']?.toString(), text: d['text']?.toString(), replyPreview: d['replyPreview']?.toString(),
+      type: MessageType.values.firstWhere((e) => e.name == d['type']?.toString(), orElse: () => MessageType.text), timestamp: ts,
+      isRead: d['isRead'] == true, isDelivered: d['isDelivered'] == true, isEdited: d['isEdited'] == true, isDeleted: d['isDeleted'] == true,
       replyToId: d['replyToId']?.toString(),
       reactions: d['reactions'] is Map ? Map<String, String>.from((d['reactions'] as Map).map((k, v) => MapEntry(k.toString(), v.toString()))) : <String, String>{},
       deletedFor: d['deletedFor'] is Map ? Map<String, bool>.from((d['deletedFor'] as Map).map((k, v) => MapEntry(k.toString(), v == true))) : <String, bool>{},
-      attachments: d['attachments'] is Map ? Map<String, dynamic>.from(d['attachments']) : null,
-      metadata: d['metadata'] is Map ? Map<String, dynamic>.from(d['metadata']) : null,
-      imageUrl: d['imageUrl']?.toString(), audioUrl: d['audioUrl']?.toString(), fileUrl: d['fileUrl']?.toString(),
-      videoUrl: d['videoUrl']?.toString(), locationUrl: d['locationUrl']?.toString(), locationAddress: d['locationAddress']?.toString(),
-      locationLat: (d['locationLat'] as num?)?.toDouble(), locationLng: (d['locationLng'] as num?)?.toDouble(),
-      audioDuration: d['audioDuration']?.toString(), fileSize: d['fileSize']?.toString(), fileName: d['fileName']?.toString(),
-      fileMimeType: d['fileMimeType']?.toString(), thumbnailUrl: d['thumbnailUrl']?.toString(), readAt: ra, deliveredAt: da,
+      attachments: d['attachments'] is Map ? Map<String, dynamic>.from(d['attachments']) : null, metadata: d['metadata'] is Map ? Map<String, dynamic>.from(d['metadata']) : null,
+      imageUrl: d['imageUrl']?.toString(), audioUrl: d['audioUrl']?.toString(), fileUrl: d['fileUrl']?.toString(), videoUrl: d['videoUrl']?.toString(),
+      locationUrl: d['locationUrl']?.toString(), locationAddress: d['locationAddress']?.toString(), locationLat: (d['locationLat'] as num?)?.toDouble(), locationLng: (d['locationLng'] as num?)?.toDouble(),
+      audioDuration: d['audioDuration']?.toString(), fileSize: d['fileSize']?.toString(), fileName: d['fileName']?.toString(), fileMimeType: d['fileMimeType']?.toString(), thumbnailUrl: d['thumbnailUrl']?.toString(), readAt: ra, deliveredAt: da,
       isPinned: d['isPinned'] == true,
     );
   }
 
   Map<String, dynamic> toFirestore() => {
-    'chatId': chatId, 'senderId': senderId, 'senderName': senderName, 'senderPhotoUrl': senderPhotoUrl,
-    'text': text, 'type': type.name, 'timestamp': timestamp ?? FieldValue.serverTimestamp(), 'isRead': isRead,
-    'isDelivered': isDelivered, 'isEdited': isEdited, 'isDeleted': isDeleted, 'replyToId': replyToId,
-    'reactions': reactions, 'deletedFor': deletedFor, 'attachments': attachments, 'metadata': metadata,
-    'imageUrl': imageUrl, 'audioUrl': audioUrl, 'fileUrl': fileUrl, 'videoUrl': videoUrl, 'locationUrl': locationUrl,
-    'locationAddress': locationAddress, 'locationLat': locationLat, 'locationLng': locationLng, 'audioDuration': audioDuration,
-    'fileSize': fileSize, 'fileName': fileName, 'fileMimeType': fileMimeType, 'thumbnailUrl': thumbnailUrl,
-    'readAt': readAt, 'deliveredAt': deliveredAt, 'isPinned': isPinned,
+    'chatId': chatId, 'senderId': senderId, 'senderName': senderName, 'senderPhotoUrl': senderPhotoUrl, 'text': text, 'type': type.name,
+    'timestamp': timestamp ?? FieldValue.serverTimestamp(), 'isRead': isRead, 'isDelivered': isDelivered, 'isEdited': isEdited, 'isDeleted': isDeleted,
+    'replyToId': replyToId, 'replyPreview': replyPreview, 'reactions': reactions, 'deletedFor': deletedFor, 'attachments': attachments, 'metadata': metadata,
+    'imageUrl': imageUrl, 'audioUrl': audioUrl, 'fileUrl': fileUrl, 'videoUrl': videoUrl, 'locationUrl': locationUrl, 'locationAddress': locationAddress,
+    'locationLat': locationLat, 'locationLng': locationLng, 'audioDuration': audioDuration, 'fileSize': fileSize, 'fileName': fileName, 'fileMimeType': fileMimeType,
+    'thumbnailUrl': thumbnailUrl, 'readAt': readAt, 'deliveredAt': deliveredAt, 'isPinned': isPinned,
   };
 
-  bool get isImage => type == MessageType.image;
-  bool get isAudio => type == MessageType.audio;
-  bool get isVideo => type == MessageType.video;
-  bool get isFile => type == MessageType.file;
-  bool get isLocation => type == MessageType.location;
-  bool get isDeletedMessage => type == MessageType.deleted;
-  bool get isText => type == MessageType.text;
-  bool get isReply => type == MessageType.reply;
-  bool get hasReactions => reactions?.isNotEmpty ?? false;
-  bool get hasAttachments => attachments?.isNotEmpty ?? false;
-
-  @override
-  List<Object?> get props => [id, chatId, senderId, senderName, senderPhotoUrl, text, type, timestamp, isRead, isDelivered, isEdited, isDeleted, replyToId, replyTo, reactions, deletedFor, attachments, metadata, imageUrl, audioUrl, fileUrl, videoUrl, locationUrl, locationAddress, locationLat, locationLng, audioDuration, fileSize, fileName, fileMimeType, thumbnailUrl, readAt, deliveredAt, isPinned];
+  bool get isImage => type == MessageType.image; bool get isAudio => type == MessageType.audio; bool get isVideo => type == MessageType.video; bool get isFile => type == MessageType.file;
+  bool get isLocation => type == MessageType.location; bool get isDeletedMessage => type == MessageType.deleted; bool get isText => type == MessageType.text; bool get isReply => type == MessageType.reply;
+  bool get hasReactions => reactions?.isNotEmpty ?? false; bool get hasAttachments => attachments?.isNotEmpty ?? false;
+  @override List<Object?> get props => [id, chatId, senderId, senderName, senderPhotoUrl, text, replyPreview, type, timestamp, isRead, isDelivered, isEdited, isDeleted, replyToId, replyTo, reactions, deletedFor, attachments, metadata, imageUrl, audioUrl, fileUrl, videoUrl, locationUrl, locationAddress, locationLat, locationLng, audioDuration, fileSize, fileName, fileMimeType, thumbnailUrl, readAt, deliveredAt, isPinned];
 }
