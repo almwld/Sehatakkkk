@@ -41,6 +41,7 @@ class CallSoundCoordinator {
     _incomingUiCallId = null;
     _busyHandledCallIds.clear();
     _incomingMuted = false;
+    ActiveCallRegistry.instance.reset();
     unawaited(_sounds.stopCallAudio());
 
     final user = FirebaseAuth.instance.currentUser;
@@ -54,6 +55,7 @@ class CallSoundCoordinator {
       debugPrint('CallSoundCoordinator calls listener error: $error');
       _activeCallId = null;
       _incomingUiCallId = null;
+      ActiveCallRegistry.instance.reset();
       unawaited(_sounds.stopCallAudio());
     });
   }
@@ -62,6 +64,7 @@ class CallSoundCoordinator {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       _incomingUiCallId = null;
+      ActiveCallRegistry.instance.reset();
       unawaited(_sounds.stopCallAudio());
       return;
     }
@@ -71,7 +74,7 @@ class CallSoundCoordinator {
     for (final doc in snapshot.docs) {
       final data = doc.data();
       final status = data['status']?.toString();
-      if (status != 'calling' && status != 'ringing') continue;
+      if (status != 'calling' && status != 'ringing' && status != 'connected') continue;
       final startedAt = data['startedAt'];
       if (startedAt is! Timestamp) continue;
       final started = startedAt.toDate();
@@ -87,17 +90,31 @@ class CallSoundCoordinator {
       _activeCallId = null;
       _incomingUiCallId = null;
       _incomingMuted = false;
+      ActiveCallRegistry.instance.reset();
       unawaited(_sounds.stopCallAudio());
       return;
     }
 
     final data = active.data();
     final callId = active.id;
+    final status = data['status']?.toString() ?? '';
     final callerId = data['callerId']?.toString() ?? '';
     final receiverId = data['receiverId']?.toString() ?? '';
     final isIncoming = receiverId == user.uid && callerId != user.uid;
     final isOutgoing = callerId == user.uid && receiverId != user.uid;
     if (!isIncoming && !isOutgoing) return;
+
+    // A connected call is the authoritative signal that this device is in an
+    // active call. Register it globally so a second incoming call is handled
+    // as busy instead of creating another CallScreen/LiveKit session.
+    if (status == CallStatus.connected.name) {
+      ActiveCallRegistry.instance.register(callId);
+      _activeCallId = callId;
+      _incomingUiCallId = null;
+      _incomingMuted = false;
+      unawaited(_sounds.stopCallAudio());
+      return;
+    }
 
     final isNewCall = _activeCallId != callId;
     if (isNewCall) {
@@ -182,7 +199,7 @@ class CallSoundCoordinator {
     _incomingMuted = muted;
     if (muted) {
       await _sounds.stopCallAudio();
-    } else if (_activeCallId != null) {
+    } else if (_activeCallId != null && !ActiveCallRegistry.instance.hasActiveCall) {
       await _sounds.playCallRingtone();
     }
   }
@@ -204,6 +221,7 @@ class CallSoundCoordinator {
     _incomingUiCallId = null;
     _busyHandledCallIds.clear();
     _incomingMuted = false;
+    ActiveCallRegistry.instance.reset();
     await _sounds.stopAll();
   }
 }
