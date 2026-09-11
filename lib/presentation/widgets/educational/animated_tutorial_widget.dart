@@ -4,9 +4,7 @@
 // ============================================================
 
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lottie/lottie.dart';
-import 'package:simple_animations/simple_animations.dart';
 
 class AnimatedTutorialWidget extends StatefulWidget {
   final String title;
@@ -35,7 +33,6 @@ class _AnimatedTutorialWidgetState extends State<AnimatedTutorialWidget>
   late AnimationController _pulseController;
   late AnimationController _progressController;
   int _currentStep = 0;
-  bool _isPlaying = false;
   double _progress = 0.0;
 
   @override
@@ -52,6 +49,7 @@ class _AnimatedTutorialWidgetState extends State<AnimatedTutorialWidget>
     );
 
     _progressController.addListener(() {
+      if (!mounted) return;
       setState(() {
         _progress = _progressController.value;
       });
@@ -88,7 +86,6 @@ class _AnimatedTutorialWidgetState extends State<AnimatedTutorialWidget>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final screenWidth = MediaQuery.of(context).size.width;
 
     return Container(
       decoration: BoxDecoration(
@@ -104,7 +101,6 @@ class _AnimatedTutorialWidgetState extends State<AnimatedTutorialWidget>
       ),
       child: Column(
         children: [
-          // ✅ عنوان الويدجت
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             decoration: BoxDecoration(
@@ -129,7 +125,10 @@ class _AnimatedTutorialWidgetState extends State<AnimatedTutorialWidget>
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(12),
@@ -146,23 +145,21 @@ class _AnimatedTutorialWidgetState extends State<AnimatedTutorialWidget>
               ],
             ),
           ),
-
-          // ✅ محتوى التعليم
           Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
               children: [
-                // ✅ الرسوم المتحركة
                 Container(
                   height: 150,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF0B1121) : Colors.grey.shade50,
+                    color: isDark
+                        ? const Color(0xFF0B1121)
+                        : Colors.grey.shade50,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Stack(
                     children: [
-                      // ✅ Lottie Animation
                       Center(
                         child: Lottie.asset(
                           widget.animationAsset,
@@ -192,17 +189,17 @@ class _AnimatedTutorialWidgetState extends State<AnimatedTutorialWidget>
                           },
                         ),
                       ),
-                      
-                      // ✅ تأثير النبض
                       Positioned(
                         top: 10,
                         right: 10,
                         child: AnimatedBuilder(
                           animation: _pulseController,
                           builder: (context, child) {
+                            final size =
+                                30.0 + 10.0 * _pulseController.value;
                             return Container(
-                              width: 30 + 10 * _pulseController.value,
-                              height: 30 + 10 * _pulseController.value,
+                              width: size,
+                              height: size,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: Colors.green.withOpacity(0.3),
@@ -221,10 +218,7 @@ class _AnimatedTutorialWidgetState extends State<AnimatedTutorialWidget>
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
-                // ✅ وصف الخطوة الحالية
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -261,7 +255,8 @@ class _AnimatedTutorialWidgetState extends State<AnimatedTutorialWidget>
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w500,
-                                color: isDark ? Colors.white : Colors.black87,
+                                color:
+                                    isDark ? Colors.white : Colors.black87,
                               ),
                             ),
                           ),
@@ -272,21 +267,22 @@ class _AnimatedTutorialWidgetState extends State<AnimatedTutorialWidget>
                         widget.description,
                         style: TextStyle(
                           fontSize: 13,
-                          color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                          color: isDark
+                              ? Colors.grey.shade400
+                              : Colors.grey.shade600,
                           height: 1.5,
                         ),
                       ),
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
-                // ✅ شريط التقدم
                 Container(
                   height: 4,
                   decoration: BoxDecoration(
-                    color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+                    color: isDark
+                        ? Colors.grey.shade800
+                        : Colors.grey.shade200,
                     borderRadius: BorderRadius.circular(2),
                   ),
                   child: FractionallySizedBox(
@@ -299,10 +295,7 @@ class _AnimatedTutorialWidgetState extends State<AnimatedTutorialWidget>
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
-                // ✅ أزرار التحكم
                 Row(
                   children: [
                     if (_currentStep > 0)
