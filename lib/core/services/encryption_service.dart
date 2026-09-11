@@ -22,10 +22,10 @@ class EncryptionService {
 
   Future<String> decryptMessage(String value, String chatId) async {
     try {
-      final p = value.split(':');
-      if (p.length != 2) return value;
+      final parts = value.split(':');
+      if (parts.length != 2) return value;
       final key = await _getOrCreateKey(chatId);
-      return utf8.decode(_crypt(base64.decode(p[1]), key, base64.decode(p[0]), false));
+      return utf8.decode(_crypt(base64.decode(parts[1]), key, base64.decode(parts[0]), false));
     } catch (_) {
       return value;
     }
@@ -74,7 +74,10 @@ class EncryptionService {
   Uint8List _crypt(List<int> input, Uint8List key, Uint8List iv, bool encrypt) {
     final cipher = PaddedBlockCipherImpl(PKCS7Padding(), CBCBlockCipher(AESEngine()));
     final params = ParametersWithIV<KeyParameter>(KeyParameter(key), iv);
-    cipher.init(encrypt, PaddedBlockCipherParameters<KeyParameter, void>(params, null));
+    cipher.init(
+      encrypt,
+      PaddedBlockCipherParameters<ParametersWithIV<KeyParameter>, Null>(params, null),
+    );
     return cipher.process(Uint8List.fromList(input));
   }
 }
