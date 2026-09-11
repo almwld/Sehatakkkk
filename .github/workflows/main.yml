@@ -86,4 +86,3 @@ jobs:
         name: app-x86_64
         path: build/app/outputs/flutter-apk/app-x86_64-release.apk
         retention-days: 30
-
