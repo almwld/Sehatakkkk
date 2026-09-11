@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:flutter_background_service_android/flutter_background_service_android.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -102,8 +103,8 @@ class BackgroundService {
     var processing = false;
 
     if (service is AndroidServiceInstance) {
-      service.setAsForegroundService();
-      service.setForegroundNotificationInfo(
+      await service.setAsForegroundService();
+      await service.setForegroundNotificationInfo(
         title: 'صحتك • تتبع الخطوات',
         content: '$steps من $goal خطوة',
       );
@@ -111,7 +112,7 @@ class BackgroundService {
 
     service.on('stopStepTracking').listen((_) async {
       await prefs.setBool(_trackingEnabledKey, false);
-      service.stopSelf();
+      await service.stopSelf();
     });
 
     accelerometerEvents.listen((event) async {
@@ -170,7 +171,7 @@ class BackgroundService {
           await _saveHistory(prefs, date, steps);
 
           if (service is AndroidServiceInstance) {
-            service.setForegroundNotificationInfo(
+            await service.setForegroundNotificationInfo(
               title: 'صحتك • تتبع الخطوات',
               content: '$steps من $goal خطوة',
             );
