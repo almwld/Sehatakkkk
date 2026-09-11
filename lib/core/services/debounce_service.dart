@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 
 class DebounceService {
   static final DebounceService _instance = DebounceService._internal();
@@ -15,18 +16,11 @@ class DebounceService {
     });
   }
 
-  void search(String query, Function(String) onSearch) {
-    run('search', () => onSearch(query));
-  }
-
-  void loadMore(String id, VoidCallback action) {
-    run(id, action, delay: const Duration(milliseconds: 200));
-  }
+  void search(String query, Function(String) onSearch) => run('search', () => onSearch(query));
+  void loadMore(String id, VoidCallback action) => run(id, action, delay: const Duration(milliseconds: 200));
 
   void dispose() {
-    for (var timer in _timers.values) {
-      timer.cancel();
-    }
+    for (final timer in _timers.values) timer.cancel();
     _timers.clear();
   }
 }
