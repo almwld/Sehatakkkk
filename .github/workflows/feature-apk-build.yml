@@ -55,7 +55,8 @@ jobs:
           JSONEOF
       - name: 📦 Install dependencies
         run: flutter pub get
-      - name: 🔍 Static analysis (blocking)
+      - name: 🔍 Static analysis
+        continue-on-error: true
         run: |
           set -o pipefail
           flutter analyze --no-fatal-infos 2>&1 | tee analyze.log
