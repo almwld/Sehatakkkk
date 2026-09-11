@@ -1,11 +1,14 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
 import 'package:sehatak/core/models/call_model.dart';
+import 'package:sehatak/core/config/livekit_config.dart';
 import 'package:sehatak/core/services/active_call_registry.dart';
 import 'package:sehatak/core/services/chat_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
@@ -32,6 +35,28 @@ class CallService {
   Future<void> _timeline({required String chatId, required String callId, required String text, required String status, required CallType type}) async { if (chatId.isEmpty) return; try { await _chat.sendSystemMessage(chatId: chatId, text: text, idempotencyKey: 'call_${callId}_$status', metadata: {'callId': callId, 'callType': type.name, 'status': status}); } catch (e) { debugPrint('call timeline: $e'); } }
   String _lockId(String a, String b) { final ids = [a,b]..sort(); return '${ids[0]}_${ids[1]}'; }
 
+  Future<void> _notifyIncomingCall(String callId) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return;
+      final token = await user.getIdToken();
+      if (token == null || token.isEmpty) return;
+      final uri = Uri.parse('${LiveKitConfig.tokenServerUrl}/call-notification');
+      final response = await http.post(
+        uri,
+        headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'},
+        body: jsonEncode({'callId': callId}),
+      ).timeout(const Duration(seconds: 12));
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        debugPrint('CALL NOTIFICATION FAILED status=${response.statusCode} body=${response.body}');
+      } else {
+        debugPrint('CALL NOTIFICATION SENT callId=$callId body=${response.body}');
+      }
+    } catch (e) {
+      debugPrint('CALL NOTIFICATION ERROR: $e');
+    }
+  }
+
   Future<CallModel?> initiateCall({required String receiverId, required String receiverName, String? receiverPhotoUrl, required CallType type, required String chatId, String? idempotencyKey}) async {
     final uid = _uid();
     final user = _auth.currentUser!;
@@ -43,7 +68,11 @@ class CallService {
       tx.set(lockRef, {'participants':[uid,receiverId],'activeCallId':id,'status':CallStatus.calling.name,'updatedAt':FieldValue.serverTimestamp()});
       tx.set(ref, {'id':id,'chatId':chatId,'callerId':uid,'callerName':user.displayName ?? 'مستخدم','callerPhotoUrl':user.photoURL,'receiverId':receiverId,'receiverName':receiverName,'receiverPhotoUrl':receiverPhotoUrl,'callType':type.name,'status':CallStatus.calling.name,'startedAt':FieldValue.serverTimestamp(),'isAnswered':false,'participants':[uid,receiverId],'liveKitRoomName':room,'roomName':room,'isVideoCall':type == CallType.video});
     }));
-    _inCall = true; _current = id; await _timeline(chatId:chatId,callId:id,text:type == CallType.video ? '📹 بدء مكالمة فيديو' : '📞 بدء مكالمة صوتية',status:CallStatus.calling.name,type:type); final saved = await _retry(() => ref.get()); if (!saved.exists) throw Exception('تعذر حفظ المكالمة'); return CallModel.fromFirestore(id,saved.data()!);
+    _inCall = true; _current = id; await _timeline(chatId:chatId,callId:id,text:type == CallType.video ? '📹 بدء مكالمة فيديو' : '📞 بدء مكالمة صوتية',status:CallStatus.calling.name,type:type); final saved = await _retry(() => ref.get()); if (!saved.exists) throw Exception('تعذر حفظ المكالمة');
+    final call = CallModel.fromFirestore(id,saved.data()!);
+    // Fire-and-forget after the canonical Firestore call exists. Railway sends the production FCM.
+    unawaited(_notifyIncomingCall(id));
+    return call;
   }
 
   Future<_Ctx?> _state({required String id, required List<CallStatus> allowed, required Map<String,dynamic> data, required bool active, bool ignore = false}) async {
