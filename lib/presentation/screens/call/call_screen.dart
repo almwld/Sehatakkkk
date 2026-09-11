@@ -92,12 +92,22 @@ class _CallScreenState extends State<CallScreen> {
       final network = await Connectivity().checkConnectivity();
       if (!_hasNetwork(network)) throw StateError('لا يوجد اتصال بالإنترنت');
       CallModel? call;
-      if (widget.isOutgoing) {
+      final suppliedCallId = widget.callId?.trim();
+
+      // ChatNavigation may already create the call before opening this screen.
+      // Reuse that exact call instead of creating a second Firestore call.
+      if (suppliedCallId != null && suppliedCallId.isNotEmpty) {
+        call = await _calls.streamCall(suppliedCallId).first;
+        if (call == null) throw StateError('المكالمة غير موجودة');
+        if (widget.isOutgoing) {
+          if (call.callerId != user.uid) throw StateError('هذه المكالمة ليست صادرة من المستخدم الحالي');
+        } else if (call.receiverId != user.uid) {
+          throw StateError('هذه المكالمة ليست موجهة لهذا المستخدم');
+        }
+      } else if (widget.isOutgoing) {
         call = await _calls.initiateCall(receiverId: widget.doctorId, receiverName: widget.doctorName, receiverPhotoUrl: widget.doctorImage, type: widget.isVideo ? CallType.video : CallType.audio, chatId: widget.chatId);
       } else {
-        if (widget.callId == null || widget.callId!.trim().isEmpty) throw StateError('معرّف المكالمة مفقود');
-        call = await _calls.streamCall(widget.callId!).first;
-        if (call == null || call.receiverId != user.uid) throw StateError('هذه المكالمة ليست موجهة لهذا المستخدم');
+        throw StateError('معرّف المكالمة مفقود');
       }
       if (call == null) throw StateError('تعذر العثور على المكالمة');
       if (ActiveCallRegistry.instance.hasActiveCall && !ActiveCallRegistry.instance.isActive(call.id)) {
