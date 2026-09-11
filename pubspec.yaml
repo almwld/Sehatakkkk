@@ -102,7 +102,7 @@ dependencies:
   flutter_cache_manager: 3.3.1
   flutter_staggered_animations: 1.1.0
   rxdart: 0.27.7
-  pedometer: 3.0.0
+  pedometer: 4.0.2
   translator: 1.0.0
   flutter_screenutil: 5.9.3
   simple_animations: 5.0.2
