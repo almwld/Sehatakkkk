@@ -96,9 +96,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> with SingleTick
       if (!mounted || call == null || _isProcessing) return;
       if (call.status == CallStatus.cancelled || call.status == CallStatus.rejected || call.status == CallStatus.missed || call.status == CallStatus.busy || call.status == CallStatus.ended) {
         _stopAlerting();
-        if (call.status == CallStatus.busy) {
-          ToastService.showInfo('المستخدم مشغول بمكالمة أخرى');
-        }
+        if (call.status == CallStatus.busy) ToastService.showInfo('المستخدم مشغول بمكالمة أخرى');
         Navigator.of(context).pop();
       }
     }, onError: (error) {
