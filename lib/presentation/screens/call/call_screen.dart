@@ -7,6 +7,7 @@ import 'package:livekit_client/livekit_client.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'package:sehatak/core/models/call_model.dart';
+import 'package:sehatak/core/services/active_call_registry.dart';
 import 'package:sehatak/core/services/call_service.dart';
 import 'package:sehatak/core/services/livekit_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
@@ -19,8 +20,20 @@ class CallScreen extends StatefulWidget {
   final bool isVideo;
   final String? doctorImage;
   final bool isOutgoing;
-  const CallScreen({super.key, required this.chatId, this.callId, required this.doctorName, required this.doctorId, this.isVideo = true, this.doctorImage, this.isOutgoing = true});
-  @override State<CallScreen> createState() => _CallScreenState();
+
+  const CallScreen({
+    super.key,
+    required this.chatId,
+    this.callId,
+    required this.doctorName,
+    required this.doctorId,
+    this.isVideo = true,
+    this.doctorImage,
+    this.isOutgoing = true,
+  });
+
+  @override
+  State<CallScreen> createState() => _CallScreenState();
 }
 
 class _CallScreenState extends State<CallScreen> {
@@ -47,7 +60,24 @@ class _CallScreenState extends State<CallScreen> {
   bool _networkAvailable = true;
 
   @override
-  void initState() { super.initState(); _watchConnectivity(); _connect(); }
+  void initState() {
+    super.initState();
+
+    // Defense in depth for an incoming call pushed during another call.
+    final activeId = ActiveCallRegistry.instance.activeCallId;
+    if (activeId != null && activeId != widget.callId) {
+      debugPrint('CALL SCREEN BLOCKED second call active=$activeId incoming=${widget.callId}');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ToastService.showError('مشغول في مكالمة أخرى');
+        Navigator.of(context).pop();
+      });
+      return;
+    }
+
+    _watchConnectivity();
+    _connect();
+  }
 
   Future<void> _watchConnectivity() async {
     try {
@@ -59,7 +89,9 @@ class _CallScreenState extends State<CallScreen> {
         setState(() => _networkAvailable = available);
         if (!available && !_ending) ToastService.showError('انقطع اتصال الإنترنت');
       });
-    } catch (e) { debugPrint('Connectivity check failed: $e'); }
+    } catch (e) {
+      debugPrint('Connectivity check failed: $e');
+    }
   }
 
   bool _hasNetwork(ConnectivityResult result) => result != ConnectivityResult.none;
@@ -70,21 +102,56 @@ class _CallScreenState extends State<CallScreen> {
       if (user == null) throw StateError('يجب تسجيل الدخول');
       final network = await Connectivity().checkConnectivity();
       if (!_hasNetwork(network)) throw StateError('لا يوجد اتصال بالإنترنت');
+
       CallModel? call;
       if (widget.isOutgoing) {
-        call = await _calls.initiateCall(receiverId: widget.doctorId, receiverName: widget.doctorName, receiverPhotoUrl: widget.doctorImage, type: widget.isVideo ? CallType.video : CallType.audio, chatId: widget.chatId);
+        call = await _calls.initiateCall(
+          receiverId: widget.doctorId,
+          receiverName: widget.doctorName,
+          receiverPhotoUrl: widget.doctorImage,
+          type: widget.isVideo ? CallType.video : CallType.audio,
+          chatId: widget.chatId,
+        );
       } else {
-        if (widget.callId == null || widget.callId!.trim().isEmpty) throw StateError('معرّف المكالمة مفقود');
+        if (widget.callId == null || widget.callId!.trim().isEmpty) {
+          throw StateError('معرّف المكالمة مفقود');
+        }
         call = await _calls.streamCall(widget.callId!).first;
-        if (call == null || call.receiverId != user.uid) throw StateError('هذه المكالمة ليست موجهة لهذا المستخدم');
+        if (call == null || call.receiverId != user.uid) {
+          throw StateError('هذه المكالمة ليست موجهة لهذا المستخدم');
+        }
       }
+
       if (call == null) throw StateError('تعذر العثور على المكالمة');
+
+      final activeId = ActiveCallRegistry.instance.activeCallId;
+      if (activeId != null && activeId != call.id) {
+        if (!widget.isOutgoing) await _calls.markBusy(call.id);
+        throw StateError('مشغول في مكالمة أخرى');
+      }
+
       _callId = call.id;
-      _roomName = (call.liveKitRoomName?.trim().isNotEmpty == true) ? call.liveKitRoomName!.trim() : 'call_${call.id}';
-      debugPrint('CALL READY uid=${user.uid} callId=$_callId chatId=${widget.chatId} room=$_roomName outgoing=${widget.isOutgoing}');
+      _roomName = (call.liveKitRoomName?.trim().isNotEmpty == true)
+          ? call.liveKitRoomName!.trim()
+          : 'call_${call.id}';
+
+      // Claim the local slot before any LiveKit/network work. This makes the
+      // active-call guard visible immediately to the incoming-call coordinator.
+      ActiveCallRegistry.instance.register(call.id);
+      if (ActiveCallRegistry.instance.activeCallId != call.id) {
+        if (!widget.isOutgoing) await _calls.markBusy(call.id);
+        throw StateError('تعذر حجز المكالمة النشطة');
+      }
+
+      debugPrint(
+        'CALL READY uid=${user.uid} callId=$_callId chatId=${widget.chatId} room=$_roomName outgoing=${widget.isOutgoing}',
+      );
+
       _callSubscription = _calls.streamCall(call.id).listen((updated) {
         if (!mounted || updated == null || _ending) return;
-        debugPrint('CALL STATE id=${updated.id} status=${updated.status} connectedAt=${updated.connectedAt}');
+        debugPrint(
+          'CALL STATE id=${updated.id} status=${updated.status} connectedAt=${updated.connectedAt}',
+        );
         if (updated.status == CallStatus.connected) {
           final serverConnectedAt = updated.connectedAt?.toDate();
           if (serverConnectedAt != null) _setConnectedAt(serverConnectedAt);
@@ -93,13 +160,19 @@ class _CallScreenState extends State<CallScreen> {
         }
         if (_isTerminal(updated.status)) unawaited(_finishRemote());
       }, onError: (error) => debugPrint('CALL STREAM ERROR: $error'));
+
       if (widget.isOutgoing && call.status != CallStatus.connected) {
         _timeout = Timer(const Duration(seconds: 30), () async {
           if (_ending || _joined) return;
-          try { await _calls.missCall(call!.id); } catch (e) { debugPrint('CALL TIMEOUT update failed: $e'); }
+          try {
+            await _calls.missCall(call!.id);
+          } catch (e) {
+            debugPrint('CALL TIMEOUT update failed: $e');
+          }
           if (mounted) await _finishRemote();
         });
       }
+
       if (call.status == CallStatus.connected) {
         await _join(call, user);
       } else if (mounted) {
@@ -107,16 +180,35 @@ class _CallScreenState extends State<CallScreen> {
       }
     } catch (e) {
       debugPrint('CALL CONNECT ERROR: $e');
+      ActiveCallRegistry.instance.unregister(_callId);
+      await _callSubscription?.cancel();
+      _callSubscription = null;
       if (!mounted) return;
-      setState(() { _connecting = false; _error = e.toString().replaceFirst('Exception: ', ''); });
+      setState(() {
+        _connecting = false;
+        _error = e.toString().replaceFirst('Exception: ', '');
+      });
       ToastService.showError('فشل تجهيز المكالمة');
+      if (e is StateError && e.message.toString().contains('مشغول')) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) Navigator.of(context).pop();
+        });
+      }
     }
   }
 
-  bool _isTerminal(CallStatus status) => status == CallStatus.cancelled || status == CallStatus.rejected || status == CallStatus.missed || status == CallStatus.ended;
+  bool _isTerminal(CallStatus status) =>
+      status == CallStatus.cancelled ||
+      status == CallStatus.rejected ||
+      status == CallStatus.missed ||
+      status == CallStatus.ended ||
+      status == CallStatus.busy;
 
   void _setConnectedAt(DateTime value) {
-    if (_connectedAt != null && _connectedAt!.difference(value).abs() < const Duration(seconds: 1)) return;
+    if (_connectedAt != null &&
+        _connectedAt!.difference(value).abs() < const Duration(seconds: 1)) {
+      return;
+    }
     _connectedAt = value;
     final elapsed = DateTime.now().difference(value).inSeconds;
     _seconds = elapsed < 0 ? 0 : elapsed;
@@ -133,12 +225,20 @@ class _CallScreenState extends State<CallScreen> {
 
   Future<void> _join(CallModel call, User user) async {
     if (_joined || _ending) return;
-    // Defense in depth: this method is only allowed to execute after the
-    // server-side lifecycle reaches connected. Never join while ringing.
     if (call.status != CallStatus.connected) {
       debugPrint('CALL JOIN BLOCKED id=${call.id} status=${call.status}');
       return;
     }
+
+    // Final guard immediately before opening the LiveKit room.
+    final activeId = ActiveCallRegistry.instance.activeCallId;
+    if (activeId != null && activeId != call.id) {
+      debugPrint('CALL LIVEKIT BLOCKED second call active=$activeId requested=${call.id}');
+      await _calls.markBusy(call.id);
+      if (mounted) await _finishRemote();
+      return;
+    }
+
     try {
       if (widget.isVideo) {
         final camera = await Permission.camera.request();
@@ -146,22 +246,41 @@ class _CallScreenState extends State<CallScreen> {
       }
       final microphone = await Permission.microphone.request();
       if (!microphone.isGranted) throw StateError('يرجى منح إذن الميكروفون');
-      if (_roomName == null || _roomName!.isEmpty) throw StateError('اسم غرفة LiveKit مفقود');
-      _room = await _live.startCall(roomName: _roomName!, callerName: user.displayName?.trim().isNotEmpty == true ? user.displayName!.trim() : widget.doctorName, isVideo: widget.isVideo);
+      if (_roomName == null || _roomName!.isEmpty) {
+        throw StateError('اسم غرفة LiveKit مفقود');
+      }
+
+      _room = await _live.startCall(
+        roomName: _roomName!,
+        callerName: user.displayName?.trim().isNotEmpty == true
+            ? user.displayName!.trim()
+            : widget.doctorName,
+        isVideo: widget.isVideo,
+      );
       _joined = true;
       _timeout?.cancel();
       _setConnectedAt(call.connectedAt?.toDate() ?? DateTime.now());
       _bind(_room!.localParticipant);
-      for (final participant in _room!.participants.values) { _bind(participant); }
+      for (final participant in _room!.participants.values) {
+        _bind(participant);
+      }
       _room!.events.on<ParticipantConnectedEvent>((event) => _bind(event.participant));
       _room!.events.on<TrackSubscribedEvent>((event) => _bind(event.participant));
       _room!.events.on<TrackPublishedEvent>((event) => _bind(event.participant));
-      _room!.events.on<ParticipantDisconnectedEvent>((event) { if (mounted) setState(() => _remoteTrack = null); });
+      _room!.events.on<ParticipantDisconnectedEvent>((event) {
+        if (mounted) setState(() => _remoteTrack = null);
+      });
       await _live.setSpeakerphone(_speaker);
       if (mounted) setState(() { _connecting = false; _error = null; });
     } catch (e) {
       debugPrint('CALL LIVEKIT JOIN ERROR: $e');
-      if (mounted) setState(() { _connecting = false; _error = e.toString().replaceFirst('Exception: ', ''); });
+      ActiveCallRegistry.instance.unregister(call.id);
+      if (mounted) {
+        setState(() {
+          _connecting = false;
+          _error = e.toString().replaceFirst('Exception: ', '');
+        });
+      }
     }
   }
 
@@ -169,14 +288,25 @@ class _CallScreenState extends State<CallScreen> {
     if (participant == null) return;
     for (final publication in participant.videoTracks) {
       final track = publication.track;
-      if (track is VideoTrack && mounted) setState(() { if (participant is LocalParticipant) { _localTrack = track; } else { _remoteTrack = track; } });
+      if (track is VideoTrack && mounted) {
+        setState(() {
+          if (participant is LocalParticipant) {
+            _localTrack = track;
+          } else {
+            _remoteTrack = track;
+          }
+        });
+      }
     }
   }
 
   Future<void> _finishRemote() async {
     if (_ending) return;
     _ending = true;
-    _timeout?.cancel(); _timer?.cancel();
+    _timeout?.cancel();
+    _timer?.cancel();
+    final id = _callId;
+    ActiveCallRegistry.instance.unregister(id);
     await _callSubscription?.cancel();
     _callSubscription = null;
     await _live.endCall();
@@ -186,50 +316,180 @@ class _CallScreenState extends State<CallScreen> {
   Future<void> _end() async {
     if (_ending) return;
     _ending = true;
-    _timeout?.cancel(); _timer?.cancel();
+    _timeout?.cancel();
+    _timer?.cancel();
+    final id = _callId;
+
+    // Release the local guard before any Firestore/network await.
+    ActiveCallRegistry.instance.unregister(id);
     await _callSubscription?.cancel();
     _callSubscription = null;
-    try { if (_callId != null) await _calls.endCall(_callId!, durationSeconds: _joined ? _seconds : 0); } catch (e) { debugPrint('CALL END FIRESTORE ERROR: $e'); }
+
+    try {
+      if (id != null) {
+        await _calls.endCall(id, durationSeconds: _joined ? _seconds : 0);
+      }
+    } catch (e) {
+      debugPrint('CALL END FIRESTORE ERROR: $e');
+    }
     await _live.endCall();
     if (mounted) Navigator.of(context).pop();
   }
 
-  Future<void> _mute() async { final enabled = await _live.toggleMicrophone(); if (mounted) setState(() => _muted = !enabled); }
-  Future<void> _toggleCamera() async { final enabled = await _live.toggleCamera(); if (mounted) setState(() => _cameraEnabled = enabled); }
-  Future<void> _switchCamera() async { try { await _live.switchCamera(); } catch (e) { debugPrint('CALL CAMERA SWITCH ERROR: $e'); } }
-  Future<void> _toggleSpeaker() async { final next = !_speaker; await _live.setSpeakerphone(next); if (mounted) setState(() => _speaker = next); }
+  Future<void> _mute() async {
+    final enabled = await _live.toggleMicrophone();
+    if (mounted) setState(() => _muted = !enabled);
+  }
+
+  Future<void> _toggleCamera() async {
+    final enabled = await _live.toggleCamera();
+    if (mounted) setState(() => _cameraEnabled = enabled);
+  }
+
+  Future<void> _switchCamera() async {
+    try {
+      await _live.switchCamera();
+    } catch (e) {
+      debugPrint('CALL CAMERA SWITCH ERROR: $e');
+    }
+  }
+
+  Future<void> _toggleSpeaker() async {
+    final next = !_speaker;
+    await _live.setSpeakerphone(next);
+    if (mounted) setState(() => _speaker = next);
+  }
 
   @override
   void dispose() {
-    _timeout?.cancel(); _timer?.cancel(); _callSubscription?.cancel(); _connectivitySubscription?.cancel();
+    _timeout?.cancel();
+    _timer?.cancel();
+    _callSubscription?.cancel();
+    _connectivitySubscription?.cancel();
+    ActiveCallRegistry.instance.unregister(_callId);
     if (_joined) unawaited(_live.endCall());
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final status = _error != null ? _error! : !_networkAvailable ? 'لا يوجد اتصال بالإنترنت' : _connecting ? (widget.isOutgoing ? 'جاري تجهيز المكالمة...' : 'جاري الاتصال...') : !_joined ? 'في انتظار قبول المكالمة...' : _fmt(_seconds);
-    return Scaffold(backgroundColor: Colors.black, body: SafeArea(child: Stack(children: [
-      Positioned.fill(child: widget.isVideo && _remoteTrack != null ? VideoTrackRenderer(_remoteTrack!) : _waitingView(status)),
-      if (widget.isVideo && _localTrack != null) PositionedDirectional(top: 18, end: 18, child: Container(width: 120, height: 180, decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(14), border: Border.all(color: Colors.white24), boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 12)]), clipBehavior: Clip.antiAlias, child: VideoTrackRenderer(_localTrack!))),
-      if (_joined && _remoteTrack != null) Positioned(top: 18, left: 18, child: _statusChip(_fmt(_seconds))),
-      if (_error == null) Positioned(bottom: 24, left: 0, right: 0, child: _controls()),
-    ])));
+    final status = _error != null
+        ? _error!
+        : !_networkAvailable
+            ? 'لا يوجد اتصال بالإنترنت'
+            : _connecting
+                ? (widget.isOutgoing ? 'جاري تجهيز المكالمة...' : 'جاري الاتصال...')
+                : !_joined
+                    ? 'في انتظار قبول المكالمة...'
+                    : _fmt(_seconds);
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: widget.isVideo && _remoteTrack != null
+                  ? VideoTrackRenderer(_remoteTrack!)
+                  : _waitingView(status),
+            ),
+            if (widget.isVideo && _localTrack != null)
+              PositionedDirectional(
+                top: 18,
+                end: 18,
+                child: Container(
+                  width: 120,
+                  height: 180,
+                  decoration: BoxDecoration(
+                    color: Colors.black,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: Colors.white24),
+                    boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 12)],
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: VideoTrackRenderer(_localTrack!),
+                ),
+              ),
+            if (_joined && _remoteTrack != null)
+              Positioned(top: 18, left: 18, child: _statusChip(_fmt(_seconds))),
+            if (_error == null)
+              Positioned(bottom: 24, left: 0, right: 0, child: _controls()),
+          ],
+        ),
+      ),
+    );
   }
 
-  Widget _waitingView(String status) => Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-    CircleAvatar(radius: 58, backgroundImage: widget.doctorImage?.trim().isNotEmpty == true ? NetworkImage(widget.doctorImage!.trim()) : null, backgroundColor: const Color(0xFF263238), child: widget.doctorImage?.trim().isNotEmpty == true ? null : const Icon(Icons.person, color: Colors.white, size: 50)),
-    const SizedBox(height: 18), Text(widget.doctorName, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
-    const SizedBox(height: 8), Text(widget.isVideo ? 'مكالمة فيديو' : 'مكالمة صوتية', style: const TextStyle(color: Colors.white60, fontSize: 14)), const SizedBox(height: 10),
-    Text(status, textAlign: TextAlign.center, style: TextStyle(color: _error != null ? Colors.redAccent : Colors.white70, fontSize: 14)),
-    if (_joined) ...[const SizedBox(height: 8), Text(_fmt(_seconds), style: const TextStyle(color: Colors.white, fontSize: 18))],
-  ]));
+  Widget _waitingView(String status) => Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircleAvatar(
+              radius: 58,
+              backgroundImage: widget.doctorImage?.trim().isNotEmpty == true
+                  ? NetworkImage(widget.doctorImage!.trim())
+                  : null,
+              backgroundColor: const Color(0xFF263238),
+              child: widget.doctorImage?.trim().isNotEmpty == true
+                  ? null
+                  : const Icon(Icons.person, color: Colors.white, size: 50),
+            ),
+            const SizedBox(height: 18),
+            Text(
+              widget.doctorName,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(widget.isVideo ? 'مكالمة فيديو' : 'مكالمة صوتية', style: const TextStyle(color: Colors.white60, fontSize: 14)),
+            const SizedBox(height: 10),
+            Text(status, textAlign: TextAlign.center, style: TextStyle(color: _error != null ? Colors.redAccent : Colors.white70, fontSize: 14)),
+            if (_joined) ...[
+              const SizedBox(height: 8),
+              Text(_fmt(_seconds), style: const TextStyle(color: Colors.white, fontSize: 18)),
+            ],
+          ],
+        ),
+      );
 
-  Widget _statusChip(String text) => Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7), decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(18), border: Border.all(color: Colors.white12)), child: Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.circle, color: Colors.greenAccent, size: 8), const SizedBox(width: 7), Text(text, style: const TextStyle(color: Colors.white, fontSize: 13))]));
-  Widget _controls() => Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-    _btn(_muted ? Icons.mic_off : Icons.mic, _mute), if (widget.isVideo) _btn(_cameraEnabled ? Icons.videocam : Icons.videocam_off, _toggleCamera),
-    _btn(_speaker ? Icons.volume_up : Icons.volume_down, _toggleSpeaker), if (widget.isVideo) _btn(Icons.flip_camera_android, _switchCamera), _btn(Icons.call_end, _end, red: true),
-  ]);
-  Widget _btn(IconData icon, Future<void> Function() onPressed, {bool red = false}) => Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: FloatingActionButton(heroTag: '${icon.codePoint}_${red ? 'red' : 'normal'}', mini: true, backgroundColor: red ? Colors.red : Colors.white12, onPressed: () => unawaited(onPressed()), child: Icon(icon, color: Colors.white)));
-  String _fmt(int seconds) { final minutes = seconds ~/ 60; final remaining = seconds % 60; return '${minutes.toString().padLeft(2, '0')}:${remaining.toString().padLeft(2, '0')}'; }
+  Widget _statusChip(String text) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(18), border: Border.all(color: Colors.white12)),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.circle, color: Colors.greenAccent, size: 8),
+            const SizedBox(width: 7),
+            Text(text, style: const TextStyle(color: Colors.white, fontSize: 13)),
+          ],
+        ),
+      );
+
+  Widget _controls() => Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _btn(_muted ? Icons.mic_off : Icons.mic, _mute),
+          if (widget.isVideo) _btn(_cameraEnabled ? Icons.videocam : Icons.videocam_off, _toggleCamera),
+          _btn(_speaker ? Icons.volume_up : Icons.volume_down, _toggleSpeaker),
+          if (widget.isVideo) _btn(Icons.flip_camera_android, _switchCamera),
+          _btn(Icons.call_end, _end, red: true),
+        ],
+      );
+
+  Widget _btn(IconData icon, Future<void> Function() onPressed, {bool red = false}) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6),
+        child: FloatingActionButton(
+          heroTag: '${icon.codePoint}_${red ? 'red' : 'normal'}',
+          mini: true,
+          backgroundColor: red ? Colors.red : Colors.white12,
+          onPressed: () => unawaited(onPressed()),
+          child: Icon(icon, color: Colors.white),
+        ),
+      );
+
+  String _fmt(int seconds) {
+    final minutes = seconds ~/ 60;
+    final remaining = seconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${remaining.toString().padLeft(2, '0')}';
+  }
 }
