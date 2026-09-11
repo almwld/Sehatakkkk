@@ -43,7 +43,18 @@ class CallService {
     await _retry(() => _firestore.runTransaction((tx) async {
       final existingCall = await tx.get(ref); if (existingCall.exists) return;
       final lock = await tx.get(lockRef);
-      if (lock.exists) { final lockData = lock.data() ?? <String,dynamic>{}; final lockStatus = lockData['status']?.toString(); final activeId = lockData['activeCallId']?.toString(); if (activeId != null && activeId.isNotEmpty && ['calling','ringing','connected'].contains(lockStatus)) { final active = await tx.get(_firestore.collection('calls').doc(activeId)); if (active.exists && ['calling','ringing','connected'].contains(active.data()?['status']?.toString())) throw StateError('الطرف الآخر أو أحد المشاركين لديه مكالمة نشطة'); } }
+      if (lock.exists) {
+        final lockData = lock.data() ?? <String,dynamic>{};
+        final lockStatus = lockData['status']?.toString();
+        final activeId = lockData['activeCallId']?.toString();
+        if (activeId != null && activeId.isNotEmpty && ['calling','ringing','connected'].contains(lockStatus)) {
+          final active = await tx.get(_firestore.collection('calls').doc(activeId));
+          if (active.exists && ['calling','ringing','connected'].contains(active.data()?['status']?.toString())) {
+            // Do not reject the new call here. The receiver-side coordinator
+            // queues it locally while the active LiveKit session continues.
+          }
+        }
+      }
       tx.set(lockRef, {'participants':[uid,receiverId],'activeCallId':id,'status':CallStatus.calling.name,'updatedAt':FieldValue.serverTimestamp()});
       tx.set(ref, {'id':id,'chatId':chatId,'callerId':uid,'callerName':user.displayName ?? 'مستخدم','callerPhotoUrl':user.photoURL,'receiverId':receiverId,'receiverName':receiverName,'receiverPhotoUrl':receiverPhotoUrl,'callType':type.name,'status':CallStatus.calling.name,'startedAt':FieldValue.serverTimestamp(),'isAnswered':false,'participants':[uid,receiverId],'liveKitRoomName':room,'roomName':room,'isVideoCall':type == CallType.video});
     }));
