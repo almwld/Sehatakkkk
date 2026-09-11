@@ -7,6 +7,7 @@ import 'package:livekit_client/livekit_client.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'package:sehatak/core/models/call_model.dart';
+import 'package:sehatak/core/services/active_call_registry.dart';
 import 'package:sehatak/core/services/call_service.dart';
 import 'package:sehatak/core/services/livekit_service.dart';
 import 'package:sehatak/core/services/toast_service.dart';
@@ -45,9 +46,29 @@ class _CallScreenState extends State<CallScreen> {
   bool _cameraEnabled = true;
   bool _speaker = false;
   bool _networkAvailable = true;
+  bool _blocked = false;
 
   @override
-  void initState() { super.initState(); _watchConnectivity(); _connect(); }
+  void initState() {
+    super.initState();
+    final incomingId = widget.callId?.trim();
+    if (incomingId != null && incomingId.isNotEmpty && ActiveCallRegistry.instance.hasActiveCall && !ActiveCallRegistry.instance.isActive(incomingId)) {
+      _blocked = true;
+      debugPrint('CALL SCREEN BLOCKED second call active=${ActiveCallRegistry.instance.activeCallId} incoming=$incomingId');
+      unawaited(_calls.markBusy(incomingId));
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        Navigator.of(context).pop();
+        ToastService.showError('مشغول في مكالمة أخرى');
+      });
+      return;
+    }
+    if (incomingId != null && incomingId.isNotEmpty) {
+      ActiveCallRegistry.instance.register(incomingId);
+    }
+    _watchConnectivity();
+    _connect();
+  }
 
   Future<void> _watchConnectivity() async {
     try {
@@ -79,8 +100,13 @@ class _CallScreenState extends State<CallScreen> {
         if (call == null || call.receiverId != user.uid) throw StateError('هذه المكالمة ليست موجهة لهذا المستخدم');
       }
       if (call == null) throw StateError('تعذر العثور على المكالمة');
+      if (ActiveCallRegistry.instance.hasActiveCall && !ActiveCallRegistry.instance.isActive(call.id)) {
+        await _calls.markBusy(call.id);
+        throw StateError('مكالمة أخرى نشطة');
+      }
       _callId = call.id;
       _roomName = (call.liveKitRoomName?.trim().isNotEmpty == true) ? call.liveKitRoomName!.trim() : 'call_${call.id}';
+      ActiveCallRegistry.instance.register(call.id);
       debugPrint('CALL READY uid=${user.uid} callId=$_callId chatId=${widget.chatId} room=$_roomName outgoing=${widget.isOutgoing}');
       _callSubscription = _calls.streamCall(call.id).listen((updated) {
         if (!mounted || updated == null || _ending) return;
@@ -106,6 +132,7 @@ class _CallScreenState extends State<CallScreen> {
         setState(() => _connecting = false);
       }
     } catch (e) {
+      ActiveCallRegistry.instance.unregister(_callId ?? widget.callId);
       debugPrint('CALL CONNECT ERROR: $e');
       if (!mounted) return;
       setState(() { _connecting = false; _error = e.toString().replaceFirst('Exception: ', ''); });
@@ -113,7 +140,7 @@ class _CallScreenState extends State<CallScreen> {
     }
   }
 
-  bool _isTerminal(CallStatus status) => status == CallStatus.cancelled || status == CallStatus.rejected || status == CallStatus.missed || status == CallStatus.ended;
+  bool _isTerminal(CallStatus status) => status == CallStatus.cancelled || status == CallStatus.rejected || status == CallStatus.missed || status == CallStatus.ended || status == CallStatus.busy;
 
   void _setConnectedAt(DateTime value) {
     if (_connectedAt != null && _connectedAt!.difference(value).abs() < const Duration(seconds: 1)) return;
@@ -132,11 +159,11 @@ class _CallScreenState extends State<CallScreen> {
   }
 
   Future<void> _join(CallModel call, User user) async {
-    if (_joined || _ending) return;
-    // Defense in depth: this method is only allowed to execute after the
-    // server-side lifecycle reaches connected. Never join while ringing.
-    if (call.status != CallStatus.connected) {
-      debugPrint('CALL JOIN BLOCKED id=${call.id} status=${call.status}');
+    if (_joined || _ending || _blocked) return;
+    if (call.status != CallStatus.connected) return;
+    if (ActiveCallRegistry.instance.hasActiveCall && !ActiveCallRegistry.instance.isActive(call.id)) {
+      await _calls.markBusy(call.id);
+      await _finishRemote();
       return;
     }
     try {
@@ -147,6 +174,7 @@ class _CallScreenState extends State<CallScreen> {
       final microphone = await Permission.microphone.request();
       if (!microphone.isGranted) throw StateError('يرجى منح إذن الميكروفون');
       if (_roomName == null || _roomName!.isEmpty) throw StateError('اسم غرفة LiveKit مفقود');
+      ActiveCallRegistry.instance.register(call.id);
       _room = await _live.startCall(roomName: _roomName!, callerName: user.displayName?.trim().isNotEmpty == true ? user.displayName!.trim() : widget.doctorName, isVideo: widget.isVideo);
       _joined = true;
       _timeout?.cancel();
@@ -160,6 +188,7 @@ class _CallScreenState extends State<CallScreen> {
       await _live.setSpeakerphone(_speaker);
       if (mounted) setState(() { _connecting = false; _error = null; });
     } catch (e) {
+      ActiveCallRegistry.instance.unregister(call.id);
       debugPrint('CALL LIVEKIT JOIN ERROR: $e');
       if (mounted) setState(() { _connecting = false; _error = e.toString().replaceFirst('Exception: ', ''); });
     }
@@ -179,6 +208,7 @@ class _CallScreenState extends State<CallScreen> {
     _timeout?.cancel(); _timer?.cancel();
     await _callSubscription?.cancel();
     _callSubscription = null;
+    ActiveCallRegistry.instance.unregister(_callId ?? widget.callId);
     await _live.endCall();
     if (mounted) Navigator.of(context).pop();
   }
@@ -189,6 +219,7 @@ class _CallScreenState extends State<CallScreen> {
     _timeout?.cancel(); _timer?.cancel();
     await _callSubscription?.cancel();
     _callSubscription = null;
+    ActiveCallRegistry.instance.unregister(_callId ?? widget.callId);
     try { if (_callId != null) await _calls.endCall(_callId!, durationSeconds: _joined ? _seconds : 0); } catch (e) { debugPrint('CALL END FIRESTORE ERROR: $e'); }
     await _live.endCall();
     if (mounted) Navigator.of(context).pop();
@@ -202,6 +233,7 @@ class _CallScreenState extends State<CallScreen> {
   @override
   void dispose() {
     _timeout?.cancel(); _timer?.cancel(); _callSubscription?.cancel(); _connectivitySubscription?.cancel();
+    ActiveCallRegistry.instance.unregister(_callId ?? widget.callId);
     if (_joined) unawaited(_live.endCall());
     super.dispose();
   }
