@@ -1,8 +1,3 @@
-// ============================================================
-// 📁 test/bloc/home_bloc_test.dart
-// 🧪 اختبارات Home Bloc
-// ============================================================
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:sehatak/bloc/home/home_bloc.dart';
@@ -22,11 +17,11 @@ void main() {
     });
 
     test('initial state is correct', () {
-      expect(homeBloc.state, const HomeState());
+      expect(homeBloc.state, HomeState());
     });
 
     blocTest<HomeBloc, HomeState>(
-      'emits [HomeLoading, HomeLoaded] when HomeStarted is added',
+      'emits loading then loaded when HomeStarted is added',
       build: () => homeBloc,
       act: (bloc) => bloc.add(const HomeStarted()),
       expect: () => [
@@ -36,7 +31,7 @@ void main() {
     );
 
     blocTest<HomeBloc, HomeState>(
-      'emits [HomeRefreshing, HomeLoaded] when HomeDataRefreshed is added',
+      'emits refreshing then loaded when HomeDataRefreshed is added',
       build: () => homeBloc,
       act: (bloc) => bloc.add(const HomeDataRefreshed()),
       expect: () => [
