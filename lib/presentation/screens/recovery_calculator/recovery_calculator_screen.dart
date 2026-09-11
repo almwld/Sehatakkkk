@@ -55,8 +55,8 @@ class _RecoveryCalculatorScreenState extends State<RecoveryCalculatorScreen> {
           ),
           const SizedBox(height: 16),
           _slide('العمر', _age.toDouble(), 1, 100, (v) => setState(() => _age = v.toInt())),
-          SwitchListTile(title: 'مدخن', value: _smoker, activeColor: AppColors.primary, onChanged: (v) => setState(() => _smoker = v)),
-          SwitchListTile(title: 'أمارس الرياضة', value: _exercise, activeColor: AppColors.primary, onChanged: (v) => setState(() => _exercise = v)),
+          SwitchListTile(title: const Text('مدخن'), value: _smoker, activeColor: AppColors.primary, onChanged: (v) => setState(() => _smoker = v)),
+          SwitchListTile(title: const Text('أمارس الرياضة'), value: _exercise, activeColor: AppColors.primary, onChanged: (v) => setState(() => _exercise = v)),
           const SizedBox(height: 12),
           Container(padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: AppColors.success.withOpacity(0.05), borderRadius: BorderRadius.circular(14)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('💡 نصائح', style: const TextStyle(fontWeight: FontWeight.bold)), Text('• ${c['advice']}', style: const TextStyle(fontSize: 12)),
