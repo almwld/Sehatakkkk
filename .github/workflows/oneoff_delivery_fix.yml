@@ -1,0 +1,29 @@
+name: One-off delivery analyzer fix
+on: push
+permissions:
+  contents: write
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fix invalid AppColors parameter shadowing
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('lib/presentation/screens/delivery/delivery_tracking_screen.dart')
+          s = p.read_text()
+          s = s.replace('    final AppColors.primary = const Color(0xFF0D5257);\n', '')
+          s = s.replace('Color AppColors.primary', 'Color primaryColor')
+          s = s.replace('AppColors.primary.withOpacity(0.7)', 'primaryColor.withOpacity(0.7)', 1)
+          # Keep the shared app color for all other call sites; primaryColor is only a local parameter.
+          s = s.replace('backgroundColor: AppColors.primary,', 'backgroundColor: AppColors.primary,')
+          p.write_text(s)
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lib/presentation/screens/delivery/delivery_tracking_screen.dart
+          git diff --cached --quiet || git commit -m 'fix: repair delivery tracking color parameter'
+          git push
