@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 
 import '../../app_router.dart';
 import '../../presentation/screens/chat/incoming_call_screen.dart';
+import 'active_call_registry.dart';
+import 'call_service.dart';
 import 'sound_manager.dart';
 
 /// Sole owner of foreground call alert audio and incoming-call routing.
@@ -19,8 +21,10 @@ class CallSoundCoordinator {
   StreamSubscription<User?>? _authSubscription;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _callsSubscription;
   final SoundManager _sounds = SoundManager();
+  final CallService _calls = CallService();
   String? _activeCallId;
   String? _incomingUiCallId;
+  final Set<String> _busyHandledCallIds = <String>{};
   bool _incomingMuted = false;
 
   void start() {
@@ -35,6 +39,7 @@ class CallSoundCoordinator {
     _callsSubscription = null;
     _activeCallId = null;
     _incomingUiCallId = null;
+    _busyHandledCallIds.clear();
     _incomingMuted = false;
     unawaited(_sounds.stopCallAudio());
 
@@ -100,6 +105,18 @@ class CallSoundCoordinator {
       _incomingMuted = false;
     }
 
+    if (isIncoming && ActiveCallRegistry.instance.hasActiveCall) {
+      unawaited(_sounds.stopCallAudio());
+      if (!_busyHandledCallIds.contains(callId)) {
+        _busyHandledCallIds.add(callId);
+        unawaited(_calls.markBusy(callId).catchError((Object error) {
+          debugPrint('CALL BUSY update failed id=$callId error=$error');
+        }));
+      }
+      debugPrint('CALL BUSY uid=${user.uid} activeCall=${ActiveCallRegistry.instance.activeCallId} incoming=$callId');
+      return;
+    }
+
     if (isIncoming) {
       if (_incomingMuted) {
         unawaited(_sounds.stopCallAudio());
@@ -110,10 +127,6 @@ class CallSoundCoordinator {
       unawaited(_sounds.playRingback().catchError((_) {}));
     }
 
-    // The receiver may already be inside CallScreen (or any other route).
-    // Use a root modal route instead of pushing a normal page from the
-    // current route. This guarantees that the incoming UI is rendered above
-    // the active call without replacing or depending on CallScreen's context.
     if (isIncoming && isNewCall) {
       _showIncomingCall(data, callId);
     }
@@ -189,6 +202,7 @@ class CallSoundCoordinator {
     _callsSubscription = null;
     _activeCallId = null;
     _incomingUiCallId = null;
+    _busyHandledCallIds.clear();
     _incomingMuted = false;
     await _sounds.stopAll();
   }
