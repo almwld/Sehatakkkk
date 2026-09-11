@@ -118,7 +118,9 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
     _notificationService.setNotificationTapHandler(_handleLocalNotificationTap);
     _messageSubscription = FirebaseMessaging.onMessage.listen(_handleMessage);
     _openedMessageSubscription = FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpened);
-    FirebaseMessaging.instance.getInitialMessage().then((message) { if (message != null) WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _handleMessageOpened(message); }); });
+    FirebaseMessaging.instance.getInitialMessage().then((message) {
+      if (message != null) WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _handleMessageOpened(message); });
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       unawaited(_initializeServicesAfterRunApp());
@@ -240,7 +242,10 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
   Future<void> _handleMessageOpened(RemoteMessage message) async {
     if (message.data['type'] == 'incoming_call') {
       final callId = (message.data['callId'] ?? message.data['id'])?.toString();
-      if (callId != null && callId.isNotEmpty) { await _notificationService.cancelIncomingCallNotification(callId); if (mounted) await _callService.handleIncomingCall(context, message); }
+      if (callId != null && callId.isNotEmpty) {
+        await _notificationService.cancelIncomingCallNotification(callId);
+        if (mounted) await _callService.handleIncomingCall(context, message);
+      }
       return;
     }
     final chatId = message.data['chatId']?.toString();
@@ -268,7 +273,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
       otherImage = d['photoUrl']?.toString();
     }
     if (otherId.isEmpty) return;
-    nav.push(MaterialPageRoute(builder: (_) => ChatRoomScreen(chatId: chatId, otherUserId: otherId, otherUserName: otherName, otherUserImage: otherImage, isGroup: isGroup));
+    nav.push(MaterialPageRoute(builder: (_) => ChatRoomScreen(chatId: chatId, otherUserId: otherId, otherUserName: otherName, otherUserImage: otherImage, isGroup: isGroup)));
   }
 
   @override
