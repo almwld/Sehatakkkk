@@ -79,7 +79,9 @@ class CallSoundCoordinator {
       if (startedAt is! Timestamp) continue;
       final started = startedAt.toDate();
       final age = DateTime.now().difference(started);
-      if (age.isNegative || age > _maxCallAge) continue;
+      // Ringing/calling calls are time-bounded. A connected call must never
+      // expire from the registry just because it lasts longer than 90s.
+      if (status != CallStatus.connected.name && (age.isNegative || age > _maxCallAge)) continue;
       if (active == null || newest == null || started.isAfter(newest)) {
         active = doc;
         newest = started;
