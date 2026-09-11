@@ -53,7 +53,6 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> with SingleTick
     super.initState();
     _pulseController = AnimationController(duration: const Duration(seconds: 2), vsync: this)..repeat(reverse: true);
     _pulseAnimation = Tween<double>(begin: 1.0, end: 1.08).animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
-    // CallSoundCoordinator is the sole owner of ringtone playback.
     _startVibration();
     _listenToCall();
     _startTimeout();
@@ -95,8 +94,11 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> with SingleTick
   void _listenToCall() {
     _callSubscription = _callService.streamCall(widget.callId).listen((call) {
       if (!mounted || call == null || _isProcessing) return;
-      if (call.status == CallStatus.cancelled || call.status == CallStatus.rejected || call.status == CallStatus.missed || call.status == CallStatus.ended) {
+      if (call.status == CallStatus.cancelled || call.status == CallStatus.rejected || call.status == CallStatus.missed || call.status == CallStatus.busy || call.status == CallStatus.ended) {
         _stopAlerting();
+        if (call.status == CallStatus.busy) {
+          ToastService.showInfo('المستخدم مشغول بمكالمة أخرى');
+        }
         Navigator.of(context).pop();
       }
     }, onError: (error) {
@@ -116,8 +118,6 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> with SingleTick
     if (_isProcessing) return;
     setState(() => _isProcessing = true);
     try {
-      // acceptCall atomically changes Firestore to connected. CallScreen then
-      // waits for that status before joining the LiveKit room.
       await _callService.acceptCall(widget.callId);
       widget.onCallAnswered(true);
       _stopAlerting();
