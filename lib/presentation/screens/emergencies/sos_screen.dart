@@ -19,5 +19,5 @@ class _SosScreenState extends State<SosScreen>{
    ] else ...[
      const Icon(Icons.warning,size:100,color:AppColors.white),const SizedBox(height:24),Text('تم إرسال إنذار الطوارئ!',style:Theme.of(context).textTheme.headlineMedium?.copyWith(color:AppColors.white,fontWeight:FontWeight.bold),textAlign:TextAlign.center),const SizedBox(height:16),Text('تم إخطار جهات الاتصال في الطوارئ والخدمات الطبية',textAlign:TextAlign.center,style:Theme.of(context).textTheme.bodyMedium?.copyWith(color:AppColors.white.withOpacity(.9))),const SizedBox(height:32),ElevatedButton.icon(onPressed:_callAmbulance,icon:const Icon(Icons.call,size:20),label:const Text('الاتصال بالإسعاف'),style:ElevatedButton.styleFrom(backgroundColor:AppColors.white,foregroundColor:AppColors.error)),const SizedBox(height:16),TextButton(onPressed:()=>Navigator.pop(context),child:const Text('إغلاق',style:TextStyle(color:AppColors.white)))
    ]
- ])));}
+ ]))));}
 }
