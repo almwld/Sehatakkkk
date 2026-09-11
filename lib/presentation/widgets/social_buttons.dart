@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/constants/app_icons.dart';
 import 'app_icon.dart';
 
@@ -11,23 +12,11 @@ class SocialButtons extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _socialButton(
-          icon: AppIcons.whatsapp,
-          imageUrl: 'https://wa.me/967777123456',
-          label: 'واتساب',
-        ),
+        _socialButton(icon: AppIcons.socialWhatsapp, url: 'https://wa.me/967777123456', label: 'واتساب'),
         const SizedBox(width: 16),
-        _socialButton(
-          icon: AppIcons.facebook,
-          imageUrl: 'https://facebook.com/sehatak',
-          label: 'فيسبوك',
-        ),
+        _socialButton(icon: AppIcons.socialFacebook, url: 'https://facebook.com/sehatak', label: 'فيسبوك'),
         const SizedBox(width: 16),
-        _socialButton(
-          icon: AppIcons.instagram,
-          imageUrl: 'https://instagram.com/sehatak',
-          label: 'إنستجرام',
-        ),
+        _socialButton(icon: AppIcons.socialInstagram, url: 'https://instagram.com/sehatak', label: 'إنستجرام'),
       ],
     );
   }
@@ -47,17 +36,10 @@ class SocialButtons extends StatelessWidget {
               color: AppColors.primary.withOpacity(0.08),
               shape: BoxShape.circle,
             ),
-            child: AppIcon(
-              path: icon,
-              size: 28,
-              color: AppColors.primary,
-            ),
+            child: AppIcon(path: icon, size: 28, color: AppColors.primary),
           ),
           const SizedBox(height: 4),
-          Text(
-            label,
-            style: const TextStyle(fontSize: 10, color: AppColors.grey),
-          ),
+          Text(label, style: const TextStyle(fontSize: 10, color: AppColors.grey)),
         ],
       ),
     );
@@ -67,8 +49,6 @@ class SocialButtons extends StatelessWidget {
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      throw 'Could not launch $url';
     }
   }
 }
