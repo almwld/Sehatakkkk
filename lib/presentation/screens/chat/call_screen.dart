@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/services/active_call_registry.dart';
 import 'package:sehatak/core/services/call_service.dart';
 import 'package:sehatak/core/services/livekit_service.dart';
 import 'package:sehatak/core/services/chat_service.dart';
@@ -59,12 +60,21 @@ class _CallScreenState extends State<CallScreen> {
       );
       if (widget.isVideo) await _liveKit.enableCamera();
 
+      // Local device guard: register immediately after LiveKit connects so a
+      // second incoming call cannot open another CallScreen during the small
+      // window before the Firestore snapshot reaches CallSoundCoordinator.
+      final connectedCallId = _callId;
+      if (connectedCallId != null && connectedCallId.isNotEmpty) {
+        ActiveCallRegistry.instance.register(connectedCallId);
+      }
+
       if (!mounted) return;
       setState(() => _connected = true);
       _timer = Timer.periodic(const Duration(seconds: 1), (_) {
         if (mounted && _connected) setState(() => _seconds++);
       });
     } catch (e) {
+      ActiveCallRegistry.instance.unregister(_callId);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('فشل الاتصال: $e')));
         Navigator.pop(context);
@@ -82,6 +92,7 @@ class _CallScreenState extends State<CallScreen> {
         await _calls.endCall(id, durationSeconds: _seconds);
       } catch (_) {}
     }
+    ActiveCallRegistry.instance.unregister(id);
     await _liveKit.endCall();
     if (mounted) Navigator.pop(context);
   }
@@ -89,6 +100,7 @@ class _CallScreenState extends State<CallScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    ActiveCallRegistry.instance.unregister(_callId);
     _liveKit.endCall();
     super.dispose();
   }
