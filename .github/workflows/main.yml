@@ -1,0 +1,89 @@
+name: 🚀 Build Sehatak APK
+
+on:
+  push:
+    branches: [ master, main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+    
+    - name: ☕ Setup Java
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    
+    - name: 💙 Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.16.0'
+        channel: 'stable'
+        cache: true
+    
+    - name: 🔑 Add google-services.json
+      run: |
+        cat > android/app/google-services.json << 'JSONEOF'
+        {
+          "project_info": {
+            "project_number": "1053269106596",
+            "project_id": "sehatak-platform",
+            "storage_bucket": "sehatak-platform.firebasestorage.app"
+          },
+          "client": [
+            {
+              "client_info": {
+                "mobilesdk_app_id": "1:1053269106596:android:de2128024cd023a973ab31",
+                "android_client_info": {
+                  "package_name": "com.sehatak.app"
+                }
+              },
+              "oauth_client": [],
+              "api_key": [
+                {
+                  "current_key": "AIzaSyD_frsfhn0jde9cWVUW3hXjGcnMIQmY51k"
+                }
+              ],
+              "services": {
+                "appinvite_service": {
+                  "other_platform_oauth_client": []
+                }
+              }
+            }
+          ],
+          "configuration_version": "1"
+        }
+        JSONEOF
+    
+    - name: 📦 Install dependencies
+      run: flutter pub get
+    
+    - name: 🔨 Build APK
+      run: flutter build apk --release --split-per-abi --no-shrink
+    
+    - name: 📤 Upload arm64-v8a
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-arm64-v8a
+        path: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+        retention-days: 30
+    
+    - name: 📤 Upload armeabi-v7a
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-armeabi-v7a
+        path: build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+        retention-days: 30
+    
+    - name: 📤 Upload x86_64
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-x86_64
+        path: build/app/outputs/flutter-apk/app-x86_64-release.apk
+        retention-days: 30
+
