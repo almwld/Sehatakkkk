@@ -8,8 +8,7 @@ class HomeRepository {
 
   Future<({bool isLoggedIn, String userName})> getUserData() async {
     try {
-      final auth = _auth;
-      final user = auth?.currentUser;
+      final user = _auth?.currentUser;
       if (user == null) return (isLoggedIn: false, userName: 'مستخدم');
       var name = user.displayName ?? '';
       if (name.trim().isEmpty) {
@@ -26,12 +25,12 @@ class HomeRepository {
     try {
       final firestore = _firestore;
       final user = _auth?.currentUser;
-      if (firestore == null || user == null) return (calories: 0, steps: 0, sleep: 0, heartRate: 0);
+      if (firestore == null || user == null) return (calories: 0.0, steps: 0.0, sleep: 0.0, heartRate: 0.0);
       final data = (await firestore.collection('health_metrics').doc(user.uid).get()).data();
-      double number(dynamic value) => value is num ? value.toDouble() : double.tryParse(value?.toString() ?? '') ?? 0;
+      double number(dynamic value) => value is num ? value.toDouble() : double.tryParse(value?.toString() ?? '') ?? 0.0;
       return (calories: number(data?['calories']), steps: number(data?['steps']), sleep: number(data?['sleep']), heartRate: number(data?['heartRate']));
     } catch (_) {
-      return (calories: 0, steps: 0, sleep: 0, heartRate: 0);
+      return (calories: 0.0, steps: 0.0, sleep: 0.0, heartRate: 0.0);
     }
   }
 
@@ -46,17 +45,9 @@ class HomeRepository {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getHospitals({int limit = 6}) async {
-    return _getCityFacilities('hospitals', limit);
-  }
-
-  Future<List<Map<String, dynamic>>> getLabs({int limit = 6}) async {
-    return _getCityFacilities('labs', limit);
-  }
-
-  Future<List<Map<String, dynamic>>> getPharmacies({int limit = 6}) async {
-    return _getCityFacilities('pharmacies', limit);
-  }
+  Future<List<Map<String, dynamic>>> getHospitals({int limit = 6}) async => _getCityFacilities('hospitals', limit);
+  Future<List<Map<String, dynamic>>> getLabs({int limit = 6}) async => _getCityFacilities('labs', limit);
+  Future<List<Map<String, dynamic>>> getPharmacies({int limit = 6}) async => _getCityFacilities('pharmacies', limit);
 
   Future<List<Map<String, dynamic>>> _getCityFacilities(String collection, int limit) async {
     try {
