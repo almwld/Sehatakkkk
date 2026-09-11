@@ -66,13 +66,7 @@ Future<void> main() async {
     runApp(const _StartupErrorApp());
     return;
   }
-
-  try {
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  } catch (e) {
-    debugPrint('❌ FCM background handler registration error: $e');
-  }
-
+  try { FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler); } catch (e) { debugPrint('❌ FCM background handler registration error: $e'); }
   await CacheService.init();
   await ChatMediaTransferService.instance.initialize();
 
@@ -96,11 +90,7 @@ Future<void> main() async {
 
 class _StartupErrorApp extends StatelessWidget {
   const _StartupErrorApp();
-  @override
-  Widget build(BuildContext context) => const MaterialApp(
-    debugShowCheckedModeBanner: false,
-    home: Scaffold(body: Center(child: Text('تعذر تشغيل التطبيق بسبب خطأ في تهيئة الخدمات الأساسية.'))),
-  );
+  @override Widget build(BuildContext context) => const MaterialApp(debugShowCheckedModeBanner: false, home: Scaffold(body: Center(child: Text('تعذر تشغيل التطبيق بسبب خطأ في تهيئة الخدمات الأساسية.'))));
 }
 
 class SehatakApp extends StatefulWidget {
@@ -128,18 +118,12 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
     _notificationService.setNotificationTapHandler(_handleLocalNotificationTap);
     _messageSubscription = FirebaseMessaging.onMessage.listen(_handleMessage);
     _openedMessageSubscription = FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpened);
-    FirebaseMessaging.instance.getInitialMessage().then((message) {
-      if (message != null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _handleMessageOpened(message); });
-      }
-    });
+    FirebaseMessaging.instance.getInitialMessage().then((message) { if (message != null) WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _handleMessageOpened(message); }); });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       unawaited(_initializeServicesAfterRunApp());
-      if (_launchPayloadHandled) return;
-      unawaited(_loadLaunchPayload());
+      if (!_launchPayloadHandled) unawaited(_loadLaunchPayload());
     });
-
     _authNavigationSubscription = FirebaseAuth.instance.authStateChanges().listen((user) {
       if (!_authStatePrimed) {
         _authStatePrimed = true;
@@ -156,11 +140,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
   Future<void> _initializeServicesAfterRunApp() async {
     if (_notificationsStarted) return;
     _notificationsStarted = true;
-    try {
-      await _notificationService.initialize();
-    } catch (e) {
-      debugPrint('❌ Notification initialization error: $e');
-    }
+    try { await _notificationService.initialize(); } catch (e) { debugPrint('❌ Notification initialization error: $e'); }
     await _initializeFcmAfterRunApp();
   }
 
@@ -170,9 +150,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
     try {
       final settings = await FirebaseMessaging.instance.requestPermission(alert: true, badge: true, sound: true);
       debugPrint('🔔 FCM permission: ${settings.authorizationStatus}');
-    } catch (e) {
-      debugPrint('❌ FCM permission error: $e');
-    }
+    } catch (e) { debugPrint('❌ FCM permission error: $e'); }
     await _fcmTokenService.start();
   }
 
@@ -182,9 +160,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
       if (!mounted || payload == null || payload.isEmpty || _launchPayloadHandled) return;
       _launchPayloadHandled = true;
       await _handleLocalNotificationTap(payload);
-    } catch (e) {
-      debugPrint('launch notification payload: $e');
-    }
+    } catch (e) { debugPrint('launch notification payload: $e'); }
   }
 
   Future<void> _navigateAfterSignInFast(User user) async {
@@ -202,9 +178,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
           if (current != null) current.pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const PlatformDashboard()), (route) => false);
         }
       } catch (e) { debugPrint('⚡ Deferred role lookup skipped: $e'); }
-    } finally {
-      _fastNavigationInProgress = false;
-    }
+    } finally { _fastNavigationInProgress = false; }
   }
 
   @override
@@ -223,8 +197,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
       Provider.of<UserProvider>(context, listen: false).loadUserSafely();
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        unawaited(FirebaseFirestore.instance.collection('users').doc(user.uid).set(
-          {'isOnline': true, 'lastSeen': FieldValue.serverTimestamp()}, SetOptions(merge: true)));
+        unawaited(FirebaseFirestore.instance.collection('users').doc(user.uid).set({'isOnline': true, 'lastSeen': FieldValue.serverTimestamp()}, SetOptions(merge: true)));
         unawaited(_fcmTokenService.syncCurrentToken());
       }
       unawaited(ChatMediaTransferService.instance.processPending());
@@ -258,7 +231,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
   Future<void> _handleMessage(RemoteMessage message) async {
     if (message.data['type'] == 'incoming_call') {
       final callId = (message.data['callId'] ?? message.data['id'])?.toString();
-      if (callId != null && callId.isNotEmpty) await _notificationService.showIncomingCallNotification(callerName: message.data['callerName']?.toString() ?? message.notification?.title ?? 'مكالمة واردة', callId: callId, isVideo: message.data['isVideo']?.toString() == 'true' || message.data['callType']?.toString() == 'video');
+      if (callId != null && callId.isNotEmpty) await _notificationService.showIncomingCallNotification(callerName: message.data['callerName']?.toString() ?? message.notification?.title ?? 'مكالمة واردة', callId: callId, isVideo: message.data['isVideo']?.toString() == 'true' || message.data['callType']?.toString() == 'video', silent: true);
       return;
     }
     await _notificationService.showMessageNotification(title: message.notification?.title ?? message.data['senderName']?.toString() ?? 'رسالة جديدة', body: message.notification?.body ?? message.data['body']?.toString() ?? 'لديك رسالة جديدة في الدردشة', payload: message.data['chatId']?.toString());
