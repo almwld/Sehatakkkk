@@ -31,7 +31,7 @@ class _CameraTutorialOverlayState extends State<CameraTutorialOverlay>
     super.initState();
     _pulseController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 1.5),
+      duration: const Duration(milliseconds: 1500),
     )..repeat(reverse: true);
 
     _fadeController = AnimationController(
@@ -65,7 +65,7 @@ class _CameraTutorialOverlayState extends State<CameraTutorialOverlay>
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: FadeTransition(
                 opacity: _fadeController,
-                child: TweenAnimationBuilder(
+                child: TweenAnimationBuilder<double>(
                   tween: Tween<double>(begin: 0.8, end: 1.0),
                   duration: const Duration(milliseconds: 500),
                   curve: Curves.easeOut,
@@ -88,7 +88,6 @@ class _CameraTutorialOverlayState extends State<CameraTutorialOverlay>
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            // ✅ أيقونة الكاميرا المتحركة
                             AnimatedBuilder(
                               animation: _pulseController,
                               builder: (context, child) {
@@ -116,10 +115,7 @@ class _CameraTutorialOverlayState extends State<CameraTutorialOverlay>
                                 );
                               },
                             ),
-                            
                             const SizedBox(height: 24),
-                            
-                            // ✅ النص التعليمي
                             Text(
                               widget.isMeasuring
                                   ? '📸 حافظ على ثبات إصبعك'
@@ -131,9 +127,7 @@ class _CameraTutorialOverlayState extends State<CameraTutorialOverlay>
                               ),
                               textAlign: TextAlign.center,
                             ),
-                            
                             const SizedBox(height: 8),
-                            
                             Text(
                               widget.isMeasuring
                                   ? 'تأكد من تغطية الفلاش بالكامل\nوعدم تحريك إصبعك'
@@ -145,10 +139,7 @@ class _CameraTutorialOverlayState extends State<CameraTutorialOverlay>
                               ),
                               textAlign: TextAlign.center,
                             ),
-                            
                             const SizedBox(height: 24),
-                            
-                            // ✅ رسم توضيحي لوضع الإصبع
                             Container(
                               height: 80,
                               decoration: BoxDecoration(
@@ -158,17 +149,9 @@ class _CameraTutorialOverlayState extends State<CameraTutorialOverlay>
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(
-                                    Icons.phone_android,
-                                    size: 40,
-                                    color: Colors.grey.shade600,
-                                  ),
+                                  Icon(Icons.phone_android, size: 40, color: Colors.grey.shade600),
                                   const SizedBox(width: 8),
-                                  Icon(
-                                    Icons.arrow_forward,
-                                    size: 20,
-                                    color: Colors.blue.shade300,
-                                  ),
+                                  Icon(Icons.arrow_forward, size: 20, color: Colors.blue.shade300),
                                   const SizedBox(width: 8),
                                   Container(
                                     padding: const EdgeInsets.all(12),
@@ -176,31 +159,16 @@ class _CameraTutorialOverlayState extends State<CameraTutorialOverlay>
                                       color: Colors.blue.shade100,
                                       shape: BoxShape.circle,
                                     ),
-                                    child: const Icon(
-                                      Icons.fingerprint,
-                                      color: Colors.blue,
-                                      size: 30,
-                                    ),
+                                    child: const Icon(Icons.fingerprint, color: Colors.blue, size: 30),
                                   ),
                                   const SizedBox(width: 8),
-                                  Icon(
-                                    Icons.arrow_forward,
-                                    size: 20,
-                                    color: Colors.blue.shade300,
-                                  ),
+                                  Icon(Icons.arrow_forward, size: 20, color: Colors.blue.shade300),
                                   const SizedBox(width: 8),
-                                  Icon(
-                                    Icons.flash_on,
-                                    size: 30,
-                                    color: Colors.orange.shade400,
-                                  ),
+                                  Icon(Icons.flash_on, size: 30, color: Colors.orange.shade400),
                                 ],
                               ),
                             ),
-                            
                             const SizedBox(height: 16),
-                            
-                            // ✅ زر الإغلاق
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
