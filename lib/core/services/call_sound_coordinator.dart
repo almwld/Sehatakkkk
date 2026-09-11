@@ -12,6 +12,8 @@ import 'sound_manager.dart';
 
 /// Owns foreground call alert audio and incoming-call routing.
 /// It never joins LiveKit. Firestore remains the call lifecycle source of truth.
+/// Only one local call is allowed at a time; additional incoming calls are
+/// immediately marked busy and never open another incoming-call UI.
 class CallSoundCoordinator {
   CallSoundCoordinator._();
   static final CallSoundCoordinator instance = CallSoundCoordinator._();
@@ -20,18 +22,12 @@ class CallSoundCoordinator {
 
   StreamSubscription<User?>? _authSubscription;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _callsSubscription;
-  StreamSubscription<void>? _registrySubscription;
   final SoundManager _sounds = SoundManager();
   String? _activeCallId;
   String? _incomingUiCallId;
   bool _incomingMuted = false;
 
   void start() {
-    _registrySubscription ??= ActiveCallRegistry.instance.changes.listen((_) {
-      if (ActiveCallRegistry.instance.hasActiveCall) return;
-      final next = ActiveCallRegistry.instance.nextInQueue;
-      if (next != null) unawaited(showQueuedCall(next.callId));
-    });
     _authSubscription ??= FirebaseAuth.instance.authStateChanges().listen((_) => _restartCallsListener());
     _restartCallsListener();
   }
@@ -75,13 +71,20 @@ class CallSoundCoordinator {
     for (final doc in snapshot.docs) {
       final data = doc.data();
       final status = data['status']?.toString();
-      if (status != CallStatus.calling.name && status != CallStatus.ringing.name && status != CallStatus.connected.name) continue;
+      if (status != CallStatus.calling.name &&
+          status != CallStatus.ringing.name &&
+          status != CallStatus.connected.name) {
+        continue;
+      }
 
       final startedAt = data['startedAt'];
       if (startedAt is! Timestamp) continue;
       final started = startedAt.toDate();
       final age = DateTime.now().difference(started);
-      if (status != CallStatus.connected.name && (age.isNegative || age > _maxCallAge)) continue;
+      if (status != CallStatus.connected.name &&
+          (age.isNegative || age > _maxCallAge)) {
+        continue;
+      }
 
       final callerId = data['callerId']?.toString() ?? '';
       final receiverId = data['receiverId']?.toString() ?? '';
@@ -94,7 +97,8 @@ class CallSoundCoordinator {
         continue;
       }
 
-      if (isIncoming && (newestIncomingAt == null || started.isAfter(newestIncomingAt))) {
+      if (isIncoming &&
+          (newestIncomingAt == null || started.isAfter(newestIncomingAt))) {
         newestIncoming = doc;
         newestIncomingAt = started;
       }
@@ -105,8 +109,8 @@ class CallSoundCoordinator {
       }
     }
 
-    // A connected LiveKit call always wins. Any new incoming call is queued
-    // locally instead of opening a second CallScreen or LiveKit session.
+    // A connected call always wins. Any other incoming call is immediately
+    // rejected as busy; there is deliberately no local call queue.
     if (connected != null) {
       final connectedId = connected.id;
       if (ActiveCallRegistry.instance.activeCallId != connectedId) {
@@ -118,16 +122,7 @@ class CallSoundCoordinator {
       unawaited(_sounds.stopCallAudio());
 
       if (newestIncoming != null && newestIncoming.id != connectedId) {
-        final data = newestIncoming.data();
-        final queued = ActiveCallRegistry.instance.enqueue(QueuedCall(
-          callId: newestIncoming.id,
-          callerName: data['callerName']?.toString() ?? 'مستخدم',
-          callerId: data['callerId']?.toString() ?? '',
-          callerImage: data['callerPhotoUrl']?.toString(),
-          chatId: data['chatId']?.toString() ?? '',
-          isVideo: data['isVideoCall'] == true || data['callType']?.toString() == 'video',
-        ));
-        if (queued) debugPrint('CALL WAITING queued=${newestIncoming.id} active=$connectedId');
+        unawaited(_markIncomingBusy(newestIncoming.id));
       }
       return;
     }
@@ -153,6 +148,16 @@ class CallSoundCoordinator {
     }
 
     if (isIncoming) {
+      // Defense in depth: the registry is the local source of truth for an
+      // active LiveKit/CallScreen session. Never show a second incoming UI.
+      final registryId = ActiveCallRegistry.instance.activeCallId;
+      if (registryId != null && registryId != callId) {
+        debugPrint('CALL BUSY no IncomingCallScreen active=$registryId incoming=$callId');
+        unawaited(_markIncomingBusy(callId));
+        unawaited(_sounds.stopCallAudio());
+        return;
+      }
+
       if (_incomingMuted) {
         unawaited(_sounds.stopCallAudio());
       } else {
@@ -164,32 +169,24 @@ class CallSoundCoordinator {
     }
   }
 
-  /// Releases the next queued incoming call after the active call has ended.
-  Future<void> showQueuedCall(String callId) async {
-    if (ActiveCallRegistry.instance.hasActiveCall || !ActiveCallRegistry.instance.isQueued(callId)) return;
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
+  Future<void> _markIncomingBusy(String callId) async {
     try {
-      final doc = await FirebaseFirestore.instance.collection('calls').doc(callId).get();
-      if (!doc.exists) {
-        ActiveCallRegistry.instance.removeFromQueue(callId);
-        return;
-      }
-      final data = doc.data() ?? <String, dynamic>{};
-      final status = data['status']?.toString();
-      if (data['receiverId']?.toString() != user.uid || (status != CallStatus.calling.name && status != CallStatus.ringing.name)) {
-        ActiveCallRegistry.instance.removeFromQueue(callId);
-        return;
-      }
-
-      ActiveCallRegistry.instance.removeFromQueue(callId);
-      _activeCallId = callId;
-      _incomingMuted = false;
-      unawaited(_sounds.playCallRingtone().catchError((_) {}));
-      _showIncomingCall(data, callId);
+      final ref = FirebaseFirestore.instance.collection('calls').doc(callId);
+      final snap = await ref.get();
+      if (!snap.exists) return;
+      final status = snap.data()?['status']?.toString();
+      if (status != CallStatus.calling.name && status != CallStatus.ringing.name) return;
+      await ref.update({
+        'status': CallStatus.busy.name,
+        'endedAt': FieldValue.serverTimestamp(),
+        'busyReason': 'receiver_in_call',
+      });
+      debugPrint('CALL BUSY marked id=$callId reason=receiver_in_call');
     } catch (e) {
-      debugPrint('CALL QUEUE SHOW ERROR id=$callId error=$e');
+      debugPrint('CALL BUSY update failed id=$callId error=$e');
+    } finally {
+      if (_activeCallId == callId) _activeCallId = null;
+      await _sounds.stopCallAudio();
     }
   }
 
@@ -219,7 +216,13 @@ class CallSoundCoordinator {
       ),
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
-        return FadeTransition(opacity: curved, child: ScaleTransition(scale: Tween<double>(begin: .96, end: 1).animate(curved), child: child));
+        return FadeTransition(
+          opacity: curved,
+          child: ScaleTransition(
+            scale: Tween<double>(begin: .96, end: 1).animate(curved),
+            child: child,
+          ),
+        );
       },
     ).whenComplete(() {
       if (_incomingUiCallId == callId) _incomingUiCallId = null;
@@ -246,10 +249,8 @@ class CallSoundCoordinator {
   Future<void> dispose() async {
     await _authSubscription?.cancel();
     await _callsSubscription?.cancel();
-    await _registrySubscription?.cancel();
     _authSubscription = null;
     _callsSubscription = null;
-    _registrySubscription = null;
     _activeCallId = null;
     _incomingUiCallId = null;
     _incomingMuted = false;
