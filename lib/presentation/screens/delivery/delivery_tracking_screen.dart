@@ -43,7 +43,6 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final AppColors.primary = const Color(0xFF0D5257);
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
@@ -98,7 +97,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
     );
   }
 
-  Widget _buildContent(bool isDark, Color AppColors.primary) {
+  Widget _buildContent(bool isDark, Color primaryColor) {
     final delivery = _delivery!;
     final courier = delivery.courier;
 
@@ -127,12 +126,12 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
     );
   }
 
-  Widget _buildOrderCard(DeliveryModel delivery, bool isDark, Color AppColors.primary) {
+  Widget _buildOrderCard(DeliveryModel delivery, bool isDark, Color primaryColor) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.primary, AppColors.primary.withOpacity(0.7)],
+          colors: [AppColors.primary, primaryColor.withOpacity(0.7)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -314,7 +313,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
     );
   }
 
-  Widget _buildTimeline(bool isDark, Color AppColors.primary) {
+  Widget _buildTimeline(bool isDark, Color primaryColor) {
     final steps = [
       {'label': 'تم الطلب', 'icon': Icons.receipt_long_rounded},
       {'label': 'تم التجهيز', 'icon': Icons.pending_actions_rounded},
