@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/models/ad_model.dart';
 import 'package:sehatak/core/models/booking_model.dart';
 import 'package:sehatak/presentation/screens/advertisements/ad_management_screen.dart';
 import 'package:sehatak/presentation/screens/shared/my_bookings_screen.dart';

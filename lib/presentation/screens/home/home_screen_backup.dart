@@ -83,7 +83,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       0: HomeTab(
         key: ScreenKeys.home,
         scrollController: _scrollController,
-        isBottomBarVisible: ValueNotifier<bool>(_isBottomBarVisible),
       ),
       1: const DoctorsListScreen(key: ScreenKeys.doctors),
       2: const PharmacyScreen(key: ScreenKeys.pharmacy),

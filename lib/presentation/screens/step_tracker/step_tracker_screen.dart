@@ -130,7 +130,7 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
       spots.add(FlSpot(i.toDouble(), (_weeklyData[i]['steps'] as num?)?.toDouble() ?? 0));
     }
     final maxValue = spots.map((e) => e.y).fold<double>(1000, (a, b) => a > b ? a : b);
-    final maxY = maxValue <= 0 ? 1000 : maxValue * 1.2;
+    final maxY = maxValue <= 0 ? 1000.0 : maxValue * 1.2;
     return SizedBox(height: 210, child: LineChart(LineChartData(
       minY: 0,
       maxY: maxY,

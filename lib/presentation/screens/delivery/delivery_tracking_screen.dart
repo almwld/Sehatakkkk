@@ -43,13 +43,13 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = const Color(0xFF0D5257);
+    final AppColors.primary = const Color(0xFF0D5257);
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
       appBar: CustomAppBar(
         title: 'تتبع الطلب',
-        backgroundColor: primaryColor,
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
@@ -63,7 +63,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
           ? const Center(child: CircularProgressIndicator())
           : _delivery == null
               ? _buildErrorWidget(isDark)
-              : _buildContent(isDark, primaryColor),
+              : _buildContent(isDark, AppColors.primary),
     );
   }
 
@@ -98,7 +98,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
     );
   }
 
-  Widget _buildContent(bool isDark, Color primaryColor) {
+  Widget _buildContent(bool isDark, Color AppColors.primary) {
     final delivery = _delivery!;
     final courier = delivery.courier;
 
@@ -108,7 +108,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ✅ بطاقة الطلب
-          _buildOrderCard(delivery, isDark, primaryColor),
+          _buildOrderCard(delivery, isDark, AppColors.primary),
           const SizedBox(height: 16),
 
           // ✅ خريطة التتبع (محاكاة)
@@ -116,7 +116,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
           const SizedBox(height: 16),
 
           // ✅ مراحل التتبع
-          _buildTimeline(isDark, primaryColor),
+          _buildTimeline(isDark, AppColors.primary),
           const SizedBox(height: 16),
 
           // ✅ معلومات المندوب
@@ -127,12 +127,12 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
     );
   }
 
-  Widget _buildOrderCard(DeliveryModel delivery, bool isDark, Color primaryColor) {
+  Widget _buildOrderCard(DeliveryModel delivery, bool isDark, Color AppColors.primary) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [primaryColor, primaryColor.withOpacity(0.7)],
+          colors: [AppColors.primary, AppColors.primary.withOpacity(0.7)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -269,11 +269,11 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
               child: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: primaryColor,
+                  color: AppColors.primary,
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: primaryColor.withOpacity(0.4),
+                      color: AppColors.primary.withOpacity(0.4),
                       blurRadius: 12,
                     ),
                   ],
@@ -314,7 +314,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
     );
   }
 
-  Widget _buildTimeline(bool isDark, Color primaryColor) {
+  Widget _buildTimeline(bool isDark, Color AppColors.primary) {
     final steps = [
       {'label': 'تم الطلب', 'icon': Icons.receipt_long_rounded},
       {'label': 'تم التجهيز', 'icon': Icons.pending_actions_rounded},
@@ -356,7 +356,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
                   decoration: BoxDecoration(
                     color: isCompleted
                         ? Colors.green
-                        : (isActive ? primaryColor : (isDark ? Colors.grey : Colors.grey)),
+                        : (isActive ? AppColors.primary : (isDark ? Colors.grey : Colors.grey)),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -385,7 +385,7 @@ class _DeliveryTrackingScreenState extends State<DeliveryTrackingScreen> {
                           'جاري التنفيذ...',
                           style: TextStyle(
                             fontSize: 11,
-                            color: primaryColor,
+                            color: AppColors.primary,
                           ),
                         ),
                     ],

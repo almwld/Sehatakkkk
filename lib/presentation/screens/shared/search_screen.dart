@@ -412,13 +412,7 @@ class _SearchScreenState extends State<SearchScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => DoctorDetailsScreen(
-                    doctor: DoctorModel(
-                      id: result['id']?.toString() ?? '',
-                      name: result['name']?.toString() ?? 'طبيب',
-                      specialty: result['specialty']?.toString() ?? 'طبيب عام',
-                    ),
-                  ),
+                  builder: (_) => DoctorDetailsScreen(doctorId: result['id']?.toString() ?? ''),
                 ),
               );
             }

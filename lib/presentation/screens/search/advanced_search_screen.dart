@@ -490,15 +490,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen>
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => DoctorDetailsScreen(
-                doctor: DoctorModel(
-                  id: item['id']?.toString() ?? '1',
-                  name: item['name']?.toString() ?? 'طبيب',
-                  specialty: item['specialty']?.toString() ??
-                      item['category']?.toString() ??
-                      'طبيب عام',
-                ),
-              ),
+              builder: (_) => DoctorDetailsScreen(doctorId: item['id']?.toString() ?? '1'),
             ),
           );
         }
