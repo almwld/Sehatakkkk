@@ -67,8 +67,6 @@ Future<void> main() async {
     return;
   }
 
-  // Register the background callback before runApp, but deliberately defer
-  // permission prompts/token synchronization until the UI is running.
   try {
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   } catch (e) {
@@ -77,8 +75,6 @@ Future<void> main() async {
 
   await CacheService.init();
   await ChatMediaTransferService.instance.initialize();
-  final notificationService = NotificationService();
-  await notificationService.initialize();
 
   runApp(MultiProvider(
     providers: [
@@ -117,18 +113,21 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
   final NotificationService _notificationService = NotificationService();
   final FcmTokenService _fcmTokenService = FcmTokenService.instance;
   StreamSubscription<User?>? _authNavigationSubscription;
+  StreamSubscription<RemoteMessage>? _messageSubscription;
+  StreamSubscription<RemoteMessage>? _openedMessageSubscription;
   bool _launchPayloadHandled = false;
   bool _authStatePrimed = false;
   bool _fastNavigationInProgress = false;
   bool _fcmStarted = false;
+  bool _notificationsStarted = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _notificationService.setNotificationTapHandler(_handleLocalNotificationTap);
-    FirebaseMessaging.onMessage.listen(_handleMessage);
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpened);
+    _messageSubscription = FirebaseMessaging.onMessage.listen(_handleMessage);
+    _openedMessageSubscription = FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpened);
     FirebaseMessaging.instance.getInitialMessage().then((message) {
       if (message != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _handleMessageOpened(message); });
@@ -136,7 +135,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      unawaited(_initializeFcmAfterRunApp());
+      unawaited(_initializeServicesAfterRunApp());
       if (_launchPayloadHandled) return;
       unawaited(_loadLaunchPayload());
     });
@@ -154,6 +153,17 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
     });
   }
 
+  Future<void> _initializeServicesAfterRunApp() async {
+    if (_notificationsStarted) return;
+    _notificationsStarted = true;
+    try {
+      await _notificationService.initialize();
+    } catch (e) {
+      debugPrint('❌ Notification initialization error: $e');
+    }
+    await _initializeFcmAfterRunApp();
+  }
+
   Future<void> _initializeFcmAfterRunApp() async {
     if (_fcmStarted) return;
     _fcmStarted = true;
@@ -167,10 +177,14 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
   }
 
   Future<void> _loadLaunchPayload() async {
-    final payload = await _notificationService.getLaunchPayload();
-    if (!mounted || payload == null || payload.isEmpty || _launchPayloadHandled) return;
-    _launchPayloadHandled = true;
-    await _handleLocalNotificationTap(payload);
+    try {
+      final payload = await _notificationService.getLaunchPayload();
+      if (!mounted || payload == null || payload.isEmpty || _launchPayloadHandled) return;
+      _launchPayloadHandled = true;
+      await _handleLocalNotificationTap(payload);
+    } catch (e) {
+      debugPrint('launch notification payload: $e');
+    }
   }
 
   Future<void> _navigateAfterSignInFast(User user) async {
@@ -185,9 +199,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
         final role = doc.data()?['role']?.toString();
         if (mounted && (role == 'admin' || role == 'superAdmin')) {
           final current = navigatorKey.currentState;
-          if (current != null) {
-            current.pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const PlatformDashboard()), (route) => false);
-          }
+          if (current != null) current.pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const PlatformDashboard()), (route) => false);
         }
       } catch (e) { debugPrint('⚡ Deferred role lookup skipped: $e'); }
     } finally {
@@ -199,6 +211,8 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
   void dispose() {
     _notificationService.setNotificationTapHandler(null);
     _authNavigationSubscription?.cancel();
+    _messageSubscription?.cancel();
+    _openedMessageSubscription?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -244,29 +258,16 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
   Future<void> _handleMessage(RemoteMessage message) async {
     if (message.data['type'] == 'incoming_call') {
       final callId = (message.data['callId'] ?? message.data['id'])?.toString();
-      if (callId != null && callId.isNotEmpty) {
-        await _notificationService.showIncomingCallNotification(
-          callerName: message.data['callerName']?.toString() ?? message.notification?.title ?? 'مكالمة واردة',
-          callId: callId,
-          isVideo: message.data['isVideo']?.toString() == 'true' || message.data['callType']?.toString() == 'video',
-        );
-      }
+      if (callId != null && callId.isNotEmpty) await _notificationService.showIncomingCallNotification(callerName: message.data['callerName']?.toString() ?? message.notification?.title ?? 'مكالمة واردة', callId: callId, isVideo: message.data['isVideo']?.toString() == 'true' || message.data['callType']?.toString() == 'video');
       return;
     }
-    await _notificationService.showMessageNotification(
-      title: message.notification?.title ?? message.data['senderName']?.toString() ?? 'رسالة جديدة',
-      body: message.notification?.body ?? message.data['body']?.toString() ?? 'لديك رسالة جديدة في الدردشة',
-      payload: message.data['chatId']?.toString(),
-    );
+    await _notificationService.showMessageNotification(title: message.notification?.title ?? message.data['senderName']?.toString() ?? 'رسالة جديدة', body: message.notification?.body ?? message.data['body']?.toString() ?? 'لديك رسالة جديدة في الدردشة', payload: message.data['chatId']?.toString());
   }
 
   Future<void> _handleMessageOpened(RemoteMessage message) async {
     if (message.data['type'] == 'incoming_call') {
       final callId = (message.data['callId'] ?? message.data['id'])?.toString();
-      if (callId != null && callId.isNotEmpty) {
-        await _notificationService.cancelIncomingCallNotification(callId);
-        if (mounted) await _callService.handleIncomingCall(context, message);
-      }
+      if (callId != null && callId.isNotEmpty) { await _notificationService.cancelIncomingCallNotification(callId); if (mounted) await _callService.handleIncomingCall(context, message); }
       return;
     }
     final chatId = message.data['chatId']?.toString();
@@ -294,26 +295,16 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
       otherImage = d['photoUrl']?.toString();
     }
     if (otherId.isEmpty) return;
-    nav.push(MaterialPageRoute(builder: (_) => ChatRoomScreen(chatId: chatId, otherUserId: otherId, otherUserName: otherName, otherUserImage: otherImage, isGroup: isGroup)));
+    nav.push(MaterialPageRoute(builder: (_) => ChatRoomScreen(chatId: chatId, otherUserId: otherId, otherUserName: otherName, otherUserImage: otherImage, isGroup: isGroup));
   }
 
   @override
   Widget build(BuildContext context) => BlocBuilder<ThemeBloc, ThemeState>(
     builder: (context, themeState) => Consumer<FontSizeProvider>(
       builder: (context, fontProvider, child) => MaterialApp.router(
-        title: 'صحتك - Sehatak',
-        debugShowCheckedModeBanner: false,
-        locale: const Locale('ar', 'SA'),
-        theme: ThemeManager.lightTheme,
-        darkTheme: ThemeManager.darkTheme,
-        themeMode: themeState.themeMode,
-        localizationsDelegates: const [GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
-        supportedLocales: const [Locale('ar', 'SA'), Locale('en', 'US')],
-        builder: (context, child) => MediaQuery(
-          data: MediaQuery.of(context).copyWith(textScaleFactor: fontProvider.fontScale),
-          child: Directionality(textDirection: TextDirection.rtl, child: child!),
-        ),
-        routerConfig: AppRouter.router,
+        title: 'صحتك - Sehatak', debugShowCheckedModeBanner: false, locale: const Locale('ar', 'SA'), theme: ThemeManager.lightTheme, darkTheme: ThemeManager.darkTheme, themeMode: themeState.themeMode,
+        localizationsDelegates: const [GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate], supportedLocales: const [Locale('ar', 'SA'), Locale('en', 'US')],
+        builder: (context, child) => MediaQuery(data: MediaQuery.of(context).copyWith(textScaleFactor: fontProvider.fontScale), child: Directionality(textDirection: TextDirection.rtl, child: child!)), routerConfig: AppRouter.router,
       ),
     ),
   );
