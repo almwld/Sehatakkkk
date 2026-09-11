@@ -1,19 +1,79 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/ad_model.dart';
 import 'package:sehatak/core/services/toast_service.dart';
 
 class AdManagementScreen extends StatefulWidget {
-  final String? providerId; final String? providerName; final AdType? providerType;
+  final String? providerId;
+  final String? providerName;
+  final AdType? providerType;
   const AdManagementScreen({super.key, this.providerId, this.providerName, this.providerType});
   @override State<AdManagementScreen> createState() => _AdManagementScreenState();
 }
+
 class _AdManagementScreenState extends State<AdManagementScreen> {
-  final _firestore = FirebaseFirestore.instance; final _auth = FirebaseAuth.instance; AdType? _selectedType; String _status = 'الكل';
-  @override void initState(){super.initState();_selectedType=widget.providerType;}
-  @override Widget build(BuildContext context){final uid=_auth.currentUser?.uid; if(uid==null)return const Scaffold(body: Center(child: Text('يرجى تسجيل الدخول'))); return Scaffold(appBar: AppBar(title: const Text('إدارة الإعلانات'), actions:[IconButton(onPressed:_create,icon:const Icon(Icons.add))]),body:StreamBuilder<QuerySnapshot<Map<String,dynamic>>>(stream:_firestore.collection('advertisements').where('providerId',isEqualTo:widget.providerId??uid).orderBy('createdAt',descending:true).snapshots(),builder:(context,s){if(s.hasError)return Center(child:Text('خطأ: ${s.error}'));if(!s.hasData)return const Center(child:CircularProgressIndicator());final ads=s.data!.docs.map((d)=>AdModel.fromFirestore(d.data(),d.id)).where((a)=>_status=='الكل'||a.statusText==_status).toList();return Column(children:[SizedBox(height:52,child:ListView(scrollDirection:Axis.horizontal,padding:const EdgeInsets.all(8),children:['الكل','قيد المراجعة','نشط','مرفوض','منتهي'].map((x)=>Padding(padding:const EdgeInsets.symmetric(horizontal:4),child:ChoiceChip(label:Text(x),selected:_status==x,onSelected:(_)=>setState(()=>_status=x)))).toList())),Expanded(child:ads.isEmpty?const Center(child:Text('لا توجد إعلانات')):ListView.separated(padding:const EdgeInsets.all(12),itemCount:ads.length,separatorBuilder:(_,__)=>const SizedBox(height:8),itemBuilder:(context,i)=>_tile(ads[i])))]);});}
-  Widget _tile(AdModel ad)=>Card(child:ListTile(leading:CircleAvatar(backgroundColor:ad.displayColor.withOpacity(.12),child:Icon(ad.displayIcon,color:ad.displayColor)),title:Text(ad.title),subtitle:Text('${ad.displayName} • ${ad.statusText}\n${ad.views} مشاهدة • ${ad.clicks} نقرة'),isThreeLine:true,trailing:PopupMenuButton<AdStatus>(onSelected:(v)=>_firestore.collection('advertisements').doc(ad.id).update({'status':v.name}),itemBuilder:(_)=>AdStatus.values.map((v)=>PopupMenuItem(value:v,child:Text(v.name))).toList())));
-  Future<void> _create() async {final title=TextEditingController();final desc=TextEditingController();final budget=TextEditingController(text:'0');AdType type=_selectedType??AdType.general;await showDialog<void>(context:context,builder:(ctx)=>StatefulBuilder(builder:(ctx,set)=>AlertDialog(title:const Text('إضافة إعلان'),content:Column(mainAxisSize:MainAxisSize.min,children:[TextField(controller:title,decoration:const InputDecoration(labelText:'العنوان')),TextField(controller:desc,decoration:const InputDecoration(labelText:'الوصف')),TextField(controller:budget,keyboardType:TextInputType.number,decoration:const InputDecoration(labelText:'الميزانية')),DropdownButton<AdType>(value:type,isExpanded:true,items:AdType.values.map((v)=>DropdownMenuItem(value:v,child:Text(v.name))).toList(),onChanged:(v){if(v!=null)set(()=>type=v);})]),actions:[TextButton(onPressed:()=>Navigator.pop(ctx),child:const Text('إلغاء')),ElevatedButton(onPressed:()async{final user=_auth.currentUser;if(user==null||title.text.trim().isEmpty){ToastService.showWarning('أدخل عنوان الإعلان');return;}await _firestore.collection('advertisements').add({'providerId':user.uid,'title':title.text.trim(),'description':desc.text.trim(),'imageUrl':'','type':type.name,'status':AdStatus.pending.name,'budget':double.tryParse(budget.text)??0,'spent':0,'views':0,'clicks':0,'startDate':Timestamp.now(),'endDate':Timestamp.fromDate(DateTime.now().add(const Duration(days:30))),'createdAt':FieldValue.serverTimestamp()});if(ctx.mounted)Navigator.pop(ctx);ToastService.showSuccess('تم إنشاء الإعلان');},child:const Text('حفظ'))]));title.dispose();desc.dispose();budget.dispose();}
+  final _firestore = FirebaseFirestore.instance;
+  final _auth = FirebaseAuth.instance;
+  AdType? _selectedType;
+  String _status = 'الكل';
+
+  @override void initState() { super.initState(); _selectedType = widget.providerType; }
+
+  @override
+  Widget build(BuildContext context) {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return const Scaffold(body: Center(child: Text('يرجى تسجيل الدخول')));
+    final stream = _firestore.collection('advertisements').where('providerId', isEqualTo: widget.providerId ?? uid).orderBy('createdAt', descending: true).snapshots();
+    return Scaffold(
+      appBar: AppBar(title: const Text('إدارة الإعلانات'), actions: [IconButton(onPressed: _create, icon: const Icon(Icons.add))]),
+      body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: stream,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) return Center(child: Text('خطأ: ${snapshot.error}'));
+          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+          final ads = snapshot.data!.docs.map((d) => AdModel.fromFirestore(d.data(), d.id)).where((a) => _status == 'الكل' || a.statusText == _status).toList();
+          return Column(children: [
+            SizedBox(height: 52, child: ListView(scrollDirection: Axis.horizontal, padding: const EdgeInsets.all(8), children: ['الكل','قيد المراجعة','نشط','مرفوض','منتهي'].map((x) => Padding(padding: const EdgeInsets.symmetric(horizontal: 4), child: ChoiceChip(label: Text(x), selected: _status == x, onSelected: (_) => setState(() => _status = x)))).toList())),
+            Expanded(child: ads.isEmpty ? const Center(child: Text('لا توجد إعلانات')) : ListView.separated(padding: const EdgeInsets.all(12), itemCount: ads.length, separatorBuilder: (_, __) => const SizedBox(height: 8), itemBuilder: (context, i) => _tile(ads[i]))),
+          ]);
+        },
+      ),
+    );
+  }
+
+  Widget _tile(AdModel ad) => Card(child: ListTile(leading: CircleAvatar(backgroundColor: ad.displayColor.withOpacity(.12), child: Icon(ad.displayIcon, color: ad.displayColor)), title: Text(ad.title), subtitle: Text('${ad.displayName} • ${ad.statusText}\n${ad.views} مشاهدة • ${ad.clicks} نقرة'), isThreeLine: true, trailing: PopupMenuButton<AdStatus>(onSelected: (v) => _firestore.collection('advertisements').doc(ad.id).update({'status': v.name}), itemBuilder: (_) => AdStatus.values.map((v) => PopupMenuItem(value: v, child: Text(v.name))).toList())));
+
+  Future<void> _create() async {
+    final title = TextEditingController();
+    final desc = TextEditingController();
+    final budget = TextEditingController(text: '0');
+    AdType type = _selectedType ?? AdType.general;
+    try {
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => StatefulBuilder(
+          builder: (ctx, setDialogState) => AlertDialog(
+            title: const Text('إضافة إعلان'),
+            content: Column(mainAxisSize: MainAxisSize.min, children: [
+              TextField(controller: title, decoration: const InputDecoration(labelText: 'العنوان')),
+              TextField(controller: desc, decoration: const InputDecoration(labelText: 'الوصف')),
+              TextField(controller: budget, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'الميزانية')),
+              DropdownButton<AdType>(value: type, isExpanded: true, items: AdType.values.map((v) => DropdownMenuItem(value: v, child: Text(v.name))).toList(), onChanged: (v) { if (v != null) setDialogState(() => type = v); }),
+            ]),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
+              ElevatedButton(onPressed: () async {
+                final user = _auth.currentUser;
+                if (user == null || title.text.trim().isEmpty) { ToastService.showWarning('أدخل عنوان الإعلان'); return; }
+                await _firestore.collection('advertisements').add({'providerId': user.uid, 'title': title.text.trim(), 'description': desc.text.trim(), 'imageUrl': '', 'type': type.name, 'status': AdStatus.pending.name, 'budget': double.tryParse(budget.text) ?? 0, 'spent': 0, 'views': 0, 'clicks': 0, 'startDate': Timestamp.now(), 'endDate': Timestamp.fromDate(DateTime.now().add(const Duration(days: 30))), 'createdAt': FieldValue.serverTimestamp()});
+                if (ctx.mounted) Navigator.pop(ctx);
+                ToastService.showSuccess('تم إنشاء الإعلان');
+              }, child: const Text('حفظ')),
+            ],
+          ),
+        ),
+      );
+    } finally { title.dispose(); desc.dispose(); budget.dispose(); }
+  }
 }
