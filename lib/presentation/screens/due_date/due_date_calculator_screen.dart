@@ -39,7 +39,7 @@ class _DueDateCalculatorScreenState extends State<DueDateCalculatorScreen> {
           ),
           const SizedBox(height: 18),
           ListTile(
-            title: 'تاريخ آخر دورة',
+            title: const Text('تاريخ آخر دورة'),
             subtitle: Text(_lastPeriod != null ? '${_lastPeriod!.day}/${_lastPeriod!.month}/${_lastPeriod!.year}' : 'اضغطي للاختيار'),
             leading: const Icon(Icons.calendar_today, color: AppColors.primary),
             onTap: () async {
