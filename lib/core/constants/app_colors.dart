@@ -13,7 +13,6 @@ class AppColors {
   static const Color purple = Color(0xFF9C27B0);
   static const Color amber = Color(0xFFFFC107);
 
-  // Compatibility aliases used by legacy feature screens.
   static const Color teal = primary;
   static const Color pink = Color(0xFFE91E63);
   static const Color orange = Color(0xFFFF9800);
@@ -26,7 +25,6 @@ class AppColors {
   static const Color surfaceContainerLow = Color(0xFFF0F2F5);
   static const Color cardLight = Color(0xFFFFFFFF);
   static const Color cardDark = Color(0xFF2D2D44);
-
   static const Color white = Color(0xFFFFFFFF);
   static const Color black = Color(0xFF000000);
   static const Color grey = Color(0xFF9E9E9E);
@@ -35,6 +33,19 @@ class AppColors {
 
   static const LinearGradient primaryGradient = LinearGradient(
     colors: [primary, primaryLight],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  // Compatibility gradients used by onboarding and legacy feature screens.
+  static const LinearGradient secondaryGradient = LinearGradient(
+    colors: [secondary, Color(0xFF455A64)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const LinearGradient medicalGradient = LinearGradient(
+    colors: [primaryDark, primary],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
