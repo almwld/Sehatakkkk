@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:blurhash/blurhash.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class BlurHashImage extends StatelessWidget {
@@ -10,38 +9,27 @@ class BlurHashImage extends StatelessWidget {
   final BoxFit fit;
   final BorderRadius? borderRadius;
 
-  const BlurHashImage({
-    super.key,
-    required this.imageUrl,
-    required this.blurHash,
-    this.width,
-    this.height,
-    this.fit = BoxFit.cover,
-    this.borderRadius,
-  });
+  const BlurHashImage({super.key, required this.imageUrl, required this.blurHash, this.width, this.height, this.fit = BoxFit.cover, this.borderRadius});
 
   @override
   Widget build(BuildContext context) {
-    Widget image = CachedNetworkImage(
+    final image = CachedNetworkImage(
       imageUrl: imageUrl,
       width: width,
       height: height,
       fit: fit,
-      placeholder: (context, url) => BlurHash(
-        hash: blurHash,
-        imageFit: fit,
-        width: width ?? 100,
-        height: height ?? 100,
+      placeholder: (_, __) => SizedBox(
+        width: width,
+        height: height,
+        child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
       ),
-      errorWidget: (context, url, error) => Container(
+      errorWidget: (_, __, ___) => Container(
+        width: width,
+        height: height,
         color: Colors.grey[300],
         child: const Icon(Icons.broken_image, color: Colors.grey),
       ),
     );
-
-    if (borderRadius != null) {
-      return ClipRRect(borderRadius: borderRadius!, child: image);
-    }
-    return image;
+    return borderRadius == null ? image : ClipRRect(borderRadius: borderRadius!, child: image);
   }
 }
