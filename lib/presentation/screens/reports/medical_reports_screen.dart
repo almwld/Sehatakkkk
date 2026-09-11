@@ -1,282 +1,105 @@
-import 'package:sehatak/core/services/toast_service.dart';
-import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 
 class MedicalReportsScreen extends StatefulWidget {
   const MedicalReportsScreen({super.key});
-
   @override
   State<MedicalReportsScreen> createState() => _MedicalReportsScreenState();
 }
 
 class _MedicalReportsScreenState extends State<MedicalReportsScreen> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final TextEditingController _searchCtrl = TextEditingController();
+  final _auth = FirebaseAuth.instance;
+  final _firestore = FirebaseFirestore.instance;
+  final _searchCtrl = TextEditingController();
   String _filterType = 'الكل';
+  final _types = const ['الكل', 'تحاليل', 'أشعة', 'تقارير', 'وصفات'];
 
-  final List<String> _types = ['الكل', 'تحاليل', 'أشعة', 'تقارير', 'وصفات'];
+  @override
+  void dispose() { _searchCtrl.dispose(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) {
     final user = _auth.currentUser;
     if (user == null) {
-      return Scaffold(
-        appBar: CustomAppBar(title: 'التقارير الطبية', backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-        body: const Center(child: Text('يرجى تسجيل الدخول')),
-      );
+      return Scaffold(appBar: const CustomAppBar(title: Text('التقارير الطبية')), body: const Center(child: Text('يرجى تسجيل الدخول')));
     }
-
     return Scaffold(
       appBar: CustomAppBar(
         title: const Text('التقارير الطبية', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => _showAddReportDialog(context),
-          ),
-        ],
+        backgroundColor: AppColors.primary, foregroundColor: Colors.white,
+        actions: [IconButton(icon: const Icon(Icons.add), onPressed: () => _showAddReportDialog(context))],
       ),
-      body: Column(
-        children: [
-          _buildSearchBar(),
-          _buildFilterChips(),
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: _firestore
-                  .collection('reports')
-                  .where('patientId', isEqualTo: user.uid)
-                  .orderBy('createdAt', descending: true)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError) {
-                  return Center(child: Text('حدث خطأ: ${snapshot.error}'));
-                }
-
-                var reports = snapshot.data?.docs ?? [];
-                if (_searchCtrl.text.isNotEmpty) {
-                  final q = _searchCtrl.text.toLowerCase();
-                  reports = reports.where((doc) {
-                    final data = doc.data() as Map<String, dynamic>;
-                    return data['title'].toLowerCase().contains(q) ||
-                        data['doctorName'].toLowerCase().contains(q);
-                  }).toList();
-                }
-                if (_filterType != 'الكل') {
-                  reports = reports.where((doc) {
-                    final data = doc.data() as Map<String, dynamic>;
-                    return data['type'] == _filterType;
-                  }).toList();
-                }
-
-                if (reports.isEmpty) {
-                  return const Center(child: Text('لا توجد تقارير'));
-                }
-
-                return ListView.builder(
-                  padding: const EdgeInsets.all(12),
-                  itemCount: reports.length,
-                  itemBuilder: (context, index) {
-                    final data = reports[index].data() as Map<String, dynamic>;
-                    return _buildReportCard(data);
-                  },
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSearchBar() {
-    return Padding(
-      padding: const EdgeInsets.all(12),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.grey,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: TextField(
-          controller: _searchCtrl,
-          onChanged: (_) => setState(() {}),
-          textAlign: TextAlign.right,
-          decoration: InputDecoration(
-            hintText: 'ابحث عن تقرير...',
-            prefixIcon: const Icon(Icons.search, color: AppColors.primary),
-            border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFilterChips() {
-    return SizedBox(
-      height: 40,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        itemCount: _types.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 6),
-        itemBuilder: (_, index) {
-          final type = _types[index];
-          final selected = _filterType == type;
-          return GestureDetector(
+      body: Column(children: [
+        Padding(padding: const EdgeInsets.all(12), child: TextField(
+          controller: _searchCtrl, onChanged: (_) => setState(() {}), textAlign: TextAlign.right,
+          decoration: const InputDecoration(hintText: 'ابحث عن تقرير...', prefixIcon: Icon(Icons.search), border: OutlineInputBorder()),
+        )),
+        SizedBox(height: 40, child: ListView.separated(
+          scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 12), itemCount: _types.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 6),
+          itemBuilder: (_, i) { final type = _types[i]; final selected = type == _filterType; return GestureDetector(
             onTap: () => setState(() => _filterType = type),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(
-                color: selected ? AppColors.primary : Colors.grey,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                type,
-                style: TextStyle(
-                  color: selected ? Colors.white : Colors.grey.shade700,
-                  fontSize: 12,
-                  fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-                ),
-              ),
-            ),
-          );
-        },
-      ),
+            child: Container(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6), decoration: BoxDecoration(color: selected ? AppColors.primary : Colors.grey.shade200, borderRadius: BorderRadius.circular(20)), child: Text(type, style: TextStyle(color: selected ? Colors.white : Colors.grey.shade700))),
+          ); },
+        )),
+        const SizedBox(height: 8),
+        Expanded(child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          stream: _firestore.collection('reports').where('patientId', isEqualTo: user.uid).orderBy('createdAt', descending: true).snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) return Center(child: Text('حدث خطأ: ${snapshot.error}'));
+            if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
+            final query = _searchCtrl.text.trim().toLowerCase();
+            final docs = (snapshot.data?.docs ?? []).where((doc) {
+              final d = doc.data();
+              final typeOk = _filterType == 'الكل' || d['type']?.toString() == _filterType;
+              final text = '${d['title'] ?? ''} ${d['doctorName'] ?? ''}'.toLowerCase();
+              return typeOk && (query.isEmpty || text.contains(query));
+            }).toList();
+            if (docs.isEmpty) return const Center(child: Text('لا توجد تقارير'));
+            return ListView.builder(padding: const EdgeInsets.all(12), itemCount: docs.length, itemBuilder: (_, i) => _buildReportCard(docs[i].data()));
+          },
+        )),
+      ]),
     );
   }
 
   Widget _buildReportCard(Map<String, dynamic> data) {
-    final date = (data['createdAt'] as Timestamp).toDate();
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8)],
-        border: Border.all(color: AppColors.primary.withOpacity(0.1)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  data['type'] ?? 'تقرير',
-                  style: TextStyle(fontSize: 10, color: AppColors.primary, fontWeight: FontWeight.w500),
-                ),
-              ),
-              const Spacer(),
-              Text(
-                DateFormat('dd/MM/yyyy').format(date),
-                style: TextStyle(fontSize: 10, color: Colors.grey),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            data['title'] ?? 'تقرير طبي',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            data['doctorName'] ?? 'طبيب',
-            style: TextStyle(fontSize: 12, color: Colors.grey),
-          ),
-          if (data['notes'] != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 6),
-              child: Text(
-                data['notes'],
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(Icons.attachment, size: 14, color: Colors.grey),
-              const SizedBox(width: 4),
-              Text(
-                '${data['attachments'] ?? 0} مرفق',
-                style: TextStyle(fontSize: 10, color: Colors.grey),
-              ),
-              const Spacer(),
-              IconButton(
-                icon: const Icon(Icons.download, size: 18, color: AppColors.primary),
-                onPressed: () {},
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
+    final rawDate = data['createdAt'];
+    final date = rawDate is Timestamp ? rawDate.toDate() : DateTime.now();
+    return Card(margin: const EdgeInsets.only(bottom: 10), child: Padding(padding: const EdgeInsets.all(14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(children: [Text(data['type']?.toString() ?? 'تقرير', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)), const Spacer(), Text(DateFormat('dd/MM/yyyy').format(date), style: const TextStyle(fontSize: 11, color: Colors.grey))]),
+      const SizedBox(height: 6), Text(data['title']?.toString() ?? 'تقرير طبي', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+      const SizedBox(height: 4), Text(data['doctorName']?.toString() ?? 'طبيب', style: const TextStyle(color: Colors.grey)),
+      if (data['notes'] != null) Padding(padding: const EdgeInsets.only(top: 6), child: Text(data['notes'].toString(), maxLines: 2, overflow: TextOverflow.ellipsis)),
+      const SizedBox(height: 8), Text('${data['attachments'] ?? 0} مرفق', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+    ])));
   }
 
   void _showAddReportDialog(BuildContext context) {
-    final titleCtrl = TextEditingController();
-    final doctorCtrl = TextEditingController();
-    final typeCtrl = TextEditingController();
-    final notesCtrl = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('إضافة تقرير طبي', style: TextStyle(fontWeight: FontWeight.bold)),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(controller: titleCtrl, textAlign: TextAlign.right, decoration: InputDecoration(labelText: 'عنوان التقرير', prefixIcon: const Icon(Icons.title, color: AppColors.primary), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)))),
-              const SizedBox(height: 10),
-              TextField(controller: doctorCtrl, textAlign: TextAlign.right, decoration: InputDecoration(labelText: 'اسم الطبيب', prefixIcon: const Icon(Icons.person, color: AppColors.primary), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)))),
-              const SizedBox(height: 10),
-              TextField(controller: typeCtrl, textAlign: TextAlign.right, decoration: InputDecoration(labelText: 'النوع (تحاليل/أشعة/تقرير)', prefixIcon: const Icon(Icons.category, color: AppColors.primary), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)))),
-              const SizedBox(height: 10),
-              TextField(controller: notesCtrl, textAlign: TextAlign.right, maxLines: 3, decoration: InputDecoration(labelText: 'ملاحظات', prefixIcon: const Icon(Icons.note, color: AppColors.primary), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)))),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء', style: TextStyle(color: Colors.grey))),
-          ElevatedButton(
-            onPressed: () async {
-              final user = _auth.currentUser;
-              if (user == null || titleCtrl.text.isEmpty || doctorCtrl.text.isEmpty) {
-                ToastService.showSuccess(context, 'يرجى ملء الحقول'), backgroundColor: AppColors.warning));
-                return;
-              }
-              await _firestore.collection('reports').add({
-                'patientId': user.uid,
-                'title': titleCtrl.text.trim(),
-                'doctorName': doctorCtrl.text.trim(),
-                'type': typeCtrl.text.trim(),
-                'notes': notesCtrl.text.trim(),
-                'attachments': 0,
-                'createdAt': FieldValue.serverTimestamp(),
-              });
-              Navigator.pop(context);
-              ToastService.showSuccess(context, '✅ تم إضافة التقرير');,
-    );
+    final title = TextEditingController(), doctor = TextEditingController(), type = TextEditingController(), notes = TextEditingController();
+    showDialog(context: context, builder: (dialogContext) => AlertDialog(
+      title: const Text('إضافة تقرير طبي'),
+      content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
+        TextField(controller: title, decoration: const InputDecoration(labelText: 'عنوان التقرير')),
+        TextField(controller: doctor, decoration: const InputDecoration(labelText: 'اسم الطبيب')),
+        TextField(controller: type, decoration: const InputDecoration(labelText: 'النوع')),
+        TextField(controller: notes, maxLines: 3, decoration: const InputDecoration(labelText: 'ملاحظات')),
+      ])),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('إلغاء')),
+        ElevatedButton(onPressed: () async {
+          final user = _auth.currentUser;
+          if (user == null || title.text.trim().isEmpty || doctor.text.trim().isEmpty) { ToastService.showError(context, 'يرجى ملء الحقول'); return; }
+          await _firestore.collection('reports').add({'patientId': user.uid, 'title': title.text.trim(), 'doctorName': doctor.text.trim(), 'type': type.text.trim(), 'notes': notes.text.trim(), 'attachments': 0, 'createdAt': FieldValue.serverTimestamp()});
+          if (dialogContext.mounted) Navigator.pop(dialogContext);
+          if (mounted) ToastService.showSuccess(context, 'تم إضافة التقرير');
+        }, child: const Text('حفظ')),
+      ],
+    ));
   }
 }
