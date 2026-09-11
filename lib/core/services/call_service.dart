@@ -36,25 +36,10 @@ class CallService {
     final uid = _uid();
     final user = _auth.currentUser!;
     if (receiverId.isEmpty || receiverId == uid) throw Exception('معرّف المستقبل غير صالح');
-    if (ActiveCallRegistry.instance.hasActiveCall) {
-      throw StateError('لديك مكالمة نشطة بالفعل');
-    }
+    if (ActiveCallRegistry.instance.hasActiveCall) throw StateError('لديك مكالمة نشطة بالفعل');
     final id = idempotencyKey ?? _firestore.collection('calls').doc().id; final ref = _firestore.collection('calls').doc(id); final lockRef = _firestore.collection('callLocks').doc(_lockId(uid, receiverId)); final room = 'call_$id';
     await _retry(() => _firestore.runTransaction((tx) async {
       final existingCall = await tx.get(ref); if (existingCall.exists) return;
-      final lock = await tx.get(lockRef);
-      if (lock.exists) {
-        final lockData = lock.data() ?? <String,dynamic>{};
-        final lockStatus = lockData['status']?.toString();
-        final activeId = lockData['activeCallId']?.toString();
-        if (activeId != null && activeId.isNotEmpty && ['calling','ringing','connected'].contains(lockStatus)) {
-          final active = await tx.get(_firestore.collection('calls').doc(activeId));
-          if (active.exists && ['calling','ringing','connected'].contains(active.data()?['status']?.toString())) {
-            // Do not reject the new call here. The receiver-side coordinator
-            // queues it locally while the active LiveKit session continues.
-          }
-        }
-      }
       tx.set(lockRef, {'participants':[uid,receiverId],'activeCallId':id,'status':CallStatus.calling.name,'updatedAt':FieldValue.serverTimestamp()});
       tx.set(ref, {'id':id,'chatId':chatId,'callerId':uid,'callerName':user.displayName ?? 'مستخدم','callerPhotoUrl':user.photoURL,'receiverId':receiverId,'receiverName':receiverName,'receiverPhotoUrl':receiverPhotoUrl,'callType':type.name,'status':CallStatus.calling.name,'startedAt':FieldValue.serverTimestamp(),'isAnswered':false,'participants':[uid,receiverId],'liveKitRoomName':room,'roomName':room,'isVideoCall':type == CallType.video});
     }));
@@ -70,21 +55,47 @@ class CallService {
   Future<void> acceptCall(String id) async {
     final registry = ActiveCallRegistry.instance;
     final activeId = registry.activeCallId;
-    if (registry.hasActiveCall && activeId != id) {
-      debugPrint('CALL ACCEPT BLOCKED id=$id activeCall=$activeId');
-      await markBusy(id);
-      throw StateError('لا يمكن قبول المكالمة أثناء وجود مكالمة نشطة');
-    }
+    if (registry.hasActiveCall && activeId != id) { debugPrint('CALL ACCEPT BLOCKED id=$id activeCall=$activeId'); await markBusy(id); throw StateError('لا يمكن قبول المكالمة أثناء وجود مكالمة نشطة'); }
     final c=await _state(id:id,allowed:const[CallStatus.calling,CallStatus.ringing],data:{'status':CallStatus.connected.name,'isAnswered':true,'connectedAt':FieldValue.serverTimestamp()},active:true); await CallSoundCoordinator.instance.stopForCall(id); if(c!=null) await _timeline(chatId:c.chatId,callId:id,text:c.type==CallType.video?'📹 تم الاتصال بالفيديو':'📞 تم الاتصال',status:CallStatus.connected.name,type:c.type);
   }
   Future<void> rejectCall(String id) async { final c=await _state(id:id,allowed:const[CallStatus.calling,CallStatus.ringing],data:{'status':CallStatus.rejected.name,'endedAt':FieldValue.serverTimestamp()},active:false); await CallSoundCoordinator.instance.stopForCall(id); if(c!=null) await _timeline(chatId:c.chatId,callId:id,text:'📵 تم رفض المكالمة',status:CallStatus.rejected.name,type:c.type); }
-  Future<void> markBusy(String id) async { final c=await _state(id:id,allowed:const[CallStatus.calling,CallStatus.ringing],data:{'status':CallStatus.busy.name,'endedAt':FieldValue.serverTimestamp(),'metadata.busyReason':'receiver_active_call'},active:false,ignore:true); await CallSoundCoordinator.instance.stopForCall(id); if(c!=null) await _timeline(chatId:c.chatId,callId:id,text:'📵 المستخدم مشغول بمكالمة أخرى',status:CallStatus.busy.name,type:c.type); }
+  Future<void> markBusy(String id) async { final c=await _state(id:id,allowed:const[CallStatus.calling,CallStatus.ringing],data:{'status':CallStatus.busy.name,'endedAt':FieldValue.serverTimestamp(),'busyReason':'receiver_in_call','metadata.busyReason':'receiver_in_call'},active:false,ignore:true); await CallSoundCoordinator.instance.stopForCall(id); if(c!=null) await _timeline(chatId:c.chatId,callId:id,text:'📵 المستخدم مشغول بمكالمة أخرى',status:CallStatus.busy.name,type:c.type); }
   Future<void> cancelCall(String id) async { final c=await _state(id:id,allowed:const[CallStatus.calling,CallStatus.ringing],data:{'status':CallStatus.cancelled.name,'endedAt':FieldValue.serverTimestamp()},active:false); await CallSoundCoordinator.instance.stopForCall(id); if(c!=null) await _timeline(chatId:c.chatId,callId:id,text:'📞 تم إلغاء المكالمة',status:CallStatus.cancelled.name,type:c.type); }
   Future<void> endCall(String id,{int? durationSeconds}) async { final c=await _state(id:id,allowed:const[CallStatus.calling,CallStatus.ringing,CallStatus.connected],data:{'status':CallStatus.ended.name,'endedAt':FieldValue.serverTimestamp(),'durationSeconds':durationSeconds},active:false); await CallSoundCoordinator.instance.stopForCall(id); if(c!=null) await _timeline(chatId:c.chatId,callId:id,text:durationSeconds!=null&&durationSeconds>0?'📞 انتهت المكالمة • ${durationSeconds}s':'📞 انتهت المكالمة',status:CallStatus.ended.name,type:c.type); }
   Future<void> missCall(String id) async { final c=await _state(id:id,allowed:const[CallStatus.calling,CallStatus.ringing],data:{'status':CallStatus.missed.name,'endedAt':FieldValue.serverTimestamp()},active:false,ignore:true); await CallSoundCoordinator.instance.stopForCall(id); if(c!=null) await _timeline(chatId:c.chatId,callId:id,text:'📵 مكالمة فائتة',status:CallStatus.missed.name,type:c.type); }
   Future<String?> resolveChatId(String id) async { final snapshot=await _retry(()=>_firestore.collection('calls').doc(id).get()); if(!snapshot.exists)return null; final data=snapshot.data(); if(data==null)return null; return data['chatId']?.toString(); }
-  Future<void> handleIncomingCallById(BuildContext context,String id) async { final snap=await _retry(()=>_firestore.collection('calls').doc(id).get()); if(!snap.exists||!context.mounted)return; final data=snap.data()??{}; final receiverId=data['receiverId']?.toString(); if(receiverId!=null&&receiverId.isNotEmpty&&receiverId!=currentUserId)return; final status=data['status']?.toString(); if(status!=CallStatus.calling.name&&status!=CallStatus.ringing.name)return; final chatId=data['chatId']?.toString()??''; if(chatId.isEmpty)return; Navigator.of(context).push(MaterialPageRoute(builder:(_)=>IncomingCallScreen(callId:id,callerName:data['callerName']?.toString()??'مستخدم',callerId:data['callerId']?.toString()??'',callerImage:data['callerPhotoUrl']?.toString(),isVideo:data['isVideoCall']==true||data['callType']?.toString()=='video',chatId:chatId,onCallAnswered:(_){},))); }
-  Future<void> handleIncomingCall(BuildContext context,RemoteMessage message) async { final id=(message.data['callId']??message.data['id'])?.toString(); if(id==null||id.isEmpty)return; final callerId=(message.data['callerId']??'').toString(); var chatId=message.data['chatId']?.toString(); chatId=(chatId==null||chatId.isEmpty)?await resolveChatId(id):chatId; if(chatId==null||chatId.isEmpty){ToastService.showError('تعذر العثور على المحادثة المرتبطة بالمكالمة');return;} if(!context.mounted)return; Navigator.of(context).push(MaterialPageRoute(builder:(_)=>IncomingCallScreen(callId:id,callerName:(message.data['callerName']??'مستخدم').toString(),callerId:callerId,callerImage:message.data['callerPhotoUrl']?.toString(),isVideo:message.data['isVideo']?.toString()=='true'||message.data['isVideoCall']?.toString()=='true',chatId:chatId!,onCallAnswered:(_){},))); }
+
+  Future<void> handleIncomingCallById(BuildContext context,String id) async {
+    final normalizedId = id.trim();
+    if (normalizedId.isEmpty) return;
+    final registry = ActiveCallRegistry.instance;
+    if (registry.hasActiveCall && !registry.isActive(normalizedId)) { debugPrint('CALL FCM BY ID BLOCKED id=$normalizedId active=${registry.activeCallId}'); await markBusy(normalizedId); return; }
+    final snap=await _retry(()=>_firestore.collection('calls').doc(normalizedId).get());
+    if(!snap.exists||!context.mounted)return;
+    final data=snap.data()??{};
+    final receiverId=data['receiverId']?.toString();
+    if(receiverId!=null&&receiverId.isNotEmpty&&receiverId!=currentUserId)return;
+    final status=data['status']?.toString();
+    if(status!=CallStatus.calling.name&&status!=CallStatus.ringing.name)return;
+    if (registry.hasActiveCall && !registry.isActive(normalizedId)) { await markBusy(normalizedId); return; }
+    final chatId=data['chatId']?.toString()??'';
+    if(chatId.isEmpty)return;
+    Navigator.of(context).push(MaterialPageRoute(builder:(_)=>IncomingCallScreen(callId:normalizedId,callerName:data['callerName']?.toString()??'مستخدم',callerId:data['callerId']?.toString()??'',callerImage:data['callerPhotoUrl']?.toString(),isVideo:data['isVideoCall']==true||data['callType']?.toString()=='video',chatId:chatId,onCallAnswered:(_){},)));
+  }
+
+  Future<void> handleIncomingCall(BuildContext context,RemoteMessage message) async {
+    final id=(message.data['callId']??message.data['id'])?.toString().trim();
+    if(id==null||id.isEmpty)return;
+    final registry = ActiveCallRegistry.instance;
+    if (registry.hasActiveCall && !registry.isActive(id)) { debugPrint('CALL FCM MESSAGE BLOCKED id=$id active=${registry.activeCallId}'); await markBusy(id); return; }
+    final callerId=(message.data['callerId']??'').toString();
+    var chatId=message.data['chatId']?.toString();
+    chatId=(chatId==null||chatId.isEmpty)?await resolveChatId(id):chatId;
+    if(chatId==null||chatId.isEmpty){ToastService.showError('تعذر العثور على المحادثة المرتبطة بالمكالمة');return;}
+    if(!context.mounted)return;
+    if (registry.hasActiveCall && !registry.isActive(id)) { await markBusy(id); return; }
+    Navigator.of(context).push(MaterialPageRoute(builder:(_)=>IncomingCallScreen(callId:id,callerName:(message.data['callerName']??'مستخدم').toString(),callerId:callerId,callerImage:message.data['callerPhotoUrl']?.toString(),isVideo:message.data['isVideo']?.toString()=='true'||message.data['isVideoCall']?.toString()=='true',chatId:chatId!,onCallAnswered:(_){},)));
+  }
   void dispose(){_inCall=false;_current=null;}
 }
 class _Ctx { final String chatId; final CallType type; const _Ctx(this.chatId,this.type); }
