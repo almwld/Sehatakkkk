@@ -20,12 +20,18 @@ class CallSoundCoordinator {
 
   StreamSubscription<User?>? _authSubscription;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _callsSubscription;
+  StreamSubscription<void>? _registrySubscription;
   final SoundManager _sounds = SoundManager();
   String? _activeCallId;
   String? _incomingUiCallId;
   bool _incomingMuted = false;
 
   void start() {
+    _registrySubscription ??= ActiveCallRegistry.instance.changes.listen((_) {
+      if (ActiveCallRegistry.instance.hasActiveCall) return;
+      final next = ActiveCallRegistry.instance.nextInQueue;
+      if (next != null) unawaited(showQueuedCall(next.callId));
+    });
     _authSubscription ??= FirebaseAuth.instance.authStateChanges().listen((_) => _restartCallsListener());
     _restartCallsListener();
   }
@@ -103,7 +109,9 @@ class CallSoundCoordinator {
     // locally instead of opening a second CallScreen or LiveKit session.
     if (connected != null) {
       final connectedId = connected.id;
-      ActiveCallRegistry.instance.register(connectedId);
+      if (ActiveCallRegistry.instance.activeCallId != connectedId) {
+        ActiveCallRegistry.instance.register(connectedId);
+      }
       _activeCallId = connectedId;
       _incomingUiCallId = null;
       _incomingMuted = false;
@@ -238,8 +246,10 @@ class CallSoundCoordinator {
   Future<void> dispose() async {
     await _authSubscription?.cancel();
     await _callsSubscription?.cancel();
+    await _registrySubscription?.cancel();
     _authSubscription = null;
     _callsSubscription = null;
+    _registrySubscription = null;
     _activeCallId = null;
     _incomingUiCallId = null;
     _incomingMuted = false;
