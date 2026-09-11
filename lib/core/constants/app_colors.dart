@@ -12,13 +12,21 @@ class AppColors {
   static const Color info = Color(0xFF2196F3);
   static const Color purple = Color(0xFF9C27B0);
   static const Color amber = Color(0xFFFFC107);
-  
+
+  // Compatibility aliases used by legacy feature screens.
+  static const Color teal = primary;
+  static const Color pink = Color(0xFFE91E63);
+  static const Color orange = Color(0xFFFF9800);
+  static const Color indigo = Color(0xFF3F51B5);
+  static const Color dark = Color(0xFF263238);
+  static const Color outlineVariant = Color(0xFFCFD8DC);
+
   static const Color backgroundLight = Color(0xFFF5F7FA);
   static const Color backgroundDark = Color(0xFF1A1A2E);
   static const Color surfaceContainerLow = Color(0xFFF0F2F5);
   static const Color cardLight = Color(0xFFFFFFFF);
   static const Color cardDark = Color(0xFF2D2D44);
-  
+
   static const Color white = Color(0xFFFFFFFF);
   static const Color black = Color(0xFF000000);
   static const Color grey = Color(0xFF9E9E9E);
