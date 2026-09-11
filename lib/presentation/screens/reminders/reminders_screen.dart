@@ -1,258 +1,72 @@
-import 'package:sehatak/core/services/toast_service.dart';
-import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/core/services/toast_service.dart';
+import 'package:sehatak/presentation/widgets/common/custom_app_bar.dart';
 
 class RemindersScreen extends StatefulWidget {
   const RemindersScreen({super.key});
-
-  @override
-  State<RemindersScreen> createState() => _RemindersScreenState();
+  @override State<RemindersScreen> createState() => _RemindersScreenState();
 }
 
 class _RemindersScreenState extends State<RemindersScreen> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final TextEditingController _titleCtrl = TextEditingController();
-  final TextEditingController _descCtrl = TextEditingController();
+  final _auth = FirebaseAuth.instance;
+  final _firestore = FirebaseFirestore.instance;
+  final _titleCtrl = TextEditingController();
+  final _descCtrl = TextEditingController();
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
+
+  @override void dispose() { _titleCtrl.dispose(); _descCtrl.dispose(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) {
     final user = _auth.currentUser;
-    if (user == null) {
-      return Scaffold(
-        appBar: CustomAppBar(title: 'التذكيرات', backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-        body: const Center(child: Text('يرجى تسجيل الدخول')),
-      );
-    }
-
     return Scaffold(
-      appBar: CustomAppBar(
-        title: const Text('التذكيرات', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => _showAddReminderDialog(context),
-          ),
-        ],
-      ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: _firestore
-            .collection('reminders')
-            .where('userId', isEqualTo: user.uid)
-            .orderBy('dateTime', descending: false)
-            .snapshots(),
+      appBar: CustomAppBar(title: const Text('التذكيرات', style: TextStyle(fontWeight: FontWeight.bold)), backgroundColor: AppColors.primary, foregroundColor: Colors.white, actions: [IconButton(icon: const Icon(Icons.add), onPressed: user == null ? null : () => _showAddReminderDialog(context))]),
+      body: user == null ? const Center(child: Text('يرجى تسجيل الدخول')) : StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: _firestore.collection('reminders').where('userId', isEqualTo: user.uid).orderBy('dateTime').snapshots(),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('حدث خطأ: ${snapshot.error}'));
-          }
-
-          final reminders = snapshot.data?.docs ?? [];
-          if (reminders.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.alarm, size: 60, color: AppColors.grey),
-                  SizedBox(height: 16),
-                  Text('لا توجد تذكيرات', style: TextStyle(color: AppColors.grey)),
-                ],
-              ),
-            );
-          }
-
-          return ListView.builder(
-            padding: const EdgeInsets.all(12),
-            itemCount: reminders.length,
-            itemBuilder: (context, index) {
-              final data = reminders[index].data() as Map<String, dynamic>;
-              final dateTime = (data['dateTime'] as Timestamp).toDate();
-              final isCompleted = data['completed'] == true;
-
-              return Container(
-                margin: const EdgeInsets.only(bottom: 10),
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: isCompleted ? Colors.grey[100] : Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8)],
-                  border: Border.all(color: isCompleted ? Colors.grey[300]! : AppColors.primary.withOpacity(0.2)),
-                ),
-                child: Row(
-                  children: [
-                    Checkbox(
-                      value: isCompleted,
-                      activeColor: AppColors.success,
-                      onChanged: (value) async {
-                        await _firestore.collection('reminders').doc(reminders[index].id).update({
-                          'completed': value,
-                          'completedAt': value ? FieldValue.serverTimestamp() : null,
-                        });
-                      },
-                    ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            data['title'] ?? 'تذكير',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                              decoration: isCompleted ? TextDecoration.lineThrough : null,
-                            ),
-                          ),
-                          if (data['description'] != null)
-                            Text(data['description'], style: TextStyle(fontSize: 12, color: isCompleted ? Colors.grey : AppColors.grey)),
-                          Text(
-                            DateFormat('EEEE، dd MMMM yyyy - hh:mm a', 'ar').format(dateTime),
-                            style: TextStyle(fontSize: 10, color: isCompleted ? Colors.grey : AppColors.grey),
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.delete_outline, color: isCompleted ? Colors.grey : AppColors.error),
-                      onPressed: () async {
-                        await _firestore.collection('reminders').doc(reminders[index].id).delete();
-                      },
-                    ),
-                  ],
-                ),
-              );
-            },
-          );
+          if (snapshot.hasError) return Center(child: Text('حدث خطأ: ${snapshot.error}'));
+          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+          final docs = snapshot.data!.docs;
+          if (docs.isEmpty) return const Center(child: Column(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.alarm, size: 60, color: AppColors.grey), SizedBox(height: 16), Text('لا توجد تذكيرات', style: TextStyle(color: AppColors.grey))]));
+          return ListView.builder(padding: const EdgeInsets.all(12), itemCount: docs.length, itemBuilder: (context, index) {
+            final doc = docs[index]; final data = doc.data(); final raw = data['dateTime']; final dateTime = raw is Timestamp ? raw.toDate() : DateTime.now(); final completed = data['completed'] == true;
+            return Card(margin: const EdgeInsets.only(bottom: 10), child: ListTile(
+              leading: Checkbox(value: completed, onChanged: (value) => doc.reference.update({'completed': value == true, 'completedAt': value == true ? FieldValue.serverTimestamp() : null})),
+              title: Text(data['title']?.toString() ?? 'تذكير', style: TextStyle(fontWeight: FontWeight.bold, decoration: completed ? TextDecoration.lineThrough : null)),
+              subtitle: Text('${data['description']?.toString() ?? ''}\n${DateFormat('yyyy-MM-dd - hh:mm a').format(dateTime)}'),
+              isThreeLine: true,
+              trailing: IconButton(icon: const Icon(Icons.delete_outline, color: AppColors.error), onPressed: () => doc.reference.delete()),
+            ));
+          });
         },
       ),
     );
   }
 
-  void _showAddReminderDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('إضافة تذكير', style: TextStyle(fontWeight: FontWeight.bold)),
-        content: StatefulBuilder(
-          builder: (context, setState) => Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _titleCtrl,
-                textAlign: TextAlign.right,
-                decoration: InputDecoration(
-                  labelText: 'العنوان',
-                  prefixIcon: const Icon(Icons.title, color: AppColors.primary),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _descCtrl,
-                textAlign: TextAlign.right,
-                maxLines: 2,
-                decoration: InputDecoration(
-                  labelText: 'الوصف (اختياري)',
-                  prefixIcon: const Icon(Icons.note, color: AppColors.primary),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: () async {
-                  final date = await showDatePicker(
-                    context: context,
-                    initialDate: _selectedDate,
-                    firstDate: DateTime.now(),
-                    lastDate: DateTime.now().add(const Duration(days: 365)),
-                    locale: const Locale('ar', 'YE'),
-                  );
-                  if (date != null) setState(() => _selectedDate = date);
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey[300]!),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.calendar_today, color: AppColors.primary),
-                      const SizedBox(width: 8),
-                      Text(DateFormat('yyyy-MM-dd').format(_selectedDate)),
-                      const Spacer(),
-                      const Icon(Icons.arrow_drop_down),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: () async {
-                  final time = await showTimePicker(
-                    context: context,
-                    initialTime: _selectedTime,
-                  );
-                  if (time != null) setState(() => _selectedTime = time);
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey[300]!),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.access_time, color: AppColors.primary),
-                      const SizedBox(width: 8),
-                      Text(_selectedTime.format(context)),
-                      const Spacer(),
-                      const Icon(Icons.arrow_drop_down),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
-          ElevatedButton(
-            onPressed: () async {
-              final user = _auth.currentUser;
-              if (user == null || _titleCtrl.text.isEmpty) {
-                ToastService.showSuccess(context, 'يرجى إدخال العنوان'), backgroundColor: AppColors.warning));
-                return;
-              }
-              final dateTime = DateTime(
-                _selectedDate.year,
-                _selectedDate.month,
-                _selectedDate.day,
-                _selectedTime.hour,
-                _selectedTime.minute,
-              );
-              await _firestore.collection('reminders').add({
-                'userId': user.uid,
-                'title': _titleCtrl.text.trim(),
-                'description': _descCtrl.text.trim(),
-                'dateTime': Timestamp.fromDate(dateTime),
-                'completed': false,
-                'createdAt': FieldValue.serverTimestamp(),
-              });
-              _titleCtrl.clear();
-              _descCtrl.clear();
-              Navigator.pop(context);
-              ToastService.showSuccess(context, '✅ تم إضافة التذكير');,
-    );
+  Future<void> _showAddReminderDialog(BuildContext context) async {
+    _selectedDate = DateTime.now(); _selectedTime = TimeOfDay.now();
+    await showDialog<void>(context: context, builder: (dialogContext) => StatefulBuilder(builder: (dialogContext, setDialogState) => AlertDialog(
+      title: const Text('إضافة تذكير'),
+      content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
+        TextField(controller: _titleCtrl, decoration: const InputDecoration(labelText: 'العنوان', prefixIcon: Icon(Icons.title))),
+        const SizedBox(height: 8),
+        TextField(controller: _descCtrl, maxLines: 2, decoration: const InputDecoration(labelText: 'الوصف (اختياري)', prefixIcon: Icon(Icons.note))),
+        const SizedBox(height: 12),
+        ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.calendar_today, color: AppColors.primary), title: Text(DateFormat('yyyy-MM-dd').format(_selectedDate)), onTap: () async { final d = await showDatePicker(context: dialogContext, initialDate: _selectedDate, firstDate: DateTime.now(), lastDate: DateTime.now().add(const Duration(days: 365))); if (d != null) setDialogState(() => _selectedDate = d); }),
+        ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.access_time, color: AppColors.primary), title: Text(_selectedTime.format(dialogContext)), onTap: () async { final t = await showTimePicker(context: dialogContext, initialTime: _selectedTime); if (t != null) setDialogState(() => _selectedTime = t); }),
+      ])),
+      actions: [TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('إلغاء')), ElevatedButton(onPressed: () async {
+        final user = _auth.currentUser;
+        if (user == null || _titleCtrl.text.trim().isEmpty) { await ToastService.showWarning('يرجى إدخال العنوان'); return; }
+        final dateTime = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day, _selectedTime.hour, _selectedTime.minute);
+        await _firestore.collection('reminders').add({'userId': user.uid, 'title': _titleCtrl.text.trim(), 'description': _descCtrl.text.trim(), 'dateTime': Timestamp.fromDate(dateTime), 'completed': false, 'createdAt': FieldValue.serverTimestamp()});
+        _titleCtrl.clear(); _descCtrl.clear(); if (dialogContext.mounted) Navigator.pop(dialogContext); await ToastService.showSuccess('تم إضافة التذكير');
+      }, child: const Text('حفظ'))],
+    )));
   }
 }
