@@ -23,7 +23,7 @@ void main() {
     blocTest<HomeBloc, HomeState>(
       'emits loading then loaded when HomeStarted is added',
       build: () => homeBloc,
-      act: (bloc) => bloc.add(const HomeStarted()),
+      act: (bloc) => bloc.add(HomeStarted()),
       expect: () => [
         isA<HomeState>().having((s) => s.status, 'status', HomeStatus.loading),
         isA<HomeState>().having((s) => s.status, 'status', HomeStatus.loaded),
@@ -33,7 +33,7 @@ void main() {
     blocTest<HomeBloc, HomeState>(
       'emits refreshing then loaded when HomeDataRefreshed is added',
       build: () => homeBloc,
-      act: (bloc) => bloc.add(const HomeDataRefreshed()),
+      act: (bloc) => bloc.add(HomeDataRefreshed()),
       expect: () => [
         isA<HomeState>().having((s) => s.status, 'status', HomeStatus.refreshing),
         isA<HomeState>().having((s) => s.status, 'status', HomeStatus.loaded),
