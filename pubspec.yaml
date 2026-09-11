@@ -107,7 +107,7 @@ dependencies:
   flutter_screenutil: ^5.9.3
   simple_animations: ^5.0.2
   flutter_svg: 2.0.10+1
-  video_player: ^2.8.7
+  video_player: 2.8.5
   uuid: ^4.5.1
   image: ^4.3.0
 
