@@ -7,8 +7,6 @@ import 'call_sound_coordinator.dart';
 
 typedef NotificationTapHandler = Future<void> Function(String? payload);
 
-/// Supported non-call notification families.
-/// Keep the wire values stable because Railway/FCM payloads depend on them.
 enum SehatakNotificationType {
   newMessage,
   appointment,
@@ -25,85 +23,64 @@ enum SehatakNotificationType {
 extension SehatakNotificationTypeValue on SehatakNotificationType {
   String get wireValue {
     switch (this) {
-      case SehatakNotificationType.newMessage:
-        return 'new_message';
-      case SehatakNotificationType.appointment:
-        return 'appointment';
-      case SehatakNotificationType.medication:
-        return 'medication';
-      case SehatakNotificationType.labResult:
-        return 'lab_result';
-      case SehatakNotificationType.payment:
-        return 'payment';
-      case SehatakNotificationType.order:
-        return 'order';
-      case SehatakNotificationType.promotional:
-        return 'promotional';
-      case SehatakNotificationType.system:
-        return 'system';
-      case SehatakNotificationType.health:
-        return 'health';
-      case SehatakNotificationType.social:
-        return 'social';
+      case SehatakNotificationType.newMessage: return 'new_message';
+      case SehatakNotificationType.appointment: return 'appointment';
+      case SehatakNotificationType.medication: return 'medication';
+      case SehatakNotificationType.labResult: return 'lab_result';
+      case SehatakNotificationType.payment: return 'payment';
+      case SehatakNotificationType.order: return 'order';
+      case SehatakNotificationType.promotional: return 'promotional';
+      case SehatakNotificationType.system: return 'system';
+      case SehatakNotificationType.health: return 'health';
+      case SehatakNotificationType.social: return 'social';
     }
   }
 
   static SehatakNotificationType? fromWireValue(String? value) {
     switch (value) {
       case 'new_message':
-      case 'message':
-        return SehatakNotificationType.newMessage;
+      case 'message': return SehatakNotificationType.newMessage;
       case 'appointment':
       case 'appointment_confirmed':
       case 'appointment_reminder_24h':
       case 'appointment_reminder_1h':
       case 'appointment_rescheduled':
-      case 'appointment_cancelled':
-        return SehatakNotificationType.appointment;
+      case 'appointment_cancelled': return SehatakNotificationType.appointment;
       case 'medication':
       case 'medication_reminder':
       case 'medication_expired':
-      case 'medication_refill':
-        return SehatakNotificationType.medication;
+      case 'medication_refill': return SehatakNotificationType.medication;
       case 'lab_result':
       case 'lab_result_ready':
-      case 'lab_reminder':
-        return SehatakNotificationType.labResult;
+      case 'lab_reminder': return SehatakNotificationType.labResult;
       case 'payment':
       case 'payment_success':
       case 'payment_failed':
       case 'payment_refunded':
-      case 'balance_added':
-        return SehatakNotificationType.payment;
+      case 'balance_added': return SehatakNotificationType.payment;
       case 'order':
       case 'order_confirmed':
       case 'order_preparing':
       case 'order_on_way':
       case 'order_delivered':
-      case 'order_cancelled':
-        return SehatakNotificationType.order;
-      case 'promotional':
-        return SehatakNotificationType.promotional;
+      case 'order_cancelled': return SehatakNotificationType.order;
+      case 'promotional': return SehatakNotificationType.promotional;
       case 'system':
       case 'system_update':
       case 'system_maintenance':
       case 'system_feature':
-      case 'system_security':
-        return SehatakNotificationType.system;
+      case 'system_security': return SehatakNotificationType.system;
       case 'health':
       case 'health_water':
       case 'health_exercise':
       case 'health_sleep':
-      case 'health_challenge':
-        return SehatakNotificationType.health;
+      case 'health_challenge': return SehatakNotificationType.health;
       case 'social':
       case 'social_follow':
       case 'social_like':
       case 'social_comment':
-      case 'social_share':
-        return SehatakNotificationType.social;
-      default:
-        return null;
+      case 'social_share': return SehatakNotificationType.social;
+      default: return null;
     }
   }
 }
@@ -118,6 +95,7 @@ class NotificationService {
   Future<void>? _initialization;
   bool _initialized = false;
   bool _callCoordinatorStarted = false;
+  final Map<String, Timer> _callIconTimers = <String, Timer>{};
 
   static const messageChannelId = 'sehatak_messages_v2';
   static const appointmentChannelId = 'sehatak_appointments_v1';
@@ -237,50 +215,29 @@ class NotificationService {
     return details?.notificationResponse?.payload;
   }
 
-  /// Renders a non-call FCM event locally using a stable channel and payload.
-  /// The server may use either a canonical family (e.g. `appointment`) or a
-  /// more specific subtype (e.g. `appointment_reminder_1h`).
-  Future<void> showTypedNotification({
-    required String type,
-    required String title,
-    required String body,
-    Map<String, dynamic>? data,
-    String? payload,
-    bool? playSound,
-  }) async {
+  Future<void> showTypedNotification({required String type, required String title, required String body, Map<String, dynamic>? data, String? payload, bool? playSound}) async {
     await initialize(startCallCoordinator: false);
     final family = SehatakNotificationTypeValue.fromWireValue(type);
     if (family == null) {
       await showMessageNotification(title: title, body: body, payload: payload ?? _encodePayload(type, data));
       return;
     }
-
     final channelId = _channelFor(family);
     final channelName = _channelNameFor(family);
     final importance = _importanceFor(family);
     final resolvedSound = playSound ?? family != SehatakNotificationType.promotional;
     final details = NotificationDetails(
       android: AndroidNotificationDetails(
-        channelId,
-        channelName,
-        channelDescription: channelName,
-        importance: importance,
+        channelId, channelName, channelDescription: channelName, importance: importance,
         priority: importance == Importance.high ? Priority.high : Priority.defaultPriority,
         playSound: resolvedSound,
         sound: resolvedSound ? const RawResourceAndroidNotificationSound('notification') : null,
-        category: _categoryFor(family),
-        visibility: NotificationVisibility.public,
+        category: _categoryFor(family), visibility: NotificationVisibility.public,
         styleInformation: const BigTextStyleInformation(''),
       ),
       iOS: DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: resolvedSound),
     );
-    await _notifications.show(
-      _typedNotificationId(type, data),
-      title,
-      body,
-      details,
-      payload: payload ?? _encodePayload(type, data),
-    );
+    await _notifications.show(_typedNotificationId(type, data), title, body, details, payload: payload ?? _encodePayload(type, data));
   }
 
   Future<void> showMessageNotification({required String title, required String body, String? payload}) async {
@@ -292,9 +249,37 @@ class NotificationService {
     await _notifications.show(_notificationId(), title, body, details, payload: payload);
   }
 
+  /// Incoming calls deliberately start with the app's normal Sehatak small icon.
+  /// After 500ms the same Android notification is updated in-place to the
+  /// Material-style received-call icon. The notification id stays identical,
+  /// so Android does not create a second notification or replay the ringtone.
   Future<void> showIncomingCallNotification({required String callerName, required String callId, required bool isVideo, bool silent = false}) async {
     await initialize(startCallCoordinator: false);
     if (silent) unawaited(CallSoundCoordinator.instance.presentIncomingCallById(callId));
+    final id = _callNotificationId(callId);
+    _callIconTimers.remove(callId)?.cancel();
+    await _showCallNotification(
+      id: id,
+      callerName: callerName,
+      callId: callId,
+      isVideo: isVideo,
+      silent: silent,
+      smallIcon: 'ic_notification',
+    );
+    _callIconTimers[callId] = Timer(const Duration(milliseconds: 500), () {
+      _callIconTimers.remove(callId);
+      unawaited(_showCallNotification(
+        id: id,
+        callerName: callerName,
+        callId: callId,
+        isVideo: isVideo,
+        silent: true,
+        smallIcon: 'ic_call_received',
+      ));
+    });
+  }
+
+  Future<void> _showCallNotification({required int id, required String callerName, required String callId, required bool isVideo, required bool silent, required String smallIcon}) async {
     final details = NotificationDetails(
       android: AndroidNotificationDetails(
         callChannelId, 'صحتك - المكالمات', channelDescription: 'إشعارات المكالمات الواردة',
@@ -303,39 +288,31 @@ class NotificationService {
         category: AndroidNotificationCategory.call, visibility: NotificationVisibility.public,
         fullScreenIntent: true, ongoing: true, autoCancel: false, onlyAlertOnce: true,
         showWhen: true, timeoutAfter: 60000, ticker: 'مكالمة واردة من $callerName',
-        color: Color(0xFF2A8F83),
-        colorized: false,
+        color: const Color(0xFF2A8F83), colorized: false, icon: smallIcon,
         actions: <AndroidNotificationAction>[
-          AndroidNotificationAction(
-            'call_reject',
-            'إلغاء',
-            titleColor: Color(0xFFE53935),
-            showsUserInterface: true,
-            cancelNotification: true,
-          ),
-          AndroidNotificationAction(
-            'call_answer',
-            'إجابة',
-            titleColor: Color(0xFF2DBE68),
-            showsUserInterface: true,
-            cancelNotification: true,
-          ),
-          AndroidNotificationAction(
-            'call_options',
-            'خيارات',
-            titleColor: Color(0xFF2F80ED),
-            showsUserInterface: true,
-            cancelNotification: false,
-          ),
+          AndroidNotificationAction('call_reject', 'إلغاء', titleColor: const Color(0xFFE53935), showsUserInterface: true, cancelNotification: true),
+          AndroidNotificationAction('call_answer', 'إجابة', titleColor: const Color(0xFF2DBE68), showsUserInterface: true, cancelNotification: true),
+          AndroidNotificationAction('call_options', 'خيارات', titleColor: const Color(0xFF2F80ED), showsUserInterface: true, cancelNotification: false),
         ],
       ),
       iOS: DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: !silent),
     );
-    await _notifications.show(_callNotificationId(callId), isVideo ? 'مكالمة فيديو واردة' : 'مكالمة صوتية واردة', callerName, details, payload: 'incoming_call:$callId');
+    await _notifications.show(id, isVideo ? 'مكالمة فيديو واردة' : 'مكالمة صوتية واردة', callerName, details, payload: 'incoming_call:$callId');
   }
 
-  Future<void> cancelIncomingCallNotification(String callId) => _notifications.cancel(_callNotificationId(callId));
-  Future<void> cancelAllNotifications() => _notifications.cancelAll();
+  Future<void> cancelIncomingCallNotification(String callId) {
+    _callIconTimers.remove(callId)?.cancel();
+    return _notifications.cancel(_callNotificationId(callId));
+  }
+
+  Future<void> cancelAllNotifications() async {
+    for (final timer in _callIconTimers.values) {
+      timer.cancel();
+    }
+    _callIconTimers.clear();
+    await _notifications.cancelAll();
+  }
+
   Future<void> showNotification({required String title, required String body, String? payload}) => showMessageNotification(title: title, body: body, payload: payload);
 
   String _channelFor(SehatakNotificationType type) {
@@ -375,13 +352,11 @@ class NotificationService {
       case SehatakNotificationType.medication:
       case SehatakNotificationType.labResult:
       case SehatakNotificationType.payment:
-      case SehatakNotificationType.order:
-        return Importance.high;
+      case SehatakNotificationType.order: return Importance.high;
       case SehatakNotificationType.promotional:
       case SehatakNotificationType.system:
       case SehatakNotificationType.health:
-      case SehatakNotificationType.social:
-        return Importance.defaultImportance;
+      case SehatakNotificationType.social: return Importance.defaultImportance;
     }
   }
 
