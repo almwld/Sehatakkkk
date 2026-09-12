@@ -35,6 +35,7 @@ import 'package:sehatak/bloc/chat/chat_bloc.dart';
 import 'package:sehatak/bloc/messages/messages_bloc.dart';
 import 'package:sehatak/bloc/doctor_bloc/doctor_bloc.dart';
 import 'presentation/screens/chat/chat_room_screen.dart';
+import 'presentation/screens/call/call_screen.dart';
 import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/platform/dashboard/platform_dashboard.dart';
 
@@ -223,6 +224,57 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
     if (!mounted || payload == null || payload.isEmpty) return;
     final nav = navigatorKey.currentState;
     if (nav == null) return;
+
+    if (payload.startsWith('notification_action:')) {
+      final value = payload.substring('notification_action:'.length);
+      final separator = value.indexOf(':');
+      if (separator <= 0) return;
+      final actionId = value.substring(0, separator);
+      final callId = value.substring(separator + 1).trim();
+      if (callId.isEmpty) return;
+
+      await _notificationService.cancelIncomingCallNotification(callId);
+      switch (actionId) {
+        case 'call_reject':
+          try {
+            await _callService.rejectCall(callId);
+          } catch (e) {
+            debugPrint('❌ Notification reject action failed: $e');
+          }
+          return;
+        case 'call_options':
+          if (mounted) await _callService.handleIncomingCallById(context, callId);
+          return;
+        case 'call_answer':
+          try {
+            final snapshot = await FirebaseFirestore.instance.collection('calls').doc(callId).get();
+            if (!snapshot.exists || !mounted) return;
+            final data = snapshot.data() ?? <String, dynamic>{};
+            final receiverId = data['receiverId']?.toString() ?? '';
+            final currentUid = FirebaseAuth.instance.currentUser?.uid ?? '';
+            final status = data['status']?.toString() ?? '';
+            if (receiverId.isNotEmpty && receiverId != currentUid) return;
+            if (status != 'calling' && status != 'ringing') return;
+            final chatId = data['chatId']?.toString() ?? '';
+            if (chatId.isEmpty) return;
+            await _callService.acceptCall(callId);
+            if (!mounted) return;
+            nav.push(MaterialPageRoute(builder: (_) => CallScreen(
+              callId: callId,
+              chatId: chatId,
+              doctorName: data['callerName']?.toString() ?? 'مستخدم',
+              doctorId: data['callerId']?.toString() ?? '',
+              doctorImage: data['callerPhotoUrl']?.toString(),
+              isVideo: data['isVideoCall'] == true || data['isVideo']?.toString() == 'true' || data['callType']?.toString() == 'video',
+              isOutgoing: false,
+            )));
+          } catch (e) {
+            debugPrint('❌ Notification answer action failed: $e');
+          }
+          return;
+      }
+    }
+
     if (payload.startsWith('incoming_call:')) {
       final callId = payload.substring('incoming_call:'.length);
       if (callId.isEmpty) return;
