@@ -68,10 +68,14 @@ class CallService {
       tx.set(lockRef, {'participants':[uid,receiverId],'activeCallId':id,'status':CallStatus.calling.name,'updatedAt':FieldValue.serverTimestamp()});
       tx.set(ref, {'id':id,'chatId':chatId,'callerId':uid,'callerName':user.displayName ?? 'مستخدم','callerPhotoUrl':user.photoURL,'receiverId':receiverId,'receiverName':receiverName,'receiverPhotoUrl':receiverPhotoUrl,'callType':type.name,'status':CallStatus.calling.name,'startedAt':FieldValue.serverTimestamp(),'isAnswered':false,'participants':[uid,receiverId],'liveKitRoomName':room,'roomName':room,'isVideoCall':type == CallType.video});
     }));
-    _inCall = true; _current = id; await _timeline(chatId:chatId,callId:id,text:type == CallType.video ? '📹 بدء مكالمة فيديو' : '📞 بدء مكالمة صوتية',status:CallStatus.calling.name,type:type); final saved = await _retry(() => ref.get()); if (!saved.exists) throw Exception('تعذر حفظ المكالمة');
+    _inCall = true; _current = id;
+    final saved = await _retry(() => ref.get());
+    if (!saved.exists) throw Exception('تعذر حفظ المكالمة');
     final call = CallModel.fromFirestore(id,saved.data()!);
-    // Fire-and-forget after the canonical Firestore call exists. Railway sends the production FCM.
+    // Notify Railway immediately after the canonical call exists. Do not wait for the chat timeline write.
     unawaited(_notifyIncomingCall(id));
+    // The timeline is secondary and must never delay the incoming-call notification.
+    unawaited(_timeline(chatId:chatId,callId:id,text:type == CallType.video ? '📹 بدء مكالمة فيديو' : '📞 بدء مكالمة صوتية',status:CallStatus.calling.name,type:type));
     return call;
   }
 
