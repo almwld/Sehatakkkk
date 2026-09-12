@@ -76,7 +76,6 @@ class NextcloudService {
       }
 
       final name = fileName ?? file.path.split(Platform.pathSeparator).last;
-      // Keep the logical DAV path separate from its URL-encoded representation.
       final logicalDirectory = path
           .split('/')
           .where((p) => p.isNotEmpty && p != '..')
@@ -115,7 +114,6 @@ class NextcloudService {
         );
       }
 
-      // Upload success is authoritative. Share creation is a separate operation.
       if (!createShare) {
         return NextcloudUploadResult(success: true, path: remotePath, fileName: name);
       }
@@ -164,15 +162,28 @@ class NextcloudService {
     }
   }
 
+  /// Verifies the exact public download path that the receiver will use.
+  /// HEAD is cheap; a one-byte ranged GET confirms that the download endpoint
+  /// actually serves the object and is not merely returning a landing page.
   Future<bool> verifyPublicUrl(String url) async {
     try {
-      final response = await http.head(Uri.parse(url)).timeout(const Duration(seconds: 15));
-      return response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 400;
+      final uri = Uri.parse(url);
+      final head = await http.head(uri).timeout(const Duration(seconds: 15));
+      final headOk = head.statusCode != null && head.statusCode! >= 200 && head.statusCode! < 400;
+      if (!headOk) return false;
+
+      final probe = await http.get(
+        uri,
+        headers: const {'Range': 'bytes=0-0'},
+      ).timeout(const Duration(seconds: 20));
+      final probeOk = probe.statusCode == 200 || probe.statusCode == 206;
+      if (!probeOk) return false;
+      return probe.bodyBytes.isNotEmpty;
     } catch (_) {
-      // Some Nextcloud/proxy installations reject HEAD while GET works.
+      // Some proxies reject HEAD or Range. A bounded GET is the final fallback.
       try {
-        final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 15));
-        return response.statusCode >= 200 && response.statusCode < 400;
+        final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 20));
+        return response.statusCode >= 200 && response.statusCode < 400 && response.bodyBytes.isNotEmpty;
       } catch (_) {
         return false;
       }
