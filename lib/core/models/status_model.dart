@@ -15,11 +15,12 @@ class StoryItem {
 
   factory StoryItem.fromMap(Map<String, dynamic> data) {
     final seconds = (data['durationSeconds'] as num?)?.toInt() ?? 5;
+    final safeSeconds = seconds.clamp(3, 15).toInt();
     return StoryItem(
       type: data['type']?.toString() ?? 'text',
       url: data['url']?.toString() ?? '',
       text: data['text']?.toString(),
-      duration: Duration(seconds: seconds.clamp(3, 15)),
+      duration: Duration(seconds: safeSeconds),
     );
   }
 
@@ -63,18 +64,13 @@ class UserStatusModel {
     final expires = (data['expiresAt'] as Timestamp?)?.toDate() ?? created.add(const Duration(hours: 24));
     final rawStories = data['stories'];
     final stories = rawStories is List
-        ? rawStories
-            .whereType<Map>()
-            .map((item) => StoryItem.fromMap(Map<String, dynamic>.from(item)))
-            .toList()
+        ? rawStories.whereType<Map>().map((item) => StoryItem.fromMap(Map<String, dynamic>.from(item))).toList()
         : <StoryItem>[];
 
     return UserStatusModel(
       id: document.id,
       userId: data['userId']?.toString() ?? '',
-      userName: data['userName']?.toString().trim().isNotEmpty == true
-          ? data['userName'].toString()
-          : 'مستخدم',
+      userName: data['userName']?.toString().trim().isNotEmpty == true ? data['userName'].toString() : 'مستخدم',
       userImage: data['userImage']?.toString(),
       stories: stories,
       createdAt: created,
