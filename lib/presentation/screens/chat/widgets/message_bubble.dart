@@ -202,16 +202,59 @@ class _MessageBubbleState extends State<MessageBubble> {
 
   Widget _buildCall(Map<String, dynamic> m, bool dark) {
     final meta = m['metadata'] is Map ? Map<String, dynamic>.from(m['metadata']) : <String, dynamic>{};
-    final kind = (meta['callType'] ?? 'missed').toString();
-    final video = meta['isVideo'] == true;
+    final status = (meta['status'] ?? '').toString();
+    final video = meta['isVideo'] == true || (meta['callType']?.toString() == 'video');
     final duration = (meta['duration'] ?? '').toString();
-    final missed = kind == 'missed';
-    final incoming = kind == 'incoming';
+    final missed = status == 'missed' || status == 'rejected' || status == 'busy';
+    final incoming = !missed && !widget.isMe;
     final icon = missed ? Icons.call_missed : incoming ? Icons.call_received : Icons.call_made;
-    final title = missed ? 'مكالمة ${video ? 'فيديو' : 'صوتية'} فائتة' : incoming ? 'مكالمة ${video ? 'فيديو' : 'صوتية'} واردة' : 'مكالمة ${video ? 'فيديو' : 'صوتية'} صادرة';
+    final title = missed
+        ? 'مكالمة ${video ? 'فيديو' : 'صوتية'} فائتة'
+        : incoming
+            ? 'مكالمة ${video ? 'فيديو' : 'صوتية'} واردة'
+            : 'مكالمة ${video ? 'فيديو' : 'صوتية'} صادرة';
     final tc = widget.isMe ? Colors.white : (dark ? Colors.white : Colors.black87);
-    final ic = missed ? Colors.redAccent : incoming ? Colors.green : Colors.blue;
-    return _shell(Padding(padding: const EdgeInsets.all(12), child: Row(mainAxisSize: MainAxisSize.min, children: [CircleAvatar(backgroundColor: ic.withOpacity(.18), child: Icon(icon, color: ic, size: 20)), const SizedBox(width: 10), Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: TextStyle(color: tc, fontWeight: FontWeight.bold, fontSize: 13)), if (duration.isNotEmpty) Text(duration, style: TextStyle(color: tc.withOpacity(.7), fontSize: 11))]), const SizedBox(width: 12), InkWell(onTap: () => widget.onCallAgain?.call(video ? 'video' : 'audio'), child: Icon(video ? Icons.videocam : Icons.call, color: tc, size: 20))])), dark);
+    final ic = missed ? Colors.red : incoming ? Colors.green : Colors.blue;
+    return _shell(
+      Padding(
+        padding: const EdgeInsets.all(10),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(color: ic.withOpacity(.15), shape: BoxShape.circle),
+              child: Icon(icon, color: ic, size: 24),
+            ),
+            const SizedBox(width: 12),
+            Flexible(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: TextStyle(color: tc, fontWeight: FontWeight.bold, fontSize: 13)),
+                  if (duration.isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    Text(duration, style: TextStyle(color: tc.withOpacity(.7), fontSize: 11)),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            InkWell(
+              borderRadius: BorderRadius.circular(20),
+              onTap: () => widget.onCallAgain?.call(video ? 'video' : 'audio'),
+              child: Padding(
+                padding: const EdgeInsets.all(6),
+                child: Icon(video ? Icons.videocam : Icons.call, color: tc, size: 20),
+              ),
+            ),
+          ],
+        ),
+      ),
+      dark,
+    );
   }
 
   Widget _buildLocation(Map<String, dynamic> m, bool dark) {
