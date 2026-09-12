@@ -7,8 +7,7 @@
   "engines": { "node": ">=18" },
   "scripts": {
     "start": "node server.js",
-    "start:notifications": "node notification-server.js",
-    "test:notifications": "node scripts/test-notification-server.js"
+    "start:notifications": "node notification-server.js"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
