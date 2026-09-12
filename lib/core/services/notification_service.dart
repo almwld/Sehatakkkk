@@ -113,6 +113,14 @@ class NotificationService {
 
   Future<void> showIncomingCallNotification({required String callerName, required String callId, required bool isVideo, bool silent = false}) async {
     await initialize(startCallCoordinator: false);
+
+    // Foreground FCM must open the independent incoming-call surface instead
+    // of leaving the user inside the chat. Firestore/coordinator deduplicates
+    // this against the real-time call listener.
+    if (silent) {
+      unawaited(CallSoundCoordinator.instance.presentIncomingCallById(callId));
+    }
+
     final details = NotificationDetails(
       android: AndroidNotificationDetails(
         callChannelId, 'صحتك - المكالمات', channelDescription: 'إشعارات المكالمات الواردة',
