@@ -29,15 +29,11 @@ class StatusService {
     });
   }
 
-  Future<List<UserStatusModel>> _withViewState(
-    QuerySnapshot<Map<String, dynamic>> snapshot,
-  ) async {
+  Future<List<UserStatusModel>> _withViewState(QuerySnapshot<Map<String, dynamic>> snapshot) async {
     final uid = _auth.currentUser?.uid;
     final items = <UserStatusModel>[];
     for (final document in snapshot.docs) {
-      final viewed = uid == null
-          ? false
-          : (await document.reference.collection('views').doc(uid).get()).exists;
+      final viewed = uid == null ? false : (await document.reference.collection('views').doc(uid).get()).exists;
       items.add(UserStatusModel.fromDocument(document, isViewed: viewed));
     }
     return items;
@@ -52,17 +48,24 @@ class StatusService {
     if (user == null) throw StateError('يجب تسجيل الدخول لإضافة حالة.');
     if (stories.isEmpty) throw StateError('أضف محتوى واحداً على الأقل.');
 
+    // One active document per user keeps the status row clean and lets a user
+    // publish multiple story items without creating duplicate profile circles.
+    final ref = _statuses.doc(user.uid);
+    final existing = await ref.get();
+    final existingModel = existing.exists ? UserStatusModel.fromDocument(existing) : null;
     final now = DateTime.now();
-    final ref = _statuses.doc();
+    final activeStories = existingModel != null && existingModel.isValid ? existingModel.stories : <StoryItem>[];
+    final allStories = [...activeStories, ...stories];
+
     await ref.set({
       'userId': user.uid,
       'userName': (userName ?? user.displayName ?? 'مستخدم').trim(),
       'userImage': userImage ?? user.photoURL,
-      'stories': stories.map((story) => story.toMap()).toList(),
+      'stories': allStories.map((story) => story.toMap()).toList(),
       'createdAt': Timestamp.fromDate(now),
       'expiresAt': Timestamp.fromDate(now.add(const Duration(hours: 24))),
       'createdBy': user.uid,
-    });
+    }, SetOptions(merge: true));
     return ref.id;
   }
 
@@ -95,10 +98,7 @@ class StatusService {
     }, SetOptions(merge: true));
   }
 
-  Future<void> addReaction({
-    required UserStatusModel status,
-    required String emoji,
-  }) async {
+  Future<void> addReaction({required UserStatusModel status, required String emoji}) async {
     final uid = _auth.currentUser?.uid;
     if (uid == null) return;
     await _statuses.doc(status.id).collection('reactions').doc(uid).set({
@@ -108,10 +108,7 @@ class StatusService {
     });
   }
 
-  Future<void> addReply({
-    required UserStatusModel status,
-    required String text,
-  }) async {
+  Future<void> addReply({required UserStatusModel status, required String text}) async {
     final uid = _auth.currentUser?.uid;
     final clean = text.trim();
     if (uid == null || clean.isEmpty) return;
