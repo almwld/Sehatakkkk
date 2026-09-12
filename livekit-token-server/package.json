@@ -8,7 +8,12 @@
   "scripts": {
     "start": "node server.js",
     "start:notifications": "node notification-server.js",
-    "test:notifications": "node test-notification-integration.js"
+    "test:notifications": "node test-notification-integration.js",
+    "test:backend": "bash tests/run-all.sh",
+    "test:connection": "node tests/test-01-connection.js",
+    "test:call": "node tests/test-04-call-flow.js",
+    "test:types": "node tests/test-05-notification-types.js",
+    "test:stress": "node tests/test-08-stress.js"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
