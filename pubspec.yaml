@@ -94,7 +94,7 @@ dependencies:
   flutter_tts: 3.8.2
   pdf: 3.10.7
   printing: 5.11.1
-  json_serializable: 6.7.0
+  json_serializable: 6.7.1
   build_runner: 2.4.7
   retrofit_generator: 8.0.6
   fluttertoast: 8.2.4
