@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 
+import 'package:sehatak/core/constants/app_images.dart';
 import 'package:sehatak/core/constants/imagekit.dart';
 import 'package:sehatak/core/models/call_model.dart';
 import 'package:sehatak/core/services/call_service.dart';
@@ -36,10 +37,10 @@ class IncomingCallScreen extends StatefulWidget {
 
 class _IncomingCallScreenState extends State<IncomingCallScreen>
     with SingleTickerProviderStateMixin {
-  static const _teal = Color(0xFF0A8F83);
-  static const _cyan = Color(0xFF00BCD4);
-  static const _red = Color(0xFFE53935);
-  static const _green = Color(0xFF4CAF50);
+  static const teal = Color(0xFF0A8F83);
+  static const cyan = Color(0xFF00BCD4);
+  static const red = Color(0xFFE53935);
+  static const green = Color(0xFF4CAF50);
 
   final CallService _callService = CallService();
   late final AnimationController _pulseController;
@@ -65,7 +66,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     )..repeat(reverse: true);
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.15).animate(
+    _pulseAnimation = Tween<double>(begin: 1, end: 1.15).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
     _answerExpansionController = AnimationController(
@@ -76,7 +77,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
       parent: _answerExpansionController,
       curve: Curves.easeInOutCubic,
     );
-    _startVibration();
+    unawaited(_startVibration());
     _listenToCall();
     _startTimeout();
   }
@@ -84,8 +85,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
   Future<void> _startVibration() async {
     if (!await Vibrate.canVibrate) return;
     _vibrationTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (!_isAlerting || !mounted) return;
-      Vibrate.feedback(FeedbackType.medium);
+      if (_isAlerting && mounted) Vibrate.feedback(FeedbackType.medium);
     });
   }
 
@@ -98,7 +98,6 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
       }
       setState(() => _remainingSeconds--);
     });
-
     _timeoutTimer = Timer(const Duration(seconds: 30), () async {
       if (_isProcessing || !mounted) return;
       setState(() => _isProcessing = true);
@@ -115,21 +114,21 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
   void _listenToCall() {
     _callSubscription = _callService.streamCall(widget.callId).listen((call) {
       if (!mounted || call == null || _isProcessing) return;
-      if (call.status == CallStatus.connected ||
+      final terminal = call.status == CallStatus.connected ||
           call.status == CallStatus.cancelled ||
           call.status == CallStatus.rejected ||
           call.status == CallStatus.missed ||
           call.status == CallStatus.busy ||
-          call.status == CallStatus.ended) {
-        _stopAlerting();
-        if (call.status == CallStatus.busy) {
-          ToastService.showInfo('المستخدم مشغول بمكالمة أخرى');
-        }
-        if (call.status != CallStatus.connected && mounted) {
-          Navigator.of(context).pop();
-        }
+          call.status == CallStatus.ended;
+      if (!terminal) return;
+      _stopAlerting();
+      if (call.status == CallStatus.busy) {
+        ToastService.showInfo('المستخدم مشغول بمكالمة أخرى');
       }
-    }, onError: (error) {
+      if (call.status != CallStatus.connected && mounted) {
+        Navigator.of(context).pop();
+      }
+    }, onError: (Object error) {
       debugPrint('Incoming call stream error: $error');
     });
   }
@@ -200,9 +199,8 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
     });
     try {
       await _answerExpansionController.forward();
-      if (!mounted) return;
-      await _acceptCall(prelocked: true);
-    } catch (e) {
+      if (mounted) await _acceptCall(prelocked: true);
+    } catch (_) {
       if (!mounted) return;
       setState(() {
         _isProcessing = false;
@@ -217,21 +215,17 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
     if (_isProcessing || _answerSwipeTriggered) return;
     final upward = -details.delta.dy;
     if (upward <= 0) return;
-    setState(() {
-      _answerSwipeDistance = (_answerSwipeDistance + upward).clamp(0, 110);
-    });
-    if (_answerSwipeDistance >= 78) {
-      unawaited(_triggerSwipeAnswer());
-    }
+    setState(() => _answerSwipeDistance = (_answerSwipeDistance + upward).clamp(0, 110));
+    if (_answerSwipeDistance >= 78) unawaited(_triggerSwipeAnswer());
   }
 
   void _handleAnswerSwipeEnd(DragEndDetails details) {
     if (_isProcessing || _answerSwipeTriggered) return;
     if (_answerSwipeDistance >= 58) {
       unawaited(_triggerSwipeAnswer());
-      return;
+    } else if (mounted) {
+      setState(() => _answerSwipeDistance = 0);
     }
-    if (mounted) setState(() => _answerSwipeDistance = 0);
   }
 
   Future<void> _toggleMute() async {
@@ -253,7 +247,6 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
     final imageUrl = widget.callerImage?.trim().isNotEmpty == true
         ? widget.callerImage!.trim()
         : ImageKit.doctor1;
-
     return Scaffold(
       backgroundColor: const Color(0xFF0A0F1C),
       body: SafeArea(
@@ -274,7 +267,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                     gradient: RadialGradient(
                       center: Alignment.center,
                       radius: .8,
-                      colors: [_teal.withOpacity(.18), Colors.transparent],
+                      colors: [teal.withOpacity(.18), Colors.transparent],
                     ),
                   ),
                 ),
@@ -286,43 +279,27 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                   const Spacer(),
                   AnimatedBuilder(
                     animation: _pulseAnimation,
-                    builder: (_, child) => Transform.scale(
-                      scale: _pulseAnimation.value,
-                      child: child,
-                    ),
+                    builder: (_, child) => Transform.scale(scale: _pulseAnimation.value, child: child),
                     child: Container(
                       width: 160,
                       height: 160,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white.withOpacity(.3), width: 4),
-                        boxShadow: [
-                          BoxShadow(color: _teal.withOpacity(.5), blurRadius: 50, spreadRadius: 15),
-                        ],
+                        boxShadow: [BoxShadow(color: teal.withOpacity(.5), blurRadius: 50, spreadRadius: 15)],
                         image: DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover),
                       ),
                     ),
                   ),
                   const SizedBox(height: 30),
-                  Text(
-                    widget.callerName,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.w700, letterSpacing: .5),
-                  ),
+                  Text(widget.callerName, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.w700, letterSpacing: .5)),
                   const SizedBox(height: 14),
                   _glassBadge(
-                    icon: widget.isVideo ? Icons.videocam_rounded : Icons.phone_rounded,
+                    asset: widget.isVideo ? AppImages.videoCall : AppImages.phoneCall,
                     text: widget.isVideo ? 'مكالمة فيديو واردة' : 'مكالمة صوتية واردة',
                   ),
                   const SizedBox(height: 12),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.timer_outlined, color: Colors.white70, size: 17),
-                      const SizedBox(width: 6),
-                      Text('$_remainingSeconds ثانية', style: const TextStyle(color: Colors.white70, fontSize: 16)),
-                    ],
-                  ),
+                  Text('$_remainingSeconds ثانية', style: const TextStyle(color: Colors.white70, fontSize: 16)),
                   const Spacer(),
                   if (_isProcessing)
                     const Padding(
@@ -335,23 +312,24 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         _buildCallButton(
-                          icon: _isMuted ? Icons.notifications_off_rounded : Icons.notifications_active_rounded,
+                          asset: AppImages.microphone,
                           label: _isMuted ? 'تشغيل الرنين' : 'كتم الرنين',
-                          color: _cyan,
+                          color: cyan,
                           onTap: _isProcessing ? null : () => unawaited(_toggleMute()),
                         ),
                         _buildCallButton(
-                          icon: Icons.call_end_rounded,
+                          asset: AppImages.phoneCall,
                           label: 'رفض',
-                          color: _red,
+                          color: red,
                           size: 75,
                           isMain: true,
+                          rotation: 135,
                           onTap: _isProcessing ? null : _rejectCall,
                         ),
                         _buildCallButton(
-                          icon: widget.isVideo ? Icons.videocam_rounded : Icons.call_rounded,
+                          asset: widget.isVideo ? AppImages.videoCall : AppImages.phoneCall,
                           label: 'قبول',
-                          color: _green,
+                          color: green,
                           size: 75,
                           isMain: true,
                           pulse: true,
@@ -369,9 +347,9 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
               Positioned(
                 top: 4,
                 left: 4,
-                child: IconButton(
-                  onPressed: _isProcessing ? null : _rejectCall,
-                  icon: const Icon(Icons.close_rounded, color: Colors.white70),
+                child: GestureDetector(
+                  onTap: _isProcessing ? null : _rejectCall,
+                  child: const SizedBox(width: 44, height: 44, child: Center(child: Text('×', style: TextStyle(color: Colors.white70, fontSize: 30)))),
                 ),
               ),
               if (_answerSwipeTriggered)
@@ -388,15 +366,9 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                             child: Container(
                               width: 75,
                               height: 75,
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: _green,
-                              ),
-                              child: Icon(
-                                widget.isVideo ? Icons.videocam_rounded : Icons.call_rounded,
-                                color: Colors.white,
-                                size: 34,
-                              ),
+                              decoration: const BoxDecoration(shape: BoxShape.circle, color: green),
+                              padding: const EdgeInsets.all(20),
+                              child: Image.asset(widget.isVideo ? AppImages.videoCall : AppImages.phoneCall, fit: BoxFit.contain),
                             ),
                           ),
                         );
@@ -411,22 +383,18 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
     );
   }
 
-  Widget _glassBadge({required IconData icon, required String text}) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(.10),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: Colors.white.withOpacity(.20)),
-        ),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(icon, color: Colors.white70, size: 18),
-          const SizedBox(width: 8),
-          Text(text, style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w500)),
-        ]),
-      );
+  Widget _glassBadge({required String asset, required String text}) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+    decoration: BoxDecoration(color: Colors.white.withOpacity(.10), borderRadius: BorderRadius.circular(24), border: Border.all(color: Colors.white.withOpacity(.20))),
+    child: Row(mainAxisSize: MainAxisSize.min, children: [
+      Image.asset(asset, width: 18, height: 18, fit: BoxFit.contain),
+      const SizedBox(width: 8),
+      Text(text, style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w500)),
+    ]),
+  );
 
   Widget _buildCallButton({
-    required IconData icon,
+    required String asset,
     required String label,
     required Color color,
     required VoidCallback? onTap,
@@ -434,41 +402,34 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
     bool isMain = false,
     bool pulse = false,
     double swipeDistance = 0,
+    double rotation = 0,
     Animation<double>? expansionAnimation,
     GestureDragUpdateCallback? onPanUpdate,
     GestureDragEndCallback? onPanEnd,
   }) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          GestureDetector(
-            onTap: onTap,
-            onPanUpdate: onPanUpdate,
-            onPanEnd: onPanEnd,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              transform: Matrix4.identity()..translate(0.0, -swipeDistance * .12),
-              width: size + swipeDistance * .12,
-              height: size + swipeDistance * .12,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isMain ? color : color.withOpacity(.15),
-                border: Border.all(color: color, width: isMain ? 0 : 2),
-                boxShadow: (isMain || pulse)
-                    ? [BoxShadow(color: color.withOpacity(.40), blurRadius: 20 + swipeDistance * .12, spreadRadius: 5 + swipeDistance * .05)]
-                    : null,
-              ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Icon(icon, color: isMain ? Colors.white : color, size: size * .45),
-                  if (onPanUpdate != null && swipeDistance > 8 && expansionAnimation == null)
-                    Positioned(top: 5, child: Icon(Icons.keyboard_arrow_up_rounded, color: Colors.white70, size: 20)),
-                ],
-              ),
-            ),
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      GestureDetector(
+        onTap: onTap,
+        onPanUpdate: onPanUpdate,
+        onPanEnd: onPanEnd,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          transform: Matrix4.identity()..translate(0.0, -swipeDistance * .12),
+          width: size + swipeDistance * .12,
+          height: size + swipeDistance * .12,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isMain ? color : color.withOpacity(.15),
+            border: Border.all(color: color, width: isMain ? 0 : 2),
+            boxShadow: (isMain || pulse) ? [BoxShadow(color: color.withOpacity(.40), blurRadius: 20 + swipeDistance * .12, spreadRadius: 5 + swipeDistance * .05)] : null,
           ),
-          const SizedBox(height: 8),
-          Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w500)),
-        ],
-      );
+          padding: EdgeInsets.all(size * .27),
+          child: Transform.rotate(angle: rotation * 3.1415926535 / 180, child: Image.asset(asset, fit: BoxFit.contain)),
+        ),
+      ),
+      const SizedBox(height: 8),
+      Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w500)),
+    ],
+  );
 }
