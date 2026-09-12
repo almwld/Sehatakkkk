@@ -209,41 +209,97 @@ class ChatMediaTransferService {
   Future<void> _process(Map<String, dynamic> job) async {
     final db = await _database;
     final id = job['id'].toString();
-    final file = File(job['local_path'].toString());
-    if (!await file.exists()) throw StateError('النسخة المحلية للملف لم تعد موجودة');
-    await db.update('media_outbox', {'status': 'uploading', 'updated_at': DateTime.now().millisecondsSinceEpoch}, where: 'id = ?', whereArgs: [id]);
+    final localPath = job['local_path']?.toString() ?? '';
+    final file = File(localPath);
+    final existingStatus = job['status']?.toString() ?? 'queued';
+    var remotePath = job['remote_path']?.toString();
+    var url = job['remote_url']?.toString();
+
+    // The local copy is the optimistic UI source. Never delete it until the
+    // Firestore message has been committed successfully.
+    if (!await file.exists()) {
+      throw StateError('النسخة المحلية للملف لم تعد موجودة');
+    }
 
     final nextcloud = NextcloudService();
     await nextcloud.loadConfig();
-    final upload = await nextcloud.uploadFile(
-      file: file,
-      path: 'chats/${job['chat_id']}/${job['folder']}',
-      fileName: job['file_name']?.toString(),
-      onProgress: (sent, total) {
-        if (total <= 0) return;
-        unawaited(db.update('media_outbox', {'progress': sent / total, 'updated_at': DateTime.now().millisecondsSinceEpoch}, where: 'id = ?', whereArgs: [id]));
-      },
-      createShare: true,
-    );
-    if (!upload.success || upload.path == null) throw StateError(upload.error ?? 'تعذر رفع الوسائط');
+
+    // Resume from the last durable checkpoint instead of uploading the same
+    // bytes again after a transient failure.
+    if (remotePath == null || remotePath.isEmpty) {
+      await db.update('media_outbox', {
+        'status': 'uploading',
+        'error': null,
+        'updated_at': DateTime.now().millisecondsSinceEpoch,
+      }, where: 'id = ?', whereArgs: [id]);
+
+      final upload = await nextcloud.uploadFile(
+        file: file,
+        path: 'chats/${job['chat_id']}/${job['folder']}',
+        fileName: job['file_name']?.toString(),
+        onProgress: (sent, total) {
+          if (total <= 0) return;
+          final progress = (sent / total).clamp(0.0, 1.0).toDouble();
+          unawaited(db.update('media_outbox', {
+            'status': 'uploading',
+            'progress': progress,
+            'updated_at': DateTime.now().millisecondsSinceEpoch,
+          }, where: 'id = ?', whereArgs: [id]));
+        },
+        createShare: true,
+      );
+
+      if (!upload.success || upload.path == null) {
+        throw StateError(upload.error ?? 'تعذر رفع الوسائط إلى الخادم');
+      }
+
+      remotePath = upload.path;
+      url = upload.url;
+      await db.update('media_outbox', {
+        'status': 'uploaded',
+        'progress': 1.0,
+        'remote_path': remotePath,
+        'remote_url': url,
+        'error': upload.error,
+        'updated_at': DateTime.now().millisecondsSinceEpoch,
+      }, where: 'id = ?', whereArgs: [id]);
+    } else if (existingStatus != 'link_ready') {
+      await db.update('media_outbox', {
+        'status': 'uploaded',
+        'progress': 1.0,
+        'error': null,
+        'updated_at': DateTime.now().millisecondsSinceEpoch,
+      }, where: 'id = ?', whereArgs: [id]);
+    }
+
+    if (remotePath == null || remotePath!.isEmpty) {
+      throw StateError('لم يتم حفظ مسار الوسائط على الخادم');
+    }
+
+    // Reuse a durable share URL whenever possible. Only create a new share
+    // when there is no usable URL or the previous URL is no longer public.
+    if (url == null || url!.isEmpty || !await nextcloud.verifyPublicUrl(url!)) {
+      url = await _retryShare(nextcloud, remotePath!);
+    }
+    if (url == null || url!.isEmpty) {
+      throw StateError('تم رفع الملف، لكن رابط الوصول العام غير جاهز');
+    }
+    if (!await nextcloud.verifyPublicUrl(url!)) {
+      throw StateError('رابط الوسائط موجود لكنه غير قابل للوصول من جهاز المستلم');
+    }
 
     await db.update('media_outbox', {
-      'status': 'uploaded',
-      'progress': 1,
-      'remote_path': upload.path,
-      'remote_url': upload.url,
-      'error': upload.error,
+      'status': 'link_ready',
+      'remote_path': remotePath,
+      'remote_url': url,
+      'progress': 1.0,
+      'error': null,
       'updated_at': DateTime.now().millisecondsSinceEpoch,
     }, where: 'id = ?', whereArgs: [id]);
 
-    var url = upload.url;
-    if (url == null || url.isEmpty) url = await _retryShare(nextcloud, upload.path!);
-    if (url == null || url.isEmpty) throw StateError('تم رفع الملف، لكن رابط المشاركة لم يصبح جاهزًا بعد');
-    if (!await nextcloud.verifyPublicUrl(url)) throw StateError('تم إنشاء الرابط لكنه لم يجتز فحص الوصول');
-
-    await db.update('media_outbox', {'status': 'link_ready', 'remote_url': url, 'updated_at': DateTime.now().millisecondsSinceEpoch}, where: 'id = ?', whereArgs: [id]);
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) throw StateError('المستخدم غير مسجل الدخول');
+
     final type = job['type'].toString();
     await ChatService().sendMessage(
       chatId: job['chat_id'].toString(),
@@ -258,8 +314,22 @@ class ChatMediaTransferService {
       audioDuration: job['audio_duration']?.toString(),
       idempotencyKey: 'media_$id',
     );
-    await db.update('media_outbox', {'status': 'sent', 'remote_url': url, 'updated_at': DateTime.now().millisecondsSinceEpoch}, where: 'id = ?', whereArgs: [id]);
-    try { await file.delete(); } catch (_) {}
+
+    // sendMessage is idempotent. If the database update below is interrupted,
+    // the next attempt will find the same Firestore message instead of
+    // creating a duplicate.
+    await db.update('media_outbox', {
+      'status': 'sent',
+      'remote_path': remotePath,
+      'remote_url': url,
+      'progress': 1.0,
+      'error': null,
+      'updated_at': DateTime.now().millisecondsSinceEpoch,
+    }, where: 'id = ?', whereArgs: [id]);
+
+    try {
+      await file.delete();
+    } catch (_) {}
   }
 
   Future<String?> _retryShare(NextcloudService service, String remotePath) async {
