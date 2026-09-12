@@ -55,6 +55,54 @@ class CallSoundCoordinator {
     });
   }
 
+  /// Presents an incoming call immediately from any FCM/local-notification
+  /// entry point. The Firestore listener remains authoritative and prevents
+  /// duplicates through [_incomingUiCallId].
+  Future<void> presentIncomingCallById(String callId) async {
+    final normalized = callId.trim();
+    if (normalized.isEmpty) return;
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final registryId = ActiveCallRegistry.instance.activeCallId;
+    if (registryId != null && registryId != normalized) {
+      debugPrint('CALL FCM PRESENT BUSY active=$registryId incoming=$normalized');
+      try {
+        final ref = FirebaseFirestore.instance.collection('calls').doc(normalized);
+        final snap = await ref.get();
+        final status = snap.data()?['status']?.toString();
+        if (status == CallStatus.calling.name || status == CallStatus.ringing.name) {
+          await ref.update({
+            'status': CallStatus.busy.name,
+            'endedAt': FieldValue.serverTimestamp(),
+            'busyReason': 'receiver_in_call',
+          });
+        }
+      } catch (e) {
+        debugPrint('CALL FCM PRESENT busy update failed: $e');
+      }
+      return;
+    }
+
+    try {
+      final snap = await FirebaseFirestore.instance.collection('calls').doc(normalized).get();
+      if (!snap.exists) return;
+      final data = snap.data() ?? <String, dynamic>{};
+      final receiverId = data['receiverId']?.toString() ?? '';
+      final callerId = data['callerId']?.toString() ?? '';
+      final status = data['status']?.toString() ?? '';
+      if (receiverId != user.uid || callerId.isEmpty || callerId == user.uid) return;
+      if (status != CallStatus.calling.name && status != CallStatus.ringing.name) return;
+
+      _activeCallId = normalized;
+      _incomingMuted = false;
+      await _sounds.playCallRingtone().catchError((_) {});
+      _showIncomingCall(data, normalized);
+    } catch (e) {
+      debugPrint('CALL FCM PRESENT error id=$normalized error=$e');
+    }
+  }
+
   void _onCallsChanged(QuerySnapshot<Map<String, dynamic>> snapshot) {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
@@ -73,18 +121,13 @@ class CallSoundCoordinator {
       final status = data['status']?.toString();
       if (status != CallStatus.calling.name &&
           status != CallStatus.ringing.name &&
-          status != CallStatus.connected.name) {
-        continue;
-      }
+          status != CallStatus.connected.name) continue;
 
       final startedAt = data['startedAt'];
       if (startedAt is! Timestamp) continue;
       final started = startedAt.toDate();
       final age = DateTime.now().difference(started);
-      if (status != CallStatus.connected.name &&
-          (age.isNegative || age > _maxCallAge)) {
-        continue;
-      }
+      if (status != CallStatus.connected.name && (age.isNegative || age > _maxCallAge)) continue;
 
       final callerId = data['callerId']?.toString() ?? '';
       final receiverId = data['receiverId']?.toString() ?? '';
@@ -96,34 +139,24 @@ class CallSoundCoordinator {
         connected ??= doc;
         continue;
       }
-
-      if (isIncoming &&
-          (newestIncomingAt == null || started.isAfter(newestIncomingAt))) {
+      if (isIncoming && (newestIncomingAt == null || started.isAfter(newestIncomingAt))) {
         newestIncoming = doc;
         newestIncomingAt = started;
       }
-
       if (newestActiveAt == null || started.isAfter(newestActiveAt)) {
         newestActive = doc;
         newestActiveAt = started;
       }
     }
 
-    // A connected call always wins. Any other incoming call is immediately
-    // rejected as busy; there is deliberately no local call queue.
     if (connected != null) {
       final connectedId = connected.id;
-      if (ActiveCallRegistry.instance.activeCallId != connectedId) {
-        ActiveCallRegistry.instance.register(connectedId);
-      }
+      if (ActiveCallRegistry.instance.activeCallId != connectedId) ActiveCallRegistry.instance.register(connectedId);
       _activeCallId = connectedId;
       _incomingUiCallId = null;
       _incomingMuted = false;
       unawaited(_sounds.stopCallAudio());
-
-      if (newestIncoming != null && newestIncoming.id != connectedId) {
-        unawaited(_markIncomingBusy(newestIncoming.id));
-      }
+      if (newestIncoming != null && newestIncoming.id != connectedId) unawaited(_markIncomingBusy(newestIncoming.id));
       return;
     }
 
@@ -140,7 +173,6 @@ class CallSoundCoordinator {
     final callerId = data['callerId']?.toString() ?? '';
     final receiverId = data['receiverId']?.toString() ?? '';
     final isIncoming = receiverId == user.uid && callerId != user.uid;
-
     final isNewCall = _activeCallId != callId;
     if (isNewCall) {
       _activeCallId = callId;
@@ -148,8 +180,6 @@ class CallSoundCoordinator {
     }
 
     if (isIncoming) {
-      // Defense in depth: the registry is the local source of truth for an
-      // active LiveKit/CallScreen session. Never show a second incoming UI.
       final registryId = ActiveCallRegistry.instance.activeCallId;
       if (registryId != null && registryId != callId) {
         debugPrint('CALL BUSY no IncomingCallScreen active=$registryId incoming=$callId');
@@ -157,7 +187,6 @@ class CallSoundCoordinator {
         unawaited(_sounds.stopCallAudio());
         return;
       }
-
       if (_incomingMuted) {
         unawaited(_sounds.stopCallAudio());
       } else {
@@ -176,11 +205,7 @@ class CallSoundCoordinator {
       if (!snap.exists) return;
       final status = snap.data()?['status']?.toString();
       if (status != CallStatus.calling.name && status != CallStatus.ringing.name) return;
-      await ref.update({
-        'status': CallStatus.busy.name,
-        'endedAt': FieldValue.serverTimestamp(),
-        'busyReason': 'receiver_in_call',
-      });
+      await ref.update({'status': CallStatus.busy.name, 'endedAt': FieldValue.serverTimestamp(), 'busyReason': 'receiver_in_call'});
       debugPrint('CALL BUSY marked id=$callId reason=receiver_in_call');
     } catch (e) {
       debugPrint('CALL BUSY update failed id=$callId error=$e');
@@ -216,13 +241,7 @@ class CallSoundCoordinator {
       ),
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
-        return FadeTransition(
-          opacity: curved,
-          child: ScaleTransition(
-            scale: Tween<double>(begin: .96, end: 1).animate(curved),
-            child: child,
-          ),
-        );
+        return FadeTransition(opacity: curved, child: ScaleTransition(scale: Tween<double>(begin: .96, end: 1).animate(curved), child: child));
       },
     ).whenComplete(() {
       if (_incomingUiCallId == callId) _incomingUiCallId = null;
