@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:photo_manager/photo_manager.dart';
 import 'package:record/record.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/services/chat_media_transfer_service.dart';
@@ -43,6 +44,8 @@ class _ChatInputBarState extends State<ChatInputBar> {
   bool _paused = false;
   bool _sending = false;
   bool _attachments = false;
+  bool _loadingRecent = false;
+  List<AssetEntity> _recentAssets = const [];
 
   bool get _hasText => _controller.text.trim().isNotEmpty;
   bool get _hasRecording => _recordPath != null;
@@ -62,6 +65,59 @@ class _ChatInputBarState extends State<ChatInputBar> {
     _focus.dispose();
     _recorder.dispose();
     super.dispose();
+  }
+
+  Future<void> _toggleAttachments() async {
+    if (_sending) return;
+    _focus.unfocus();
+    FocusManager.instance.primaryFocus?.unfocus();
+    if (_attachments) {
+      setState(() => _attachments = false);
+      return;
+    }
+    setState(() => _attachments = true);
+    await _loadRecentGallery();
+  }
+
+  Future<void> _loadRecentGallery() async {
+    if (_loadingRecent) return;
+    setState(() => _loadingRecent = true);
+    try {
+      final permission = await PhotoManager.requestPermissionExtend();
+      if (!permission.isAuth) {
+        if (mounted) ToastService.showError('اسمح بالوصول إلى الصور لعرض الملفات الحديثة.');
+        return;
+      }
+      final paths = await PhotoManager.getAssetPathList(
+        onlyAll: true,
+        type: RequestType.common,
+      );
+      if (paths.isEmpty) return;
+      final assets = await paths.first.getAssetListPaged(page: 0, size: 24);
+      if (mounted) setState(() => _recentAssets = assets);
+    } catch (e) {
+      debugPrint('recent gallery load: $e');
+    } finally {
+      if (mounted) setState(() => _loadingRecent = false);
+    }
+  }
+
+  Future<void> _sendRecentAsset(AssetEntity asset) async {
+    final file = await asset.file;
+    if (file == null) {
+      ToastService.showError('تعذر الوصول إلى هذا الملف.');
+      return;
+    }
+    final isVideo = asset.type == AssetType.video;
+    await _sendMedia(
+      file,
+      type: isVideo ? 'video' : 'image',
+      folder: isVideo ? 'videos' : 'images',
+      preview: isVideo ? '🎬 فيديو' : '📷 صورة',
+      name: file.path.split(Platform.pathSeparator).last,
+      size: _formatBytes(await file.length()),
+      mime: isVideo ? 'video/mp4' : 'image/jpeg',
+    );
   }
 
   Future<void> _sendText() async {
@@ -216,9 +272,21 @@ class _ChatInputBarState extends State<ChatInputBar> {
     final dark = Theme.of(context).brightness == Brightness.dark;
     if (_recording || _hasRecording) return _voiceBar(dark);
     return Column(mainAxisSize: MainAxisSize.min, children: [
-      if (_attachments) _mediaMenu(dark),
+      AnimatedSwitcher(
+        duration: const Duration(milliseconds: 260),
+        reverseDuration: const Duration(milliseconds: 190),
+        transitionBuilder: (child, animation) => SizeTransition(
+          sizeFactor: CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+          axisAlignment: 1,
+          child: FadeTransition(opacity: animation, child: SlideTransition(
+            position: Tween<Offset>(begin: const Offset(0, 0.08), end: Offset.zero).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
+            child: child,
+          )),
+        ),
+        child: _attachments ? _mediaMenu(dark) : const SizedBox.shrink(key: ValueKey('closed')),
+      ),
       Material(color: dark ? const Color(0xFF121A29) : Colors.white, child: SafeArea(top: false, child: Padding(padding: const EdgeInsets.fromLTRB(8, 6, 8, 6), child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-        IconButton(onPressed: _sending ? null : () => setState(() => _attachments = !_attachments), icon: const Icon(Icons.add_circle_outline)),
+        IconButton(onPressed: _sending ? null : _toggleAttachments, icon: AnimatedRotation(turns: _attachments ? .125 : 0, duration: const Duration(milliseconds: 220), child: const Icon(Icons.add_circle_outline))),
         Expanded(child: Container(constraints: const BoxConstraints(minHeight: 46, maxHeight: 130), decoration: BoxDecoration(color: dark ? const Color(0xFF26344D) : const Color(0xFFF1F4F5), borderRadius: BorderRadius.circular(24)), child: TextField(controller: _controller, focusNode: _focus, minLines: 1, maxLines: 5, textDirection: TextDirection.rtl, keyboardType: TextInputType.multiline, decoration: const InputDecoration(hintText: 'اكتب رسالة...', border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 11))))),
         const SizedBox(width: 5),
         GestureDetector(onTap: _hasText ? _sendText : _startRecording, child: CircleAvatar(radius: 23, backgroundColor: _sending ? Colors.grey : AppColors.primary, child: Icon(_hasText ? Icons.send_rounded : Icons.mic_rounded, color: Colors.white, size: 21))),
@@ -233,13 +301,66 @@ class _ChatInputBarState extends State<ChatInputBar> {
     IconButton(onPressed: _sending ? null : (_recording ? _stopRecording : _sendRecording), icon: Icon(_recording ? Icons.stop_circle_outlined : Icons.send_rounded, color: AppColors.primary, size: 29)),
   ])));
 
-  Widget _mediaMenu(bool dark) => Container(padding: const EdgeInsets.all(10), color: dark ? const Color(0xFF121A29) : Colors.white, child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-    _mediaItem(Icons.camera_alt, 'كاميرا', () => _pickImage(ImageSource.camera)),
-    _mediaItem(Icons.photo, 'صورة', () => _pickImage(ImageSource.gallery)),
-    _mediaItem(Icons.video_library, 'فيديو', _pickVideo),
-    _mediaItem(Icons.attach_file, 'ملف', _pickFile),
-    _mediaItem(Icons.location_on_outlined, 'موقعي', () { setState(() => _attachments = false); widget.onShareLocation?.call(); }),
-  ]));
+  Widget _mediaMenu(bool dark) => Material(
+    key: const ValueKey('attachments'),
+    color: Colors.transparent,
+    child: Container(
+      margin: const EdgeInsets.fromLTRB(8, 0, 8, 2),
+      padding: const EdgeInsets.fromLTRB(10, 10, 10, 8),
+      decoration: BoxDecoration(
+        color: dark ? const Color(0xFF121A29) : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(.10), blurRadius: 16, offset: const Offset(0, -4))],
+      ),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Container(width: 34, height: 4, decoration: BoxDecoration(color: dark ? Colors.white24 : Colors.black12, borderRadius: BorderRadius.circular(3))),
+        const SizedBox(height: 8),
+        if (_loadingRecent) const SizedBox(height: 74, child: Center(child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))))
+        else if (_recentAssets.isNotEmpty) _recentGallery(dark)
+        else const SizedBox(height: 6),
+        const SizedBox(height: 8),
+        Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
+          _mediaItem(Icons.camera_alt, 'كاميرا', () => _pickImage(ImageSource.camera)),
+          _mediaItem(Icons.photo_library_outlined, 'المعرض', () => _pickImage(ImageSource.gallery)),
+          _mediaItem(Icons.video_library, 'فيديو', _pickVideo),
+          _mediaItem(Icons.attach_file, 'ملف', _pickFile),
+          _mediaItem(Icons.location_on_outlined, 'موقعي', () { setState(() => _attachments = false); widget.onShareLocation?.call(); }),
+        ]),
+      ]),
+    ),
+  );
 
-  Widget _mediaItem(IconData icon, String label, VoidCallback action) => InkWell(onTap: action, child: Padding(padding: const EdgeInsets.all(6), child: Column(children: [CircleAvatar(backgroundColor: AppColors.primary.withOpacity(.1), child: Icon(icon, color: AppColors.primary)), const SizedBox(height: 3), Text(label, style: const TextStyle(fontSize: 10))])));
+  Widget _recentGallery(bool dark) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    Padding(padding: const EdgeInsetsDirectional.only(start: 4, bottom: 7), child: Row(children: [
+      Icon(Icons.history_rounded, size: 17, color: AppColors.primary),
+      const SizedBox(width: 5),
+      Text('الملفات الحديثة', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: dark ? Colors.white : const Color(0xFF263238))),
+    ])),
+    SizedBox(height: 76, child: ListView.separated(
+      scrollDirection: Axis.horizontal,
+      reverse: true,
+      itemCount: _recentAssets.length,
+      separatorBuilder: (_, __) => const SizedBox(width: 7),
+      itemBuilder: (context, index) {
+        final asset = _recentAssets[index];
+        return FutureBuilder<Uint8List?>(
+          future: asset.thumbnailDataWithSize(const ThumbnailSize(150, 150)),
+          builder: (context, snapshot) {
+            return GestureDetector(
+              onTap: snapshot.hasData ? () => _sendRecentAsset(asset) : null,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: SizedBox(width: 76, height: 76, child: Stack(fit: StackFit.expand, children: [
+                  if (snapshot.hasData) Image.memory(snapshot.data!, fit: BoxFit.cover) else Container(color: dark ? Colors.white10 : Colors.black12, child: const Center(child: CircularProgressIndicator(strokeWidth: 1.5))),
+                  if (asset.type == AssetType.video) Positioned(bottom: 5, end: 5, child: Container(padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2), decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(8)), child: const Icon(Icons.play_arrow, color: Colors.white, size: 14))),
+                ])),
+              ),
+            );
+          },
+        );
+      },
+    )),
+  ]);
+
+  Widget _mediaItem(IconData icon, String label, VoidCallback action) => InkWell(onTap: action, borderRadius: BorderRadius.circular(16), child: Padding(padding: const EdgeInsets.all(6), child: Column(children: [CircleAvatar(backgroundColor: AppColors.primary.withOpacity(.1), child: Icon(icon, color: AppColors.primary)), const SizedBox(height: 3), Text(label, style: const TextStyle(fontSize: 10))])));
 }
