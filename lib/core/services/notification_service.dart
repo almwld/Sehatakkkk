@@ -14,6 +14,7 @@ class NotificationService {
   NotificationTapHandler? _tapHandler;
   Future<void>? _initialization;
   bool _initialized = false;
+  bool _callCoordinatorStarted = false;
 
   static const messageChannelId = 'sehatak_messages_v2';
   static const callChannelId = 'sehatak_calls_v2';
@@ -34,7 +35,17 @@ class NotificationService {
 
   Future<void> initialize({bool startCallCoordinator = true}) {
     final existing = _initialization;
-    if (existing != null) return existing;
+    if (existing != null) {
+      if (startCallCoordinator && !_callCoordinatorStarted) {
+        unawaited(existing.then((_) {
+          if (!_callCoordinatorStarted) {
+            CallSoundCoordinator.instance.start();
+            _callCoordinatorStarted = true;
+          }
+        }));
+      }
+      return existing;
+    }
     final future = _initializeCore(startCallCoordinator: startCallCoordinator);
     _initialization = future;
     return future;
@@ -59,10 +70,14 @@ class NotificationService {
         try { await android?.requestNotificationsPermission(); } catch (_) {}
         try { await ios?.requestPermissions(alert: true, badge: true, sound: true); } catch (_) {}
       }));
-      if (startCallCoordinator) CallSoundCoordinator.instance.start();
+      if (startCallCoordinator && !_callCoordinatorStarted) {
+        CallSoundCoordinator.instance.start();
+        _callCoordinatorStarted = true;
+      }
     } catch (e) {
       _initialization = null;
       _initialized = false;
+      _callCoordinatorStarted = false;
       rethrow;
     }
   }
