@@ -13,9 +13,6 @@ async function sendToUser(uid,payload){
       data:Object.fromEntries(Object.entries(payload.data||{}).map(([k,v])=>[k,String(v??'')])),
       android:{priority:'high'},
     };
-    // Incoming calls MUST be data-only so the Flutter background handler can
-    // create the local full-screen call notification. A normal FCM notification
-    // would bypass that handler while the app is backgrounded/terminated.
     if(payload.notification){
       message.notification=payload.notification;
       message.android.notification={
@@ -47,6 +44,17 @@ exports.notifyNewChatMessage=onDocumentCreated('chats/{chatId}/messages/{message
   const type=String(m.type||'text'),text=String(m.text||'').trim();
   const body={image:'📷 أرسل صورة',video:'🎬 أرسل فيديو',audio:'🎵 أرسل رسالة صوتية',file:'📎 أرسل ملف',location:'📍 شارك موقعاً'}[type]||text||'أرسل رسالة جديدة';
   const senderName=String(m.senderName||'مستخدم');
+
+  // Delivery is distinct from sending: a message is delivered only when at
+  // least one receiver is actually online. Opening the chat also marks it
+  // delivered/read from the Flutter client.
+  const receiverSnapshots=await Promise.all(receivers.map(uid=>db.collection('users').doc(uid).get()));
+  const delivered=receiverSnapshots.some(snap=>snap.data()?.isOnline===true);
+  await s.ref.update({
+    isDelivered:delivered,
+    deliveredAt:delivered?admin.firestore.FieldValue.serverTimestamp():null,
+  });
+
   await Promise.all(receivers.map(uid=>sendToUser(uid,{channelId:'sehatak_messages_v2',sound:'notification',notification:{title:senderName,body},data:{type:'chat_message',chatId,messageId:event.params.messageId,senderId,senderName,body}})));
 });
 
@@ -57,9 +65,6 @@ exports.notifyIncomingCall=onDocumentCreated('calls/{callId}',async event=>{
   const isVideo=c.callType==='video'||c.isVideoCall===true;
   const callId=event.params.callId;
   const chatId=String(c.chatId||'');
-  // Do not include a notification payload here. Flutter's background FCM
-  // handler turns this high-priority data message into a full-screen local
-  // incoming-call notification, including when the app process is dead.
   await sendToUser(receiverId,{
     channelId:'sehatak_calls_v2',
     sound:'call_ringtone',
