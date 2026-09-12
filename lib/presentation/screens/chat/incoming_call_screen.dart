@@ -44,6 +44,8 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
   final CallService _callService = CallService();
   late final AnimationController _pulseController;
   late final Animation<double> _pulseAnimation;
+  late final AnimationController _answerExpansionController;
+  late final Animation<double> _answerExpansionAnimation;
   StreamSubscription<CallModel?>? _callSubscription;
   Timer? _countdownTimer;
   Timer? _timeoutTimer;
@@ -53,6 +55,8 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
   bool _isProcessing = false;
   bool _isMuted = false;
   bool _isAlerting = true;
+  bool _answerSwipeTriggered = false;
+  double _answerSwipeDistance = 0;
 
   @override
   void initState() {
@@ -63,6 +67,14 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
     )..repeat(reverse: true);
     _pulseAnimation = Tween<double>(begin: 1.0, end: 1.15).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+    _answerExpansionController = AnimationController(
+      duration: const Duration(milliseconds: 430),
+      vsync: this,
+    );
+    _answerExpansionAnimation = CurvedAnimation(
+      parent: _answerExpansionController,
+      curve: Curves.easeInOutCubic,
     );
     _startVibration();
     _listenToCall();
@@ -132,9 +144,9 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
     _callSubscription = null;
   }
 
-  Future<void> _acceptCall() async {
-    if (_isProcessing) return;
-    setState(() => _isProcessing = true);
+  Future<void> _acceptCall({bool prelocked = false}) async {
+    if (_isProcessing && !prelocked) return;
+    if (!prelocked) setState(() => _isProcessing = true);
     try {
       await _callService.acceptCall(widget.callId);
       widget.onCallAnswered(true);
@@ -155,7 +167,12 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
       );
     } catch (e) {
       if (!mounted) return;
-      setState(() => _isProcessing = false);
+      setState(() {
+        _isProcessing = false;
+        _answerSwipeTriggered = false;
+        _answerSwipeDistance = 0;
+      });
+      await _answerExpansionController.reverse();
       ToastService.showError('تعذر قبول المكالمة: $e');
     }
   }
@@ -174,6 +191,49 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
     }
   }
 
+  Future<void> _triggerSwipeAnswer() async {
+    if (_isProcessing || _answerSwipeTriggered) return;
+    setState(() {
+      _answerSwipeTriggered = true;
+      _isProcessing = true;
+      _answerSwipeDistance = 0;
+    });
+    try {
+      await _answerExpansionController.forward();
+      if (!mounted) return;
+      await _acceptCall(prelocked: true);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isProcessing = false;
+        _answerSwipeTriggered = false;
+        _answerSwipeDistance = 0;
+      });
+      await _answerExpansionController.reverse();
+    }
+  }
+
+  void _handleAnswerSwipeUpdate(DragUpdateDetails details) {
+    if (_isProcessing || _answerSwipeTriggered) return;
+    final upward = -details.delta.dy;
+    if (upward <= 0) return;
+    setState(() {
+      _answerSwipeDistance = (_answerSwipeDistance + upward).clamp(0, 110);
+    });
+    if (_answerSwipeDistance >= 78) {
+      unawaited(_triggerSwipeAnswer());
+    }
+  }
+
+  void _handleAnswerSwipeEnd(DragEndDetails details) {
+    if (_isProcessing || _answerSwipeTriggered) return;
+    if (_answerSwipeDistance >= 58) {
+      unawaited(_triggerSwipeAnswer());
+      return;
+    }
+    if (mounted) setState(() => _answerSwipeDistance = 0);
+  }
+
   Future<void> _toggleMute() async {
     final muted = !_isMuted;
     setState(() => _isMuted = muted);
@@ -184,6 +244,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
   void dispose() {
     _stopAlerting();
     _pulseController.dispose();
+    _answerExpansionController.dispose();
     super.dispose();
   }
 
@@ -294,7 +355,11 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                           size: 75,
                           isMain: true,
                           pulse: true,
+                          swipeDistance: _answerSwipeDistance,
+                          expansionAnimation: _answerExpansionAnimation,
                           onTap: _isProcessing ? null : _acceptCall,
+                          onPanUpdate: _handleAnswerSwipeUpdate,
+                          onPanEnd: _handleAnswerSwipeEnd,
                         ),
                       ],
                     ),
@@ -309,6 +374,36 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                   icon: const Icon(Icons.close_rounded, color: Colors.white70),
                 ),
               ),
+              if (_answerSwipeTriggered)
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: AnimatedBuilder(
+                      animation: _answerExpansionAnimation,
+                      builder: (_, __) {
+                        final size = MediaQuery.sizeOf(context);
+                        final radius = size.longestSide * 1.15;
+                        return Center(
+                          child: Transform.scale(
+                            scale: _answerExpansionAnimation.value * radius / 75,
+                            child: Container(
+                              width: 75,
+                              height: 75,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: _green,
+                              ),
+                              child: Icon(
+                                widget.isVideo ? Icons.videocam_rounded : Icons.call_rounded,
+                                color: Colors.white,
+                                size: 34,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
@@ -338,24 +433,38 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
     double size = 65,
     bool isMain = false,
     bool pulse = false,
+    double swipeDistance = 0,
+    Animation<double>? expansionAnimation,
+    GestureDragUpdateCallback? onPanUpdate,
+    GestureDragEndCallback? onPanEnd,
   }) => Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           GestureDetector(
             onTap: onTap,
+            onPanUpdate: onPanUpdate,
+            onPanEnd: onPanEnd,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 250),
-              width: size,
-              height: size,
+              transform: Matrix4.identity()..translate(0.0, -swipeDistance * .12),
+              width: size + swipeDistance * .12,
+              height: size + swipeDistance * .12,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: isMain ? color : color.withOpacity(.15),
                 border: Border.all(color: color, width: isMain ? 0 : 2),
                 boxShadow: (isMain || pulse)
-                    ? [BoxShadow(color: color.withOpacity(.40), blurRadius: 20, spreadRadius: 5)]
+                    ? [BoxShadow(color: color.withOpacity(.40), blurRadius: 20 + swipeDistance * .12, spreadRadius: 5 + swipeDistance * .05)]
                     : null,
               ),
-              child: Icon(icon, color: isMain ? Colors.white : color, size: size * .45),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Icon(icon, color: isMain ? Colors.white : color, size: size * .45),
+                  if (onPanUpdate != null && swipeDistance > 8 && expansionAnimation == null)
+                    Positioned(top: 5, child: Icon(Icons.keyboard_arrow_up_rounded, color: Colors.white70, size: 20)),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 8),
