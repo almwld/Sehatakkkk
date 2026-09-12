@@ -56,8 +56,6 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     }
     return;
   }
-  // Data-only ordinary notifications must also create a visible local
-  // notification while the app is backgrounded/terminated.
   if (type != null && type.isNotEmpty && message.notification == null) {
     await notificationService.showTypedNotification(
       type: type,
@@ -80,7 +78,7 @@ Future<void> main() async {
     runApp(const _StartupErrorApp());
     return;
   }
-  try { FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler); } catch (e) { debugPrint('❌ FCM background handler registration error: $e'); }
+  try { FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler); } catch (e) { debugPrint('❌ Firebase Messaging background handler registration error: $e'); }
   await CacheService.init();
   await ChatMediaTransferService.instance.initialize();
 
@@ -236,11 +234,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
       await _notificationService.cancelIncomingCallNotification(callId);
       switch (actionId) {
         case 'call_reject':
-          try {
-            await _callService.rejectCall(callId);
-          } catch (e) {
-            debugPrint('❌ Notification reject action failed: $e');
-          }
+          try { await _callService.rejectCall(callId); } catch (e) { debugPrint('❌ Notification reject action failed: $e'); }
           return;
         case 'call_options':
           if (mounted) await _callService.handleIncomingCallById(context, callId);
@@ -259,18 +253,8 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
             if (chatId.isEmpty) return;
             await _callService.acceptCall(callId);
             if (!mounted) return;
-            nav.push(MaterialPageRoute(builder: (_) => CallScreen(
-              callId: callId,
-              chatId: chatId,
-              doctorName: data['callerName']?.toString() ?? 'مستخدم',
-              doctorId: data['callerId']?.toString() ?? '',
-              doctorImage: data['callerPhotoUrl']?.toString(),
-              isVideo: data['isVideoCall'] == true || data['isVideo']?.toString() == 'true' || data['callType']?.toString() == 'video',
-              isOutgoing: false,
-            )));
-          } catch (e) {
-            debugPrint('❌ Notification answer action failed: $e');
-          }
+            nav.push(MaterialPageRoute(builder: (_) => CallScreen(callId: callId, chatId: chatId, doctorName: data['callerName']?.toString() ?? 'مستخدم', doctorId: data['callerId']?.toString() ?? '', doctorImage: data['callerPhotoUrl']?.toString(), isVideo: data['isVideoCall'] == true || data['isVideo']?.toString() == 'true' || data['callType']?.toString() == 'video', isOutgoing: false)));
+          } catch (e) { debugPrint('❌ Notification answer action failed: $e'); }
           return;
       }
     }
@@ -283,20 +267,11 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
       return;
     }
     Map<String, dynamic>? decoded;
-    try {
-      final value = jsonDecode(payload);
-      if (value is Map) decoded = Map<String, dynamic>.from(value);
-    } catch (_) {}
+    try { final value = jsonDecode(payload); if (value is Map) decoded = Map<String, dynamic>.from(value); } catch (_) {}
     if (decoded != null) {
       final type = decoded!['type']?.toString();
       final data = decoded!['data'] is Map ? Map<String, dynamic>.from(decoded!['data']) : <String, dynamic>{};
-      if (type == 'new_message' || data['chatId'] != null) {
-        await _openChatFromNotification(data['chatId']?.toString() ?? '', data['senderId']?.toString(), data['senderName']?.toString());
-        return;
-      }
-      // Other notification families are intentionally left on their owning
-      // feature route until that route is confirmed in AppRouter; never push
-      // a guessed path and risk a broken navigation stack.
+      if (type == 'new_message' || data['chatId'] != null) { await _openChatFromNotification(data['chatId']?.toString() ?? '', data['senderId']?.toString(), data['senderName']?.toString()); return; }
       debugPrint('🔔 notification tap type=$type awaiting feature route');
       return;
     }
@@ -308,7 +283,14 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
     final type = message.data['type']?.toString();
     if (type == 'incoming_call') {
       final callId = (message.data['callId'] ?? message.data['id'])?.toString();
-      if (callId != null && callId.isNotEmpty) await _notificationService.showIncomingCallNotification(callerName: message.data['callerName']?.toString() ?? message.notification?.title ?? 'مكالمة واردة', callId: callId, isVideo: message.data['isVideo']?.toString() == 'true' || message.data['callType']?.toString() == 'video', silent: true);
+      if (callId != null && callId.isNotEmpty) {
+        await _notificationService.showIncomingCallNotification(
+          callerName: message.data['callerName']?.toString() ?? message.notification?.title ?? 'مكالمة واردة',
+          callId: callId,
+          isVideo: message.data['isVideo']?.toString() == 'true' || message.data['callType']?.toString() == 'video',
+          silent: false,
+        );
+      }
       return;
     }
     await _notificationService.showTypedNotification(
