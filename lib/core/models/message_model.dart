@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 
-enum MessageType { text, image, audio, video, file, location, contact, system, reaction, reply, deleted }
+enum MessageType { text, image, audio, video, file, location, contact, system, reaction, reply, deleted, call }
 
 class MessageModel extends Equatable {
   final String id, chatId, senderId, senderName;
@@ -59,6 +59,7 @@ class MessageModel extends Equatable {
 
   bool get isImage => type == MessageType.image; bool get isAudio => type == MessageType.audio; bool get isVideo => type == MessageType.video; bool get isFile => type == MessageType.file;
   bool get isLocation => type == MessageType.location; bool get isDeletedMessage => type == MessageType.deleted; bool get isText => type == MessageType.text; bool get isReply => type == MessageType.reply;
+  bool get isCall => type == MessageType.call;
   bool get hasReactions => reactions?.isNotEmpty ?? false; bool get hasAttachments => attachments?.isNotEmpty ?? false;
   @override List<Object?> get props => [id, chatId, senderId, senderName, senderPhotoUrl, text, replyPreview, type, timestamp, isRead, isDelivered, isEdited, isDeleted, replyToId, replyTo, reactions, deletedFor, attachments, metadata, imageUrl, audioUrl, fileUrl, videoUrl, locationUrl, locationAddress, locationLat, locationLng, audioDuration, fileSize, fileName, fileMimeType, thumbnailUrl, readAt, deliveredAt, isPinned];
 }
