@@ -69,6 +69,22 @@ app.get('/health', (_req, res) => {
   });
 });
 
+// Compatibility/readiness endpoint used by the backend notification test suite.
+// Keep this endpoint unauthenticated and cheap: it only reports whether Firebase
+// and FCM are configured on this process. It does not send a notification.
+app.get('/notification/health', (_req, res) => {
+  const firebaseReady = firebaseConfigured;
+  const messagingReady = firebaseConfigured && Boolean(admin.apps.length);
+  const ready = firebaseReady && messagingReady;
+  return res.status(ready ? 200 : 503).json({
+    status: ready ? 'ok' : 'not_ready',
+    service: 'sehatak-livekit-token-server',
+    notification: 'fcm',
+    firebaseAuth: firebaseReady ? 'configured' : 'not_configured',
+    firebaseMessaging: messagingReady ? 'configured' : 'not_configured',
+  });
+});
+
 app.get('/', (_req, res) => {
   res.json({ service: 'sehatak-livekit-token-server', status: 'running' });
 });
