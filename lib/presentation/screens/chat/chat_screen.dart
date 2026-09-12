@@ -24,6 +24,7 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final ChatService _chatService = ChatService();
   final TextEditingController _searchController = TextEditingController();
+  final PageController _tabPageController = PageController();
   StreamSubscription<List<ChatModel>>? _subscription;
   List<ChatModel> _chats = [];
   String _search = '';
@@ -68,11 +69,30 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  void _selectTab(int index) {
+    if (index < 0 || index > 2 || index == _tabIndex) return;
+    setState(() => _tabIndex = index);
+    if (_tabPageController.hasClients) {
+      _tabPageController.animateToPage(
+        index,
+        duration: const Duration(milliseconds: 260),
+        curve: Curves.easeOutCubic,
+      );
+    }
+  }
+
+  void _onTabPageChanged(int index) {
+    if (mounted && _tabIndex != index) {
+      setState(() => _tabIndex = index);
+    }
+  }
+
   @override
   void dispose() {
     _subscription?.cancel();
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
+    _tabPageController.dispose();
     super.dispose();
   }
 
@@ -99,8 +119,9 @@ class _ChatScreenState extends State<ChatScreen> {
           child: _buildTabs(isDark),
         ),
       ),
-      body: IndexedStack(
-        index: _tabIndex,
+      body: PageView(
+        controller: _tabPageController,
+        onPageChanged: _onTabPageChanged,
         children: [
           _buildConversationsTab(isDark),
           const CallsScreen(),
@@ -142,7 +163,7 @@ class _ChatScreenState extends State<ChatScreen> {
           return Expanded(
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: () => setState(() => _tabIndex = index),
+              onTap: () => _selectTab(index),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 220),
                 margin: const EdgeInsets.all(4),
