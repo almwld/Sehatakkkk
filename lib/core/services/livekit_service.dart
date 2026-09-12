@@ -51,12 +51,7 @@ class LiveKitService {
       final tokenData = await _requestLiveKitToken(roomName: roomName, participantName: name);
       await _room?.disconnect();
       _room = Room();
-      const options = RoomOptions(
-        adaptiveStream: true,
-        dynacast: true,
-        defaultVideoPublishOptions: VideoPublishOptions(simulcast: false),
-        defaultAudioPublishOptions: AudioPublishOptions(),
-      );
+      const options = RoomOptions(adaptiveStream: true, dynacast: true, defaultVideoPublishOptions: VideoPublishOptions(simulcast: false), defaultAudioPublishOptions: AudioPublishOptions());
       await _room!.connect(tokenData['url'] as String, tokenData['token'] as String, roomOptions: options);
       _isConnected = true;
       await enableMicrophone();
@@ -74,13 +69,16 @@ class LiveKitService {
     if (isVideo) {
       await enableCamera();
       final local = result.localParticipant;
-      final publication = local.videoTrackPublications.cast<LocalTrackPublication<LocalVideoTrack>?>().firstWhere(
-        (p) => p?.source == TrackSource.camera && p?.track != null,
-        orElse: () => null,
-      );
-      if (publication?.track == null) {
-        throw StateError('تم الاتصال لكن لم يتم نشر فيديو الكاميرا');
+      if (local == null) throw StateError('المشارك المحلي غير متاح');
+      LocalVideoTrack? track;
+      for (final publication in local.videoTracks) {
+        final candidate = publication.track;
+        if (candidate is LocalVideoTrack && publication.source == TrackSource.camera) {
+          track = candidate;
+          break;
+        }
       }
+      if (track == null) throw StateError('تم الاتصال لكن لم يتم نشر فيديو الكاميرا');
     }
     return result;
   }
@@ -90,9 +88,7 @@ class LiveKitService {
     if (p == null) throw StateError('غرفة LiveKit غير متصلة');
     try {
       final publication = await p.setCameraEnabled(true);
-      if (publication == null || publication.track == null) {
-        throw StateError('لم يتم إنشاء مسار فيديو للكاميرا');
-      }
+      if (publication == null || publication.track == null) throw StateError('لم يتم إنشاء مسار فيديو للكاميرا');
       _isCameraEnabled = true;
       debugPrint('LIVEKIT CAMERA ENABLED sid=${publication.sid} source=${publication.source}');
     } catch (e) {
@@ -151,7 +147,7 @@ class LiveKitService {
   Future<void> switchCamera() async {
     final participant = _room?.localParticipant;
     if (participant == null) return;
-    for (final publication in participant.videoTrackPublications) {
+    for (final publication in participant.videoTracks) {
       final track = publication.track;
       if (track is LocalVideoTrack) {
         _isFrontCamera = !_isFrontCamera;
