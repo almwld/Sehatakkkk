@@ -178,7 +178,13 @@ class NotificationService {
       );
       await _notifications.initialize(settings, onDidReceiveNotificationResponse: (response) async {
         final handler = _tapHandler;
-        if (handler != null) await handler(response.payload);
+        if (handler == null) return;
+        final actionId = response.actionId?.trim();
+        if (actionId != null && actionId.isNotEmpty) {
+          await handler('notification_action:$actionId:${response.payload ?? ''}');
+        } else {
+          await handler(response.payload);
+        }
       });
       final android = _notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
       await android?.createNotificationChannel(_messageChannel);
@@ -296,6 +302,31 @@ class NotificationService {
         category: AndroidNotificationCategory.call, visibility: NotificationVisibility.public,
         fullScreenIntent: true, ongoing: true, autoCancel: false, onlyAlertOnce: true,
         showWhen: true, timeoutAfter: 60000, ticker: 'مكالمة واردة من $callerName',
+        color: Color(0xFF2A8F83),
+        colorized: false,
+        actions: <AndroidNotificationAction>[
+          AndroidNotificationAction(
+            'call_reject',
+            'إلغاء',
+            titleColor: Color(0xFFE53935),
+            showsUserInterface: true,
+            cancelNotification: true,
+          ),
+          AndroidNotificationAction(
+            'call_answer',
+            'إجابة',
+            titleColor: Color(0xFF2DBE68),
+            showsUserInterface: true,
+            cancelNotification: true,
+          ),
+          AndroidNotificationAction(
+            'call_options',
+            'خيارات',
+            titleColor: Color(0xFF2F80ED),
+            showsUserInterface: true,
+            cancelNotification: false,
+          ),
+        ],
       ),
       iOS: DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: !silent),
     );
