@@ -3,6 +3,7 @@
 // ============================================================
 
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -42,7 +43,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   final notificationService = NotificationService();
   await notificationService.initialize(startCallCoordinator: false);
-  if (message.data['type'] == 'incoming_call' && message.notification == null) {
+  final type = message.data['type']?.toString();
+  if (type == 'incoming_call' && message.notification == null) {
     final callId = (message.data['callId'] ?? message.data['id'])?.toString();
     if (callId != null && callId.isNotEmpty) {
       await notificationService.showIncomingCallNotification(
@@ -51,6 +53,17 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         isVideo: message.data['isVideo']?.toString() == 'true' || message.data['callType']?.toString() == 'video',
       );
     }
+    return;
+  }
+  // Data-only ordinary notifications must also create a visible local
+  // notification while the app is backgrounded/terminated.
+  if (type != null && type.isNotEmpty && message.notification == null) {
+    await notificationService.showTypedNotification(
+      type: type,
+      title: message.data['title']?.toString() ?? 'صحتك',
+      body: message.data['body']?.toString() ?? 'لديك إشعار جديد',
+      data: Map<String, dynamic>.from(message.data),
+    );
   }
 }
 
@@ -217,26 +230,48 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
       if (mounted) await _callService.handleIncomingCallById(context, callId);
       return;
     }
+    Map<String, dynamic>? decoded;
+    try {
+      final value = jsonDecode(payload);
+      if (value is Map) decoded = Map<String, dynamic>.from(value);
+    } catch (_) {}
+    if (decoded != null) {
+      final type = decoded!['type']?.toString();
+      final data = decoded!['data'] is Map ? Map<String, dynamic>.from(decoded!['data']) : <String, dynamic>{};
+      if (type == 'new_message' || data['chatId'] != null) {
+        await _openChatFromNotification(data['chatId']?.toString() ?? '', data['senderId']?.toString(), data['senderName']?.toString());
+        return;
+      }
+      // Other notification families are intentionally left on their owning
+      // feature route until that route is confirmed in AppRouter; never push
+      // a guessed path and risk a broken navigation stack.
+      debugPrint('🔔 notification tap type=$type awaiting feature route');
+      return;
+    }
     final chatId = payload;
-    final chat = await FirebaseFirestore.instance.collection('chats').doc(chatId).get();
-    if (!chat.exists || !mounted) return;
-    final data = chat.data() ?? {};
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    final participants = List<String>.from(data['participants'] ?? const <String>[]);
-    final otherId = participants.firstWhere((id) => id != uid, orElse: () => '');
-    if (otherId.isEmpty) return;
-    final details = data['participantDetails'] is Map ? Map<String, dynamic>.from(data['participantDetails']) : <String, dynamic>{};
-    final other = details[otherId] is Map ? Map<String, dynamic>.from(details[otherId]) : <String, dynamic>{};
-    nav.push(MaterialPageRoute(builder: (_) => ChatRoomScreen(chatId: chatId, otherUserId: otherId, otherUserName: other['name']?.toString() ?? 'محادثة', otherUserImage: other['photoUrl']?.toString(), isGroup: data['isGroup'] == true)));
+    await _openChatFromNotification(chatId, null, null);
   }
 
   Future<void> _handleMessage(RemoteMessage message) async {
-    if (message.data['type'] == 'incoming_call') {
+    final type = message.data['type']?.toString();
+    if (type == 'incoming_call') {
       final callId = (message.data['callId'] ?? message.data['id'])?.toString();
       if (callId != null && callId.isNotEmpty) await _notificationService.showIncomingCallNotification(callerName: message.data['callerName']?.toString() ?? message.notification?.title ?? 'مكالمة واردة', callId: callId, isVideo: message.data['isVideo']?.toString() == 'true' || message.data['callType']?.toString() == 'video', silent: true);
       return;
     }
-    await _notificationService.showMessageNotification(title: message.notification?.title ?? message.data['senderName']?.toString() ?? 'رسالة جديدة', body: message.notification?.body ?? message.data['body']?.toString() ?? 'لديك رسالة جديدة في الدردشة', payload: message.data['chatId']?.toString());
+    await _notificationService.showTypedNotification(
+      type: type ?? 'system',
+      title: message.notification?.title ?? message.data['title']?.toString() ?? message.data['senderName']?.toString() ?? 'صحتك',
+      body: message.notification?.body ?? message.data['body']?.toString() ?? 'لديك إشعار جديد',
+      data: Map<String, dynamic>.from(message.data),
+      payload: _notificationPayloadFor(message),
+    );
+  }
+
+  String _notificationPayloadFor(RemoteMessage message) {
+    final data = Map<String, dynamic>.from(message.data);
+    final type = data['type']?.toString() ?? 'system';
+    return jsonEncode(<String, dynamic>{'type': type, 'data': data});
   }
 
   Future<void> _handleMessageOpened(RemoteMessage message) async {
@@ -254,6 +289,7 @@ class _SehatakAppState extends State<SehatakApp> with WidgetsBindingObserver {
   }
 
   Future<void> _openChatFromNotification(String chatId, String? senderId, String? senderName) async {
+    if (chatId.isEmpty) return;
     final nav = navigatorKey.currentState;
     if (nav == null) return;
     final uid = FirebaseAuth.instance.currentUser?.uid;
