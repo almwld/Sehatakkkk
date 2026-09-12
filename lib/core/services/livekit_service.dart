@@ -51,7 +51,12 @@ class LiveKitService {
       final tokenData = await _requestLiveKitToken(roomName: roomName, participantName: name);
       await _room?.disconnect();
       _room = Room();
-      const options = RoomOptions(adaptiveStream: true, dynacast: true, defaultVideoPublishOptions: VideoPublishOptions(simulcast: false), defaultAudioPublishOptions: AudioPublishOptions());
+      const options = RoomOptions(
+        adaptiveStream: true,
+        dynacast: true,
+        defaultVideoPublishOptions: VideoPublishOptions(simulcast: false),
+        defaultAudioPublishOptions: AudioPublishOptions(),
+      );
       await _room!.connect(tokenData['url'] as String, tokenData['token'] as String, roomOptions: options);
       _isConnected = true;
       await enableMicrophone();
@@ -66,16 +71,119 @@ class LiveKitService {
 
   Future<Room> startCall({required String roomName, String? callerName, bool isVideo = true}) async {
     final result = await connectRoom(roomName: roomName, participantName: callerName);
-    if (isVideo) await enableCamera();
+    if (isVideo) {
+      await enableCamera();
+      final local = result.localParticipant;
+      final publication = local.videoTrackPublications.cast<LocalTrackPublication<LocalVideoTrack>?>().firstWhere(
+        (p) => p?.source == TrackSource.camera && p?.track != null,
+        orElse: () => null,
+      );
+      if (publication?.track == null) {
+        throw StateError('تم الاتصال لكن لم يتم نشر فيديو الكاميرا');
+      }
+    }
     return result;
   }
 
-  Future<void> enableCamera() async { try { final p = _room?.localParticipant; if (p == null) throw Exception(); await p.setCameraEnabled(true); _isCameraEnabled = true; } catch (_) { ToastService.showError('❌ فشل تشغيل الكاميرا'); } }
-  Future<void> enableMicrophone() async { try { final p = _room?.localParticipant; if (p == null) throw Exception(); await p.setMicrophoneEnabled(true); _isMicrophoneEnabled = true; } catch (_) { ToastService.showError('❌ فشل تشغيل الميكروفون'); } }
-  Future<bool> toggleCamera() async { try { final p = _room?.localParticipant; if (p == null) return _isCameraEnabled; final state = !_isCameraEnabled; await p.setCameraEnabled(state); _isCameraEnabled = state; return state; } catch (_) { return _isCameraEnabled; } }
-  Future<bool> toggleMicrophone() async { try { final p = _room?.localParticipant; if (p == null) return _isMicrophoneEnabled; final state = !_isMicrophoneEnabled; await p.setMicrophoneEnabled(state); _isMicrophoneEnabled = state; return state; } catch (_) { return _isMicrophoneEnabled; } }
-  Future<void> switchCamera() async { final participant = _room?.localParticipant; if (participant == null) return; for (final publication in participant.videoTracks) { final track = publication.track; if (track is LocalVideoTrack) { _isFrontCamera = !_isFrontCamera; await track.setCameraPosition(_isFrontCamera ? CameraPosition.front : CameraPosition.back); return; } } }
-  Future<void> setSpeakerphone(bool on) async { try { await Helper.setSpeakerphoneOn(on); _isSpeakerOn = on; } catch (e) { debugPrint('LiveKit speaker route failed: $e'); } }
-  Future<void> endCall() async { try { await _room?.disconnect(); } finally { try { await Helper.setSpeakerphoneOn(false); } catch (_) {} _room = null; _isConnected = false; _isCameraEnabled = false; _isMicrophoneEnabled = false; _isSpeakerOn = false; _isFrontCamera = true; } }
-  void dispose() { _room?.disconnect(); _room = null; _isConnected = false; _isCameraEnabled = false; _isMicrophoneEnabled = false; _isSpeakerOn = false; _isFrontCamera = true; }
+  Future<void> enableCamera() async {
+    final p = _room?.localParticipant;
+    if (p == null) throw StateError('غرفة LiveKit غير متصلة');
+    try {
+      final publication = await p.setCameraEnabled(true);
+      if (publication == null || publication.track == null) {
+        throw StateError('لم يتم إنشاء مسار فيديو للكاميرا');
+      }
+      _isCameraEnabled = true;
+      debugPrint('LIVEKIT CAMERA ENABLED sid=${publication.sid} source=${publication.source}');
+    } catch (e) {
+      _isCameraEnabled = false;
+      debugPrint('LIVEKIT CAMERA ERROR: $e');
+      ToastService.showError('❌ تعذر تشغيل الكاميرا: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> enableMicrophone() async {
+    final p = _room?.localParticipant;
+    if (p == null) throw StateError('غرفة LiveKit غير متصلة');
+    try {
+      final publication = await p.setMicrophoneEnabled(true);
+      if (publication == null) throw StateError('لم يتم نشر الميكروفون');
+      _isMicrophoneEnabled = true;
+    } catch (e) {
+      _isMicrophoneEnabled = false;
+      debugPrint('LIVEKIT MICROPHONE ERROR: $e');
+      ToastService.showError('❌ فشل تشغيل الميكروفون: $e');
+      rethrow;
+    }
+  }
+
+  Future<bool> toggleCamera() async {
+    try {
+      final p = _room?.localParticipant;
+      if (p == null) return _isCameraEnabled;
+      final state = !_isCameraEnabled;
+      final publication = await p.setCameraEnabled(state);
+      if (state && (publication == null || publication.track == null)) throw StateError('لم يتم نشر مسار الكاميرا');
+      _isCameraEnabled = state;
+      return state;
+    } catch (e) {
+      debugPrint('LIVEKIT CAMERA TOGGLE ERROR: $e');
+      ToastService.showError('❌ تعذر تغيير حالة الكاميرا');
+      return _isCameraEnabled;
+    }
+  }
+
+  Future<bool> toggleMicrophone() async {
+    try {
+      final p = _room?.localParticipant;
+      if (p == null) return _isMicrophoneEnabled;
+      final state = !_isMicrophoneEnabled;
+      await p.setMicrophoneEnabled(state);
+      _isMicrophoneEnabled = state;
+      return state;
+    } catch (e) {
+      debugPrint('LIVEKIT MICROPHONE TOGGLE ERROR: $e');
+      return _isMicrophoneEnabled;
+    }
+  }
+
+  Future<void> switchCamera() async {
+    final participant = _room?.localParticipant;
+    if (participant == null) return;
+    for (final publication in participant.videoTrackPublications) {
+      final track = publication.track;
+      if (track is LocalVideoTrack) {
+        _isFrontCamera = !_isFrontCamera;
+        await track.setCameraPosition(_isFrontCamera ? CameraPosition.front : CameraPosition.back);
+        return;
+      }
+    }
+  }
+
+  Future<void> setSpeakerphone(bool on) async {
+    try { await Helper.setSpeakerphoneOn(on); _isSpeakerOn = on; } catch (e) { debugPrint('LiveKit speaker route failed: $e'); }
+  }
+
+  Future<void> endCall() async {
+    try { await _room?.disconnect(); } finally {
+      try { await Helper.setSpeakerphoneOn(false); } catch (_) {}
+      _room = null;
+      _isConnected = false;
+      _isCameraEnabled = false;
+      _isMicrophoneEnabled = false;
+      _isSpeakerOn = false;
+      _isFrontCamera = true;
+    }
+  }
+
+  void dispose() {
+    _room?.disconnect();
+    _room = null;
+    _isConnected = false;
+    _isCameraEnabled = false;
+    _isMicrophoneEnabled = false;
+    _isSpeakerOn = false;
+    _isFrontCamera = true;
+  }
 }
