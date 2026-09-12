@@ -1,34 +1,30 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'chat_reply_context.dart';
+import 'notification_sender.dart';
 
 /// Reliable text path: message + chat preview + unread counter in one batch.
 class ReliableMessageService {
   ReliableMessageService._();
-
   static final FirebaseFirestore _db = FirebaseFirestore.instance;
   static final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  static Future<String> sendText({
-    required String chatId,
-    required String text,
-    String? replyToId,
-  }) async {
+  static Future<String> sendText({required String chatId, required String text, String? replyToId}) async {
     final user = _auth.currentUser;
     if (user == null) throw Exception('يجب تسجيل الدخول');
     final value = text.trim();
     if (value.isEmpty) throw Exception('نص الرسالة فارغ');
-
     final chatRef = _db.collection('chats').doc(chatId);
     final chatSnapshot = await chatRef.get();
     if (!chatSnapshot.exists) throw Exception('المحادثة غير موجودة');
     final chat = chatSnapshot.data() ?? <String, dynamic>{};
     final participants = List<String>.from(chat['participants'] ?? const <String>[]);
     if (!participants.contains(user.uid)) throw Exception('ليس لديك صلاحية لهذه المحادثة');
+    final receiverIds = participants.where((id) => id.isNotEmpty && id != user.uid).toList(growable: false);
 
-    final reply = replyToId == null || replyToId.isEmpty
-        ? ChatReplyContext.instance.forChat(chatId)
-        : null;
+    final reply = replyToId == null || replyToId.isEmpty ? ChatReplyContext.instance.forChat(chatId) : null;
     final effectiveReplyId = replyToId ?? reply?.id;
     Map<String, dynamic>? replyPreview;
     final targetId = effectiveReplyId;
@@ -36,49 +32,37 @@ class ReliableMessageService {
       final target = await chatRef.collection('messages').doc(targetId).get();
       if (target.exists) {
         final d = target.data() ?? <String, dynamic>{};
-        replyPreview = {
-          'id': target.id,
-          'senderId': d['senderId']?.toString() ?? '',
-          'senderName': d['senderName']?.toString() ?? 'مستخدم',
-          'text': d['text']?.toString() ?? _attachmentPreview(d),
-          'type': d['type']?.toString() ?? 'text',
-        };
+        replyPreview = {'id': target.id, 'senderId': d['senderId']?.toString() ?? '', 'senderName': d['senderName']?.toString() ?? 'مستخدم', 'text': d['text']?.toString() ?? _attachmentPreview(d), 'type': d['type']?.toString() ?? 'text'};
       }
     }
 
     final messageRef = chatRef.collection('messages').doc();
     final batch = _db.batch();
     batch.set(messageRef, {
-      'chatId': chatId,
-      'senderId': user.uid,
-      'senderName': user.displayName ?? 'مستخدم',
-      'senderPhotoUrl': user.photoURL,
-      'text': value,
-      'type': 'text',
-      'timestamp': FieldValue.serverTimestamp(),
-      'isRead': false,
-      'isDelivered': true,
-      'deliveredAt': FieldValue.serverTimestamp(),
-      'isDeleted': false,
-      'isEdited': false,
-      'replyToId': effectiveReplyId,
-      'replyPreview': replyPreview,
-      'reactions': <String, dynamic>{},
+      'chatId': chatId, 'senderId': user.uid, 'senderName': user.displayName ?? 'مستخدم', 'senderPhotoUrl': user.photoURL,
+      'text': value, 'type': 'text', 'timestamp': FieldValue.serverTimestamp(), 'isRead': false, 'isDelivered': true,
+      'deliveredAt': FieldValue.serverTimestamp(), 'isDeleted': false, 'isEdited': false, 'replyToId': effectiveReplyId,
+      'replyPreview': replyPreview, 'reactions': <String, dynamic>{},
     });
-    final chatUpdate = <String, dynamic>{
-      'lastMessage': value,
-      'lastMessageTime': FieldValue.serverTimestamp(),
-      'lastMessageSenderId': user.uid,
-      'updatedAt': FieldValue.serverTimestamp(),
-    };
-    for (final participantId in participants) {
-      if (participantId != user.uid && participantId.isNotEmpty) {
-        chatUpdate['unreadCount.$participantId'] = FieldValue.increment(1);
-      }
-    }
+    final chatUpdate = <String, dynamic>{'lastMessage': value, 'lastMessageTime': FieldValue.serverTimestamp(), 'lastMessageSenderId': user.uid, 'updatedAt': FieldValue.serverTimestamp()};
+    for (final participantId in receiverIds) chatUpdate['unreadCount.$participantId'] = FieldValue.increment(1);
     batch.update(chatRef, chatUpdate);
     await batch.commit();
     if (effectiveReplyId != null) ChatReplyContext.instance.clear(chatId);
+
+    // Best effort only: an FCM/Railway outage must not make a committed message fail.
+    for (final receiverId in receiverIds) {
+      unawaited(NotificationSender.instance.send(
+        receiverId: receiverId,
+        type: 'new_message',
+        title: user.displayName ?? 'رسالة جديدة',
+        body: value,
+        data: {'chatId': chatId, 'senderId': user.uid, 'senderName': user.displayName ?? 'مستخدم', 'messageId': messageRef.id},
+      ).catchError((error) {
+        debugPrint('🔔 notification send failed chat=$chatId receiver=$receiverId error=$error');
+        return <String, dynamic>{'success': false};
+      }));
+    }
     return messageRef.id;
   }
 
