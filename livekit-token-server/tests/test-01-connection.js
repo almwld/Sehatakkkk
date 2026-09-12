@@ -1,0 +1,4 @@
+const Reporter=require('./utils/test-reporter');
+const {db}=require('./utils/firebase-helper');
+const {health,notificationHealth}=require('./utils/railway-client');
+(async()=>{const r=new Reporter('connection');try{const s=await db().collection('users').limit(1).get();r.pass('Firebase Firestore',`accessible; sample=${s.size}`);}catch(e){r.fail('Firebase Firestore',e)}try{const h=await health();if(!h.ok)throw new Error(`HTTP ${h.status}`);r.pass('Railway /health',JSON.stringify(h.body));}catch(e){r.fail('Railway /health',e)}try{const h=await notificationHealth();if(!h.ok)throw new Error(`HTTP ${h.status}`);r.pass('Notification /health',JSON.stringify(h.body));}catch(e){r.fail('Notification /health',e)}r.writeReport();process.exit(r.print()?0:1)})().catch(e=>{console.error(e);process.exit(1)});
