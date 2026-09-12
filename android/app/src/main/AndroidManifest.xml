@@ -34,9 +34,8 @@
             <intent-filter><action android:name="android.intent.action.VIEW" /><category android:name="android.intent.category.DEFAULT" /><category android:name="android.intent.category.BROWSABLE" /><data android:scheme="sehatak" /><data android:host="app" /></intent-filter>
         </activity>
         <service android:name="id.flutter.flutter_background_service.BackgroundService" android:enabled="true" android:exported="false" android:stopWithTask="false" android:foregroundServiceType="health" tools:replace="android:exported" />
-        <service android:name="com.google.firebase.messaging.FirebaseMessagingService" android:exported="false"><intent-filter><action android:name="com.google.firebase.MESSAGING_EVENT" /></intent-filter></service>
         <provider android:name="androidx.core.content.FileProvider" android:authorities="${applicationId}.fileprovider" android:exported="false" android:grantUriPermissions="true"><meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" /></provider>
-        <meta-data android:name="com.google.firebase.messaging.default_notification_channel_id" android:value="sehatak_channel" />
+        <meta-data android:name="com.google.firebase.messaging.default_notification_channel_id" android:value="sehatak_messages_v2" />
         <meta-data android:name="com.google.firebase.messaging.default_notification_icon" android:resource="@drawable/ic_notification" />
         <meta-data android:name="com.google.firebase.messaging.default_notification_color" android:resource="@color/notification_color" />
         <meta-data android:name="flutterEmbedding" android:value="2" />
