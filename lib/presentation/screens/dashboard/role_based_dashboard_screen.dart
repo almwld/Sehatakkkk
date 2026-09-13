@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sehatak/app_router.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
-import 'package:sehatak/core/constants/roles.dart';
 import 'package:sehatak/presentation/screens/admin/dashboard/admin_dashboard.dart';
 import 'package:sehatak/presentation/screens/doctor/doctor_dashboard_screen.dart';
 import 'package:sehatak/presentation/screens/hospital/dashboard/hospital_dashboard.dart';
@@ -125,7 +124,7 @@ class _ProfessionalRoleDashboardState extends State<ProfessionalRoleDashboard> {
             if (_loading) const LinearProgressIndicator(minHeight: 3),
             if (!_loading) _stats(dark),
             const SizedBox(height: 18),
-            Text('إدارة ${RoleDashboardSpecs.forRole(widget.role).title} وخدماتها', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+            Text('إدارة ${spec.title} وخدماتها', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
             const SizedBox(height: 10),
             ...actions.map((item) => _actionCard(context, item, dark)),
           ],
@@ -158,7 +157,7 @@ class _ProfessionalRoleDashboardState extends State<ProfessionalRoleDashboard> {
     child: Column(children: [Icon(icon, color: AppColors.primary, size: 24), const SizedBox(height: 5), Text('$value', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)), Text(title, style: const TextStyle(fontSize: 9, color: Colors.grey))]),
   );
 
-  Widget _actionCard(BuildContext context, _DashboardAction item, bool dark) => Padding(
+  Widget _actionCard(BuildContext context, DashboardActionSpec item, bool dark) => Padding(
     padding: const EdgeInsets.only(bottom: 10),
     child: InkWell(
       onTap: () => context.push(item.route),
@@ -175,18 +174,4 @@ class _ProfessionalRoleDashboardState extends State<ProfessionalRoleDashboard> {
       ),
     ),
   );
-
-  List<_DashboardAction> _actionsFor(String role) {
-    return RoleDashboardSpecs.forRole(role).actions
-        .map((item) => _DashboardAction(item.title, item.subtitle, item.route, item.icon))
-        .toList(growable: false);
-  }
-}
-
-class _DashboardAction {
-  const _DashboardAction(this.title, this.subtitle, this.route, this.icon);
-  final String title;
-  final String subtitle;
-  final String route;
-  final IconData icon;
 }
