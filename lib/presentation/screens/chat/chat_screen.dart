@@ -166,6 +166,7 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       floatingActionButton: (_tabIndex == 0 || _tabIndex == 2)
           ? FloatingActionButton.extended(
+              extendedPadding: const EdgeInsets.symmetric(horizontal: 17),
               backgroundColor: AppColors.primary,
               onPressed: _openingChat ? null : () => _showDoctorsForNewChat(isDark),
               icon: Image.asset(
