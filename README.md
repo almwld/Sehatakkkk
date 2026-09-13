@@ -20,7 +20,7 @@ lib/
 ├── core/                    # النواة (الثوابت، الثيمات، الأبعاد)
 ├── data/                    # البيانات (النماذج، المصادر، المستودعات)
 ├── domain/                  # النطاق (الكيانات، حالات الاستخدام)
-├── presentation/            # العرض (BLoCs، الشاشات، الويدجات)
+├── presentation/            # العرض (BLoCs، الشاشات، الويدجت)
 └── services/                # الخدمات (الإشعارات، الموقع، إلخ)
 ```
 
@@ -52,3 +52,5 @@ flutter build apk --release
 MIT License
 
 📱 آخر تحديث: Sun Jul 19 23:36:13 +03 2026
+
+CI verification: repaired Dart syntax is now committed on master before APK verification.
