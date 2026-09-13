@@ -7,6 +7,9 @@ on:
     branches: [ master, main ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   check:
     name: Flutter static analysis
@@ -15,6 +18,46 @@ jobs:
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🛠️ Repair known Dart syntax errors
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          home = Path('lib/presentation/screens/home/tabs/home_tab.dart')
+          text = home.read_text(encoding='utf-8')
+          broken = """            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(author, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)), if (body.isNotEmpty) ...[const SizedBox(height: 5), Text(body, maxLines: 4, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, height: 1.4, color: dark ? Colors.white70 : _muted))]],
+              ),"""
+          fixed = """            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(author, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)), if (body.isNotEmpty) ...[const SizedBox(height: 5), Text(body, maxLines: 4, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, height: 1.4, color: dark ? Colors.white70 : _muted))]],
+              ),
+              ),"""
+          if broken in text and fixed not in text:
+              home.write_text(text.replace(broken, fixed, 1), encoding='utf-8')
+              print('Fixed home_tab.dart Column closing.')
+
+          patient = Path('lib/presentation/screens/patient/patient_dashboard.dart')
+          p = patient.read_text(encoding='utf-8')
+          marker = "          const SizedBox(height: 8),"
+          if p.rstrip().endswith(marker):
+              p = p.rstrip() + "\n          Text('رمز الملف الصحي', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),\n        ],\n      ),\n    );\n  }\n}\n"
+              patient.write_text(p, encoding='utf-8')
+              print('Completed patient_dashboard.dart QR widget and class closing braces.')
+          PY
+
+      - name: 📝 Commit repaired Dart sources
+        run: |
+          if git diff --quiet; then
+            echo 'No source repair changes.'
+          else
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add lib/presentation/screens/home/tabs/home_tab.dart lib/presentation/screens/patient/patient_dashboard.dart
+            git diff --cached --check
+            git commit -m 'fix: repair Dart syntax in home and patient dashboard'
+            git push origin HEAD:master
+          fi
 
       - name: 💙 Setup Flutter
         uses: subosito/flutter-action@v2
