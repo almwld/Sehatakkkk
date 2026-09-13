@@ -17,6 +17,8 @@ import 'package:sehatak/presentation/screens/home/widgets/quick_services_widget.
 import 'package:sehatak/presentation/widgets/home/home_health_widgets.dart';
 import 'package:sehatak/presentation/widgets/common/app_image.dart';
 import 'package:sehatak/presentation/widgets/home/featured_facilities_grid.dart';
+import 'package:sehatak/presentation/widgets/home/guided_tour/guided_tour.dart';
+import 'package:sehatak/presentation/widgets/home/guided_tour/tour_step.dart';
 
 /// Canonical Home implementation. One screen, one navigation source, reusable sections.
 class HomeTab extends StatefulWidget {
@@ -33,6 +35,14 @@ class _HomeTabState extends State<HomeTab>
   Timer? _startTimer;
   late Future<List<ProductModel>> _products;
   late Future<Map<String, dynamic>> _weatherFuture;
+
+  final GlobalKey _notificationsTourKey = GlobalKey(debugLabel: 'home_notifications_tour');
+  final GlobalKey _cartTourKey = GlobalKey(debugLabel: 'home_cart_tour');
+  final GlobalKey _searchTourKey = GlobalKey(debugLabel: 'home_search_tour');
+  final GlobalKey _vitalsTourKey = GlobalKey(debugLabel: 'home_vitals_tour');
+  final GlobalKey _quickServicesTourKey = GlobalKey(debugLabel: 'home_quick_services_tour');
+  final GlobalKey _doctorsTourKey = GlobalKey(debugLabel: 'home_doctors_tour');
+  final GlobalKey _communityTourKey = GlobalKey(debugLabel: 'home_community_tour');
 
   static const Color _background = Color(0xFFF7FAFA);
   static const Color _darkBackground = Color(0xFF081A1A);
@@ -105,13 +115,65 @@ class _HomeTabState extends State<HomeTab>
     return 'عواصف رعدية';
   }
 
+  List<TourStep> _tourSteps() => [
+        TourStep(
+          key: _notificationsTourKey,
+          emoji: '🔔',
+          title: 'الإشعارات',
+          description: 'هنا تصلك تنبيهات صحتك المهمة، مثل المواعيد والرسائل والتحديثات.',
+          position: TooltipPosition.bottom,
+        ),
+        TourStep(
+          key: _cartTourKey,
+          emoji: '🛒',
+          title: 'سلة التسوق',
+          description: 'راجع المنتجات والأدوية التي أضفتها إلى سلتك قبل إتمام الطلب.',
+          position: TooltipPosition.bottom,
+        ),
+        TourStep(
+          key: _searchTourKey,
+          emoji: '🔍',
+          title: 'البحث',
+          description: 'ابحث بسرعة عن طبيب أو دواء أو خدمة داخل منصة صحتك.',
+          position: TooltipPosition.bottom,
+        ),
+        TourStep(
+          key: _vitalsTourKey,
+          emoji: '📊',
+          title: 'المؤشرات الحيوية',
+          description: 'تابع مؤشراتك الصحية ونشاطك اليومي من مكان واحد.',
+          position: TooltipPosition.top,
+        ),
+        TourStep(
+          key: _quickServicesTourKey,
+          emoji: '⚡',
+          title: 'الخدمات السريعة',
+          description: 'وصول مباشر إلى أهم خدمات صحتك دون الحاجة للبحث عنها.',
+          position: TooltipPosition.top,
+        ),
+        TourStep(
+          key: _doctorsTourKey,
+          emoji: '👨‍⚕️',
+          title: 'أفضل الأطباء',
+          description: 'اكتشف الأطباء المتاحين وتصفح تخصصاتهم وملفاتهم.',
+          position: TooltipPosition.top,
+        ),
+        TourStep(
+          key: _communityTourKey,
+          emoji: '👥',
+          title: 'مجتمع صحتك',
+          description: 'مساحة للتفاعل والمشاركة والاستفادة من المحتوى الصحي داخل المجتمع.',
+          position: TooltipPosition.top,
+        ),
+      ];
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
     return BlocBuilder<HomeBloc, HomeState>(
       builder: (context, state) {
         final dark = Theme.of(context).brightness == Brightness.dark;
-        return Container(
+        final home = Container(
           color: dark ? _darkBackground : _background,
           child: RefreshIndicator(
             color: AppColors.primary,
@@ -122,8 +184,8 @@ class _HomeTabState extends State<HomeTab>
               slivers: [
                 SliverToBoxAdapter(child: _header(state)),
                 SliverToBoxAdapter(child: _banner(state, dark)),
-                SliverToBoxAdapter(child: _quickServices(dark)),
-                SliverToBoxAdapter(child: _healthSummary(state, dark)),
+                SliverToBoxAdapter(child: KeyedSubtree(key: _quickServicesTourKey, child: _quickServices(dark))),
+                SliverToBoxAdapter(child: KeyedSubtree(key: _vitalsTourKey, child: _healthSummary(state, dark))),
                 SliverToBoxAdapter(child: _doctors(state, dark)),
                 SliverToBoxAdapter(child: _productsSection(dark)),
                 SliverToBoxAdapter(child: FeaturedFacilitiesGrid(title: 'مستشفيات مميزة', items: state.hospitals, isHospital: true, isDark: dark)),
@@ -133,7 +195,7 @@ class _HomeTabState extends State<HomeTab>
                 SliverToBoxAdapter(child: _tips(state.tips, dark)),
                 SliverToBoxAdapter(child: _discover(dark)),
                 SliverToBoxAdapter(child: _weather(dark)),
-                SliverToBoxAdapter(child: _community(state.communityPosts, dark)),
+                SliverToBoxAdapter(child: KeyedSubtree(key: _communityTourKey, child: _community(state.communityPosts, dark))),
                 if (state.isLoading) const SliverToBoxAdapter(child: Padding(padding: EdgeInsets.all(24), child: Center(child: CircularProgressIndicator(strokeWidth: 2)))),
                 if (state.hasError) SliverToBoxAdapter(child: _error(state.errorMessage ?? 'حدث خطأ غير متوقع', dark)),
                 const SliverToBoxAdapter(child: SizedBox(height: 32)),
@@ -141,6 +203,8 @@ class _HomeTabState extends State<HomeTab>
             ),
           ),
         );
+
+        return GuidedTour(child: home, steps: _tourSteps());
       },
     );
   }
@@ -159,17 +223,20 @@ class _HomeTabState extends State<HomeTab>
           InkWell(onTap: () => _go(AppRouter.profile), borderRadius: BorderRadius.circular(24), child: CircleAvatar(radius: 23, backgroundColor: Colors.white24, child: Text(first, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)))),
           const SizedBox(width: 12),
           Expanded(child: InkWell(onTap: () => _go(AppRouter.profile), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(greeting, style: const TextStyle(color: Colors.white70, fontSize: 12)), const SizedBox(height: 3), Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900))]))),
-          _headerAction(Icons.notifications_none_rounded, AppRouter.notifications),
+          _headerAction(_notificationsTourKey, Icons.notifications_none_rounded, AppRouter.notifications),
           const SizedBox(width: 8),
-          _headerAction(Icons.shopping_cart_outlined, AppRouter.cart),
+          _headerAction(_cartTourKey, Icons.shopping_cart_outlined, AppRouter.cart),
         ]),
         const SizedBox(height: 18),
-        InkWell(onTap: () => _go(AppRouter.search), borderRadius: BorderRadius.circular(18), child: Container(height: 52, padding: const EdgeInsets.symmetric(horizontal: 14), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18)), child: const Row(children: [Icon(Icons.search_rounded, color: AppColors.primary, size: 25), SizedBox(width: 10), Expanded(child: Text('ابحث عن طبيب، دواء أو خدمة...', style: TextStyle(color: _muted, fontSize: 13))), Icon(Icons.mic_none_rounded, color: AppColors.primary, size: 23)]))),
+        KeyedSubtree(
+          key: _searchTourKey,
+          child: InkWell(onTap: () => _go(AppRouter.search), borderRadius: BorderRadius.circular(18), child: Container(height: 52, padding: const EdgeInsets.symmetric(horizontal: 14), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18)), child: const Row(children: [Icon(Icons.search_rounded, color: AppColors.primary, size: 25), SizedBox(width: 10), Expanded(child: Text('ابحث عن طبيب، دواء أو خدمة...', style: TextStyle(color: _muted, fontSize: 13))), Icon(Icons.mic_none_rounded, color: AppColors.primary, size: 23)]))),
+        ),
       ]),
     );
   }
 
-  Widget _headerAction(IconData icon, String route) => InkWell(onTap: () => _go(route), borderRadius: BorderRadius.circular(22), child: Container(width: 42, height: 42, decoration: const BoxDecoration(color: Colors.white24, shape: BoxShape.circle), child: Icon(icon, color: Colors.white, size: 21)));
+  Widget _headerAction(GlobalKey key, IconData icon, String route) => KeyedSubtree(key: key, child: InkWell(onTap: () => _go(route), borderRadius: BorderRadius.circular(22), child: Container(width: 42, height: 42, decoration: const BoxDecoration(color: Colors.white24, shape: BoxShape.circle), child: Icon(icon, color: Colors.white, size: 21))));
 
   Widget _banner(HomeState state, bool dark) => state.bannerImages.isEmpty
       ? Padding(padding: const EdgeInsets.fromLTRB(16, 14, 16, 0), child: Container(height: 150, decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: AppColors.primary.withOpacity(.08)), alignment: Alignment.center, child: Text('صحتك معك كل يوم', style: TextStyle(color: dark ? Colors.white : _text, fontSize: 18, fontWeight: FontWeight.w900))))
@@ -182,61 +249,67 @@ class _HomeTabState extends State<HomeTab>
   Widget _doctors(HomeState state, bool dark) {
     final doctors = state.doctors.take(6).toList();
     if (doctors.isEmpty) {
-      return _section(
+      return KeyedSubtree(
+        key: _doctorsTourKey,
+        child: _section(
+          title: 'أفضل الأطباء',
+          dark: dark,
+          more: () => _go(AppRouter.doctors),
+          child: _empty('لا يوجد أطباء موثقون متاحون حالياً', dark),
+        ),
+      );
+    }
+    return KeyedSubtree(
+      key: _doctorsTourKey,
+      child: _section(
         title: 'أفضل الأطباء',
         dark: dark,
         more: () => _go(AppRouter.doctors),
-        child: _empty('لا يوجد أطباء موثقون متاحون حالياً', dark),
-      );
-    }
-    return _section(
-      title: 'أفضل الأطباء',
-      dark: dark,
-      more: () => _go(AppRouter.doctors),
-      child: SizedBox(
-        height: 220,
-        child: ListView.separated(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          scrollDirection: Axis.horizontal,
-          itemCount: doctors.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 12),
-          itemBuilder: (_, index) {
-            final doctor = doctors[index];
-            final image = (doctor['photoUrl'] ?? doctor['image'] ?? '').toString();
-            final id = (doctor['id'] ?? doctor['uid'] ?? '').toString();
-            return InkWell(
-              onTap: () => _go(id.isEmpty ? AppRouter.doctors : '/doctor/$id'),
-              borderRadius: BorderRadius.circular(18),
-              child: Container(
-                width: 168,
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(color: dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(18)),
-                child: Column(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(14),
-                      child: image.isEmpty
-                          ? Container(height: 92, width: double.infinity, color: AppColors.primary.withOpacity(.08), child: const Icon(Icons.person, color: AppColors.primary, size: 42))
-                          : AppImage(imageUrl: image, height: 92, width: double.infinity, fit: BoxFit.cover),
-                    ),
-                    const SizedBox(height: 8),
-                    Text((doctor['name'] ?? 'طبيب').toString(), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)),
-                    const SizedBox(height: 3),
-                    Text((doctor['specialty'] ?? 'تخصص طبي').toString(), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10, color: AppColors.primary)),
-                    const Spacer(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.star_rounded, color: Colors.amber, size: 15),
-                        const SizedBox(width: 3),
-                        Text('${doctor['rating'] ?? 0}', style: TextStyle(fontSize: 10, color: dark ? Colors.white70 : _muted)),
-                      ],
-                    ),
-                  ],
+        child: SizedBox(
+          height: 220,
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            scrollDirection: Axis.horizontal,
+            itemCount: doctors.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            itemBuilder: (_, index) {
+              final doctor = doctors[index];
+              final image = (doctor['photoUrl'] ?? doctor['image'] ?? '').toString();
+              final id = (doctor['id'] ?? doctor['uid'] ?? '').toString();
+              return InkWell(
+                onTap: () => _go(id.isEmpty ? AppRouter.doctors : '/doctor/$id'),
+                borderRadius: BorderRadius.circular(18),
+                child: Container(
+                  width: 168,
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(color: dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(18)),
+                  child: Column(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(14),
+                        child: image.isEmpty
+                            ? Container(height: 92, width: double.infinity, color: AppColors.primary.withOpacity(.08), child: const Icon(Icons.person, color: AppColors.primary, size: 42))
+                            : AppImage(imageUrl: image, height: 92, width: double.infinity, fit: BoxFit.cover),
+                      ),
+                      const SizedBox(height: 8),
+                      Text((doctor['name'] ?? 'طبيب').toString(), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)),
+                      const SizedBox(height: 3),
+                      Text((doctor['specialty'] ?? 'تخصص طبي').toString(), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10, color: AppColors.primary)),
+                      const Spacer(),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.star_rounded, color: Colors.amber, size: 15),
+                          const SizedBox(width: 3),
+                          Text('${doctor['rating'] ?? 0}', style: TextStyle(fontSize: 10, color: dark ? Colors.white70 : _muted)),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );
