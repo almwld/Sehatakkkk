@@ -53,9 +53,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     if (_markingSeen) return;
     _markingSeen = true;
     try {
-      // Entering the conversation is the authoritative read event. This also
-      // clears the chat-list unread counter and updates readAt on the sender's
-      // messages, which changes the sender tick from delivered to read.
       await _chatService.markAsRead(widget.chatId);
     } catch (e) {
       debugPrint('Chat mark-as-read failed: $e');
@@ -73,9 +70,29 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   @override Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final title = widget.userName?.trim().isNotEmpty == true ? widget.userName!.trim() : 'الدردشة';
+    final headerColor = isDark ? const Color(0xFF102B2A) : AppColors.primary;
+    final headerIcon = isDark ? Colors.white : Colors.white;
+    final inputSurface = isDark ? const Color(0xFF121A29) : Colors.white;
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
-      appBar: AppBar(title: Text(title), backgroundColor: isDark ? AppColors.backgroundDark : Colors.white, foregroundColor: isDark ? Colors.white : Colors.black87, elevation: 0),
+      appBar: AppBar(
+        titleSpacing: 0,
+        title: Row(children: [
+          CircleAvatar(
+            radius: 19,
+            backgroundColor: isDark ? const Color(0xFF214442) : Colors.white.withOpacity(.18),
+            backgroundImage: widget.userImage?.trim().isNotEmpty == true ? NetworkImage(widget.userImage!.trim()) : null,
+            child: widget.userImage?.trim().isNotEmpty == true ? null : Icon(Icons.person_rounded, color: headerIcon, size: 22),
+          ),
+          const SizedBox(width: 10),
+          Expanded(child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700))),
+        ]),
+        backgroundColor: headerColor,
+        foregroundColor: Colors.white,
+        elevation: 3,
+        shadowColor: Colors.black.withOpacity(.18),
+        surfaceTintColor: Colors.transparent,
+      ),
       body: Column(children: [
         Expanded(child: BlocBuilder<MessagesBloc, MessagesState>(builder: (context, state) {
           if (state is MessagesLoading) return const Center(child: CircularProgressIndicator());
@@ -87,7 +104,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             return ListView.builder(
               controller: _scrollController,
               reverse: true,
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
               itemCount: state.messages.length + (state.isLoadingMore ? 1 : 0),
               itemBuilder: (context, index) {
                 if (index == state.messages.length) return const Padding(padding: EdgeInsets.all(8), child: Center(child: CircularProgressIndicator()));
@@ -98,7 +115,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           }
           return const SizedBox.shrink();
         })),
-        ChatInputBar(chatId: widget.chatId, onSendMessage: _sendText),
+        Container(
+          decoration: BoxDecoration(
+            color: inputSurface,
+            border: Border(top: BorderSide(color: isDark ? Colors.white.withOpacity(.06) : const Color(0xFFD9E4E3), width: 1)),
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(isDark ? .12 : .08), blurRadius: 12, offset: const Offset(0, -3))],
+          ),
+          child: ChatInputBar(chatId: widget.chatId, onSendMessage: _sendText),
+        ),
       ]),
     );
   }
