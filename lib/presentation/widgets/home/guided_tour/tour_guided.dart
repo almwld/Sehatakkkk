@@ -29,8 +29,7 @@ class GuidedTour extends StatefulWidget {
   State<GuidedTour> createState() => _GuidedTourState();
 }
 
-class _GuidedTourState extends State<GuidedTour>
-    with SingleTickerProviderStateMixin {
+class _GuidedTourState extends State<GuidedTour> with SingleTickerProviderStateMixin {
   static const double _spacing = 24;
   static const double _targetPadding = 12;
   static const double _bubbleHeight = 280;
@@ -46,11 +45,7 @@ class _GuidedTourState extends State<GuidedTour>
   @override
   void initState() {
     super.initState();
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    )..repeat();
-
+    _pulseController = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500))..repeat();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startTimer = Timer(widget.startDelay, _tryShow);
     });
@@ -59,11 +54,9 @@ class _GuidedTourState extends State<GuidedTour>
   Future<void> _tryShow() async {
     if (_disposed || !mounted || _showing || widget.steps.isEmpty) return;
     if (await TourManager.hasSeen(widget.tourKey)) return;
-
     _index = 0;
     await _prepareTarget();
     if (_disposed || !mounted) return;
-
     _showing = true;
     _insertOverlay();
   }
@@ -74,15 +67,8 @@ class _GuidedTourState extends State<GuidedTour>
       final targetContext = widget.steps[_index].key.currentContext;
       if (targetContext != null) {
         try {
-          await Scrollable.ensureVisible(
-            targetContext,
-            duration: const Duration(milliseconds: 350),
-            curve: Curves.easeOut,
-            alignment: .15,
-          );
-        } catch (_) {
-          // الهدف قد يكون داخل عنصر غير قابل للتمرير؛ نكمل بدون تعطيل الجولة.
-        }
+          await Scrollable.ensureVisible(targetContext, duration: const Duration(milliseconds: 350), curve: Curves.easeOut, alignment: .15);
+        } catch (_) {}
         await Future<void>.delayed(const Duration(milliseconds: 90));
         return;
       }
@@ -125,11 +111,17 @@ class _GuidedTourState extends State<GuidedTour>
     _busy = false;
   }
 
-  Future<void> _skip() => _persistAndClose(callComplete: false);
-  Future<void> _finish() => _persistAndClose(callComplete: true);
+  Future<void> _skip() async {
+    await TourManager.markAsSkipped(widget.tourKey);
+    await _close();
+  }
 
-  Future<void> _persistAndClose({required bool callComplete}) async {
+  Future<void> _finish() async {
     await TourManager.markAsSeen(widget.tourKey);
+    await _close(callComplete: true);
+  }
+
+  Future<void> _close({bool callComplete = false}) async {
     if (_disposed) return;
     _overlay?.remove();
     _overlay = null;
@@ -155,56 +147,18 @@ class _GuidedTourState extends State<GuidedTour>
     final screen = MediaQuery.sizeOf(context);
     final step = widget.steps[_index];
     final rawTarget = _targetRect();
-    final target = (rawTarget ?? Rect.fromCenter(
-      center: screen.center(Offset.zero),
-      width: 1,
-      height: 1,
-    )).inflate(_targetPadding);
+    final target = (rawTarget ?? Rect.fromCenter(center: screen.center(Offset.zero), width: 1, height: 1)).inflate(_targetPadding);
     final bubble = _bubbleRect(step.position, target, screen);
-
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Material(
         type: MaterialType.transparency,
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: _next,
-                child: CustomPaint(
-                  painter: SpotlightPainter(
-                    targetRect: target,
-                    highlightColor: step.accentColor,
-                  ),
-                ),
-              ),
-            ),
-            if (step.showPulse && rawTarget != null)
-              Positioned(
-                left: target.left,
-                top: target.top,
-                width: target.width,
-                height: target.height,
-                child: PulseWidget(
-                  controller: _pulseController,
-                  color: step.accentColor,
-                  size: Size(target.width, target.height),
-                ),
-              ),
-            Positioned.fromRect(
-              rect: bubble,
-              child: _TooltipBubble(
-                step: step,
-                index: _index,
-                total: widget.steps.length,
-                onSkip: _skip,
-                onPrevious: _previous,
-                onNext: _next,
-              ),
-            ),
-          ],
-        ),
+        child: Stack(children: [
+          Positioned.fill(child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: _next, child: CustomPaint(painter: SpotlightPainter(targetRect: target, highlightColor: step.accentColor)))),
+          if (step.showPulse && rawTarget != null)
+            Positioned(left: target.left, top: target.top, width: target.width, height: target.height, child: PulseWidget(controller: _pulseController, color: step.accentColor, size: Size(target.width, target.height))),
+          Positioned.fromRect(rect: bubble, child: _TooltipBubble(step: step, index: _index, total: widget.steps.length, onSkip: _skip, onPrevious: _previous, onNext: _next)),
+        ]),
       ),
     );
   }
@@ -216,7 +170,6 @@ class _GuidedTourState extends State<GuidedTour>
     final maxTop = screen.height - height - 16;
     double left = (screen.width - width) / 2;
     double top = (screen.height - height) / 2;
-
     switch (position) {
       case TooltipPosition.bottom:
         left = target.center.dx - width / 2;
@@ -237,7 +190,6 @@ class _GuidedTourState extends State<GuidedTour>
       case TooltipPosition.center:
         break;
     }
-
     left = left.clamp(16.0, maxLeft < 16 ? 16.0 : maxLeft).toDouble();
     top = top.clamp(16.0, maxTop < 16 ? 16.0 : maxTop).toDouble();
     return Rect.fromLTWH(left, top, width, height);
@@ -245,15 +197,7 @@ class _GuidedTourState extends State<GuidedTour>
 }
 
 class _TooltipBubble extends StatelessWidget {
-  const _TooltipBubble({
-    required this.step,
-    required this.index,
-    required this.total,
-    required this.onSkip,
-    required this.onPrevious,
-    required this.onNext,
-  });
-
+  const _TooltipBubble({required this.step, required this.index, required this.total, required this.onSkip, required this.onPrevious, required this.onNext});
   final TourStep step;
   final int index;
   final int total;
@@ -267,126 +211,30 @@ class _TooltipBubble extends StatelessWidget {
       color: Colors.transparent,
       child: Container(
         padding: const EdgeInsets.fromLTRB(18, 16, 18, 14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: step.accentColor.withOpacity(.30)),
-          boxShadow: [
-            BoxShadow(
-              blurRadius: 24,
-              offset: const Offset(0, 8),
-              color: Colors.black.withOpacity(.25),
-            ),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), border: Border.all(color: step.accentColor.withOpacity(.30)), boxShadow: [BoxShadow(blurRadius: 24, offset: const Offset(0, 8), color: Colors.black.withOpacity(.25))]),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Row(children: [
+            Container(width: 44, height: 44, alignment: Alignment.center, decoration: BoxDecoration(color: step.accentColor.withOpacity(.15), shape: BoxShape.circle), child: Text(step.emoji, style: const TextStyle(fontSize: 22))),
+            const SizedBox(width: 10),
+            Expanded(child: Text(step.title, style: const TextStyle(color: Colors.black87, fontSize: 18, fontWeight: FontWeight.w900))),
+          ]),
+          const SizedBox(height: 12),
+          Text(step.description, textAlign: TextAlign.right, style: TextStyle(color: Colors.grey[700], fontSize: 14, height: 1.6)),
+          if (step.actionHint != null) ...[
+            const SizedBox(height: 10),
+            Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8), decoration: BoxDecoration(color: step.accentColor.withOpacity(.09), borderRadius: BorderRadius.circular(10)), child: Text(step.actionHint!, textAlign: TextAlign.right, style: TextStyle(color: step.accentColor, fontSize: 12, fontWeight: FontWeight.w700))),
           ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: step.accentColor.withOpacity(.15),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Text(step.emoji, style: const TextStyle(fontSize: 22)),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    step.title,
-                    style: const TextStyle(
-                      color: Colors.black87,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              step.description,
-              textAlign: TextAlign.right,
-              style: TextStyle(color: Colors.grey[700], fontSize: 14, height: 1.6),
-            ),
-            if (step.actionHint != null) ...[
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                decoration: BoxDecoration(
-                  color: step.accentColor.withOpacity(.09),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  step.actionHint!,
-                  textAlign: TextAlign.right,
-                  style: TextStyle(
-                    color: step.accentColor,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
+          const Spacer(),
+          Row(children: [TextButton(onPressed: onSkip, style: TextButton.styleFrom(foregroundColor: Colors.grey[600]), child: const Text('تخطي')), const Spacer(), Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(10)), child: Text('${index + 1}/$total', style: const TextStyle(color: Colors.black54, fontWeight: FontWeight.w800)))]),
+          const SizedBox(height: 6),
+          Row(children: [
+            if (index > 0) ...[
+              OutlinedButton.icon(onPressed: onPrevious, icon: const Icon(Icons.arrow_forward_rounded, size: 18), label: const Text('السابق'), style: OutlinedButton.styleFrom(foregroundColor: step.accentColor, side: BorderSide(color: step.accentColor.withOpacity(.35)))),
+              const SizedBox(width: 8),
             ],
-            const Spacer(),
-            Row(
-              children: [
-                TextButton(
-                  onPressed: onSkip,
-                  style: TextButton.styleFrom(foregroundColor: Colors.grey[600]),
-                  child: const Text('تخطي'),
-                ),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    '${index + 1}/$total',
-                    style: const TextStyle(color: Colors.black54, fontWeight: FontWeight.w800),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                if (index > 0) ...[
-                  OutlinedButton.icon(
-                    onPressed: onPrevious,
-                    icon: const Icon(Icons.arrow_forward_rounded, size: 18),
-                    label: const Text('السابق'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: step.accentColor,
-                      side: BorderSide(color: step.accentColor.withOpacity(.35)),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                ],
-                Expanded(
-                  child: FilledButton.icon(
-                    onPressed: onNext,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: step.accentColor,
-                      foregroundColor: Colors.white,
-                    ),
-                    icon: Icon(
-                      index == total - 1 ? Icons.check_rounded : Icons.arrow_back_rounded,
-                      size: 18,
-                    ),
-                    label: Text(index == total - 1 ? 'تم' : 'التالي'),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+            Expanded(child: FilledButton.icon(onPressed: onNext, style: FilledButton.styleFrom(backgroundColor: step.accentColor, foregroundColor: Colors.white), icon: Icon(index == total - 1 ? Icons.check_rounded : Icons.arrow_back_rounded, size: 18), label: Text(index == total - 1 ? 'تم' : 'التالي'))),
+          ]),
+        ]),
       ),
     );
   }
