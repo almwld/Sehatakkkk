@@ -25,11 +25,14 @@ class VitalsService {
     if (id == null) return Stream.value(<Map<String, dynamic>>[]);
     return _db
         .collection('users').doc(id).collection('vital_history')
-        .where('key', isEqualTo: key)
         .orderBy('timestamp', descending: true)
-        .limit(limit)
+        .limit(limit * 4)
         .snapshots()
-        .map((snap) => snap.docs.map((doc) => <String, dynamic>{'id': doc.id, ...doc.data()}).toList());
+        .map((snap) => snap.docs
+            .map((doc) => <String, dynamic>{'id': doc.id, ...doc.data()})
+            .where((item) => item['key'] == key)
+            .take(limit)
+            .toList());
   }
 
   Future<void> record(String key, dynamic value, {Map<String, dynamic>? extra}) async {
@@ -44,7 +47,7 @@ class VitalsService {
     };
     if (extra != null) data.addAll(extra);
     await _db.runTransaction((tx) async {
-      tx.set(userRef, {'vitals': {key: value}}, SetOptions(merge: true));
+      tx.set(userRef, {'vitals.$key': value}, SetOptions(merge: true));
       tx.set(historyRef, data);
     });
   }
