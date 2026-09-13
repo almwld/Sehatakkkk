@@ -18,6 +18,7 @@ import 'package:sehatak/presentation/screens/chat/calls_screen.dart';
 import 'package:sehatak/presentation/screens/chat/chat_room_screen.dart';
 import 'package:sehatak/presentation/screens/chat/story_viewer_screen.dart';
 import 'package:sehatak/presentation/widgets/status_row.dart';
+import 'package:sehatak/presentation/widgets/health_contacts_section.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -179,7 +180,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildTabs(bool isDark) {
-    const labels = ['المحادثات', 'المكالمات', 'جهات الاتصال'];
+    const labels = ['المحادثات', 'المكالمات', 'التواصل الصحي'];
     return Container(
       margin: const EdgeInsets.fromLTRB(12, 0, 12, 10),
       height: 48,
@@ -307,55 +308,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildContactsTab(bool isDark) {
-    return BlocBuilder<DoctorBloc, DoctorState>(
-      builder: (context, state) {
-        if (state is DoctorLoading || state is DoctorInitial) {
-          return const Center(child: CircularProgressIndicator(color: AppColors.primary));
-        }
-        if (state is DoctorError) {
-          return Center(child: Text('تعذر تحميل جهات الاتصال الطبية. حاول مرة أخرى.', style: TextStyle(color: isDark ? Colors.white70 : Colors.black54)));
-        }
-        final doctors = state is DoctorLoaded ? state.doctors : <DoctorModel>[];
-        final filtered = _search.isEmpty
-            ? doctors
-            : doctors.where((doctor) {
-                final value = '${doctor.name} ${doctor.specialty}'.toLowerCase();
-                return value.contains(_search);
-              }).toList();
-
-        return Column(
-          children: [
-            _buildStatusSection(isDark),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-              child: TextField(
-                controller: _searchController,
-                textDirection: TextDirection.rtl,
-                decoration: InputDecoration(
-                  hintText: 'ابحث عن طبيب أو تخصص...',
-                  prefixIcon: const Icon(Icons.search),
-                  suffixIcon: _search.isEmpty ? null : IconButton(icon: const Icon(Icons.clear), onPressed: _searchController.clear),
-                  filled: true,
-                  fillColor: isDark ? const Color(0xFF162039) : Colors.white,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
-                ),
-              ),
-            ),
-            if (doctors.isEmpty)
-              Expanded(child: Center(child: Text('لا يوجد أطباء موثقون متاحون للمحادثة حالياً.', style: TextStyle(color: isDark ? Colors.white70 : Colors.black54))))
-            else
-              Expanded(
-                child: ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
-                  itemCount: filtered.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
-                  itemBuilder: (_, index) => _doctorContactTile(filtered[index], isDark),
-                ),
-              ),
-          ],
-        );
-      },
-    );
+    return HealthContactsSection(isDark: isDark);
   }
 
   Widget _buildStatusSection(bool isDark) {
