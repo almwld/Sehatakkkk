@@ -39,30 +39,20 @@ service cloud.firestore {
       allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
     }
 
-    // Daily 24-hour stories/statuses.
     match /statuses/{statusId} {
       allow read: if isSignedIn();
-      allow create: if isSignedIn()
-        && request.resource.data.userId == request.auth.uid
-        && request.resource.data.createdBy == request.auth.uid
-        && request.resource.data.expiresAt is timestamp
-        && request.resource.data.expiresAt > request.time
-        && request.resource.data.stories is list
-        && request.resource.data.stories.size() > 0;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid && request.resource.data.createdBy == request.auth.uid && request.resource.data.expiresAt is timestamp && request.resource.data.expiresAt > request.time && request.resource.data.stories is list && request.resource.data.stories.size() > 0;
       allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
-
       match /views/{viewerId} {
         allow read: if isSignedIn() && viewerId == request.auth.uid;
         allow create, update: if isSignedIn() && viewerId == request.auth.uid && request.resource.data.userId == request.auth.uid;
         allow delete: if isSignedIn() && viewerId == request.auth.uid;
       }
-
       match /reactions/{userId} {
         allow read: if isSignedIn();
         allow create, update: if isSignedIn() && userId == request.auth.uid && request.resource.data.userId == request.auth.uid;
         allow delete: if isSignedIn() && userId == request.auth.uid;
       }
-
       match /replies/{replyId} {
         allow read: if isSignedIn();
         allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid && request.resource.data.text is string && request.resource.data.text.size() > 0;
@@ -82,13 +72,46 @@ service cloud.firestore {
       allow create: if isCreatingChatParticipant();
       allow update: if isExistingChatParticipant(chatId) && request.resource.data.participants != null && request.auth.uid in request.resource.data.participants;
       allow delete: if false;
-
       match /messages/{messageId} {
         allow read: if isChatParticipant(chatId);
         allow create: if isChatParticipant(chatId) && isMessageSender() && request.resource.data.chatId == chatId;
         allow update: if isChatParticipant(chatId) && (resource.data.senderId == request.auth.uid || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead','readAt']) || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions']) && request.resource.data.reactions is map && request.resource.data.reactions.diff(resource.data.reactions).affectedKeys().hasOnly([request.auth.uid])) || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['deletedFor']) && request.resource.data.deletedFor is map && request.resource.data.deletedFor.diff(resource.data.deletedFor).affectedKeys().hasOnly([request.auth.uid]) && request.resource.data.deletedFor[request.auth.uid] == true));
         allow delete: if false;
       }
+    }
+
+    match /community_posts/{postId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && isVerifiedDoctor(request.auth.uid)
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.isDoctorPost == true
+        && request.resource.data.isVerified == true
+        && request.resource.data.isPublished == true;
+      allow update: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid && request.resource.data.userId == resource.data.userId);
+      allow delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+    }
+
+    match /comments/{commentId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.postId is string
+        && request.resource.data.comment is string
+        && request.resource.data.comment.size() > 0;
+      allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    match /users/{userId}/liked_posts/{postId} {
+      allow read: if isSelf(userId);
+      allow create, delete: if isSelf(userId) && request.resource.data.postId == postId;
+      allow update: if false;
+    }
+
+    match /reports/{reportId} {
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow read: if isAdmin();
+      allow update, delete: if isAdmin();
     }
 
     function appointmentExists(appointmentId) { return exists(/databases/$(database)/documents/appointments/$(appointmentId)); }
