@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
+import 'package:sehatak/presentation/widgets/unified_search_bar.dart';
 
 class DoctorCard extends StatelessWidget {
   final String name, specialty, experience;
@@ -37,18 +38,15 @@ class DoctorCard extends StatelessWidget {
 class CustomSearchBar extends StatelessWidget {
   final String hint;
   const CustomSearchBar({super.key, this.hint = 'بحث...'});
+
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      textAlign: TextAlign.right,
-      decoration: InputDecoration(
-        hintText: hint,
-        prefixIcon: const Icon(Icons.search, color: AppColors.grey),
-        filled: true,
-        fillColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-        contentPadding: const EdgeInsets.symmetric(vertical: 13),
-      ),
+    return UnifiedSearchBar(
+      hint: hint,
+      backgroundColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+      borderColor: Colors.transparent,
+      textColor: Theme.of(context).textTheme.bodyLarge?.color,
+      hintColor: AppColors.grey,
     );
   }
 }
@@ -102,4 +100,3 @@ class QuickServiceCard extends StatelessWidget {
     );
   }
 }
-
