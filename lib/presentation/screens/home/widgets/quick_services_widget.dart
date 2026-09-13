@@ -80,16 +80,19 @@ class QuickServicesWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 80,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        itemCount: _services.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 0),
-        itemBuilder: (context, index) => _buildServiceItem(
-          context,
-          _services[index],
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: SizedBox(
+        height: 80,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          itemCount: _services.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 0),
+          itemBuilder: (context, index) => _buildServiceItem(
+            context,
+            _services[index],
+          ),
         ),
       ),
     );
