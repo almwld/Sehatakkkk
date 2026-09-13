@@ -19,10 +19,19 @@ def edit(path, replacements):
         print(f'[updated] {path}')
 
 # الرسائل: تسجيل الوصول قبل القراءة حتى تتزامن ✓✓ مع الطرف المرسل.
-edit('lib/core/services/chat_service.dart', [(
-    "  Future<void> archiveChat(String chatId,bool archived)async{",
-    "  /// يسجل وصول الرسائل للطرف الآخر فور استقبالها وقبل فتح الغرفة.\n  Future<void> markAsDelivered(String chatId)async{final id=_uid();await _authorizedChat(chatId);final s=await _chatRef(chatId).collection('messages').where('senderId',isNotEqualTo:id).where('isDelivered',isEqualTo:false).limit(100).get();if(s.docs.isEmpty)return;final b=_firestore.batch();for(final d in s.docs)b.update(d.reference,{'isDelivered':true,'deliveredAt':FieldValue.serverTimestamp()});await b.commit();}\n  Future<void> archiveChat(String chatId,bool archived)async{"
-)])
+chat_service = ROOT / 'lib/core/services/chat_service.dart'
+if chat_service.exists():
+    text = chat_service.read_text(encoding='utf-8')
+    marker = 'Future<void> markAsDelivered(String chatId)'
+    # اجعل الإصلاح idempotent: لا نضيف الدالة مرة أخرى إذا كانت موجودة بالفعل.
+    if marker not in text:
+        needle = '  Future<void> archiveChat(String chatId,bool archived){'
+        method = "  /// يسجل وصول الرسائل للطرف الآخر فور استقبالها وقبل فتح الغرفة.\n  Future<void> markAsDelivered(String chatId)async{final id=_uid();await _authorizedChat(chatId);final s=await _chatRef(chatId).collection('messages').where('senderId',isNotEqualTo:id).where('isDelivered',isEqualTo:false).limit(100).get();if(s.docs.isEmpty)return;final b=_firestore.batch();for(final d in s.docs)b.update(d.reference,{'isDelivered':true,'deliveredAt':FieldValue.serverTimestamp()});await b.commit();}\n"
+        if needle in text:
+            chat_service.write_text(text.replace(needle, method + needle, 1), encoding='utf-8')
+            print('[updated] chat_service delivered-message support')
+    else:
+        print('[ok] chat_service markAsDelivered already present; no duplicate injection')
 
 edit('lib/presentation/screens/chat/chat_detail_screen.dart', [(
     "      await _chatService.markAsRead(widget.chatId);",
