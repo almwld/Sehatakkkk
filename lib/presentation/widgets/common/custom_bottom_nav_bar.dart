@@ -27,52 +27,13 @@ class CustomBottomNavigationBar extends StatelessWidget {
 
   // ✅ عناصر شريط التنقل مع الأيقونات المحلية
   static const List<NavItem> _navItems = [
-    NavItem(
-      index: 0,
-      icon: Icons.home_rounded,
-      iconPath: 'assets/images/navigation/home.png',
-      label: 'الرئيسية',
-    ),
-    NavItem(
-      index: 1,
-      icon: Icons.person_search_rounded,
-      iconPath: 'assets/images/services/doctors.png',
-      label: 'الأطباء',
-    ),
-    NavItem(
-      index: 2,
-      icon: Icons.local_pharmacy_rounded,
-      iconPath: 'assets/images/services/pharmacy.png',
-      label: 'الصيدلية',
-    ),
-    NavItem(
-      index: 3,
-      icon: Icons.chat_rounded,
-      iconPath: 'assets/images/navigation/chat.png',
-      label: 'الدردشة',
-      isProtected: true,
-      isSpecial: true,
-    ),
-    NavItem(
-      index: 4,
-      icon: Icons.science_rounded,
-      iconPath: 'assets/images/services/labs.png',
-      label: 'مختبرات',
-      isProtected: true,
-    ),
-    NavItem(
-      index: 5,
-      icon: Icons.folder_rounded,
-      iconPath: 'assets/images/navigation/health.png',
-      label: 'صحتي',
-      isProtected: true,
-    ),
-    NavItem(
-      index: 6,
-      icon: Icons.grid_view_rounded,
-      iconPath: 'assets/images/navigation/more.png',
-      label: 'المزيد',
-    ),
+    NavItem(index: 0, icon: Icons.home_rounded, iconPath: 'assets/images/navigation/home.png', label: 'الرئيسية'),
+    NavItem(index: 1, icon: Icons.person_search_rounded, iconPath: 'assets/images/services/doctors.png', label: 'الأطباء'),
+    NavItem(index: 2, icon: Icons.local_pharmacy_rounded, iconPath: 'assets/images/services/pharmacy.png', label: 'الصيدلية'),
+    NavItem(index: 3, icon: Icons.chat_rounded, iconPath: 'assets/images/navigation/chat.png', label: 'الدردشة', isProtected: true, isSpecial: true),
+    NavItem(index: 4, icon: Icons.science_rounded, iconPath: 'assets/images/services/labs.png', label: 'مختبرات', isProtected: true),
+    NavItem(index: 5, icon: Icons.folder_rounded, iconPath: 'assets/images/navigation/health.png', label: 'صحتي', isProtected: true),
+    NavItem(index: 6, icon: Icons.grid_view_rounded, iconPath: 'assets/images/navigation/more.png', label: 'المزيد'),
   ];
 
   @override
@@ -91,13 +52,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
         decoration: BoxDecoration(
           color: backgroundColor,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 16,
-              offset: const Offset(0, -4),
-            ),
-          ],
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 16, offset: const Offset(0, -4))],
         ),
         child: SafeArea(
           top: false,
@@ -107,10 +62,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               crossAxisAlignment: CrossAxisAlignment.center,
-              children: _navItems.map((item) {
-                if (item.isSpecial) return _buildSpecialChatButton(item, isDark);
-                return _buildNavItem(item, isDark);
-              }).toList(),
+              children: _navItems.map((item) => item.isSpecial ? _buildSpecialChatButton(item, isDark) : _buildNavItem(item, isDark)).toList(),
             ),
           ),
         ),
@@ -118,16 +70,9 @@ class CustomBottomNavigationBar extends StatelessWidget {
     );
   }
 
-  // ============================================================
-  // 🎨 بناء عنصر عادي من شريط التنقل
-  // ============================================================
-
   Widget _buildNavItem(NavItem item, bool isDark) {
     final isSelected = currentIndex == item.index;
-    final color = isSelected
-        ? AppColors.primary
-        : (isDark ? Colors.grey.shade400 : Colors.grey.shade500);
-
+    final color = isSelected ? AppColors.primary : (isDark ? Colors.grey.shade400 : Colors.grey.shade500);
     return Expanded(
       child: GestureDetector(
         onTap: () => _handleTap(item),
@@ -137,46 +82,21 @@ class CustomBottomNavigationBar extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // ✅ الأيقونة المحلية مع fallback
               SizedBox(
                 width: 22,
                 height: 22,
-                child: Image.asset(
-                  item.iconPath,
-                  width: 22,
-                  height: 22,
-                  fit: BoxFit.contain,
-                  color: color,
-                  errorBuilder: (context, error, stackTrace) {
-                    // ✅ fallback للأيقونة الافتراضية
-                    return Icon(
-                      item.icon,
-                      color: color,
-                      size: 22,
-                    );
-                  },
-                ),
+                child: Image.asset(item.iconPath, width: 22, height: 22, fit: BoxFit.contain, color: color,
+                  errorBuilder: (context, error, stackTrace) => Icon(item.icon, color: color, size: 22)),
               ),
               const SizedBox(height: 3),
-              Text(
-                item.label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 9,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                  color: color,
-                ),
-              ),
+              Text(item.label, maxLines: 1, overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 9, fontWeight: isSelected ? FontWeight.bold : FontWeight.w500, color: color)),
               const SizedBox(height: 2),
               AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 width: isSelected ? 12 : 0,
                 height: 2,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(2),
-                ),
+                decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(2)),
               ),
             ],
           ),
@@ -185,13 +105,12 @@ class CustomBottomNavigationBar extends StatelessWidget {
     );
   }
 
-  // ============================================================
-  // 💬 بناء زر الدردشة المميز (الكبير)
-  // ============================================================
-
   Widget _buildSpecialChatButton(NavItem item, bool isDark) {
     final isSelected = currentIndex == item.index;
     final inactiveColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
+    // زيادة زر الدردشة بنسبة 4%: 52 → 54.08 تقريبًا، مع زيادة الأيقونة بنفس النسبة.
+    const chatButtonSize = 54.08;
+    const chatIconSize = 27.04;
 
     return Expanded(
       child: GestureDetector(
@@ -214,64 +133,27 @@ class CustomBottomNavigationBar extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // ✅ الزر الدائري المميز
                       Container(
-                        width: 52,
-                        height: 52,
+                        width: chatButtonSize,
+                        height: chatButtonSize,
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [AppColors.primary, AppColors.primaryDark],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
+                          gradient: const LinearGradient(colors: [AppColors.primary, AppColors.primaryDark], begin: Alignment.topLeft, end: Alignment.bottomRight),
                           shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primary.withOpacity(0.45),
-                              blurRadius: 10,
-                              spreadRadius: 2,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                          border: Border.all(
-                            color: isDark ? const Color(0xFF0B1121) : Colors.white,
-                            width: 3,
-                          ),
+                          boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.45), blurRadius: 10, spreadRadius: 2, offset: const Offset(0, 4))],
+                          border: Border.all(color: isDark ? const Color(0xFF0B1121) : Colors.white, width: 3),
                         ),
-                        // ✅ الأيقونة المحلية في الزر الدائري
                         child: ClipOval(
                           child: SizedBox(
-                            width: 26,
-                            height: 26,
-                            child: Image.asset(
-                              item.iconPath,
-                              width: 26,
-                              height: 26,
-                              fit: BoxFit.contain,
-                              color: Colors.white,
-                              errorBuilder: (context, error, stackTrace) {
-                                // ✅ fallback
-                                return const Icon(
-                                  Icons.chat_rounded,
-                                  color: Colors.white,
-                                  size: 26,
-                                );
-                              },
-                            ),
+                            width: chatIconSize,
+                            height: chatIconSize,
+                            child: Image.asset(item.iconPath, width: chatIconSize, height: chatIconSize, fit: BoxFit.contain, color: Colors.white,
+                              errorBuilder: (context, error, stackTrace) => const Icon(Icons.chat_rounded, color: Colors.white, size: chatIconSize)),
                           ),
                         ),
                       ),
                       const SizedBox(height: 2),
-                      Text(
-                        item.label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 9,
-                          color: isSelected ? AppColors.primary : inactiveColor,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                        ),
-                      ),
+                      Text(item.label, maxLines: 1, overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 9, color: isSelected ? AppColors.primary : inactiveColor, fontWeight: isSelected ? FontWeight.bold : FontWeight.w500)),
                     ],
                   ),
                 ),
@@ -283,10 +165,6 @@ class CustomBottomNavigationBar extends StatelessWidget {
     );
   }
 
-  // ============================================================
-  // 🎯 معالجة النقر
-  // ============================================================
-
   void _handleTap(NavItem item) {
     if (item.isProtected && !isLoggedIn) {
       onAuthRequired();
@@ -294,21 +172,15 @@ class CustomBottomNavigationBar extends StatelessWidget {
     }
     onTap(item.index);
     if (scrollManager != null) {
-      try {
-        scrollManager.show();
-      } catch (_) {}
+      try { scrollManager.show(); } catch (_) {}
     }
   }
 }
 
-// ============================================================
-// 📦 نموذج عنصر التنقل
-// ============================================================
-
 class NavItem {
   final int index;
   final IconData icon;
-  final String iconPath;  // ✅ مسار الأيقونة المحلية
+  final String iconPath;
   final String label;
   final bool isProtected;
   final bool isSpecial;
