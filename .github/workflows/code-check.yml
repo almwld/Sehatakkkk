@@ -26,24 +26,162 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
 
+          # home_tab.dart: the Community Column needs both the conditional
+          # spread-list closing bracket and the children-list closing bracket.
           home = Path('lib/presentation/screens/home/tabs/home_tab.dart')
           text = home.read_text(encoding='utf-8')
-          broken = """            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(author, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)), if (body.isNotEmpty) ...[const SizedBox(height: 5), Text(body, maxLines: 4, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, height: 1.4, color: dark ? Colors.white70 : _muted))]],
-              ),"""
-          fixed = """            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(author, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)), if (body.isNotEmpty) ...[const SizedBox(height: 5), Text(body, maxLines: 4, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, height: 1.4, color: dark ? Colors.white70 : _muted))]],
-              ),
-              ),"""
-          if broken in text and fixed not in text:
+          broken = "color: dark ? Colors.white70 : _muted))]),"
+          fixed = "color: dark ? Colors.white70 : _muted))]]),"
+          if broken in text:
               home.write_text(text.replace(broken, fixed, 1), encoding='utf-8')
-              print('Fixed home_tab.dart Column closing.')
+              print('Fixed home_tab.dart missing closing bracket.')
 
+          # patient_dashboard.dart lost State.build during an earlier truncation.
+          # Keep every existing field/helper and restore a functional dashboard
+          # around the existing profile, vitals and service data.
           patient = Path('lib/presentation/screens/patient/patient_dashboard.dart')
           p = patient.read_text(encoding='utf-8')
-          marker = "          const SizedBox(height: 8),"
-          if p.rstrip().endswith(marker):
-              p = p.rstrip() + "\n          Text('رمز الملف الصحي', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),\n        ],\n      ),\n    );\n  }\n}\n"
-              patient.write_text(p, encoding='utf-8')
-              print('Completed patient_dashboard.dart QR widget and class closing braces.')
+          if 'Widget build(BuildContext context)' not in p:
+              marker = '  Widget _buildQRCode() {'
+              if marker not in p:
+                  raise SystemExit('PatientDashboard insertion marker not found')
+              build = r'''  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final surface = dark ? const Color(0xFF17212B) : Colors.white;
+    final background = dark ? const Color(0xFF0F1720) : const Color(0xFFF5F7F8);
+    return Scaffold(
+      backgroundColor: background,
+      appBar: AppBar(
+        title: const Text('ملفي الصحي'),
+        centerTitle: true,
+        backgroundColor: background,
+        foregroundColor: dark ? Colors.white : Colors.black87,
+        elevation: 0,
+        actions: [
+          IconButton(onPressed: _isSharing ? null : _shareProfile, icon: const Icon(Icons.share_outlined)),
+          IconButton(onPressed: _showQRCode, icon: const Icon(Icons.qr_code_2_outlined)),
+        ],
+      ),
+      body: RefreshIndicator(
+        onRefresh: _loadUserDataInBackground,
+        child: SingleChildScrollView(
+          controller: widget.scrollController,
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (_isOffline)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(color: Colors.orange.withOpacity(.12), borderRadius: BorderRadius.circular(12)),
+                  child: const Row(children: [Icon(Icons.cloud_off_outlined, color: Colors.orange), SizedBox(width: 8), Expanded(child: Text('أنت تعمل بالبيانات المحفوظة محلياً.'))]),
+                ),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(color: surface, borderRadius: BorderRadius.circular(20)),
+                child: Row(children: [
+                  GestureDetector(
+                    onTap: _pickImage,
+                    child: CircleAvatar(
+                      radius: 34,
+                      backgroundColor: AppColors.primary.withOpacity(.12),
+                      backgroundImage: _userAvatar.isNotEmpty ? NetworkImage(_userAvatar) : null,
+                      child: _userAvatar.isEmpty ? const Icon(Icons.person_outline, size: 34, color: AppColors.primary) : null,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(_isLoading && !_dataLoaded ? 'جاري تحميل بياناتك...' : _userName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800)),
+                    const SizedBox(height: 4),
+                    Text(_userEmail.isEmpty ? _userRole : _userEmail, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: dark ? Colors.white70 : Colors.black54, fontSize: 12)),
+                    const SizedBox(height: 8),
+                    Wrap(spacing: 6, children: [Chip(label: Text(_userRole), visualDensity: VisualDensity.compact), Chip(label: Text('الباقة: $_subscriptionType'), visualDensity: VisualDensity.compact)]),
+                  ])),
+                ]),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(color: surface, borderRadius: BorderRadius.circular(18), border: Border.all(color: AppColors.primary.withOpacity(.12))),
+                child: Row(children: [
+                  Expanded(child: _profileInfo('رقم المريض', _patientNumber, Icons.badge_outlined, dark)),
+                  Container(width: 1, height: 40, color: dark ? Colors.white12 : Colors.black12),
+                  Expanded(child: _profileInfo('فصيلة الدم', _bloodType, Icons.bloodtype_outlined, dark)),
+                ]),
+              ),
+              const SizedBox(height: 20),
+              _sectionTitle('المؤشرات الصحية', dark),
+              const SizedBox(height: 10),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _vitals.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 1.45),
+                itemBuilder: (context, index) {
+                  final item = _vitals[index];
+                  return InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => item['screen'] as Widget)),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(color: surface, borderRadius: BorderRadius.circular(16)),
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                        Row(children: [Icon(Icons.monitor_heart_outlined, color: item['color'] as Color, size: 20), const SizedBox(width: 6), Expanded(child: Text(item['label'].toString(), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)))]),
+                        Row(crossAxisAlignment: CrossAxisAlignment.end, children: [Text(item['value'].toString(), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)), if ((item['unit'] ?? '').toString().isNotEmpty) ...[const SizedBox(width: 4), Flexible(child: Text(item['unit'].toString(), style: TextStyle(fontSize: 9, color: dark ? Colors.white60 : Colors.black45)))]]),
+                      ]),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 20),
+              _sectionTitle('الخدمات الصحية', dark),
+              const SizedBox(height: 10),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _services.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, crossAxisSpacing: 9, mainAxisSpacing: 9, childAspectRatio: .95),
+                itemBuilder: (context, index) {
+                  final item = _services[index];
+                  return InkWell(
+                    borderRadius: BorderRadius.circular(15),
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => item['screen'] as Widget)),
+                    child: Container(
+                      padding: const EdgeInsets.all(9),
+                      decoration: BoxDecoration(color: surface, borderRadius: BorderRadius.circular(15)),
+                      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.medical_services_outlined, color: item['color'] as Color, size: 27), const SizedBox(height: 7), Text(item['label'].toString(), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700))]),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionTitle(String title, bool dark) => Text(title, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: dark ? Colors.white : Colors.black87));
+
+  Widget _profileInfo(String label, String value, IconData icon, bool dark) => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 8),
+    child: Column(children: [
+      Icon(icon, size: 21, color: AppColors.primary),
+      const SizedBox(height: 5),
+      Text(label, style: TextStyle(fontSize: 10, color: dark ? Colors.white60 : Colors.black45)),
+      const SizedBox(height: 2),
+      Text(value, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
+    ]),
+  );
+
+'''
+              patient.write_text(p.replace(marker, build + marker, 1), encoding='utf-8')
+              print('Restored PatientDashboard.build.')
+          else:
+              print('PatientDashboard.build already exists.')
           PY
 
       - name: 📝 Commit repaired Dart sources
@@ -55,7 +193,7 @@ jobs:
             git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
             git add lib/presentation/screens/home/tabs/home_tab.dart lib/presentation/screens/patient/patient_dashboard.dart
             git diff --cached --check
-            git commit -m 'fix: repair Dart syntax in home and patient dashboard'
+            git commit -m 'fix: restore Dart dashboard build and home syntax'
             git push origin HEAD:master
           fi
 
