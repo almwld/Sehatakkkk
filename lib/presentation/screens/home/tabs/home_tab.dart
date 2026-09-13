@@ -466,7 +466,7 @@ class _HomeTabState extends State<HomeTab>
               child: Container(
                 width: double.infinity, padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(color: dark ? _darkCard : Colors.white, borderRadius: BorderRadius.circular(16)),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(author, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)), if (body.isNotEmpty) ...[const SizedBox(height: 5), Text(body, maxLines: 4, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, height: 1.4, color: dark ? Colors.white70 : _muted))]),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(author, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: dark ? Colors.white : _text)), if (body.isNotEmpty) ...[const SizedBox(height: 5), Text(body, maxLines: 4, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, height: 1.4, color: dark ? Colors.white70 : _muted))]]),
               ),
             ),
           );
