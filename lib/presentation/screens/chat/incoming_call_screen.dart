@@ -48,11 +48,8 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
   late final AnimationController _answerExpansionController;
   late final Animation<double> _answerExpansionAnimation;
   StreamSubscription<CallModel?>? _callSubscription;
-  Timer? _countdownTimer;
-  Timer? _timeoutTimer;
   Timer? _vibrationTimer;
 
-  int _remainingSeconds = 30;
   bool _isProcessing = false;
   bool _isMuted = false;
   bool _isAlerting = true;
@@ -79,35 +76,12 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
     );
     unawaited(_startVibration());
     _listenToCall();
-    _startTimeout();
   }
 
   Future<void> _startVibration() async {
     if (!await Vibrate.canVibrate) return;
     _vibrationTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (_isAlerting && mounted) Vibrate.feedback(FeedbackType.medium);
-    });
-  }
-
-  void _startTimeout() {
-    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (!mounted || _isProcessing || !_isAlerting) return;
-      if (_remainingSeconds <= 1) {
-        _countdownTimer?.cancel();
-        return;
-      }
-      setState(() => _remainingSeconds--);
-    });
-    _timeoutTimer = Timer(const Duration(seconds: 30), () async {
-      if (_isProcessing || !mounted) return;
-      setState(() => _isProcessing = true);
-      try {
-        await _callService.missCall(widget.callId);
-      } catch (e) {
-        debugPrint('Missed call update failed: $e');
-      }
-      _stopAlerting();
-      if (mounted) Navigator.of(context).pop();
     });
   }
 
@@ -136,8 +110,6 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
   void _stopAlerting() {
     _isAlerting = false;
     _vibrationTimer?.cancel();
-    _countdownTimer?.cancel();
-    _timeoutTimer?.cancel();
     unawaited(CallSoundCoordinator.instance.stopForCall(widget.callId));
     _callSubscription?.cancel();
     _callSubscription = null;
@@ -295,11 +267,9 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                   Text(widget.callerName, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.w700, letterSpacing: .5)),
                   const SizedBox(height: 14),
                   _glassBadge(
-                    asset: widget.isVideo ? AppImages.videoCall : AppImages.phoneCall,
+                    icon: widget.isVideo ? Icons.videocam : Icons.call,
                     text: widget.isVideo ? 'مكالمة فيديو واردة' : 'مكالمة صوتية واردة',
                   ),
-                  const SizedBox(height: 12),
-                  Text('$_remainingSeconds ثانية', style: const TextStyle(color: Colors.white70, fontSize: 16)),
                   const Spacer(),
                   if (_isProcessing)
                     const Padding(
@@ -312,22 +282,21 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         _buildCallButton(
-                          asset: AppImages.microphone,
+                          icon: _isMuted ? Icons.volume_up : Icons.volume_off,
                           label: _isMuted ? 'تشغيل الرنين' : 'كتم الرنين',
                           color: cyan,
                           onTap: _isProcessing ? null : () => unawaited(_toggleMute()),
                         ),
                         _buildCallButton(
-                          asset: AppImages.phoneCall,
+                          icon: Icons.call_end,
                           label: 'رفض',
                           color: red,
                           size: 75,
                           isMain: true,
-                          rotation: 135,
                           onTap: _isProcessing ? null : _rejectCall,
                         ),
                         _buildCallButton(
-                          asset: widget.isVideo ? AppImages.videoCall : AppImages.phoneCall,
+                          icon: widget.isVideo ? Icons.videocam : Icons.call,
                           label: 'قبول',
                           color: green,
                           size: 75,
@@ -349,7 +318,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                 left: 4,
                 child: GestureDetector(
                   onTap: _isProcessing ? null : _rejectCall,
-                  child: const SizedBox(width: 44, height: 44, child: Center(child: Text('×', style: TextStyle(color: Colors.white70, fontSize: 30)))),
+                  child: const SizedBox(width: 44, height: 44, child: Center(child: Icon(Icons.close, color: Colors.white70, size: 28))),
                 ),
               ),
               if (_answerSwipeTriggered)
@@ -368,7 +337,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                               height: 75,
                               decoration: const BoxDecoration(shape: BoxShape.circle, color: green),
                               padding: const EdgeInsets.all(20),
-                              child: Image.asset(widget.isVideo ? AppImages.videoCall : AppImages.phoneCall, fit: BoxFit.contain),
+                              child: Icon(widget.isVideo ? Icons.videocam : Icons.call, color: Colors.white, size: 35),
                             ),
                           ),
                         );
@@ -383,18 +352,18 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
     );
   }
 
-  Widget _glassBadge({required String asset, required String text}) => Container(
+  Widget _glassBadge({required IconData icon, required String text}) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
     decoration: BoxDecoration(color: Colors.white.withOpacity(.10), borderRadius: BorderRadius.circular(24), border: Border.all(color: Colors.white.withOpacity(.20))),
     child: Row(mainAxisSize: MainAxisSize.min, children: [
-      Image.asset(asset, width: 18, height: 18, fit: BoxFit.contain),
+      Icon(icon, color: Colors.white, size: 18),
       const SizedBox(width: 8),
       Text(text, style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w500)),
     ]),
   );
 
   Widget _buildCallButton({
-    required String asset,
+    required IconData icon,
     required String label,
     required Color color,
     required VoidCallback? onTap,
@@ -402,7 +371,6 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
     bool isMain = false,
     bool pulse = false,
     double swipeDistance = 0,
-    double rotation = 0,
     Animation<double>? expansionAnimation,
     GestureDragUpdateCallback? onPanUpdate,
     GestureDragEndCallback? onPanEnd,
@@ -424,8 +392,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
             border: Border.all(color: color, width: isMain ? 0 : 2),
             boxShadow: (isMain || pulse) ? [BoxShadow(color: color.withOpacity(.40), blurRadius: 20 + swipeDistance * .12, spreadRadius: 5 + swipeDistance * .05)] : null,
           ),
-          padding: EdgeInsets.all(size * .27),
-          child: Transform.rotate(angle: rotation * 3.1415926535 / 180, child: Image.asset(asset, fit: BoxFit.contain)),
+          child: Icon(icon, color: Colors.white, size: isMain ? 34 : 26),
         ),
       ),
       const SizedBox(height: 8),
