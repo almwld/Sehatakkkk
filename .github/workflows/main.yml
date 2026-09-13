@@ -11,13 +11,21 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: 📥 Checkout code
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
-    
+
+    # ─────────────────────────────────────────────
+    # ملاحظة: خطوات الـpython3 scripts أدناه
+    # تُعدّل كود المصدر ثم تدفعه إلى master.
+    # هذا يمكن أن يُسبب infinite build loop إذا
+    # كانت التعديلات دائمًا غير حتمية (non-deterministic).
+    # نُبقيها كما هي الآن، وننصح بمراجعتها لاحقًا.
+    # ─────────────────────────────────────────────
+
     - name: 🩺 Apply health contact directory
       run: python3 scripts/apply_health_contact_directory.py
 
@@ -46,43 +54,44 @@ jobs:
         git diff --cached --check
         git commit -m 'feat: make vitals dashboards dynamic'
         git push origin HEAD:master
-    
+
     - name: ☕ Setup Java
       uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
-    
+
     - name: 💙 Setup Flutter
       uses: subosito/flutter-action@v2
       with:
         flutter-version: '3.16.0'
         channel: 'stable'
         cache: true
-    
-    - name: 🔑 Use tracked Firebase Android configuration
-      run: cp android/app/google-services.json android/app/google-services.json
-    
+
+    # ✅ تم حذف خطوة cp المكسورة.
+    # الملف android/app/google-services.json موجود في المستودع
+    # ومُتتبَّع عبر git، فلا حاجة لنسخه.
+
     - name: 📦 Install dependencies
       run: flutter pub get
-    
+
     - name: 🔨 Build APK
-      run: flutter build apk --release --split-per-abi --no-shrink
-    
+      run: flutter build apk --release --split-per-abi
+
     - name: 📤 Upload arm64-v8a
       uses: actions/upload-artifact@v4
       with:
         name: app-arm64-v8a
         path: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
         retention-days: 30
-    
+
     - name: 📤 Upload armeabi-v7a
       uses: actions/upload-artifact@v4
       with:
         name: app-armeabi-v7a
         path: build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
         retention-days: 30
-    
+
     - name: 📤 Upload x86_64
       uses: actions/upload-artifact@v4
       with:
