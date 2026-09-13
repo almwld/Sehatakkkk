@@ -300,7 +300,7 @@ class _HealthDashboardState extends State<HealthDashboard>
                   const SizedBox(height: 20),
                   _buildSectionHeader('المؤشرات الحيوية', isDark),
                   const SizedBox(height: 12),
-                  _buildMetricsGrid(isDark),
+                  LiveVitalsGrid(keys: const ['heartRate','bloodPressure','glucose','weight']),
                   const SizedBox(height: 20),
                   _buildSectionHeader('النصائح الصحية', isDark),
                   const SizedBox(height: 12),
