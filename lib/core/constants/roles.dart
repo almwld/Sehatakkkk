@@ -31,7 +31,7 @@ class AppRoles {
     {'id': 'delivery', 'name': 'موصل', 'icon': AppIcons.navBlood, 'color': 0xFFFF5722},
     {'id': 'service', 'name': 'خدمي', 'icon': AppIcons.serviceMedical, 'color': 0xFF607D8B},
     {'id': 'veterinarian', 'name': 'بيطري', 'icon': AppIcons.specialtyPediatrics, 'color': 0xFF795548},
-    {'id': 'hospital', 'name': 'مستشفى', 'icon': AppIcons.hospital, 'color': 0xFF1565C0},
+    {'id': 'hospital', 'name': 'مستشفى', 'icon': AppIcons.moreMenu, 'color': 0xFF1565C0},
     {'id': 'admin', 'name': 'مشرف', 'icon': AppIcons.moreMenu, 'color': 0xFFFF5722},
     {'id': 'superAdmin', 'name': 'مدير المنصة', 'icon': AppIcons.moreMenu, 'color': 0xFF263238},
   ];
