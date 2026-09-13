@@ -9,6 +9,8 @@ abstract final class TourManager {
   static const String profileKey = 'has_seen_profile_tour';
   static const String moreKey = 'has_seen_more_tour';
 
+  static const String _skippedSuffix = '_skipped';
+
   static const List<String> allKeys = [
     homeKey,
     doctorsKey,
@@ -23,20 +25,34 @@ abstract final class TourManager {
     return prefs.getBool(tourKey) ?? false;
   }
 
+  static Future<bool> hasSkipped(String tourKey) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('$tourKey$_skippedSuffix') ?? false;
+  }
+
   static Future<void> markAsSeen(String tourKey) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(tourKey, true);
+    await prefs.remove('$tourKey$_skippedSuffix');
+  }
+
+  static Future<void> markAsSkipped(String tourKey) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(tourKey, true);
+    await prefs.setBool('$tourKey$_skippedSuffix', true);
   }
 
   static Future<void> reset(String tourKey) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(tourKey);
+    await prefs.remove('$tourKey$_skippedSuffix');
   }
 
   static Future<void> resetAll() async {
     final prefs = await SharedPreferences.getInstance();
     for (final key in allKeys) {
       await prefs.remove(key);
+      await prefs.remove('$key$_skippedSuffix');
     }
   }
 }
