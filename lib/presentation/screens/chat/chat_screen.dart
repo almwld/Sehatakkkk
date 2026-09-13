@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:sehatak/app_router.dart';
 
 import 'package:sehatak/bloc/doctor_bloc/doctor_bloc.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -265,7 +267,7 @@ class _ChatScreenState extends State<ChatScreen> {
         title: const Text('المساعد الصحي الذكي', style: TextStyle(fontWeight: FontWeight.bold)),
         subtitle: const Text('اسأل الآن عن صحتك'),
         trailing: const Icon(Icons.chevron_left),
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AiChatbotScreen())),
+        onTap: () => context.push(AppRouter.aiChatbot),
       ),
     );
   }
@@ -349,7 +351,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _openAddStatus() async {
     if (!mounted) return;
-    final created = await Navigator.push<bool>(context, MaterialPageRoute(builder: (_) => const AddStatusScreen()));
+    final created = await context.push<bool>(AppRouter.addStatus);
     if (created == true && mounted) {
       _subscribeStatuses();
     }
@@ -357,10 +359,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _openStatus(UserStatusModel status) async {
     if (!mounted || status.stories.isEmpty) return;
-    await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => StoryViewerScreen(status: status)),
-    );
+    await context.push(AppRouter.storyViewer, extra: status);
   }
 
   Widget _doctorContactTile(DoctorModel doctor, bool isDark) {
@@ -388,12 +387,7 @@ class _ChatScreenState extends State<ChatScreen> {
       // The chat stream then immediately redraws the tile with unreadCount == 0.
       await _chatService.markAsRead(chatId);
       if (!mounted) return;
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => ChatRoomScreen(chatId: chatId, otherUserId: otherId, otherUserName: name, groupImage: image.isEmpty ? null : image),
-        ),
-      );
+      await context.push(AppRouter.chatRoom, extra: <String, dynamic>{'chatId': chatId, 'otherUserId': otherId, 'otherUserName': name, 'groupImage': image.isEmpty ? null : image});
       // Also reconcile any messages that arrived while the room was visible.
       if (mounted) {
         await _chatService.markAsRead(chatId);

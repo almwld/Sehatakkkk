@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:sehatak/app_router.dart';
 import 'package:sehatak/core/constants/app_colors.dart';
 import 'package:sehatak/core/models/status_model.dart';
 import 'package:sehatak/core/services/chat_service.dart';
@@ -251,13 +253,13 @@ class _HealthContactsSectionState extends State<HealthContactsSection> {
 
   Future<void> _openAddStatus() async {
     if (!mounted) return;
-    final created = await Navigator.push<bool>(context, MaterialPageRoute(builder: (_) => const AddStatusScreen()));
+    final created = await context.push<bool>(AppRouter.addStatus);
     if (created == true && mounted) setState(() => _statusStream = _statusService.streamActiveStatuses());
   }
 
   Future<void> _openStatus(UserStatusModel status) async {
     if (!mounted || status.stories.isEmpty) return;
-    await Navigator.push(context, MaterialPageRoute(builder: (_) => StoryViewerScreen(status: status)));
+    await context.push(AppRouter.storyViewer, extra: status);
   }
 
   Future<void> _openChat(_DirectoryRecord item) async {
@@ -276,7 +278,7 @@ class _HealthContactsSectionState extends State<HealthContactsSection> {
         patientImage: (data['photoUrl'] ?? current.photoURL)?.toString(),
       );
       if (!mounted) return;
-      await Navigator.push(context, MaterialPageRoute(builder: (_) => ChatRoomScreen(chatId: chatId, otherUserId: item.userId, otherUserName: item.name, otherUserImage: item.image.isEmpty ? null : item.image, isGroup: false)));
+      await context.push(AppRouter.chatRoom, extra: <String, dynamic>{'chatId': chatId, 'otherUserId': item.userId, 'otherUserName': item.name, 'otherUserImage': item.image.isEmpty ? null : item.image, 'isGroup': false});
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تعذر فتح المحادثة: $e')));
     } finally {

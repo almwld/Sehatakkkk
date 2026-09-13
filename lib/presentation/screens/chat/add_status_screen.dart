@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:sehatak/core/constants/app_colors.dart';
@@ -70,7 +71,7 @@ class _AddStatusScreenState extends State<AddStatusScreen> {
 
       await _statusService.createStatus(stories: [story]);
       if (!mounted) return;
-      Navigator.of(context).pop(true);
+      context.pop(true);
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

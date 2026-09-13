@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:sehatak/app_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sehatak/core/services/chat_service.dart';
 import 'package:sehatak/core/services/call_service.dart';
@@ -24,13 +26,7 @@ class ChatNavigation {
       );
       if (!context.mounted) return;
       if (chatId.isEmpty) { ToastService.showError('تعذر إنشاء المحادثة'); return; }
-      Navigator.push(context, MaterialPageRoute(builder: (_) => ChatDetailScreen(
-        chatId: chatId,
-        userName: doctorName.trim().isNotEmpty ? doctorName.trim() : 'الطبيب',
-        userId: doctorId.trim(),
-        isDoctor: false,
-        userImage: doctorImage,
-      )));
+      context.push(AppRouter.chatDetail, extra: <String, dynamic>{'chatId': chatId, 'userName': doctorName.trim().isNotEmpty ? doctorName.trim() : 'الطبيب', 'userId': doctorId.trim(), 'isDoctor': false, 'userImage': doctorImage});
     } catch (e) { if (context.mounted) ToastService.showError('فشل فتح المحادثة: $e'); }
   }
 
@@ -43,7 +39,7 @@ class ChatNavigation {
       final call = await CallService().initiateCall(chatId: chatId, receiverId: doctorId, receiverName: doctorName, type: isVideo ? CallType.video : CallType.audio);
       if (!context.mounted) return;
       if (call == null || call.id.isEmpty) { ToastService.showError('تعذر إنشاء المكالمة'); return; }
-      await Navigator.push(context, MaterialPageRoute(builder: (_) => CallScreen(chatId: chatId, doctorName: doctorName, doctorId: doctorId, callId: call.id, isVideo: isVideo, isOutgoing: true)));
+      await context.push(AppRouter.call, extra: <String, dynamic>{'chatId': chatId, 'doctorName': doctorName, 'doctorId': doctorId, 'callId': call.id, 'isVideo': isVideo, 'isOutgoing': true});
     } catch (e) { if (context.mounted) ToastService.showError('فشل بدء المكالمة: $e'); }
   }
 }
