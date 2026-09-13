@@ -55,6 +55,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     try {
       // أولاً نثبت التسليم ثم القراءة حتى تظهر ✓✓ للطرف المرسل بصورة صحيحة.
       await _chatService.markAsDelivered(widget.chatId);
+      await _chatService.markAsDelivered(widget.chatId);
       await _chatService.markAsRead(widget.chatId);
     } catch (e) {
       debugPrint('Chat mark-as-read failed: $e');
