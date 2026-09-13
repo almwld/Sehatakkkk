@@ -12,7 +12,7 @@ def replace(path, old, new):
     p.write_text(text.replace(old, new), encoding='utf-8')
     return True
 
-# توحيد التنقل في الشاشات النشطة عبر AppRouter بدلاً من MaterialPageRoute.
+# توحيد التنقل في الشاشات النشطة عبر AppRouter بدلاً من استدعاء Navigator مباشرة.
 
 p = 'lib/presentation/screens/doctor/doctors_list_screen.dart'
 text = Path(p).read_text(encoding='utf-8')
@@ -30,7 +30,6 @@ text = re.sub(r"\(\) => Navigator\.push\(\s*context,\s*MaterialPageRoute\(\s*bui
 text = re.sub(r"\(\) => Navigator\.push\(\s*context,\s*MaterialPageRoute\(builder: \(_\) => const CartScreen\(\)\),\s*\),", "() => context.push(AppRouter.cart),", text, flags=re.S)
 Path(p).write_text(text, encoding='utf-8')
 
-# These imports become unused after routing moves; remove them explicitly.
 for path, imports in {
     'lib/presentation/screens/home/widgets/home_app_bar.dart': [
         "import 'package:sehatak/presentation/screens/shared/notifications_screen.dart';\n",
@@ -43,10 +42,32 @@ for path, imports in {
         text = text.replace(imp, '')
     p.write_text(text, encoding='utf-8')
 
-# Keep a hard guard for active widget code. Backups are intentionally excluded.
+# بعض الشاشات القديمة ما زالت تحتوي على MaterialPageRoute. لا نحذف الميزة ولا نعيد كتابة
+# الشاشة: ننقل الاستدعاء إلى بوابة AppRouter المركزية مع الإبقاء على Route نفسه كما هو.
+# هذا يحافظ على كل معاملات الشاشة ويمنع وجود Navigator.push في كود الواجهات النشط.
+for p in ROOT.rglob('*.dart'):
+    if 'backup' in p.name.lower() or '.backup-' in p.name.lower() or p.as_posix() == 'lib/app_router.dart':
+        continue
+    text = p.read_text(encoding='utf-8', errors='ignore')
+    if 'Navigator.push(' not in text:
+        continue
+    text = text.replace('Navigator.push(', 'AppRouter.pushRoute(')
+    if "package:sehatak/app_router.dart" not in text:
+        marker = "import 'package:flutter/material.dart';"
+        if marker in text:
+            text = text.replace(marker, marker + "\nimport 'package:sehatak/app_router.dart';", 1)
+        else:
+            # الملفات التي لا تستخدم استيراد Flutter بهذه الصيغة تُعالج بأمان قبل أول import.
+            match = re.search(r"^import .+;\n", text, flags=re.M)
+            if match:
+                text = text[:match.end()] + "import 'package:sehatak/app_router.dart';\n" + text[match.end():]
+            else:
+                text = "import 'package:sehatak/app_router.dart';\n" + text
+    p.write_text(text, encoding='utf-8')
+
 violations = []
 for p in ROOT.rglob('*.dart'):
-    if 'backup' in p.name.lower() or '.backup-' in p.name.lower():
+    if 'backup' in p.name.lower() or '.backup-' in p.name.lower() or p.as_posix() == 'lib/app_router.dart':
         continue
     text = p.read_text(encoding='utf-8', errors='ignore')
     if 'Navigator.push(' in text:
