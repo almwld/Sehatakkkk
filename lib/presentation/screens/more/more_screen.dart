@@ -77,9 +77,6 @@ class _MoreScreenState extends State<MoreScreen>
     'خدمات طبية',
   ];
 
-  // ============================================================
-  // 📊 المؤشرات الحيوية - أيقونات محلية
-  // ============================================================
   final List<Map<String, dynamic>> _vitals = [
     {
       'icon': 'assets/images/tracking/blood_pressure.png',
@@ -145,17 +142,14 @@ class _MoreScreenState extends State<MoreScreen>
     },
   ];
 
-  // ============================================================
-  // 📋 الخدمات المفلترة حسب الفئة
-  // ============================================================
   List<Map<String, dynamic>> get _filteredServices {
     switch (_selectedCategory) {
       case 'رعاية عائلية':
         return [
-          {'icon': 'assets/images/pregnancy_follow_up.png', 'title': 'صحة المرأة', 'subtitle': 'متابعة الدورة والحمل', 'screen': const FamilyPlanningScreen()},
+          {'icon': 'assets/images/services/womens_health.png', 'title': 'صحة المرأة', 'subtitle': 'متابعة الدورة والحمل', 'screen': const FamilyPlanningScreen()},
           {'icon': 'assets/images/childhealth.png', 'title': 'نمو الطفل', 'subtitle': 'مراحل التطور', 'screen': const FamilyPlanningScreen()},
           {'icon': 'assets/images/services/hospital.png', 'title': 'طبيب العائلة', 'subtitle': 'رعاية منزلية متكاملة', 'screen': const DoctorsListScreen()},
-          {'icon': 'assets/images/pregnancy_follow_up.png', 'title': 'متابعة الحمل', 'subtitle': 'أسابيع الحمل بدقة', 'screen': const FamilyPlanningScreen()},
+          {'icon': 'assets/images/services/womens_health.png', 'title': 'متابعة الحمل', 'subtitle': 'أسابيع الحمل بدقة', 'screen': const FamilyPlanningScreen()},
           {'icon': 'assets/images/tracking/mental_health.png', 'title': 'الصحة النفسية', 'subtitle': 'دعم الصحة النفسية', 'screen': const MentalHealthScreen()},
           {'icon': 'assets/images/tracking/fruits.png', 'title': 'نظام غذائي', 'subtitle': 'خطط غذائية صحية', 'screen': const DietPlanScreen()},
           {'icon': 'assets/images/tracking/vaccination.png', 'title': 'التطعيمات', 'subtitle': 'جدول التطعيمات', 'screen': const VaccinationScreen()},
@@ -173,7 +167,7 @@ class _MoreScreenState extends State<MoreScreen>
         ];
       case 'لوجستيات وتأمين':
         return [
-          {'icon': 'assets/images/services/pharmacy.png', 'title': 'صيدلية', 'subtitle': 'طلب الأدوية وتوصيلها', 'screen': const PharmacyScreen()},
+          {'icon': 'assets/images/services/medications.png', 'title': 'صيدلية', 'subtitle': 'طلب الأدوية وتوصيلها', 'screen': const PharmacyScreen()},
           {'icon': 'assets/images/services/laboratory.png', 'title': 'مختبرات', 'subtitle': 'حجز التحاليل والفحوصات', 'screen': const LabsListScreen()},
           {'icon': 'assets/images/services/health_insurance.png', 'title': 'تأمين صحي', 'subtitle': 'خطط التأمين والاشتراك', 'screen': const InsuranceCompanies()},
           {'icon': 'assets/images/services/nearby_clinics.png', 'title': 'خرائط المرافق', 'subtitle': 'أقرب المستشفيات والصيدليات', 'screen': const InteractiveMapScreen()},
@@ -202,7 +196,7 @@ class _MoreScreenState extends State<MoreScreen>
       case 'خدمات طبية':
         return [
           {'icon': 'assets/images/services/consultation.png', 'title': 'الأطباء', 'subtitle': 'استشر أفضل الأطباء', 'screen': const DoctorsListScreen()},
-          {'icon': 'assets/images/services/pharmacy.png', 'title': 'الصيدلية', 'subtitle': 'طلب الأدوية وتوصيلها', 'screen': const PharmacyScreen()},
+          {'icon': 'assets/images/services/medications.png', 'title': 'الصيدلية', 'subtitle': 'طلب الأدوية وتوصيلها', 'screen': const PharmacyScreen()},
           {'icon': 'assets/images/services/laboratory.png', 'title': 'المختبرات', 'subtitle': 'حجز التحاليل والفحوصات', 'screen': const LabsListScreen()},
           {'icon': 'assets/images/services/emergency.png', 'title': 'الطوارئ', 'subtitle': 'أرقام الطوارئ والمساعدة', 'screen': const EmergencyNumbers()},
           {'icon': 'assets/images/services/consultation.png', 'title': 'استشارة فورية', 'subtitle': 'تحدث مع طبيبك الآن', 'screen': const ConsultationScreen()},
@@ -223,7 +217,7 @@ class _MoreScreenState extends State<MoreScreen>
       default:
         return [
           {'icon': 'assets/images/services/consultation.png', 'title': 'الأطباء', 'subtitle': 'استشر أفضل الأطباء', 'screen': const DoctorsListScreen()},
-          {'icon': 'assets/images/services/pharmacy.png', 'title': 'الصيدلية', 'subtitle': 'طلب الأدوية وتوصيلها', 'screen': const PharmacyScreen()},
+          {'icon': 'assets/images/services/medications.png', 'title': 'الصيدلية', 'subtitle': 'طلب الأدوية وتوصيلها', 'screen': const PharmacyScreen()},
           {'icon': 'assets/images/services/laboratory.png', 'title': 'المختبرات', 'subtitle': 'حجز التحاليل والفحوصات', 'screen': const LabsListScreen()},
           {'icon': 'assets/images/services/emergency.png', 'title': 'الطوارئ', 'subtitle': 'أرقام الطوارئ والمساعدة', 'screen': const EmergencyNumbers()},
           {'icon': 'assets/images/services/consultation.png', 'title': 'استشارة فورية', 'subtitle': 'تحدث مع طبيبك الآن', 'screen': const ConsultationScreen()},
@@ -356,9 +350,6 @@ class _MoreScreenState extends State<MoreScreen>
     );
   }
 
-  // ============================================================
-  // 📊 شبكة المؤشرات الحيوية
-  // ============================================================
   Widget _buildVitalsGrid(bool isDark) {
     return GridView.builder(
       shrinkWrap: true,
@@ -396,33 +387,10 @@ class _MoreScreenState extends State<MoreScreen>
               children: [
                 _buildIcon(vital['icon'] as String, size: 48),
                 const SizedBox(height: 6),
-                Text(
-                  vital['value'] as String,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: vital['color'] as Color,
-                  ),
-                ),
-                Text(
-                  vital['unit'] as String,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  ),
-                ),
+                Text(vital['value'] as String, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: vital['color'] as Color)),
+                Text(vital['unit'] as String, style: TextStyle(fontSize: 10, color: isDark ? Colors.grey[400] : Colors.grey[600])),
                 const SizedBox(height: 2),
-                Text(
-                  vital['label'] as String,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: isDark ? Colors.grey[300] : Colors.grey[700],
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                Text(vital['label'] as String, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: isDark ? Colors.grey[300] : Colors.grey[700]), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
               ],
             ),
           ),
@@ -431,9 +399,6 @@ class _MoreScreenState extends State<MoreScreen>
     );
   }
 
-  // ============================================================
-  // 🏷️ شريط الفئات
-  // ============================================================
   Widget _buildCategoriesBar(bool isDark) {
     return SizedBox(
       height: 40,
@@ -443,7 +408,6 @@ class _MoreScreenState extends State<MoreScreen>
         itemBuilder: (context, index) {
           final category = _categories[index];
           final isSelected = _selectedCategory == category;
-
           return GestureDetector(
             onTap: () => setState(() => _selectedCategory = category),
             child: Container(
@@ -452,23 +416,10 @@ class _MoreScreenState extends State<MoreScreen>
               decoration: BoxDecoration(
                 color: isSelected ? AppColors.primary : (isDark ? const Color(0xFF1A2540) : Colors.grey[100]),
                 borderRadius: BorderRadius.circular(20),
-                boxShadow: isSelected ? [
-                  BoxShadow(
-                    color: AppColors.primary.withOpacity(0.3),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  )
-                ] : [],
+                boxShadow: isSelected ? [BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 6, offset: const Offset(0, 2))] : [],
               ),
               child: Center(
-                child: Text(
-                  category,
-                  style: TextStyle(
-                    color: isSelected ? Colors.white : (isDark ? Colors.grey[400] : Colors.grey[700]),
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    fontSize: 12,
-                  ),
-                ),
+                child: Text(category, style: TextStyle(color: isSelected ? Colors.white : (isDark ? Colors.grey[400] : Colors.grey[700]), fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, fontSize: 12)),
               ),
             ),
           );
@@ -477,35 +428,15 @@ class _MoreScreenState extends State<MoreScreen>
     );
   }
 
-  // ============================================================
-  // 📋 شبكة الخدمات المفلترة
-  // ============================================================
   Widget _buildFilteredServicesGrid(bool isDark) {
     final services = _filteredServices;
-
     if (services.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20),
-          child: Text(
-            'لا توجد خدمات في هذا القسم',
-            style: TextStyle(
-              color: isDark ? Colors.grey[400] : Colors.grey[600],
-            ),
-          ),
-        ),
-      );
+      return Center(child: Padding(padding: const EdgeInsets.symmetric(vertical: 20), child: Text('لا توجد خدمات في هذا القسم', style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]))));
     }
-
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        childAspectRatio: 0.80,
-      ),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 0.80),
       itemCount: services.length,
       itemBuilder: (context, index) {
         final service = services[index];
@@ -513,44 +444,15 @@ class _MoreScreenState extends State<MoreScreen>
           onTap: () => _navigateTo(service['screen'] as Widget),
           child: Container(
             padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1A2540) : Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
+            decoration: BoxDecoration(color: isDark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(14), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6, offset: const Offset(0, 2))]),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _buildIcon(service['icon'] as String, size: 44),
                 const SizedBox(height: 8),
-                Text(
-                  service['title'] as String,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                Text(service['title'] as String, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? Colors.white : Colors.black87), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 4),
-                Text(
-                  service['subtitle'] as String,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                Text(service['subtitle'] as String, style: TextStyle(fontSize: 10, color: isDark ? Colors.grey[400] : Colors.grey[600]), textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
               ],
             ),
           ),
@@ -559,104 +461,39 @@ class _MoreScreenState extends State<MoreScreen>
     );
   }
 
-  // ============================================================
-  // 👤 بطاقة المستخدم
-  // ============================================================
   Widget _buildUserCard(User? user, bool isDark) {
     final displayName = user?.displayName ?? 'مستخدم';
     final email = user?.email ?? 'user@email.com';
     final initial = displayName.isNotEmpty ? displayName.substring(0, 1) : 'م';
-
     return GestureDetector(
       onTap: () => _navigateTo(const PatientProfile()),
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1A2540) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
+        decoration: BoxDecoration(color: isDark ? const Color(0xFF1A2540) : Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))]),
         child: Row(
           children: [
-            CircleAvatar(
-              radius: 28,
-              backgroundColor: AppColors.primary.withOpacity(0.1),
-              child: Text(
-                initial,
-                style: TextStyle(
-                  fontSize: 20,
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
+            CircleAvatar(radius: 28, backgroundColor: AppColors.primary.withOpacity(0.1), child: Text(initial, style: TextStyle(fontSize: 20, color: AppColors.primary, fontWeight: FontWeight.bold))),
             const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    displayName,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
-                  ),
-                  Text(
-                    email,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isDark ? Colors.grey[400] : Colors.grey[600],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            IconButton(
-              icon: Icon(Icons.edit, color: AppColors.primary, size: 22),
-              onPressed: () => _navigateTo(const PatientProfile()),
-            ),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(displayName, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)), Text(email, style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[400] : Colors.grey[600]))])),
+            IconButton(icon: Icon(Icons.edit, color: AppColors.primary, size: 22), onPressed: () => _navigateTo(const PatientProfile())),
           ],
         ),
       ),
     );
   }
 
-  // ============================================================
-  // 🚪 زر تسجيل الخروج
-  // ============================================================
   Widget _buildLogoutButton(bool isDark) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
         onPressed: _showLogoutDialog,
         icon: const Icon(Icons.logout, color: Colors.white, size: 20),
-        label: const Text(
-          'تسجيل الخروج',
-          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.red,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
+        label: const Text('تسجيل الخروج', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+        style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
       ),
     );
   }
 
-  // ============================================================
-  // 💬 حوار تسجيل الخروج
-  // ============================================================
   void _showLogoutDialog() {
     showDialog(
       context: context,
@@ -664,33 +501,17 @@ class _MoreScreenState extends State<MoreScreen>
         title: const Text('تسجيل الخروج'),
         content: const Text('هل أنت متأكد من رغبتك في تسجيل الخروج؟'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _logout();
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('تسجيل الخروج'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
+          TextButton(onPressed: () { Navigator.pop(context); _logout(); }, style: TextButton.styleFrom(foregroundColor: Colors.red), child: const Text('تسجيل الخروج')),
         ],
       ),
     );
   }
 
-  // ============================================================
-  // 🚪 تنفيذ تسجيل الخروج
-  // ============================================================
   void _logout() async {
     await FirebaseAuth.instance.signOut();
     if (mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const AuthScreen()),
-      );
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AuthScreen()));
     }
   }
 }
