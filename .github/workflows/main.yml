@@ -21,14 +21,14 @@ jobs:
     - name: 🩺 Apply health contact directory
       run: python3 scripts/apply_health_contact_directory.py
 
-    - name: 📊 Apply dynamic vitals integration
-      run: python3 scripts/apply_dynamic_vitals_v2.py
-
     - name: 🛠️ Apply unified Sehatak prompt repairs
       run: python3 scripts/apply_unified_prompt_repairs.py
 
     - name: 🧩 Finish unified chat and routing repairs
       run: python3 scripts/finish_unified_prompt_repairs.py
+
+    - name: 📊 Apply dynamic vitals integration
+      run: python3 scripts/apply_dynamic_vitals_v2.py
 
     - name: 🛡️ Validate chat service declarations
       run: |
@@ -104,6 +104,6 @@ jobs:
     - name: 📤 Upload x86_64
       uses: actions/upload-artifact@v4
       with:
-        name: app-x86_64-release.apk
+        name: app-x86_64-release
         path: build/app/outputs/flutter-apk/app-x86_64-release.apk
         retention-days: 30
