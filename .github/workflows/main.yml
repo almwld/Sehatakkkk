@@ -30,6 +30,9 @@ jobs:
     - name: 📊 Apply dynamic vitals integration
       run: python3 scripts/apply_dynamic_vitals_v2.py
 
+    - name: 🐛 Fix remaining Dart build errors
+      run: python3 scripts/fix_remaining_build_errors.py
+
     - name: 🛡️ Validate chat service declarations
       run: |
         python3 - <<'PY'
