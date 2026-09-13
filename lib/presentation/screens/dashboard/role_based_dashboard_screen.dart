@@ -11,6 +11,7 @@ import 'package:sehatak/presentation/screens/hospital/dashboard/hospital_dashboa
 import 'package:sehatak/presentation/screens/patient/patient_dashboard.dart';
 import 'package:sehatak/presentation/screens/pharmacy/pharmacy_dashboard.dart';
 import 'package:sehatak/presentation/screens/platform/dashboard/platform_dashboard.dart';
+import 'package:sehatak/presentation/screens/dashboard/role_dashboard_specs.dart';
 
 /// Single account-dashboard dispatcher. PatientDashboard remains the patient experience.
 class RoleBasedDashboardScreen extends StatelessWidget {
@@ -106,8 +107,9 @@ class _ProfessionalRoleDashboardState extends State<ProfessionalRoleDashboard> {
 
   @override
   Widget build(BuildContext context) {
-    final name = AppRoles.getRoleName(widget.role);
-    final actions = _actionsFor(widget.role);
+    final spec = RoleDashboardSpecs.forRole(widget.role);
+    final name = spec.title;
+    final actions = spec.actions;
     final dark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: dark ? const Color(0xFF0B1121) : const Color(0xFFF8FAFC),
@@ -123,7 +125,7 @@ class _ProfessionalRoleDashboardState extends State<ProfessionalRoleDashboard> {
             if (_loading) const LinearProgressIndicator(minHeight: 3),
             if (!_loading) _stats(dark),
             const SizedBox(height: 18),
-            const Text('إدارة الحساب والخدمات', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+            Text('إدارة ${RoleDashboardSpecs.forRole(widget.role).title} وخدماتها', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
             const SizedBox(height: 10),
             ...actions.map((item) => _actionCard(context, item, dark)),
           ],
@@ -138,7 +140,7 @@ class _ProfessionalRoleDashboardState extends State<ProfessionalRoleDashboard> {
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text('مرحباً${_name.isEmpty ? '' : ' $_name'}', style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900)),
       const SizedBox(height: 6),
-      Text('لوحة $roleName المهنية — بيانات الحساب الفعلية', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+      Text(RoleDashboardSpecs.forRole(widget.role).subtitle, style: const TextStyle(color: Colors.white70, fontSize: 12)),
     ]),
   );
 
@@ -175,64 +177,9 @@ class _ProfessionalRoleDashboardState extends State<ProfessionalRoleDashboard> {
   );
 
   List<_DashboardAction> _actionsFor(String role) {
-    switch (role) {
-      case 'lab':
-        return [
-          _DashboardAction('طلبات الفحوصات', 'متابعة الحجوزات والطلبات', AppRouter.appointments, Icons.science),
-          _DashboardAction('الخدمات', 'إدارة الخدمات المتاحة للمستخدمين', AppRouter.services, Icons.medical_services),
-          _DashboardAction('التواصل الصحي', 'التواصل مع المرضى ومقدمي الرعاية', AppRouter.chat, Icons.chat),
-          _DashboardAction('المحفظة', 'المعاملات المالية', AppRouter.wallet, Icons.account_balance_wallet),
-        ];
-      case 'paramedic':
-        return [
-          _DashboardAction('الطلبات الطارئة', 'الوصول إلى خدمات الإسعاف والطوارئ', AppRouter.emergency, Icons.emergency),
-          _DashboardAction('المواعيد', 'متابعة المهام والمواعيد', AppRouter.appointments, Icons.calendar_month),
-          _DashboardAction('التواصل الصحي', 'التواصل مع الحالات', AppRouter.chat, Icons.chat),
-          _DashboardAction('المحفظة', 'المعاملات المالية', AppRouter.wallet, Icons.account_balance_wallet),
-        ];
-      case 'delivery':
-        return [
-          _DashboardAction('المهام والطلبات', 'متابعة مهام التوصيل', AppRouter.services, Icons.local_shipping),
-          _DashboardAction('التواصل الصحي', 'التواصل مع العملاء', AppRouter.chat, Icons.chat),
-          _DashboardAction('المحفظة', 'المعاملات المالية', AppRouter.wallet, Icons.account_balance_wallet),
-        ];
-      case 'service':
-        return [
-          _DashboardAction('الخدمات', 'إدارة الخدمات المتاحة', AppRouter.services, Icons.medical_services),
-          _DashboardAction('الطلبات والمواعيد', 'متابعة الأعمال الحالية', AppRouter.appointments, Icons.calendar_month),
-          _DashboardAction('التواصل الصحي', 'التواصل مع العملاء', AppRouter.chat, Icons.chat),
-          _DashboardAction('المحفظة', 'المعاملات المالية', AppRouter.wallet, Icons.account_balance_wallet),
-        ];
-      case 'veterinarian':
-        return [
-          _DashboardAction('المواعيد', 'متابعة مواعيد الحالات البيطرية', AppRouter.appointments, Icons.calendar_month),
-          _DashboardAction('الخدمات', 'إدارة خدمات الطب البيطري', AppRouter.services, Icons.pets),
-          _DashboardAction('التواصل الصحي', 'التواصل مع أصحاب الحالات', AppRouter.chat, Icons.chat),
-          _DashboardAction('المحفظة', 'المعاملات المالية', AppRouter.wallet, Icons.account_balance_wallet),
-        ];
-      case 'midwife':
-        return [
-          _DashboardAction('متابعة الحالات', 'المواعيد والحجوزات', AppRouter.appointments, Icons.pregnant_woman),
-          _DashboardAction('الخدمات', 'خدمات القبالة والرعاية', AppRouter.services, Icons.health_and_safety),
-          _DashboardAction('التواصل الصحي', 'التواصل مع الحالات', AppRouter.chat, Icons.chat),
-          _DashboardAction('المحفظة', 'المعاملات المالية', AppRouter.wallet, Icons.account_balance_wallet),
-        ];
-      case 'physiotherapist':
-        return [
-          _DashboardAction('الجلسات والمواعيد', 'متابعة الجلسات والحجوزات', AppRouter.appointments, Icons.accessibility_new),
-          _DashboardAction('الخدمات', 'خدمات العلاج الطبيعي', AppRouter.services, Icons.fitness_center),
-          _DashboardAction('التواصل الصحي', 'التواصل مع الحالات', AppRouter.chat, Icons.chat),
-          _DashboardAction('المحفظة', 'المعاملات المالية', AppRouter.wallet, Icons.account_balance_wallet),
-        ];
-      case 'nurse':
-      default:
-        return [
-          _DashboardAction('المواعيد', 'متابعة مواعيد وحجوزات المرضى', AppRouter.appointments, Icons.calendar_month),
-          _DashboardAction('الخدمات', 'إدارة خدمات الرعاية والتمريض', AppRouter.services, Icons.health_and_safety),
-          _DashboardAction('التواصل الصحي', 'التواصل مع المرضى', AppRouter.chat, Icons.chat),
-          _DashboardAction('المحفظة', 'المعاملات المالية', AppRouter.wallet, Icons.account_balance_wallet),
-        ];
-    }
+    return RoleDashboardSpecs.forRole(role).actions
+        .map((item) => _DashboardAction(item.title, item.subtitle, item.route, item.icon))
+        .toList(growable: false);
   }
 }
 
