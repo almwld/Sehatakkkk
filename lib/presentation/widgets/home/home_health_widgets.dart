@@ -52,6 +52,7 @@ class HomeHealthWidgets extends StatelessWidget {
         'label': 'ضغط الدم',
         'value': 120.0,
         'max': 180.0,
+        'display': '120',
         'color': Colors.red,
         'icon': 'assets/images/tracking/blood_pressure.png'
       },
@@ -59,6 +60,7 @@ class HomeHealthWidgets extends StatelessWidget {
         'label': 'سكر الدم',
         'value': 98.0,
         'max': 200.0,
+        'display': '98',
         'color': Colors.orange,
         'icon': 'assets/images/tracking/blood_sugar.png'
       },
@@ -66,6 +68,7 @@ class HomeHealthWidgets extends StatelessWidget {
         'label': 'اللياقة',
         'value': 85.0,
         'max': 100.0,
+        'display': '85%',
         'color': Colors.green,
         'icon': 'assets/images/tracking/fitness.png'
       },
@@ -73,6 +76,7 @@ class HomeHealthWidgets extends StatelessWidget {
         'label': 'الوزن',
         'value': 72.0,
         'max': 120.0,
+        'display': '72',
         'color': Colors.purple,
         'icon': 'assets/images/tracking/weight_tracking.png'
       },
@@ -80,6 +84,7 @@ class HomeHealthWidgets extends StatelessWidget {
         'label': 'التغذية',
         'value': 8.0,
         'max': 10.0,
+        'display': '8/10',
         'color': Colors.teal,
         'icon': 'assets/images/tracking/nutrition.png'
       },
@@ -87,6 +92,7 @@ class HomeHealthWidgets extends StatelessWidget {
         'label': 'الصحة النفسية',
         'value': 9.0,
         'max': 10.0,
+        'display': '9/10',
         'color': Colors.indigo,
         'icon': 'assets/images/tracking/mental_health.png'
       },
@@ -218,6 +224,25 @@ class HomeHealthWidgets extends StatelessWidget {
           child: Column(
             children: [
               const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(item['label'] as String,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.grey[300] : Colors.grey[700])),
+                  const SizedBox(width: 6),
+                  Text(item['display'] as String,
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          color: color)),
+                ],
+              ),
+              const SizedBox(height: 5),
               SizedBox(
                 width: 76,
                 height: 76,
@@ -234,24 +259,9 @@ class HomeHealthWidgets extends StatelessWidget {
                             Icons.favorite_outline,
                             color: color,
                             size: 25)),
-                    Positioned(
-                        bottom: 0,
-                        child: Text('${(progress * 100).toInt()}%',
-                            style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: color))),
                   ],
                 ),
               ),
-              const SizedBox(height: 4),
-              Text(item['label'] as String,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.grey[400] : Colors.grey[600])),
             ],
           ),
         ),
