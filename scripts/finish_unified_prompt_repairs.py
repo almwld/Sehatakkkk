@@ -23,6 +23,8 @@ def chat_screen(t):
     t = t.replace("final created = await Navigator.push<bool>(context, MaterialPageRoute(builder: (_) => const AddStatusScreen()));", "final created = await context.push<bool>(AppRouter.addStatus);")
     t = re.sub(r"await Navigator\.push\(\s*context,\s*MaterialPageRoute\(builder: \(_\) => StoryViewerScreen\(status: status\)\),\s*\);", "await context.push(AppRouter.storyViewer, extra: status);", t)
     t = re.sub(r"await Navigator\.push\(\s*context,\s*MaterialPageRoute\(\s*builder: \(_\) => ChatRoomScreen\(chatId: chatId, otherUserId: otherId, otherUserName: name, groupImage: image\.isEmpty \? null : image\),\s*\),\s*\);", "await context.push(AppRouter.chatRoom, extra: <String, dynamic>{'chatId': chatId, 'otherUserId': otherId, 'otherUserName': name, 'groupImage': image.isEmpty ? null : image});", t)
+    # زيادة زر بدء محادثة الدردشة بنسبة 4% مع الحفاظ على تصميمه ووظيفته.
+    t = t.replace("FloatingActionButton.extended(\n              backgroundColor: AppColors.primary,", "FloatingActionButton.extended(\n              extendedPadding: const EdgeInsets.symmetric(horizontal: 17),\n              backgroundColor: AppColors.primary,")
     return t
 patch('lib/presentation/screens/chat/chat_screen.dart', chat_screen)
 
@@ -63,3 +65,24 @@ def health_dashboard(t):
     t = t.replace("_healthScore = 78.5;", "_healthScore = 0.0;")
     return t
 patch('lib/presentation/screens/health/health_dashboard.dart', health_dashboard)
+
+def home_order(t):
+    # ترتيب الصفحة الرئيسية حسب المواصفة: المؤشرات قبل الخدمات، والطقس ضمن المحتوى الحقيقي قبل المجتمع.
+    old = """                SliverToBoxAdapter(child: KeyedSubtree(key: _quickServicesTourKey, child: _quickServices(dark))),
+                SliverToBoxAdapter(child: KeyedSubtree(key: _vitalsTourKey, child: _healthSummary(state, dark))),"""
+    new = """                SliverToBoxAdapter(child: KeyedSubtree(key: _vitalsTourKey, child: _healthSummary(state, dark))),
+                SliverToBoxAdapter(child: KeyedSubtree(key: _quickServicesTourKey, child: _quickServices(dark))),"""
+    t = t.replace(old, new, 1)
+    old2 = """                SliverToBoxAdapter(child: _articles(state.articles, dark)),
+                SliverToBoxAdapter(child: _tips(state.tips, dark)),
+                SliverToBoxAdapter(child: _discover(dark)),
+                SliverToBoxAdapter(child: _weather(dark)),
+                SliverToBoxAdapter(child: KeyedSubtree(key: _communityTourKey, child: _community(state.communityPosts, dark))),"""
+    new2 = """                SliverToBoxAdapter(child: _articles(state.articles, dark)),
+                SliverToBoxAdapter(child: _tips(state.tips, dark)),
+                SliverToBoxAdapter(child: _weather(dark)),
+                SliverToBoxAdapter(child: _discover(dark)),
+                SliverToBoxAdapter(child: KeyedSubtree(key: _communityTourKey, child: _community(state.communityPosts, dark))),"""
+    t = t.replace(old2, new2, 1)
+    return t
+patch('lib/presentation/screens/home/tabs/home_tab.dart', home_order)
